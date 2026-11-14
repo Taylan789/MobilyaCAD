@@ -11,16 +11,17 @@ Gerçek bir tasarım-üretim (design-to-manufacturing) akışı sağlamak.
 ## Genel İlerleme
 - [x] Safha 1: Tam proje denetimi ve geri kazanım
 - [x] P0: Kritik veri ve geometri doğruluk düzeltmeleri (ilk kısm)
-- [ ] P1: Parametrik mobilya motoru
-- [ ] P2: Tam üretim hesaplama motoru (kısmen başlandı)
-- [ ] P3: Malzeme / kenar bant / donanım yönetimi
+- [x] P2/P3 temeli: Kesim listesi, malzeme tüketimi, donanım hesapları
+- [x] P8: Geri al / yinele geçmişi
+- [x] P7: Proje yönetimi, sürümleme, otomatik kaydetme ve kurtarma
+- [ ] P1: Parametrik mobilya motoru (kısmen: parçalar yapılandırmadan türetiliyor)
+- [ ] P2: Tam üretim hesaplama motoru (temel bina yapıldı)
+- [ ] P3: Malzeme / kenar bant / donanım yönetimi (motor hazır, UI kısmen)
 - [ ] P4: Profesyonel 3D CAD ortamı
 - [ ] P5: Teknik çizim ve ölçülendirme
-- [ ] P6: Kesim listesi, malzeme optimizasyonu, üretim raporları
-- [ ] P7: Proje yönetimi, kaydetme ve kurtarma
-- [ ] P8: Geri al / yinele geçmişi
+- [ ] P6: Kesim optimizasyonu ve üretim raporları
 - [ ] P9: UX ve ürün kalitesi
-- [ ] P10: Test, güvenlik ve güvenilirlik
+- [ ] P10: Test, güvenlik ve güvenilirlik (kritik hesaplar test ediliyor)
 - [ ] P11: Performans ve mimari
 - [ ] P12: CNC ve ileri üretim temeli
 - [ ] P13: Erişilebilirlik, yerelleştirme ve dokümantasyon
@@ -33,7 +34,7 @@ Gerçek bir tasarım-üretim (design-to-manufacturing) akışı sağlamak.
    `doorCount` / `drawerCount` / `shelfCount` alanları göz ardı ediliyordu.
    Sonuç: çekmeceli dolapta "hayalet kapak", rafsız dolapta "hayalet raf".
 2. **Kapak sayısı 0 desteklenmiyordu** — `doorCount >= 1` doğrulaması
-   çekmeceli / raflı kasalar için hata veriyordu.
+   çekmeceli / raflı kasalarda hata veriyordu.
 3. **İç yükseklik hesabı yanlıştı** — `engine/cabinetGeometry.ts`
    `between-sides` stili için iç yükseklik `H` döndürüyordu; fiziksel doğru
    cevap her iki stilde de `H - 2t` tir.
@@ -82,7 +83,7 @@ Gerçek bir tasarım-üretim (design-to-manufacturing) akışı sağlamak.
   - Oda ölçüsü değişince mobilyalar `clampFurnitureToRoom` ile sınırlanıyor.
 
 ### M2 — Kesim listesi, malzeme tüketimi ve donanım motoru (P2/P3 temeli)
-- `engine/cutList.ts`: proje genelinde tüm mobilyalar için kesim listesi;
+- `engine/cutList.ts`: proje genelinde tüm mobnyalar için kesim listesi;
   mobilya / malzeme / kalınlık / parça tipi bazında gruplama; CSV (BOM,
   Türkçe karakter, noktalı virgül, kaçırma) ve JSON dışa aktarım; özet istatistik.
 - `engine/materialCalculator.ts`: parça başına kenar bantlama uzunluğu,
@@ -92,17 +93,32 @@ Gerçek bir tasarım-üretim (design-to-manufacturing) akışı sağlamak.
   çekmece kaydırıcı, raf pimi, tutamaç ve minifix adedi.
 - `App.tsx`: Üretim sekmesinde proje kesim listesi özeti, malzeme tüketimi
   tablosu, CSV/JSON proje dışa aktarma butonları.
-- CI: test adımı eklenmeye çalışıldı ancak GitHub App'in `workflows` izni
-  olmadığı için `.github/workflows/ci.yml` değiştirilemedi; testler yerel
-  `npm test` ile çalıştırılıyor.
 
-## Değiştirilen Dosyalar (M1 + M2)
+### M3 — Geri al / yinele geçmişi (P8)
+- `engine/history.ts`: saf geçiş yığını (recordChange/undoChange/redoChange,
+  50 kayıt sınırı, sınır doğrulaması).
+- `App.tsx`: sahne anlık görüntüleriyle tüm düzenleme işlemleri geçmişe
+  kaydediliyor (ekle/sil/taşı/döndür/boyutlandır/oda ölçüsü/proje yükleme);
+  Ctrl+Z / Ctrl+Shift+Z / Ctrl+Y kısayolları; üst araç çubuğu butonları etkin.
+
+### M4 — Proje yönetimi, sürümleme ve otomatik kaydetme (P7)
+- `engine/project.ts`: proje şeması (format "MobilyaCAD", sürüm 2),
+  tek giriş noktası doğrulama, v1→v2 migrasyonu, serileştirme,
+  güvenli dosya adı, proje çoğaltma (yeni kimlikler).
+- `App.tsx`: v1 içe aktarma desteği korundu; proje adı üst çubukta
+  tıklanarak yeniden adlandırılır; Çoğalt ve Yeni proje butonları;
+  localStorage otomatik kaydetme + açılışta kurtarma (ilk render atlanır,
+  kurtarma önce okunur); otomatik kaydetme zamanı durum çubuğunda gösterilir.
+
+## Değiştirilen Dosyalar (M1–M4)
 - `frontend/src/engine/cabinetGeometry.ts`
 - `frontend/src/engine/cabinetParts.ts`
 - `frontend/src/engine/furnitureCalculator.ts`
 - `frontend/src/engine/cutList.ts` (yeni)
 - `frontend/src/engine/materialCalculator.ts` (yeni)
 - `frontend/src/engine/hardwareCalculator.ts` (yeni)
+- `frontend/src/engine/history.ts` (yeni)
+- `frontend/src/engine/project.ts` (yeni)
 - `frontend/src/types/placedFurniture.ts`
 - `frontend/src/types/construction/cabinetRules.ts`
 - `frontend/src/App.tsx`
@@ -110,32 +126,39 @@ Gerçek bir tasarım-üretim (design-to-manufacturing) akışı sağlamak.
 - Testler: `measurement.test.ts`, `cabinetGeometry.test.ts`,
   `cabinetParts.test.ts`, `furnitureCalculator.test.ts`,
   `placedFurniture.test.ts`, `materialCalculator.test.ts`,
-  `hardwareCalculator.test.ts`, `cutList.test.ts`
+  `hardwareCalculator.test.ts`, `cutList.test.ts`,
+  `history.test.ts`, `project.test.ts`
 
 ## Test Sonuçları
-`npx vitest run` → **8 dosya, 52 test, hepsi geçti** (0 başarısız).
+`npx vitest run` → **10 dosya, 72 test, hepsi geçti** (0 başarısız).
 
 ## Build Sonucu
 `npm run build` (tsc -b && vite build) → **başarılı**.
 
 ## Lint Sonucu
-`npm run lint` → **çıkış kodu 0** (15 uyarı, 0 hata; uyarılar shadcn
-kalıp bileşenlerinden kaynaklanan önceden var olan `react/immutability`
-ve `only-export-components` uyarılarıdır).
+`npm run lint` → **çıkış kodu 0** (uyarılar shadcn kalıp bileşenlerinden
+kaynaklanan önceden var olan `react/immutability` / `only-export-components`
+uyarılarıdır).
 
 ## Bilinen Kısıtlamalar
 - Üretim hesaplamaları kurallara göre teorik ölçüler üretir; gerçek
   atölye doğrulaması (kerf, pres kuvveti, bağlantı detayları) yoktur.
 - CNC operasyonları (`cncOperations`) henüz doldurulmadı.
-- Geri al / yinele (undo/redo) hâlâ uygulanmadı.
-- Proje kaydetme yerel indirme/yeükleme ile sınırlı; schema sürümüleme yok.
 - `frontend/src/data/.hardwareCatalog.ts` hâlâ kullanım dışı.
 - Stok levha tahmini heuristiktir; optimum olduğu iddia edilmez.
 - Donanım adetleri kurallara dayalı tahmindir; üretici teknik verisi yok.
+- Otomatik kaydetme yerel tarayıcı depolamasına bağlıdır; depolama
+  kullanılamıyorsa kurtarma yapılmaz (sessizce atlanır).
 
 ## Sonraki Adım
-1. Donanım miktarlarını Üretim sekmesinde göstermek.
-2. P1 parametrik mobilya mimarisi: katalog kalıplarını `FurnitureConfig`
+1. P1 parametrik mobilya mimarisi: katalog kalıplarını `FurnitureConfig`
    üzerinden türetmek, kopya mantığı kaldırmak.
-3. P8 geri al / yinele (undo/redo) geçmişi.
-4. P7 proje şeması sürümüleme, otomatik kaydetme ve kurtarma.
+2. P3: malzeme kütüphanesi UI ve kenar bantlama seçimi.
+3. P6: kesim optimizasyonu (heuristik yerleştirme) ve üretim raporları.
+4. P4/P5: 3D düzenleme iyileştirmeleri ve teknik çizim.
+
+## Kurtarma Talimatları
+Sonraki çalışma akışı en son pushed commit'ten (`opencode/dispatch-8ea49f-20261114045749`)
+başlamalı ve bu dosyadaki en güncel kontrol noktasından devam etmelidir.
+`cd frontend && npm ci && npm test && npm run build && npm run lint` ile
+durum doğrulanmalıdır.

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import type { ChangeEvent, CSSProperties } from "react";
 import {
   Box,
@@ -89,6 +89,14 @@ import {
   canRedo
 } from "./engine/history";
 import type { HistoryStack } from "./engine/history";
+import {
+  parseProject,
+  serializeProject,
+  projectFileName,
+  duplicateProjectFurniture
+} from "./engine/project";
+
+const AUTOSAVE_KEY = "mobilyacad-autosave";
 
 function App() {
   const [roomWidth, setRoomWidth] = useState(4000);
@@ -100,6 +108,9 @@ function App() {
   const [selectedPartId, setSelectedPartId] = useState<string | null>(null);
   const [transformMode, setTransformMode] = useState<"translate" | "scale" | "rotate">("translate");
   const [mobilePanel, setMobilePanel] = useState<"catalog" | "inspector" | null>(null);
+  const [projectName, setProjectName] = useState("Yeni Tasarım");
+  const [autosaveTime, setAutosaveTime] = useState<string | null>(null);
+  const firstRenderRef = useRef(true);
 
   // Geri al / yinele geçmişi (sahne anlık görüntüleri).
   interface SceneSnapshot {
@@ -175,6 +186,43 @@ function App() {
       setSelectedFurnitureId(null);
     }
   }, [furniture, selectedFurnitureId]);
+
+  // Uygulama açıldığında otomatik kayıttan kurtarma yapılır.
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(AUTOSAVE_KEY);
+      if (!saved) return;
+
+      const project = parseProject(saved);
+      setProjectName(project.projectName);
+      setRoomWidth(project.room.width);
+      setRoomLength(project.room.length);
+      setRoomHeight(project.room.height);
+      setFurniture(project.furniture);
+    } catch {
+      // Kurtarılamazsa varsayılan sahne kullanılır.
+    }
+  }, []);
+
+  // Otomatik kaydetme: ilk render atlanır, kurtarma önce okunur.
+  useEffect(() => {
+    if (firstRenderRef.current) {
+      firstRenderRef.current = false;
+      return;
+    }
+
+    try {
+      const file = serializeProject(
+        projectName,
+        { width: roomWidth, length: roomLength, height: roomHeight },
+        furniture
+      );
+      localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(file));
+      setAutosaveTime(new Date().toLocaleTimeString("tr-TR"));
+    } catch {
+      // Yerel depolama kullanılamıyorsa otomatik kaydetme atlanır.
+    }
+  }, [projectName, roomWidth, roomLength, roomHeight, furniture]);
 
   const [constructionRules] = useState<CabinetConstructionRules>({
     panelThickness: 18,
@@ -767,27 +815,19 @@ function App() {
   }
 
   function saveProject() {
-    const project = {
-      format: "MobilyaCAD",
-      formatVersion: 1,
-      savedAt: new Date().toISOString(),
-      room: {
-        width: roomWidth,
-        length: roomLength,
-        height: roomHeight,
-        unit: "mm",
-      },
-      furniture,
-    };
+    const project = serializeProject(
+      projectName,
+      { width: roomWidth, length: roomLength, height: roomHeight },
+      furniture
+    );
 
     const json = JSON.stringify(project, null, 2);
     const file = new Blob([json], { type: "application/json;charset=utf-8" });
     const url = URL.createObjectURL(file);
     const link = document.createElement("a");
-    const date = new Date().toISOString().replace(/[:.]/g, "-");
 
     link.href = url;
-    link.download = `mobilyacad-proje-${date}.json`;
+    link.download = `${projectFileName(projectName)}.json`;
     document.body.appendChild(link);
     link.click();
     link.remove();
@@ -799,102 +839,13 @@ function App() {
     if (!file) return;
 
     try {
-      const parsed = JSON.parse(await file.text()) as {
-        format?: unknown;
-        formatVersion?: unknown;
-        room?: { width?: unknown; length?: unknown; height?: unknown };
-        furniture?: unknown;
-      };
-
-      const room = parsed.room;
-      const isRecord = (
-        value: unknown
-      ): value is Record<string, unknown> =>
-        typeof value === "object" && value !== null && !Array.isArray(value);
-      const isPositiveNumber = (value: unknown) =>
-        typeof value === "number" && Number.isFinite(value) && value > 0;
-      const isValidPosition = (value: unknown) =>
-        Array.isArray(value) &&
-        value.length === 3 &&
-        value.every(
-          (coordinate) =>
-            typeof coordinate === "number" && Number.isFinite(coordinate)
-        );
-
-      const validFurniture =
-        Array.isArray(parsed.furniture) &&
-        parsed.furniture.every((item: unknown) => {
-          if (!isRecord(item)) return false;
-
-          const parts = item.parts;
-          const validParts =
-            Array.isArray(parts) &&
-            parts.every((part: unknown) => {
-              if (!isRecord(part)) return false;
-              return (
-                typeof part.id === "string" &&
-                typeof part.name === "string" &&
-                ["door", "drawer", "shelf", "panel"].includes(
-                  String(part.type)
-                ) &&
-                isPositiveNumber(part.width) &&
-                isPositiveNumber(part.height) &&
-                isPositiveNumber(part.depth) &&
-                isValidPosition(part.position) &&
-                typeof part.rotation === "number" &&
-                Number.isFinite(part.rotation) &&
-                typeof part.color === "string" &&
-                typeof part.material === "string"
-              );
-            });
-
-          return (
-            typeof item.id === "string" &&
-            typeof item.catalogId === "string" &&
-            typeof item.name === "string" &&
-            isPositiveNumber(item.width) &&
-            isPositiveNumber(item.height) &&
-            isPositiveNumber(item.depth) &&
-            isValidPosition(item.position) &&
-            typeof item.rotation === "number" &&
-            Number.isFinite(item.rotation) &&
-            typeof item.color === "string" &&
-            Number.isInteger(item.doorCount) &&
-            Number(item.doorCount) >= 0 &&
-            Number.isInteger(item.drawerCount) &&
-            Number(item.drawerCount) >= 0 &&
-            Number.isInteger(item.shelfCount) &&
-            Number(item.shelfCount) >= 0 &&
-            typeof item.hasBackPanel === "boolean" &&
-            isPositiveNumber(item.backThickness) &&
-            typeof item.edgeBanding === "boolean" &&
-            typeof item.material === "string" &&
-            validParts
-          );
-        });
-
-      if (
-        parsed.format !== "MobilyaCAD" ||
-        parsed.formatVersion !== 1 ||
-        !room ||
-        typeof room.width !== "number" ||
-        !Number.isFinite(room.width) ||
-        room.width < 100 ||
-        typeof room.length !== "number" ||
-        !Number.isFinite(room.length) ||
-        room.length < 100 ||
-        typeof room.height !== "number" ||
-        !Number.isFinite(room.height) ||
-        room.height < 100 ||
-        !validFurniture
-      ) {
-        throw new Error("Dosya MobilyaCAD proje formatıyla uyumlu değil.");
-      }
+      const parsed = parseProject(await file.text());
 
       recordSnapshot();
-      setRoomWidth(room.width);
-      setRoomLength(room.length);
-      setRoomHeight(room.height);
+      setProjectName(parsed.projectName);
+      setRoomWidth(parsed.room.width);
+      setRoomLength(parsed.room.length);
+      setRoomHeight(parsed.room.height);
       setFurniture(parsed.furniture as PlacedFurniture[]);
       setSelectedFurnitureId(null);
       setSelectedPartId(null);
@@ -909,6 +860,38 @@ function App() {
     } finally {
       event.target.value = "";
     }
+  }
+
+  function renameProject() {
+    const name = window.prompt("Proje adı:", projectName);
+
+    if (name && name.trim().length > 0) {
+      setProjectName(name.trim());
+    }
+  }
+
+  function duplicateProject() {
+    recordSnapshot();
+    setFurniture((previous) => duplicateProjectFurniture(previous));
+    setProjectName(`${projectName} (Kopya)`);
+    setSelectedFurnitureId(null);
+    setSelectedPartId(null);
+  }
+
+  function newProject() {
+    if (!window.confirm("Yeni proje başlatılsın mı? Otomatik kaydedilmiş sahne değişir.")) {
+      return;
+    }
+
+    recordSnapshot();
+    setProjectName("Yeni Tasarım");
+    setRoomWidth(4000);
+    setRoomLength(5000);
+    setRoomHeight(2800);
+    setFurniture([]);
+    setSelectedFurnitureId(null);
+    setSelectedPartId(null);
+    setDimensionDraft(null);
   }
 
   function deleteFurniture() {
@@ -978,8 +961,19 @@ function App() {
 
           <div className="cad-document-name">
             <span className="cad-document-dot" />
-            <span>Yeni Tasarım</span>
-            <span className="cad-document-status">Kaydedilmedi</span>
+            <button
+              type="button"
+              className="cad-document-name-button"
+              onClick={renameProject}
+              title="Proje adını değiştir"
+            >
+              {projectName}
+            </button>
+            <span className="cad-document-status">
+              {autosaveTime
+                ? `Otomatik kaydedildi ${autosaveTime}`
+                : "Kaydedilmedi"}
+            </span>
           </div>
 
           <div className="cad-top-actions">
@@ -1083,6 +1077,26 @@ function App() {
             >
               Proje Aç
             </Button>
+            <Tooltip>
+              <TooltipTrigger
+                render={
+                  <Button variant="outline" onClick={duplicateProject}>
+                    Çoğalt
+                  </Button>
+                }
+              />
+              <TooltipContent>Projeyi kopyala</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger
+                render={
+                  <Button variant="outline" onClick={newProject}>
+                    Yeni
+                  </Button>
+                }
+              />
+              <TooltipContent>Yeni proje</TooltipContent>
+            </Tooltip>
             <Button className="cad-save-button" onClick={saveProject}>
               <Save />
               Projeyi İndir

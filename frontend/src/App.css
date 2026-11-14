@@ -131,6 +131,27 @@ select {
   font-size: 10px;
 }
 
+.cad-document-name-button {
+  color: #dce3e9;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  font: inherit;
+  font-weight: 600;
+  padding: 3px 7px;
+  cursor: pointer;
+  white-space: nowrap;
+  max-width: 260px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cad-document-name-button:hover {
+  border-color: var(--cad-border);
+  background: #29333c;
+}
+
+
 .cad-top-actions {
   display: flex;
   align-items: center;
