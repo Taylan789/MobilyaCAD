@@ -1,32 +1,43 @@
-# React + TypeScript + Vite
+# MobilyaCAD Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+React + TypeScript + Vite tabanlı MobilyaCAD istemcisi.
 
-Currently, two official plugins are available:
+## Gereksinimler
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- Node.js 22
+- npm
 
-## React Compiler
+## Kurulum
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```bash
+npm ci
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+## Komutlar
+
+| Komut | Açıklama |
+| --- | --- |
+| `npm run dev` | Vite geliştirme sunucusunu başlatır |
+| `npm run build` | TypeScript proje kontrollerini ve production build'i çalıştırır |
+| `npm run lint` | Oxlint statik kod kontrolünü çalıştırır |
+| `npm run preview` | Production çıktısını yerel olarak önizler |
+
+## Kaynak klasörleri
+
+- `src/components/furniture`: 3D mobilya bileşenleri
+- `src/components/viewport`: oda ve 3D sahne
+- `src/components/ui`: arayüz bileşenleri
+- `src/data`: mobilya kataloğu
+- `src/engine`: ölçü ve üretim hesaplama mantığı
+- `src/types`: proje, mobilya ve konstrüksiyon tipleri
+
+## Kontrol
+
+Değişiklik göndermeden önce:
+
+```bash
+npm run build
+npm run lint
+```
+
+GitHub Actions bu iki komutu her push ve pull request kontrolünde otomatik çalıştırır. Uygulamanın gerçek 3D etkileşimleri, farklı ekran boyutları ve üretim çıktıları ayrıca kullanıcı kabul testi gerektirir.
