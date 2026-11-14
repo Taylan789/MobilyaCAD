@@ -502,7 +502,7 @@ function App() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = \`mobilyacad-kesim-listesi-\${selectedFurniture.id}.csv\`;
+    link.download = `mobilyacad-kesim-listesi-${selectedFurniture.id}.csv`;
     document.body.appendChild(link);
     link.click();
     link.remove();
