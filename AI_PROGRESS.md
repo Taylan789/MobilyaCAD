@@ -123,12 +123,24 @@ Gerçek bir tasarım-üretim (design-to-manufacturing) akışı sağlamak.
 - `engine/technicalDrawing.ts`: ön yüz elevasyon çizimi (kapaklar,
   çekmece ön yüzleri, rafta çizgileri, genişlik/yükseklik boyut çizgileri,
   başlık); parça konumları üretim motorundan (`calculateCabinetParts`)
-  alınır, çizim ayrı bir ölçü kaynağı tutmaz; `isValidSvgDrawing`
-  doğrulama yardımcısı.
+  alınır; çizim ayrı bir ölçü kaynağı tutmaz; `isValidSvgDrawing`
+  doğrulama yardımcısı; `escapeXmlText` paylaşım helper'ı.
 - `App.tsx`: Üretim sekmesinde "TEKNİK ÇİZİM" bölümü; SVG canlı
   önizleme + "Çizim SVG İndir" butonu (`image/svg+xml`).
 
-## Değiştirilen Dosyalar (M1–M6)
+### M7 — Levha yerleştirme (nesting) optimizasyonu (P6, heuristik)
+- `engine/nesting.ts`: first-fit-decreasing + alt-sol (bottom-left)
+  heuristiği; kesim payı (kerf) arası boşluk, 90° döndürme seçeneği,
+  çok levhalara yayılım, yerleştirilemeyen parça tespiti, kullanım
+  oranı (%); `generateNestingSvg` (levha çizimi, "Heuristik
+  yerleştirme (optimum değil)" etiketi), `summarizeNesting`.
+- `App.tsx`: Üretim sekmesinde "LEVHA YERLEŞTİRME" bölümü; kesim
+  listesi malzeme+kalınlık grupları başına levha sayısı, kullanım
+  oranı, yerleştirilen/sığmayan parça sayısı, ilk levhanın SVG
+  önizlemesi ve SVG indirme. Standart levha 2800×2070 mm,
+  kerf = panel kalınlığının 1/4'i.
+
+## Değiştirilen Dosyalar (M1–M7)
 - `frontend/src/engine/cabinetGeometry.ts`
 - `frontend/src/engine/cabinetParts.ts`
 - `frontend/src/engine/furnitureCalculator.ts`
@@ -139,6 +151,7 @@ Gerçek bir tasarım-üretim (design-to-manufacturing) akışı sağlamak.
 - `frontend/src/engine/project.ts` (yeni)
 - `frontend/src/engine/manufacturingConstraints.ts` (yeni)
 - `frontend/src/engine/technicalDrawing.ts` (yeni)
+- `frontend/src/engine/nesting.ts` (yeni)
 - `frontend/src/types/placedFurniture.ts`
 - `frontend/src/types/construction/cabinetRules.ts`
 - `frontend/src/App.tsx`
@@ -149,10 +162,11 @@ Gerçek bir tasarım-üretim (design-to-manufacturing) akışı sağlamak.
   `hardwareCalculator.test.ts`, `cutList.test.ts`,
   `history.test.ts`, `project.test.ts`,
   `manufacturingConstraints.test.ts` (yeni),
-  `technicalDrawing.test.ts` (yeni)
+  `technicalDrawing.test.ts` (yeni),
+  `nesting.test.ts` (yeni)
 
 ## Test Sonuçları
-`npx vitest run` → **12 dosya, 87 test, hepsi geçti** (0 başarısız).
+`npx vitest run` → **13 dosya, 98 test, hepsi geçti** (0 başarısız).
 
 ## Build Sonucu
 `npm run build` (tsc -b && vite build) → **başarılı**.
@@ -168,6 +182,9 @@ uyarılarıdır).
 - CNC operasyonları (`cncOperations`) henüz doldurulmadı.
 - Teknik çizim yalnızca ön yüz elevasyonu üretir; yan yüz ve montaj
   çizimleri eklenmemiş.
+- Levha yerleştirme (nesting) first-fit-decreasing + alt-sol
+  heuristiğidir; optimum değil, gerçek CNC makine sınırları
+  (maksimum levha, grip alanı) modellenmemiştir.
 - `frontend/src/data/.hardwareCatalog.ts` hâlâ kullanım dışı.
 - Stok levha tahmini heuristiktir; optimum olduğu iddia edilmez.
 - Donanım adetleri kurallara dayalı tahmindir; üretici teknik verisi yok.
@@ -175,11 +192,10 @@ uyarılarıdır).
   kullanılamıyorsa kurtarma yapılmaz (sessizce atlanır).
 
 ## Sonraki Adım
-1. P6: kesim optimizasyonu (levha yerleştirme heuristiği) ve üretim raporları.
-2. P1 parametrik mobilya mimarisi: katalog kalıplarını `FurnitureConfig`
+1. P1 parametrik mobilya mimarisi: katalog kalıplarını `FurnitureConfig`
    üzerinden türetmek, kopya mantığı kaldırmak.
-3. P3: malzeme kütüphanesi UI ve kenar bantlama seçimi.
-4. P4: 3D düzenleme iyileştirmeleri.
+2. P3: malzeme kütüphanesi UI ve kenar bantlama seçimi.
+3. P4: 3D düzenleme iyileştirmeleri.
 
 ## Kurtarma Talimatları
 Sonraki çalışma akışı en son pushed commit'ten (`opencode/dispatch-8ea49f-20261114045749`)

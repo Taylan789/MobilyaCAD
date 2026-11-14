@@ -27,6 +27,7 @@ import {
   Layers3,
   DraftingCompass,
   AlertTriangle,
+  LayoutGrid,
 } from "lucide-react";
 
 import { Button } from "./components/ui/button";
@@ -79,6 +80,7 @@ import {
   buildCutList,
   cutListToCsv,
   cutListToJson,
+  groupCutList,
   summarizeCutList
 } from "./engine/cutList";
 import { calculateMaterialConsumption } from "./engine/materialCalculator";
@@ -102,8 +104,13 @@ import {
   defaultManufacturingConstraints
 } from "./engine/manufacturingConstraints";
 import { generateFrontElevationSvg } from "./engine/technicalDrawing";
+import { generateNestingSvg, nestParts } from "./engine/nesting";
+import type { NestingResult } from "./engine/nesting";
 
 const AUTOSAVE_KEY = "mobilyacad-autosave";
+
+// Standart üretim levhası (mm). İhtiyaç üzerine yapılandırılabilir.
+const NESTING_SHEET = { widthMm: 2800, lengthMm: 2070 };
 
 function App() {
   const [roomWidth, setRoomWidth] = useState(4000);
@@ -417,6 +424,51 @@ function App() {
   );
 
   const projectSummary = summarizeCutList(projectCutList);
+
+  // Levha bazlı yerleştirme (nesting) sonuçları.
+  // Malzeme + kalınlık grupları başına hesaplanır.
+  // Heuristiktir; optimum yerleştirme garanti edilmez.
+  const projectNesting: Array<{
+    key: string;
+    material: string;
+    thicknessMm: number;
+    safeName: string;
+    result: NestingResult;
+  }> = [];
+
+  if (projectCutList.length > 0) {
+    const groups = groupCutList(projectCutList, "material");
+
+    for (const [material, rows] of groups) {
+      const thicknessMm = rows[0].part.thickness;
+
+      projectNesting.push({
+        key: `${material}|${thicknessMm}`,
+        material,
+        thicknessMm,
+        safeName: material.replace(/[\\/:*?"<>|]/g, "-").trim().slice(0, 40),
+        result: nestParts(
+          rows.map(row => ({
+            id: row.part.id,
+            name: row.part.name,
+            widthMm: row.part.width,
+            lengthMm: row.part.length,
+            quantity: row.part.quantity
+          })),
+          NESTING_SHEET,
+          { kerfMm: constructionRules.panelThickness / 4 }
+        )
+      });
+    }
+  }
+
+  function exportNestingSvg(group: (typeof projectNesting)[number]) {
+    downloadFile(
+      generateNestingSvg(group.result, 0),
+      `mobilyacad-levha-${group.safeName || "yerlesim"}.svg`,
+      "image/svg+xml"
+    );
+  }
 
   function addFurniture(catalogId: string) {
     const item = furnitureCatalog.find(
@@ -1822,6 +1874,64 @@ function App() {
                             <strong>Üretim verisi bulunmuyor</strong>
                             <p>
                               Seçili mobilya için hesaplanan üretim parçaları
+                              burada görüntülenir.
+                            </p>
+                          </div>
+                        )}
+                      </section>
+
+                      <Separator className="cad-section-separator" />
+
+                      <section className="cad-property-section">
+                        <div className="cad-section-heading">
+                          <span>LEVHA YERLEŞTİRME</span>
+                          <LayoutGrid />
+                        </div>
+
+                        {projectNesting.length > 0 ? (
+                          projectNesting.map(group => (
+                            <div
+                              key={group.key}
+                              className="cad-production-card"
+                            >
+                              <strong>
+                                {group.material} · {group.thicknessMm} mm
+                              </strong>
+                              <span>
+                                {group.result.sheets.length} levha · %
+                                {group.result.utilizationPercent.toFixed(1)}{" "}
+                                kullanım
+                              </span>
+                              <small>
+                                {group.result.placedCount} parça yerleştirildi
+                                {group.result.unplaced.length > 0 &&
+                                  ` · ${group.result.unplaced.length} parça sığmadı`}
+                              </small>
+                              {group.result.sheets.length > 0 && (
+                                <div
+                                  className="cad-drawing-viewer"
+                                  dangerouslySetInnerHTML={{
+                                    __html: generateNestingSvg(group.result, 0)
+                                  }}
+                                />
+                              )}
+                              <Button
+                                className="cad-production-export"
+                                variant="outline"
+                                onClick={() => exportNestingSvg(group)}
+                              >
+                                Levha Çizimi SVG İndir
+                              </Button>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="cad-inspector-empty">
+                            <div>
+                              <LayoutGrid />
+                            </div>
+                            <strong>Levha verisi bulunmuyor</strong>
+                            <p>
+                              Odaya mobilya eklendiğinde levha yerleştirme
                               burada görüntülenir.
                             </p>
                           </div>

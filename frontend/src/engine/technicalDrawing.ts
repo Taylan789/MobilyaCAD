@@ -9,7 +9,8 @@ export interface DrawingOptions {
   title?: string;
 }
 
-function escapeXml(value: string): string {
+// SVG metin değerleri için XML karakterlerini esc'ler.
+export function escapeXmlText(value: string): string {
   return value
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
@@ -143,7 +144,7 @@ export function generateFrontElevationSvg(
 
   // Başlık
   lines.push(
-    `<text x="${margin}" y="${svgHeight - 8}" font-size="12" font-weight="600" fill="#1e293b">${escapeXml(title)}</text>`
+    `<text x="${margin}" y="${svgHeight - 8}" font-size="12" font-weight="600" fill="#1e293b">${escapeXmlText(title)}</text>`
   );
   lines.push(
     `<text x="${svgWidth - margin}" y="${svgHeight - 8}" text-anchor="end" font-size="10" fill="#64748b">Ön yüz elevasyonu</text>`
