@@ -497,32 +497,69 @@ function App() {
       };
 
       const room = parsed.room;
+      const isRecord = (
+        value: unknown
+      ): value is Record<string, unknown> =>
+        typeof value === "object" && value !== null && !Array.isArray(value);
+      const isPositiveNumber = (value: unknown) =>
+        typeof value === "number" && Number.isFinite(value) && value > 0;
+      const isValidPosition = (value: unknown) =>
+        Array.isArray(value) &&
+        value.length === 3 &&
+        value.every(
+          (coordinate) =>
+            typeof coordinate === "number" && Number.isFinite(coordinate)
+        );
+
       const validFurniture =
         Array.isArray(parsed.furniture) &&
         parsed.furniture.every((item: unknown) => {
-          if (typeof item !== "object" || item === null) return false;
-          const value = item as Partial<PlacedFurniture>;
+          if (!isRecord(item)) return false;
+
+          const parts = item.parts;
+          const validParts =
+            Array.isArray(parts) &&
+            parts.every((part: unknown) => {
+              if (!isRecord(part)) return false;
+              return (
+                typeof part.id === "string" &&
+                typeof part.name === "string" &&
+                ["door", "drawer", "shelf", "panel"].includes(
+                  String(part.type)
+                ) &&
+                isPositiveNumber(part.width) &&
+                isPositiveNumber(part.height) &&
+                isPositiveNumber(part.depth) &&
+                isValidPosition(part.position) &&
+                typeof part.rotation === "number" &&
+                Number.isFinite(part.rotation) &&
+                typeof part.color === "string" &&
+                typeof part.material === "string"
+              );
+            });
+
           return (
-            typeof value.id === "string" &&
-            typeof value.catalogId === "string" &&
-            typeof value.name === "string" &&
-            typeof value.width === "number" &&
-            Number.isFinite(value.width) &&
-            value.width > 0 &&
-            typeof value.height === "number" &&
-            Number.isFinite(value.height) &&
-            value.height > 0 &&
-            typeof value.depth === "number" &&
-            Number.isFinite(value.depth) &&
-            value.depth > 0 &&
-            Array.isArray(value.position) &&
-            value.position.length === 3 &&
-            value.position.every((coordinate) =>
-              typeof coordinate === "number" && Number.isFinite(coordinate)
-            ) &&
-            typeof value.rotation === "number" &&
-            Number.isFinite(value.rotation) &&
-            Array.isArray(value.parts)
+            typeof item.id === "string" &&
+            typeof item.catalogId === "string" &&
+            typeof item.name === "string" &&
+            isPositiveNumber(item.width) &&
+            isPositiveNumber(item.height) &&
+            isPositiveNumber(item.depth) &&
+            isValidPosition(item.position) &&
+            typeof item.rotation === "number" &&
+            Number.isFinite(item.rotation) &&
+            typeof item.color === "string" &&
+            Number.isInteger(item.doorCount) &&
+            Number(item.doorCount) >= 0 &&
+            Number.isInteger(item.drawerCount) &&
+            Number(item.drawerCount) >= 0 &&
+            Number.isInteger(item.shelfCount) &&
+            Number(item.shelfCount) >= 0 &&
+            typeof item.hasBackPanel === "boolean" &&
+            isPositiveNumber(item.backThickness) &&
+            typeof item.edgeBanding === "boolean" &&
+            typeof item.material === "string" &&
+            validParts
           );
         });
 
