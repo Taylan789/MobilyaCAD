@@ -462,7 +462,7 @@ function App() {
     const escapeCsv = (value: string | number) => {
       const text = String(value);
       return /[;"\\n\\r]/.test(text)
-        ? `"${text.replace(/"/g, '""')} "`.replace(/" "/g, '""')
+        ? `"${text.replace(/"/g, '""')}"`
         : text;
     };
 
