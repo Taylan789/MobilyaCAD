@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { CSSProperties } from "react";
+import type { ChangeEvent, CSSProperties } from "react";
 import {
   Box,
   CookingPot,
@@ -484,6 +484,88 @@ function App() {
     URL.revokeObjectURL(url);
   }
 
+  async function loadProject(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const parsed = JSON.parse(await file.text()) as {
+        format?: unknown;
+        formatVersion?: unknown;
+        room?: { width?: unknown; length?: unknown; height?: unknown };
+        furniture?: unknown;
+      };
+
+      const room = parsed.room;
+      const validRoom =
+        room !== undefined &&
+        typeof room.width === "number" &&
+        Number.isFinite(room.width) &&
+        room.width >= 100 &&
+        typeof room.length === "number" &&
+        Number.isFinite(room.length) &&
+        room.length >= 100 &&
+        typeof room.height === "number" &&
+        Number.isFinite(room.height) &&
+        room.height >= 100;
+
+      const validFurniture =
+        Array.isArray(parsed.furniture) &&
+        parsed.furniture.every((item: unknown) => {
+          if (typeof item !== "object" || item === null) return false;
+          const value = item as Partial<PlacedFurniture>;
+          return (
+            typeof value.id === "string" &&
+            typeof value.catalogId === "string" &&
+            typeof value.name === "string" &&
+            typeof value.width === "number" &&
+            Number.isFinite(value.width) &&
+            value.width > 0 &&
+            typeof value.height === "number" &&
+            Number.isFinite(value.height) &&
+            value.height > 0 &&
+            typeof value.depth === "number" &&
+            Number.isFinite(value.depth) &&
+            value.depth > 0 &&
+            Array.isArray(value.position) &&
+            value.position.length === 3 &&
+            value.position.every((coordinate) =>
+              typeof coordinate === "number" && Number.isFinite(coordinate)
+            ) &&
+            typeof value.rotation === "number" &&
+            Number.isFinite(value.rotation) &&
+            Array.isArray(value.parts)
+          );
+        });
+
+      if (
+        parsed.format !== "MobilyaCAD" ||
+        parsed.formatVersion !== 1 ||
+        !validRoom ||
+        !validFurniture
+      ) {
+        throw new Error("Dosya MobilyaCAD proje formatıyla uyumlu değil.");
+      }
+
+      setRoomWidth(room.width as number);
+      setRoomLength(room.length as number);
+      setRoomHeight(room.height as number);
+      setFurniture(parsed.furniture as PlacedFurniture[]);
+      setSelectedFurnitureId(null);
+      setSelectedPartId(null);
+      setDimensionDraft(null);
+      setMobilePanel(null);
+    } catch (error) {
+      window.alert(
+        error instanceof Error
+          ? error.message
+          : "Proje dosyası okunamadı."
+      );
+    } finally {
+      event.target.value = "";
+    }
+  }
+
   function deleteFurniture() {
     setFurniture((previous) =>
       previous.filter((item) => item.id !== selectedFurnitureId)
@@ -632,6 +714,19 @@ function App() {
               <span />
               Tasarım modu
             </div>
+            <input
+              id="mobilyacad-project-file"
+              type="file"
+              accept=".json,application/json"
+              onChange={loadProject}
+              hidden
+            />
+            <Button
+              variant="outline"
+              onClick={() => document.getElementById("mobilyacad-project-file")?.click()}
+            >
+              Proje Aç
+            </Button>
             <Button className="cad-save-button" onClick={saveProject}>
               <Save />
               Projeyi İndir
