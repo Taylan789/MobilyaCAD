@@ -542,7 +542,15 @@ function App() {
         parsed.format !== "MobilyaCAD" ||
         parsed.formatVersion !== 1 ||
         !room ||
-        !validRoom ||
+        typeof room.width !== "number" ||
+        !Number.isFinite(room.width) ||
+        room.width < 100 ||
+        typeof room.length !== "number" ||
+        !Number.isFinite(room.length) ||
+        room.length < 100 ||
+        typeof room.height !== "number" ||
+        !Number.isFinite(room.height) ||
+        room.height < 100 ||
         !validFurniture
       ) {
         throw new Error("Dosya MobilyaCAD proje formatıyla uyumlu değil.");
