@@ -1,0 +1,50 @@
+name: MobilyaCAD AI Developer
+
+on:
+  workflow_dispatch:
+    inputs:
+      task:
+        description: "AI yazilimciya verilecek gorev / ana prompt"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+concurrency:
+  group: mobilyacad-ai-developer
+  cancel-in-progress: false
+
+jobs:
+  ai-developer:
+    name: OpenCode autonomous development
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - name: Checkout selected branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+          fetch-depth: 0
+
+      - name: Run OpenCode with OpenRouter
+        uses: anomalyco/opencode/github@latest
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          model: openrouter/openrouter/free
+          use_github_token: true
+          prompt: |
+            You are working in the MobilyaCAD repository.
+            Follow repository instructions and inspect the existing code before editing.
+            Work on the branch selected for this workflow run. Do not force-push, delete branches,
+            rewrite history, or modify repository secrets/settings.
+            Implement the user's task thoroughly, run the available build, lint and tests,
+            fix issues introduced by your changes, and summarize exactly what was completed
+            and what remains. Do not claim tests passed unless they actually passed.
+
+            USER TASK:
+            ${{ inputs.task }}
