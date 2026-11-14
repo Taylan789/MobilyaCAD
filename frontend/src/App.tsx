@@ -541,15 +541,16 @@ function App() {
       if (
         parsed.format !== "MobilyaCAD" ||
         parsed.formatVersion !== 1 ||
+        !room ||
         !validRoom ||
         !validFurniture
       ) {
         throw new Error("Dosya MobilyaCAD proje formatıyla uyumlu değil.");
       }
 
-      setRoomWidth(room.width as number);
-      setRoomLength(room.length as number);
-      setRoomHeight(room.height as number);
+      setRoomWidth(room.width);
+      setRoomLength(room.length);
+      setRoomHeight(room.height);
       setFurniture(parsed.furniture as PlacedFurniture[]);
       setSelectedFurnitureId(null);
       setSelectedPartId(null);
