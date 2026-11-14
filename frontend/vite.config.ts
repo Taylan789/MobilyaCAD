@@ -4,6 +4,7 @@ import tailwindcss from '@tailwindcss/vite'
 import path from 'node:path'
 
 export default defineConfig({
+  base: process.env.GITHUB_PAGES === 'true' ? '/MobilyaCAD/' : '/',
   plugins: [
     react(),
     tailwindcss(),
