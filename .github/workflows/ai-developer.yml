@@ -45,6 +45,13 @@ jobs:
           prompt: |
             You are working in the MobilyaCAD repository.
             Follow repository instructions and inspect the existing code before editing.
+            IMPORTANT WORKSPACE/PATH RULES:
+            - The repository root is the current working directory (GITHUB_WORKSPACE).
+            - The frontend project is in the relative directory "frontend".
+            - Always use paths relative to the repository root, for example "frontend/src/types/placedFurniture.ts".
+            - Never manually construct absolute paths such as "/home/runner/work/...".
+            - Do not access paths outside GITHUB_WORKSPACE and do not request external_directory permission.
+            - If a file operation fails, inspect the current directory with "pwd" and "ls" and correct the relative path; do not retry using a guessed absolute path.
             Work on the branch selected for this workflow run. Do not force-push, delete branches,
             rewrite history, or modify repository secrets/settings.
             Implement the user's task thoroughly, run the available build, lint and tests,
