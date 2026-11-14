@@ -456,6 +456,59 @@ function App() {
       })
     );
   }
+  function exportProductionCsv() {
+    if (!selectedFurniture || productionParts.length === 0) return;
+
+    const escapeCsv = (value: string | number) => {
+      const text = String(value);
+      return /[;"\\n\\r]/.test(text)
+        ? `"${text.replace(/"/g, '""')} "`.replace(/" "/g, '""')
+        : text;
+    };
+
+    const rows = [
+      [
+        "Mobilya",
+        "Parça",
+        "Genişlik (mm)",
+        "Uzunluk (mm)",
+        "Kalınlık (mm)",
+        "Adet",
+        "Malzeme",
+        "Bant Üst",
+        "Bant Alt",
+        "Bant Sol",
+        "Bant Sağ",
+      ],
+      ...productionParts.map((part) => [
+        selectedFurniture.name,
+        part.name,
+        part.width,
+        part.length,
+        part.thickness,
+        part.quantity,
+        part.material,
+        part.edgeBanding.top ? "Evet" : "Hayır",
+        part.edgeBanding.bottom ? "Evet" : "Hayır",
+        part.edgeBanding.left ? "Evet" : "Hayır",
+        part.edgeBanding.right ? "Evet" : "Hayır",
+      ]),
+    ];
+
+    const csv = "\\uFEFF" + rows
+      .map((row) => row.map(escapeCsv).join(";"))
+      .join("\\r\\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `mobilyacad-kesim-listesi-${selectedFurniture.id}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  }
+
   function saveProject() {
     const project = {
       format: "MobilyaCAD",
@@ -1323,6 +1376,14 @@ function App() {
                               <span>Hesaplanan parça türü</span>
                               <strong>{productionParts.length}</strong>
                             </div>
+                            <Button
+                              className="cad-production-export"
+                              variant="outline"
+                              onClick={exportProductionCsv}
+                              disabled={productionParts.length === 0}
+                            >
+                              Kesim Listesini CSV İndir
+                            </Button>
 
                             {productionParts.map((part) => (
                               <div
