@@ -497,18 +497,6 @@ function App() {
       };
 
       const room = parsed.room;
-      const validRoom =
-        room !== undefined &&
-        typeof room.width === "number" &&
-        Number.isFinite(room.width) &&
-        room.width >= 100 &&
-        typeof room.length === "number" &&
-        Number.isFinite(room.length) &&
-        room.length >= 100 &&
-        typeof room.height === "number" &&
-        Number.isFinite(room.height) &&
-        room.height >= 100;
-
       const validFurniture =
         Array.isArray(parsed.furniture) &&
         parsed.furniture.every((item: unknown) => {
