@@ -2,6 +2,7 @@ import type { Furniture } from "../types/furniture";
 import type { Part } from "../types/part";
 import type { CabinetConstructionRules } from "../types/construction/cabinetRules";
 import { calculateCabinetParts } from "./cabinetParts";
+import { addCncOperations } from "./cncOperations";
 import { validateMeasurement, roundMeasurement } from "./measurement";
 
 // Mobilya üretim parçalarını hesaplama motoru.
@@ -19,10 +20,10 @@ export function calculateFurnitureParts(
   }
 
   if (furniture.type === "desk" && (furniture.drawerCount ?? 0) === 0) {
-    return calculateDeskParts(furniture, rules);
+    return addCncOperations(calculateDeskParts(furniture, rules), rules);
   }
 
-  return calculateCabinetParts(furniture, rules);
+  return addCncOperations(calculateCabinetParts(furniture, rules), rules);
 }
 
 // Düz slab üretim parçaları (ör. tezgâh).

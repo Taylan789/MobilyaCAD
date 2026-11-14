@@ -168,7 +168,22 @@ Gerçek bir tasarım-üretim (design-to-manufacturing) akışı sağlamak.
 - Fiyatlar örnek veridir; gerçek maliyet için kullanıcı kendi
   fiyatlarını girmelidir.
 
-## Değiştirilen Dosyalar (M1–M9)
+### M10 — CNC operasyonu üretimi (P12 temeli)
+- `engine/cncOperations.ts`: `addCncOperations` parçaların üretim
+  özelliklerine göre operasyon üretir:
+  - kapaklara 35 mm menteşe kupusu (2 sıra, kenar 22.5 mm),
+  - yan panellere ayarlanabilir raf pimi delikleri (5 mm, 32 mm sistem),
+  - üst/alt tablalara minifix govde (15 mm) + çiftçeği (8 mm) delikleri.
+  - Girdi değiştirilmez; desteklenmeyen parça isimleri dokunulmaz.
+- `engine/furnitureCalculator.ts`: masa/dolap dalları operasyonlarla
+  döner; tezgâh slabında operasyon yok.
+- `App.tsx`: Üretim sekmesinde "Toplam CNC operasyonu" özeti ve
+  parça kartlarında operasyon sayısı.
+- Donanım sayımı (hardwareCalculator) ile tutarlılık: 2 menteşe/
+  kapı, 4 pin/raf, 2 minifix/yatay panel. Bilinen kısıtlamalar:
+  büyük kapaklarda 3. menteşe deliği üretilmez; fiyatlar örnek veri.
+
+## Değiştirilen Dosyalar (M1–M10)
 - `frontend/src/engine/cabinetGeometry.ts`
 - `frontend/src/engine/cabinetParts.ts`
 - `frontend/src/engine/furnitureCalculator.ts`
@@ -180,6 +195,7 @@ Gerçek bir tasarım-üretim (design-to-manufacturing) akışı sağlamak.
 - `frontend/src/engine/manufacturingConstraints.ts` (yeni)
 - `frontend/src/engine/technicalDrawing.ts` (yeni)
 - `frontend/src/engine/nesting.ts` (yeni)
+- `frontend/src/engine/cncOperations.ts` (yeni)
 - `frontend/src/data/furnitureCatalog.ts`
 - `frontend/src/data/materialCatalog.ts` (yeni)
 - `frontend/src/types/placedFurniture.ts`
@@ -194,11 +210,12 @@ Gerçek bir tasarım-üretim (design-to-manufacturing) akışı sağlamak.
   `manufacturingConstraints.test.ts` (yeni),
   `technicalDrawing.test.ts` (yeni),
   `nesting.test.ts` (yeni),
+  `cncOperations.test.ts` (yeni),
   `furnitureCatalog.test.ts` (yeni),
   `materialCatalog.test.ts` (yeni)
 
 ## Test Sonuçları
-`npx vitest run` → **15 dosya, 108 test, hepsi geçti** (0 başarısız).
+`npx vitest run` → **16 dosya, 114 test, hepsi geçti** (0 başarısız).
 
 ## Build Sonucu
 `npm run build` (tsc -b && vite build) → **başarılı**.
@@ -211,7 +228,9 @@ uyarılarıdır).
 ## Bilinen Kısıtlamalar
 - Üretim hesaplamaları kurallara göre teorik ölçüler üretir; gerçek
   atölye doğrulaması (kerf, pres kuvveti, bağlantı detayları) yoktur.
-- CNC operasyonları (`cncOperations`) henüz doldurulmadı.
+- CNC operasyonları standart tayf sabitlerine göre üretilir; gerçek
+  makine programı (CAM post-processor) yoktur. Büyük kapaklarda
+  3. menteşe deliği üretilmez (donanım sayımı 2 olarak kalır).
 - Teknik çizim yalnızca ön yüz elevasyonu üretir; yan yüz ve montaj
   çizimleri eklenmemiş.
 - Levha yerleştirme (nesting) first-fit-decreasing + alt-sol

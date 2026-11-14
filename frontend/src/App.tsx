@@ -426,6 +426,11 @@ function App() {
 
   const projectSummary = summarizeCutList(projectCutList);
 
+  const projectCncOperationCount = projectCutList.reduce(
+    (total, row) => total + row.part.cncOperations.length,
+    0
+  );
+
   // Levha bazlı yerleştirme (nesting) sonuçları.
   // Malzeme + kalınlık grupları başına hesaplanır.
   // Heuristiktir; optimum yerleştirme garanti edilmez.
@@ -1836,6 +1841,10 @@ function App() {
                           <span>Farklı malzeme</span>
                           <strong>{projectSummary.distinctMaterials}</strong>
                         </div>
+                        <div className="cad-summary-row">
+                          <span>Toplam CNC operasyonu</span>
+                          <strong>{projectCncOperationCount}</strong>
+                        </div>
 
                         <div className="cad-production-actions">
                           <Button
@@ -1929,6 +1938,9 @@ function App() {
                                   {part.width} × {part.length} × {part.thickness} mm
                                 </span>
                                 <small>Adet: {part.quantity}</small>
+                                <small>
+                                  CNC: {part.cncOperations.length} operasyon
+                                </small>
                               </div>
                             ))}
                           </>
