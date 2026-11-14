@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { ChangeEvent, CSSProperties } from "react";
 import {
   Box,
@@ -80,6 +80,15 @@ import {
   summarizeCutList
 } from "./engine/cutList";
 import { calculateMaterialConsumption } from "./engine/materialCalculator";
+import {
+  createHistory,
+  recordChange,
+  undoChange,
+  redoChange,
+  canUndo,
+  canRedo
+} from "./engine/history";
+import type { HistoryStack } from "./engine/history";
 
 function App() {
   const [roomWidth, setRoomWidth] = useState(4000);
@@ -91,6 +100,81 @@ function App() {
   const [selectedPartId, setSelectedPartId] = useState<string | null>(null);
   const [transformMode, setTransformMode] = useState<"translate" | "scale" | "rotate">("translate");
   const [mobilePanel, setMobilePanel] = useState<"catalog" | "inspector" | null>(null);
+
+  // Geri al / yinele geçmişi (sahne anlık görüntüleri).
+  interface SceneSnapshot {
+    furniture: PlacedFurniture[];
+    roomWidth: number;
+    roomLength: number;
+    roomHeight: number;
+  }
+
+  const [history, setHistory] = useState<HistoryStack<SceneSnapshot>>(() =>
+    createHistory()
+  );
+
+  function takeSnapshot(): SceneSnapshot {
+    return { furniture, roomWidth, roomLength, roomHeight };
+  }
+
+  function recordSnapshot() {
+    setHistory(previous => recordChange(previous, takeSnapshot()));
+  }
+
+  function undo() {
+    const result = undoChange(history, takeSnapshot());
+    if (!result) return;
+
+    setHistory(result.stack);
+    setFurniture(result.state.furniture);
+    setRoomWidth(result.state.roomWidth);
+    setRoomLength(result.state.roomLength);
+    setRoomHeight(result.state.roomHeight);
+    setSelectedPartId(null);
+  }
+
+  function redo() {
+    const result = redoChange(history, takeSnapshot());
+    if (!result) return;
+
+    setHistory(result.stack);
+    setFurniture(result.state.furniture);
+    setRoomWidth(result.state.roomWidth);
+    setRoomLength(result.state.roomLength);
+    setRoomHeight(result.state.roomHeight);
+    setSelectedPartId(null);
+  }
+
+  // Klavye kısayolları: Ctrl+Z geri al, Ctrl+Shift+Z / Ctrl+Y yinele.
+  useEffect(() => {
+    function handleKeyDown(event: KeyboardEvent) {
+      if (!(event.ctrlKey || event.metaKey)) return;
+
+      const key = event.key.toLowerCase();
+
+      if (key === "z") {
+        event.preventDefault();
+        if (event.shiftKey) redo();
+        else undo();
+      } else if (key === "y") {
+        event.preventDefault();
+        redo();
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  });
+
+  // Geri al sonrası seçili nesne yoksa seçimi temizler.
+  useEffect(() => {
+    if (
+      selectedFurnitureId &&
+      !furniture.some(item => item.id === selectedFurnitureId)
+    ) {
+      setSelectedFurnitureId(null);
+    }
+  }, [furniture, selectedFurnitureId]);
 
   const [constructionRules] = useState<CabinetConstructionRules>({
     panelThickness: 18,
@@ -280,6 +364,7 @@ function App() {
       0,
     ]);
 
+    recordSnapshot();
     setFurniture((previous) => [...previous, placed]);
     setSelectedFurnitureId(placed.id);
     setSelectedPartId(null);
@@ -298,6 +383,7 @@ function App() {
       return;
     }
 
+    recordSnapshot();
     setFurniture((previous) =>
       previous.map((item) => {
         if (item.id !== selectedFurnitureId) return item;
@@ -320,6 +406,7 @@ function App() {
   ) {
     if (!selectedFurnitureId || !Number.isFinite(value) || value < 100) return;
 
+    recordSnapshot();
     setFurniture((previous) =>
       previous.map((item) => {
         if (item.id !== selectedFurnitureId) return item;
@@ -392,6 +479,7 @@ function App() {
   function updateFurnitureRotation(id: string, rotation: number) {
     if (!Number.isFinite(rotation)) return;
 
+    recordSnapshot();
     setFurniture((previous) =>
       previous.map((item) => {
         if (item.id !== id) return item;
@@ -432,6 +520,7 @@ function App() {
     id: string,
     position: [number, number, number]
   ) {
+    recordSnapshot();
     setFurniture((previous) =>
       previous.map((item) => {
         if (item.id !== id) return item;
@@ -476,6 +565,7 @@ function App() {
     dimensions: { width: number; height: number; depth: number },
     requestedPosition: [number, number, number]
   ) {
+    recordSnapshot();
     setFurniture((previous) =>
       previous.map((item) => {
         if (item.id !== id) return item;
@@ -606,6 +696,7 @@ function App() {
   ) {
     if (!Number.isFinite(value) || value < 100) return;
 
+    recordSnapshot();
     if (field === "width") setRoomWidth(value);
     if (field === "length") setRoomLength(value);
     if (field === "height") setRoomHeight(value);
@@ -800,6 +891,7 @@ function App() {
         throw new Error("Dosya MobilyaCAD proje formatıyla uyumlu değil.");
       }
 
+      recordSnapshot();
       setRoomWidth(room.width);
       setRoomLength(room.length);
       setRoomHeight(room.height);
@@ -820,6 +912,7 @@ function App() {
   }
 
   function deleteFurniture() {
+    recordSnapshot();
     setFurniture((previous) =>
       previous.filter((item) => item.id !== selectedFurnitureId)
     );
@@ -893,7 +986,12 @@ function App() {
             <Tooltip>
               <TooltipTrigger
                 render={
-                  <Button variant="ghost" size="icon" disabled>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    disabled={!canUndo(history)}
+                    onClick={undo}
+                  >
                     <Undo2 />
                   </Button>
                 }
@@ -904,7 +1002,12 @@ function App() {
             <Tooltip>
               <TooltipTrigger
                 render={
-                  <Button variant="ghost" size="icon" disabled>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    disabled={!canRedo(history)}
+                    onClick={redo}
+                  >
                     <Redo2 />
                   </Button>
                 }
