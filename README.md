@@ -68,9 +68,9 @@ GitHub Actions, `main` ve `dev/**` dallarına gönderimlerde ve `main` hedefli p
 
 Aşağıdakiler mevcut arayüzde tamamlanmış ürün özellikleri olarak kabul edilmemelidir:
 
-- Projeyi kalıcı kaydetme/yükleme
+- Bulut/hesap tabanlı kalıcı proje kaydetme/yükleme
 - Geri al / yinele geçmişi
-- Üretim kesim listesi dışa aktarma
+- Tüm mobilya türleri ve tüm konstrüksiyon seçenekleri için eksiksiz/üretim onaylı kesim listesi
 - Tüm mobilya türleri için üretim hesaplama
 - CNC operasyonlarının doğrulanmış üretim çıktısı
 - Kapsamlı otomatik birim ve uçtan uca testler
@@ -88,13 +88,13 @@ Aşağıdakiler mevcut arayüzde tamamlanmış ürün özellikleri olarak kabul 
 - GitHub Actions CI iş akışı eklendi.
 - Node.js 22 ile bağımlılık kurulumu, TypeScript/Vite production build ve Oxlint kontrolü otomatikleştirildi.
 - İlk CI çalışması başarıyla tamamlandı.
-- Depo yapısı ve mevcut özellikler incelendi; kaydetme, undo/redo ve üretim dışa aktarma gibi eksik alanlar belgelendi.
+- Depo yapısı ve mevcut özellikler incelendi; eksik alanlar belgelendi.\n- Proje JSON dosyasını yerel olarak indirme ve tekrar içe aktarma akışı eklendi; yüklenen oda, mobilya ve parça alanlarına doğrulama eklendi.\n- Seçili mutfak modülünün temel kesim listesi, Türkçe Excel uyumlu CSV olarak dışa aktarılabilir hâle getirildi.\n- Masaüstü ve mobil kabul kontrolleri için `TEST_PLANI_KABUL.md` hazırlandı.\n- Son CSV geliştirmesi için CI build/lint sonucu ayrıca doğrulanıyor.
 
 ## Sonraki geliştirme adımları
 
 1. Kritik CAD hesaplama fonksiyonları için otomatik test altyapısı kurmak.
 2. Oda ölçüsü değiştiğinde sahnedeki mobilyaların geçerliliğini korumak.
 3. Dolap üretim hesaplarını konstrüksiyon kurallarıyla tutarlı hâle getirmek.
-4. Kesim listesi ve proje verisi dışa aktarma eklemek.
-5. Kaydetme/yükleme ve undo/redo akışlarını tamamlamak.
+4. Kesim listesi hesaplarını diğer mobilya türleri ve gerçek konstrüksiyon seçenekleri için genişletmek.
+5. Bulut kaydetme ve undo/redo akışlarını tamamlamak.
 6. Masaüstü ve mobil kullanım için uçtan uca kontroller yapmak.
