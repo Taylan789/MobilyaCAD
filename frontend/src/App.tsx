@@ -456,6 +456,34 @@ function App() {
       })
     );
   }
+  function saveProject() {
+    const project = {
+      format: "MobilyaCAD",
+      formatVersion: 1,
+      savedAt: new Date().toISOString(),
+      room: {
+        width: roomWidth,
+        length: roomLength,
+        height: roomHeight,
+        unit: "mm",
+      },
+      furniture,
+    };
+
+    const json = JSON.stringify(project, null, 2);
+    const file = new Blob([json], { type: "application/json;charset=utf-8" });
+    const url = URL.createObjectURL(file);
+    const link = document.createElement("a");
+    const date = new Date().toISOString().replace(/[:.]/g, "-");
+
+    link.href = url;
+    link.download = `mobilyacad-proje-${date}.json`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  }
+
   function deleteFurniture() {
     setFurniture((previous) =>
       previous.filter((item) => item.id !== selectedFurnitureId)
@@ -604,9 +632,9 @@ function App() {
               <span />
               Tasarım modu
             </div>
-            <Button className="cad-save-button" disabled>
+            <Button className="cad-save-button" onClick={saveProject}>
               <Save />
-              Kaydet
+              Projeyi İndir
             </Button>
           </div>
         </header>
