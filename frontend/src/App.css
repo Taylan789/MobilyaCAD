@@ -1108,6 +1108,20 @@ select {
   height: auto;
 }
 
+.cad-edgebanding-field label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #d6dee5;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.cad-edgebanding-field small {
+  color: #9baab5;
+  font-size: 10px;
+}
+
 /* STATUS BAR */
 
 .cad-statusbar {

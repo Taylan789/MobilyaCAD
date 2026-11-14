@@ -193,4 +193,32 @@ describe("cabinetParts", () => {
       expect(part.grainDirection).toBe("length");
     }
   });
+
+  it("kenar bantlama kapalıyken hiçbir parça bantlamaz", () => {
+    const parts = calculateCabinetParts(
+      makeFurniture({ edgeBanding: false }),
+      rules
+    );
+
+    expect(parts.length).toBeGreaterThan(0);
+    for (const part of parts) {
+      expect(part.edgeBanding).toEqual({
+        top: false,
+        bottom: false,
+        left: false,
+        right: false
+      });
+    }
+  });
+
+  it("kenar bantlama açıkken (varsayılan) kapaklar bantlı olur", () => {
+    const parts = calculateCabinetParts(
+      makeFurniture({ edgeBanding: true }),
+      rules
+    );
+
+    const kapak = parts.find(p => p.name === "Dolap Kapağı")!;
+    expect(kapak.edgeBanding.top).toBe(true);
+    expect(kapak.edgeBanding.right).toBe(true);
+  });
 });

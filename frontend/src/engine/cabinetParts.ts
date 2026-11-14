@@ -99,6 +99,9 @@ export function calculateCabinetParts(
 
     if (quantity === 0) return;
 
+    // Mobilya kenar bantlamasını kapatırsa hiçbir parça bantlanmaz.
+    const bantli = furniture.edgeBanding !== false;
+
     parcalar.push({
       id: `${furniture.id}-${id}`,
       furnitureId: furniture.id,
@@ -107,7 +110,9 @@ export function calculateCabinetParts(
       length: roundMeasurement(length),
       thickness,
       quantity,
-      edgeBanding,
+      edgeBanding: bantli
+        ? edgeBanding
+        : { top: false, bottom: false, left: false, right: false },
       material: malzeme,
       cncOperations: [],
       grainDirection: "length",

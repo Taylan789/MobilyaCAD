@@ -68,6 +68,7 @@ import { ScrollArea } from "./components/ui/scroll-area";
 
 import Scene3D from "./components/viewport/Scene3D";
 import { furnitureCatalog } from "./data/furnitureCatalog";
+import { materialNames } from "./data/materialCatalog";
 import {
   createPlacedFurniture,
   regenerateFurnitureParts
@@ -592,6 +593,32 @@ function App() {
           ],
         });
       })
+    );
+  }
+
+  function updateFurnitureMaterial(value: string) {
+    if (!selectedFurnitureId || value.trim() === "") return;
+
+    recordSnapshot();
+    setFurniture((previous) =>
+      previous.map((item) =>
+        item.id !== selectedFurnitureId
+          ? item
+          : regenerateFurnitureParts({ ...item, material: value })
+      )
+    );
+  }
+
+  function updateFurnitureEdgeBanding(value: boolean) {
+    if (!selectedFurnitureId) return;
+
+    recordSnapshot();
+    setFurniture((previous) =>
+      previous.map((item) =>
+        item.id !== selectedFurnitureId
+          ? item
+          : { ...item, edgeBanding: value }
+      )
     );
   }
 
@@ -1642,6 +1669,43 @@ function App() {
                                 <span>°</span>
                               </div>
                             </div>
+
+                            <div className="cad-field">
+                              <Label htmlFor="furniture-material">Malzeme</Label>
+                              <select
+                                id="furniture-material"
+                                className="cad-native-select"
+                                value={selectedFurniture.material}
+                                onChange={(event) =>
+                                  updateFurnitureMaterial(event.target.value)
+                                }
+                              >
+                                {materialNames.map(name => (
+                                  <option key={name} value={name}>
+                                    {name}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+
+                            <div className="cad-field cad-edgebanding-field">
+                              <label htmlFor="furniture-edgebanding">
+                                <input
+                                  id="furniture-edgebanding"
+                                  type="checkbox"
+                                  checked={selectedFurniture.edgeBanding}
+                                  onChange={(event) =>
+                                    updateFurnitureEdgeBanding(
+                                      event.target.checked
+                                    )
+                                  }
+                                />
+                                <span>Kenar Bantlama</span>
+                              </label>
+                              <small>
+                                Kapatılırsa hiçbir parça bantlanmaz.
+                              </small>
+                            </div>
                           </section>
 
                           <Separator className="cad-section-separator" />
@@ -1693,12 +1757,14 @@ function App() {
                                     updateSelectedPart("material", event.target.value)
                                   }
                                 >
-                                  <option value="Suntalam">Suntalam</option>
-                                  <option value="MDF">MDF</option>
-                                  <option value="MDF Lam">MDF Lam</option>
-                                  <option value="Kontrplak">Kontrplak</option>
-                                  <option value="Masif Ahşap">Masif Ahşap</option>
-                                  <option value="Lake">Lake</option>
+                                  {materialNames.map(name => (
+                                    <option key={name} value={name}>
+                                      {name}
+                                    </option>
+                                  ))}
+                                  {materialNames.includes(selectedPart.material)
+                                    ? null
+                                    : <option value={selectedPart.material}>{selectedPart.material}</option>}
                                 </select>
                               </div>
 

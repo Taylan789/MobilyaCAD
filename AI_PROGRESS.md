@@ -155,7 +155,20 @@ Gerçek bir tasarım-üretim (design-to-manufacturing) akışı sağlamak.
 - `data/furnitureCatalog.test.ts`: tek politika, açık değerlerin
   korunması, saf kopyalama ve hayalet-parça yokluğu testleri.
 
-## Değiştirilen Dosyalar (M1–M8)
+### M9 — Malzeme kütüphanesi ve kenar bantlama seçimi (P3)
+- `data/materialCatalog.ts`: 6 malzeme tanımlı (Suntalam 18/25,
+  MDF, MDF Lam, Kontrplak, Masif Ahşap) — levha ölçüsü, kalınlık,
+  m² fiyatı (örnek veri), kenar bant kalınlığı; `materialNames`,
+  `findMaterialByName`.
+- `engine/cabinetParts.ts`: mobilya düzeyindeki `edgeBanding: false`
+  artık tüm parçaların bantlamasını kapatır (varsayılan açık).
+- `App.tsx`: mobilya özelliklerine Malzeme seçimi (katalogtan,
+  parçaları yeniler) ve Kenar Bantlama açma/kapama; parça
+  müfettişindeki Malzeme seçimleri katalogtan gelir.
+- Fiyatlar örnek veridir; gerçek maliyet için kullanıcı kendi
+  fiyatlarını girmelidir.
+
+## Değiştirilen Dosyalar (M1–M9)
 - `frontend/src/engine/cabinetGeometry.ts`
 - `frontend/src/engine/cabinetParts.ts`
 - `frontend/src/engine/furnitureCalculator.ts`
@@ -168,6 +181,7 @@ Gerçek bir tasarım-üretim (design-to-manufacturing) akışı sağlamak.
 - `frontend/src/engine/technicalDrawing.ts` (yeni)
 - `frontend/src/engine/nesting.ts` (yeni)
 - `frontend/src/data/furnitureCatalog.ts`
+- `frontend/src/data/materialCatalog.ts` (yeni)
 - `frontend/src/types/placedFurniture.ts`
 - `frontend/src/types/construction/cabinetRules.ts`
 - `frontend/src/App.tsx`
@@ -180,10 +194,11 @@ Gerçek bir tasarım-üretim (design-to-manufacturing) akışı sağlamak.
   `manufacturingConstraints.test.ts` (yeni),
   `technicalDrawing.test.ts` (yeni),
   `nesting.test.ts` (yeni),
-  `furnitureCatalog.test.ts` (yeni)
+  `furnitureCatalog.test.ts` (yeni),
+  `materialCatalog.test.ts` (yeni)
 
 ## Test Sonuçları
-`npx vitest run` → **14 dosya, 103 test, hepsi geçti** (0 başarısız).
+`npx vitest run` → **15 dosya, 108 test, hepsi geçti** (0 başarısız).
 
 ## Build Sonucu
 `npm run build` (tsc -b && vite build) → **başarılı**.
@@ -202,6 +217,8 @@ uyarılarıdır).
 - Levha yerleştirme (nesting) first-fit-decreasing + alt-sol
   heuristiğidir; optimum değil, gerçek CNC makine sınırları
   (maksimum levha, grip alanı) modellenmemiştir.
+- Malzeme fiyatları örnek veridir; gerçek maliyet hesabı için
+  kullanıcı fiyatlarını girmelidir.
 - `frontend/src/data/.hardwareCatalog.ts` hâlâ kullanım dışı.
 - Stok levha tahmini heuristiktir; optimum olduğu iddia edilmez.
 - Donanım adetleri kurallara dayalı tahmindir; üretici teknik verisi yok.
@@ -209,9 +226,9 @@ uyarılarıdır).
   kullanılamıyorsa kurtarma yapılmaz (sessizce atlanır).
 
 ## Sonraki Adım
-1. P3: malzeme kütüphanesi UI ve kenar bantlama seçimi.
-2. P4: 3D düzenleme iyileştirmeleri.
-3. P10: güvenilirlik (hata sınırları, kurtarma akışları) ve P12 CNC temelı.
+1. P4: 3D düzenleme iyileştirmeleri.
+2. P10: güvenilirlik (hata sınırları, kurtarma akışları) ve P12 CNC temelı.
+3. P13: i18n ve dokümantasyon.
 
 ## Kurtarma Talimatları
 Sonraki çalışma akışı en son pushed commit'ten (`opencode/dispatch-8ea49f-20261114045749`)
