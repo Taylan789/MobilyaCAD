@@ -137,7 +137,9 @@ export function createFurnitureParts(
   return parts;
 }
 
-// Katalog ürününden yeni mobilya oluşturur
+// Katalog ürününden yeni mobilya oluşturur.
+// Katalog zaten çözümlü yapılandırmaya sahiptir; burada
+// ek varsayılan politika uygulanmaz (tek bilgi kaynağı).
 export function createPlacedFurniture(
   item: FurnitureCatalogItem,
   position: [number, number, number]
@@ -155,14 +157,14 @@ export function createPlacedFurniture(
     rotation: 0,
     color: item.color,
 
-    doorCount: item.doorCount ?? 2,
-    drawerCount: item.drawerCount ?? 0,
-    shelfCount: item.shelfCount ?? 2,
+    doorCount: item.doorCount,
+    drawerCount: item.drawerCount,
+    shelfCount: item.shelfCount,
 
-    hasBackPanel: item.hasBackPanel ?? true,
-    backThickness: item.backThickness ?? 8,
-    edgeBanding: item.edgeBanding ?? true,
-    material: item.material ?? "Suntalam",
+    hasBackPanel: item.hasBackPanel,
+    backThickness: item.backThickness,
+    edgeBanding: item.edgeBanding,
+    material: item.material,
 
     parts: []
   };

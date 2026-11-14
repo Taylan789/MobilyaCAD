@@ -1,6 +1,9 @@
 
 import type { Furniture } from "../types/furniture";
 
+// Katalog ürünlerinin tam yapılandırması.
+// Sayaç alanları her zaman tanımlıdır; katalog tek varsayılan
+// politikanın sahibidir.
 export interface FurnitureCatalogItem {
   id: string;
   name: string;
@@ -10,17 +13,62 @@ export interface FurnitureCatalogItem {
   depth: number;
   color: string;
   category: string;
-  doorCount?: number;
-  drawerCount?: number;
-  shelfCount?: number;
-  hasBackPanel?: boolean;
-  backThickness?: number;
-  edgeBanding?: boolean;
-  material?: string;
+  doorCount: number;
+  drawerCount: number;
+  shelfCount: number;
+  hasBackPanel: boolean;
+  backThickness: number;
+  edgeBanding: boolean;
+  material: string;
+}
+
+// Varsayılanlar uygulanmadan önceki kalog kalıbı.
+export type RawFurnitureCatalogItem = Omit<
+  FurnitureCatalogItem,
+  | "id"
+  | "doorCount"
+  | "drawerCount"
+  | "shelfCount"
+  | "hasBackPanel"
+  | "backThickness"
+  | "edgeBanding"
+  | "material"
+> &
+  Partial<
+    Pick<
+      FurnitureCatalogItem,
+      | "doorCount"
+      | "drawerCount"
+      | "shelfCount"
+      | "hasBackPanel"
+      | "backThickness"
+      | "edgeBanding"
+      | "material"
+    >
+  > & { id?: string };
+
+// Tek varsayılan politika: kapak/çekmece belirtilmezse 0,
+// raf belirtilmezse 2; arkalık ve kenar bantlama açiktir.
+// Bu politika yalnızca burada uygulanır; diğer katmanlar
+// katalogun çözümlü değerini olduğu gibi kopyalar.
+export function normalizeCatalogItem(
+  item: RawFurnitureCatalogItem
+): FurnitureCatalogItem {
+  return {
+    id: item.id ?? "",
+    ...item,
+    doorCount: item.doorCount ?? 0,
+    drawerCount: item.drawerCount ?? 0,
+    shelfCount: item.shelfCount ?? 2,
+    hasBackPanel: item.hasBackPanel ?? true,
+    backThickness: item.backThickness ?? 8,
+    edgeBanding: item.edgeBanding ?? true,
+    material: item.material ?? "Suntalam"
+  };
 }
 
 // Mevcut 8 mobilya
-const baseFurnitureCatalog: FurnitureCatalogItem[] = [
+const baseFurnitureCatalog: RawFurnitureCatalogItem[] = [
   {
     id: "base-cabinet",
     name: "Alt Mutfak Dolabı",
@@ -29,7 +77,9 @@ const baseFurnitureCatalog: FurnitureCatalogItem[] = [
     height: 850,
     depth: 560,
     color: "#d9d2c5",
-    category: "Mutfak"
+    category: "Mutfak",
+    doorCount: 2,
+    shelfCount: 2
   },
   {
     id: "wall-cabinet",
@@ -39,7 +89,9 @@ const baseFurnitureCatalog: FurnitureCatalogItem[] = [
     height: 720,
     depth: 350,
     color: "#e5e1d8",
-    category: "Mutfak"
+    category: "Mutfak",
+    doorCount: 2,
+    shelfCount: 2
   },
   {
     id: "countertop",
@@ -49,7 +101,10 @@ const baseFurnitureCatalog: FurnitureCatalogItem[] = [
     height: 40,
     depth: 600,
     color: "#aaa9a5",
-    category: "Tezgâh"
+    category: "Tezgâh",
+    doorCount: 0,
+    drawerCount: 0,
+    shelfCount: 0
   },
   {
     id: "corner-cabinet",
@@ -59,7 +114,9 @@ const baseFurnitureCatalog: FurnitureCatalogItem[] = [
     height: 850,
     depth: 900,
     color: "#c9c1b3",
-    category: "Mutfak"
+    category: "Mutfak",
+    doorCount: 2,
+    shelfCount: 2
   },
   {
     id: "wardrobe",
@@ -69,7 +126,9 @@ const baseFurnitureCatalog: FurnitureCatalogItem[] = [
     height: 2200,
     depth: 600,
     color: "#a77b55",
-    category: "Dolap"
+    category: "Dolap",
+    doorCount: 2,
+    shelfCount: 2
   },
   {
     id: "bookcase",
@@ -79,7 +138,9 @@ const baseFurnitureCatalog: FurnitureCatalogItem[] = [
     height: 1800,
     depth: 300,
     color: "#a77b55",
-    category: "Mobilya"
+    category: "Mobilya",
+    doorCount: 0,
+    shelfCount: 2
   },
   {
     id: "desk",
@@ -89,7 +150,10 @@ const baseFurnitureCatalog: FurnitureCatalogItem[] = [
     height: 750,
     depth: 600,
     color: "#b38b63",
-    category: "Mobilya"
+    category: "Mobilya",
+    doorCount: 0,
+    drawerCount: 0,
+    shelfCount: 0
   },
   {
     id: "tv-unit",
@@ -99,12 +163,14 @@ const baseFurnitureCatalog: FurnitureCatalogItem[] = [
     height: 500,
     depth: 400,
     color: "#8b7968",
-    category: "Mobilya"
+    category: "Mobilya",
+    doorCount: 2,
+    shelfCount: 2
   }
 ];
 
 // 23 farklı mobilya tasarımı
-const furnitureTemplates: Omit<FurnitureCatalogItem, "id">[] = [
+const furnitureTemplates: RawFurnitureCatalogItem[] = [
   { name: "Çekmeceli Alt Dolap", type: "kitchen", width: 600, height: 850, depth: 560, color: "#c9bda9", category: "Mutfak", drawerCount: 3 },
   { name: "Kapaklı Üst Dolap", type: "kitchen", width: 800, height: 720, depth: 350, color: "#e5e1d8", category: "Mutfak", doorCount: 2 },
   { name: "Fırın Dolabı", type: "kitchen", width: 600, height: 2100, depth: 600, color: "#b8aa98", category: "Mutfak", doorCount: 2 },
@@ -140,22 +206,17 @@ const furnitureVariants = [
 
 // Toplam 8 + (23 x 4) = 100 model
 export const furnitureCatalog: FurnitureCatalogItem[] = [
-  ...baseFurnitureCatalog,
+  ...baseFurnitureCatalog.map(normalizeCatalogItem),
   ...furnitureTemplates.flatMap((item, index) =>
-    furnitureVariants.map((variant, variantIndex) => ({
-      ...item,
-      id: `parametric-${index + 1}-${variantIndex + 1}`,
-      name: `${item.name} - ${variant.label}`,
-      width: Math.round(item.width * variant.scale / 10) * 10,
-      height: Math.round(item.height * variant.scale / 10) * 10,
-      depth: Math.round(item.depth * variant.scale / 10) * 10,
-      doorCount: item.doorCount ?? 0,
-      drawerCount: item.drawerCount ?? 0,
-      shelfCount: item.shelfCount ?? 2,
-      hasBackPanel: true,
-      backThickness: 8,
-      edgeBanding: true,
-      material: "Suntalam"
-    }))
+    furnitureVariants.map((variant, variantIndex) =>
+      normalizeCatalogItem({
+        ...item,
+        id: `parametric-${index + 1}-${variantIndex + 1}`,
+        name: `${item.name} - ${variant.label}`,
+        width: Math.round(item.width * variant.scale / 10) * 10,
+        height: Math.round(item.height * variant.scale / 10) * 10,
+        depth: Math.round(item.depth * variant.scale / 10) * 10
+      })
+    )
   )
 ];

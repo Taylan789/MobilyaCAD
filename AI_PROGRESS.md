@@ -140,7 +140,22 @@ Gerçek bir tasarım-üretim (design-to-manufacturing) akışı sağlamak.
   önizlemesi ve SVG indirme. Standart levha 2800×2070 mm,
   kerf = panel kalınlığının 1/4'i.
 
-## Değiştirilen Dosyalar (M1–M7)
+### M8 — Parametrik katalog mimarisi (P1)
+- `data/furnitureCatalog.ts`: katalog tek varsayılan politikanın
+  sahibi oldu (`normalizeCatalogItem`: kapak/çekmece 0, raf 2,
+  arkalık/bant/material varsayılanları). `FurnitureCatalogItem`
+  sayaç alanları artık zorunlu; `RawFurnitureCatalogItem` kalıbı
+  ile ayrım netleştirildi.
+- `types/placedFurniture.ts`: `createPlacedFurniture` saf kopyalama
+  oldu (kendi `??` varsayılanları kaldırıldı); çakışan politikalar
+  elimin'e edildi.
+- Temel kalıplar açık sayaçlarla tanımlanıyor; tezgâh/masa/
+  kitaplık'ta hayalet kapak/raf parçaları kaldırıldı (M1 nitelik
+  düzeltmesinin uzantısı).
+- `data/furnitureCatalog.test.ts`: tek politika, açık değerlerin
+  korunması, saf kopyalama ve hayalet-parça yokluğu testleri.
+
+## Değiştirilen Dosyalar (M1–M8)
 - `frontend/src/engine/cabinetGeometry.ts`
 - `frontend/src/engine/cabinetParts.ts`
 - `frontend/src/engine/furnitureCalculator.ts`
@@ -152,6 +167,7 @@ Gerçek bir tasarım-üretim (design-to-manufacturing) akışı sağlamak.
 - `frontend/src/engine/manufacturingConstraints.ts` (yeni)
 - `frontend/src/engine/technicalDrawing.ts` (yeni)
 - `frontend/src/engine/nesting.ts` (yeni)
+- `frontend/src/data/furnitureCatalog.ts`
 - `frontend/src/types/placedFurniture.ts`
 - `frontend/src/types/construction/cabinetRules.ts`
 - `frontend/src/App.tsx`
@@ -163,10 +179,11 @@ Gerçek bir tasarım-üretim (design-to-manufacturing) akışı sağlamak.
   `history.test.ts`, `project.test.ts`,
   `manufacturingConstraints.test.ts` (yeni),
   `technicalDrawing.test.ts` (yeni),
-  `nesting.test.ts` (yeni)
+  `nesting.test.ts` (yeni),
+  `furnitureCatalog.test.ts` (yeni)
 
 ## Test Sonuçları
-`npx vitest run` → **13 dosya, 98 test, hepsi geçti** (0 başarısız).
+`npx vitest run` → **14 dosya, 103 test, hepsi geçti** (0 başarısız).
 
 ## Build Sonucu
 `npm run build` (tsc -b && vite build) → **başarılı**.
@@ -192,10 +209,9 @@ uyarılarıdır).
   kullanılamıyorsa kurtarma yapılmaz (sessizce atlanır).
 
 ## Sonraki Adım
-1. P1 parametrik mobilya mimarisi: katalog kalıplarını `FurnitureConfig`
-   üzerinden türetmek, kopya mantığı kaldırmak.
-2. P3: malzeme kütüphanesi UI ve kenar bantlama seçimi.
-3. P4: 3D düzenleme iyileştirmeleri.
+1. P3: malzeme kütüphanesi UI ve kenar bantlama seçimi.
+2. P4: 3D düzenleme iyileştirmeleri.
+3. P10: güvenilirlik (hata sınırları, kurtarma akışları) ve P12 CNC temelı.
 
 ## Kurtarma Talimatları
 Sonraki çalışma akışı en son pushed commit'ten (`opencode/dispatch-8ea49f-20261114045749`)
