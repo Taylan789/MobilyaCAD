@@ -80,32 +80,48 @@ Gerçek bir tasarım-üretim (design-to-manufacturing) akışı sağlamak.
   - Boyutlandırma sonrası parçalar yeniden üretiliyor (tek bilgi kaynağı).
   - Üretim parçaları tüm mobilya tipleri için hesaplanıyor.
   - Oda ölçüsü değişince mobilyalar `clampFurnitureToRoom` ile sınırlanıyor.
-- CI: `npm test` adımı eklendi (`.github/workflows/ci.yml`).
 
-## Değiştirilen Dosyalar (M1)
+### M2 — Kesim listesi, malzeme tüketimi ve donanım motoru (P2/P3 temeli)
+- `engine/cutList.ts`: proje genelinde tüm mobilyalar için kesim listesi;
+  mobilya / malzeme / kalınlık / parça tipi bazında gruplama; CSV (BOM,
+  Türkçe karakter, noktalı virgül, kaçırma) ve JSON dışa aktarım; özet istatistik.
+- `engine/materialCalculator.ts`: parça başına kenar bantlama uzunluğu,
+  malzeme bazlı alan/adet/bant uzunluğu tüketimi, stok levha tahmini
+  (heuristik; optimum değildir).
+- `engine/hardwareCalculator.ts`: konstrüksiyon kurallarına göre menteşe,
+  çekmece kaydırıcı, raf pimi, tutamaç ve minifix adedi.
+- `App.tsx`: Üretim sekmesinde proje kesim listesi özeti, malzeme tüketimi
+  tablosu, CSV/JSON proje dışa aktarma butonları.
+- CI: test adımı eklenmeye çalışıldı ancak GitHub App'in `workflows` izni
+  olmadığı için `.github/workflows/ci.yml` değiştirilemedi; testler yerel
+  `npm test` ile çalıştırılıyor.
+
+## Değiştirilen Dosyalar (M1 + M2)
 - `frontend/src/engine/cabinetGeometry.ts`
 - `frontend/src/engine/cabinetParts.ts`
 - `frontend/src/engine/furnitureCalculator.ts`
+- `frontend/src/engine/cutList.ts` (yeni)
+- `frontend/src/engine/materialCalculator.ts` (yeni)
+- `frontend/src/engine/hardwareCalculator.ts` (yeni)
 - `frontend/src/types/placedFurniture.ts`
 - `frontend/src/types/construction/cabinetRules.ts`
 - `frontend/src/App.tsx`
-- `.github/workflows/ci.yml`
-- Yeni: `frontend/src/engine/measurement.test.ts`
-- Yeni: `frontend/src/engine/cabinetGeometry.test.ts`
-- Yeni: `frontend/src/engine/cabinetParts.test.ts`
-- Yeni: `frontend/src/engine/furnitureCalculator.test.ts`
-- Yeni: `frontend/src/types/placedFurniture.test.ts`
+- `frontend/src/App.css`
+- Testler: `measurement.test.ts`, `cabinetGeometry.test.ts`,
+  `cabinetParts.test.ts`, `furnitureCalculator.test.ts`,
+  `placedFurniture.test.ts`, `materialCalculator.test.ts`,
+  `hardwareCalculator.test.ts`, `cutList.test.ts`
 
 ## Test Sonuçları
-`npx vitest run` → **5 dosya, 33 test, hepsi geçti** (0 başarısız).
+`npx vitest run` → **8 dosya, 52 test, hepsi geçti** (0 başarısız).
 
 ## Build Sonucu
 `npm run build` (tsc -b && vite build) → **başarılı**.
 
 ## Lint Sonucu
-`npm run lint` → **çıkış kodu 0** (önceden var olan 15 uyarı, hata yok;
-uyarılar `react/immutability` ve `only-export-components` — shadcn kalıp
-bileşenlerinden kaynaklanır, bu değişle ilgili değildir).
+`npm run lint` → **çıkış kodu 0** (15 uyarı, 0 hata; uyarılar shadcn
+kalıp bileşenlerinden kaynaklanan önceden var olan `react/immutability`
+ve `only-export-components` uyarılarıdır).
 
 ## Bilinen Kısıtlamalar
 - Üretim hesaplamaları kurallara göre teorik ölçüler üretir; gerçek
@@ -114,9 +130,12 @@ bileşenlerinden kaynaklanır, bu değişle ilgili değildir).
 - Geri al / yinele (undo/redo) hâlâ uygulanmadı.
 - Proje kaydetme yerel indirme/yeükleme ile sınırlı; schema sürümüleme yok.
 - `frontend/src/data/.hardwareCatalog.ts` hâlâ kullanım dışı.
+- Stok levha tahmini heuristiktir; optimum olduğu iddia edilmez.
+- Donanım adetleri kurallara dayalı tahmindir; üretici teknik verisi yok.
 
 ## Sonraki Adım
-1. P1 parametrik mobilya mimarisi: katalog kalıplarını `FurnitureConfig`
+1. Donanım miktarlarını Üretim sekmesinde göstermek.
+2. P1 parametrik mobilya mimarisi: katalog kalıplarını `FurnitureConfig`
    üzerinden türetmek, kopya mantığı kaldırmak.
-2. P2 malzeme kütüphanesi ve kenar bantlama hesapları.
-3. P7 proje şeması sürümüleme ve doğrulama.
+3. P8 geri al / yinele (undo/redo) geçmişi.
+4. P7 proje şeması sürümüleme, otomatik kaydetme ve kurtarma.

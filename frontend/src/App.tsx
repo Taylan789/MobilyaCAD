@@ -70,8 +70,16 @@ import {
   regenerateFurnitureParts
 } from "./types/placedFurniture";
 import type { PlacedFurniture } from "./types/placedFurniture";
+import type { Furniture } from "./types/furniture";
 import { calculateFurnitureParts } from "./engine/furnitureCalculator";
 import type { CabinetConstructionRules } from "./types/construction/cabinetRules";
+import {
+  buildCutList,
+  cutListToCsv,
+  cutListToJson,
+  summarizeCutList
+} from "./engine/cutList";
+import { calculateMaterialConsumption } from "./engine/materialCalculator";
 
 function App() {
   const [roomWidth, setRoomWidth] = useState(4000);
@@ -174,6 +182,90 @@ function App() {
         constructionRules
       )
     : [];
+
+  // Sahnedeki mobilyayı üretim motoru veri modeline çevirir.
+  function toFurniture(item: PlacedFurniture): Furniture {
+    const catalogItem = furnitureCatalog.find(
+      product => product.id === item.catalogId
+    );
+
+    return {
+      id: item.id,
+      name: item.name,
+      type: catalogItem?.type ?? "custom",
+      width: item.width,
+      height: item.height,
+      depth: item.depth,
+      positionX: item.position[0],
+      positionY: item.position[1],
+      positionZ: item.position[2],
+      rotation: item.rotation,
+      materialThickness: constructionRules.panelThickness,
+      doorCount: item.doorCount,
+      drawerCount: item.drawerCount,
+      shelfCount: item.shelfCount,
+      hasBackPanel: item.hasBackPanel,
+      backThickness: item.backThickness,
+      edgeBanding: item.edgeBanding,
+      material: item.material
+    };
+  }
+
+  function downloadFile(content: string, fileName: string, mimeType: string) {
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  function exportProjectCutListCsv() {
+    if (furniture.length === 0) return;
+
+    const rows = buildCutList(
+      furniture.map(toFurniture),
+      constructionRules
+    );
+
+    downloadFile(
+      cutListToCsv(rows),
+      "mobilyacad-kesim-listesi.csv",
+      "text/csv;charset=utf-8"
+    );
+  }
+
+  function exportProjectCutListJson() {
+    if (furniture.length === 0) return;
+
+    const rows = buildCutList(
+      furniture.map(toFurniture),
+      constructionRules
+    );
+
+    downloadFile(
+      cutListToJson(rows),
+      "mobilyacad-kesim-listesi.json",
+      "application/json"
+    );
+  }
+
+  const projectCutList =
+    furniture.length > 0
+      ? buildCutList(
+          furniture.map(toFurniture),
+          constructionRules
+        )
+      : [];
+
+  const projectConsumption = calculateMaterialConsumption(
+    projectCutList.map(row => row.part)
+  );
+
+  const projectSummary = summarizeCutList(projectCutList);
 
   function addFurniture(catalogId: string) {
     const item = furnitureCatalog.find(
@@ -1448,7 +1540,98 @@ function App() {
                     <TabsContent value="production" className="cad-tab-content">
                       <section className="cad-property-section">
                         <div className="cad-section-heading">
-                          <span>ÜRETİM PARÇALARI</span>
+                          <span>PROJE KESİM LİSTESİ</span>
+                          <Layers3 />
+                        </div>
+
+                        <div className="cad-summary-row">
+                          <span>Toplam parça adedi</span>
+                          <strong>{projectSummary.totalPartCount}</strong>
+                        </div>
+                        <div className="cad-summary-row">
+                          <span>Toplam panel alanı</span>
+                          <strong>
+                            {projectSummary.totalAreaSquareMeters.toFixed(2)} m²
+                          </strong>
+                        </div>
+                        <div className="cad-summary-row">
+                          <span>Toplam bant uzunluğu</span>
+                          <strong>
+                            {projectSummary.totalEdgeBandingLengthMm.toLocaleString(
+                              "tr-TR"
+                            )}{" "}
+                            mm
+                          </strong>
+                        </div>
+                        <div className="cad-summary-row">
+                          <span>Farklı malzeme</span>
+                          <strong>{projectSummary.distinctMaterials}</strong>
+                        </div>
+
+                        <div className="cad-production-actions">
+                          <Button
+                            className="cad-production-export"
+                            variant="outline"
+                            onClick={exportProjectCutListCsv}
+                            disabled={furniture.length === 0}
+                          >
+                            Kesim Listesi CSV İndir
+                          </Button>
+                          <Button
+                            className="cad-production-export"
+                            variant="outline"
+                            onClick={exportProjectCutListJson}
+                            disabled={furniture.length === 0}
+                          >
+                            Kesim Listesi JSON İndir
+                          </Button>
+                        </div>
+
+                        {furniture.length === 0 && (
+                          <div className="cad-inspector-empty">
+                            <div>
+                              <Package />
+                            </div>
+                            <strong>Üretim verisi bulunmuyor</strong>
+                            <p>
+                              Odaya mobilya eklediğinizde kesim listesi burada
+                              görüntülenir.
+                            </p>
+                          </div>
+                        )}
+
+                        {projectConsumption.byMaterial.length > 0 && (
+                          <>
+                            <Separator className="cad-section-separator" />
+                            <div className="cad-section-heading">
+                              <span>MALZEME TÜKETİMİ</span>
+                              <Layers />
+                            </div>
+                            {projectConsumption.byMaterial.map(entry => (
+                              <div
+                                key={entry.material}
+                                className="cad-production-card"
+                              >
+                                <strong>{entry.material}</strong>
+                                <span>
+                                  {entry.totalAreaSquareMeters.toFixed(2)} m² ·{" "}
+                                  {entry.totalEdgeBandingLengthMm.toLocaleString(
+                                    "tr-TR"
+                                  )}{" "}
+                                  mm bant
+                                </span>
+                                <small>{entry.partCount} parça</small>
+                              </div>
+                            ))}
+                          </>
+                        )}
+                      </section>
+
+                      <Separator className="cad-section-separator" />
+
+                      <section className="cad-property-section">
+                        <div className="cad-section-heading">
+                          <span>SEÇİLİ MOBİLYA ÜRETİM PARÇALARI</span>
                           <Ruler />
                         </div>
 
@@ -1464,7 +1647,7 @@ function App() {
                               onClick={exportProductionCsv}
                               disabled={productionParts.length === 0}
                             >
-                              Kesim Listesini CSV İndir
+                              Seçili Mobilya CSV İndir
                             </Button>
 
                             {productionParts.map((part) => (
