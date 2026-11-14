@@ -25,6 +25,8 @@ import {
   PanelLeft,
   MousePointer2,
   Layers3,
+  DraftingCompass,
+  AlertTriangle,
 } from "lucide-react";
 
 import { Button } from "./components/ui/button";
@@ -95,6 +97,11 @@ import {
   projectFileName,
   duplicateProjectFurniture
 } from "./engine/project";
+import {
+  validateFurnitureConstraints,
+  defaultManufacturingConstraints
+} from "./engine/manufacturingConstraints";
+import { generateFrontElevationSvg } from "./engine/technicalDrawing";
 
 const AUTOSAVE_KEY = "mobilyacad-autosave";
 
@@ -342,6 +349,18 @@ function App() {
       material: item.material
     };
   }
+
+  const productionDrawing = selectedFurniture
+    ? generateFrontElevationSvg(toFurniture(selectedFurniture), constructionRules)
+    : "";
+
+  const productionWarnings = selectedFurniture
+    ? validateFurnitureConstraints(
+        toFurniture(selectedFurniture),
+        constructionRules,
+        defaultManufacturingConstraints
+      )
+    : [];
 
   function downloadFile(content: string, fileName: string, mimeType: string) {
     const blob = new Blob([content], { type: mimeType });
@@ -758,6 +777,21 @@ function App() {
           field === "height" ? value : roomHeight
         )
       )
+    );
+  }
+
+  function exportDrawingSvg() {
+    if (!selectedFurniture || !productionDrawing) return;
+
+    const safeName = selectedFurniture.name
+      .replace(/[\\/:*?"<>|]/g, "-")
+      .trim()
+      .slice(0, 60);
+
+    downloadFile(
+      productionDrawing,
+      `mobilyacad-${safeName || "cizim"}-onu-yuz.svg`,
+      "image/svg+xml"
     );
   }
 
@@ -1788,6 +1822,83 @@ function App() {
                             <strong>Üretim verisi bulunmuyor</strong>
                             <p>
                               Seçili mobilya için hesaplanan üretim parçaları
+                              burada görüntülenir.
+                            </p>
+                          </div>
+                        )}
+                      </section>
+
+                      <Separator className="cad-section-separator" />
+
+                      <section className="cad-property-section">
+                        <div className="cad-section-heading">
+                          <span>TEKNİK ÇİZİM</span>
+                          <DraftingCompass />
+                        </div>
+
+                        {selectedFurniture && productionDrawing ? (
+                          <>
+                            <div
+                              className="cad-drawing-viewer"
+                              dangerouslySetInnerHTML={{
+                                __html: productionDrawing
+                              }}
+                            />
+                            <Button
+                              className="cad-production-export"
+                              variant="outline"
+                              onClick={exportDrawingSvg}
+                            >
+                              Çizim SVG İndir
+                            </Button>
+                          </>
+                        ) : (
+                          <div className="cad-inspector-empty">
+                            <div>
+                              <DraftingCompass />
+                            </div>
+                            <strong>Çizim verisi bulunmuyor</strong>
+                            <p>
+                              Seçili mobilyanın ön yüz elevasyon çizimi burada
+                              görüntülenir.
+                            </p>
+                          </div>
+                        )}
+                      </section>
+
+                      <Separator className="cad-section-separator" />
+
+                      <section className="cad-property-section">
+                        <div className="cad-section-heading">
+                          <span>ÜRETİM UYARILARI</span>
+                          <AlertTriangle />
+                        </div>
+
+                        {selectedFurniture ? (
+                          productionWarnings.length === 0 ? (
+                            <div className="cad-summary-row">
+                              <span>Üretim kısıtlamaları</span>
+                              <strong>Tamam</strong>
+                            </div>
+                          ) : (
+                            productionWarnings.map((warning, index) => (
+                              <div
+                                key={`${warning.partName}-${index}`}
+                                className="cad-production-card cad-production-warning"
+                              >
+                                <strong>{warning.partName}</strong>
+                                <span>{warning.message}</span>
+                              </div>
+                            ))
+                          )
+                        ) : (
+                          <div className="cad-inspector-empty">
+                            <div>
+                              <AlertTriangle />
+                            </div>
+                            <strong>Üretim uyarısı yok</strong>
+                            <p>
+                              Seçili mobilya için üretim kısıtlaması kontrolleri
                               burada görüntülenir.
                             </p>
                           </div>

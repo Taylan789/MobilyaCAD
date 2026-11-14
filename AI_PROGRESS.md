@@ -110,7 +110,25 @@ Gerçek bir tasarım-üretim (design-to-manufacturing) akışı sağlamak.
   localStorage otomatik kaydetme + açılışta kurtarma (ilk render atlanır,
   kurtarma önce okunur); otomatik kaydetme zamanı durum çubuğunda gösterilir.
 
-## Değiştirilen Dosyalar (M1–M4)
+### M5 — Üretim kısıtlama denetimi (P2)
+- `engine/manufacturingConstraints.ts`: parça bazlı üretim kısıtları
+  (minimum genişlik/uzunluk, kesim payı, minimum kapak genişliği,
+  çekmece ön yüzü minimum yüksekliği); `validatePartConstraints` ve
+  `validateFurnitureConstraints`; kural ihlallerini `ConstraintViolation`
+  listesi olarak döndürür.
+- `App.tsx`: Üretim sekmesinde "ÜRETİM UYARILARI" bölümü; seçili mobilya
+  için kısıt ihlalleri parçaya göre listelenir, ihlal yoksa "Tamam".
+
+### M6 — SVG teknik çizim üretici (P5)
+- `engine/technicalDrawing.ts`: ön yüz elevasyon çizimi (kapaklar,
+  çekmece ön yüzleri, rafta çizgileri, genişlik/yükseklik boyut çizgileri,
+  başlık); parça konumları üretim motorundan (`calculateCabinetParts`)
+  alınır, çizim ayrı bir ölçü kaynağı tutmaz; `isValidSvgDrawing`
+  doğrulama yardımcısı.
+- `App.tsx`: Üretim sekmesinde "TEKNİK ÇİZİM" bölümü; SVG canlı
+  önizleme + "Çizim SVG İndir" butonu (`image/svg+xml`).
+
+## Değiştirilen Dosyalar (M1–M6)
 - `frontend/src/engine/cabinetGeometry.ts`
 - `frontend/src/engine/cabinetParts.ts`
 - `frontend/src/engine/furnitureCalculator.ts`
@@ -119,6 +137,8 @@ Gerçek bir tasarım-üretim (design-to-manufacturing) akışı sağlamak.
 - `frontend/src/engine/hardwareCalculator.ts` (yeni)
 - `frontend/src/engine/history.ts` (yeni)
 - `frontend/src/engine/project.ts` (yeni)
+- `frontend/src/engine/manufacturingConstraints.ts` (yeni)
+- `frontend/src/engine/technicalDrawing.ts` (yeni)
 - `frontend/src/types/placedFurniture.ts`
 - `frontend/src/types/construction/cabinetRules.ts`
 - `frontend/src/App.tsx`
@@ -127,10 +147,12 @@ Gerçek bir tasarım-üretim (design-to-manufacturing) akışı sağlamak.
   `cabinetParts.test.ts`, `furnitureCalculator.test.ts`,
   `placedFurniture.test.ts`, `materialCalculator.test.ts`,
   `hardwareCalculator.test.ts`, `cutList.test.ts`,
-  `history.test.ts`, `project.test.ts`
+  `history.test.ts`, `project.test.ts`,
+  `manufacturingConstraints.test.ts` (yeni),
+  `technicalDrawing.test.ts` (yeni)
 
 ## Test Sonuçları
-`npx vitest run` → **10 dosya, 72 test, hepsi geçti** (0 başarısız).
+`npx vitest run` → **12 dosya, 87 test, hepsi geçti** (0 başarısız).
 
 ## Build Sonucu
 `npm run build` (tsc -b && vite build) → **başarılı**.
@@ -144,6 +166,8 @@ uyarılarıdır).
 - Üretim hesaplamaları kurallara göre teorik ölçüler üretir; gerçek
   atölye doğrulaması (kerf, pres kuvveti, bağlantı detayları) yoktur.
 - CNC operasyonları (`cncOperations`) henüz doldurulmadı.
+- Teknik çizim yalnızca ön yüz elevasyonu üretir; yan yüz ve montaj
+  çizimleri eklenmemiş.
 - `frontend/src/data/.hardwareCatalog.ts` hâlâ kullanım dışı.
 - Stok levha tahmini heuristiktir; optimum olduğu iddia edilmez.
 - Donanım adetleri kurallara dayalı tahmindir; üretici teknik verisi yok.
@@ -151,11 +175,11 @@ uyarılarıdır).
   kullanılamıyorsa kurtarma yapılmaz (sessizce atlanır).
 
 ## Sonraki Adım
-1. P1 parametrik mobilya mimarisi: katalog kalıplarını `FurnitureConfig`
+1. P6: kesim optimizasyonu (levha yerleştirme heuristiği) ve üretim raporları.
+2. P1 parametrik mobilya mimarisi: katalog kalıplarını `FurnitureConfig`
    üzerinden türetmek, kopya mantığı kaldırmak.
-2. P3: malzeme kütüphanesi UI ve kenar bantlama seçimi.
-3. P6: kesim optimizasyonu (heuristik yerleştirme) ve üretim raporları.
-4. P4/P5: 3D düzenleme iyileştirmeleri ve teknik çizim.
+3. P3: malzeme kütüphanesi UI ve kenar bantlama seçimi.
+4. P4: 3D düzenleme iyileştirmeleri.
 
 ## Kurtarma Talimatları
 Sonraki çalışma akışı en son pushed commit'ten (`opencode/dispatch-8ea49f-20261114045749`)

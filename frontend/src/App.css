@@ -1089,6 +1089,25 @@ select {
   font-size: 10px;
 }
 
+.cad-production-card.cad-production-warning {
+  border-left: 3px solid #f59e0b;
+}
+
+.cad-drawing-viewer {
+  padding: 8px;
+  background: #ffffff;
+  border: 1px solid #394650;
+  border-radius: 6px;
+  margin-bottom: 10px;
+  overflow-x: auto;
+}
+
+.cad-drawing-viewer svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
 /* STATUS BAR */
 
 .cad-statusbar {
