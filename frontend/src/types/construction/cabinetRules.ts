@@ -26,4 +26,16 @@ export interface CabinetConstructionRules {
 
   // Arkalık montajında kanal derinliği
   backGrooveDepth: number;
+
+  // Çekmece ön yüzü ile gövde arasındaki toplam boşluk (her iki yan)
+  drawerGap: number;
+
+  // Çekmece kutusu yan panel kalınlığı
+  drawerBoxThickness: number;
+
+  // Çekmece tablası kalınlığı
+  drawerBottomThickness: number;
+
+  // Tek bir çekmece ön yüzünün maksimum yüksekliği
+  drawerFrontMaxHeight: number;
 }

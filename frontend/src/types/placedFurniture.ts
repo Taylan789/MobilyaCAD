@@ -41,20 +41,30 @@ export interface PlacedFurniture {
   parts: FurniturePart[];
 }
 
-// Mobilyanın parçalarını oluşturur
-function createFurnitureParts(
-  item: FurnitureCatalogItem
+const THICKNESS = 18;
+
+// Mobilyanın parçalarını, mevcut dış ölçülerinden türetir.
+// Parçalar her zaman mobilya ölçüleriyle senkronized kalır.
+export function createFurnitureParts(
+  dims: { width: number; height: number; depth: number },
+  config: {
+    doorCount: number;
+    drawerCount: number;
+    shelfCount: number;
+    color: string;
+    material?: string;
+  }
 ): FurniturePart[] {
   const parts: FurniturePart[] = [];
 
-  const thickness = 18;
-  const width = item.width;
-  const height = item.height;
-  const depth = item.depth;
+  const thickness = THICKNESS;
+  const width = dims.width;
+  const height = dims.height;
+  const depth = dims.depth;
 
-  const doorCount = Math.max(0, item.doorCount ?? 0);
-  const drawerCount = Math.max(0, item.drawerCount ?? 0);
-  const shelfCount = Math.max(0, item.shelfCount ?? 0);
+  const doorCount = Math.max(0, Math.floor(config.doorCount || 0));
+  const drawerCount = Math.max(0, Math.floor(config.drawerCount || 0));
+  const shelfCount = Math.max(0, Math.floor(config.shelfCount || 0));
 
   const drawerHeight = drawerCount > 0
     ? Math.floor(Math.min(240, height * 0.4 / drawerCount))
@@ -75,14 +85,12 @@ function createFurnitureParts(
       depth: thickness,
       position: [
         -width / 2000 + (i + 0.5) * (width / doorCount) / 1000,
-        drawerCount > 0
-          ? drawerHeight * drawerCount / 2000
-          : 0,
+        (drawerHeight * drawerCount) / 2000,
         depth / 2000
       ],
       rotation: 0,
-      color: item.color,
-      material: item.material ?? "Suntalam"
+      color: config.color,
+      material: config.material ?? "Suntalam"
     });
   }
 
@@ -101,8 +109,8 @@ function createFurnitureParts(
         depth / 2000
       ],
       rotation: 0,
-      color: item.color,
-      material: item.material ?? "Suntalam"
+      color: config.color,
+      material: config.material ?? "Suntalam"
     });
   }
 
@@ -121,8 +129,8 @@ function createFurnitureParts(
       depth: depth - thickness,
       position: [0, shelfY, 0],
       rotation: 0,
-      color: item.color,
-      material: item.material ?? "Suntalam"
+      color: config.color,
+      material: config.material ?? "Suntalam"
     });
   }
 
@@ -159,7 +167,29 @@ export function createPlacedFurniture(
     parts: []
   };
 
-  placedFurniture.parts = createFurnitureParts(item);
+  placedFurniture.parts = createFurnitureParts(placedFurniture, {
+    doorCount: placedFurniture.doorCount,
+    drawerCount: placedFurniture.drawerCount,
+    shelfCount: placedFurniture.shelfCount,
+    color: placedFurniture.color,
+    material: placedFurniture.material
+  });
 
   return placedFurniture;
+}
+
+// Mobilya ölçüleri veya yapılandırması değiştiğinde parçaları yeniler.
+export function regenerateFurnitureParts(
+  furniture: PlacedFurniture
+): PlacedFurniture {
+  return {
+    ...furniture,
+    parts: createFurnitureParts(furniture, {
+      doorCount: furniture.doorCount,
+      drawerCount: furniture.drawerCount,
+      shelfCount: furniture.shelfCount,
+      color: furniture.color,
+      material: furniture.material
+    })
+  };
 }

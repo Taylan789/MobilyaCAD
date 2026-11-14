@@ -65,9 +65,12 @@ import { ScrollArea } from "./components/ui/scroll-area";
 
 import Scene3D from "./components/viewport/Scene3D";
 import { furnitureCatalog } from "./data/furnitureCatalog";
-import { createPlacedFurniture } from "./types/placedFurniture";
+import {
+  createPlacedFurniture,
+  regenerateFurnitureParts
+} from "./types/placedFurniture";
 import type { PlacedFurniture } from "./types/placedFurniture";
-import { calculateCabinetParts } from "./engine/cabinetParts";
+import { calculateFurnitureParts } from "./engine/furnitureCalculator";
 import type { CabinetConstructionRules } from "./types/construction/cabinetRules";
 
 function App() {
@@ -94,6 +97,10 @@ function App() {
     doorStyle: "full-overlay",
     doorGap: 2,
     doorCount: 2,
+    drawerGap: 2,
+    drawerBoxThickness: 12,
+    drawerBottomThickness: 6,
+    drawerFrontMaxHeight: 240,
   });
 
   const [dimensionDraft, setDimensionDraft] = useState<{
@@ -142,25 +149,31 @@ function App() {
     (item) => item.id === selectedFurniture?.catalogId
   );
 
-  const productionParts =
-    selectedFurniture && selectedCatalogItem?.type === "kitchen"
-      ? calculateCabinetParts(
-          {
-            id: selectedFurniture.id,
-            name: selectedFurniture.name,
-            type: selectedCatalogItem.type,
-            width: selectedFurniture.width,
-            height: selectedFurniture.height,
-            depth: selectedFurniture.depth,
-            positionX: selectedFurniture.position[0],
-            positionY: selectedFurniture.position[1],
-            positionZ: selectedFurniture.position[2],
-            rotation: selectedFurniture.rotation,
-            materialThickness: constructionRules.panelThickness,
-          },
-          constructionRules
-        )
-      : [];
+  const productionParts = selectedFurniture
+    ? calculateFurnitureParts(
+        {
+          id: selectedFurniture.id,
+          name: selectedFurniture.name,
+          type: selectedCatalogItem?.type ?? "custom",
+          width: selectedFurniture.width,
+          height: selectedFurniture.height,
+          depth: selectedFurniture.depth,
+          positionX: selectedFurniture.position[0],
+          positionY: selectedFurniture.position[1],
+          positionZ: selectedFurniture.position[2],
+          rotation: selectedFurniture.rotation,
+          materialThickness: constructionRules.panelThickness,
+          doorCount: selectedFurniture.doorCount,
+          drawerCount: selectedFurniture.drawerCount,
+          shelfCount: selectedFurniture.shelfCount,
+          hasBackPanel: selectedFurniture.hasBackPanel,
+          backThickness: selectedFurniture.backThickness,
+          edgeBanding: selectedFurniture.edgeBanding,
+          material: selectedFurniture.material,
+        },
+        constructionRules
+      )
+    : [];
 
   function addFurniture(catalogId: string) {
     const item = furnitureCatalog.find(
@@ -263,7 +276,7 @@ function App() {
           )
         );
 
-        return {
+        return regenerateFurnitureParts({
           ...item,
           width: sonGenislik,
           height: yukseklik,
@@ -279,7 +292,7 @@ function App() {
             ),
             sinirliZ,
           ],
-        };
+        });
       })
     );
   }
@@ -433,7 +446,7 @@ function App() {
         const yariDerinlik =
           (sin * genislik + cos * derinlik) / 2000;
 
-        return {
+        return regenerateFurnitureParts({
           ...item,
           width: genislik,
           height: yukseklik,
@@ -452,10 +465,71 @@ function App() {
               Math.min(roomLength / 2000 - yariDerinlik, requestedPosition[2])
             ),
           ],
-        };
+        });
       })
     );
   }
+  // Oda ölçüsü değiştiğinde mobilyaları yeni sınırlara göre sabitler.
+  function clampFurnitureToRoom(
+    item: PlacedFurniture,
+    roomW: number,
+    roomL: number,
+    roomH: number
+  ): PlacedFurniture {
+    const aci = (item.rotation * Math.PI) / 180;
+    const cos = Math.abs(Math.cos(aci));
+    const sin = Math.abs(Math.sin(aci));
+    const genislik = item.width / 1000;
+    const derinlik = item.depth / 1000;
+
+    const yariGenislik = (cos * genislik + sin * derinlik) / 2;
+    const yariDerinlik = (sin * genislik + cos * derinlik) / 2;
+
+    const minX = -roomW / 2000 + yariGenislik;
+    const maxX = roomW / 2000 - yariGenislik;
+    const minZ = -roomL / 2000 + yariDerinlik;
+    const maxZ = roomL / 2000 - yariDerinlik;
+    const minY = item.height / 2000;
+    const maxY = roomH / 1000 - item.height / 2000;
+
+    return {
+      ...item,
+      position: [
+        maxX >= minX
+          ? Math.max(minX, Math.min(maxX, item.position[0]))
+          : item.position[0],
+        maxY >= minY
+          ? Math.max(minY, Math.min(maxY, item.position[1]))
+          : item.position[1],
+        maxZ >= minZ
+          ? Math.max(minZ, Math.min(maxZ, item.position[2]))
+          : item.position[2],
+      ],
+    };
+  }
+
+  function updateRoomDimension(
+    field: "width" | "length" | "height",
+    value: number
+  ) {
+    if (!Number.isFinite(value) || value < 100) return;
+
+    if (field === "width") setRoomWidth(value);
+    if (field === "length") setRoomLength(value);
+    if (field === "height") setRoomHeight(value);
+
+    setFurniture((previous) =>
+      previous.map((item) =>
+        clampFurnitureToRoom(
+          item,
+          field === "width" ? value : roomWidth,
+          field === "length" ? value : roomLength,
+          field === "height" ? value : roomHeight
+        )
+      )
+    );
+  }
+
   function exportProductionCsv() {
     if (!selectedFurniture || productionParts.length === 0) return;
 
@@ -1092,7 +1166,10 @@ function App() {
                               min="100"
                               value={roomWidth}
                               onChange={(event) =>
-                                setRoomWidth(Number(event.target.value))
+                                updateRoomDimension(
+                                  "width",
+                                  Number(event.target.value)
+                                )
                               }
                             />
                             <span>mm</span>
@@ -1108,7 +1185,10 @@ function App() {
                               min="100"
                               value={roomLength}
                               onChange={(event) =>
-                                setRoomLength(Number(event.target.value))
+                                updateRoomDimension(
+                                  "length",
+                                  Number(event.target.value)
+                                )
                               }
                             />
                             <span>mm</span>
@@ -1124,7 +1204,10 @@ function App() {
                               min="100"
                               value={roomHeight}
                               onChange={(event) =>
-                                setRoomHeight(Number(event.target.value))
+                                updateRoomDimension(
+                                  "height",
+                                  Number(event.target.value)
+                                )
                               }
                             />
                             <span>mm</span>
@@ -1369,8 +1452,7 @@ function App() {
                           <Ruler />
                         </div>
 
-                        {selectedFurniture &&
-                        selectedCatalogItem?.type === "kitchen" ? (
+                        {selectedFurniture && productionParts.length > 0 ? (
                           <>
                             <div className="cad-production-summary">
                               <span>Hesaplanan parça türü</span>
@@ -1405,8 +1487,8 @@ function App() {
                             </div>
                             <strong>Üretim verisi bulunmuyor</strong>
                             <p>
-                              Mutfak tipi bir modül seçildiğinde hesaplanan
-                              üretim parçaları burada görüntülenir.
+                              Seçili mobilya için hesaplanan üretim parçaları
+                              burada görüntülenir.
                             </p>
                           </div>
                         )}
