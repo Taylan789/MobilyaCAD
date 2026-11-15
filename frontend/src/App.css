@@ -2542,3 +2542,123 @@ html, body, #root {
     transition-duration: .01ms !important;
   }
 }
+
+
+/* SECOND PASS — clearer property editing and denser CAD controls */
+.cad-inspector-scroll [data-radix-scroll-area-viewport] {
+  scrollbar-gutter: stable;
+}
+
+.cad-dimension-fields {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 10px;
+}
+
+.cad-dimension-field {
+  min-width: 0;
+}
+
+.cad-dimension-field .cad-input-with-unit input {
+  min-width: 0;
+  padding-left: 9px;
+  padding-right: 31px;
+  font-variant-numeric: tabular-nums;
+}
+
+.cad-rotation-field {
+  max-width: 100%;
+}
+
+.cad-property-section > .cad-section-heading {
+  min-height: 22px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #edf1f4;
+}
+
+.cad-property-section > .cad-section-heading svg {
+  padding: 2px;
+  box-sizing: content-box;
+  border-radius: 5px;
+  background: #f0f5f8;
+}
+
+.cad-selected-object {
+  min-height: 60px;
+}
+
+.cad-selected-object-icon {
+  flex: 0 0 36px;
+}
+
+.cad-summary-row:last-child {
+  border-bottom: 0;
+}
+
+.cad-production-summary {
+  gap: 8px;
+  padding: 12px 13px;
+  border: 1px solid #e1e9ef;
+  border-radius: 8px;
+  background: #f8fafb;
+}
+
+.cad-production-summary strong {
+  font-variant-numeric: tabular-nums;
+}
+
+.cad-production-card {
+  gap: 7px;
+  padding: 13px;
+  border: 1px solid #e1e9ef;
+  border-radius: 8px;
+  background: #fbfcfd;
+}
+
+.cad-production-card strong {
+  line-height: 1.45;
+}
+
+.cad-production-card small {
+  line-height: 1.5;
+}
+
+.cad-inspector-empty {
+  min-height: 250px;
+  padding: 24px 22px;
+}
+
+.cad-inspector-empty > div {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+}
+
+.cad-inspector-empty strong {
+  font-size: 12px;
+}
+
+.cad-inspector-empty p {
+  max-width: 230px;
+  line-height: 1.7;
+}
+
+.cad-delete-button,
+.cad-full-button {
+  min-height: 37px;
+}
+
+@media (max-width: 1150px) {
+  .cad-dimension-fields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 700px) {
+  .cad-dimension-fields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .cad-property-section > .cad-section-heading {
+    padding-bottom: 7px;
+  }
+}
