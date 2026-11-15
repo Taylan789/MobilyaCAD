@@ -21,7 +21,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 | Kesim listesi | Seçili mutfak modülünün gövde ve eksiksiz yapılandırılmış çekmece parçaları için Türkçe Excel uyumlu CSV | Çoklu mobilya/malzeme toplamı, nesting ve CNC çıktısı yok; yalnızca seçili mutfak modülü |
 | Kenar bantlama / malzeme tüketimi | Seçili mutfak modülünün birleşik gövde/çekmece parçalarından malzeme + kalınlık bazında parça çeşidi, adet, net panel alanı/hacmi ve kenar bantlama uzunluğu | Çoklu mobilya toplamı, fire, levha verimi, kesim payı ve rulo payı yok |
 | Proje dosyası | Yerel JSON v1 indirme/yükleme; saf serializer/parser; round-trip ve eski v1 uyumluluk testleri; mm birim doğrulaması | Şema migrasyonu, otomatik kayıt ve kurtarma yok |
-| Test/CI | GitHub Actions CI #54 ve QA #29; 61/61 test geçti, build/lint ve Pages deploy başarılı | Fiziksel üretim doğrulaması otomatik testle yapılamaz; lint'te 15 mevcut uyarı ve audit'te 6 düşük/orta bulgu sürüyor |
+| Test/CI | GitHub Actions CI #55 ve QA #30; 66/66 test geçti, build/lint ve Pages deploy #36 başarılı | Fiziksel üretim doğrulaması otomatik testle yapılamaz; lint'te 15 mevcut uyarı ve audit'te 6 düşük/orta bulgu sürüyor |
 
 ### Bilinen mimari ve veri boşlukları
 
@@ -161,6 +161,9 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 - Geriye uyumluluk: eski v1 dosyalarında `drawerBoxSpecs` ve `room.unit` alanlarının bulunmaması kabul edilir; eski ölçüler önceki uygulama davranışıyla mm olarak yorumlanır. Açıkça mm dışı birim reddedilir.
 - Otomatik testler round-trip, eski v1 dosyası, bozuk JSON/sürüm/birim, bozuk mobilya/parça geometrisi ve bozuk çekmece yapılandırmasını kapsar.
 - Değişen dosyalar: `frontend/src/engine/projectFile.ts`, `frontend/tests/projectFile.test.mjs`, `frontend/src/App.tsx`.
+- Kod commit'i: `6e2d617946349ae20a0cbc95260c916dc73868bc`.
+- Otomatik doğrulama: CI Run #55 başarılı; QA Run #30 başarılı (66/66 test, 0 başarısız); Pages deploy Run #36 başarılı. TypeScript ve production build başarılı; Oxlint 15 uyarı / 0 hata.
+- Production audit adımı `--audit-level=high` eşiğini geçti; npm audit toplam 6 bulgu (2 düşük, 4 orta) raporladı. Kırıcı/force bağımlılık güncellemesi yapılmadı.
 - Bu dilim yerel JSON v1 dosyalarını kapsar; otomatik kayıt, kurtarma, migration ve yeni proje format sürümü henüz yoktur.
 
 ## Sıradaki 5 küçük görev
