@@ -62,7 +62,7 @@ test("döndürülmüş mobilyalar için gerçek dikdörtgen çakışmasını hes
       name: "Dar Dolap",
       width: 300,
       depth: 1000,
-      position: [0.45, 0.36, 0.45],
+      position: [0.35, 0.36, 0.35],
       rotation: 45
     })
   ], 4000, 5000);
