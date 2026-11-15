@@ -206,5 +206,22 @@
 - Kalite notları: npm audit 6 bulgu (2 düşük, 4 orta); `deepmerge` ve `minimatch` zincirleri sürüyor. `--force` güncellemesi yapılmadı. Oxlint'te 15 mevcut uyarı devam ediyor.
 - AI Developer Run #3 (`43559164561`) başarılı; bu çalışmanın başında ve sonunda aktif AI Developer/QA run yoktu. Başarılı AI Developer işi yeniden başlatılmadı.
 - Bilinen kısıtlar: mobilya/parça `materialId` bağlantısı henüz yok; üretim özeti eski serbest metin malzeme alanlarını kullanıyor; katalog silme henüz referans koruması yapmıyor. Fiyat, tedarikçi, fire, damar yönü ve kenar bandı standardı bu dilime dahil değil.
-- Sonraki görev: mobilya ve parça kayıtlarına opsiyonel `materialId` ekle; eski serbest metin kayıtlarını geriye uyumlu koru, referanslı malzemelerin silinmesini engelle ve üretim motorunda katalog kalınlığı eşlemesini doğrula.
+- Bu görev 16 Kasım 2026 tarihli f4f97533280df98980dd1da377e71e917a7e5790 commit'inde tamamlandı; sonraki adım çekmece kutusu gruplarına opsiyonel katalog malzeme kimliği eklemektir.
 
+
+
+## 16 Kasım 2026 — mobilya malzeme kimliği ve üretim izlenebilirliği
+
+- Başlangıç HEAD: fe188d740da2ed4a75e40bdebd6df143e7d9fc67. Bu HEAD üzerinde 3D yerleşim doğrulama commit'i 35501b9b7b1acd9cdb83d0ef09f08d28eaa7aab7 ve ayrı görsel çalışma commit'i fe188d740da2ed4a75e40bdebd6df143e7d9fc67 zaten mevcuttu; başlangıç CI #76, QA #49 ve Pages #51 başarılıydı, aktif workflow yoktu.
+- Kod commit'i: f4f97533280df98980dd1da377e71e917a7e5790.
+- Değişen dosyalar: frontend/src/types/placedFurniture.ts, frontend/src/types/furniture.ts, frontend/src/types/part.ts, frontend/src/engine/cabinetParts.ts, frontend/src/engine/materialCatalog.ts, frontend/src/engine/projectFile.ts, frontend/src/engine/projectProduction.ts, frontend/src/engine/materialConsumption.ts, frontend/src/engine/cutListCsv.ts, frontend/src/components/production/MaterialCatalogManager.tsx, frontend/src/App.tsx, frontend/tests/projectFile.test.mjs, frontend/tests/projectProduction.test.mjs, frontend/tests/cutListCsv.test.mjs.
+- Mobilya özellik paneline katalog malzemesi seçimi eklendi. Serbest metin legacy alanı korunur; katalog seçildiğinde mobilya materialId taşır ve görünen malzeme adı katalogla senkronize edilir.
+- Proje JSON v1 serializer/parser, materialId referansının aynı proje içindeki materials listesinde bulunmasını zorunlu kılar. Eski projelerde alan yoksa geriye uyumluluk sürer. Kullanılan katalog kaydı silinemez.
+- Desteklenen düz mutfak gövde hesaplaması, malzeme kimliğini oluşturulan Part kayıtlarına taşır. Gövde paneli ve mevcut arkalık kalınlığı katalogda tanımlı değilse üretim dışa aktarımı engellenir.
+- Malzeme tüketimi katalog ID + ad + kalınlıkla gruplar; CSV'ye Malzeme ID sütunu eklendi. Legacy ve çekmece kutusu serbest metin satırlarında kimlik boş kalır.
+- Testler: 6 yeni otomatik test; proje JSON referans round-trip/bozuk referans, referanslı silme koruması, üretim parça kimliği, eksik kalınlık/kimlik engeli, aynı görünen adın farklı ID'lerle gruplanması ve CSV ID kolonu kapsandı.
+- GitHub Actions: QA #51 (43768495335) başarılı, 92/92 test; CI #79 (43768495400) başarılı; Pages deploy #52 (43768495324) başarılı. Gerçek Actions job logları kontrol edildi.
+- Kalite: Oxlint 16 uyarı / 0 hata; npm audit 6 bulgu (2 düşük, 4 orta), production audit yüksek önem eşiği başarılı; bundle boyutu uyarısı sürüyor.
+- Bu dokümantasyon hazırlığı sırasında başka bir aktör PR #5'i (dev/assistant-design-system -> dev/github-work, yalnızca frontend/src/index.css) birleştirdi; bu otomasyon PR'ı birleştirmedi. Yeni HEAD 2206c154696d2401894a8fe7190b9d05481d826c üzerinde CI #80, QA #52 (92/92) ve Pages #53 başarılı.
+- Bilinen sınırlar: materialId üretim bağlantısı yalnızca desteklenen düz mutfak gövdelerinde aktiftir. Çekmece kutusu konfigürasyonları kendi malzeme metnini kullanır; per-part malzeme override ve farklı gövde/arkalık katalog ataması henüz yoktur. CNC standardı veya fiziksel üretim onayı verilmemiştir.
+- Sonraki görev: çekmece kutusu gruplarına opsiyonel materialId ve kalınlık doğrulaması eklemek; eski serbest metin konfigürasyonlarını bozmamak.

@@ -8,29 +8,30 @@ MobilyaCAD'i tarayıcıda çalışan bir 3D mobilya yerleşim aracından; parame
 
 Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarılan veriler aynı kaynak parametreleri kullanmalı. Fiziksel üretime giden ölçüler, bağlantılar ve CNC işlemleri ancak gerçek üretici/atölye standardı doğrulandığında onaylı kabul edilebilir.
 
-## Doğrulanmış mevcut temel — 15 Kasım 2026
+## Doğrulanmış mevcut temel — 16 Kasım 2026
 
 | Alan | Mevcut durum | Sınır |
 |---|---|---|
 | Teknoloji | React 19, TypeScript, Vite, Three.js / React Three Fiber | Tarayıcı istemcisi; ayrı backend yok |
 | Oda ve 3D sahne | Ölçülü oda ve perspektif sahne | Tam 2D teknik çizim, kesit ve görünüş araçları yok |
-| Yerleşim | Katalogdan ekleme, seçme, taşıma, döndürme ve boyutlandırma | Gelişmiş snap, çoklu seçim ve tam undo/redo akışı doğrulanmış değil |
+| Yerleşim | Katalogdan ekleme, seçme, taşıma, döndürme ve boyutlandırma; SAT tabanlı yatay ayak izi çakışma ve oda sınırı uyarıları 3D sahnede gösterilir | Gelişmiş snap, çoklu seçim, duvar montajı/kapak açılımı boşlukları ve tam undo/redo akışı doğrulanmış değil |
 | Katalog | Mutfak, gardırop, banyo, masa, kitaplık ve diğer ailelerden 100 varyasyon | Şablonlar tam parametrik konstrüksiyon aileleri değil |
 | Parçalar | Görsel kapak/çekmece/raf parçaları; açık ölçülü çekmece kutusu motoru; proje v1 yapılandırması; Üretim paneli formu; hesaplanan çekmece grupları birleşik üretim listesine bağlı | Diğer mobilya aileleri için tam üretim parça ağacı yok; ray, donanım ve CNC operasyonları dahil değil |
 | Hesap motoru | Mutfak tipi gövdeler için yan, üst, alt, raf, kapak ve arkalık hesabı | Çekmece kutusu, tüm aileler ve üreticiye özel konstrüksiyonlar eksik |
-| Kesim listesi | Projedeki desteklenen düz mutfak gövdeleri ve tam tanımlı çekmece parçaları için tek Türkçe Excel uyumlu CSV; her satır kaynak mobilya adına bağlı | Köşe/cihaz/evye konstrüksiyonları, diğer aileler, nesting ve CNC çıktısı yok |
+| Kesim listesi | Projedeki desteklenen düz mutfak gövdeleri ve tam tanımlı çekmece parçaları için tek Türkçe Excel uyumlu CSV; her satır kaynak mobilya adı/ID'si ve varsa katalog Malzeme ID değeriyle izlenir | Köşe/cihaz/evye konstrüksiyonları, diğer aileler, nesting ve CNC çıktısı yok |
 | Kenar bantlama / malzeme tüketimi | Projedeki desteklenen modüllerin birleşik parçalarından malzeme + kalınlık bazında adet, net alan/hacim ve kenar bantlama toplamı | Yalnızca desteklenen düz gövdeler; fire, levha verimi, kesim payı ve rulo payı yok |
-| Malzeme kataloğu | Proje JSON v1 içinde kullanıcı tanımlı panel/dekor kayıtları; UI üzerinden ekleme, düzenleme ve silme; kararlı ID ve mm kalınlık doğrulaması; proje kaydet/yükle ile korunur | Mobilya/parça materialId bağlantısı ve üretim kalınlık eşlemesi henüz yok; fiyat, tedarikçi ve fire yok |
-| Proje dosyası | Yerel JSON v1 indirme/yükleme; saf serializer/parser; round-trip ve eski v1 uyumluluk testleri; mm birim doğrulaması; opsiyonel malzeme kataloğu alanı | Şema migrasyonu, otomatik kayıt ve kurtarma yok |
-| Test/CI | CI #65 ve QA #40; 80/80 test; TypeScript/build/lint ve production audit eşiği başarılı; Pages deploy #46 başarılı | Fiziksel üretim doğrulaması otomatik testle yapılamaz; lint'te 15 mevcut uyarı, audit'te 6 düşük/orta bulgu ve bundle boyutu uyarısı sürüyor |
+| Malzeme kataloğu | UI CRUD; mobilya düzeyinde opsiyonel materialId; JSON v1 referans doğrulaması; referanslı kaydın silinmesi engellenir; desteklenen düz gövde üretim parçaları ID taşır, tüketim ID + kalınlıkla gruplanır ve CSV'ye ID yazılır | Çekmece kutusu malzemesi hâlâ kendi serbest metin alanındadır; parça bazlı farklı malzeme ataması, fiyat, tedarikçi ve fire yok |
+| Proje dosyası | Yerel JSON v1 indirme/yükleme; saf serializer/parser; round-trip ve eski v1 uyumluluk; mm ve katalog referans doğrulaması; opsiyonel malzeme kataloğu ve mobilya materialId alanı | Şema migrasyonu, otomatik kayıt ve kurtarma yok |
+| Test/CI | CI #80 ve QA #52; 92/92 test; TypeScript/build/lint ve production audit eşiği başarılı; Pages deploy #53 başarılı | Fiziksel üretim doğrulaması otomatik testle yapılamaz; lint'te 16 uyarı, audit'te 6 bulgu (2 düşük/4 orta) ve bundle boyutu uyarısı sürüyor |
 
 ### Bilinen mimari ve veri boşlukları
 
 - `frontend/src/engine/furnitureCalculator.ts` ölçü kontrolünden sonra boş liste döndüren bir altyapı stub'ıdır; üretim hesaplayıcısı olarak kullanılmamalıdır.
 - Konstrüksiyon kurallarının bir kısmı `App.tsx` içinde sabit başlangıç değerleriyle tutuluyor; proje ve mobilya bazında yapılandırılabilir hale getirilmeli.
 - Çekmece görsel sayısı ile gerçek çekmece kutusu/önü parça ağacı aynı şey değildir; kullanıcı ölçü, malzeme, kenar bantlama ve damar yönünü açıkça tanımlar. Hesaplanan dört çekmece parça grubu gövde parçalarıyla aynı üretim listesine ve CSV'ye eklenir; eksik veya geçersiz yapılandırma dışa aktarımı engeller. Ray boşluğu, donanım ve CNC işlemleri hesaplanmaz.
-- Panel malzeme kataloğunun ilk domain sözleşmesi ve opsiyonel JSON v1 alanı eklendi; proje içi UI CRUD akışı tamamlandı, mobilya/parça `materialId` bağlantısı ve üretim kalınlık eşlemesi henüz yok. Donanım tüketimi, nesting ve CNC postprocessor katmanları tamamlanmış değildir.
-- Kenar bantlama ve malzeme tüketimi proje genelinde desteklenen düz mutfak modüllerinin birleştirilmiş parça listesinden hesaplanır; özel köşe/cihaz/evye geometrileri ve diğer mobilya aileleri kapsam dışıdır. Fire ve rulo payı hesaplanmaz.
+- Panel malzeme kataloğunun domain sözleşmesi, proje içi UI CRUD akışı ve mobilya düzeyinde materialId bağlantısı tamamlandı. Desteklenen düz gövde parçaları katalog kimliğini taşır; panel/arkalık kalınlığı katalogda yoksa üretim export'u engellenir. Çekmece kutusu grupları hâlâ serbest metin malzeme kullanır. Donanım tüketimi, nesting ve CNC postprocessor katmanları tamamlanmış değildir.
+- Kenar bantlama ve malzeme tüketimi proje genelinde desteklenen düz mutfak modüllerinin birleştirilmiş parça listesinden hesaplanır; katalog referanslı gövde parçaları ID + kalınlıkla ayrı gruplanır. Özel köşe/cihaz/evye geometrileri ve diğer mobilya aileleri kapsam dışıdır. Fire ve rulo payı hesaplanmaz.
+- Yerleşim doğrulaması XZ düzlemindeki yatay dikdörtgen ayak izlerini ve oda sınırlarını denetler; dikey çakışma, kapak/çekmece açılımı, duvar sabitlemesi ve montaj toleranslarını hesaplamaz.
 
 ## Geliştirme aşamaları
 
@@ -211,10 +212,24 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 - Bilinen sınırlar: mobilya ve parça kayıtları henüz `materialId` ile kataloğa bağlanmadı; üretim raporu eski serbest metin malzeme alanlarını kullanmaya devam ediyor. Katalog silme işlemi henüz referans denetimi yapmıyor; çünkü malzeme referans alanları sonraki dilimde eklenecek. Fiyat, tedarikçi, fire, damar yönü veya kenar bandı standardı uydurulmaz.
 - Sonraki görev: `materialId` alanını mobilya/parça verisine opsiyonel ve geriye uyumlu biçimde ekle; legacy serbest metin malzemeyi koru, referanslı malzemenin silinmesini engelle ve üretim kalınlığını katalogla doğrula.
 
+## Son tamamlanan dikey dilim — mobilya malzeme kimliği ve üretim izlenebilirliği
+
+- Mobilya özellik panelinde kullanıcı katalog malzemesini seçebilir veya mevcut serbest metin malzeme alanını koruyabilir. Katalog kaydı yeniden adlandırıldığında atanmış mobilyanın görünen malzeme adı senkronize edilir.
+- PlacedFurniture.materialId opsiyoneldir; eski JSON v1 dosyaları ve eski serbest metin kayıtları değişmeden geçerlidir. Serializer/parser, atanmış kimliğin proje materials kataloğunda bulunmasını zorunlu kılar.
+- Kullanılan malzeme katalog ekranında silinemez; önce mobilyadaki atama kaldırılmalıdır.
+- Desteklenen düz mutfak gövdelerinde materialId, hesaplanan Part satırlarına aktarılır. Gövde paneli ve arkalık için gereken kalınlık katalogda yoksa üretim hesabı hata verir ve CSV export engellenir.
+- Malzeme tüketimi aynı görünen ada sahip farklı katalog kimliklerini ayrı gruplar; proje CSV'sine Malzeme ID kolonu eklendi. Legacy serbest metin satırlarında bu kolon boş kalır.
+- Çekmece kutusu konfigürasyonları kendi malzeme metnini korur; bu dilim drawer-box materialId, parça bazlı override ve farklı gövde/arkalık malzemesi atamasını kapsamaz.
+- Kod commit'i: f4f97533280df98980dd1da377e71e917a7e5790.
+- Değişen dosyalar: frontend/src/types/placedFurniture.ts, frontend/src/types/furniture.ts, frontend/src/types/part.ts, frontend/src/engine/cabinetParts.ts, frontend/src/engine/materialCatalog.ts, frontend/src/engine/projectFile.ts, frontend/src/engine/projectProduction.ts, frontend/src/engine/materialConsumption.ts, frontend/src/engine/cutListCsv.ts, frontend/src/components/production/MaterialCatalogManager.tsx, frontend/src/App.tsx, frontend/tests/projectFile.test.mjs, frontend/tests/projectProduction.test.mjs, frontend/tests/cutListCsv.test.mjs.
+- Otomatik testler: 6 yeni test; QA Run #51 (43768495335) 92/92 başarılı. CI Run #79 (43768495400) TypeScript, production build ve lint adımlarında başarılı. Pages deploy Run #52 (43768495324) başarılı.
+- Kalite notları: Oxlint 16 uyarı / 0 hata; npm audit 6 bulgu (2 düşük, 4 orta), audit-level=high eşiği başarılı. Bundle boyutu uyarısı sürüyor.
+- Bilinen sınırlar: üretim materialId bağlantısı yalnızca mevcut desteklenen düz mutfak gövde profillerinde aktiftir. Çekmece kutusu grupları, gardırop/kitaplık ve diğer mobilya aileleri henüz katalog kimliğine bağlı üretim hesaplaması yapmaz. Fiziksel panel/CNC doğrulaması operatör gerektirir.
+
 ## Sıradaki 5 küçük görev
 
-1. Mobilya ve parça verisini `materialId` ile kataloğa geriye uyumlu bağla; eski serbest metin malzeme kayıtlarını koru ve açık uyumluluk davranışını test et.
-2. Üretim hesabında seçilen malzeme kimliği ve panel kalınlığının katalogla tutarlılığını doğrula; serbest metin legacy kayıtları için açık uyumluluk davranışı tanımla.
+1. drawerBoxSpecs içindeki her çekmece grubuna opsiyonel materialId ekle; proje JSON referans doğrulamasını ve kullanılan tüm kalınlıkların katalog eşleşmesini uygula, eski serbest metin konfigürasyonlarını koru.
+2. Panel/parça bazında malzeme override modelini ekle; gövde, arkalık, raf ve kapak için ayrı katalog malzemeleri seçilebilsin ve tüketim/CSV aynı kaynaktan beslensin.
 3. Düz gövde konstrüksiyon kurallarını proje/mobilya bazında yapılandırılabilir hale getir; mevcut sabit panel/arkalık varsayımlarını açıkça modele taşı.
 4. Gardırop veya kitaplık için tek bir basit, dikdörtgen konstrüksiyon profilini parça motoru, proje verisi ve testlerle uçtan uca tamamla.
 5. Proje JSON v1 için sürüm migration, otomatik kayıt ve güvenli kurtarma akışını küçük parçalara ayır.
