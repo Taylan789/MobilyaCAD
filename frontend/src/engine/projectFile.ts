@@ -1,5 +1,6 @@
 import type { PlacedFurniture, FurniturePart } from "../types/placedFurniture";
 import { isValidDrawerBoxProjectSpecs } from "./drawerBoxProject";
+import { validateMaterialCatalog, type MaterialCatalogEntry } from "./materialCatalog";
 
 export interface ProjectRoomDimensions {
   width: number;
@@ -13,6 +14,7 @@ export interface MobilyaCadProjectFileV1 {
   savedAt?: string;
   room: ProjectRoomDimensions & { unit: "mm" };
   furniture: PlacedFurniture[];
+  materials?: MaterialCatalogEntry[];
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -81,8 +83,12 @@ function isValidPlacedFurniture(value: unknown): value is PlacedFurniture {
 export function serializeProjectFile(
   room: ProjectRoomDimensions,
   furniture: PlacedFurniture[],
-  savedAt = new Date().toISOString()
+  savedAt = new Date().toISOString(),
+  materials?: readonly MaterialCatalogEntry[]
 ): string {
+  const validatedMaterials = materials === undefined
+    ? undefined
+    : validateMaterialCatalog(materials);
   const project: MobilyaCadProjectFileV1 = {
     format: "MobilyaCAD",
     formatVersion: 1,
@@ -94,6 +100,7 @@ export function serializeProjectFile(
       unit: "mm",
     },
     furniture,
+    ...(validatedMaterials === undefined ? {} : { materials: validatedMaterials }),
   };
 
   return JSON.stringify(project, null, 2);
@@ -134,6 +141,15 @@ export function parseProjectFile(content: string): MobilyaCadProjectFileV1 {
     Array.isArray(parsed.furniture) &&
     parsed.furniture.every(isValidPlacedFurniture);
 
+  let materials: MaterialCatalogEntry[] | undefined;
+  if (parsed.materials !== undefined) {
+    try {
+      materials = validateMaterialCatalog(parsed.materials);
+    } catch {
+      throw new Error("Proje malzeme kataloğu geçersiz; kimlik, kalınlık ve mm birimini kontrol et.");
+    }
+  }
+
   if (
     parsed.format !== "MobilyaCAD" ||
     parsed.formatVersion !== 1 ||
@@ -158,5 +174,6 @@ export function parseProjectFile(content: string): MobilyaCadProjectFileV1 {
       unit: "mm",
     },
     furniture: parsed.furniture as PlacedFurniture[],
+    ...(materials === undefined ? {} : { materials }),
   };
 }

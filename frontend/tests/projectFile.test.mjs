@@ -70,6 +70,14 @@ function createFurniture(overrides = {}) {
 
 const room = { width: 4000, length: 5000, height: 2800 };
 const savedAt = "2026-11-15T18:00:00.000Z";
+const materialCatalog = [{
+  id: "mdf-white",
+  name: " MDF ",
+  category: "panel",
+  decor: " Mat Beyaz ",
+  thicknessesMm: [18, 8],
+  unit: "mm",
+}];
 
 test("JSON v1 kaydet/yükle round-trip mobilya ve çekmece ölçülerini korur", () => {
   const furniture = createFurniture();
@@ -126,4 +134,39 @@ test("bozuk opsiyonel çekmece yapılandırması sessizce atlanmaz", () => {
   const invalidDrawer = JSON.parse(serializeProjectFile(room, [createFurniture()]));
   invalidDrawer.furniture[0].drawerBoxSpecs[0].spec.outerWidth = 0;
   assert.throws(() => parseProjectFile(JSON.stringify(invalidDrawer)), /uyumlu değil/);
+});
+
+
+test("JSON v1 isteğe bağlı kullanıcı malzeme kataloğunu round-trip sırasında korur", () => {
+  const json = serializeProjectFile(room, [createFurniture()], savedAt, materialCatalog);
+  const parsed = parseProjectFile(json);
+
+  assert.deepEqual(parsed.materials, [{
+    id: "mdf-white",
+    name: "MDF",
+    category: "panel",
+    decor: "Mat Beyaz",
+    thicknessesMm: [8, 18],
+    unit: "mm",
+  }]);
+});
+
+test("proje yükleyicisi geçersiz malzeme birimini ve yinelenen kimliği reddeder", () => {
+  const wrongUnit = JSON.parse(
+    serializeProjectFile(room, [], savedAt, materialCatalog)
+  );
+  wrongUnit.materials[0].unit = "cm";
+  assert.throws(
+    () => parseProjectFile(JSON.stringify(wrongUnit)),
+    /malzeme kataloğu geçersiz/
+  );
+
+  const duplicateId = JSON.parse(
+    serializeProjectFile(room, [], savedAt, materialCatalog)
+  );
+  duplicateId.materials.push({ ...duplicateId.materials[0], name: "Başka dekor" });
+  assert.throws(
+    () => parseProjectFile(JSON.stringify(duplicateId)),
+    /malzeme kataloğu geçersiz/
+  );
 });
