@@ -3,8 +3,7 @@ import assert from "node:assert/strict";
 
 import { calculateMaterialConsumptionSummary } from "../src/engine/materialConsumption.ts";
 import {
-  calculateProjectProduction,
-  isSupportedCabinetCatalogItem
+  calculateProjectProduction
 } from "../src/engine/projectProduction.ts";
 import { createProjectCutListCsv } from "../src/engine/cutListCsv.ts";
 
@@ -183,7 +182,13 @@ test("projedeki desteklenen modüller mobilya kimlikleri korunarak tek üretim l
   assert.equal(drawerSide.quantity, 4);
 
   const summaries = calculateMaterialConsumptionSummary(result.parts);
-  assert.deepEqual(summaries.map((summary) => summary.material), ["MDF", "Suntalam"]);
+  assert.deepEqual(
+    [...new Set(summaries.map((summary) => summary.material))],
+    ["MDF", "Suntalam"]
+  );
+  assert.ok(summaries.some((summary) => summary.material === "MDF" && summary.thickness === 18));
+  assert.ok(summaries.some((summary) => summary.material === "Suntalam" && summary.thickness === 18));
+  assert.ok(summaries.length > 2, "Farklı panel kalınlıkları ayrı gruplarda kalmalı.");
 
   const csv = createProjectCutListCsv(result.furnitureNames, result.parts);
   assert.ok(csv.includes("Alt Mutfak Dolabı;Sol Yan Panel;"));
