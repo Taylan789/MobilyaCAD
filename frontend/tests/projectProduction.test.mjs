@@ -158,6 +158,7 @@ function createPlacedFurniture(catalogId, id, overrides = {}) {
 test("projedeki desteklenen modüller mobilya kimlikleri korunarak tek üretim listesinde birleşir", () => {
   const furniture = [
     createPlacedFurniture("base-cabinet", "base-1", { material: "MDF" }),
+    createPlacedFurniture("base-cabinet", "base-2", { material: "MDF" }),
     createPlacedFurniture("wall-cabinet", "wall-1", { material: "Suntalam" }),
     createPlacedFurniture("parametric-1-1", "drawer-1", {
       drawerBoxSpecs: [drawerConfig]
@@ -166,12 +167,13 @@ test("projedeki desteklenen modüller mobilya kimlikleri korunarak tek üretim l
 
   const result = calculateProjectProduction(furniture, catalog, rules);
 
-  assert.equal(result.supportedFurnitureCount, 3);
+  assert.equal(result.supportedFurnitureCount, 4);
   assert.equal(result.unsupportedFurniture.length, 0);
   assert.equal(result.blockedFurniture.length, 0);
   assert.equal(result.errors.length, 0);
   assert.equal(result.exportBlockReason, null);
   assert.ok(result.parts.some((part) => part.furnitureId === "base-1"));
+  assert.ok(result.parts.some((part) => part.furnitureId === "base-2"));
   assert.ok(result.parts.some((part) => part.furnitureId === "wall-1"));
   assert.ok(result.parts.some((part) => part.furnitureId === "drawer-1"));
   assert.equal(new Set(result.parts.map((part) => part.id)).size, result.parts.length);
@@ -191,9 +193,11 @@ test("projedeki desteklenen modüller mobilya kimlikleri korunarak tek üretim l
   assert.ok(summaries.length > 2, "Farklı panel kalınlıkları ayrı gruplarda kalmalı.");
 
   const csv = createProjectCutListCsv(result.furnitureNames, result.parts);
-  assert.ok(csv.includes("Alt Mutfak Dolabı;Sol Yan Panel;"));
-  assert.ok(csv.includes("Üst Mutfak Dolabı;Sol Yan Panel;"));
-  assert.ok(csv.includes("Çekmeceli Alt Dolap - Kompakt;Çekmece Yan Paneli;"));
+  assert.ok(csv.includes("Mobilya;Mobilya ID;Parça;"));
+  assert.ok(csv.includes("Alt Mutfak Dolabı;base-1;Sol Yan Panel;"));
+  assert.ok(csv.includes("Alt Mutfak Dolabı;base-2;Sol Yan Panel;"));
+  assert.ok(csv.includes("Üst Mutfak Dolabı;wall-1;Sol Yan Panel;"));
+  assert.ok(csv.includes("Çekmeceli Alt Dolap - Kompakt;drawer-1;Çekmece Yan Paneli;"));
 });
 
 test("özel köşe, cihaz ve diğer mobilya aileleri tahmin edilmeden kapsam dışı bırakılır", () => {

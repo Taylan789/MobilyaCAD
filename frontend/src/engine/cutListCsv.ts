@@ -1,7 +1,7 @@
 import type { Part } from "../types/part";
 
 type CsvCell = string | number;
-type CsvRow = { furnitureName: string; part: Part };
+type CsvRow = { furnitureName: string; furnitureId?: string; part: Part };
 
 const csvHeaders = [
   "Mobilya",
@@ -56,7 +56,7 @@ function validateCutListPart(part: Part): void {
   }
 }
 
-function serializeCutListRows(rows: readonly CsvRow[]): string {
+function serializeCutListRows(rows: readonly CsvRow[], includeFurnitureId = false): string {
   for (const row of rows) {
     if (typeof row.furnitureName !== "string" || row.furnitureName.trim() === "") {
       throw new Error("Kesim listesi için mobilya adı belirtilmelidir.");
@@ -64,21 +64,29 @@ function serializeCutListRows(rows: readonly CsvRow[]): string {
     validateCutListPart(row.part);
   }
 
+  const headers = includeFurnitureId
+    ? [csvHeaders[0], "Mobilya ID", ...csvHeaders.slice(1)]
+    : csvHeaders;
   const csvRows: CsvCell[][] = [
-    csvHeaders,
-    ...rows.map(({ furnitureName, part }) => [
-      furnitureName,
-      part.name,
-      part.width,
-      part.length,
-      part.thickness,
-      part.quantity,
-      part.material,
-      part.edgeBanding.top ? "Evet" : "Hayır",
-      part.edgeBanding.bottom ? "Evet" : "Hayır",
-      part.edgeBanding.left ? "Evet" : "Hayır",
-      part.edgeBanding.right ? "Evet" : "Hayır"
-    ])
+    headers,
+    ...rows.map(({ furnitureName, furnitureId, part }) => {
+      const cells: CsvCell[] = [
+        furnitureName,
+        part.name,
+        part.width,
+        part.length,
+        part.thickness,
+        part.quantity,
+        part.material,
+        part.edgeBanding.top ? "Evet" : "Hayır",
+        part.edgeBanding.bottom ? "Evet" : "Hayır",
+        part.edgeBanding.left ? "Evet" : "Hayır",
+        part.edgeBanding.right ? "Evet" : "Hayır"
+      ];
+      return includeFurnitureId
+        ? [cells[0], furnitureId ?? "", ...cells.slice(1)]
+        : cells;
+    })
   ];
 
   return "\uFEFF" + csvRows
@@ -126,8 +134,8 @@ export function createProjectCutListCsv(
     if (typeof furnitureName !== "string" || furnitureName.trim() === "") {
       throw new Error("Parça için mobilya adı eşleşmesi bulunamadı.");
     }
-    return { furnitureName, part };
+    return { furnitureName, furnitureId: part.furnitureId, part };
   });
 
-  return serializeCutListRows(rows);
+  return serializeCutListRows(rows, true);
 }
