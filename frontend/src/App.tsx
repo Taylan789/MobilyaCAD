@@ -68,13 +68,11 @@ import { DrawerBoxConfigurator } from "./components/production/DrawerBoxConfigur
 import { furnitureCatalog } from "./data/furnitureCatalog";
 import { createPlacedFurniture } from "./types/placedFurniture";
 import type { PlacedFurniture } from "./types/placedFurniture";
-import { calculateCabinetParts } from "./engine/cabinetParts";
-import { calculateDrawerBoxParts } from "./engine/drawerBoxParts";
 import { parseProjectFile, serializeProjectFile } from "./engine/projectFile";
 import { calculateEdgeBandingSummary } from "./engine/edgeBanding";
 import { calculateMaterialConsumptionSummary } from "./engine/materialConsumption";
-import { createCutListCsv } from "./engine/cutListCsv";
-import { getCabinetCutListExportBlockReason, resolveCabinetConstructionRules } from "./engine/cabinetRules";
+import { createProjectCutListCsv } from "./engine/cutListCsv";
+import { calculateProjectProduction, isSupportedCabinetCatalogItem } from "./engine/projectProduction";
 import type { CabinetConstructionRules } from "./types/construction/cabinetRules";
 
 function App() {
@@ -148,45 +146,13 @@ function App() {
   const selectedCatalogItem = furnitureCatalog.find(
     (item) => item.id === selectedFurniture?.catalogId
   );
-  const productionExportBlockReason = selectedFurniture
-    ? getCabinetCutListExportBlockReason(selectedFurniture)
-    : null;
-
-  const cabinetProductionParts =
-    selectedFurniture && selectedCatalogItem?.type === "kitchen"
-      ? calculateCabinetParts(
-          {
-            id: selectedFurniture.id,
-            name: selectedFurniture.name,
-            type: selectedCatalogItem.type,
-            width: selectedFurniture.width,
-            height: selectedFurniture.height,
-            depth: selectedFurniture.depth,
-            positionX: selectedFurniture.position[0],
-            positionY: selectedFurniture.position[1],
-            positionZ: selectedFurniture.position[2],
-            rotation: selectedFurniture.rotation,
-            materialThickness: constructionRules.panelThickness,
-            backThickness: selectedFurniture.backThickness,
-            hasBackPanel: selectedFurniture.hasBackPanel,
-            edgeBanding: selectedFurniture.edgeBanding,
-            material: selectedFurniture.material,
-          },
-          resolveCabinetConstructionRules(constructionRules, selectedFurniture)
-        )
-      : [];
-
-  const drawerProductionParts =
-    selectedFurniture?.drawerBoxSpecs?.flatMap((config) => {
-      try {
-        return calculateDrawerBoxParts(selectedFurniture.id, config.id, config.spec);
-      } catch {
-        // Invalid imported geometry remains blocked from export without crashing the editor.
-        return [];
-      }
-    }) ?? [];
-
-  const productionParts = [...cabinetProductionParts, ...drawerProductionParts];
+  const projectProduction = calculateProjectProduction(
+    furniture,
+    furnitureCatalog,
+    constructionRules
+  );
+  const productionParts = projectProduction.parts;
+  const productionExportBlockReason = projectProduction.exportBlockReason;
 
   const edgeBandingSummary = calculateEdgeBandingSummary(productionParts);
   const materialConsumptionSummary = calculateMaterialConsumptionSummary(productionParts);
@@ -486,18 +452,14 @@ function App() {
     );
   }
   function exportProductionCsv() {
-    if (
-      !selectedFurniture ||
-      productionParts.length === 0 ||
-      productionExportBlockReason
-    ) return;
+    if (productionParts.length === 0 || productionExportBlockReason) return;
 
-    const csv = createCutListCsv(selectedFurniture.name, productionParts);
+    const csv = createProjectCutListCsv(projectProduction.furnitureNames, productionParts);
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `mobilyacad-kesim-listesi-${selectedFurniture.id}.csv`;
+    link.download = "mobilyacad-proje-kesim-listesi.csv";
     document.body.appendChild(link);
     link.click();
     link.remove();
@@ -1264,35 +1226,52 @@ function App() {
                     <TabsContent value="production" className="cad-tab-content">
                       <section className="cad-property-section">
                         <div className="cad-section-heading">
-                          <span>ÜRETİM PARÇALARI</span>
+                          <span>PROJE ÜRETİM PARÇALARI</span>
                           <Ruler />
                         </div>
 
-                        {selectedFurniture &&
-                        selectedCatalogItem?.type === "kitchen" ? (
+                        {furniture.length === 0 ? (
+                          <div className="cad-inspector-empty">
+                            <div><Package /></div>
+                            <strong>Projede mobilya bulunmuyor</strong>
+                            <p>Üretim özeti için önce odaya mobilya ekle.</p>
+                          </div>
+                        ) : (
                           <>
+                            <div className="cad-production-summary">
+                              <span>Hesaplanan desteklenen modül</span>
+                              <strong>{projectProduction.supportedFurnitureCount} / {furniture.length}</strong>
+                            </div>
                             <div className="cad-production-summary">
                               <span>Hesaplanan parça türü</span>
                               <strong>{productionParts.length}</strong>
                             </div>
 
-                            {selectedFurniture.drawerCount > 0 && (
-                              <DrawerBoxConfigurator
-                                key={selectedFurniture.id}
-                                furnitureId={selectedFurniture.id}
-                                expectedDrawerCount={selectedFurniture.drawerCount}
-                                configs={selectedFurniture.drawerBoxSpecs ?? []}
-                                onChange={(drawerBoxSpecs) =>
-                                  setFurniture((previous) =>
-                                    previous.map((item) =>
-                                      item.id === selectedFurniture.id
-                                        ? { ...item, drawerBoxSpecs }
-                                        : item
-                                    )
-                                  )
-                                }
-                              />
+                            {projectProduction.unsupportedFurniture.length > 0 && (
+                              <p className="cad-field-note" role="status">
+                                Henüz üretim hesabı desteklenmeyen mobilyalar: {projectProduction.unsupportedFurniture.map((item) => item.furnitureName).join(", ")}. Bu rapor ve CSV yalnızca desteklenen düz mutfak gövdelerini kapsar; özel köşe, cihaz ve evye boşlukları hesaplanmaz.
+                              </p>
                             )}
+
+                            {selectedFurniture &&
+                              isSupportedCabinetCatalogItem(selectedCatalogItem) &&
+                              selectedFurniture.drawerCount > 0 && (
+                                <DrawerBoxConfigurator
+                                  key={selectedFurniture.id}
+                                  furnitureId={selectedFurniture.id}
+                                  expectedDrawerCount={selectedFurniture.drawerCount}
+                                  configs={selectedFurniture.drawerBoxSpecs ?? []}
+                                  onChange={(drawerBoxSpecs) =>
+                                    setFurniture((previous) =>
+                                      previous.map((item) =>
+                                        item.id === selectedFurniture.id
+                                          ? { ...item, drawerBoxSpecs }
+                                          : item
+                                      )
+                                    )
+                                  }
+                                />
+                              )}
 
                             <div className="cad-production-summary">
                               <span>Toplam kenar bantlama</span>
@@ -1332,17 +1311,29 @@ function App() {
                               ))
                             ) : (
                               <p className="cad-field-note">
-                                Malzeme tüketimi için hesaplanan parça bulunmuyor.
+                                Desteklenen mobilyalar için hesaplanan üretim parçası bulunmuyor.
                               </p>
                             )}
-                            <p className="cad-field-note">
-                              Net panel alanı ve hacim fire, kesim payı, levha verimi veya rulo payı içermez.
-                            </p>
+
+                            {projectProduction.errors.map((issue) => (
+                              <p key={issue.furnitureId + issue.reason} className="text-xs text-muted-foreground" role="alert">
+                                {issue.furnitureName}: {issue.reason}
+                              </p>
+                            ))}
+                            {projectProduction.blockedFurniture.map((issue) => (
+                              <p key={issue.furnitureId + issue.reason} className="text-xs text-muted-foreground" role="status">
+                                {issue.furnitureName}: {issue.reason}
+                              </p>
+                            ))}
                             {productionExportBlockReason && (
                               <p className="text-xs text-muted-foreground" role="status">
                                 {productionExportBlockReason}
                               </p>
                             )}
+
+                            <p className="cad-field-note">
+                              Net panel alanı ve hacim fire, kesim payı, levha verimi veya rulo payı içermez. CNC, donanım ve özel konstrüksiyon boşlukları bu rapora dahil değildir.
+                            </p>
                             <Button
                               className="cad-production-export"
                               variant="outline"
@@ -1352,33 +1343,18 @@ function App() {
                                 productionExportBlockReason !== null
                               }
                             >
-                              Kesim Listesini CSV İndir
+                              Proje Kesim Listesini CSV İndir
                             </Button>
 
                             {productionParts.map((part) => (
-                              <div
-                                key={part.id}
-                                className="cad-production-card"
-                              >
+                              <div key={part.id} className="cad-production-card">
                                 <strong>{part.name}</strong>
-                                <span>
-                                  {part.width} × {part.length} × {part.thickness} mm
-                                </span>
+                                <span>{part.width} × {part.length} × {part.thickness} mm</span>
+                                <small>{projectProduction.furnitureNames.get(part.furnitureId) ?? "Mobilya"}</small>
                                 <small>Adet: {part.quantity}</small>
                               </div>
                             ))}
                           </>
-                        ) : (
-                          <div className="cad-inspector-empty">
-                            <div>
-                              <Package />
-                            </div>
-                            <strong>Üretim verisi bulunmuyor</strong>
-                            <p>
-                              Mutfak tipi bir modül seçildiğinde hesaplanan
-                              üretim parçaları burada görüntülenir.
-                            </p>
-                          </div>
                         )}
                       </section>
                     </TabsContent>

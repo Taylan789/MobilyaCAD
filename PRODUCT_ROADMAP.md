@@ -18,8 +18,8 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 | Katalog | Mutfak, gardırop, banyo, masa, kitaplık ve diğer ailelerden 100 varyasyon | Şablonlar tam parametrik konstrüksiyon aileleri değil |
 | Parçalar | Görsel kapak/çekmece/raf parçaları; açık ölçülü çekmece kutusu motoru; proje v1 yapılandırması; Üretim paneli formu; hesaplanan çekmece grupları birleşik üretim listesine bağlı | Diğer mobilya aileleri için tam üretim parça ağacı yok; ray, donanım ve CNC operasyonları dahil değil |
 | Hesap motoru | Mutfak tipi gövdeler için yan, üst, alt, raf, kapak ve arkalık hesabı | Çekmece kutusu, tüm aileler ve üreticiye özel konstrüksiyonlar eksik |
-| Kesim listesi | Seçili mutfak modülünün gövde ve eksiksiz yapılandırılmış çekmece parçaları için Türkçe Excel uyumlu CSV | Çoklu mobilya/malzeme toplamı, nesting ve CNC çıktısı yok; yalnızca seçili mutfak modülü |
-| Kenar bantlama / malzeme tüketimi | Seçili mutfak modülünün birleşik gövde/çekmece parçalarından malzeme + kalınlık bazında parça çeşidi, adet, net panel alanı/hacmi ve kenar bantlama uzunluğu | Çoklu mobilya toplamı, fire, levha verimi, kesim payı ve rulo payı yok |
+| Kesim listesi | Projedeki desteklenen düz mutfak gövdeleri ve tam tanımlı çekmece parçaları için tek Türkçe Excel uyumlu CSV; her satır kaynak mobilya adına bağlı | Köşe/cihaz/evye konstrüksiyonları, diğer aileler, nesting ve CNC çıktısı yok |
+| Kenar bantlama / malzeme tüketimi | Projedeki desteklenen modüllerin birleşik parçalarından malzeme + kalınlık bazında adet, net alan/hacim ve kenar bantlama toplamı | Yalnızca desteklenen düz gövdeler; fire, levha verimi, kesim payı ve rulo payı yok |
 | Proje dosyası | Yerel JSON v1 indirme/yükleme; saf serializer/parser; round-trip ve eski v1 uyumluluk testleri; mm birim doğrulaması | Şema migrasyonu, otomatik kayıt ve kurtarma yok |
 | Test/CI | GitHub Actions CI #55 ve QA #30; 66/66 test geçti, build/lint ve Pages deploy #36 başarılı | Fiziksel üretim doğrulaması otomatik testle yapılamaz; lint'te 15 mevcut uyarı ve audit'te 6 düşük/orta bulgu sürüyor |
 
@@ -29,7 +29,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 - Konstrüksiyon kurallarının bir kısmı `App.tsx` içinde sabit başlangıç değerleriyle tutuluyor; proje ve mobilya bazında yapılandırılabilir hale getirilmeli.
 - Çekmece görsel sayısı ile gerçek çekmece kutusu/önü parça ağacı aynı şey değildir; kullanıcı ölçü, malzeme, kenar bantlama ve damar yönünü açıkça tanımlar. Hesaplanan dört çekmece parça grubu gövde parçalarıyla aynı üretim listesine ve CSV'ye eklenir; eksik veya geçersiz yapılandırma dışa aktarımı engeller. Ray boşluğu, donanım ve CNC işlemleri hesaplanmaz.
 - Malzeme kataloğu, donanım tüketimi, nesting ve CNC postprocessor katmanları tamamlanmış değildir.
-- Kenar bantlama uzunluğu artık seçili mutfak modülünün açık kenar bayraklarından hesaplanır; çoklu mobilya/malzeme toplamı, fire ve rulo payı henüz yoktur.
+- Kenar bantlama ve malzeme tüketimi proje genelinde desteklenen düz mutfak modüllerinin birleştirilmiş parça listesinden hesaplanır; özel köşe/cihaz/evye geometrileri ve diğer mobilya aileleri kapsam dışıdır. Fire ve rulo payı hesaplanmaz.
 
 ## Geliştirme aşamaları
 
@@ -166,13 +166,22 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 - Production audit adımı `--audit-level=high` eşiğini geçti; npm audit toplam 6 bulgu (2 düşük, 4 orta) raporladı. Kırıcı/force bağımlılık güncellemesi yapılmadı.
 - Bu dilim yerel JSON v1 dosyalarını kapsar; otomatik kayıt, kurtarma, migration ve yeni proje format sürümü henüz yoktur.
 
+### Son tamamlanan dikey dilim — proje genelinde kesim listesi ve tüketim toplamı
+
+- Üretim hesabı seçili tek mobilyadan proje geneline taşındı; her desteklenen yerleştirilmiş modül kendi kimliğiyle hesaplanır ve parçalar tek listede birleştirilir.
+- İlk desteklenen profil düz mutfak gövdeleridir: temel/üst dolap, çekmeceli alt dolap ve kiler. Köşe, fırın, ankastre buzdolabı ve evye varyasyonları özel geometri olmadan kesim listesine alınmaz; diğer mobilya aileleri açıkça kapsam dışı gösterilir.
+- Çekmeceli modülün tüm kutu ölçüleri/adetleri tanımlı değilse proje CSV'si kilitlenir. Sıfır çekmece adedinde kalmış çekmece konfigürasyonu da reddedilir.
+- CSV satırları her parçanın `furnitureId` eşlemesinden mobilya adını alır; eksik eşleme ve yinelenen mobilya/parça kimliği dışa aktarımı engeller.
+- Proje genelindeki malzeme/kalınlık alan-hacim ve kenar bantlama özetleri aynı birleştirilmiş `Part[]` kaynağından beslenir.
+- Özel köşe/cihaz/evye boşlukları, gardırop/kitaplık konstrüksiyonları, fire, levha verimi, nesting, CNC ve fiziksel üretim onayı bu dilimin dışındadır.
+
 ## Sıradaki 5 küçük görev
 
-1. Birden fazla mobilyanın kesim/bantlama toplamlarını quantity ve malzeme/kalınlık bazında birleştir; yalnızca tamamı hesaplanabilen destekli parça ağaçlarını dahil et.
-2. Kesim listesi ve malzeme özetini proje genelinde gösterecek güvenli seçim/çoklu mobilya modelini oluştur.
-3. Kullanıcı tanımlı malzeme/dekor kataloğunu kalınlık, birim ve kimlik doğrulamasıyla tasarla; fiyat uydurma.
-4. Çekmece dışındaki gardırop, banyo ve kitaplık ailelerinden birini açık konstrüksiyon kurallarıyla uçtan uca tamamla.
-5. Proje JSON v1 için şema migration, otomatik kayıt ve güvenli kurtarma akışını tasarla.
+1. Kullanıcı tanımlı malzeme/dekor kataloğunu kararlı kimlik, kalınlık ve birim doğrulamasıyla ekle; fiyat veya dekor standardı uydurma.
+2. Düz gövde konstrüksiyon kurallarını proje/mobilya bazında yapılandırılabilir hale getir; mevcut sabit panel/arkalık varsayımlarını açıkça modele taşı.
+3. Gardırop veya kitaplık için tek bir basit, dikdörtgen konstrüksiyon profilini parça motoru, proje verisi ve testlerle uçtan uca tamamla.
+4. Proje JSON v1 için sürüm migration, otomatik kayıt ve güvenli kurtarma akışını küçük parçalara ayır.
+5. Proje üretim raporuna desteklenmeyen ailelerin durumunu ve hesaplama hatalarını daha ayrıntılı filtreleme/inceleme akışı ekle.
 
 ## Üretim güvenliği ve karar sınırları
 
