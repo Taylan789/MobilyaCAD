@@ -21,7 +21,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 | Kesim listesi | Seçili mutfak modülü için temel CSV | Şu an çekmeceli modüllerin CSV dışa aktarımı güvenlik amacıyla engellenir; CNC/optimizasyon çıktısı değildir |
 | Kenar bantlama | Seçili mutfak modülünde parça kenar işaretlerinden adet çarpanlı doğrusal uzunluk özeti | Çoklu mobilya ve malzeme/dekor bazlı toplamlar yok; fire veya rulo payı hesaplanmaz |
 | Proje dosyası | Yerel JSON indirme/yükleme, format sürümü 1 ve temel doğrulama | Şema migrasyonu, otomatik kayıt ve kurtarma yok |
-| Test/CI | GitHub Actions CI ve QA; 15 Kasım 2026 QA #14'te 26/26 test geçti | Fiziksel üretim doğrulaması otomatik testle yapılamaz |
+| Test/CI | GitHub Actions CI ve QA; 15 Kasım 2026 QA #15'te 35/35 test geçti | Fiziksel üretim doğrulaması otomatik testle yapılamaz |
 
 ### Bilinen mimari ve veri boşlukları
 
@@ -101,7 +101,9 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 - Quantity çarpanı yan ve ön/arka panellerde iki kat uygulanır; taban ve görünür ön panelde çekmece adedi kullanılır.
 - Ray, bağlantı elemanı, CNC operasyonu ve makine koordinatı üretilmez.
 - Bu dilim yalnızca domain motoru ve otomatik test altyapısıdır; henüz App arayüzü, proje JSON kaydı veya CSV dışa aktarımıyla bağlı değildir. Çekmeceli CSV engeli aynen korunur.
-- Kod commit'i: `CODE_COMMIT_SHA` (CI/QA doğrulaması bekleniyor).
+- Kod commit'i: `e8d8d2de37b981675075bdb84d57c909cab46014`.
+- Otomatik doğrulama: QA Run #15 başarılı, 35/35 test; CI Run #40 başarılı; TypeScript ve production build başarılı; lint 15 uyarı / 0 hata; Pages deploy Run #21 başarılı.
+- Güvenlik denetimi: `npm audit --omit=dev --audit-level=high` adımı başarılı; raporda 6 bulgu (2 düşük, 4 orta) sürüyor. `deepmerge` / `shadcn` ve `minimatch` / `ts-morph` zincirleri incelenmeli; kırıcı `--force` güncellemesi yapılmadı.
 
 ## Sıradaki 5 küçük görev
 
