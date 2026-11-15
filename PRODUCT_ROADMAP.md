@@ -16,18 +16,18 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 | Oda ve 3D sahne | Ölçülü oda ve perspektif sahne | Tam 2D teknik çizim, kesit ve görünüş araçları yok |
 | Yerleşim | Katalogdan ekleme, seçme, taşıma, döndürme ve boyutlandırma | Gelişmiş snap, çoklu seçim ve tam undo/redo akışı doğrulanmış değil |
 | Katalog | Mutfak, gardırop, banyo, masa, kitaplık ve diğer ailelerden 100 varyasyon | Şablonlar tam parametrik konstrüksiyon aileleri değil |
-| Parçalar | Yerleştirilen mobilyada kapak/çekmece/raf görsel parçaları | Her aile için üretim parça ağacı henüz yok |
+| Parçalar | Görsel kapak/çekmece/raf parçaları ve açık ölçü gerektiren bağımsız çekmece kutusu hesaplama motoru | Çekmece motoru henüz UI/proje dosyası/CSV akışına bağlanmadı; tüm aileler için üretim parça ağacı yok |
 | Hesap motoru | Mutfak tipi gövdeler için yan, üst, alt, raf, kapak ve arkalık hesabı | Çekmece kutusu, tüm aileler ve üreticiye özel konstrüksiyonlar eksik |
 | Kesim listesi | Seçili mutfak modülü için temel CSV | Şu an çekmeceli modüllerin CSV dışa aktarımı güvenlik amacıyla engellenir; CNC/optimizasyon çıktısı değildir |
 | Kenar bantlama | Seçili mutfak modülünde parça kenar işaretlerinden adet çarpanlı doğrusal uzunluk özeti | Çoklu mobilya ve malzeme/dekor bazlı toplamlar yok; fire veya rulo payı hesaplanmaz |
 | Proje dosyası | Yerel JSON indirme/yükleme, format sürümü 1 ve temel doğrulama | Şema migrasyonu, otomatik kayıt ve kurtarma yok |
-| Test/CI | GitHub Actions CI ve QA; 15 Kasım 2026 QA #11'de 21/21 test geçti | Fiziksel üretim doğrulaması otomatik testle yapılamaz |
+| Test/CI | GitHub Actions CI ve QA; 15 Kasım 2026 QA #14'te 26/26 test geçti | Fiziksel üretim doğrulaması otomatik testle yapılamaz |
 
 ### Bilinen mimari ve veri boşlukları
 
 - `frontend/src/engine/furnitureCalculator.ts` ölçü kontrolünden sonra boş liste döndüren bir altyapı stub'ıdır; üretim hesaplayıcısı olarak kullanılmamalıdır.
 - Konstrüksiyon kurallarının bir kısmı `App.tsx` içinde sabit başlangıç değerleriyle tutuluyor; proje ve mobilya bazında yapılandırılabilir hale getirilmeli.
-- Çekmece görsel sayısı ile gerçek çekmece kutusu/önü parça ağacı aynı şey değildir; üretim parçası hesaplanmadan kesim listesine eklenmemelidir.
+- Çekmece görsel sayısı ile gerçek çekmece kutusu/önü parça ağacı aynı şey değildir; bağımsız hesaplama motoru artık açık ölçü ve konstrüksiyon girdileriyle çalışır, ancak UI/proje dosyası/CSV entegrasyonu tamamlanana kadar üretim listesine eklenmemelidir.
 - Malzeme kataloğu, donanım tüketimi, nesting ve CNC postprocessor katmanları tamamlanmış değildir.
 - Kenar bantlama uzunluğu artık seçili mutfak modülünün açık kenar bayraklarından hesaplanır; çoklu mobilya/malzeme toplamı, fire ve rulo payı henüz yoktur.
 
@@ -91,14 +91,24 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 - Parça adet değeri her kenar uzunluğuna uygulanır; boş liste sıfır döndürür, geçersiz ölçü/adet reddedilir.
 - Üretim paneli toplamı ve iki yönlü alt toplamı mm cinsinden gösterir.
 - Hesap yalnızca tanımlı kenar bayraklarını toplar; bant kalınlığı, fire, rulo payı veya fiziksel üretim standardı tahmin etmez.
-- Bu commit için CI/QA doğrulaması bekleniyor.
+- Kod commit'i `bc36978a9ab34da0413f743710e944938050f2cb` için QA #13 ve #14, CI #38 ve #39 başarılı; son QA 26/26 test.
+
+### Son tamamlanan dikey dilim — çekmece kutusu hesaplama motoru (domain temeli)
+
+- `calculateDrawerBoxParts` dört parça grubunu üretir: iki yan panel, ön/arka kutu panelleri, taban ve görünür ön panel.
+- Kutu dış ölçüleri, panel kalınlıkları, görünür ön panel ölçüleri, adet, malzeme, kenar bantlama ve damar yönü açıkça sağlanır; görünür ön panel boşluğu veya ray payı tahmin edilmez.
+- Desteklenen tek taban kurgusu açıkça `between-sides-and-front-back` olarak belirtilir; başka konstrüksiyon seçimi reddedilir.
+- Quantity çarpanı yan ve ön/arka panellerde iki kat uygulanır; taban ve görünür ön panelde çekmece adedi kullanılır.
+- Ray, bağlantı elemanı, CNC operasyonu ve makine koordinatı üretilmez.
+- Bu dilim yalnızca domain motoru ve otomatik test altyapısıdır; henüz App arayüzü, proje JSON kaydı veya CSV dışa aktarımıyla bağlı değildir. Çekmeceli CSV engeli aynen korunur.
+- Kod commit'i: `CODE_COMMIT_SHA` (CI/QA doğrulaması bekleniyor).
 
 ## Sıradaki 5 küçük görev
 
-1. Çekmece kutusu ve ön paneli için açık konstrüksiyon parametreleri ekle; parça ölçüsü/adedi test edilene kadar çekmeceli modül CSV'sini kapalı tut.
-2. Sabit `constructionRules` başlangıç değerlerini proje veya mobilya bazında saklanan, doğrulanan ayarlara taşı.
-3. Kenar bantlama özetini çoklu mobilya ve malzeme/dekor bazında birleştir; fire ve rulo payı eklemeden önce kullanıcı girdisi gereksinimini tanımla.
-4. Desteklenen mobilya aileleri için kesim listesi destek matrisini ve çoklu mobilya quantity birleştirmesini ekle.
+1. Çekmece kutusu ölçü/konstrüksiyon girdilerini `PlacedFurniture` ve proje JSON v1 geriye uyumluluğuna ekle; eski dosyalar için varsayılan üretim ölçüsü uydurma.
+2. Üretim paneline açık çekmece kutusu ve görünür ön panel ölçüleri, malzeme, damar yönü ve kenar bantlama ayarlarını ekle.
+3. Hesaplanan çekmece parçalarını üretim önizlemesine bağla; eksik veya geçersiz tanımda CSV engelini koru, tam tanımda bütün parça gruplarını export testleriyle doğrula.
+4. Birden fazla çekmece ölçü grubunu ve birden fazla mobilyanın kesim/bantlama toplamlarını quantity çarpanlarıyla birleştir.
 5. Proje JSON v1 için şema doğrulama, round-trip ve gelecekteki sürüme migrasyon testleri oluştur.
 
 ## Üretim güvenliği ve karar sınırları
