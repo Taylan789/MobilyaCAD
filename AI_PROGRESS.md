@@ -225,3 +225,17 @@
 - Bu dokümantasyon hazırlığı sırasında başka bir aktör PR #5'i (dev/assistant-design-system -> dev/github-work, yalnızca frontend/src/index.css) birleştirdi; bu otomasyon PR'ı birleştirmedi. Yeni HEAD 2206c154696d2401894a8fe7190b9d05481d826c üzerinde CI #80, QA #52 (92/92) ve Pages #53 başarılı.
 - Bilinen sınırlar: materialId üretim bağlantısı yalnızca desteklenen düz mutfak gövdelerinde aktiftir. Çekmece kutusu konfigürasyonları kendi malzeme metnini kullanır; per-part malzeme override ve farklı gövde/arkalık katalog ataması henüz yoktur. CNC standardı veya fiziksel üretim onayı verilmemiştir.
 - Sonraki görev: çekmece kutusu gruplarına opsiyonel materialId ve kalınlık doğrulaması eklemek; eski serbest metin konfigürasyonlarını bozmamak.
+
+
+## 16 Kasım 2026 — çekmece gruplarını malzeme kataloğuna bağlama
+
+- Başlangıç HEAD: `3d6c0a4f409661d592a977fe5d13ae62dcb7658b`. Başlangıçta aktif CI/QA/AI Developer işi yoktu; CI #89, QA #56 ve Pages #56 başarılıydı. Açık PR #7 (`dev/assistant-viewport-gizmo`) ayrı viewport dosyasına aitti; bu otomasyon PR'ı veya `Scene3D.tsx` dosyasını değiştirmedi.
+- Kod commit'i: `59abb77149e7a6a54b3900ccd43805b33c61ccd9`.
+- Değişen dosyalar: `frontend/src/engine/drawerBoxParts.ts`, `frontend/src/engine/drawerBoxProject.ts`, `frontend/src/engine/projectFile.ts`, `frontend/src/engine/projectProduction.ts`, `frontend/src/components/production/DrawerBoxConfigurator.tsx`, `frontend/src/App.tsx`, `frontend/tests/drawerBoxParts.test.mjs`, `frontend/tests/drawerBoxProject.test.mjs`, `frontend/tests/projectFile.test.mjs`, `frontend/tests/projectProduction.test.mjs`.
+- Çekmece grubu editörüne isteğe bağlı katalog malzemesi seçimi eklendi. Serbest metin alanı korunur; malzeme seçilirse ID ve katalog adı kaydedilir. Tek materialId, o grubun yan, ön/arka, taban ve görünür ön panel parçalarına uygulanır.
+- Proje JSON v1 serializer/parser çekmece materialId referansını doğrular; dört panel kalınlığının tamamı katalogda bulunmalıdır. Eski serbest metin konfigürasyonları ve materialId içermeyen eski v1 dosyaları geçerlidir.
+- Üretim motoru katalog kimliğini ve katalog adını çekmece parça satırlarına aktarır; tüketim özeti ve CSV aynı Part kaynağını kullanır. Referanslı çekmece malzemesi katalogdan silinemez; katalog adı değiştiğinde görünen metin güncellenir.
+- Testler: 6 yeni test; QA #58 (run `43775089671`) 98/98 başarılı. CI #92 (run `43775089453`) başarılı; Pages deploy #57 (run `43775089465`) başarılı. TypeScript, production build, lint ve production dependency audit adımları tamamlandı.
+- Kalite: Oxlint 16 uyarı / 0 hata. npm audit 6 bulgu (2 düşük, 4 orta); production audit yüksek önem eşiğini geçti. Bundle boyutu uyarısı sürüyor.
+- Bilinen sınırlar: tek materialId tüm çekmece panel gruplarına uygulanır; panel-grubu bazında farklı malzeme seçimi sonraki dilimdir. Ray boşluğu, donanım, CNC operasyonu, fire ve fiziksel üretim doğrulaması dahil değildir. `frontend/src/App.css` ve ayrı viewport ajanının `Scene3D.tsx` dosyası değiştirilmedi.
+- Sonraki görev: gövde ve çekmece panel grupları için parça bazlı malzeme override modelini eklemek; UI, proje JSON, üretim hesabı, tüketim ve CSV'yi aynı katalog kimliğine bağlamak.
