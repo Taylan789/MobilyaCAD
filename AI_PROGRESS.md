@@ -13,7 +13,8 @@
 - Düzeltme: adetler tek yerde normalize ediliyor ve aynı normalize edilmiş değerler hem mobilya alanlarında hem parça üretiminde kullanılıyor. Açıkça verilen 0 korunuyor; geçersiz/sonlu olmayan adetler varsayılanla güvenli şekilde normalize ediliyor.
 - Regresyon testleri: varsayılan adetler, açık sıfır değerleri ve özel adet kombinasyonu.
 - Bu değişiklikten önceki son doğrulanmış QA: Run #8, 14/14 test başarılı; lint 15 uyarı / 0 hata; build başarılı; production audit adımı başarılı ancak npm audit 6 bulgu raporladı (2 düşük, 4 orta). Bundle boyutu uyarısı mevcut.
-- Bu commit için GitHub Actions CI/QA sonucu henüz alınmadı; push sonrası doğrulanacak.
+- Commit: `27d402735ae887bf94b4a3653a6ef1a134c1ed38`.
+- Doğrulama: QA Run #9 başarılı; 17/17 test geçti, lint 15 uyarı / 0 hata, TypeScript ve production build başarılı, production audit adımı başarılı. CI Run #34 ve Pages deploy Run #15 de başarılı.
 
 ## Bilinen riskler ve sıradaki işler
 
