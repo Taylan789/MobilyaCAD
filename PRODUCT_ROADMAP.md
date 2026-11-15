@@ -21,7 +21,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 | Kesim listesi | Seçili mutfak modülünün gövde ve eksiksiz yapılandırılmış çekmece parçaları için Türkçe Excel uyumlu CSV | Çoklu mobilya/malzeme toplamı, nesting ve CNC çıktısı yok; yalnızca seçili mutfak modülü |
 | Kenar bantlama | Seçili mutfak modülünün birleşik gövde/çekmece parça listesinden adet çarpanlı doğrusal uzunluk özeti | Çoklu mobilya ve malzeme/dekor bazlı toplamlar yok; fire veya rulo payı hesaplanmaz |
 | Proje dosyası | Yerel JSON indirme/yükleme, format sürümü 1 ve temel doğrulama | Şema migrasyonu, otomatik kayıt ve kurtarma yok |
-| Test/CI | GitHub Actions CI ve QA; son doğrulanan QA #23'te 51/51 test geçti; build, lint ve production audit adımları başarılı | Fiziksel üretim doğrulaması otomatik testle yapılamaz; lint'te 15 mevcut uyarı ve audit'te 6 düşük/orta bulgu sürüyor |
+| Test/CI | GitHub Actions CI #50 ve QA #25; 56/56 test geçti, build/lint ve Pages deploy başarılı | Fiziksel üretim doğrulaması otomatik testle yapılamaz; lint'te 15 mevcut uyarı ve audit'te 6 düşük/orta bulgu sürüyor |
 
 ### Bilinen mimari ve veri boşlukları
 
@@ -136,6 +136,8 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 - Mevcut Türkçe başlıklar, noktalı virgül ayırıcı, UTF-8 BOM ve CRLF satır sonları korunur; tırnak, ayırıcı ve satır sonu içeren alanlar kaçırılır.
 - Dışa aktarma sınırında boş mobilya/parça listesi, geçersiz ölçü, pozitif tam sayı olmayan adet ve eksik malzeme/kenar bilgisi reddedilir. Ölçüler mm olarak, sayısal değerler yerelleştirilmeden yazılır.
 - Birleşik gövde + dört çekmece parça grubunun CSV satırları ve adet toplamı otomatik testle doğrulanır; mevcut CSV kolon şeması değiştirilmez.
+- Kod commit'i: `c803c869b5462579b322329271f90c5574a7cc4b`.
+- Otomatik doğrulama: CI #49 başarılı; güncel branch'te CI #50, QA #25 (56/56) ve Pages deploy #31 başarılı.
 - Fiziksel üretim, ray/donanım ve CNC doğrulaması bu kapsamda değildir.
 
 ## Sıradaki 5 küçük görev
