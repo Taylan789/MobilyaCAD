@@ -16,18 +16,18 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 | Oda ve 3D sahne | Ölçülü oda ve perspektif sahne | Tam 2D teknik çizim, kesit ve görünüş araçları yok |
 | Yerleşim | Katalogdan ekleme, seçme, taşıma, döndürme ve boyutlandırma | Gelişmiş snap, çoklu seçim ve tam undo/redo akışı doğrulanmış değil |
 | Katalog | Mutfak, gardırop, banyo, masa, kitaplık ve diğer ailelerden 100 varyasyon | Şablonlar tam parametrik konstrüksiyon aileleri değil |
-| Parçalar | Görsel kapak/çekmece/raf parçaları; açık ölçülü çekmece kutusu motoru; proje v1'de saklanan çekmece grupları ve Üretim panelinde açık parametre formu | Çekmece kutusu parçaları henüz üretim önizlemesi/CSV'ye bağlanmadı; tüm aileler için üretim parça ağacı yok |
+| Parçalar | Görsel kapak/çekmece/raf parçaları; açık ölçülü çekmece kutusu motoru; proje v1 yapılandırması; Üretim paneli formu; hesaplanan çekmece grupları birleşik üretim listesine bağlı | Diğer mobilya aileleri için tam üretim parça ağacı yok; ray, donanım ve CNC operasyonları dahil değil |
 | Hesap motoru | Mutfak tipi gövdeler için yan, üst, alt, raf, kapak ve arkalık hesabı | Çekmece kutusu, tüm aileler ve üreticiye özel konstrüksiyonlar eksik |
-| Kesim listesi | Seçili mutfak modülü için temel CSV | Şu an çekmeceli modüllerin CSV dışa aktarımı güvenlik amacıyla engellenir; CNC/optimizasyon çıktısı değildir |
-| Kenar bantlama | Seçili mutfak modülünde parça kenar işaretlerinden adet çarpanlı doğrusal uzunluk özeti | Çoklu mobilya ve malzeme/dekor bazlı toplamlar yok; fire veya rulo payı hesaplanmaz |
+| Kesim listesi | Seçili mutfak modülünün gövde ve eksiksiz yapılandırılmış çekmece parçaları için Türkçe Excel uyumlu CSV | Çoklu mobilya/malzeme toplamı, nesting ve CNC çıktısı yok; yalnızca seçili mutfak modülü |
+| Kenar bantlama | Seçili mutfak modülünün birleşik gövde/çekmece parça listesinden adet çarpanlı doğrusal uzunluk özeti | Çoklu mobilya ve malzeme/dekor bazlı toplamlar yok; fire veya rulo payı hesaplanmaz |
 | Proje dosyası | Yerel JSON indirme/yükleme, format sürümü 1 ve temel doğrulama | Şema migrasyonu, otomatik kayıt ve kurtarma yok |
-| Test/CI | GitHub Actions CI ve QA; 15 Kasım 2026 QA #15'te 35/35 test geçti | Fiziksel üretim doğrulaması otomatik testle yapılamaz |
+| Test/CI | GitHub Actions CI ve QA; son doğrulanan QA #23'te 51/51 test geçti; build, lint ve production audit adımları başarılı | Fiziksel üretim doğrulaması otomatik testle yapılamaz; lint'te 15 mevcut uyarı ve audit'te 6 düşük/orta bulgu sürüyor |
 
 ### Bilinen mimari ve veri boşlukları
 
 - `frontend/src/engine/furnitureCalculator.ts` ölçü kontrolünden sonra boş liste döndüren bir altyapı stub'ıdır; üretim hesaplayıcısı olarak kullanılmamalıdır.
 - Konstrüksiyon kurallarının bir kısmı `App.tsx` içinde sabit başlangıç değerleriyle tutuluyor; proje ve mobilya bazında yapılandırılabilir hale getirilmeli.
-- Çekmece görsel sayısı ile gerçek çekmece kutusu/önü parça ağacı aynı şey değildir; Üretim paneli artık ölçü, malzeme, kenar bantlama ve damar yönü girdilerini proje v1'e kaydeder. Hesaplanan çekmece parçaları henüz üretim önizlemesi/CSV'ye bağlanmadığından çekmeceli CSV dışa aktarımı kapalı kalmalıdır.
+- Çekmece görsel sayısı ile gerçek çekmece kutusu/önü parça ağacı aynı şey değildir; kullanıcı ölçü, malzeme, kenar bantlama ve damar yönünü açıkça tanımlar. Hesaplanan dört çekmece parça grubu gövde parçalarıyla aynı üretim listesine ve CSV'ye eklenir; eksik veya geçersiz yapılandırma dışa aktarımı engeller. Ray boşluğu, donanım ve CNC işlemleri hesaplanmaz.
 - Malzeme kataloğu, donanım tüketimi, nesting ve CNC postprocessor katmanları tamamlanmış değildir.
 - Kenar bantlama uzunluğu artık seçili mutfak modülünün açık kenar bayraklarından hesaplanır; çoklu mobilya/malzeme toplamı, fire ve rulo payı henüz yoktur.
 
@@ -130,13 +130,21 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 - Bütün çekmeceler açık ölçü/malzeme/kenar/damar girdileriyle tanımlandığında çekmece parçaları mevcut CSV şemasına dahil edilir; ray ve CNC operasyonu uydurulmaz.
 - Kabul kriterleri: çekmecesiz modüllerin mevcut akışı değişmez; kısmi tanım CSV'yi engeller; tam tanım dört çekmece parça grubunu üretim listesi ve CSV'ye ekler.
 
+## Son tamamlanan dikey dilim — CSV serileştirme sözleşmesi ve regresyon testleri
+
+- CSV üretimi `App.tsx` içindeki DOM indirme akışından ayrılarak saf `createCutListCsv` motor fonksiyonuna taşındı; indirme davranışı aynı kaldı.
+- Mevcut Türkçe başlıklar, noktalı virgül ayırıcı, UTF-8 BOM ve CRLF satır sonları korunur; tırnak, ayırıcı ve satır sonu içeren alanlar kaçırılır.
+- Dışa aktarma sınırında boş mobilya/parça listesi, geçersiz ölçü, pozitif tam sayı olmayan adet ve eksik malzeme/kenar bilgisi reddedilir. Ölçüler mm olarak, sayısal değerler yerelleştirilmeden yazılır.
+- Birleşik gövde + dört çekmece parça grubunun CSV satırları ve adet toplamı otomatik testle doğrulanır; mevcut CSV kolon şeması değiştirilmez.
+- Fiziksel üretim, ray/donanım ve CNC doğrulaması bu kapsamda değildir.
+
 ## Sıradaki 5 küçük görev
 
-1. Birleşik üretim parça listesi için CSV satırlarının ve quantity toplamlarının uçtan uca testlerini ekle.
-2. Malzeme bazında çekmece/gövde parça toplamlarını ve kenar bantlama tüketimini tek seçili mobilya görünümünde raporla.
-3. Proje JSON v1 için kaydet/yükle round-trip ve eski dosya geriye uyumluluk testleri ekle.
-4. Birden fazla mobilyanın kesim/bantlama toplamlarını quantity ve malzeme bazında birleştir.
-5. Çekmece dışındaki gardırop, banyo ve kitaplık aileleri için ayrı konstrüksiyon hesaplayıcıları planla ve bir aileyi uçtan uca tamamla.
+1. Malzeme bazında gövde/çekmece parça adetlerini ve kenar bantlama tüketimini seçili mobilya görünümünde raporla.
+2. Proje JSON v1 için kaydet/yükle round-trip ve eski dosya geriye uyumluluk testlerini ekle.
+3. Birden fazla mobilyanın kesim/bantlama toplamlarını quantity ve malzeme bazında birleştir.
+4. Kullanıcı tanımlı malzeme/dekor kataloğunu kalınlık, birim ve kimlik doğrulamasıyla tasarla; fiyat uydurma.
+5. Çekmece dışındaki gardırop, banyo ve kitaplık ailelerinden birini açık konstrüksiyon kurallarıyla uçtan uca tamamla.
 
 ## Üretim güvenliği ve karar sınırları
 

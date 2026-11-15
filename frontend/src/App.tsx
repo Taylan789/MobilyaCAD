@@ -72,6 +72,7 @@ import { calculateCabinetParts } from "./engine/cabinetParts";
 import { calculateDrawerBoxParts } from "./engine/drawerBoxParts";
 import { isValidDrawerBoxProjectSpecs } from "./engine/drawerBoxProject";
 import { calculateEdgeBandingSummary } from "./engine/edgeBanding";
+import { createCutListCsv } from "./engine/cutListCsv";
 import { getCabinetCutListExportBlockReason, resolveCabinetConstructionRules } from "./engine/cabinetRules";
 import type { CabinetConstructionRules } from "./types/construction/cabinetRules";
 
@@ -489,45 +490,7 @@ function App() {
       productionExportBlockReason
     ) return;
 
-    const escapeCsv = (value: string | number) => {
-      const text = String(value);
-      return /[;"\n\r]/.test(text)
-        ? `"${text.replace(/"/g, '""')}"`
-        : text;
-    };
-
-    const rows = [
-      [
-        "Mobilya",
-        "Parça",
-        "Genişlik (mm)",
-        "Uzunluk (mm)",
-        "Kalınlık (mm)",
-        "Adet",
-        "Malzeme",
-        "Bant Üst",
-        "Bant Alt",
-        "Bant Sol",
-        "Bant Sağ",
-      ],
-      ...productionParts.map((part) => [
-        selectedFurniture.name,
-        part.name,
-        part.width,
-        part.length,
-        part.thickness,
-        part.quantity,
-        part.material,
-        part.edgeBanding.top ? "Evet" : "Hayır",
-        part.edgeBanding.bottom ? "Evet" : "Hayır",
-        part.edgeBanding.left ? "Evet" : "Hayır",
-        part.edgeBanding.right ? "Evet" : "Hayır",
-      ]),
-    ];
-
-    const csv = "\uFEFF" + rows
-      .map((row) => row.map(escapeCsv).join(";"))
-      .join("\r\n");
+    const csv = createCutListCsv(selectedFurniture.name, productionParts);
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
