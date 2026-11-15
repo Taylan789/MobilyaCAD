@@ -70,7 +70,7 @@ import { createPlacedFurniture } from "./types/placedFurniture";
 import type { PlacedFurniture } from "./types/placedFurniture";
 import { calculateCabinetParts } from "./engine/cabinetParts";
 import { calculateDrawerBoxParts } from "./engine/drawerBoxParts";
-import { isValidDrawerBoxProjectSpecs } from "./engine/drawerBoxProject";
+import { parseProjectFile, serializeProjectFile } from "./engine/projectFile";
 import { calculateEdgeBandingSummary } from "./engine/edgeBanding";
 import { calculateMaterialConsumptionSummary } from "./engine/materialConsumption";
 import { createCutListCsv } from "./engine/cutListCsv";
@@ -505,20 +505,14 @@ function App() {
   }
 
   function saveProject() {
-    const project = {
-      format: "MobilyaCAD",
-      formatVersion: 1,
-      savedAt: new Date().toISOString(),
-      room: {
+    const json = serializeProjectFile(
+      {
         width: roomWidth,
         length: roomLength,
         height: roomHeight,
-        unit: "mm",
       },
-      furniture,
-    };
-
-    const json = JSON.stringify(project, null, 2);
+      furniture
+    );
     const file = new Blob([json], { type: "application/json;charset=utf-8" });
     const url = URL.createObjectURL(file);
     const link = document.createElement("a");
@@ -537,103 +531,12 @@ function App() {
     if (!file) return;
 
     try {
-      const parsed = JSON.parse(await file.text()) as {
-        format?: unknown;
-        formatVersion?: unknown;
-        room?: { width?: unknown; length?: unknown; height?: unknown };
-        furniture?: unknown;
-      };
+      const project = parseProjectFile(await file.text());
 
-      const room = parsed.room;
-      const isRecord = (
-        value: unknown
-      ): value is Record<string, unknown> =>
-        typeof value === "object" && value !== null && !Array.isArray(value);
-      const isPositiveNumber = (value: unknown) =>
-        typeof value === "number" && Number.isFinite(value) && value > 0;
-      const isValidPosition = (value: unknown) =>
-        Array.isArray(value) &&
-        value.length === 3 &&
-        value.every(
-          (coordinate) =>
-            typeof coordinate === "number" && Number.isFinite(coordinate)
-        );
-
-      const validFurniture =
-        Array.isArray(parsed.furniture) &&
-        parsed.furniture.every((item: unknown) => {
-          if (!isRecord(item)) return false;
-
-          const parts = item.parts;
-          const validParts =
-            Array.isArray(parts) &&
-            parts.every((part: unknown) => {
-              if (!isRecord(part)) return false;
-              return (
-                typeof part.id === "string" &&
-                typeof part.name === "string" &&
-                ["door", "drawer", "shelf", "panel"].includes(
-                  String(part.type)
-                ) &&
-                isPositiveNumber(part.width) &&
-                isPositiveNumber(part.height) &&
-                isPositiveNumber(part.depth) &&
-                isValidPosition(part.position) &&
-                typeof part.rotation === "number" &&
-                Number.isFinite(part.rotation) &&
-                typeof part.color === "string" &&
-                typeof part.material === "string"
-              );
-            });
-
-          return (
-            typeof item.id === "string" &&
-            typeof item.catalogId === "string" &&
-            typeof item.name === "string" &&
-            isPositiveNumber(item.width) &&
-            isPositiveNumber(item.height) &&
-            isPositiveNumber(item.depth) &&
-            isValidPosition(item.position) &&
-            typeof item.rotation === "number" &&
-            Number.isFinite(item.rotation) &&
-            typeof item.color === "string" &&
-            Number.isInteger(item.doorCount) &&
-            Number(item.doorCount) >= 0 &&
-            Number.isInteger(item.drawerCount) &&
-            Number(item.drawerCount) >= 0 &&
-            Number.isInteger(item.shelfCount) &&
-            Number(item.shelfCount) >= 0 &&
-            typeof item.hasBackPanel === "boolean" &&
-            isPositiveNumber(item.backThickness) &&
-            typeof item.edgeBanding === "boolean" &&
-            typeof item.material === "string" &&
-            isValidDrawerBoxProjectSpecs(item.drawerBoxSpecs) &&
-            validParts
-          );
-        });
-
-      if (
-        parsed.format !== "MobilyaCAD" ||
-        parsed.formatVersion !== 1 ||
-        !room ||
-        typeof room.width !== "number" ||
-        !Number.isFinite(room.width) ||
-        room.width < 100 ||
-        typeof room.length !== "number" ||
-        !Number.isFinite(room.length) ||
-        room.length < 100 ||
-        typeof room.height !== "number" ||
-        !Number.isFinite(room.height) ||
-        room.height < 100 ||
-        !validFurniture
-      ) {
-        throw new Error("Dosya MobilyaCAD proje formatıyla uyumlu değil.");
-      }
-
-      setRoomWidth(room.width);
-      setRoomLength(room.length);
-      setRoomHeight(room.height);
-      setFurniture(parsed.furniture as PlacedFurniture[]);
+      setRoomWidth(project.room.width);
+      setRoomLength(project.room.length);
+      setRoomHeight(project.room.height);
+      setFurniture(project.furniture);
       setSelectedFurnitureId(null);
       setSelectedPartId(null);
       setDimensionDraft(null);
