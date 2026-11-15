@@ -195,6 +195,11 @@ test("eksik kenar bantlama bayrakları ve geçersiz damar yönü reddedilir", ()
   );
 });
 
+test("katalog malzeme kimliği hesaplanan dört çekmece parça grubuna aktarılır", () => {
+  const parts = calculateDrawerBoxParts("furniture-1", "drawer-set-1", createSpec({ materialId: "drawer-mdf" }));
+  assert.ok(parts.every((part) => part.materialId === "drawer-mdf"));
+});
+
 test("bilinmeyen taban konstrüksiyonu ve boş malzeme reddedilir", () => {
   assert.throws(
     () => calculateDrawerBoxParts(

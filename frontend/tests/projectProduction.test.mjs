@@ -305,6 +305,32 @@ test("katalogda olmayan malzeme veya kullanılmayan kalınlık üretim dışa ak
   assert.match(missingBackThickness.exportBlockReason, /8 mm kalınlık katalogda tanımlı değil/);
 });
 
+test("çekmece grubu katalog malzemesi üretim parçalarına ve tüketim kimliğine taşınır", () => {
+  const drawerMaterial = { id: "drawer-mdf", name: "Çekmece MDF", category: "panel", thicknessesMm: [6, 15, 18], unit: "mm" };
+  const furniture = createPlacedFurniture("parametric-1-1", "drawer-1", {
+    drawerBoxSpecs: [{ ...drawerConfig, spec: { ...drawerConfig.spec, materialId: "drawer-mdf" } }]
+  });
+  const result = calculateProjectProduction([furniture], catalog, rules, [drawerMaterial]);
+  const drawerParts = result.parts.filter((part) => part.name.startsWith("Çekmece "));
+  assert.equal(result.errors.length, 0);
+  assert.equal(result.exportBlockReason, null);
+  assert.equal(drawerParts.length, 4);
+  assert.ok(drawerParts.every((part) => part.material === "Çekmece MDF" && part.materialId === "drawer-mdf"));
+  const summaries = calculateMaterialConsumptionSummary(drawerParts);
+  assert.ok(summaries.every((summary) => summary.materialId === "drawer-mdf" && summary.material === "Çekmece MDF"));
+});
+
+test("çekmece katalog malzemesinde bulunmayan kalınlık üretim dışa aktarımını engeller", () => {
+  const furniture = createPlacedFurniture("parametric-1-1", "drawer-1", {
+    drawerBoxSpecs: [{ ...drawerConfig, spec: { ...drawerConfig.spec, materialId: "drawer-mdf" } }]
+  });
+  const result = calculateProjectProduction([furniture], catalog, rules, [{
+    id: "drawer-mdf", name: "Çekmece MDF", category: "panel", thicknessesMm: [6, 15], unit: "mm"
+  }]);
+  assert.equal(result.parts.some((part) => part.name.startsWith("Çekmece ")), false);
+  assert.match(result.exportBlockReason, /18 mm kalınlık katalogda tanımlı değil/);
+});
+
 test("CSV proje mobilya adı eşlemesi eksikse satır üretmez", () => {
   const result = calculateProjectProduction([
     createPlacedFurniture("base-cabinet", "base-1")

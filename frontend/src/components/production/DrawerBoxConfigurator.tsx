@@ -7,6 +7,7 @@ import { Label } from "../ui/label";
 import { calculateDrawerBoxParts, type DrawerBoxConstructionSpec } from "../../engine/drawerBoxParts";
 import { isDrawerBoxProjectConfig } from "../../engine/drawerBoxProject";
 import type { DrawerBoxProjectConfig } from "../../engine/drawerBoxProject";
+import { resolveMaterialThickness, type MaterialCatalogEntry } from "../../engine/materialCatalog";
 
 const panelGroups = [
   { key: "sidePanels", label: "Yan paneller" },
@@ -49,6 +50,7 @@ interface DrawerDraft {
   visibleFrontThickness: string;
   quantity: string;
   material: string;
+  materialId: string;
   edgeBanding: Record<PanelGroupKey, Record<EdgeKey, string>>;
   grainDirection: Record<PanelGroupKey, string>;
 }
@@ -57,6 +59,7 @@ interface DrawerBoxConfiguratorProps {
   furnitureId: string;
   expectedDrawerCount: number;
   configs: DrawerBoxProjectConfig[];
+  materials: MaterialCatalogEntry[];
   onChange: (configs: DrawerBoxProjectConfig[]) => void;
 }
 
@@ -73,6 +76,7 @@ function createEmptyDraft(): DrawerDraft {
     visibleFrontThickness: "",
     quantity: "",
     material: "",
+    materialId: "",
     edgeBanding: {
       sidePanels: { top: "", bottom: "", left: "", right: "" },
       frontBackPanels: { top: "", bottom: "", left: "", right: "" },
@@ -102,6 +106,7 @@ function createDraftFromConfig(config: DrawerBoxProjectConfig): DrawerDraft {
     visibleFrontThickness: String(spec.visibleFrontThickness),
     quantity: String(spec.quantity),
     material: spec.material,
+    materialId: spec.materialId ?? "",
     edgeBanding: {
       sidePanels: {
         top: String(spec.edgeBanding.sidePanels.top),
@@ -141,6 +146,7 @@ export function DrawerBoxConfigurator({
   furnitureId,
   expectedDrawerCount,
   configs,
+  materials,
   onChange
 }: DrawerBoxConfiguratorProps) {
   const [draft, setDraft] = useState<DrawerDraft>(createEmptyDraft);
@@ -197,9 +203,27 @@ export function DrawerBoxConfigurator({
       return;
     }
 
-    if (draft.material.trim() === "") {
-      setError("Malzeme adını gir.");
+    const selectedMaterial = draft.materialId === ""
+      ? undefined
+      : materials.find((material) => material.id === draft.materialId);
+    if (draft.materialId !== "" && !selectedMaterial) {
+      setError("Seçilen malzeme proje kataloğunda bulunamadı.");
       return;
+    }
+    if (!selectedMaterial && draft.material.trim() === "") {
+      setError("Malzeme adını gir veya katalogdan bir malzeme seç.");
+      return;
+    }
+    if (selectedMaterial) {
+      try {
+        resolveMaterialThickness(selectedMaterial, Number(draft.sideThickness));
+        resolveMaterialThickness(selectedMaterial, Number(draft.frontBackThickness));
+        resolveMaterialThickness(selectedMaterial, Number(draft.bottomThickness));
+        resolveMaterialThickness(selectedMaterial, Number(draft.visibleFrontThickness));
+      } catch (materialError) {
+        setError(materialError instanceof Error ? materialError.message : "Çekmece malzemesi ve panel kalınlıkları eşleşmiyor.");
+        return;
+      }
     }
 
     const bandingComplete = panelGroups.every(({ key }) =>
@@ -250,7 +274,8 @@ export function DrawerBoxConfigurator({
       visibleFrontHeight: Number(draft.visibleFrontHeight),
       visibleFrontThickness: Number(draft.visibleFrontThickness),
       quantity,
-      material: draft.material.trim(),
+      material: selectedMaterial?.name ?? draft.material.trim(),
+      ...(selectedMaterial ? { materialId: selectedMaterial.id } : {}),
       bottomFit: "between-sides-and-front-back",
       edgeBanding,
       grainDirection
@@ -314,7 +339,10 @@ export function DrawerBoxConfigurator({
           <span>
             {config.spec.outerWidth} × {config.spec.sideHeight} × {config.spec.outerDepth} mm
           </span>
-          <small>{config.spec.quantity} adet · {config.spec.material}</small>
+          <small>
+            {config.spec.quantity} adet · {config.spec.material}
+            {config.spec.materialId ? ` · ${config.spec.materialId}` : ""}
+          </small>
           <div className="cad-drawer-config-actions">
             <Button type="button" variant="outline" onClick={() => editConfig(config)}>
               Düzenle
@@ -389,11 +417,36 @@ export function DrawerBoxConfigurator({
                 </div>
 
                 <div className="cad-field">
-                  <Label htmlFor="drawer-material">Malzeme</Label>
+                  <Label htmlFor="drawer-material-catalog">Katalog malzemesi (isteğe bağlı)</Label>
+                  <select
+                    id="drawer-material-catalog"
+                    className="cad-native-select"
+                    value={draft.materialId}
+                    onChange={(event) => {
+                      const materialId = event.target.value;
+                      const selected = materials.find((material) => material.id === materialId);
+                      setDraft((previous) => ({
+                        ...previous,
+                        materialId,
+                        ...(selected ? { material: selected.name } : {})
+                      }));
+                    }}
+                  >
+                    <option value="">Serbest metin malzeme kullan</option>
+                    {materials.map((material) => (
+                      <option key={material.id} value={material.id}>
+                        {material.name}{material.decor ? ` · ${material.decor}` : ""}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="cad-field">
+                  <Label htmlFor="drawer-material">Malzeme adı (serbest metin)</Label>
                   <Input
                     id="drawer-material"
                     type="text"
                     value={draft.material}
+                    disabled={draft.materialId !== ""}
                     placeholder="Atölye malzeme adını gir"
                     onChange={(event) =>
                       setDraft((previous) => ({

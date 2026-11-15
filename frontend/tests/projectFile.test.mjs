@@ -209,6 +209,24 @@ test("katalogda bulunmayan veya kataloğu olmayan mobilya malzeme referansı red
   );
 });
 
+test("çekmece grubu katalog malzemesi JSON v1 round-trip sırasında korunur", () => {
+  const drawerMaterial = { id: "drawer-mdf", name: "Çekmece MDF", category: "panel", thicknessesMm: [6, 15, 18], unit: "mm" };
+  const furniture = createFurniture({ drawerBoxSpecs: [{ ...drawerConfig, spec: { ...drawerConfig.spec, materialId: "drawer-mdf" } }] });
+  const parsed = parseProjectFile(serializeProjectFile(room, [furniture], savedAt, [...materialCatalog, drawerMaterial]));
+  assert.equal(parsed.furniture[0].drawerBoxSpecs[0].spec.materialId, "drawer-mdf");
+  assert.equal(parsed.furniture[0].drawerBoxSpecs[0].spec.material, "MDF");
+});
+
+test("çekmece malzeme referansı ve dört panel kalınlığı proje kataloğunda doğrulanır", () => {
+  const drawerMaterial = { id: "drawer-mdf", name: "Çekmece MDF", category: "panel", thicknessesMm: [6, 15, 18], unit: "mm" };
+  const furniture = createFurniture({ drawerBoxSpecs: [{ ...drawerConfig, spec: { ...drawerConfig.spec, materialId: "drawer-mdf" } }] });
+  assert.throws(() => serializeProjectFile(room, [furniture], savedAt, materialCatalog), /çekmece grubu.*malzeme kimliği.*bulunamadı/);
+  assert.throws(() => serializeProjectFile(room, [furniture], savedAt, [{ ...drawerMaterial, thicknessesMm: [6, 15] }]), /18 mm kalınlık katalogda tanımlı değil/);
+  const invalidReference = JSON.parse(serializeProjectFile(room, [createFurniture()], savedAt, [...materialCatalog, drawerMaterial]));
+  invalidReference.furniture[0].drawerBoxSpecs[0].spec.materialId = "missing-drawer-material";
+  assert.throws(() => parseProjectFile(JSON.stringify(invalidReference)), /malzeme referansı geçersiz/);
+});
+
 test("projede kullanılan malzeme katalogdan silinemez", () => {
   assert.throws(
     () => removeMaterialCatalogEntry(materialCatalog, "mdf-white", ["mdf-white"]),

@@ -1,6 +1,10 @@
 import type { PlacedFurniture, FurniturePart } from "../types/placedFurniture";
 import { isValidDrawerBoxProjectSpecs } from "./drawerBoxProject";
-import { validateMaterialCatalog, type MaterialCatalogEntry } from "./materialCatalog";
+import {
+  resolveMaterialThickness,
+  validateMaterialCatalog,
+  type MaterialCatalogEntry
+} from "./materialCatalog";
 
 export interface ProjectRoomDimensions {
   width: number;
@@ -85,12 +89,29 @@ function validateProjectMaterialReferences(
   furniture: readonly PlacedFurniture[],
   materials: readonly MaterialCatalogEntry[]
 ): void {
-  const knownMaterialIds = new Set(materials.map((material) => material.id));
+  const materialById = new Map(materials.map((material) => [material.id, material]));
   for (const item of furniture) {
-    if (item.materialId !== undefined && !knownMaterialIds.has(item.materialId)) {
+    if (item.materialId !== undefined && !materialById.has(item.materialId)) {
       throw new Error(
         `${item.name}: ${item.materialId} malzeme kimliği proje kataloğunda bulunamadı.`
       );
+    }
+    for (const config of item.drawerBoxSpecs ?? []) {
+      const drawerMaterialId = config.spec.materialId;
+      if (drawerMaterialId === undefined) continue;
+      const drawerMaterial = materialById.get(drawerMaterialId);
+      if (!drawerMaterial) {
+        throw new Error(
+          `${item.name}: çekmece grubu ${config.id} için ${drawerMaterialId} malzeme kimliği proje kataloğunda bulunamadı.`
+        );
+      }
+      const thicknesses = [
+        config.spec.sideThickness,
+        config.spec.frontBackThickness,
+        config.spec.bottomThickness,
+        config.spec.visibleFrontThickness
+      ];
+      for (const thickness of thicknesses) resolveMaterialThickness(drawerMaterial, thickness);
     }
   }
 }

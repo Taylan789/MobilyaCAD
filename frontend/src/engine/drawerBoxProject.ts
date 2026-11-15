@@ -29,6 +29,10 @@ export function isDrawerBoxProjectConfig(value: unknown): value is DrawerBoxProj
   if (!dimensions.every(isPositiveMeasurement)) return false;
   if (!Number.isSafeInteger(spec.quantity) || Number(spec.quantity) < 1) return false;
   if (typeof spec.material !== "string" || spec.material.trim() === "") return false;
+  if (
+    spec.materialId !== undefined &&
+    (typeof spec.materialId !== "string" || spec.materialId.trim() === "")
+  ) return false;
   if (spec.bottomFit !== "between-sides-and-front-back") return false;
   const edgeBanding = spec.edgeBanding;
   const grainDirection = spec.grainDirection;

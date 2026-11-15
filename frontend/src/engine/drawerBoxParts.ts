@@ -27,6 +27,8 @@ export interface DrawerBoxConstructionSpec {
   visibleFrontThickness: number;
   quantity: number;
   material: string;
+  /** Optional project catalogue reference; absent for legacy free-text drawer materials. */
+  materialId?: string;
   bottomFit: "between-sides-and-front-back";
   edgeBanding: DrawerEdgeBanding;
   grainDirection: DrawerGrainDirection;
@@ -173,6 +175,7 @@ export function calculateDrawerBoxParts(
       quantity,
       edgeBanding: cloneEdgeBanding(spec.edgeBanding[group]),
       material,
+      ...(spec.materialId ? { materialId: spec.materialId } : {}),
       cncOperations: [],
       grainDirection: spec.grainDirection[group],
       productionNote

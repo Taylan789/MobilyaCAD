@@ -150,9 +150,12 @@ function App() {
     (item) => item.id === selectedFurniture?.catalogId
   );
   const referencedMaterialIds = new Set(
-    furniture
-      .map((item) => item.materialId)
-      .filter((id): id is string => typeof id === "string")
+    furniture.flatMap((item) => [
+      ...(item.materialId ? [item.materialId] : []),
+      ...(item.drawerBoxSpecs ?? []).flatMap((config) =>
+        config.spec.materialId ? [config.spec.materialId] : []
+      )
+    ])
   );
   const projectProduction = calculateProjectProduction(
     furniture,
@@ -243,12 +246,21 @@ function App() {
         const assignedMaterial = item.materialId
           ? materialById.get(item.materialId)
           : undefined;
+        const drawerBoxSpecs = item.drawerBoxSpecs?.map((config) => {
+          const drawerMaterial = config.spec.materialId
+            ? materialById.get(config.spec.materialId)
+            : undefined;
+          return drawerMaterial
+            ? { ...config, spec: { ...config.spec, material: drawerMaterial.name } }
+            : config;
+        });
         return {
           ...item,
           ...(assignedMaterial ? { material: assignedMaterial.name } : {}),
           ...(assignedMaterial
             ? { parts: item.parts.map((part) => ({ ...part, material: assignedMaterial.name })) }
-            : {})
+            : {}),
+          ...(drawerBoxSpecs ? { drawerBoxSpecs } : {})
         };
       })
     );
@@ -1342,6 +1354,7 @@ function App() {
                                   furnitureId={selectedFurniture.id}
                                   expectedDrawerCount={selectedFurniture.drawerCount}
                                   configs={selectedFurniture.drawerBoxSpecs ?? []}
+                                  materials={materials}
                                   onChange={(drawerBoxSpecs) =>
                                     setFurniture((previous) =>
                                       previous.map((item) =>

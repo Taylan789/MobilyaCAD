@@ -52,6 +52,12 @@ test("bilinmeyen konstrüksiyon, malzeme ve damar yönü reddedilir", () => {
   invalid.spec.grainDirection.bottomPanel = "diagonal";
   assert.equal(isDrawerBoxProjectConfig(invalid), false);
 });
+test("çekmece grubu isteğe bağlı katalog malzeme kimliğini doğrular", () => {
+  assert.equal(isDrawerBoxProjectConfig(createConfig({ materialId: "drawer-mdf" })), true);
+  assert.equal(isDrawerBoxProjectConfig(createConfig({ materialId: "" })), false);
+  assert.equal(isDrawerBoxProjectConfig(createConfig({ materialId: " " })), false);
+});
+
 test("eksik kenar bantlama bayrakları reddedilir", () => {
   const invalid = createConfig();
   invalid.spec.edgeBanding.sidePanels = { top: true, bottom: false, left: false };
