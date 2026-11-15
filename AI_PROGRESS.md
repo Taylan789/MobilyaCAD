@@ -165,3 +165,24 @@
 - Bilinen kısıtlar: yalnızca belirtilen düz mutfak profilleri; köşe/cihaz/evye boşlukları, diğer aileler, fire, levha verimi, kesim payı, nesting, CNC ve fiziksel üretim doğrulaması dahil değil. Panel/arkalık kuralları hâlâ uygulama düzeyindeki ortak başlangıç kurallarından geliyor.
 - Dokümantasyon commit'i: 8064d84e42a3eb505949d70c6bf0cb0739865a8d. Bu HEAD üzerinde CI #60, QA #35 (71/71) ve Pages deploy #41 başarılı.
 - Sonraki görev: kullanıcı tanımlı malzeme/dekor kataloğu için kararlı kimlik, kalınlık ve birim doğrulama modeli.
+
+
+## 15 Kasım 2026 — kullanıcı tanımlı panel malzeme kataloğu veri sözleşmesi
+
+- Başlangıç HEAD: `2490d2e1d870037a65852f220c6636e4a15f74ea`; branch compare ile `dev/github-work` HEAD olarak doğrulandı.
+- Kod commit'i: `c00d668202596e4816d805dde31d0d5e2465d6a8`.
+- Değişen dosyalar:
+  - `frontend/src/engine/materialCatalog.ts` (yeni)
+  - `frontend/tests/materialCatalog.test.mjs` (yeni)
+  - `frontend/src/engine/projectFile.ts`
+  - `frontend/tests/projectFile.test.mjs`
+- Katalog sözleşmesi: kararlı ve benzersiz malzeme ID'si; panel kategorisi; zorunlu ad; opsiyonel dekor etiketi; pozitif, sonlu, benzersiz `thicknessesMm`; açık `unit: "mm"`. Kalınlık listesi normalize edilir ve artan sıraya alınır.
+- `resolveMaterialThickness` yalnızca katalogda tanımlı mm kalınlığını kabul eder. Fiyat, tedarikçi, renk standardı, fire veya varsayılan panel kalınlığı uydurulmaz.
+- Proje JSON v1'e opsiyonel `materials` alanı eklendi. Eski v1 dosyaları bu alan olmadan geçerlidir; yeni katalog alanı serializer/parser round-trip ile korunur ve geçersiz birim/kimlik reddedilir.
+- Otomatik testler: 6 yeni test (4 katalog doğrulama/çözümleme + 2 proje kalıcılığı); toplam QA 77/77 başarılı.
+- GitHub Actions: CI Run #62 (`43756371502`) başarılı; QA Run #37 (`43756371574`) başarılı; Pages deploy Run #43 (`43756371568`) başarılı. TypeScript, production build, lint ve production audit adımları başarılı.
+- Kalite: Oxlint 15 uyarı / 0 hata; npm audit 6 bulgu (2 düşük, 4 orta), `--audit-level=high` eşiği geçti. Bundle boyutu uyarısı sürüyor.
+- Önceki QA Run #32 (`43752863285`) logunda 1 test hatası görüldü: test, aynı malzemenin farklı kalınlıklarını tek grup sayıyordu. Üretim motoru malzeme + kalınlık gruplamasını doğru yaptığı için test beklentisi sonraki commit'te düzeltildi; sonraki QA #33/#34 ve bu çalışmanın QA #37 sonucu başarılı. Başarısız eski run yeniden başlatılmadı; daha yeni düzeltme ve başarılı run'larla supersede edildi.
+- AI Developer Run #3 (`43559164561`) başarıyla tamamlanmıştı; aktif run bulunmadığı için yeniden çalıştırılmadı.
+- Bilinen sınırlar: UI katalog yönetimi henüz yok; mobilya/parça verileri `materialId` ile bağlanmadı; eski serbest metin malzeme alanları korunuyor. Kenar bandı kataloğu, fiyat/tedarikçi, damar yönü ve fire hesabı bu dilimin dışındadır.
+- Sonraki görev: katalog için UI CRUD akışı ve geriye uyumlu mobilya/parça malzeme kimliği bağlantısı; ardından üretim hesabında katalog kalınlığı doğrulaması.
