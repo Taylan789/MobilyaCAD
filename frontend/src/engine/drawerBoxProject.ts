@@ -1,0 +1,50 @@
+import type { DrawerBoxConstructionSpec } from "./drawerBoxParts";
+
+export interface DrawerBoxProjectConfig {
+  id: string;
+  spec: DrawerBoxConstructionSpec;
+}
+
+const panelGroups = ["sidePanels", "frontBackPanels", "bottomPanel", "visibleFrontPanel"] as const;
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function isPositiveMeasurement(value: unknown): value is number {
+  return typeof value === "number" && Number.isFinite(value) && value > 0;
+}
+
+/** Missing configuration remains valid for legacy v1 files; malformed supplied data is rejected. */
+export function isDrawerBoxProjectConfig(value: unknown): value is DrawerBoxProjectConfig {
+  if (!isRecord(value) || typeof value.id !== "string" || value.id.trim() === "") return false;
+  const spec = value.spec;
+  if (!isRecord(spec)) return false;
+
+  const dimensions = [
+    spec.outerWidth, spec.sideHeight, spec.outerDepth, spec.sideThickness,
+    spec.frontBackThickness, spec.bottomThickness, spec.visibleFrontWidth,
+    spec.visibleFrontHeight, spec.visibleFrontThickness
+  ];
+  if (!dimensions.every(isPositiveMeasurement)) return false;
+  if (!Number.isSafeInteger(spec.quantity) || Number(spec.quantity) < 0) return false;
+  if (typeof spec.material !== "string" || spec.material.trim() === "") return false;
+  if (spec.bottomFit !== "between-sides-and-front-back") return false;
+  if (!isRecord(spec.edgeBanding) || !isRecord(spec.grainDirection)) return false;
+
+  return panelGroups.every((group) => {
+    const banding = spec.edgeBanding[group];
+    const grain = spec.grainDirection[group];
+    return isRecord(banding) &&
+      typeof banding.top === "boolean" &&
+      typeof banding.bottom === "boolean" &&
+      typeof banding.left === "boolean" &&
+      typeof banding.right === "boolean" &&
+      (grain === "length" || grain === "width" || grain === "none");
+  });
+}
+
+export function isValidDrawerBoxProjectSpecs(value: unknown): boolean {
+  if (value === undefined) return true;
+  return Array.isArray(value) && value.every(isDrawerBoxProjectConfig);
+}

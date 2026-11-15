@@ -1,4 +1,5 @@
 import type { FurnitureCatalogItem } from "../data/furnitureCatalog";
+import type { DrawerBoxProjectConfig } from "../engine/drawerBoxProject";
 
 export interface FurniturePart {
   id: string;
@@ -30,6 +31,7 @@ export interface PlacedFurniture {
   backThickness: number;
   edgeBanding: boolean;
   material: string;
+  drawerBoxSpecs?: DrawerBoxProjectConfig[];
   parts: FurniturePart[];
 }
 

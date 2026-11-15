@@ -68,6 +68,7 @@ import { furnitureCatalog } from "./data/furnitureCatalog";
 import { createPlacedFurniture } from "./types/placedFurniture";
 import type { PlacedFurniture } from "./types/placedFurniture";
 import { calculateCabinetParts } from "./engine/cabinetParts";
+import { isValidDrawerBoxProjectSpecs } from "./engine/drawerBoxProject";
 import { calculateEdgeBandingSummary } from "./engine/edgeBanding";
 import { getCabinetCutListExportBlockReason, resolveCabinetConstructionRules } from "./engine/cabinetRules";
 import type { CabinetConstructionRules } from "./types/construction/cabinetRules";
@@ -627,6 +628,7 @@ function App() {
             isPositiveNumber(item.backThickness) &&
             typeof item.edgeBanding === "boolean" &&
             typeof item.material === "string" &&
+            isValidDrawerBoxProjectSpecs(item.drawerBoxSpecs) &&
             validParts
           );
         });

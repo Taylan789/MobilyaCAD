@@ -105,10 +105,18 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 - Otomatik doğrulama: QA Run #15 başarılı, 35/35 test; CI Run #40 başarılı; TypeScript ve production build başarılı; lint 15 uyarı / 0 hata; Pages deploy Run #21 başarılı.
 - Güvenlik denetimi: `npm audit --omit=dev --audit-level=high` adımı başarılı; raporda 6 bulgu (2 düşük, 4 orta) sürüyor. `deepmerge` / `shadcn` ve `minimatch` / `ts-morph` zincirleri incelenmeli; kırıcı `--force` güncellemesi yapılmadı.
 
+## Son tamamlanan dikey dilim — çekmece yapılandırmasının proje v1 sözleşmesi
+
+- `PlacedFurniture.drawerBoxSpecs` opsiyonel alanı eklendi; eski v1 dosyalarında alanın bulunmaması geçerliliğini korur.
+- Proje yükleyicisi sağlanan yapılandırmaları ölçü, adet, malzeme, taban konstrüksiyonu, dört kenar bayrağı ve damar yönü bakımından doğrular. Bozuk alan sessizce atılmaz; proje reddedilir.
+- JSON kaydetme mobilya nesnelerini doğrudan serileştirdiği için yeni opsiyonel alan aynı format sürümünde korunur.
+- Bu dilim henüz UI formu veya kesim listesi entegrasyonu sağlamaz; çekmeceli CSV engeli korunur.
+- Kabul kriterleri: eski v1 dosyaları yüklenebilir; geçerli yeni alan korunur; geçersiz alan yüklemeyi engeller.
+
 ## Sıradaki 5 küçük görev
 
-1. Çekmece kutusu ölçü/konstrüksiyon girdilerini `PlacedFurniture` ve proje JSON v1 geriye uyumluluğuna ekle; eski dosyalar için varsayılan üretim ölçüsü uydurma.
-2. Üretim paneline açık çekmece kutusu ve görünür ön panel ölçüleri, malzeme, damar yönü ve kenar bantlama ayarlarını ekle.
+1. Üretim paneline çekmece kutusu ve görünür ön panel ölçüleri, malzeme, damar yönü ve kenar bantlama ayarlarını ekle; varsayılan üretim ölçüsü uydurma.
+2. Çekmece yapılandırmalarını üretim önizlemesine bağla ve geçersiz/eksik tanımda CSV engelini koru.
 3. Hesaplanan çekmece parçalarını üretim önizlemesine bağla; eksik veya geçersiz tanımda CSV engelini koru, tam tanımda bütün parça gruplarını export testleriyle doğrula.
 4. Birden fazla çekmece ölçü grubunu ve birden fazla mobilyanın kesim/bantlama toplamlarını quantity çarpanlarıyla birleştir.
 5. Proje JSON v1 için şema doğrulama, round-trip ve gelecekteki sürüme migrasyon testleri oluştur.
