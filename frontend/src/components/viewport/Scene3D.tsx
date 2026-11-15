@@ -11,6 +11,7 @@ import {
 
 import PlacedFurniture3D from "../furniture/PlacedFurniture3D";
 import type { PlacedFurniture } from "../../types/placedFurniture";
+import { calculatePlacementIssues } from "../../engine/placementValidation";
 
 interface Scene3DProps {
   width: number;
@@ -209,6 +210,56 @@ function Room({
   );
 }
 
+function PlacementWarnings({ furniture, roomWidth, roomLength }: {
+  furniture: PlacedFurniture[];
+  roomWidth: number;
+  roomLength: number;
+}) {
+  const issues = calculatePlacementIssues(furniture, roomWidth, roomLength);
+  const issueById = new Map<string, "collision" | "outside-room">();
+
+  for (const issue of issues) {
+    for (const id of issue.furnitureIds) {
+      const current = issueById.get(id);
+      if (issue.type === "collision" || current === undefined) {
+        issueById.set(id, issue.type);
+      }
+    }
+  }
+
+  return (
+    <>
+      {furniture.filter((item) => issueById.has(item.id)).map((item) => {
+        const issueType = issueById.get(item.id);
+        return (
+          <mesh
+            key={item.id}
+            position={[
+              item.position[0],
+              item.position[1],
+              item.position[2]
+            ]}
+            rotation={[0, (item.rotation * Math.PI) / 180, 0]}
+          >
+            <boxGeometry args={[
+              item.width / 1000 + 0.025,
+              item.height / 1000 + 0.025,
+              item.depth / 1000 + 0.025
+            ]} />
+            <meshBasicMaterial
+              color={issueType === "collision" ? "#ef4444" : "#f59e0b"}
+              wireframe
+              transparent
+              opacity={0.9}
+              depthWrite={false}
+            />
+          </mesh>
+        );
+      })}
+    </>
+  );
+}
+
 export default function Scene3D({
   width,
   length,
@@ -306,6 +357,13 @@ export default function Scene3D({
           onRotate={onRotate}
         />
       ))}
+
+      {/* Yerleşim doğrulama uyarıları */}
+      <PlacementWarnings
+        furniture={furniture}
+        roomWidth={width}
+        roomLength={length}
+      />
 
       {/* Yumuşak temas gölgeleri */}
       <ContactShadows
