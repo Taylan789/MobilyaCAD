@@ -64,6 +64,7 @@ import {
 import { ScrollArea } from "./components/ui/scroll-area";
 
 import Scene3D from "./components/viewport/Scene3D";
+import { DrawerBoxConfigurator } from "./components/production/DrawerBoxConfigurator";
 import { furnitureCatalog } from "./data/furnitureCatalog";
 import { createPlacedFurniture } from "./types/placedFurniture";
 import type { PlacedFurniture } from "./types/placedFurniture";
@@ -1393,6 +1394,23 @@ function App() {
                               <span>Hesaplanan parça türü</span>
                               <strong>{productionParts.length}</strong>
                             </div>
+
+                            {selectedFurniture.drawerCount > 0 && (
+                              <DrawerBoxConfigurator
+                                furnitureId={selectedFurniture.id}
+                                expectedDrawerCount={selectedFurniture.drawerCount}
+                                configs={selectedFurniture.drawerBoxSpecs ?? []}
+                                onChange={(drawerBoxSpecs) =>
+                                  setFurniture((previous) =>
+                                    previous.map((item) =>
+                                      item.id === selectedFurniture.id
+                                        ? { ...item, drawerBoxSpecs }
+                                        : item
+                                    )
+                                  )
+                                }
+                              />
+                            )}
 
                             <div className="cad-production-summary">
                               <span>Toplam kenar bantlama</span>

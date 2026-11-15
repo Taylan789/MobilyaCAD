@@ -16,7 +16,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 | Oda ve 3D sahne | Ölçülü oda ve perspektif sahne | Tam 2D teknik çizim, kesit ve görünüş araçları yok |
 | Yerleşim | Katalogdan ekleme, seçme, taşıma, döndürme ve boyutlandırma | Gelişmiş snap, çoklu seçim ve tam undo/redo akışı doğrulanmış değil |
 | Katalog | Mutfak, gardırop, banyo, masa, kitaplık ve diğer ailelerden 100 varyasyon | Şablonlar tam parametrik konstrüksiyon aileleri değil |
-| Parçalar | Görsel kapak/çekmece/raf parçaları ve açık ölçü gerektiren bağımsız çekmece kutusu hesaplama motoru | Çekmece motoru henüz UI/proje dosyası/CSV akışına bağlanmadı; tüm aileler için üretim parça ağacı yok |
+| Parçalar | Görsel kapak/çekmece/raf parçaları; açık ölçülü çekmece kutusu motoru; proje v1'de saklanan çekmece grupları ve Üretim panelinde açık parametre formu | Çekmece kutusu parçaları henüz üretim önizlemesi/CSV'ye bağlanmadı; tüm aileler için üretim parça ağacı yok |
 | Hesap motoru | Mutfak tipi gövdeler için yan, üst, alt, raf, kapak ve arkalık hesabı | Çekmece kutusu, tüm aileler ve üreticiye özel konstrüksiyonlar eksik |
 | Kesim listesi | Seçili mutfak modülü için temel CSV | Şu an çekmeceli modüllerin CSV dışa aktarımı güvenlik amacıyla engellenir; CNC/optimizasyon çıktısı değildir |
 | Kenar bantlama | Seçili mutfak modülünde parça kenar işaretlerinden adet çarpanlı doğrusal uzunluk özeti | Çoklu mobilya ve malzeme/dekor bazlı toplamlar yok; fire veya rulo payı hesaplanmaz |
@@ -27,7 +27,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 
 - `frontend/src/engine/furnitureCalculator.ts` ölçü kontrolünden sonra boş liste döndüren bir altyapı stub'ıdır; üretim hesaplayıcısı olarak kullanılmamalıdır.
 - Konstrüksiyon kurallarının bir kısmı `App.tsx` içinde sabit başlangıç değerleriyle tutuluyor; proje ve mobilya bazında yapılandırılabilir hale getirilmeli.
-- Çekmece görsel sayısı ile gerçek çekmece kutusu/önü parça ağacı aynı şey değildir; bağımsız hesaplama motoru artık açık ölçü ve konstrüksiyon girdileriyle çalışır, ancak UI/proje dosyası/CSV entegrasyonu tamamlanana kadar üretim listesine eklenmemelidir.
+- Çekmece görsel sayısı ile gerçek çekmece kutusu/önü parça ağacı aynı şey değildir; Üretim paneli artık ölçü, malzeme, kenar bantlama ve damar yönü girdilerini proje v1'e kaydeder. Hesaplanan çekmece parçaları henüz üretim önizlemesi/CSV'ye bağlanmadığından çekmeceli CSV dışa aktarımı kapalı kalmalıdır.
 - Malzeme kataloğu, donanım tüketimi, nesting ve CNC postprocessor katmanları tamamlanmış değildir.
 - Kenar bantlama uzunluğu artık seçili mutfak modülünün açık kenar bayraklarından hesaplanır; çoklu mobilya/malzeme toplamı, fire ve rulo payı henüz yoktur.
 
@@ -115,11 +115,11 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 
 ## Sıradaki 5 küçük görev
 
-1. Üretim paneline çekmece kutusu ve görünür ön panel ölçüleri, malzeme, damar yönü ve kenar bantlama ayarlarını ekle; varsayılan üretim ölçüsü uydurma.
-2. Çekmece yapılandırmalarını üretim önizlemesine bağla ve geçersiz/eksik tanımda CSV engelini koru.
-3. Hesaplanan çekmece parçalarını üretim önizlemesine bağla; eksik veya geçersiz tanımda CSV engelini koru, tam tanımda bütün parça gruplarını export testleriyle doğrula.
-4. Birden fazla çekmece ölçü grubunu ve birden fazla mobilyanın kesim/bantlama toplamlarını quantity çarpanlarıyla birleştir.
-5. Proje JSON v1 için şema doğrulama, round-trip ve gelecekteki sürüme migrasyon testleri oluştur.
+1. Kaydedilmiş çekmece gruplarını üretim önizlemesine bağla; tüm grupların adet toplamı mobilyadaki çekmece adediyle eşleşmeden CSV'yi açma.
+2. Hesaplanan çekmece parçalarını mevcut kesim listesine ekle; tam tanımlı gruplar için parça ölçüsü, kenar bantlama ve CSV alanlarını otomatik test et.
+3. Proje JSON v1 için kaydet/yükle round-trip ve eski dosya geriye uyumluluk testleri ekle.
+4. Birden fazla mobilyanın kesim/bantlama toplamlarını quantity ve malzeme bazında birleştir.
+5. Çekmece dışındaki gardırop, banyo ve kitaplık aileleri için ayrı konstrüksiyon hesaplayıcıları planla ve bir aileyi uçtan uca tamamla.
 
 ## Üretim güvenliği ve karar sınırları
 

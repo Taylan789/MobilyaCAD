@@ -55,3 +55,15 @@ test("bozuk opsiyonel yapılandırma içeren proje mobilyası reddedilir", () =>
   assert.equal(isValidDrawerBoxProjectSpecs("invalid"), false);
   assert.equal(isValidDrawerBoxProjectSpecs([createConfig(), { id: "missing-spec" }]), false);
 });
+
+
+test("proje çekmece gruplarında adet pozitif tam sayı olmalıdır", () => {
+  assert.equal(isDrawerBoxProjectConfig(createConfig({ quantity: 0 })), false);
+});
+
+test("aynı proje içinde çekmece grubu kimlikleri benzersiz olmalıdır", () => {
+  assert.equal(
+    isValidDrawerBoxProjectSpecs([createConfig(), createConfig()]),
+    false
+  );
+});

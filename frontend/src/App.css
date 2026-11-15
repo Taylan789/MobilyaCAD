@@ -1061,6 +1061,66 @@ select {
   font-size: 10px;
 }
 
+.cad-drawer-configurator,
+.cad-drawer-config-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cad-drawer-config-grid,
+.cad-drawer-option-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.cad-drawer-config-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 11px;
+  background: #202a33;
+  border: 1px solid #394650;
+  border-radius: 6px;
+}
+
+.cad-drawer-config-panel > strong,
+.cad-drawer-panel-group > strong {
+  color: #dce5eb;
+  font-size: 11px;
+}
+
+.cad-drawer-panel-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cad-drawer-config-note {
+  margin: 0;
+  color: #9aa9b5;
+  font-size: 10px;
+  line-height: 1.6;
+}
+
+.cad-drawer-config-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.cad-drawer-config-actions > button {
+  flex: 1;
+}
+
+.cad-drawer-config-error {
+  margin: 0;
+  color: #f0a2a2;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
 /* STATUS BAR */
 
 .cad-statusbar {
@@ -1490,6 +1550,14 @@ html, body, #root {
 .cad-inspector-empty strong { color: #34495b; }
 
 .cad-production-card small { color: #527da3; }
+.cad-drawer-config-panel {
+  background: #f4f7fa;
+  border-color: #d8e1e9;
+}
+.cad-drawer-config-panel > strong,
+.cad-drawer-panel-group > strong { color: #34495b; }
+.cad-drawer-config-note { color: #82919e; }
+.cad-drawer-config-error { color: #b42318; }
 .cad-field-note,
 .cad-inspector-empty p { color: #82919e; }
 

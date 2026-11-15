@@ -27,7 +27,7 @@ export function isDrawerBoxProjectConfig(value: unknown): value is DrawerBoxProj
     spec.visibleFrontHeight, spec.visibleFrontThickness
   ];
   if (!dimensions.every(isPositiveMeasurement)) return false;
-  if (!Number.isSafeInteger(spec.quantity) || Number(spec.quantity) < 0) return false;
+  if (!Number.isSafeInteger(spec.quantity) || Number(spec.quantity) < 1) return false;
   if (typeof spec.material !== "string" || spec.material.trim() === "") return false;
   if (spec.bottomFit !== "between-sides-and-front-back") return false;
   const edgeBanding = spec.edgeBanding;
@@ -48,5 +48,13 @@ export function isDrawerBoxProjectConfig(value: unknown): value is DrawerBoxProj
 
 export function isValidDrawerBoxProjectSpecs(value: unknown): boolean {
   if (value === undefined) return true;
-  return Array.isArray(value) && value.every(isDrawerBoxProjectConfig);
+  if (!Array.isArray(value)) return false;
+
+  const ids = new Set<string>();
+  for (const config of value) {
+    if (!isDrawerBoxProjectConfig(config) || ids.has(config.id)) return false;
+    ids.add(config.id);
+  }
+
+  return true;
 }
