@@ -122,3 +122,63 @@ export function resolveMaterialThickness(
 
   return thicknessMm;
 }
+
+
+/** Adds a new catalogue entry without silently replacing an existing stable ID. */
+export function addMaterialCatalogEntry(
+  value: unknown,
+  entry: unknown
+): MaterialCatalogEntry[] {
+  const current = validateMaterialCatalog(value);
+  const [normalized] = validateMaterialCatalog([entry]);
+
+  if (current.some((material) => material.id === normalized.id)) {
+    throw new Error("Bu malzeme kimliği katalogda zaten kayıtlı.");
+  }
+
+  return validateMaterialCatalog([...current, normalized]);
+}
+
+/** Updates an existing entry while keeping its stable ID immutable. */
+export function updateMaterialCatalogEntry(
+  value: unknown,
+  id: string,
+  entry: unknown
+): MaterialCatalogEntry[] {
+  const current = validateMaterialCatalog(value);
+
+  if (typeof id !== "string" || id.trim() !== id || id === "") {
+    throw new Error("Düzenlenecek malzeme kimliği geçersiz.");
+  }
+
+  if (!current.some((material) => material.id === id)) {
+    throw new Error("Düzenlenecek malzeme katalogda bulunamadı.");
+  }
+
+  const [normalized] = validateMaterialCatalog([entry]);
+  if (normalized.id !== id) {
+    throw new Error("Malzeme kimliği düzenleme sırasında değiştirilemez.");
+  }
+
+  return validateMaterialCatalog(
+    current.map((material) => material.id === id ? normalized : material)
+  );
+}
+
+/** Removes only an existing, explicitly identified catalogue entry. */
+export function removeMaterialCatalogEntry(
+  value: unknown,
+  id: string
+): MaterialCatalogEntry[] {
+  const current = validateMaterialCatalog(value);
+
+  if (typeof id !== "string" || id.trim() !== id || id === "") {
+    throw new Error("Silinecek malzeme kimliği geçersiz.");
+  }
+
+  if (!current.some((material) => material.id === id)) {
+    throw new Error("Silinecek malzeme katalogda bulunamadı.");
+  }
+
+  return current.filter((material) => material.id !== id);
+}

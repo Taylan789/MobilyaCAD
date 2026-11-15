@@ -71,3 +71,51 @@ test("malzeme yalnızca katalogda açıkça bulunan panel kalınlığını çöz
     /sonlu bir mm değeri/
   );
 });
+
+
+test("yeni malzeme ekleme mevcut kimlikleri sessizce değiştirmez", () => {
+  const [existing] = validateMaterialCatalog([validMaterial]);
+  const next = addMaterialCatalogEntry([existing], {
+    id: "plywood",
+    name: "Kontrplak",
+    category: "panel",
+    thicknessesMm: [12],
+    unit: "mm"
+  });
+
+  assert.deepEqual(next.map((material) => material.id), ["mdf-white", "plywood"]);
+  assert.throws(
+    () => addMaterialCatalogEntry(next, existing),
+    /zaten kayıtlı/
+  );
+});
+
+test("malzeme güncellemesi kararlı kimliği korur", () => {
+  const [existing] = validateMaterialCatalog([validMaterial]);
+  const updated = updateMaterialCatalogEntry([existing], existing.id, {
+    ...existing,
+    name: "Yeni MDF",
+    thicknessesMm: [18, 15]
+  });
+
+  assert.equal(updated.length, 1);
+  assert.equal(updated[0].id, existing.id);
+  assert.equal(updated[0].name, "Yeni MDF");
+  assert.deepEqual(updated[0].thicknessesMm, [15, 18]);
+  assert.throws(
+    () => updateMaterialCatalogEntry([existing], existing.id, {
+      ...existing,
+      id: "new-id"
+    }),
+    /değiştirilemez/
+  );
+});
+
+test("malzeme silme yalnızca katalogda bulunan kimliği kaldırır", () => {
+  const [existing] = validateMaterialCatalog([validMaterial]);
+  assert.deepEqual(removeMaterialCatalogEntry([existing], existing.id), []);
+  assert.throws(
+    () => removeMaterialCatalogEntry([existing], "unknown-material"),
+    /bulunamadı/
+  );
+});

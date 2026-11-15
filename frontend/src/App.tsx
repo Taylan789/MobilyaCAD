@@ -65,6 +65,8 @@ import { ScrollArea } from "./components/ui/scroll-area";
 
 import Scene3D from "./components/viewport/Scene3D";
 import { DrawerBoxConfigurator } from "./components/production/DrawerBoxConfigurator";
+import { MaterialCatalogManager } from "./components/production/MaterialCatalogManager";
+import type { MaterialCatalogEntry } from "./engine/materialCatalog";
 import { furnitureCatalog } from "./data/furnitureCatalog";
 import { createPlacedFurniture } from "./types/placedFurniture";
 import type { PlacedFurniture } from "./types/placedFurniture";
@@ -81,6 +83,7 @@ function App() {
   const [roomHeight, setRoomHeight] = useState(2800);
 
   const [furniture, setFurniture] = useState<PlacedFurniture[]>([]);
+  const [materials, setMaterials] = useState<MaterialCatalogEntry[]>([]);
   const [selectedFurnitureId, setSelectedFurnitureId] = useState<string | null>(null);
   const [selectedPartId, setSelectedPartId] = useState<string | null>(null);
   const [transformMode, setTransformMode] = useState<"translate" | "scale" | "rotate">("translate");
@@ -473,7 +476,9 @@ function App() {
         length: roomLength,
         height: roomHeight,
       },
-      furniture
+      furniture,
+      undefined,
+      materials
     );
     const file = new Blob([json], { type: "application/json;charset=utf-8" });
     const url = URL.createObjectURL(file);
@@ -499,6 +504,7 @@ function App() {
       setRoomLength(project.room.length);
       setRoomHeight(project.room.height);
       setFurniture(project.furniture);
+      setMaterials(project.materials ?? []);
       setSelectedFurnitureId(null);
       setSelectedPartId(null);
       setDimensionDraft(null);
@@ -934,6 +940,10 @@ function App() {
                       <Ruler />
                       Üretim
                     </TabsTrigger>
+                    <TabsTrigger value="materials">
+                      <Package />
+                      Malzeme
+                    </TabsTrigger>
                   </TabsList>
 
                   <ScrollArea className="cad-inspector-scroll">
@@ -1357,6 +1367,13 @@ function App() {
                           </>
                         )}
                       </section>
+                    </TabsContent>
+
+                    <TabsContent value="materials" className="cad-tab-content">
+                      <MaterialCatalogManager
+                        materials={materials}
+                        onChange={setMaterials}
+                      />
                     </TabsContent>
                   </ScrollArea>
                 </Tabs>
