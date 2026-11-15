@@ -1,0 +1,92 @@
+name: MobilyaCAD QA & Test
+
+on:
+  push:
+    branches:
+      - dev/github-work
+  pull_request:
+    branches:
+      - dev/github-work
+  schedule:
+    - cron: "0 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mobilyacad-qa-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  qa:
+    name: QA checks
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check project structure
+        working-directory: .
+        run: |
+          test -f frontend/package.json
+          test -f frontend/package-lock.json
+          test -f frontend/tsconfig.json
+          test -f frontend/vite.config.ts
+          echo "Required frontend project files are present."
+
+      - name: Run automated tests when configured
+        id: tests
+        run: |
+          if node -e "process.exit(require('./package.json').scripts?.test ? 0 : 1)"; then
+            npm test
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+            echo "result=passed" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::No test script is configured in frontend/package.json; automated tests were not run."
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "result=not-configured" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Lint
+        run: npm run lint
+
+      - name: TypeScript check and production build
+        run: npm run build
+
+      - name: Production dependency security audit
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: Write QA summary
+        if: always()
+        working-directory: .
+        env:
+          TESTS_CONFIGURED: ${{ steps.tests.outputs.configured }}
+          TEST_RESULT: ${{ steps.tests.outputs.result }}
+          JOB_STATUS: ${{ job.status }}
+        run: |
+          {
+            echo "## MobilyaCAD QA sonucu"
+            echo ""
+            echo "- Commit: \`${GITHUB_SHA}\`"
+            echo "- Dal: \`${GITHUB_REF_NAME}\`"
+            echo "- Otomatik testler: ${TEST_RESULT:-başlatılamadı}"
+            if [ "${TESTS_CONFIGURED}" = "false" ]; then
+              echo "- Not: frontend/package.json içinde henüz test komutu tanımlı değil."
+            fi
+            echo "- Genel iş durumu: ${JOB_STATUS}"
+          } >> "$GITHUB_STEP_SUMMARY"
