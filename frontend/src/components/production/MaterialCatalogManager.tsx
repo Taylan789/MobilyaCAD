@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
-import { Pencil, Plus, Trash2, X } from "lucide-react";
+import { Check, Layers3, Palette, Pencil, Plus, Ruler, Trash2, X } from "lucide-react";
 
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
@@ -112,78 +112,147 @@ export function MaterialCatalogManager({
     }
   }
 
+  const usedMaterialCount = materials.filter((material) =>
+    referencedMaterialIds.has(material.id)
+  ).length;
+
   return (
-    <section className="cad-property-section">
-      <div className="cad-section-heading">
-        <span>MALZEME VE DEKOR KATALOĞU</span>
-        <Plus />
+    <section className="cad-property-section space-y-4">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-3">
+          <div className="flex size-9 shrink-0 items-center justify-center rounded-xl border border-primary/25 bg-primary/10 text-primary">
+            <Layers3 className="size-[18px]" />
+          </div>
+          <div className="min-w-0">
+            <h3 className="text-sm font-semibold tracking-wide text-foreground">Malzeme kütüphanesi</h3>
+            <p className="text-xs text-muted-foreground">Panel, dekor ve kalınlık tanımları</p>
+          </div>
+        </div>
+        <span className="rounded-full border border-border bg-muted/70 px-2.5 py-1 text-xs font-semibold tabular-nums text-foreground">
+          {materials.length} kayıt
+        </span>
       </div>
 
-      <p className="cad-field-note">
-        Bu katalog proje dosyasında saklanır. Kalınlıklar mm cinsindendir; fiyat,
+      <div className="grid grid-cols-2 gap-2">
+        <div className="rounded-xl border border-border/80 bg-card/70 p-3">
+          <span className="block text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Toplam malzeme</span>
+          <strong className="mt-1 block text-2xl font-semibold tabular-nums text-foreground">{materials.length}</strong>
+        </div>
+        <div className="rounded-xl border border-border/80 bg-card/70 p-3">
+          <span className="block text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Projede kullanılan</span>
+          <strong className="mt-1 block text-2xl font-semibold tabular-nums text-primary">{usedMaterialCount}</strong>
+        </div>
+      </div>
+
+      <p className="rounded-lg border border-border/70 bg-muted/30 px-3 py-2.5 text-xs leading-relaxed text-muted-foreground">
+        Katalog bu proje dosyasında saklanır. Kalınlıklar mm cinsindendir; fiyat,
         tedarikçi, fire veya üretim standardı otomatik olarak atanmaz.
       </p>
 
       {materials.length === 0 ? (
-        <div className="cad-inspector-empty" role="status">
-          <div><Plus /></div>
-          <strong>Henüz malzeme tanımlanmadı</strong>
-          <p>Üretimde kullanacağın panel ve dekor kayıtlarını aşağıdan ekleyebilirsin.</p>
+        <div className="flex flex-col items-center rounded-xl border border-dashed border-border bg-card/40 px-4 py-7 text-center" role="status">
+          <div className="mb-3 flex size-11 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+            <Layers3 className="size-5" />
+          </div>
+          <strong className="text-sm font-semibold text-foreground">Kütüphane henüz boş</strong>
+          <p className="mt-1 max-w-[240px] text-xs leading-relaxed text-muted-foreground">
+            Kullandığın MDF, suntalam ve diğer panel türlerini tanımlayarak başlayabilirsin.
+          </p>
         </div>
       ) : (
-        <div className="flex flex-col gap-2">
-          {materials.map((material) => (
-            <article key={material.id} className="cad-production-card">
-              <div className="flex items-start justify-between gap-2">
-                <div className="min-w-0">
-                  <strong className="block">{material.name}</strong>
-                  <span className="block break-all">{material.id}</span>
+        <div className="space-y-2">
+          <div className="flex items-center justify-between px-0.5">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Kayıtlı malzemeler</span>
+            <span className="text-[11px] text-muted-foreground">Kimliğe göre sıralı</span>
+          </div>
+          {materials.map((material) => {
+            const isReferenced = referencedMaterialIds.has(material.id);
+            return (
+              <article
+                key={material.id}
+                className="group rounded-xl border border-border/80 bg-card/65 p-3 transition-colors hover:border-primary/35 hover:bg-card"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex min-w-0 items-start gap-2.5">
+                    <div className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg bg-secondary text-secondary-foreground">
+                      <PackageIcon />
+                    </div>
+                    <div className="min-w-0">
+                      <strong className="block truncate text-sm font-semibold text-foreground">{material.name}</strong>
+                      <span className="mt-0.5 block truncate font-mono text-[10px] text-muted-foreground">{material.id}</span>
+                    </div>
+                  </div>
+                  <div className="flex shrink-0 gap-1">
+                    <Button
+                      type="button"
+                      size="icon-sm"
+                      variant="ghost"
+                      className="size-8 text-muted-foreground hover:text-primary"
+                      aria-label={material.name + " malzemesini düzenle"}
+                      title="Düzenle"
+                      onClick={() => editMaterial(material)}
+                    >
+                      <Pencil />
+                    </Button>
+                    <Button
+                      type="button"
+                      size="icon-sm"
+                      variant="ghost"
+                      className="size-8 text-muted-foreground hover:text-destructive"
+                      aria-label={material.name + " malzemesini sil"}
+                      title={isReferenced ? "Bu malzeme projede kullanılıyor; önce atamayı kaldır." : "Sil"}
+                      disabled={isReferenced}
+                      onClick={() => deleteMaterial(material.id)}
+                    >
+                      <Trash2 />
+                    </Button>
+                  </div>
                 </div>
-                <div className="flex shrink-0 gap-1">
-                  <Button
-                    type="button"
-                    size="icon-sm"
-                    variant="outline"
-                    aria-label={material.name + " malzemesini düzenle"}
-                    title="Düzenle"
-                    onClick={() => editMaterial(material)}
-                  >
-                    <Pencil />
-                  </Button>
-                  <Button
-                    type="button"
-                    size="icon-sm"
-                    variant="destructive"
-                    aria-label={material.name + " malzemesini sil"}
-                    title={referencedMaterialIds.has(material.id)
-                      ? "Bu malzeme projede kullanılıyor; önce atamayı kaldır."
-                      : "Sil"}
-                    disabled={referencedMaterialIds.has(material.id)}
-                    onClick={() => deleteMaterial(material.id)}
-                  >
-                    <Trash2 />
-                  </Button>
+
+                <div className="mt-3 flex flex-wrap items-center gap-1.5">
+                  {material.thicknessesMm.map((thickness) => (
+                    <span key={thickness} className="inline-flex items-center gap-1 rounded-md border border-border bg-background/70 px-2 py-1 text-[11px] font-medium tabular-nums text-foreground">
+                      <Ruler className="size-3 text-muted-foreground" />
+                      {thickness} mm
+                    </span>
+                  ))}
+                  {material.decor && (
+                    <span className="inline-flex items-center gap-1 rounded-md border border-primary/20 bg-primary/8 px-2 py-1 text-[11px] text-primary">
+                      <Palette className="size-3" />
+                      {material.decor}
+                    </span>
+                  )}
                 </div>
-              </div>
-              <small>
-                Kalınlıklar: {material.thicknessesMm.join(" · ")} mm
-              </small>
-              {material.decor && <small>Dekor: {material.decor}</small>}
-              {referencedMaterialIds.has(material.id) && (
-                <small role="status">Projede bir mobilya tarafından kullanılıyor.</small>
-              )}
-            </article>
-          ))}
+
+                <div className="mt-2 flex items-center gap-1.5">
+                  {isReferenced ? (
+                    <>
+                      <Check className="size-3 text-primary" />
+                      <small className="text-[11px] text-primary">Projede kullanılıyor · Silme koruması aktif</small>
+                    </>
+                  ) : (
+                    <small className="text-[11px] text-muted-foreground">Henüz bir mobilyaya atanmamış</small>
+                  )}
+                </div>
+              </article>
+            );
+          })}
         </div>
       )}
 
-      <form className="cad-drawer-config-form" onSubmit={submitMaterial}>
-        <div className="cad-section-heading">
-          <span>{editingId === null ? "YENİ PANEL MALZEMESİ" : "MALZEMEYİ DÜZENLE"}</span>
+      <form className="space-y-3 rounded-xl border border-border bg-card/55 p-3.5" onSubmit={submitMaterial}>
+        <div className="flex items-center justify-between gap-2 border-b border-border/70 pb-3">
+          <div>
+            <h4 className="text-sm font-semibold text-foreground">{editingId === null ? "Yeni malzeme oluştur" : "Malzemeyi düzenle"}</h4>
+            <p className="mt-0.5 text-[11px] text-muted-foreground">Teknik bilgileri eksiksiz tanımla</p>
+          </div>
+          <span className="rounded-lg bg-primary/10 px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-primary">
+            {editingId === null ? "Yeni kayıt" : "Düzenleme"}
+          </span>
         </div>
 
-        <div className="cad-field">
-          <Label htmlFor="material-id">Kararlı malzeme ID</Label>
+        <div className="space-y-1.5">
+          <Label htmlFor="material-id">Kararlı malzeme kimliği</Label>
           <Input
             id="material-id"
             value={draft.id}
@@ -193,33 +262,33 @@ export function MaterialCatalogManager({
             required
             disabled={editingId !== null}
           />
-          <p className="cad-field-note">Küçük harf, rakam, nokta, tire ve alt çizgi kullan.</p>
+          <p className="text-[11px] leading-relaxed text-muted-foreground">Küçük harf, rakam, nokta, tire ve alt çizgi kullan.</p>
         </div>
 
-        <div className="cad-field">
+        <div className="space-y-1.5">
           <Label htmlFor="material-name">Malzeme adı</Label>
           <Input
             id="material-name"
             value={draft.name}
             onChange={(event) => updateDraft("name", event.target.value)}
-            placeholder="MDF"
+            placeholder="Örn. MDF"
             maxLength={100}
             required
           />
         </div>
 
-        <div className="cad-field">
-          <Label htmlFor="material-decor">Dekor etiketi (isteğe bağlı)</Label>
+        <div className="space-y-1.5">
+          <Label htmlFor="material-decor">Dekor etiketi <span className="font-normal text-muted-foreground">(isteğe bağlı)</span></Label>
           <Input
             id="material-decor"
             value={draft.decor}
             onChange={(event) => updateDraft("decor", event.target.value)}
-            placeholder="Mat Beyaz"
+            placeholder="Örn. Mat Beyaz"
             maxLength={100}
           />
         </div>
 
-        <div className="cad-field">
+        <div className="space-y-1.5">
           <Label htmlFor="material-thicknesses">Panel kalınlıkları (mm)</Label>
           <Input
             id="material-thicknesses"
@@ -229,17 +298,21 @@ export function MaterialCatalogManager({
             required
             aria-describedby="material-thickness-help"
           />
-          <p id="material-thickness-help" className="cad-field-note">
-            Değerleri noktalı virgülle ayır. Ondalık değerlerde nokta kullan.
+          <p id="material-thickness-help" className="text-[11px] leading-relaxed text-muted-foreground">
+            Kalınlıkları noktalı virgülle ayır. Ondalık değerlerde nokta kullan.
           </p>
         </div>
 
-        {error && <p className="cad-drawer-config-error" role="alert">{error}</p>}
+        {error && (
+          <p className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs leading-relaxed text-destructive" role="alert">
+            {error}
+          </p>
+        )}
 
-        <div className="flex flex-wrap gap-2">
-          <Button type="submit">
+        <div className="flex flex-wrap gap-2 pt-1">
+          <Button type="submit" className="flex-1">
             {editingId === null ? <Plus /> : <Pencil />}
-            {editingId === null ? "Malzeme Ekle" : "Değişiklikleri Kaydet"}
+            {editingId === null ? "Malzeme ekle" : "Değişiklikleri kaydet"}
           </Button>
           {editingId !== null && (
             <Button type="button" variant="outline" onClick={resetForm}>
@@ -251,4 +324,8 @@ export function MaterialCatalogManager({
       </form>
     </section>
   );
+}
+
+function PackageIcon() {
+  return <Layers3 className="size-4" />;
 }
