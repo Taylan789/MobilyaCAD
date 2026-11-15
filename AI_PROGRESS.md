@@ -186,3 +186,25 @@
 - AI Developer Run #3 (`43559164561`) başarıyla tamamlanmıştı; aktif run bulunmadığı için yeniden çalıştırılmadı.
 - Bilinen sınırlar: UI katalog yönetimi henüz yok; mobilya/parça verileri `materialId` ile bağlanmadı; eski serbest metin malzeme alanları korunuyor. Kenar bandı kataloğu, fiyat/tedarikçi, damar yönü ve fire hesabı bu dilimin dışındadır.
 - Sonraki görev: katalog için UI CRUD akışı ve geriye uyumlu mobilya/parça malzeme kimliği bağlantısı; ardından üretim hesabında katalog kalınlığı doğrulaması.
+
+
+## 16 Kasım 2026 — proje malzeme/dekor kataloğu yönetim arayüzü
+
+- Başlangıç HEAD: \`551b8e6b90a77b9de482fe01cb5f8e532521a0b3\`.
+- Özellik commit'i: \`3b33ed248b879df87816aade82e21d807e5d099f\`.
+- Test düzeltme commit'i: \`8e53d940b38292dcd7daa64e975c7de70c5ebb81\`.
+- Değişen dosyalar:
+  - \`frontend/src/App.tsx\`
+  - \`frontend/src/components/production/MaterialCatalogManager.tsx\` (yeni)
+  - \`frontend/src/engine/materialCatalog.ts\`
+  - \`frontend/tests/materialCatalog.test.mjs\`
+- Özellikler paneline Malzeme sekmesi eklendi. Kullanıcı panel malzemesi/dekoru için kararlı ID, ad, opsiyonel dekor etiketi ve birden fazla mm kalınlığı ekleyebilir, düzenleyebilir ve silme onayı verebilir.
+- Domain katmanında add/update/remove yardımcıları eklendi. Yinelenen ID ekleme sırasında mevcut kayıt üzerine yazılmaz; düzenleme sırasında ID değiştirilemez; bilinmeyen ID güncelleme/silme işlemleri reddedilir.
+- Proje JSON v1 kaydetme/yükleme akışı App state'indeki katalogla bağlandı. Eski dosyada \`materials\` alanı yoksa boş katalog yüklenir; yeni kayıtlar proje dosyasında korunur.
+- Yeni testler: 3 CRUD domain testi. İlk QA #39'da üç yeni test, yardımcı fonksiyonların test modülüne import edilmemesi nedeniyle \`ReferenceError\` verdi. Log incelendi; test import'u düzeltildi, test kapsamı veya üretim kodu gevşetilmedi.
+- Otomatik doğrulama: özellik commit'inde CI #64 başarılı, QA #39 başarısız (3 eksik import), Pages #45 başarılı. Düzeltme commit'inde CI #65 başarılı; QA #40 başarılı, 80/80 test; Pages deploy #46 başarılı. TypeScript, production build, lint ve \`npm audit --omit=dev --audit-level=high\` adımları başarılı.
+- Kalite notları: npm audit 6 bulgu (2 düşük, 4 orta); \`deepmerge\` ve \`minimatch\` zincirleri sürüyor. \`--force\` güncellemesi yapılmadı. Oxlint'te 15 mevcut uyarı devam ediyor.
+- AI Developer Run #3 (\`43559164561\`) başarılı; bu çalışmanın başında ve sonunda aktif AI Developer/QA run yoktu. Başarılı AI Developer işi yeniden başlatılmadı.
+- Bilinen kısıtlar: mobilya/parça \`materialId\` bağlantısı henüz yok; üretim özeti eski serbest metin malzeme alanlarını kullanıyor; katalog silme henüz referans koruması yapmıyor. Fiyat, tedarikçi, fire, damar yönü ve kenar bandı standardı bu dilime dahil değil.
+- Sonraki görev: mobilya ve parça kayıtlarına opsiyonel \`materialId\` ekle; eski serbest metin kayıtlarını geriye uyumlu koru, referanslı malzemelerin silinmesini engelle ve üretim motorunda katalog kalınlığı eşlemesini doğrula.
+

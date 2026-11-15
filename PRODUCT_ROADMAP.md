@@ -20,16 +20,16 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 | Hesap motoru | Mutfak tipi gövdeler için yan, üst, alt, raf, kapak ve arkalık hesabı | Çekmece kutusu, tüm aileler ve üreticiye özel konstrüksiyonlar eksik |
 | Kesim listesi | Projedeki desteklenen düz mutfak gövdeleri ve tam tanımlı çekmece parçaları için tek Türkçe Excel uyumlu CSV; her satır kaynak mobilya adına bağlı | Köşe/cihaz/evye konstrüksiyonları, diğer aileler, nesting ve CNC çıktısı yok |
 | Kenar bantlama / malzeme tüketimi | Projedeki desteklenen modüllerin birleşik parçalarından malzeme + kalınlık bazında adet, net alan/hacim ve kenar bantlama toplamı | Yalnızca desteklenen düz gövdeler; fire, levha verimi, kesim payı ve rulo payı yok |
-| Malzeme kataloğu | JSON v1 içinde opsiyonel kullanıcı tanımlı panel/dekor kayıtları; benzersiz kararlı kimlik, pozitif ve benzersiz mm kalınlık listesi | UI yönetimi ve mobilya/parça materialId bağlantısı henüz yok; fiyat, tedarikçi ve fire yok |
+| Malzeme kataloğu | Proje JSON v1 içinde kullanıcı tanımlı panel/dekor kayıtları; UI üzerinden ekleme, düzenleme ve silme; kararlı ID ve mm kalınlık doğrulaması; proje kaydet/yükle ile korunur | Mobilya/parça materialId bağlantısı ve üretim kalınlık eşlemesi henüz yok; fiyat, tedarikçi ve fire yok |
 | Proje dosyası | Yerel JSON v1 indirme/yükleme; saf serializer/parser; round-trip ve eski v1 uyumluluk testleri; mm birim doğrulaması; opsiyonel malzeme kataloğu alanı | Şema migrasyonu, otomatik kayıt ve kurtarma yok |
-| Test/CI | GitHub Actions CI #62 ve QA #37; 77/77 test, TypeScript/build/lint ve production audit eşiği başarılı; Pages deploy #43 başarılı | Fiziksel üretim doğrulaması otomatik testle yapılamaz; lint'te 15 mevcut uyarı, audit'te 6 düşük/orta bulgu ve bundle boyutu uyarısı sürüyor |
+| Test/CI | CI #65 ve QA #40; 80/80 test; TypeScript/build/lint ve production audit eşiği başarılı; Pages deploy #46 başarılı | Fiziksel üretim doğrulaması otomatik testle yapılamaz; lint'te 15 mevcut uyarı, audit'te 6 düşük/orta bulgu ve bundle boyutu uyarısı sürüyor |
 
 ### Bilinen mimari ve veri boşlukları
 
 - `frontend/src/engine/furnitureCalculator.ts` ölçü kontrolünden sonra boş liste döndüren bir altyapı stub'ıdır; üretim hesaplayıcısı olarak kullanılmamalıdır.
 - Konstrüksiyon kurallarının bir kısmı `App.tsx` içinde sabit başlangıç değerleriyle tutuluyor; proje ve mobilya bazında yapılandırılabilir hale getirilmeli.
 - Çekmece görsel sayısı ile gerçek çekmece kutusu/önü parça ağacı aynı şey değildir; kullanıcı ölçü, malzeme, kenar bantlama ve damar yönünü açıkça tanımlar. Hesaplanan dört çekmece parça grubu gövde parçalarıyla aynı üretim listesine ve CSV'ye eklenir; eksik veya geçersiz yapılandırma dışa aktarımı engeller. Ray boşluğu, donanım ve CNC işlemleri hesaplanmaz.
-- Panel malzeme kataloğunun ilk domain sözleşmesi ve opsiyonel JSON v1 alanı eklendi; UI CRUD akışı ve mobilya/parça `materialId` bağlantısı henüz yok. Donanım tüketimi, nesting ve CNC postprocessor katmanları tamamlanmış değildir.
+- Panel malzeme kataloğunun ilk domain sözleşmesi ve opsiyonel JSON v1 alanı eklendi; proje içi UI CRUD akışı tamamlandı, mobilya/parça `materialId` bağlantısı ve üretim kalınlık eşlemesi henüz yok. Donanım tüketimi, nesting ve CNC postprocessor katmanları tamamlanmış değildir.
 - Kenar bantlama ve malzeme tüketimi proje genelinde desteklenen düz mutfak modüllerinin birleştirilmiş parça listesinden hesaplanır; özel köşe/cihaz/evye geometrileri ve diğer mobilya aileleri kapsam dışıdır. Fire ve rulo payı hesaplanmaz.
 
 ## Geliştirme aşamaları
@@ -196,9 +196,24 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 - Bilinen sınırlar: bu dilim veri sözleşmesi ve dosya kalıcılığıdır; henüz kullanıcı arayüzünde katalog ekleme/düzenleme/silme yoktur. Mobilya ve parça kayıtları henüz `materialId` ile katalog girdisine bağlanmaz; mevcut serbest metin malzeme alanları korunur. Kenar bandı ayrı kataloğu, damar yönü, fiyat, tedarikçi, fire ve levha verimi kapsam dışıdır.
 - Sonraki görev: kullanıcı arayüzünde panel malzeme kataloğu yönetimini eklemek; katalog kimliklerini mobilya/parça verisine geriye uyumlu biçimde bağlamak ve seçili kalınlığın katalogda bulunduğunu üretim hesabında doğrulamak.
 
+## Son tamamlanan dikey dilim — proje malzeme/dekor kataloğu yönetim arayüzü
+
+- Özellik commit'i: \`3b33ed248b879df87816aade82e21d807e5d099f\`; otomatik test import düzeltmesi: \`8e53d940b38292dcd7daa64e975c7de70c5ebb81\`.
+- Değişen dosyalar: \`frontend/src/App.tsx\`, \`frontend/src/components/production/MaterialCatalogManager.tsx\` (yeni), \`frontend/src/engine/materialCatalog.ts\`, \`frontend/tests/materialCatalog.test.mjs\`.
+- Özellikler paneline Malzeme sekmesi eklendi. Kullanıcı proje içinde panel malzemesi ekleyebilir, düzenleyebilir ve onayla silebilir; ad, opsiyonel dekor etiketi, kararlı ID ve birden çok mm kalınlığı tanımlanır.
+- Düzenleme sırasında ID kilitlidir; yeni kayıtta yinelenen ID mevcut malzemenin üzerine yazılmaz. Kalınlıklar noktalı virgülle ayrılır ve pozitif/sonlu mm değerleri domain doğrulamasından geçer.
+- \`addMaterialCatalogEntry\`, \`updateMaterialCatalogEntry\` ve \`removeMaterialCatalogEntry\` saf domain işlemleri olarak eklendi; silme/güncelleme bilinmeyen ID'leri reddeder.
+- App state'i proje JSON v1 kaydet/yükle akışına bağlandı. Kaydetme katalog listesini dosyaya ekler; yükleme katalog yoksa boş listeyle eski v1 uyumluluğunu korur.
+- Testler: 3 yeni CRUD domain testi; toplam QA 80/80 başarılı. Testler duplicate ID'nin overwrite yapmamasını, update sırasında ID'nin değişmemesini ve silme işleminin var olan kimlikle sınırlı olmasını kapsar.
+- İlk doğrulama: CI #64 başarılı; QA #39 üç testte başarısız oldu çünkü yeni CRUD yardımcıları test dosyasına import edilmemişti; Pages #45 başarılı. QA logu incelendi ve yalnızca eksik import düzeltildi.
+- Düzeltme sonrası doğrulama: CI #65 (run \`43763870649\`) başarılı; QA #40 (run \`43763870706\`) başarılı, 80/80 test; Pages deploy #46 (run \`43763870755\`) başarılı. TypeScript, production build, lint ve production audit eşiği başarılı.
+- Güvenlik/kalite: npm audit 6 bulgu (2 düşük, 4 orta) raporlamaya devam ediyor; \`deepmerge\` ve \`minimatch\` zincirleri mevcut. Kırıcı \`--force\` güncellemesi yapılmadı. Lint'te 15 mevcut uyarı sürüyor.
+- Bilinen sınırlar: mobilya ve parça kayıtları henüz \`materialId\` ile kataloğa bağlanmadı; üretim raporu eski serbest metin malzeme alanlarını kullanmaya devam ediyor. Katalog silme işlemi henüz referans denetimi yapmıyor; çünkü malzeme referans alanları sonraki dilimde eklenecek. Fiyat, tedarikçi, fire, damar yönü veya kenar bandı standardı uydurulmaz.
+- Sonraki görev: \`materialId\` alanını mobilya/parça verisine opsiyonel ve geriye uyumlu biçimde ekle; legacy serbest metin malzemeyi koru, referanslı malzemenin silinmesini engelle ve üretim kalınlığını katalogla doğrula.
+
 ## Sıradaki 5 küçük görev
 
-1. Kullanıcı arayüzünde malzeme/dekor kataloğu ekleme, düzenleme ve silme akışını kur; malzeme kimliğini mobilya ve parça verisine geriye uyumlu bağla.
+1. Mobilya ve parça verisini `materialId` ile kataloğa geriye uyumlu bağla; eski serbest metin malzeme kayıtlarını koru ve açık uyumluluk davranışını test et.
 2. Üretim hesabında seçilen malzeme kimliği ve panel kalınlığının katalogla tutarlılığını doğrula; serbest metin legacy kayıtları için açık uyumluluk davranışı tanımla.
 3. Düz gövde konstrüksiyon kurallarını proje/mobilya bazında yapılandırılabilir hale getir; mevcut sabit panel/arkalık varsayımlarını açıkça modele taşı.
 4. Gardırop veya kitaplık için tek bir basit, dikdörtgen konstrüksiyon profilini parça motoru, proje verisi ve testlerle uçtan uca tamamla.
