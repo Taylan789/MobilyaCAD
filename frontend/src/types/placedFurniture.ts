@@ -1,7 +1,5 @@
-
 import type { FurnitureCatalogItem } from "../data/furnitureCatalog";
 
-// Mobilyanın bağımsız düzenlenebilir parçaları
 export interface FurniturePart {
   id: string;
   name: string;
@@ -15,35 +13,43 @@ export interface FurniturePart {
   material: string;
 }
 
-// Odaya yerleştirilen mobilyanın bilgileri
 export interface PlacedFurniture {
   id: string;
   catalogId: string;
   name: string;
-
   width: number;
   height: number;
   depth: number;
-
   position: [number, number, number];
   rotation: number;
   color: string;
-
   doorCount: number;
   drawerCount: number;
   shelfCount: number;
-
   hasBackPanel: boolean;
   backThickness: number;
   edgeBanding: boolean;
   material: string;
-
   parts: FurniturePart[];
 }
 
-// Mobilyanın parçalarını oluşturur
+type FurniturePartCounts = Pick<
+  PlacedFurniture,
+  "doorCount" | "drawerCount" | "shelfCount"
+>;
+
+function normalizePartCount(value: number | undefined, fallback: number): number {
+  if (value === undefined || !Number.isFinite(value)) {
+    return fallback;
+  }
+
+  return Math.max(0, Math.floor(value));
+}
+
+// Mobilyanın bağımsız düzenlenebilir parçalarını aynı adet ayarlarıyla oluşturur.
 function createFurnitureParts(
-  item: FurnitureCatalogItem
+  item: FurnitureCatalogItem,
+  counts: FurniturePartCounts
 ): FurniturePart[] {
   const parts: FurniturePart[] = [];
 
@@ -51,10 +57,7 @@ function createFurnitureParts(
   const width = item.width;
   const height = item.height;
   const depth = item.depth;
-
-  const doorCount = Math.max(0, item.doorCount ?? 0);
-  const drawerCount = Math.max(0, item.drawerCount ?? 0);
-  const shelfCount = Math.max(0, item.shelfCount ?? 0);
+  const { doorCount, drawerCount, shelfCount } = counts;
 
   const drawerHeight = drawerCount > 0
     ? Math.floor(Math.min(240, height * 0.4 / drawerCount))
@@ -129,37 +132,32 @@ function createFurnitureParts(
   return parts;
 }
 
-// Katalog ürününden yeni mobilya oluşturur
+// Katalog ürününden yeni mobilya oluşturur.
 export function createPlacedFurniture(
   item: FurnitureCatalogItem,
   position: [number, number, number]
 ): PlacedFurniture {
-  const placedFurniture: PlacedFurniture = {
+  const counts: FurniturePartCounts = {
+    doorCount: normalizePartCount(item.doorCount, 2),
+    drawerCount: normalizePartCount(item.drawerCount, 0),
+    shelfCount: normalizePartCount(item.shelfCount, 2)
+  };
+
+  return {
     id: crypto.randomUUID(),
     catalogId: item.id,
     name: item.name,
-
     width: item.width,
     height: item.height,
     depth: item.depth,
-
     position,
     rotation: 0,
     color: item.color,
-
-    doorCount: item.doorCount ?? 2,
-    drawerCount: item.drawerCount ?? 0,
-    shelfCount: item.shelfCount ?? 2,
-
+    ...counts,
     hasBackPanel: item.hasBackPanel ?? true,
     backThickness: item.backThickness ?? 8,
     edgeBanding: item.edgeBanding ?? true,
     material: item.material ?? "Suntalam",
-
-    parts: []
+    parts: createFurnitureParts(item, counts)
   };
-
-  placedFurniture.parts = createFurnitureParts(item);
-
-  return placedFurniture;
 }
