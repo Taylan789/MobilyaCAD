@@ -12,14 +12,16 @@ export function calculateCabinetParts(
   validateMeasurement(furniture.height, "Dolap yüksekliği");
   validateMeasurement(furniture.depth, "Dolap derinliği");
   validateMeasurement(rules.panelThickness, "Panel kalınlığı");
-  validateMeasurement(rules.backThickness, "Arkalık kalınlığı");
+  if (furniture.hasBackPanel !== false) {
+    validateMeasurement(rules.backThickness, "Arkalık kalınlığı");
+  }
   validateMeasurement(rules.doorGap, "Kapak boşluğu");
 
   if (!Number.isInteger(rules.shelfCount) || rules.shelfCount < 0) {
     throw new Error("Raf sayısı geçersiz.");
   }
 
-  if (!Number.isInteger(rules.doorCount) || rules.doorCount < 1) {
+  if (!Number.isInteger(rules.doorCount) || rules.doorCount < 0) {
     throw new Error("Kapak sayısı geçersiz.");
   }
 
@@ -48,8 +50,10 @@ export function calculateCabinetParts(
       length: roundMeasurement(length),
       thickness,
       quantity,
-      edgeBanding,
-      material: "Belirtilmemiş",
+      edgeBanding: furniture.edgeBanding === false
+        ? { top: false, bottom: false, left: false, right: false }
+        : edgeBanding,
+      material: furniture.material ?? "Belirtilmemiş",
       cncOperations: [],
       grainDirection: "none"
     });
@@ -130,78 +134,82 @@ export function calculateCabinetParts(
   }
 
   // Kapaklar
-  const kapakBosluk = rules.doorGap;
-  const toplamKapakBoslugu = kapakBosluk * (rules.doorCount + 1);
+  if (rules.doorCount > 0) {
+    const kapakBosluk = rules.doorGap;
+    const toplamKapakBoslugu = kapakBosluk * (rules.doorCount + 1);
 
-  let toplamKapakGenisligi: number;
+    let toplamKapakGenisligi: number;
 
-  if (rules.doorStyle === "full-overlay") {
-    toplamKapakGenisligi = furniture.width - toplamKapakBoslugu;
-  } else if (rules.doorStyle === "half-overlay") {
-    toplamKapakGenisligi =
-      furniture.width + kalinlik - toplamKapakBoslugu;
-  } else {
-    toplamKapakGenisligi =
-      furniture.width - kalinlik * 2 - toplamKapakBoslugu;
-  }
-
-  const kapakGenisligi = toplamKapakGenisligi / rules.doorCount;
-
-  const kapakYuksekligi =
-    rules.doorStyle === "inset"
-      ? furniture.height - kalinlik * 2 - kapakBosluk * 2
-      : furniture.height - kapakBosluk * 2;
-
-  if (kapakGenisligi <= 0 || kapakYuksekligi <= 0) {
-    throw new Error("Kapak ölçüleri geçersiz.");
-  }
-
-  parcaEkle(
-    "door",
-    "Dolap Kapağı",
-    kapakGenisligi,
-    kapakYuksekligi,
-    kalinlik,
-    rules.doorCount,
-    {
-      top: true,
-      bottom: true,
-      left: true,
-      right: true
+    if (rules.doorStyle === "full-overlay") {
+      toplamKapakGenisligi = furniture.width - toplamKapakBoslugu;
+    } else if (rules.doorStyle === "half-overlay") {
+      toplamKapakGenisligi =
+        furniture.width + kalinlik - toplamKapakBoslugu;
+    } else {
+      toplamKapakGenisligi =
+        furniture.width - kalinlik * 2 - toplamKapakBoslugu;
     }
-  );
+
+    const kapakGenisligi = toplamKapakGenisligi / rules.doorCount;
+
+    const kapakYuksekligi =
+      rules.doorStyle === "inset"
+        ? furniture.height - kalinlik * 2 - kapakBosluk * 2
+        : furniture.height - kapakBosluk * 2;
+
+    if (kapakGenisligi <= 0 || kapakYuksekligi <= 0) {
+      throw new Error("Kapak ölçüleri geçersiz.");
+    }
+
+    parcaEkle(
+      "door",
+      "Dolap Kapağı",
+      kapakGenisligi,
+      kapakYuksekligi,
+      kalinlik,
+      rules.doorCount,
+      {
+        top: true,
+        bottom: true,
+        left: true,
+        right: true
+      }
+    );
+  }
 
   // Arkalık
-  if (rules.backInstallation === "overlay") {
-    parcaEkle(
-      "back",
-      "Arkalık",
-      furniture.width,
-      furniture.height,
-      rules.backThickness,
-      1,
-      bantYok
-    );
-  } else {
-    const arkalikGenisligi =
-      rules.backInstallation === "grooved"
-        ? ic.width + rules.backGrooveDepth * 2
-        : ic.width;
+  if (furniture.hasBackPanel !== false) {
+    if (rules.backInstallation === "overlay") {
+      parcaEkle(
+        "back",
+        "Arkalık",
+        furniture.width,
+        furniture.height,
+        rules.backThickness,
+        1,
+        bantYok
+      );
+    } else {
+      const arkalikGenisligi =
+        rules.backInstallation === "grooved"
+          ? ic.width + rules.backGrooveDepth * 2
+          : ic.width;
 
-    const arkalikYuksekligi =
-      rules.backInstallation === "grooved"
-        ? ic.height + rules.backGrooveDepth * 2
-        : ic.height;
+      const arkalikYuksekligi =
+        rules.backInstallation === "grooved"
+          ? ic.height + rules.backGrooveDepth * 2
+          : ic.height;
 
-    parcaEkle(
-      "back",
-      "Arkalık",
-      arkalikGenisligi,
-      arkalikYuksekligi,
-      rules.backThickness,
-      1,
-      bantYok
-    );
+      parcaEkle(
+        "back",
+        "Arkalık",
+        arkalikGenisligi,
+        arkalikYuksekligi,
+        rules.backThickness,
+        1,
+        bantYok
+      );
+    }
   }
 
   return parcalar;

@@ -75,6 +75,10 @@ Aşağıdakiler mevcut arayüzde tamamlanmış ürün özellikleri olarak kabul 
 - CNC operasyonlarının doğrulanmış üretim çıktısı
 - Kapsamlı otomatik birim ve uçtan uca testler
 
+## Ürün yol haritası
+
+Ürün aşamaları, mevcut kabiliyetler, riskler ve sıradaki küçük geliştirme görevleri için [PRODUCT_ROADMAP.md](./PRODUCT_ROADMAP.md) dosyasına bakın.
+
 ## Geliştirme düzeni
 
 - Günlük geliştirme `dev/github-work` dalında yürütülür.

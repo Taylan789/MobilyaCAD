@@ -9,6 +9,10 @@ import {
 } from "../src/engine/measurement.ts";
 import { calculateCabinetInnerDimensions } from "../src/engine/cabinetGeometry.ts";
 import { calculateCabinetParts } from "../src/engine/cabinetParts.ts";
+import {
+  getCabinetCutListExportBlockReason,
+  resolveCabinetConstructionRules
+} from "../src/engine/cabinetRules.ts";
 
 const furniture = {
   id: "test-cabinet",
@@ -133,11 +137,64 @@ test("raf sayısı negatif veya tam sayı değilse reddedilir", () => {
   );
 });
 
-test("kapak sayısı sıfırsa reddedilir", () => {
+test("kapak sayısı sıfır olduğunda kapak parçası oluşturulmaz", () => {
+  const parts = calculateCabinetParts(furniture, createRules({ doorCount: 0 }));
+  assert.equal(parts.some((part) => part.name === "Dolap Kapağı"), false);
+});
+
+test("negatif kapak sayısı reddedilir", () => {
   assert.throws(
-    () => calculateCabinetParts(furniture, createRules({ doorCount: 0 })),
+    () => calculateCabinetParts(furniture, createRules({ doorCount: -1 })),
     /Kapak sayısı geçersiz/
   );
+});
+
+test("seçili mobilyanın kapak, raf ve arkalık adetleri kesim hesabına aktarılır", () => {
+  const selectedRules = resolveCabinetConstructionRules(createRules(), {
+    doorCount: 0,
+    shelfCount: 5,
+    backThickness: 12
+  });
+  const parts = calculateCabinetParts(
+    {
+      ...furniture,
+      material: "MDF",
+      hasBackPanel: true,
+      backThickness: 12,
+      edgeBanding: true
+    },
+    selectedRules
+  );
+
+  assert.equal(parts.find((part) => part.name === "Raf")?.quantity, 5);
+  assert.equal(parts.some((part) => part.name === "Dolap Kapağı"), false);
+  assert.equal(parts.find((part) => part.name === "Arkalık")?.thickness, 12);
+});
+
+test("arkalıksız ve kenar bandsız mobilyada arkalık payı ve bantlama uygulanmaz", () => {
+  const noBackFurniture = {
+    ...furniture,
+    material: "MDF",
+    hasBackPanel: false,
+    edgeBanding: false
+  };
+  const inner = calculateCabinetInnerDimensions(noBackFurniture, createRules());
+  const parts = calculateCabinetParts(noBackFurniture, createRules());
+
+  assert.equal(inner.depth, 542);
+  assert.equal(parts.some((part) => part.name === "Arkalık"), false);
+  assert.ok(parts.every((part) => part.material === "MDF"));
+  assert.ok(parts.every((part) =>
+    Object.values(part.edgeBanding).every((isBanded) => !isBanded)
+  ));
+});
+
+test("çekmeceli modüllerin eksik parça listesi CSV olarak dışa aktarılamaz", () => {
+  assert.match(
+    getCabinetCutListExportBlockReason({ drawerCount: 2 }) ?? "",
+    /çekmece/i
+  );
+  assert.equal(getCabinetCutListExportBlockReason({ drawerCount: 0 }), null);
 });
 
 test("çok küçük kapak ölçüleri hesaplama hatası üretir", () => {

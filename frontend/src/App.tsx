@@ -68,6 +68,7 @@ import { furnitureCatalog } from "./data/furnitureCatalog";
 import { createPlacedFurniture } from "./types/placedFurniture";
 import type { PlacedFurniture } from "./types/placedFurniture";
 import { calculateCabinetParts } from "./engine/cabinetParts";
+import { getCabinetCutListExportBlockReason, resolveCabinetConstructionRules } from "./engine/cabinetRules";
 import type { CabinetConstructionRules } from "./types/construction/cabinetRules";
 
 function App() {
@@ -141,6 +142,9 @@ function App() {
   const selectedCatalogItem = furnitureCatalog.find(
     (item) => item.id === selectedFurniture?.catalogId
   );
+  const productionExportBlockReason = selectedFurniture
+    ? getCabinetCutListExportBlockReason(selectedFurniture)
+    : null;
 
   const productionParts =
     selectedFurniture && selectedCatalogItem?.type === "kitchen"
@@ -157,8 +161,12 @@ function App() {
             positionZ: selectedFurniture.position[2],
             rotation: selectedFurniture.rotation,
             materialThickness: constructionRules.panelThickness,
+            backThickness: selectedFurniture.backThickness,
+            hasBackPanel: selectedFurniture.hasBackPanel,
+            edgeBanding: selectedFurniture.edgeBanding,
+            material: selectedFurniture.material,
           },
-          constructionRules
+          resolveCabinetConstructionRules(constructionRules, selectedFurniture)
         )
       : [];
 
@@ -457,7 +465,11 @@ function App() {
     );
   }
   function exportProductionCsv() {
-    if (!selectedFurniture || productionParts.length === 0) return;
+    if (
+      !selectedFurniture ||
+      productionParts.length === 0 ||
+      productionExportBlockReason
+    ) return;
 
     const escapeCsv = (value: string | number) => {
       const text = String(value);
@@ -1376,11 +1388,19 @@ function App() {
                               <span>Hesaplanan parça türü</span>
                               <strong>{productionParts.length}</strong>
                             </div>
+                            {productionExportBlockReason && (
+                              <p className="text-xs text-muted-foreground" role="status">
+                                {productionExportBlockReason}
+                              </p>
+                            )}
                             <Button
                               className="cad-production-export"
                               variant="outline"
                               onClick={exportProductionCsv}
-                              disabled={productionParts.length === 0}
+                              disabled={
+                                productionParts.length === 0 ||
+                                productionExportBlockReason !== null
+                              }
                             >
                               Kesim Listesini CSV İndir
                             </Button>

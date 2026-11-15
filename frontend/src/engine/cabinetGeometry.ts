@@ -16,9 +16,11 @@ export function calculateCabinetInnerDimensions(
   validateMeasurement(furniture.height, "Dolap yüksekliği");
   validateMeasurement(furniture.depth, "Dolap derinliği");
   validateMeasurement(rules.panelThickness, "Panel kalınlığı");
-  validateMeasurement(rules.backThickness, "Arkalık kalınlığı");
-  if (!Number.isFinite(rules.backInset) || rules.backInset < 0) {
-    throw new Error("Arkalık konumu geçersiz.");
+  if (furniture.hasBackPanel !== false) {
+    validateMeasurement(rules.backThickness, "Arkalık kalınlığı");
+    if (!Number.isFinite(rules.backInset) || rules.backInset < 0) {
+      throw new Error("Arkalık konumu geçersiz.");
+    }
   }
 
   const kalinlik = rules.panelThickness;
@@ -32,13 +34,15 @@ export function calculateCabinetInnerDimensions(
 
   let innerDepth = furniture.depth - kalinlik;
 
-  if (rules.backInstallation === "grooved") {
-    validateMeasurement(rules.backGrooveDepth, "Arkalık kanal derinliği");
-    innerDepth -= rules.backGrooveDepth;
-  }
+  if (furniture.hasBackPanel !== false) {
+    if (rules.backInstallation === "grooved") {
+      validateMeasurement(rules.backGrooveDepth, "Arkalık kanal derinliği");
+      innerDepth -= rules.backGrooveDepth;
+    }
 
-  if (rules.backInstallation === "inset") {
-    innerDepth -= rules.backThickness + rules.backInset;
+    if (rules.backInstallation === "inset") {
+      innerDepth -= rules.backThickness + rules.backInset;
+    }
   }
 
   if (innerWidth <= 0 || innerHeight <= 0 || innerDepth <= 0) {
