@@ -47,20 +47,15 @@ jobs:
           test -f frontend/package-lock.json
           test -f frontend/tsconfig.json
           test -f frontend/vite.config.ts
+          test -d frontend/tests
           echo "Required frontend project files are present."
 
-      - name: Run automated tests when configured
+      - name: Run unit tests
         id: tests
         run: |
-          if node -e "process.exit(require('./package.json').scripts?.test ? 0 : 1)"; then
-            npm test
-            echo "configured=true" >> "$GITHUB_OUTPUT"
-            echo "result=passed" >> "$GITHUB_OUTPUT"
-          else
-            echo "::warning::No test script is configured in frontend/package.json; automated tests were not run."
-            echo "configured=false" >> "$GITHUB_OUTPUT"
-            echo "result=not-configured" >> "$GITHUB_OUTPUT"
-          fi
+          npm test
+          echo "configured=true" >> "$GITHUB_OUTPUT"
+          echo "result=passed" >> "$GITHUB_OUTPUT"
 
       - name: Lint
         run: npm run lint
@@ -75,7 +70,6 @@ jobs:
         if: always()
         working-directory: .
         env:
-          TESTS_CONFIGURED: ${{ steps.tests.outputs.configured }}
           TEST_RESULT: ${{ steps.tests.outputs.result }}
           JOB_STATUS: ${{ job.status }}
         run: |
@@ -84,9 +78,6 @@ jobs:
             echo ""
             echo "- Commit: \`${GITHUB_SHA}\`"
             echo "- Dal: \`${GITHUB_REF_NAME}\`"
-            echo "- Otomatik testler: ${TEST_RESULT:-başlatılamadı}"
-            if [ "${TESTS_CONFIGURED}" = "false" ]; then
-              echo "- Not: frontend/package.json içinde henüz test komutu tanımlı değil."
-            fi
+            echo "- Birim testleri: ${TEST_RESULT:-başarısız veya başlatılamadı}"
             echo "- Genel iş durumu: ${JOB_STATUS}"
           } >> "$GITHUB_STEP_SUMMARY"
