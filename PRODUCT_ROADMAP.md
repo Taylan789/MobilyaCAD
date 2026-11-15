@@ -20,7 +20,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 | Hesap motoru | Mutfak tipi gövdeler için yan, üst, alt, raf, kapak ve arkalık hesabı | Çekmece kutusu, tüm aileler ve üreticiye özel konstrüksiyonlar eksik |
 | Kesim listesi | Seçili mutfak modülü için temel CSV | Şu an çekmeceli modüllerin CSV dışa aktarımı güvenlik amacıyla engellenir; CNC/optimizasyon çıktısı değildir |
 | Proje dosyası | Yerel JSON indirme/yükleme, format sürümü 1 ve temel doğrulama | Şema migrasyonu, otomatik kayıt ve kurtarma yok |
-| Test/CI | GitHub Actions CI ve QA; 15 Kasım 2026 QA #10'da 17/17 test geçti | Fiziksel üretim doğrulaması otomatik testle yapılamaz |
+| Test/CI | GitHub Actions CI ve QA; 15 Kasım 2026 QA #11'de 21/21 test geçti | Fiziksel üretim doğrulaması otomatik testle yapılamaz |
 
 ### Bilinen mimari ve veri boşlukları
 
@@ -31,7 +31,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 
 ## Geliştirme aşamaları
 
-### Aşama 0 — Veri doğruluğu ve otomatik kalite kapısı <badge color="success">Sürekli</badge>
+### Aşama 0 — Veri doğruluğu ve otomatik kalite kapısı **Durum: sürekli**
 
 **Hedef:** UI, domain modeli, hesap motoru ve export arasında tekil ve test edilebilir kurallar.
 
