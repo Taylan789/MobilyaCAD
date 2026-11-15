@@ -100,7 +100,6 @@ export function calculatePlacementIssues(
     rectangle: getRectangle(item)
   }));
   const issues: PlacementIssue[] = [];
-  const outsideIds = new Set<string>();
 
   for (const { item, rectangle } of rectangles) {
     const axes = getAxes(rectangle);
@@ -119,7 +118,6 @@ export function calculatePlacementIssues(
       rectangle.centerZ - extentZ < -roomHalfLength - 1e-9 ||
       rectangle.centerZ + extentZ > roomHalfLength + 1e-9
     ) {
-      outsideIds.add(item.id);
       issues.push({
         type: "outside-room",
         furnitureIds: [item.id],
