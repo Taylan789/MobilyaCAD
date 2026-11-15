@@ -30,11 +30,13 @@ export function isDrawerBoxProjectConfig(value: unknown): value is DrawerBoxProj
   if (!Number.isSafeInteger(spec.quantity) || Number(spec.quantity) < 0) return false;
   if (typeof spec.material !== "string" || spec.material.trim() === "") return false;
   if (spec.bottomFit !== "between-sides-and-front-back") return false;
-  if (!isRecord(spec.edgeBanding) || !isRecord(spec.grainDirection)) return false;
+  const edgeBanding = spec.edgeBanding;
+  const grainDirection = spec.grainDirection;
+  if (!isRecord(edgeBanding) || !isRecord(grainDirection)) return false;
 
   return panelGroups.every((group) => {
-    const banding = spec.edgeBanding[group];
-    const grain = spec.grainDirection[group];
+    const banding = edgeBanding[group];
+    const grain = grainDirection[group];
     return isRecord(banding) &&
       typeof banding.top === "boolean" &&
       typeof banding.bottom === "boolean" &&
