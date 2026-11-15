@@ -29,7 +29,13 @@ test("eski proje v1 dosyalarında çekmece yapılandırmasının bulunmaması ge
 });
 test("geçerli çekmece yapılandırmaları proje v1 verisinde saklanabilir", () => {
   assert.equal(isDrawerBoxProjectConfig(createConfig()), true);
-  assert.equal(isValidDrawerBoxProjectSpecs([createConfig(), createConfig({ quantity: 1 })]), true);
+  assert.equal(
+    isValidDrawerBoxProjectSpecs([
+      createConfig(),
+      { ...createConfig({ quantity: 1 }), id: "drawer-group-2" }
+    ]),
+    true
+  );
 });
 test("boş veya negatif ölçülü çekmece yapılandırması reddedilir", () => {
   assert.equal(isDrawerBoxProjectConfig(createConfig({ outerWidth: 0 })), false);

@@ -36,7 +36,6 @@ const dimensionFields = [
 
 type PanelGroupKey = typeof panelGroups[number]["key"];
 type EdgeKey = typeof edges[number]["key"];
-type DimensionKey = typeof dimensionFields[number]["key"];
 
 interface DrawerDraft {
   outerWidth: string;

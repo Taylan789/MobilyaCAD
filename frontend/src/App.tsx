@@ -1397,6 +1397,7 @@ function App() {
 
                             {selectedFurniture.drawerCount > 0 && (
                               <DrawerBoxConfigurator
+                                key={selectedFurniture.id}
                                 furnitureId={selectedFurniture.id}
                                 expectedDrawerCount={selectedFurniture.drawerCount}
                                 configs={selectedFurniture.drawerBoxSpecs ?? []}
