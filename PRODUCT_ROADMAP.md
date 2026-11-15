@@ -19,6 +19,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 | Parçalar | Yerleştirilen mobilyada kapak/çekmece/raf görsel parçaları | Her aile için üretim parça ağacı henüz yok |
 | Hesap motoru | Mutfak tipi gövdeler için yan, üst, alt, raf, kapak ve arkalık hesabı | Çekmece kutusu, tüm aileler ve üreticiye özel konstrüksiyonlar eksik |
 | Kesim listesi | Seçili mutfak modülü için temel CSV | Şu an çekmeceli modüllerin CSV dışa aktarımı güvenlik amacıyla engellenir; CNC/optimizasyon çıktısı değildir |
+| Kenar bantlama | Seçili mutfak modülünde parça kenar işaretlerinden adet çarpanlı doğrusal uzunluk özeti | Çoklu mobilya ve malzeme/dekor bazlı toplamlar yok; fire veya rulo payı hesaplanmaz |
 | Proje dosyası | Yerel JSON indirme/yükleme, format sürümü 1 ve temel doğrulama | Şema migrasyonu, otomatik kayıt ve kurtarma yok |
 | Test/CI | GitHub Actions CI ve QA; 15 Kasım 2026 QA #11'de 21/21 test geçti | Fiziksel üretim doğrulaması otomatik testle yapılamaz |
 
@@ -27,7 +28,8 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 - `frontend/src/engine/furnitureCalculator.ts` ölçü kontrolünden sonra boş liste döndüren bir altyapı stub'ıdır; üretim hesaplayıcısı olarak kullanılmamalıdır.
 - Konstrüksiyon kurallarının bir kısmı `App.tsx` içinde sabit başlangıç değerleriyle tutuluyor; proje ve mobilya bazında yapılandırılabilir hale getirilmeli.
 - Çekmece görsel sayısı ile gerçek çekmece kutusu/önü parça ağacı aynı şey değildir; üretim parçası hesaplanmadan kesim listesine eklenmemelidir.
-- Malzeme kataloğu, donanım tüketimi, kenar bantlama uzunluğu, nesting ve CNC postprocessor katmanları tamamlanmış değildir.
+- Malzeme kataloğu, donanım tüketimi, nesting ve CNC postprocessor katmanları tamamlanmış değildir.
+- Kenar bantlama uzunluğu artık seçili mutfak modülünün açık kenar bayraklarından hesaplanır; çoklu mobilya/malzeme toplamı, fire ve rulo payı henüz yoktur.
 
 ## Geliştirme aşamaları
 
@@ -83,11 +85,19 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 4. **P2:** CAD düzenleme araçları ve proje durumu/undo-redo.
 5. **P3:** CNC postprocessor, nesting ve maliyet/teklif; yalnızca kaynak verisi ve standartlar doğrulandığında.
 
+### Son tamamlanan dikey dilim — kenar bantlama uzunluk özeti
+
+- calculateEdgeBandingSummary mevcut parça kenar bayraklarından genişlik ve uzunluk yönündeki bantlı kenarları ayrı, toplam uzunluğu birlikte hesaplar.
+- Parça adet değeri her kenar uzunluğuna uygulanır; boş liste sıfır döndürür, geçersiz ölçü/adet reddedilir.
+- Üretim paneli toplamı ve iki yönlü alt toplamı mm cinsinden gösterir.
+- Hesap yalnızca tanımlı kenar bayraklarını toplar; bant kalınlığı, fire, rulo payı veya fiziksel üretim standardı tahmin etmez.
+- Bu commit için CI/QA doğrulaması bekleniyor.
+
 ## Sıradaki 5 küçük görev
 
 1. Çekmece kutusu ve ön paneli için açık konstrüksiyon parametreleri ekle; parça ölçüsü/adedi test edilene kadar çekmeceli modül CSV'sini kapalı tut.
 2. Sabit `constructionRules` başlangıç değerlerini proje veya mobilya bazında saklanan, doğrulanan ayarlara taşı.
-3. Parça ağacında malzeme, damar yönü ve kenar bantlama parametrelerini tek kaynaktan yönet; toplam bant uzunluğu için test ekle.
+3. Kenar bantlama özetini çoklu mobilya ve malzeme/dekor bazında birleştir; fire ve rulo payı eklemeden önce kullanıcı girdisi gereksinimini tanımla.
 4. Desteklenen mobilya aileleri için kesim listesi destek matrisini ve çoklu mobilya quantity birleştirmesini ekle.
 5. Proje JSON v1 için şema doğrulama, round-trip ve gelecekteki sürüme migrasyon testleri oluştur.
 

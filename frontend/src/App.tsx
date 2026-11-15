@@ -68,6 +68,7 @@ import { furnitureCatalog } from "./data/furnitureCatalog";
 import { createPlacedFurniture } from "./types/placedFurniture";
 import type { PlacedFurniture } from "./types/placedFurniture";
 import { calculateCabinetParts } from "./engine/cabinetParts";
+import { calculateEdgeBandingSummary } from "./engine/edgeBanding";
 import { getCabinetCutListExportBlockReason, resolveCabinetConstructionRules } from "./engine/cabinetRules";
 import type { CabinetConstructionRules } from "./types/construction/cabinetRules";
 
@@ -169,6 +170,8 @@ function App() {
           resolveCabinetConstructionRules(constructionRules, selectedFurniture)
         )
       : [];
+
+  const edgeBandingSummary = calculateEdgeBandingSummary(productionParts);
 
   function addFurniture(catalogId: string) {
     const item = furnitureCatalog.find(
@@ -1387,6 +1390,19 @@ function App() {
                             <div className="cad-production-summary">
                               <span>Hesaplanan parça türü</span>
                               <strong>{productionParts.length}</strong>
+                            </div>
+
+                            <div className="cad-production-summary">
+                              <span>Toplam kenar bantlama</span>
+                              <strong>{edgeBandingSummary.totalLength.toLocaleString("tr-TR", { maximumFractionDigits: 1 })} mm</strong>
+                            </div>
+                            <div className="cad-production-summary">
+                              <span>Genişlik yönündeki kenarlar</span>
+                              <strong>{edgeBandingSummary.widthEdgesLength.toLocaleString("tr-TR", { maximumFractionDigits: 1 })} mm</strong>
+                            </div>
+                            <div className="cad-production-summary">
+                              <span>Uzunluk yönündeki kenarlar</span>
+                              <strong>{edgeBandingSummary.lengthEdgesLength.toLocaleString("tr-TR", { maximumFractionDigits: 1 })} mm</strong>
                             </div>
                             {productionExportBlockReason && (
                               <p className="text-xs text-muted-foreground" role="status">
