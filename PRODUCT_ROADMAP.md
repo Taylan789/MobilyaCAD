@@ -19,7 +19,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 | Parçalar | Görsel kapak/çekmece/raf parçaları; açık ölçülü çekmece kutusu motoru; proje v1 yapılandırması; Üretim paneli formu; hesaplanan çekmece grupları birleşik üretim listesine bağlı | Diğer mobilya aileleri için tam üretim parça ağacı yok; ray, donanım ve CNC operasyonları dahil değil |
 | Hesap motoru | Mutfak tipi gövdeler için yan, üst, alt, raf, kapak ve arkalık hesabı | Çekmece kutusu, tüm aileler ve üreticiye özel konstrüksiyonlar eksik |
 | Kesim listesi | Seçili mutfak modülünün gövde ve eksiksiz yapılandırılmış çekmece parçaları için Türkçe Excel uyumlu CSV | Çoklu mobilya/malzeme toplamı, nesting ve CNC çıktısı yok; yalnızca seçili mutfak modülü |
-| Kenar bantlama | Seçili mutfak modülünün birleşik gövde/çekmece parça listesinden adet çarpanlı doğrusal uzunluk özeti | Çoklu mobilya ve malzeme/dekor bazlı toplamlar yok; fire veya rulo payı hesaplanmaz |
+| Kenar bantlama / malzeme tüketimi | Seçili mutfak modülünün birleşik gövde/çekmece parçalarından malzeme + kalınlık bazında parça çeşidi, adet, net panel alanı/hacmi ve kenar bantlama uzunluğu | Çoklu mobilya toplamı, fire, levha verimi, kesim payı ve rulo payı yok |
 | Proje dosyası | Yerel JSON indirme/yükleme, format sürümü 1 ve temel doğrulama | Şema migrasyonu, otomatik kayıt ve kurtarma yok |
 | Test/CI | GitHub Actions CI #50 ve QA #25; 56/56 test geçti, build/lint ve Pages deploy başarılı | Fiziksel üretim doğrulaması otomatik testle yapılamaz; lint'te 15 mevcut uyarı ve audit'te 6 düşük/orta bulgu sürüyor |
 
@@ -140,12 +140,25 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 - Otomatik doğrulama: CI #49 başarılı; güncel branch'te CI #50, QA #25 (56/56) ve Pages deploy #31 başarılı.
 - Fiziksel üretim, ray/donanım ve CNC doğrulaması bu kapsamda değildir.
 
+## Son tamamlanan dikey dilim — malzeme ve kalınlık bazında tüketim özeti
+
+- `calculateMaterialConsumptionSummary`, hesaplanmış gövde + çekmece parçalarını malzeme adı (baş/son boşlukları normalize edilir) ve panel kalınlığına göre gruplar; farklı kalınlıklar aynı malzeme adı altında birleştirilmez.
+- Her grup için parça satırı çeşidi, quantity çarpanlı toplam adet, net panel yüzey alanı (m²), net panel hacmi (m³), bantlı kenar adedi ve bant uzunluğu (mm) hesaplanır.
+- Üretim paneli özeti mevcut `productionParts` listesini kullanır; CSV ile aynı hesaplanmış parça kaynağını paylaşır. Malzeme/kalınlık grupları ayrı kartlarda gösterilir.
+- Malzeme adı, ölçü, güvenli tam sayı adet ve dört kenar bantlama bayrağı doğrulanır; taşan toplamlar reddedilir. Boş parça listesi boş özet döndürür.
+- Alan/hacim net geometrik toplamdır; fire, kesim payı, levha verimi, kerf, bant kalınlığı veya rulo payı eklenmez.
+- Değişen dosyalar: `frontend/src/engine/materialConsumption.ts`, `frontend/tests/materialConsumption.test.mjs`, `frontend/src/App.tsx`.
+- Kod commit'i: `71cff95aa4f06f790f74c8fcc8ee85c813ac6005`.
+- Otomatik doğrulama: CI Run #53 başarılı; QA Run #28 başarılı, 61/61 test; Pages deploy Run #34 başarılı. Oxlint 15 uyarı / 0 hata; TypeScript ve production build başarılı.
+- Güvenlik denetimi: `npm audit --omit=dev --audit-level=high` adımı başarılı; raporda 6 bulgu (2 düşük, 4 orta) sürüyor. Kırıcı/force bağımlılık güncellemesi yapılmadı.
+- Sınırlar: yalnızca seçili mutfak modülünün mevcut hesaplanmış parçaları raporlanır; birden fazla mobilya, levha optimizasyonu ve fiziksel üretim onayı bu dilimin dışındadır.
+
 ## Sıradaki 5 küçük görev
 
-1. Malzeme bazında gövde/çekmece parça adetlerini ve kenar bantlama tüketimini seçili mobilya görünümünde raporla.
-2. Proje JSON v1 için kaydet/yükle round-trip ve eski dosya geriye uyumluluk testlerini ekle.
-3. Birden fazla mobilyanın kesim/bantlama toplamlarını quantity ve malzeme bazında birleştir.
-4. Kullanıcı tanımlı malzeme/dekor kataloğunu kalınlık, birim ve kimlik doğrulamasıyla tasarla; fiyat uydurma.
+1. Proje JSON v1 için kaydet/yükle round-trip ve eski dosya geriye uyumluluk testlerini ekle.
+2. Birden fazla mobilyanın kesim/bantlama toplamlarını quantity ve malzeme/kalınlık bazında birleştir; yalnızca tamamı hesaplanabilen destekli parçaları dahil et.
+3. Kullanıcı tanımlı malzeme/dekor kataloğunu kalınlık, birim ve kimlik doğrulamasıyla tasarla; fiyat uydurma.
+4. Kesim listesi ve malzeme özetini proje genelinde gösterecek güvenli seçim/çoklu mobilya modelini oluştur.
 5. Çekmece dışındaki gardırop, banyo ve kitaplık ailelerinden birini açık konstrüksiyon kurallarıyla uçtan uca tamamla.
 
 ## Üretim güvenliği ve karar sınırları
