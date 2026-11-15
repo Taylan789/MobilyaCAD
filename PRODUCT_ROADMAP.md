@@ -123,10 +123,17 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 - Otomatik doğrulama: CI #46, QA #21 (44/44 test), Pages deploy #27 başarılı; lint 15 uyarı / 0 hata; TypeScript ve production build başarılı.
 - Sınır: çekmece parçaları henüz üretim önizlemesi/CSV'ye bağlı değildir; çekmeceli CSV engeli korunur. Ray, bağlantı elemanı, donanım ve CNC standardı tahmin edilmez.
 
+## Son tamamlanan dikey dilim — çekmece parçalarının üretim önizlemesi ve CSV kapısı
+
+- Kaydedilmiş çekmece grupları `calculateDrawerBoxParts` ile mevcut mutfak gövde parçalarına eklenir; parça önizlemesi, adet ve kenar bantlama toplamı aynı birleşik listeden beslenir.
+- Çekmece gruplarının adet toplamı katalogdaki çekmece adedine eşit değilse CSV kilitli kalır. Eksik, yinelenen kimlikli, bozuk veya türetilmiş ölçüleri geçersiz konfigürasyonlar da dışa aktarılamaz.
+- Bütün çekmeceler açık ölçü/malzeme/kenar/damar girdileriyle tanımlandığında çekmece parçaları mevcut CSV şemasına dahil edilir; ray ve CNC operasyonu uydurulmaz.
+- Kabul kriterleri: çekmecesiz modüllerin mevcut akışı değişmez; kısmi tanım CSV'yi engeller; tam tanım dört çekmece parça grubunu üretim listesi ve CSV'ye ekler.
+
 ## Sıradaki 5 küçük görev
 
-1. Kaydedilmiş çekmece gruplarını üretim önizlemesine bağla; tüm grupların adet toplamı mobilyadaki çekmece adediyle eşleşmeden CSV'yi açma.
-2. Hesaplanan çekmece parçalarını mevcut kesim listesine ekle; tam tanımlı gruplar için parça ölçüsü, kenar bantlama ve CSV alanlarını otomatik test et.
+1. Birleşik üretim parça listesi için CSV satırlarının ve quantity toplamlarının uçtan uca testlerini ekle.
+2. Malzeme bazında çekmece/gövde parça toplamlarını ve kenar bantlama tüketimini tek seçili mobilya görünümünde raporla.
 3. Proje JSON v1 için kaydet/yükle round-trip ve eski dosya geriye uyumluluk testleri ekle.
 4. Birden fazla mobilyanın kesim/bantlama toplamlarını quantity ve malzeme bazında birleştir.
 5. Çekmece dışındaki gardırop, banyo ve kitaplık aileleri için ayrı konstrüksiyon hesaplayıcıları planla ve bir aileyi uçtan uca tamamla.

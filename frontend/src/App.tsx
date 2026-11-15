@@ -69,6 +69,7 @@ import { furnitureCatalog } from "./data/furnitureCatalog";
 import { createPlacedFurniture } from "./types/placedFurniture";
 import type { PlacedFurniture } from "./types/placedFurniture";
 import { calculateCabinetParts } from "./engine/cabinetParts";
+import { calculateDrawerBoxParts } from "./engine/drawerBoxParts";
 import { isValidDrawerBoxProjectSpecs } from "./engine/drawerBoxProject";
 import { calculateEdgeBandingSummary } from "./engine/edgeBanding";
 import { getCabinetCutListExportBlockReason, resolveCabinetConstructionRules } from "./engine/cabinetRules";
@@ -149,7 +150,7 @@ function App() {
     ? getCabinetCutListExportBlockReason(selectedFurniture)
     : null;
 
-  const productionParts =
+  const cabinetProductionParts =
     selectedFurniture && selectedCatalogItem?.type === "kitchen"
       ? calculateCabinetParts(
           {
@@ -172,6 +173,18 @@ function App() {
           resolveCabinetConstructionRules(constructionRules, selectedFurniture)
         )
       : [];
+
+  const drawerProductionParts =
+    selectedFurniture?.drawerBoxSpecs?.flatMap((config) => {
+      try {
+        return calculateDrawerBoxParts(selectedFurniture.id, config.id, config.spec);
+      } catch {
+        // Invalid imported geometry remains blocked from export without crashing the editor.
+        return [];
+      }
+    }) ?? [];
+
+  const productionParts = [...cabinetProductionParts, ...drawerProductionParts];
 
   const edgeBandingSummary = calculateEdgeBandingSummary(productionParts);
 
