@@ -42,6 +42,8 @@ export interface Part {
 
   // Malzeme
   material: string;
+  /** Stable project material catalogue reference; absent on legacy/free-text parts. */
+  materialId?: string;
 
   // CNC işlemleri
   cncOperations: CncOperation[];

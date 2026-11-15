@@ -95,12 +95,12 @@ test("birleşik gövde ve çekmece parçaları CSV satırlarına doğru adetlerl
   const rows = csv.slice(1).split("\r\n");
 
   assert.equal(csv.startsWith("\uFEFF"), true);
-  assert.equal(rows[0], "Mobilya;Parça;Genişlik (mm);Uzunluk (mm);Kalınlık (mm);Adet;Malzeme;Bant Üst;Bant Alt;Bant Sol;Bant Sağ");
+  assert.equal(rows[0], "Mobilya;Parça;Genişlik (mm);Uzunluk (mm);Kalınlık (mm);Adet;Malzeme;Malzeme ID;Bant Üst;Bant Alt;Bant Sol;Bant Sağ");
   assert.equal(rows.length, 1 + cabinetParts.length + 4);
-  assert.ok(rows.includes("Mutfak Modülü;Çekmece Yan Paneli;120;450;15;4;MDF;Evet;Hayır;Hayır;Hayır"));
-  assert.ok(rows.includes("Mutfak Modülü;Çekmece Ön/Arka Paneli;470;120;15;4;MDF;Hayır;Hayır;Evet;Hayır"));
-  assert.ok(rows.includes("Mutfak Modülü;Çekmece Tabanı;470;420;6;2;MDF;Hayır;Hayır;Hayır;Hayır"));
-  assert.ok(rows.includes("Mutfak Modülü;Çekmece Ön Paneli;540;180;18;2;MDF;Evet;Evet;Evet;Evet"));
+  assert.ok(rows.includes("Mutfak Modülü;Çekmece Yan Paneli;120;450;15;4;MDF;;Evet;Hayır;Hayır;Hayır"));
+  assert.ok(rows.includes("Mutfak Modülü;Çekmece Ön/Arka Paneli;470;120;15;4;MDF;;Hayır;Hayır;Evet;Hayır"));
+  assert.ok(rows.includes("Mutfak Modülü;Çekmece Tabanı;470;420;6;2;MDF;;Hayır;Hayır;Hayır;Hayır"));
+  assert.ok(rows.includes("Mutfak Modülü;Çekmece Ön Paneli;540;180;18;2;MDF;;Evet;Evet;Evet;Evet"));
 
   const totalQuantity = rows.slice(1).reduce(
     (total, row) => total + Number(row.split(";")[5]),
@@ -127,6 +127,14 @@ test("CSV sayısal ölçüleri yerelleştirmeden milimetre değerleri olarak kor
   ]);
 
   assert.ok(csv.includes("Özel Modül;Test Panel;100.25;240.5;18;1;MDF;"));
+});
+
+test("CSV katalog malzeme kimliğini ayrı sütunda taşır", () => {
+  const csv = createCutListCsv("Modül", [
+    createPart({ materialId: "mdf-white" })
+  ]);
+  assert.ok(csv.includes("Malzeme;Malzeme ID;Bant Üst"));
+  assert.ok(csv.includes(";MDF;mdf-white;Hayır"));
 });
 
 test("boş mobilya adı veya parça listesi dışa aktarılamaz", () => {

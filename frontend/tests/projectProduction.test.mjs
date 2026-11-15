@@ -242,6 +242,69 @@ test("geçersiz geometri ve yinelenen mobilya kimliği güvenli dışa aktarım�
   assert.notEqual(duplicateIds.exportBlockReason, null);
 });
 
+test("katalog malzeme kimliği gövde parçalarına, tüketim özetine ve CSV'ye taşınır", () => {
+  const materials = [{
+    id: "mdf-white",
+    name: "MDF",
+    category: "panel",
+    decor: "Mat Beyaz",
+    thicknessesMm: [8, 18],
+    unit: "mm"
+  }];
+  const result = calculateProjectProduction([
+    createPlacedFurniture("base-cabinet", "base-1", { materialId: "mdf-white" })
+  ], catalog, rules, materials);
+
+  assert.equal(result.errors.length, 0);
+  assert.equal(result.exportBlockReason, null);
+  assert.ok(result.parts.length > 0);
+  assert.ok(result.parts.every((part) =>
+    part.material === "MDF" && part.materialId === "mdf-white"
+  ));
+
+  const first18 = result.parts.find((part) => part.thickness === 18);
+  assert.ok(first18);
+  const summaries = calculateMaterialConsumptionSummary([
+    ...result.parts,
+    { ...first18, id: first18.id + "-other", materialId: "mdf-oak" }
+  ]);
+  assert.equal(
+    summaries.filter((summary) => summary.material === "MDF" && summary.thickness === 18).length,
+    2
+  );
+  assert.ok(summaries.some((summary) =>
+    summary.materialId === "mdf-white" && summary.thickness === 8
+  ));
+
+  const csv = createProjectCutListCsv(result.furnitureNames, result.parts);
+  assert.ok(csv.includes("Malzeme;Malzeme ID;Bant Üst"));
+  assert.ok(csv.includes("MDF;mdf-white;"));
+});
+
+test("katalogda olmayan malzeme veya kullanılmayan kalınlık üretim dışa aktarımını engeller", () => {
+  const materials = [{
+    id: "mdf-white",
+    name: "MDF",
+    category: "panel",
+    thicknessesMm: [8, 18],
+    unit: "mm"
+  }];
+  const missingMaterial = calculateProjectProduction([
+    createPlacedFurniture("base-cabinet", "missing-1", { materialId: "missing-material" })
+  ], catalog, rules, materials);
+  assert.equal(missingMaterial.parts.length, 0);
+  assert.match(missingMaterial.exportBlockReason, /Malzeme kataloğunda/);
+
+  const missingBackThickness = calculateProjectProduction([
+    createPlacedFurniture("base-cabinet", "thin-1", { materialId: "mdf-white" })
+  ], catalog, rules, [{
+    ...materials[0],
+    thicknessesMm: [18]
+  }]);
+  assert.equal(missingBackThickness.parts.length, 0);
+  assert.match(missingBackThickness.exportBlockReason, /8 mm kalınlık katalogda tanımlı değil/);
+});
+
 test("CSV proje mobilya adı eşlemesi eksikse satır üretmez", () => {
   const result = calculateProjectProduction([
     createPlacedFurniture("base-cabinet", "base-1")

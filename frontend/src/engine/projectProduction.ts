@@ -3,6 +3,8 @@ import type { CabinetConstructionRules } from "../types/construction/cabinetRule
 import type { Furniture } from "../types/furniture";
 import type { Part } from "../types/part";
 import type { PlacedFurniture } from "../types/placedFurniture";
+import type { MaterialCatalogEntry } from "./materialCatalog";
+import { resolveMaterialThickness } from "./materialCatalog";
 import { calculateCabinetParts } from "./cabinetParts";
 import { calculateDrawerBoxParts } from "./drawerBoxParts";
 import {
@@ -56,7 +58,8 @@ function getErrorMessage(error: unknown): string {
 function createCabinetFurniture(
   placed: PlacedFurniture,
   catalogItem: FurnitureCatalogItem,
-  rules: CabinetConstructionRules
+  rules: CabinetConstructionRules,
+  material?: MaterialCatalogEntry
 ): Furniture {
   return {
     id: placed.id,
@@ -76,7 +79,8 @@ function createCabinetFurniture(
     hasBackPanel: placed.hasBackPanel,
     backThickness: placed.backThickness,
     edgeBanding: placed.edgeBanding,
-    material: placed.material
+    material: material?.name ?? placed.material,
+    ...(placed.materialId ? { materialId: placed.materialId } : {})
   };
 }
 
@@ -89,13 +93,15 @@ function createCabinetFurniture(
 export function calculateProjectProduction(
   furniture: readonly PlacedFurniture[],
   catalog: readonly FurnitureCatalogItem[],
-  baseRules: CabinetConstructionRules
+  baseRules: CabinetConstructionRules,
+  materials: readonly MaterialCatalogEntry[] = []
 ): ProjectProductionResult {
-  if (!Array.isArray(furniture) || !Array.isArray(catalog)) {
+  if (!Array.isArray(furniture) || !Array.isArray(catalog) || !Array.isArray(materials)) {
     throw new Error("Proje üretim hesabı için geçerli mobilya ve katalog listeleri gereklidir.");
   }
 
   const catalogById = new Map(catalog.map((item) => [item.id, item]));
+  const materialById = new Map(materials.map((material) => [material.id, material]));
   const result: ProjectProductionResult = {
     parts: [],
     furnitureNames: new Map<string, string>(),
@@ -156,6 +162,35 @@ export function calculateProjectProduction(
     result.supportedFurnitureCount += 1;
     result.furnitureNames.set(furnitureId, furnitureName);
 
+    const assignedMaterial = placed.materialId === undefined
+      ? undefined
+      : materialById.get(placed.materialId);
+    if (placed.materialId !== undefined && !assignedMaterial) {
+      result.errors.push({
+        furnitureId,
+        furnitureName,
+        reason: `Malzeme kataloğunda ${placed.materialId} kimliği bulunamadı.`
+      });
+      continue;
+    }
+
+    const resolvedRules = resolveCabinetConstructionRules(baseRules, placed);
+    if (assignedMaterial) {
+      try {
+        resolveMaterialThickness(assignedMaterial, resolvedRules.panelThickness);
+        if (placed.hasBackPanel) {
+          resolveMaterialThickness(assignedMaterial, resolvedRules.backThickness);
+        }
+      } catch (error) {
+        result.errors.push({
+          furnitureId,
+          furnitureName,
+          reason: getErrorMessage(error)
+        });
+        continue;
+      }
+    }
+
     if (!Number.isSafeInteger(placed.drawerCount) || placed.drawerCount < 0) {
       result.errors.push({
         furnitureId,
@@ -202,11 +237,13 @@ export function calculateProjectProduction(
 
     let cabinetParts: Part[];
     try {
-      const cabinetFurniture = createCabinetFurniture(placed, catalogItem, baseRules);
-      cabinetParts = calculateCabinetParts(
-        cabinetFurniture,
-        resolveCabinetConstructionRules(baseRules, placed)
+      const cabinetFurniture = createCabinetFurniture(
+        placed,
+        catalogItem,
+        baseRules,
+        assignedMaterial
       );
+      cabinetParts = calculateCabinetParts(cabinetFurniture, resolvedRules);
     } catch (error) {
       result.errors.push({
         furnitureId,

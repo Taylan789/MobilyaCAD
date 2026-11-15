@@ -8,6 +8,8 @@ import { validateMeasurement } from "./measurement";
 export interface MaterialConsumptionSummary {
   /** Trimmed material label; thickness is kept separate to avoid mixing boards. */
   material: string;
+  /** Stable catalogue identity; absent for legacy/free-text material rows. */
+  materialId?: string;
   /** Part thickness in millimetres. */
   thickness: number;
   /** Number of distinct cut-list rows in this material/thickness group. */
@@ -24,6 +26,7 @@ export interface MaterialConsumptionSummary {
 
 interface MaterialAccumulator {
   material: string;
+  materialId?: string;
   thickness: number;
   partLineCount: number;
   totalQuantity: number;
@@ -39,9 +42,15 @@ function roundTo(value: number, decimalPlaces: number): number {
   return Math.round((value + Number.EPSILON) * factor) / factor;
 }
 
-function validatePart(part: Part): string {
+function validatePart(part: Part): { material: string; materialId?: string } {
   if (typeof part.material !== "string" || part.material.trim() === "") {
     throw new Error("Parça malzemesi belirtilmelidir.");
+  }
+  if (
+    part.materialId !== undefined &&
+    (typeof part.materialId !== "string" || part.materialId.trim() === "")
+  ) {
+    throw new Error("Parça malzeme kimliği boş olmayan bir metin olmalıdır.");
   }
 
   validateMeasurement(part.width, `${part.name} genişliği`);
@@ -59,7 +68,10 @@ function validatePart(part: Part): string {
     throw new Error(`${part.name} kenar bantlama bilgisi geçersiz.`);
   }
 
-  return part.material.trim();
+  return {
+    material: part.material.trim(),
+    ...(part.materialId === undefined ? {} : { materialId: part.materialId.trim() })
+  };
 }
 
 /**
@@ -78,13 +90,14 @@ export function calculateMaterialConsumptionSummary(
   const groups = new Map<string, MaterialAccumulator>();
 
   for (const part of parts) {
-    const material = validatePart(part);
-    const key = JSON.stringify([material, part.thickness]);
+    const { material, materialId } = validatePart(part);
+    const key = JSON.stringify([materialId ?? null, material, part.thickness]);
     let group = groups.get(key);
 
     if (!group) {
       group = {
         material,
+        ...(materialId === undefined ? {} : { materialId }),
         thickness: part.thickness,
         partLineCount: 0,
         totalQuantity: 0,
@@ -113,10 +126,12 @@ export function calculateMaterialConsumptionSummary(
   return [...groups.values()]
     .sort((first, second) =>
       first.material.localeCompare(second.material, "tr") ||
+      (first.materialId ?? "").localeCompare(second.materialId ?? "") ||
       first.thickness - second.thickness
     )
     .map((group) => ({
       material: group.material,
+      ...(group.materialId === undefined ? {} : { materialId: group.materialId }),
       thickness: group.thickness,
       partLineCount: group.partLineCount,
       totalQuantity: group.totalQuantity,

@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { parseProjectFile, serializeProjectFile } from "../src/engine/projectFile.ts";
+import { removeMaterialCatalogEntry } from "../src/engine/materialCatalog.ts";
 
 const noBanding = () => ({ top: false, bottom: false, left: false, right: false });
 const drawerConfig = {
@@ -168,5 +169,49 @@ test("proje yükleyicisi geçersiz malzeme birimini ve yinelenen kimliği redded
   assert.throws(
     () => parseProjectFile(JSON.stringify(duplicateId)),
     /malzeme kataloğu geçersiz/
+  );
+});
+
+test("mobilya malzeme kimliği proje JSON v1 round-trip sırasında korunur", () => {
+  const furniture = createFurniture({ materialId: "mdf-white" });
+  const parsed = parseProjectFile(
+    serializeProjectFile(room, [furniture], savedAt, materialCatalog)
+  );
+  assert.equal(parsed.furniture[0].materialId, "mdf-white");
+});
+
+test("katalogda bulunmayan veya kataloğu olmayan mobilya malzeme referansı reddedilir", () => {
+  assert.throws(
+    () => serializeProjectFile(
+      room,
+      [createFurniture({ materialId: "missing-material" })],
+      savedAt,
+      materialCatalog
+    ),
+    /malzeme referansı geçersiz/
+  );
+  assert.throws(
+    () => serializeProjectFile(
+      room,
+      [createFurniture({ materialId: "mdf-white" })],
+      savedAt
+    ),
+    /malzeme referansı geçersiz/
+  );
+
+  const invalidReference = JSON.parse(
+    serializeProjectFile(room, [createFurniture()], savedAt, materialCatalog)
+  );
+  invalidReference.furniture[0].materialId = "missing-material";
+  assert.throws(
+    () => parseProjectFile(JSON.stringify(invalidReference)),
+    /malzeme referansı geçersiz/
+  );
+});
+
+test("projede kullanılan malzeme katalogdan silinemez", () => {
+  assert.throws(
+    () => removeMaterialCatalogEntry(materialCatalog, "mdf-white", ["mdf-white"]),
+    /tarafından kullanılıyor/
   );
 });

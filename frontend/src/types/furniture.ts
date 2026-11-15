@@ -39,4 +39,5 @@ export interface Furniture {
   backThickness?: number;
   edgeBanding?: boolean;
   material?: string;
+  materialId?: string;
 }

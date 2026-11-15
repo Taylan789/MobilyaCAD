@@ -31,6 +31,7 @@ export interface PlacedFurniture {
   backThickness: number;
   edgeBanding: boolean;
   material: string;
+  materialId?: string;
   drawerBoxSpecs?: DrawerBoxProjectConfig[];
   parts: FurniturePart[];
 }

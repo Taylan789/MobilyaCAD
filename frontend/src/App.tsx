@@ -149,10 +149,16 @@ function App() {
   const selectedCatalogItem = furnitureCatalog.find(
     (item) => item.id === selectedFurniture?.catalogId
   );
+  const referencedMaterialIds = new Set(
+    furniture
+      .map((item) => item.materialId)
+      .filter((id): id is string => typeof id === "string")
+  );
   const projectProduction = calculateProjectProduction(
     furniture,
     furnitureCatalog,
-    constructionRules
+    constructionRules,
+    materials
   );
   const productionParts = projectProduction.parts;
   const productionExportBlockReason = projectProduction.exportBlockReason;
@@ -202,6 +208,47 @@ function App() {
               ? { ...part, [field]: value }
               : part
           ),
+        };
+      })
+    );
+  }
+
+  function updateFurnitureMaterial(id: string, materialId: string) {
+    const material = materialId === ""
+      ? undefined
+      : materials.find((entry) => entry.id === materialId);
+    if (materialId !== "" && !material) return;
+
+    setFurniture((previous) =>
+      previous.map((item) => {
+        if (item.id !== id) return item;
+        return {
+          ...item,
+          material: material?.name ?? item.material,
+          materialId: material?.id,
+          parts: item.parts.map((part) => ({
+            ...part,
+            material: material?.name ?? part.material
+          }))
+        };
+      })
+    );
+  }
+
+  function updateMaterials(nextMaterials: MaterialCatalogEntry[]) {
+    const materialById = new Map(nextMaterials.map((material) => [material.id, material]));
+    setMaterials(nextMaterials);
+    setFurniture((previous) =>
+      previous.map((item) => {
+        const assignedMaterial = item.materialId
+          ? materialById.get(item.materialId)
+          : undefined;
+        return {
+          ...item,
+          ...(assignedMaterial ? { material: assignedMaterial.name } : {}),
+          ...(assignedMaterial
+            ? { parts: item.parts.map((part) => ({ ...part, material: assignedMaterial.name })) }
+            : {})
         };
       })
     );
@@ -1113,6 +1160,30 @@ function App() {
                               ))}
                             </div>
 
+                            <div className="cad-field">
+                              <Label htmlFor="furniture-material">Malzeme kataloğu</Label>
+                              <select
+                                id="furniture-material"
+                                className="cad-native-select"
+                                value={selectedFurniture.materialId ?? ""}
+                                onChange={(event) =>
+                                  updateFurnitureMaterial(selectedFurniture.id, event.target.value)
+                                }
+                              >
+                                <option value="">Serbest metin · {selectedFurniture.material}</option>
+                                {materials.map((material) => (
+                                  <option key={material.id} value={material.id}>
+                                    {material.name}{material.decor ? " · " + material.decor : ""}
+                                  </option>
+                                ))}
+                              </select>
+                              <p className="cad-field-note">
+                                Atanan malzeme desteklenen gövde kesim parçalarına uygulanır.
+                                Gövde ve kullanılan arkalık kalınlıkları katalogda tanımlı olmalıdır.
+                                Çekmece kutusu kendi malzeme ayarını korur.
+                              </p>
+                            </div>
+
                             <div className="cad-field cad-rotation-field">
                               <Label htmlFor="furniture-rotation">Dönüş Açısı</Label>
                               <div className="cad-input-with-unit">
@@ -1303,10 +1374,11 @@ function App() {
                             {materialConsumptionSummary.length > 0 ? (
                               materialConsumptionSummary.map((summary) => (
                                 <div
-                                  key={summary.material + "-" + summary.thickness}
+                                  key={(summary.materialId ?? summary.material) + "-" + summary.material + "-" + summary.thickness}
                                   className="cad-production-card"
                                 >
                                   <strong>{summary.material} · {summary.thickness} mm</strong>
+                                  {summary.materialId && <small>Malzeme ID: {summary.materialId}</small>}
                                   <span>{summary.partLineCount} parça çeşidi · {summary.totalQuantity} adet</span>
                                   <small>
                                     Net panel alanı: {summary.panelAreaM2.toLocaleString("tr-TR", { maximumFractionDigits: 6 })} m²
@@ -1372,7 +1444,8 @@ function App() {
                     <TabsContent value="materials" className="cad-tab-content">
                       <MaterialCatalogManager
                         materials={materials}
-                        onChange={setMaterials}
+                        referencedMaterialIds={referencedMaterialIds}
+                        onChange={updateMaterials}
                       />
                     </TabsContent>
                   </ScrollArea>

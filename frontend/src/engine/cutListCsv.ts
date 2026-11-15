@@ -11,6 +11,7 @@ const csvHeaders = [
   "Kalınlık (mm)",
   "Adet",
   "Malzeme",
+  "Malzeme ID",
   "Bant Üst",
   "Bant Alt",
   "Bant Sol",
@@ -31,7 +32,9 @@ function validateCutListPart(part: Part): void {
     typeof part.name !== "string" ||
     part.name.trim() === "" ||
     typeof part.material !== "string" ||
-    part.material.trim() === ""
+    part.material.trim() === "" ||
+    (part.materialId !== undefined &&
+      (typeof part.materialId !== "string" || part.materialId.trim() === ""))
   ) {
     throw new Error("Kesim listesinde parça adı ve malzemesi belirtilmelidir.");
   }
@@ -78,6 +81,7 @@ function serializeCutListRows(rows: readonly CsvRow[], includeFurnitureId = fals
         part.thickness,
         part.quantity,
         part.material,
+        part.materialId ?? "",
         part.edgeBanding.top ? "Evet" : "Hayır",
         part.edgeBanding.bottom ? "Evet" : "Hayır",
         part.edgeBanding.left ? "Evet" : "Hayır",

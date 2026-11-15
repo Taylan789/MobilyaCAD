@@ -73,10 +73,26 @@ function isValidPlacedFurniture(value: unknown): value is PlacedFurniture {
     isPositiveNumber(value.backThickness) &&
     typeof value.edgeBanding === "boolean" &&
     typeof value.material === "string" &&
+    (value.materialId === undefined ||
+      (typeof value.materialId === "string" && value.materialId.trim() !== "")) &&
     isValidDrawerBoxProjectSpecs(value.drawerBoxSpecs) &&
     Array.isArray(value.parts) &&
     value.parts.every(isValidFurniturePart)
   );
+}
+
+function validateProjectMaterialReferences(
+  furniture: readonly PlacedFurniture[],
+  materials: readonly MaterialCatalogEntry[]
+): void {
+  const knownMaterialIds = new Set(materials.map((material) => material.id));
+  for (const item of furniture) {
+    if (item.materialId !== undefined && !knownMaterialIds.has(item.materialId)) {
+      throw new Error(
+        `${item.name}: ${item.materialId} malzeme kimliği proje kataloğunda bulunamadı.`
+      );
+    }
+  }
 }
 
 /** Serializes the current editor state using the existing, versioned JSON v1 contract. */
@@ -89,6 +105,14 @@ export function serializeProjectFile(
   const validatedMaterials = materials === undefined
     ? undefined
     : validateMaterialCatalog(materials);
+  try {
+    validateProjectMaterialReferences(furniture, validatedMaterials ?? []);
+  } catch (error) {
+    throw new Error(
+      "Proje malzeme referansı geçersiz: " +
+      (error instanceof Error ? error.message : "katalog kimliği doğrulanamadı.")
+    );
+  }
   const project: MobilyaCadProjectFileV1 = {
     format: "MobilyaCAD",
     formatVersion: 1,
@@ -147,6 +171,16 @@ export function parseProjectFile(content: string): MobilyaCadProjectFileV1 {
       materials = validateMaterialCatalog(parsed.materials);
     } catch {
       throw new Error("Proje malzeme kataloğu geçersiz; kimlik, kalınlık ve mm birimini kontrol et.");
+    }
+  }
+
+  if (validFurniture) {
+    try {
+      validateProjectMaterialReferences(parsed.furniture as PlacedFurniture[], materials ?? []);
+    } catch {
+      throw new Error(
+        "Proje malzeme referansı geçersiz; mobilya kimliğinin katalogda bulunduğunu kontrol et."
+      );
     }
   }
 

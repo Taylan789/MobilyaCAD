@@ -168,7 +168,8 @@ export function updateMaterialCatalogEntry(
 /** Removes only an existing, explicitly identified catalogue entry. */
 export function removeMaterialCatalogEntry(
   value: unknown,
-  id: string
+  id: string,
+  referencedMaterialIds: readonly string[] = []
 ): MaterialCatalogEntry[] {
   const current = validateMaterialCatalog(value);
 
@@ -178,6 +179,9 @@ export function removeMaterialCatalogEntry(
 
   if (!current.some((material) => material.id === id)) {
     throw new Error("Silinecek malzeme katalogda bulunamadı.");
+  }
+  if (referencedMaterialIds.includes(id)) {
+    throw new Error("Bu malzeme bir mobilya tarafından kullanılıyor; önce malzeme atamasını kaldır.");
   }
 
   return current.filter((material) => material.id !== id);

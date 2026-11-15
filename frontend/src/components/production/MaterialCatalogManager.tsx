@@ -14,6 +14,7 @@ import {
 
 interface MaterialCatalogManagerProps {
   materials: MaterialCatalogEntry[];
+  referencedMaterialIds: ReadonlySet<string>;
   onChange: (materials: MaterialCatalogEntry[]) => void;
 }
 
@@ -33,6 +34,7 @@ const emptyDraft: MaterialDraft = {
 
 export function MaterialCatalogManager({
   materials,
+  referencedMaterialIds,
   onChange
 }: MaterialCatalogManagerProps) {
   const [draft, setDraft] = useState<MaterialDraft>(emptyDraft);
@@ -102,7 +104,7 @@ export function MaterialCatalogManager({
     }
 
     try {
-      onChange(removeMaterialCatalogEntry(materials, id));
+      onChange(removeMaterialCatalogEntry(materials, id, [...referencedMaterialIds]));
       if (editingId === id) resetForm();
       setError(null);
     } catch (caught) {
@@ -153,7 +155,10 @@ export function MaterialCatalogManager({
                     size="icon-sm"
                     variant="destructive"
                     aria-label={material.name + " malzemesini sil"}
-                    title="Sil"
+                    title={referencedMaterialIds.has(material.id)
+                      ? "Bu malzeme projede kullanılıyor; önce atamayı kaldır."
+                      : "Sil"}
+                    disabled={referencedMaterialIds.has(material.id)}
                     onClick={() => deleteMaterial(material.id)}
                   >
                     <Trash2 />
@@ -164,6 +169,9 @@ export function MaterialCatalogManager({
                 Kalınlıklar: {material.thicknessesMm.join(" · ")} mm
               </small>
               {material.decor && <small>Dekor: {material.decor}</small>}
+              {referencedMaterialIds.has(material.id) && (
+                <small role="status">Projede bir mobilya tarafından kullanılıyor.</small>
+              )}
             </article>
           ))}
         </div>

@@ -54,6 +54,7 @@ export function calculateCabinetParts(
         ? { top: false, bottom: false, left: false, right: false }
         : edgeBanding,
       material: furniture.material ?? "Belirtilmemiş",
+      ...(furniture.materialId ? { materialId: furniture.materialId } : {}),
       cncOperations: [],
       grainDirection: "none"
     });
