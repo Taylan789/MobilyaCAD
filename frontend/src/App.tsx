@@ -72,6 +72,7 @@ import { calculateCabinetParts } from "./engine/cabinetParts";
 import { calculateDrawerBoxParts } from "./engine/drawerBoxParts";
 import { isValidDrawerBoxProjectSpecs } from "./engine/drawerBoxProject";
 import { calculateEdgeBandingSummary } from "./engine/edgeBanding";
+import { calculateMaterialConsumptionSummary } from "./engine/materialConsumption";
 import { createCutListCsv } from "./engine/cutListCsv";
 import { getCabinetCutListExportBlockReason, resolveCabinetConstructionRules } from "./engine/cabinetRules";
 import type { CabinetConstructionRules } from "./types/construction/cabinetRules";
@@ -188,6 +189,7 @@ function App() {
   const productionParts = [...cabinetProductionParts, ...drawerProductionParts];
 
   const edgeBandingSummary = calculateEdgeBandingSummary(productionParts);
+  const materialConsumptionSummary = calculateMaterialConsumptionSummary(productionParts);
 
   function addFurniture(catalogId: string) {
     const item = furnitureCatalog.find(
@@ -1401,6 +1403,38 @@ function App() {
                               <span>Uzunluk yönündeki kenarlar</span>
                               <strong>{edgeBandingSummary.lengthEdgesLength.toLocaleString("tr-TR", { maximumFractionDigits: 1 })} mm</strong>
                             </div>
+
+                            <div className="cad-section-heading">
+                              <span>MALZEME TÜKETİMİ</span>
+                              <Package />
+                            </div>
+                            {materialConsumptionSummary.length > 0 ? (
+                              materialConsumptionSummary.map((summary) => (
+                                <div
+                                  key={summary.material + "-" + summary.thickness}
+                                  className="cad-production-card"
+                                >
+                                  <strong>{summary.material} · {summary.thickness} mm</strong>
+                                  <span>{summary.partLineCount} parça çeşidi · {summary.totalQuantity} adet</span>
+                                  <small>
+                                    Net panel alanı: {summary.panelAreaM2.toLocaleString("tr-TR", { maximumFractionDigits: 6 })} m²
+                                  </small>
+                                  <small>
+                                    Net hacim: {summary.volumeM3.toLocaleString("tr-TR", { maximumFractionDigits: 9 })} m³
+                                  </small>
+                                  <small>
+                                    Kenar bantlama: {summary.edgeBanding.totalLength.toLocaleString("tr-TR", { maximumFractionDigits: 1 })} mm · {summary.edgeBanding.edgeCount} kenar
+                                  </small>
+                                </div>
+                              ))
+                            ) : (
+                              <p className="cad-field-note">
+                                Malzeme tüketimi için hesaplanan parça bulunmuyor.
+                              </p>
+                            )}
+                            <p className="cad-field-note">
+                              Net panel alanı ve hacim fire, kesim payı, levha verimi veya rulo payı içermez.
+                            </p>
                             {productionExportBlockReason && (
                               <p className="text-xs text-muted-foreground" role="status">
                                 {productionExportBlockReason}
