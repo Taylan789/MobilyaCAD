@@ -21,7 +21,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 | Kesim listesi | Projedeki desteklenen düz mutfak gövdeleri ve tam tanımlı çekmece parçaları için tek Türkçe Excel uyumlu CSV; her satır kaynak mobilya adına bağlı | Köşe/cihaz/evye konstrüksiyonları, diğer aileler, nesting ve CNC çıktısı yok |
 | Kenar bantlama / malzeme tüketimi | Projedeki desteklenen modüllerin birleşik parçalarından malzeme + kalınlık bazında adet, net alan/hacim ve kenar bantlama toplamı | Yalnızca desteklenen düz gövdeler; fire, levha verimi, kesim payı ve rulo payı yok |
 | Proje dosyası | Yerel JSON v1 indirme/yükleme; saf serializer/parser; round-trip ve eski v1 uyumluluk testleri; mm birim doğrulaması | Şema migrasyonu, otomatik kayıt ve kurtarma yok |
-| Test/CI | GitHub Actions CI #55 ve QA #30; 66/66 test geçti, build/lint ve Pages deploy #36 başarılı | Fiziksel üretim doğrulaması otomatik testle yapılamaz; lint'te 15 mevcut uyarı ve audit'te 6 düşük/orta bulgu sürüyor |
+| Test/CI | GitHub Actions CI #59 ve QA #34; 71/71 test, TypeScript/build/lint ve production audit eşiği başarılı; Pages deploy #40 ortam kuyruğunda (önceki #39 başarılı) | Fiziksel üretim doğrulaması otomatik testle yapılamaz; lint'te 15 mevcut uyarı, audit'te 6 düşük/orta bulgu ve bundle boyutu uyarısı sürüyor |
 
 ### Bilinen mimari ve veri boşlukları
 
@@ -171,9 +171,13 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 - Üretim hesabı seçili tek mobilyadan proje geneline taşındı; her desteklenen yerleştirilmiş modül kendi kimliğiyle hesaplanır ve parçalar tek listede birleştirilir.
 - İlk desteklenen profil düz mutfak gövdeleridir: temel/üst dolap, çekmeceli alt dolap ve kiler. Köşe, fırın, ankastre buzdolabı ve evye varyasyonları özel geometri olmadan kesim listesine alınmaz; diğer mobilya aileleri açıkça kapsam dışı gösterilir.
 - Çekmeceli modülün tüm kutu ölçüleri/adetleri tanımlı değilse proje CSV'si kilitlenir. Sıfır çekmece adedinde kalmış çekmece konfigürasyonu da reddedilir.
-- CSV satırları her parçanın `furnitureId` eşlemesinden mobilya adını alır; eksik eşleme ve yinelenen mobilya/parça kimliği dışa aktarımı engeller.
+- Proje CSV'si her satırda mobilya adı ve `Mobilya ID` kolonunu birlikte taşır; aynı katalog adından birden fazla yerleştirme ayırt edilir. Eksik eşleme ve yinelenen mobilya/parça kimliği dışa aktarımı engeller.
 - Proje genelindeki malzeme/kalınlık alan-hacim ve kenar bantlama özetleri aynı birleştirilmiş `Part[]` kaynağından beslenir.
 - Özel köşe/cihaz/evye boşlukları, gardırop/kitaplık konstrüksiyonları, fire, levha verimi, nesting, CNC ve fiziksel üretim onayı bu dilimin dışındadır.
+- Kod commit'i: `dba2d26b7fab5f71f1886fb7591bc173eb5f5642`; kalınlık gruplama test düzeltmesi: `1f212721750960bf0731918cc5a37ca020a33c6f`; proje CSV mobilya kimliği kolonu: `73df9f354731b2a98b1b07fee49d33b609f36cf3`.
+- Otomatik doğrulama: CI #59 başarılı; QA #34 başarılı (71/71 test); TypeScript, production build, lint ve production audit eşiği başarılı. Pages deploy #40 ortam kuyruğunda; önceki deploy #39 başarılı.
+- QA #32'deki tek başarısızlık test beklentisinin malzeme adını kalınlıktan bağımsız tek grup saymasından kaynaklandı. Mevcut tüketim motoru malzeme + kalınlığı ayrı tuttuğu için test beklentisi düzeltildi; hesaplama davranışı gevşetilmedi.
+- Kalite notları: Oxlint 15 uyarı / 0 hata; npm audit 6 bulgu (2 düşük, 4 orta); `--audit-level=high` eşiği geçti. Bundle boyutu uyarısı mevcut.
 
 ## Sıradaki 5 küçük görev
 

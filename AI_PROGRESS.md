@@ -146,3 +146,21 @@
 - Önceki başarısız run logları incelendi: CI #45, kullanılmayan `DimensionKey` tipi nedeniyle TypeScript build hatası; QA #20, çekmece proje testindeki yinelenen grup kimliği fixture'ı nedeniyle 44 testten 1 başarısız. Bu hatalar sonraki mevcut commit'lerde düzeltilmiş. Son AI Developer run #43559164561 başarılı; bu çalışmanın başlangıcında aktif AI Developer/QA run yoktu.
 - Bilinen sınırlar: JSON v1 ve yerel dosya akışı; autosave/kurtarma, migration ve yeni format sürümü yok. Fiziksel üretim/CNC doğrulaması kapsam dışıdır.
 - Sonraki görev: proje genelinde çoklu mobilya kesim listesi ve malzeme/kenar bantlama toplamları; yalnızca tam ve desteklenen parça ağaçlarını quantity ile birleştir.
+
+
+## 15 Kasım 2026 — proje genelinde kesim listesi ve malzeme/bantlama toplamı
+
+- Başlangıç HEAD: 087dbc2bbe4ffc2766e7ae346ec889531f7fa105.
+- Ana özellik commit'i: dba2d26b7fab5f71f1886fb7591bc173eb5f5642.
+- Kalınlık gruplama test düzeltmesi: 1f212721750960bf0731918cc5a37ca020a33c6f.
+- Proje CSV'sinde mobilya kimliği kolonunu ekleyen commit: 73df9f354731b2a98b1b07fee49d33b609f36cf3.
+- Değişen dosyalar: frontend/src/engine/projectProduction.ts (yeni), frontend/tests/projectProduction.test.mjs (yeni), frontend/src/engine/cutListCsv.ts, frontend/src/App.tsx, PRODUCT_ROADMAP.md.
+- Üretim paneli seçili modül yerine proje genelindeki desteklenen düz mutfak gövdelerini hesaplar. Temel/üst dolap, çekmeceli alt dolap ve kiler profilleri desteklenir; köşe, fırın, ankastre buzdolabı, evye ve mutfak dışı aileler özel konstrüksiyon hesapları gelene kadar açıkça kapsam dışı bırakılır.
+- Her yerleştirilmiş mobilya bağımsız hesaplanır; furnitureId ve parça kimlikleri doğrulanır. Malzeme/kalınlık, net alan/hacim ve kenar bantlama özetleri birleşik Part[] listesinden üretilir.
+- Proje CSV'sinde Mobilya ve Mobilya ID kolonları birlikte bulunur; aynı isimli iki mobilya ayrı izlenebilir. Eksik kimlik/ad eşlemesi dışa aktarımı reddeder.
+- Eksik çekmece kutusu ölçüleri, adet uyuşmazlığı, sıfır çekmece adedinde kalmış çekmece konfigürasyonu, geçersiz geometri ve yinelenen kimliklerde proje CSV'si engellenir. Desteklenmeyen aileler sessizce kesim listesine eklenmez.
+- Testler: 5 yeni otomatik test; toplam 71/71 başarılı. Kapsam: çoklu modül birleşimi, farklı malzeme/kalınlık grupları, tam tanımlı çekmece, desteklenmeyen özel aileler, eksik çekmece konfigürasyonu, geçersiz geometri, yinelenen kimlik ve CSV mobilya adı/ID eşlemesi.
+- GitHub Actions: CI #57 başarılı; ilk QA #32 test beklentisindeki kalınlık gruplama varsayımı nedeniyle başarısız oldu. Test beklentisi düzeltildi; CI #58 / QA #33 (71/71) / Pages deploy #39 başarılı. CSV kimlik kolonu sonrasında CI #59 ve QA #34 (71/71) başarılı; Pages deploy #40 ortam kuyruğunda.
+- Kalite: Oxlint 15 uyarı / 0 hata; TypeScript ve production build başarılı; production audit eşiği geçti ancak 6 bulgu (2 düşük, 4 orta) sürüyor. Bundle boyutu uyarısı devam ediyor.
+- Bilinen kısıtlar: yalnızca belirtilen düz mutfak profilleri; köşe/cihaz/evye boşlukları, diğer aileler, fire, levha verimi, kesim payı, nesting, CNC ve fiziksel üretim doğrulaması dahil değil. Panel/arkalık kuralları hâlâ uygulama düzeyindeki ortak başlangıç kurallarından geliyor.
+- Sonraki görev: kullanıcı tanımlı malzeme/dekor kataloğu için kararlı kimlik, kalınlık ve birim doğrulama modeli.
