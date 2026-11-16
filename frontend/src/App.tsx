@@ -78,6 +78,7 @@ import { calculateProjectProduction, isSupportedCabinetCatalogItem } from "./eng
 import type { CabinetConstructionRules } from "./types/construction/cabinetRules";
 
 function App() {
+  const [workspaceOpen, setWorkspaceOpen] = useState(false);
   const [roomWidth, setRoomWidth] = useState(4000);
   const [roomLength, setRoomLength] = useState(5000);
   const [roomHeight, setRoomHeight] = useState(2800);
@@ -607,6 +608,47 @@ function App() {
 
   return (
     <TooltipProvider>
+      {!workspaceOpen ? (
+        <div className="atelier-home">
+          <header className="atelier-homebar">
+            <div className="atelier-wordmark"><span className="atelier-mark">M</span><span>mobilya<span>cad</span></span><small>STUDIO</small></div>
+            <nav className="atelier-home-nav"><span className="active">Çalışma Alanı</span><span>Şablonlar</span><span>Öğren</span></nav>
+            <div className="atelier-profile"><span>TB</span><div><b>Tasarımcı</b><small>Kişisel çalışma alanı</small></div></div>
+          </header>
+          <main className="atelier-home-main">
+            <section className="atelier-welcome">
+              <div className="atelier-welcome-copy">
+                <span className="atelier-eyebrow">MOBİLYA TASARIM STÜDYOSU / 01</span>
+                <h1>Fikrini çiz.<br/><em>Üretime dönüştür.</em></h1>
+                <p>Mobilya, bileşen ve üretim projelerini tek bir tasarım alanında oluştur. İstediğin ölçekte başla, detayları sen belirle.</p>
+                <div className="atelier-welcome-actions">
+                  <Button className="atelier-primary-action" onClick={() => setWorkspaceOpen(true)}><Plus /> Yeni tasarım başlat <span>↗</span></Button>
+                  <label className="atelier-open-action" htmlFor="atelier-open-project">Proje dosyası aç <span>↗</span></label>
+                  <input id="atelier-open-project" type="file" accept=".json,application/json" hidden onChange={(event) => { void loadProject(event).then(() => setWorkspaceOpen(true)); }} />
+                </div>
+              </div>
+              <div className="atelier-feature-art" aria-label="Parametrik mobilya tasarım illüstrasyonu">
+                <div className="atelier-art-grid"></div><div className="atelier-art-index">FIG. 001 — MODULAR SYSTEM</div>
+                <div className="atelier-art-cube"><div className="atelier-cube-top"></div><div className="atelier-cube-front"></div><div className="atelier-cube-side"></div><span className="atelier-dim atelier-dim-x">1200</span><span className="atelier-dim atelier-dim-y">740</span><span className="atelier-dim atelier-dim-z">18</span></div>
+                <div className="atelier-art-caption"><b>01 / PARAMETRİK MODÜL</b><span>ÖLÇÜ · MALZEME · MONTAJ</span></div>
+              </div>
+            </section>
+            <section className="atelier-section atelier-start-section">
+              <div className="atelier-section-heading"><div><span className="atelier-eyebrow">BAŞLANGIÇ NOKTASI</span><h2>Ne tasarlıyoruz?</h2></div><span className="atelier-section-note">Bir çalışma türü seçerek başla</span></div>
+              <div className="atelier-start-grid">
+                <button className="atelier-start-card atelier-start-card-wide" onClick={() => setWorkspaceOpen(true)}><span className="atelier-card-number">01</span><div className="atelier-card-visual atelier-visual-furniture"><div className="mini-cabinet"><i></i><i></i><i></i></div></div><div className="atelier-card-copy"><b>Mobilya tasarımı</b><span>Dolap, masa, kitaplık ve özel ürünler</span></div><span className="atelier-card-arrow">↗</span></button>
+                <button className="atelier-start-card" onClick={() => setWorkspaceOpen(true)}><span className="atelier-card-number">02</span><div className="atelier-card-visual atelier-visual-parts"><div className="mini-panels"><i></i><i></i><i></i></div></div><div className="atelier-card-copy"><b>Parça modelleme</b><span>Panel, profil ve bileşenler</span></div><span className="atelier-card-arrow">↗</span></button>
+                <button className="atelier-start-card" onClick={() => setWorkspaceOpen(true)}><span className="atelier-card-number">03</span><div className="atelier-card-visual atelier-visual-production"><div className="mini-cut"><i></i><i></i><i></i><i></i></div></div><div className="atelier-card-copy"><b>Üretim hazırlığı</b><span>Kesim, malzeme ve imalat</span></div><span className="atelier-card-arrow">↗</span></button>
+              </div>
+            </section>
+            <section className="atelier-bottom-row">
+              <div className="atelier-recent"><div className="atelier-section-heading"><div><span className="atelier-eyebrow">ÇALIŞMALARIN</span><h2>Son projeler</h2></div><button onClick={() => setWorkspaceOpen(true)}>Tüm projeler ↗</button></div><button className="atelier-empty-project" onClick={() => setWorkspaceOpen(true)}><span className="atelier-empty-plus">＋</span><span><b>İlk projen burada başlayacak</b><small>Yeni bir tasarım alanı oluştur ve çalışmaya başla.</small></span><span className="atelier-empty-arrow">→</span></button></div>
+              <aside className="atelier-tip"><span className="atelier-eyebrow">STÜDYO NOTU / 01</span><b>Önce geometri.<br/>Sonra üretim.</b><p>MobilyaCAD'de tasarladığın her parça, üretim verisinin bir parçası olarak yaşar.</p><span className="atelier-tip-mark">M / CAD</span></aside>
+            </section>
+          </main>
+          <footer className="atelier-home-footer"><span>MOBİLYACAD STUDIO <b>·</b> TASARIM VE ÜRETİM ORTAMI</span><span>PARAMETRİK DÜŞÜN. ÖZGÜRCE TASARLA.</span></footer>
+        </div>
+      ) : (
       <div className="cad-app">
         <header className="cad-topbar">
           <div className="cad-brand">
@@ -1521,6 +1563,7 @@ function App() {
           <div className="cad-status-right">BİRİM: mm</div>
         </footer>
       </div>
+      )}
     </TooltipProvider>
   );
 }
