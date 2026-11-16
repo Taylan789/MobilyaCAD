@@ -503,3 +503,16 @@
 - Sınırlar: hiçbir `frontend/**` dosyası değiştirilmedi. Frontend JSON v1/CSV adapter'ı henüz bu raporu kullanmıyor; UI sahibi ready/blocked/unsupported/empty durumlarını ve güvenli export kapısını bağlamalı. CNC, ray/donanım, delik, nesting, fire, fiyat veya fiziksel üretim güvenliği onayı üretilmedi.
 - AI Developer workflow'u `.github/workflows/ai-developer.yml` yalnızca `workflow_dispatch` ile çalışır; branch run listesinde bu workflow'a ait run bulunmadı. Dispatch işlemi desteklenmediği için yeni run başlatılmadı.
 - Sonraki görev: frontend sahibinin `drawerBoxSpecs` → `drawerBoxes` adapter'ını ve tanılama raporuna bağlı güvenli export kapısını kendi dalında tamamlaması; domain tarafında ardından açık ölçülü gardırop/TV ünitesi ailesini ve karışık aile malzeme toplamlarını test etmek.
+
+
+## 16 Kasım 2026 — parametrik gardırop dikey bölücüleri
+
+- Başlangıç HEAD: 1b511d78006aa1281b56bcf993908b3aa1cecd52 (dev/github-work).
+- Kod commit SHA: sonraki doğrulama güncellemesinde GitHub commit SHA ile tamamlanacak.
+- Değişen dosyalar: domain/production/wardrobeConstruction.ts; domain/production/wardrobeConstruction.test.mjs; domain/production/projectProduction.ts; .github/workflows/qa-test.yml; docs/production-domain-contract.md; PRODUCT_ROADMAP.md; AI_PROGRESS.md.
+- Wardrobe motoru mevcut cabinet gövde motorunu kullanır; her dikey bölücü için açık ofset, kalınlık, katalog materialId, kenar bantlama ve damar yönü ister. Bölücüler tam iç yükseklik/derinlikte panel satırlarıdır.
+- Kabul kriterleri: wardrobe aile yönlendirmesi; 0.1 mm konum; iç genişlik sınırı ve çakışma kontrolü; katalog kalınlığı; geçersiz durumda blocked/result=null; ortak Part listesi üzerinden malzeme özeti.
+- Önceki HEAD 1b511d78006aa1281b56bcf993908b3aa1cecd52 üzerinde CI #221 (43910880848), QA #146 (43910880946) ve Pages #118 (43910880859) başarılı. Önceki QA regresyon 43910481483 logu incelendi; tek hata test regex'i ile gerçek Türkçe hata mesajı uyuşmazlığıydı, test 4821fc89ac38e62c5ae10cd37e9284c3c29752d4 ile düzeltildi; güncel QA #146 yeşil.
+- AI Developer workflow yalnızca workflow_dispatch; son 100 branch run'ında yok, dispatch aracı bulunmadığından yeni run başlatılmadı.
+- Bilinen sınırlar: bölme bazlı raf, askı borusu, çekmece yerleşimi, bağlantı/delik, CNC, nesting, fire ve fiyat yok. Frontend JSON v1/CSV entegrasyonu ayrı frontend sahibinin kapsamındadır; frontend/** değiştirilmedi.
+- Sonraki görev: bölücüleri açık ölçülü bölme raflarıyla ilişkilendiren domain sözleşmesi ve testleri tasarlamak.

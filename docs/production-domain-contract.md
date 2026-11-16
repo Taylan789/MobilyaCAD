@@ -196,3 +196,18 @@ Kaynak: `domain/production/tableConstruction.ts`
 5. Frontend sahibi domain agregatörünü JSON v1/CSV adapter'ına bağlarken masa sonuçlarını aynı Part listesinden kullanmalı; bu domain dalı `frontend/**` dosyalarını değiştirmez.
 
 Bu sıra masa motorunun mevcut durumunu supersede eder; motor tek başına üretim koordinatı, bağlantı standardı veya CNC çıktısı sağlamaz.
+
+
+## 2.8 Açık parametreli gardırop gövdesi ve dikey bölücüler
+
+Kaynak: domain/production/wardrobeConstruction.ts ve domain/production/projectProduction.ts.
+
+Çağrı: calculateWardrobeConstruction({ schemaVersion: 1, family: "wardrobe", furniture, profile, materials, verticalDividers }).
+
+- Gardırop dış ölçüleri, gövde stili, panel kalınlıkları, arkalık, raf ve kapak ayarları mevcut cabinet gövde motorunun açık parametreli sözleşmesini kullanır; legacy dolap hesapları değişmez.
+- verticalDividers alanı zorunludur. Boş liste, dikey bölücü olmadığını açıkça belirtir. Her bölücü için benzersiz kimlik, iç sol panel yüzünden sol yüzüne kadar mm ofset, pozitif kalınlık, katalog malzeme kimliği, dört kenar bandı bayrağı ve damar yönü açıkça sağlanır.
+- Bölücüler mevcut gövdenin hesaplanmış iç yüksekliği ve iç derinliği boyunca tam panel olarak üretilir. Konumlar 0.1 mm hassasiyetinde doğrulanır; birbirleriyle çakışamaz ve iç genişlik sınırını aşamaz. Katalogda bulunmayan malzeme veya eşleşmeyen kalınlık reddedilir.
+- Bölücü varken tam genişlik rafları reddedilir; bölme bazlı raf geometrisi ve konumları henüz modellenmemiştir. Bu kural, birbirinin içinden geçen raf/bölücü parçalarını üretim listesine sokmamak için bilinçli bir güvenlik sınırıdır.
+- Proje agregatörü wardrobe ailesini destekler; sonuç cabinet/bookshelf ile aynı innerDimensionsMm alanını ve ortak Part listesini kullanır. Malzeme tüketim özeti bölücü satırlarını aynı quantity/alan/hacim/kenar bantlama hesabına dahil eder.
+- Bu dilim askı borusu, çekmece yerleşimi, kısmi bölücü, raf bölümlendirmesi, menteşe/delik, bağlantı elemanı, nesting, CNC veya montaj güvenliği hesaplamaz. Fiziksel üretimden önce atölye doğrulaması gerekir.
+- Frontend JSON v1/CSV adapter'ı bu domain motoruna henüz bağlı değildir; frontend sahibi family=wardrobe için explicit verticalDividers girdisini ve ready/blocked tanı durumunu ayrı entegrasyon diliminde bağlamalıdır. Bu otomasyon frontend/** dosyalarını değiştirmez.

@@ -1,6 +1,7 @@
 import { calculateCabinetConstruction } from "./cabinetConstruction.ts";
 import { calculateBookshelfConstruction } from "./bookshelfConstruction.ts";
 import { calculateTableConstruction } from "./tableConstruction.ts";
+import { calculateWardrobeConstruction } from "./wardrobeConstruction.ts";
 import type {
   CabinetConstructionPart,
   CabinetInnerDimensionsMm
@@ -8,6 +9,7 @@ import type {
 import { calculateDrawerBoxConstruction } from "./drawerBoxConstruction.ts";
 import type { DrawerBoxConstructionPart } from "./drawerBoxConstruction.ts";
 import type { TableConstructionPart, TableConstructionResult } from "./tableConstruction.ts";
+import type { WardrobeConstructionPart } from "./wardrobeConstruction.ts";
 
 export interface CabinetProjectProductionRequest {
   schemaVersion: 1;
@@ -20,7 +22,7 @@ export type CabinetProjectFurnitureResult =
   | {
       furnitureId: string;
       /** Present for explicit cabinet/bookshelf requests; legacy cabinet results omit it. */
-      family?: "cabinet" | "bookshelf";
+      family?: "cabinet" | "bookshelf" | "wardrobe";
       innerDimensionsMm: CabinetInnerDimensionsMm;
     }
   | {
@@ -36,7 +38,7 @@ export interface DrawerGroupProductionResult {
   bottomLengthMm: number;
 }
 
-export type ProjectProductionPart = CabinetConstructionPart | DrawerBoxConstructionPart | TableConstructionPart;
+export type ProjectProductionPart = CabinetConstructionPart | DrawerBoxConstructionPart | TableConstructionPart | WardrobeConstructionPart;
 
 export interface CabinetProjectProductionResult {
   schemaVersion: 1;
@@ -47,7 +49,7 @@ export interface CabinetProjectProductionResult {
 }
 
 
-export type SupportedProjectFurnitureFamily = "cabinet" | "bookshelf" | "table";
+export type SupportedProjectFurnitureFamily = "cabinet" | "bookshelf" | "table" | "wardrobe";
 
 export interface ProjectProductionFurnitureDiagnostic {
   furnitureId: string | null;
@@ -90,13 +92,14 @@ function readFurnitureId(value: unknown, index: number): string {
   return id;
 }
 
-function readFurnitureFamily(value: unknown, index: number): "cabinet" | "bookshelf" | "table" {
+function readFurnitureFamily(value: unknown, index: number): SupportedProjectFurnitureFamily {
   if (!isRecord(value)) {
     throw new Error("Projenin " + (index + 1) + ". mobilya ailesi okunamadı.");
   }
   if (value.family === undefined || value.family === "cabinet") return "cabinet";
   if (value.family === "bookshelf") return "bookshelf";
   if (value.family === "table") return "table";
+  if (value.family === "wardrobe") return "wardrobe";
   throw new Error("Projenin " + (index + 1) + ". mobilya ailesi desteklenmiyor: " + String(value.family) + ".");
 }
 
@@ -124,7 +127,9 @@ function calculateFurnitureRequest(
 
   const result = family === "bookshelf"
     ? calculateBookshelfConstruction(request)
-    : calculateCabinetConstruction(request);
+    : family === "wardrobe"
+      ? calculateWardrobeConstruction(request)
+      : calculateCabinetConstruction(request);
   const hasExplicitFamily = isRecord(request) && request.family !== undefined;
 
   return {
@@ -379,7 +384,7 @@ function readDrawerGroupId(value: unknown, index: number): string {
 }
 
 /**
- * Calculates and combines explicit cabinet, bookshelf, table and optional drawer-box requests.
+ * Calculates and combines explicit cabinet, bookshelf, table, wardrobe and optional drawer-box requests.
  *
  * Each cabinet is calculated independently using its own profile and material
  * catalogue. Drawer groups must reference one of those furniture IDs. The

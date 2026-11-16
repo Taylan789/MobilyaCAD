@@ -462,3 +462,17 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 3. Domain tarafında açık ölçülü gardırop veya TV ünitesi ailesi için sürüm 1 konstrüksiyon motoru ve regresyon testleri eklemek.
 4. Yeni aileyi proje agregatörü ve malzeme tüketimiyle birleştirerek mixed-family quantity/material özetini doğrulamak.
 5. Frontend JSON/CSV adapter'ı domain Part listesini kullandığında export satırlarının hesapla birebir eşleşmesini otomatik test etmek.
+
+
+## 16 Kasım 2026 — gardırop gövdesi ve dikey bölücü domain dilimi
+
+- Yeni domain/production/wardrobeConstruction.ts motoru, wardrobe ailesi için mevcut doğrulanmış gövde konstrüksiyonunu yeniden kullanır; legacy cabinet ve bookshelf formüllerini kopyalamaz.
+- Her gardırop bölücüsü açık kimlik, iç sol yüzeyden ofset (mm), kalınlık, katalog materialId, dört kenar bandı bayrağı ve damar yönü ister. Bölücüler tam iç yükseklik ve derinlikte panel satırlarıdır.
+- Çakışan, sınırı aşan, yinelenen kimlikli veya katalog kalınlığı uyuşmayan bölücüler reddedilir. Bölücü varken tam genişlik rafı reddedilir; bölme bazlı raflar henüz desteklenmez.
+- Proje agregatörü wardrobe ailesini ready/blocked tanı akışına ve ortak Part listesine ekler. Proje malzeme özeti bölücü adet/alan/hacim/bantlama tüketimini aynı Part listesi üzerinden hesaplar.
+- Değişen dosyalar: domain/production/wardrobeConstruction.ts, domain/production/wardrobeConstruction.test.mjs, domain/production/projectProduction.ts, .github/workflows/qa-test.yml, docs/production-domain-contract.md, PRODUCT_ROADMAP.md, AI_PROGRESS.md.
+- Kabul kriterleri: cabinet/bookshelf/table sonuç şekilleri korunur; wardrobe iç ölçüsü, stabil divider ID, mm konumu, malzeme kalınlığı, grainDirection ve edgeBanding doğrulanır; karışık proje raporu ready olur; geçersiz bölücüde result null ve export kapalı kalır.
+- Kod commit SHA: sonraki doğrulama güncellemesinde GitHub commit SHA ile tamamlanacak.
+- Otomatik kontroller: bu commit için CI, QA ve Pages Actions sonuçları henüz oluşmadı.
+- Bilinen sınırlar: bölücüler tam iç yükseklik/derinliktedir; bölmeli raflar, askı borusu, çekmece yerleşimi, bağlantı, delik, CNC, nesting, fire ve fiyat hesabı yoktur. Frontend JSON v1/CSV entegrasyonu ayrı frontend sahibinin kapsamındadır; hiçbir frontend/** dosyası değiştirilmedi.
+- Sonraki görevler: bölme bazlı raf sözleşmesi; karışık aile malzeme/kalınlık sınır testleri; frontend wardrobe JSON/CSV kabul kriterleri; kullanıcı girdili TV ünitesi domain motoru; doğrulanmış üretici standartları olmadan CNC/nesting/teklif yok.
