@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { BODY_PANEL_GROUPS } from "./bodyPanelMaterials.ts";
 import { calculateCabinetProjectProduction } from "./projectProduction.ts";
+import { BOOKSHELF_PANEL_GROUPS } from "./bookshelfConstruction.ts";
 import { calculateProjectMaterialConsumptionSummary } from "./projectMaterialSummary.ts";
 
 const materials = [
@@ -264,5 +265,76 @@ test("drawerBoxes listesi olmayan veya geçersiz bir değerle verilirse reddedil
       drawerBoxes: {}
     }),
     /çekmece kutusu konstrüksiyon istekleri bir liste olmalıdır/
+  );
+});
+
+
+function createBookshelfRequest(id) {
+  const edgeBandingByGroup = Object.fromEntries(
+    BOOKSHELF_PANEL_GROUPS.map((group) => [group, { ...noBanding }])
+  );
+
+  return {
+    schemaVersion: 1,
+    family: "bookshelf",
+    furniture: {
+      id,
+      widthMm: 800,
+      heightMm: 2000,
+      depthMm: 300,
+      material: "MDF Lam 18",
+      materialId: "mdf-18"
+    },
+    profile: {
+      panelThicknessMm: 18,
+      carcassStyle: "between-sides",
+      backPanel: { enabled: false },
+      shelfCount: 3,
+      edgeBandingByGroup
+    },
+    materials
+  };
+}
+
+test("aile ayrımlı proje agregatörü kitaplık parçalarını ortak tüketim listesine ekler", () => {
+  const result = calculateCabinetProjectProduction({
+    schemaVersion: 1,
+    furniture: [createRequest("cab-1"), createBookshelfRequest("book-1")]
+  });
+
+  assert.deepEqual(result.furniture[1], {
+    furnitureId: "book-1",
+    family: "bookshelf",
+    innerDimensionsMm: { width: 764, height: 2000, depth: 282 }
+  });
+
+  const bookshelfParts = result.parts.filter((part) => part.furnitureId === "book-1");
+  assert.deepEqual(bookshelfParts.map((part) => part.id), [
+    "book-1-left-side",
+    "book-1-right-side",
+    "book-1-top",
+    "book-1-bottom",
+    "book-1-shelf"
+  ]);
+  assert.equal(bookshelfParts.find((part) => part.id === "book-1-shelf")?.quantity, 3);
+  assert.equal(result.parts.some((part) => part.id === "book-1-door"), false);
+
+  const materialSummary = calculateProjectMaterialConsumptionSummary(result);
+  const mdf = materialSummary.find((entry) => entry.materialId === "mdf-18");
+  assert.ok(mdf);
+  assert.equal(mdf.totalQuantity, 11);
+  assert.equal(mdf.partLineCount, 9);
+});
+
+test("proje agregatörü bilinmeyen mobilya ailesini cabinet olarak varsaymaz", () => {
+  const invalid = createBookshelfRequest("book-invalid");
+  invalid.family = "table";
+
+  assert.throws(
+    () => calculateCabinetProjectProduction({
+      schemaVersion: 1,
+      furniture: [invalid]
+    }),
+    /mobilya ailesi desteklenmiyor/
   );
 });

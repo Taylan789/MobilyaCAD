@@ -16,8 +16,8 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 | Oda ve 3D sahne | Ölçülü oda ve perspektif sahne | Tam 2D teknik çizim, kesit ve görünüş araçları yok |
 | Yerleşim | Katalogdan ekleme, seçme, taşıma, döndürme ve boyutlandırma; SAT tabanlı yatay ayak izi çakışma ve oda sınırı uyarıları 3D sahnede gösterilir | Gelişmiş snap, çoklu seçim, duvar montajı/kapak açılımı boşlukları ve tam undo/redo akışı doğrulanmış değil |
 | Katalog | Mutfak, gardırop, banyo, masa, kitaplık ve diğer ailelerden 100 varyasyon | Şablonlar tam parametrik konstrüksiyon aileleri değil |
-| Parçalar | Görsel kapak/çekmece/raf parçaları; açık ölçülü çekmece kutusu motoru; frontend dışı proje agregatörü artık gövde ve isteğe bağlı çekmece kutusu isteklerini tek parça listesinde birleştirir | Domain sonucu henüz frontend JSON/CSV adapter'ına bağlı değil; diğer mobilya aileleri için tam üretim parça ağacı yok; ray, donanım ve CNC operasyonları dahil değil |
-| Hesap motoru | `cabinetConstruction` gövde motoru, `drawerBoxConstruction` çekmece motoru ve her ikisini birleştiren sürüm 1 proje agregatörü; ortak Part alanları, çekmece `drawerGroupId` ve `grainDirection` bilgisi korunur | Frontend adapter henüz domain agregatörünü çağırmıyor; diğer aileler ve üreticiye özel konstrüksiyonlar eksik |
+| Parçalar | Görsel kapak/çekmece/raf parçaları; domain düz gövde, çekmece kutusu ve açık kitaplık parçaları; aile ayrımlı proje agregatörü gövde/çekmece/kitaplık satırlarını tek listede birleştirir | Domain sonucu henüz frontend JSON/CSV adapter'ına bağlı değil; diğer mobilya aileleri, dikey bölücü ve grup bazlı değişken gövde kalınlıkları yok; ray, donanım ve CNC operasyonları dahil değil |
+| Hesap motoru | `cabinetConstruction`, `drawerBoxConstruction`, `bookshelfConstruction` ve aile ayrımlı sürüm 1 proje agregatörü; ortak Part alanları, çekmece `drawerGroupId` ve `grainDirection` bilgisi korunur | Frontend adapter henüz domain agregatörünü çağırmıyor; masa/TV ünitesi gibi aileler ve üreticiye özel konstrüksiyonlar eksik |
 | Kesim listesi | Projedeki desteklenen düz mutfak gövdeleri ve tam tanımlı çekmece parçaları için tek Türkçe Excel uyumlu CSV; her satır kaynak mobilya adı/ID'si ve varsa katalog Malzeme ID değeriyle izlenir | Köşe/cihaz/evye konstrüksiyonları, diğer aileler, nesting ve CNC çıktısı yok |
 | Kenar bantlama / malzeme tüketimi | Frontend'de desteklenen mutfak parçaları için mevcut özet; domain malzeme özeti artık gövde + çekmece birleşik Part listesindeki quantity ağırlıklı alan/hacim ve kenar bantlamayı hesaplayabilir | Domain özeti henüz UI/JSON/CSV'ye bağlı değil; diğer mobilya aileleri, fire, levha verimi, kerf, bant kalınlığı ve rulo payı yok |
 | Malzeme kataloğu | UI CRUD; mobilya varsayılan materialId ve çekmece grubunda varsayılan + dört panel grubu override; JSON v1 referans/kalınlık doğrulaması; referanslı kayıtların silinmesi engellenir; desteklenen parçalar ID + kalınlıkla tüketim ve CSV'ye taşınır | Gövde yan/üst/alt, raf, arkalık ve kapak için bağımsız parça override; fiyat, tedarikçi ve fire henüz yok |
@@ -46,7 +46,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 
 ### Aşama 1 — Parametrik gövde ve parça mühendisliği
 
-**Hedef:** mutfak, gardırop, banyo ve kitaplık ailelerinde kuralları açık olan gövde/raf/kapak/çekmece/arkalık parçaları.
+**Hedef:** mutfak, gardırop, banyo, kitaplık ve sonraki mobilya ailelerinde kuralları açık olan gövde/raf/kapak/çekmece/arkalık parçaları. Düz gövde, çekmece kutusu ve açık kitaplık için frontend dışı domain motorları ile ortak proje agregatörü mevcut.
 
 - Kabul kriterleri: her aile için ölçü tablosu ve parça adedi testleri; panel kalınlığı, arkalık montajı, kapak boşluğu ve kenar bantlama açık parametreler; desteklenmeyen konfigürasyon hata/uyarı verir.
 - Bağımlılıklar: sürümlenebilir konstrüksiyon kuralı modeli.
@@ -252,11 +252,11 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 
 ## Sıradaki 5 küçük görev — domain sahipliği
 
-1. Frontend sahibi, mevcut `drawerBoxSpecs` kayıtlarını domain `drawerBoxes` isteklerine dönüştüren adapter'ı kendi frontend dalında uygulasın; JSON v1 geriye uyumluluğunu korusun.
-2. Domain proje isteğini aile-discriminated bir sözleşmeye evrilt; mevcut `furniture` + opsiyonel `drawerBoxes` biçimini geriye uyumlu tut.
-3. İlk kitaplık konstrüksiyon ailesini açık raf adedi, panel kalınlığı, arkalık montajı ve kenar bantlama girdileriyle ekle; donanım/CNC varsayma.
-4. Kitaplık parçalarının kimlik, malzeme, damar yönü ve quantity semantiğini ortak proje agregatörü ve malzeme özetinde doğrula.
-5. Frontend adapter tamamlandıktan sonra JSON/CSV çıktılarının aynı domain parça listesiyle uzlaşmasını otomatik test et; makine profili olmadan CNC üretme.
+1. Kitaplık için panel grubu bazlı kalınlık girdilerini ekle; her grubun gerçek katalog kalınlığını doğrula ve ortak kalınlık kullanan eski dolap/kitaplık isteklerini geriye uyumlu tut.
+2. İlk farklı konstrüksiyon ailesi olarak masa motorunu açık tabla, ayak ve varsa kayıt/apron ölçüleriyle tasarla; bağlantı standardı uydurma.
+3. Proje agregatörüne aile bazlı destek/engelleme tanılaması ekle; desteklenmeyen mobilyalar sessizce kesim listesine girmesin.
+4. Domain gövde/çekmece/kitaplık sonuçları için stabil aile ve kaynak kimliği sözleşmesini genişlet; eski proje sonuç alanlarını koru.
+5. Frontend sahibi domain agregatörünü JSON v1/CSV adapter'ına bağladıktan sonra aynı Part listesinin export ile birebir uzlaştığını otomatik test et.
 
 ## Üretim güvenliği ve karar sınırları
 
@@ -359,3 +359,15 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 - Proje malzeme tüketimi ve kenar bantlama özeti aynı birleşik parça listesini kullanır; testler mdf-16 için quantity, net alan ve bant uzunluğunu uçtan uca doğrular.
 - Değişen kod/test/dokümantasyon: `domain/production/projectProduction.ts`, `domain/production/projectProduction.test.mjs`, `docs/production-domain-contract.md`, `PRODUCT_ROADMAP.md`. Hiçbir `frontend/**` dosyası değiştirilmedi.
 - Otomatik doğrulama: CI run `43854675631` başarılı; QA run `43854675624` başarılı (**101/101 frontend + 56/56 domain testi**, 0 başarısız); Pages run `43854675588` build ve deploy ile başarılı. Strict domain TypeScript, lint, production build ve `npm audit --omit=dev --audit-level=high` adımları geçti.
+
+
+## 16 Kasım 2026 — aile ayrımlı proje agregatörü ve açık kitaplık konstrüksiyonu
+
+- family alanı olmayan mevcut dolap istekleri ve sonuçları geriye uyumlu kaldı; açık family: cabinet isteği de aynı dolap motorunu kullanır.
+- Yeni family: bookshelf isteği, açık altı panel grubu kenar bantlama ayarı, raf adedi, gövde stili, arkalık montajı ve malzeme kataloğu ile hesaplanır. Kapak alanı, kapak panel grubu ve kapak override'ı reddedilir.
+- Kitaplık geometri hesabı mevcut düz gövde motorunu tekrar kullanır; yeni ve farklı bir ölçü formülü kopyalanmadı. Raf adetleri tek Part satırında quantity olarak korunur.
+- Proje agregatörü kitaplık parçalarını gövde/çekmece satırlarıyla aynı parts listesine ekler; family bilgisi açık kitaplık girdilerinin mobilya sonucunda taşınır. Malzeme tüketim özeti aynı listeden hesaplanır.
+- Kabul kriterleri: eski dolap istek/sonuç şekli değişmez; bilinmeyen family reddedilir; kitaplıkta altı grup eksiksiz ve kapak grubu olmadan doğrulanır; malzeme override gerçek panel kalınlığıyla eşleşir; raf quantity ve kaynak kimliği korunur.
+- Değişen dosyalar: domain/production/bookshelfConstruction.ts, domain/production/bookshelfConstruction.test.mjs, domain/production/projectProduction.ts, domain/production/projectProduction.test.mjs, .github/workflows/qa-test.yml, docs/production-domain-contract.md, PRODUCT_ROADMAP.md, AI_PROGRESS.md.
+- İlk commit sonrası gerçek GitHub Actions doğrulaması kaydedilecek; bu aşamada test sonucu başarılı ilan edilmez.
+- Sınırlar: yalnızca açık kitaplık parça ağacı; dikey bölücü, farklı panel grubu kalınlıkları, raf aralığı, duvar sabitlemesi, donanım, delik, CNC, nesting, fire ve fiziksel üretim onayı yoktur.

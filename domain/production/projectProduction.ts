@@ -1,4 +1,5 @@
 import { calculateCabinetConstruction } from "./cabinetConstruction.ts";
+import { calculateBookshelfConstruction } from "./bookshelfConstruction.ts";
 import type {
   CabinetConstructionPart,
   CabinetInnerDimensionsMm
@@ -15,6 +16,8 @@ export interface CabinetProjectProductionRequest {
 
 export interface CabinetProjectFurnitureResult {
   furnitureId: string;
+  /** Present for explicit family-discriminated requests; legacy cabinet results omit it. */
+  family?: "cabinet" | "bookshelf";
   innerDimensionsMm: CabinetInnerDimensionsMm;
 }
 
@@ -49,6 +52,15 @@ function readFurnitureId(value: unknown, index: number): string {
     throw new Error(`Projenin ${index + 1}. mobilya kimliği geçersiz.`);
   }
   return id;
+}
+
+function readFurnitureFamily(value: unknown, index: number): "cabinet" | "bookshelf" {
+  if (!isRecord(value)) {
+    throw new Error("Projenin " + (index + 1) + ". mobilya ailesi okunamadı.");
+  }
+  if (value.family === undefined || value.family === "cabinet") return "cabinet";
+  if (value.family === "bookshelf") return "bookshelf";
+  throw new Error("Projenin " + (index + 1) + ". mobilya ailesi desteklenmiyor: " + String(value.family) + ".");
 }
 
 function readDrawerGroupId(value: unknown, index: number): string {
@@ -103,7 +115,10 @@ export function calculateCabinetProjectProduction(
     }
     seenFurnitureIds.add(furnitureId);
 
-    const result = calculateCabinetConstruction(request);
+    const family = readFurnitureFamily(request, index);
+    const result = family === "bookshelf"
+      ? calculateBookshelfConstruction(request)
+      : calculateCabinetConstruction(request);
     for (const part of result.parts) {
       if (part.furnitureId !== furnitureId) {
         throw new Error(`${part.id} parçasının mobilya kimliği proje girdisiyle eşleşmiyor.`);
@@ -115,8 +130,10 @@ export function calculateCabinetProjectProduction(
       parts.push(part);
     }
 
+    const hasExplicitFamily = isRecord(request) && request.family !== undefined;
     furniture.push({
       furnitureId,
+      ...(hasExplicitFamily ? { family } : {}),
       innerDimensionsMm: { ...result.innerDimensionsMm }
     });
   }

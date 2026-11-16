@@ -395,3 +395,17 @@
 - Sınırlar: frontend JSON v1/CSV adapter'ı henüz bu domain agregatörünü çağırmıyor. Ray boşluğu, donanım, delik, CNC, nesting, fire, kerf veya fiziksel üretim onayı eklenmedi. Hiçbir `frontend/**` dosyası değiştirilmedi; açık frontend PR #7 ve #8 sahiplenilmedi/merge edilmedi.
 - AI Developer: `.github/workflows/ai-developer.yml` yalnızca `workflow_dispatch` ile çalışır; mevcut Actions listesinde bu workflow run'ı yoktur ve bu bağlantıda workflow dispatch işlemi desteklenmediğinden yeni run başlatılmadı.
 - Sonraki görev: frontend sahibi `drawerBoxSpecs` → `drawerBoxes` adapter'ını kendi dalında uygulasın; domain tarafında ardından aile-discriminated request sözleşmesi ve açık parametreli kitaplık konstrüksiyon motoru geliştirilsin.
+
+
+## 16 Kasım 2026 — aile ayrımlı proje agregatörü ve açık kitaplık konstrüksiyonu
+
+- Başlangıç HEAD: 0775f3c84cc6e9961a1df45ba852c15b63696665.
+- Kod commit SHA ve CI/QA run kimlikleri: ilk commit ve Actions sonuçları alındıktan sonra bu kayda eklenecek.
+- Geliştirme: family alanı olmayan eski dolap istekleri korunurken family: cabinet ve family: bookshelf ayrımı eklendi. Bilinmeyen aile sessizce dolap olarak yorumlanmaz.
+- Yeni kitaplık domain motoru, altı panel grubunun kenar bantlama bayraklarını, raf adedini, ortak panel kalınlığını, arkalık montajını ve malzeme override'larını açıkça doğrular. Kapak alanı ve kapak malzeme override'ı reddedilir.
+- Kitaplık geometrisi mevcut cabinetConstruction motorunu kullanır; duplicate formül oluşturulmaz. Kitaplık satırları proje agregatörünün ortak Part listesine girer ve projectMaterialSummary ile quantity ağırlıklı tüketim hesabına katılır.
+- Değişen dosyalar: domain/production/bookshelfConstruction.ts, domain/production/bookshelfConstruction.test.mjs, domain/production/projectProduction.ts, domain/production/projectProduction.test.mjs, .github/workflows/qa-test.yml, docs/production-domain-contract.md, PRODUCT_ROADMAP.md, AI_PROGRESS.md.
+- Kabul testleri: kitaplık ölçü/raf adetleri, arkalık ve panel malzeme override'ı, kapak/eksik grup reddi, bilinmeyen aile, sıfır raf, proje agregasyonu ve malzeme özeti.
+- Otomatik doğrulama: bu ilk commitin Actions sonuçları henüz alınmadı; doğrulama bekliyor.
+- Bilinen sınırlar: farklı panel grubu kalınlığı, dikey bölücü, raf aralığı, duvar montajı, ray/donanım, delik, CNC, nesting, fire ve fiziksel üretim güvenliği hesabı yok. Frontend JSON/CSV adapter'ına bağlanmadı.
+- Sonraki görev: kitaplık panel grubu bazlı kalınlık girdilerini eklemek; ardından açık parametreli masa konstrüksiyon ailesine geçmek.
