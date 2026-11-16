@@ -206,7 +206,7 @@ export function resolveBodyPanelMaterialAssignments<T extends BodyPanelMaterialP
     }
 
     const materialId = normalizedOverrides[part.group] ?? part.materialId;
-    if (materialId === undefined) return { ...part } as T;
+    if (materialId === undefined) return { ...part } as unknown as T;
 
     const material = catalog.get(materialId);
     if (!material) {
