@@ -69,6 +69,7 @@ Girdi, agregatörün aynı `parts` listesini kullanan sürüm 1 sonucudur. Grupl
 - `edgeBanding.widthEdgesLengthMm`, `lengthEdgesLengthMm`, `totalLengthMm`, `edgeCount`
 
 `top/bottom` kenarları parça genişliği; `left/right` kenarları parça uzunluğu boyunca sayılır ve her kenar parça `quantity` değeriyle çarpılır. Alan 6, hacim 9, bant uzunluğu 0.1 ondalık basamağa yuvarlanır.
+- Aynı mobilyaya bağlı birden fazla drawerBoxes grubu ayrı kimlik ve kendi panelMaterialIds/quantity değerleriyle tek proje Part listesine katılır. Malzeme özeti her grubun parça satırlarını malzeme kimliği ve gerçek kalınlığa göre birleştirir; adet, alan, hacim ve bant uzunluğu her satırın quantity değeriyle ağırlıklandırılır.
 
 Bu değerler net tüketimdir. Fire, levha verimi, kerf, bant kalınlığı, rulo payı, donanım, fiyat, nesting, delik, CNC veya işçilik eklenmez.
 

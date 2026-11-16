@@ -944,3 +944,75 @@ test("TV ünitesi rafı dikey bölücü panelini keserse proje export için enge
   assert.equal(report.blockedFurniture[0].furnitureId, "tv-compartment-blocked");
   assert.match(report.blockedFurniture[0].message, /dikey bölücüsüyle çakışamaz/);
 });
+
+
+test("birden fazla çekmece grubunun bağımsız panel malzemeleri proje tüketiminde adetle toplanır", () => {
+  const furnitureId = "cab-drawer-material-summary";
+  const project = calculateCabinetProjectProduction({
+    schemaVersion: 1,
+    furniture: [createRequest(furnitureId)],
+    drawerBoxes: [
+      createDrawerRequest(furnitureId, "lower"),
+      createDrawerRequest(furnitureId, "upper", {
+        spec: {
+          quantity: 3,
+          sideThickness: 18,
+          panelMaterialIds: {
+            sidePanels: "mdf-18",
+            frontBackPanels: "mdf-16",
+            bottomPanel: "mdf-8",
+            visibleFrontPanel: "mdf-18"
+          }
+        }
+      })
+    ]
+  });
+
+  assert.deepEqual(project.drawerGroups, [
+    { furnitureId, drawerGroupId: "lower", innerWidthMm: 468, bottomLengthMm: 418 },
+    { furnitureId, drawerGroupId: "upper", innerWidthMm: 464, bottomLengthMm: 418 }
+  ]);
+  assert.equal(project.parts.length, 12);
+
+  const summary = calculateProjectMaterialConsumptionSummary(project);
+  const mdf16 = summary.find((entry) => entry.materialId === "mdf-16");
+  const mdf18 = summary.find((entry) => entry.materialId === "mdf-18");
+  const mdf8 = summary.find((entry) => entry.materialId === "mdf-8");
+
+  assert.ok(mdf16);
+  assert.ok(mdf18);
+  assert.ok(mdf8);
+  assert.deepEqual(
+    [
+      mdf16.partLineCount,
+      mdf16.totalQuantity,
+      mdf16.panelAreaM2,
+      mdf16.volumeM3,
+      mdf16.edgeBanding.totalLengthMm,
+      mdf16.edgeBanding.edgeCount
+    ],
+    [3, 14, 0.90384, 0.01446144, 560, 4]
+  );
+  assert.deepEqual(
+    [
+      mdf18.partLineCount,
+      mdf18.totalQuantity,
+      mdf18.panelAreaM2,
+      mdf18.volumeM3,
+      mdf18.edgeBanding.totalLengthMm,
+      mdf18.edgeBanding.edgeCount
+    ],
+    [3, 11, 0.846, 0.015228, 840, 6]
+  );
+  assert.deepEqual(
+    [
+      mdf8.partLineCount,
+      mdf8.totalQuantity,
+      mdf8.panelAreaM2,
+      mdf8.volumeM3,
+      mdf8.edgeBanding.totalLengthMm,
+      mdf8.edgeBanding.edgeCount
+    ],
+    [2, 5, 0.973104, 0.007784832, 0, 0]
+  );
+});

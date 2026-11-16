@@ -556,3 +556,19 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 3. Karışık cabinet/bookshelf/table/wardrobe/tv-unit projelerinde yeni TV bölücü satırlarını malzeme ve kenar bantlama toplamlarıyla birlikte doğrulayan son sınır testlerini genişletmek.
 4. TV ünitesi ve gardırop için kullanıcı girdili bağlantı/delik veri modelinin önkoşullarını araştırmak; gerçek üretici standardı yoksa CNC koordinatı üretmemek.
 5. CNC, nesting, fire ve teklif/maliyet katmanlarına ancak katalog, makine profili ve kullanıcı fiyat verisi tanımlandığında geçmek.
+
+
+## 17 Kasım 2026 — çoklu çekmece grubu malzeme tüketimi uzlaşması
+
+- Proje agregatörünün aynı mobilyaya bağlı farklı drawerGroupId değerlerini bağımsız tutması, her grubun kendi panel malzeme override'larını ve quantity değerlerini koruması otomatik entegrasyon testiyle doğrulandı.
+- İki çekmece grubu farklı yan panel kalınlığı/malzeme kimliği kullanırken MDF 16, MDF 18 ve MDF 8 için Part satırı sayısı, toplam adet, net alan, hacim ve kenar bantlama toplamları aynı proje Part listesinden uzlaştırıldı.
+- Kabul değerleri: MDF 16 — 3 satır / 14 adet / 0.903840 m² / 0.014461440 m³ / 560 mm; MDF 18 — 3 satır / 11 adet / 0.846000 m² / 0.015228000 m³ / 840 mm; MDF 8 — 2 satır / 5 adet / 0.973104 m² / 0.007784832 m³ / 0 mm.
+- Üretim motoru değiştirilmedi; yeni test, mevcut proje agregatörü ve malzeme özeti arasında regresyon koruması sağlar. CNC, ray boşluğu, bağlantı, fire, nesting ve maliyet hesabı bu dilimin kapsamında değildir.
+
+### Güncel sıradaki küçük görevler
+
+1. Ayrı frontend sahibinin TV ünitesi verticalDividers/shelves ve proje drawerBoxes alanlarını JSON v1/CSV akışına geriye uyumlu bağlamasını ve blocked projelerde export'u kapatmasını takip et; bu otomasyon frontend/** dosyalarına dokunmaz.
+2. Banyo dolabı ailesinden önce lavabo kesiti/açıklığı için panel geometri sözleşmesini tasarla. Mevcut Part modeli yalnızca dikdörtgen panel alanı taşıdığı için kesit geometrisi, net alan/hacim ve iç kenar işlemleri temsil edilmeden banyo üst tablasını üretime hazır göstermemeliyiz.
+3. Kesit destekli panel veri modelini açık ölçü ve katalog girdileriyle küçük, geriye uyumlu bir domain dilimine ayır; doğrulanmamış lavabo, gider, sifon, baza/ayak veya ankraj standardı uydurma.
+4. Kesit alanı ve iç çevre/kenar işlemi hesapları için sınır testleri ekle; kesitli parçaları eski dikdörtgen CSV/JSON tüketicilerine kayıpsız aktaramıyorsak export'u açıkça engelle.
+5. Kesit sözleşmesi ve frontend veri uyumluluğu hazır olduğunda, yalnızca açık kullanıcı/üretici ölçüleriyle floor-standing banyo dolabı konstrüksiyonunu mevcut cabinet motoru üzerine kur.
