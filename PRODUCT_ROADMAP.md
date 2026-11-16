@@ -16,13 +16,13 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 | Oda ve 3D sahne | Ölçülü oda ve perspektif sahne | Tam 2D teknik çizim, kesit ve görünüş araçları yok |
 | Yerleşim | Katalogdan ekleme, seçme, taşıma, döndürme ve boyutlandırma; SAT tabanlı yatay ayak izi çakışma ve oda sınırı uyarıları 3D sahnede gösterilir | Gelişmiş snap, çoklu seçim, duvar montajı/kapak açılımı boşlukları ve tam undo/redo akışı doğrulanmış değil |
 | Katalog | Mutfak, gardırop, banyo, masa, kitaplık ve diğer ailelerden 100 varyasyon | Şablonlar tam parametrik konstrüksiyon aileleri değil |
-| Parçalar | Görsel kapak/çekmece/raf parçaları; domain düz gövde, çekmece kutusu ve açık kitaplık parçaları; aile ayrımlı proje agregatörü gövde/çekmece/kitaplık satırlarını tek listede birleştirir | Domain sonucu henüz frontend JSON/CSV adapter'ına bağlı değil; diğer mobilya aileleri ve dikey bölücü yok; grup bazlı değişken kalınlık domain'de desteklenir; ray, donanım ve CNC operasyonları dahil değil |
-| Hesap motoru | `cabinetConstruction`, `drawerBoxConstruction`, `bookshelfConstruction` ve aile ayrımlı sürüm 1 proje agregatörü; ortak Part alanları, çekmece `drawerGroupId` ve `grainDirection` bilgisi korunur; opsiyonel `panelThicknessMmByGroup` panel grubu bazlı geometriyi hesaplar | Frontend adapter henüz domain agregatörünü çağırmıyor; masa/TV ünitesi gibi aileler ve üreticiye özel konstrüksiyonlar eksik |
+| Parçalar | Görsel kapak/çekmece/raf parçaları; domain düz gövde, çekmece kutusu, açık kitaplık, masa ve gardırop dikey bölücü + açık ölçülü bölme rafı parçaları; proje agregatörü bunları ortak Part listesinde birleştirir | Domain sonucu henüz frontend JSON/CSV adapter'ına bağlı değil; diğer mobilya aileleri ve askı/çekmece yerleşimi eksik; ray, donanım ve CNC operasyonları dahil değil |
+| Hesap motoru | `cabinetConstruction`, `drawerBoxConstruction`, `bookshelfConstruction`, `tableConstruction`, `wardrobeConstruction` ve aile ayrımlı sürüm 1 proje agregatörü; ortak Part listesi quantity, malzeme, damar yönü ve kenar bantlamayı korur | Frontend adapter henüz domain agregatörünü çağırmıyor; TV ünitesi ve diğer aileler, üreticiye özel konstrüksiyonlar eksik |
 | Kesim listesi | Projedeki desteklenen düz mutfak gövdeleri ve tam tanımlı çekmece parçaları için tek Türkçe Excel uyumlu CSV; her satır kaynak mobilya adı/ID'si ve varsa katalog Malzeme ID değeriyle izlenir | Köşe/cihaz/evye konstrüksiyonları, diğer aileler, nesting ve CNC çıktısı yok |
-| Kenar bantlama / malzeme tüketimi | Frontend'de desteklenen mutfak parçaları için mevcut özet; domain malzeme özeti artık gövde + çekmece birleşik Part listesindeki quantity ağırlıklı alan/hacim ve kenar bantlamayı hesaplayabilir | Domain özeti henüz UI/JSON/CSV'ye bağlı değil; diğer mobilya aileleri, fire, levha verimi, kerf, bant kalınlığı ve rulo payı yok |
+| Kenar bantlama / malzeme tüketimi | Domain malzeme özeti gövde, çekmece, kitaplık, masa ve gardırop bölücü/raf parçalarının ortak Part listesinden quantity ağırlıklı alan/hacim ve kenar bantlamasını hesaplayabilir | Domain özeti henüz UI/JSON/CSV'ye bağlı değil; fire, levha verimi, kerf, bant kalınlığı ve rulo payı yok |
 | Malzeme kataloğu | UI CRUD; mobilya varsayılan materialId ve çekmece grubunda varsayılan + dört panel grubu override; domain gövde/kitaplık motorları altı gövde panel grubu için malzeme override'ını doğrular | Gövde panel override'ları henüz frontend JSON v1/CSV ve UI akışına bağlanmadı; fiyat, tedarikçi ve fire henüz yok |
 | Proje dosyası | Yerel JSON v1 indirme/yükleme; saf serializer/parser; round-trip ve eski v1 uyumluluk; mm, mobilya ve çekmece grubu katalog referansları ile dört çekmece panel kalınlığının doğrulanması | Şema migrasyonu, otomatik kayıt ve kurtarma yok |
-| Test/CI | Kod HEAD `e9715a8fb490b65e3e484d399f150e8d433e42c5`: CI `43881598968`, QA `43881598804` (101/101 frontend + 66/66 domain testi) ve Pages `43881598819` başarılı; build, strict domain TypeScript, lint ve yüksek önem audit eşiği geçti | Fiziksel üretim doğrulaması otomatik testle yapılamaz; Oxlint 30 uyarı/0 hata, audit'te 6 bulgu (2 düşük/4 orta), yaklaşık 1.55 MB bundle chunk ve Actions Node 20 deprecation uyarıları sürüyor |
+| Test/CI | HEAD `0fd156cf42cc99f03b177134433df7d581bf3b4d`: CI #258 `43933617028`, QA #158 `43933617113` (101/101 frontend + 96/96 domain testi) ve Pages #126 `43933617040` başarılı; strict domain TypeScript, lint, production build ve yüksek önem audit kapısı geçti | Fiziksel üretim doğrulaması otomatik testle yapılamaz; Oxlint 32 uyarı/0 hata, audit'te 6 bulgu (2 düşük/4 orta), büyük bundle chunk ve Actions Node 20 deprecation uyarıları sürüyor |
 
 ### Bilinen mimari ve veri boşlukları
 
@@ -30,7 +30,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 - Konstrüksiyon kurallarının bir kısmı `App.tsx` içinde sabit başlangıç değerleriyle tutuluyor; proje ve mobilya bazında yapılandırılabilir hale getirilmeli.
 - Çekmece görsel sayısı ile gerçek çekmece kutusu/önü parça ağacı aynı şey değildir; kullanıcı ölçü, malzeme, kenar bantlama ve damar yönünü açıkça tanımlar. Domain agregatörü legacy dolap isteklerini, açık kitaplık ailesini ve mevcut gövde mobilyasına bağlı `drawerBoxes` isteklerini aynı Part listesinde birleştirir; frontend JSON/CSV adapter'ı henüz bu domain yolunu kullanmaz. Ray boşluğu, donanım ve CNC işlemleri hesaplanmaz.
 - Panel malzeme kataloğunun domain sözleşmesi, UI CRUD akışı, mobilya materialId bağlantısı ve çekmece grubu materialId bağlantısı tamamlandı. Çekmece gruplarında varsayılan malzemeye ek olarak yan, ön/arka, taban ve görünür ön panel için bağımsız katalog override desteklenir; her grubun kendi mm kalınlığı doğrulanır. Domain gövde motoru opsiyonel `panelThicknessMmByGroup` ile panel grubuna göre geometri/kalınlık hesaplar; açık kitaplık isteği bu alanı altı gerçek grupla sınırlar ve her override için katalog kimliği ile gerçek kalınlığı zorunlu tutar. Bu atamalar henüz frontend JSON v1/CSV ve UI'ya bağlanmamıştır. Donanım tüketimi, nesting ve CNC postprocessor katmanları tamamlanmış değildir.
-- Kenar bantlama ve malzeme tüketimi domain seviyesinde gövde + çekmece + kitaplık birleşik Part listesinden hesaplanabilir; katalog referansları ve kalınlıklar ayrı gruplandırılır. Özel köşe/cihaz/evye geometrileri ve diğer mobilya aileleri kapsam dışıdır. Fire ve rulo payı hesaplanmaz.
+- Kenar bantlama ve malzeme tüketimi domain seviyesinde gövde + çekmece + kitaplık + masa + gardırop birleşik Part listesinden hesaplanabilir; katalog referansları ve kalınlıklar ayrı gruplandırılır. Özel köşe/cihaz/evye geometrileri, askı/çekmece yerleşimi ve diğer mobilya aileleri kapsam dışıdır. Fire ve rulo payı hesaplanmaz.
 - Domain/frontend entegrasyon sınırı `docs/production-domain-contract.md` içinde belgelenmiştir: aile ayrımlı sürüm 1 konstrüksiyon isteği, kitaplık motoru, proje agregatörü, malzeme özeti, mevcut JSON v1/çekmece girdisi ve frontend durum/kabul kriterleri. Bu bir entegrasyon sözleşmesidir; domain motorlarının frontend'e bağlandığı anlamına gelmez.
 - Yerleşim doğrulaması XZ düzlemindeki yatay dikdörtgen ayak izlerini ve oda sınırlarını denetler; dikey çakışma, kapak/çekmece açılımı, duvar sabitlemesi ve montaj toleranslarını hesaplamaz.
 
@@ -46,7 +46,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 
 ### Aşama 1 — Parametrik gövde ve parça mühendisliği
 
-**Hedef:** mutfak, gardırop, banyo, kitaplık ve sonraki mobilya ailelerinde kuralları açık olan gövde/raf/kapak/çekmece/arkalık parçaları. Düz gövde, çekmece kutusu ve açık kitaplık için frontend dışı domain motorları ile ortak proje agregatörü mevcut.
+**Hedef:** mutfak, gardırop, banyo, kitaplık ve sonraki mobilya ailelerinde kuralları açık olan gövde/raf/kapak/çekmece/arkalık parçaları. Düz gövde, çekmece kutusu, açık kitaplık, masa ve bölücü/özel raf destekli gardırop için frontend dışı domain motorları ile ortak proje agregatörü mevcut.
 
 - Kabul kriterleri: her aile için ölçü tablosu ve parça adedi testleri; panel kalınlığı, arkalık montajı, kapak boşluğu ve kenar bantlama açık parametreler; desteklenmeyen konfigürasyon hata/uyarı verir.
 - Bağımlılıklar: sürümlenebilir konstrüksiyon kuralı modeli.
@@ -459,26 +459,38 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 
 1. Frontend sahibinin `drawerBoxSpecs` → `drawerBoxes` adapter'ını ve JSON v1 geriye uyumluluğunu kendi frontend dalında tamamlaması.
 2. Frontend sahibinin ready/blocked/unsupported/empty rapor durumlarını güvenli CSV export kapısına bağlaması.
-3. Domain tarafında açık ölçülü gardırop veya TV ünitesi ailesi için sürüm 1 konstrüksiyon motoru ve regresyon testleri eklemek.
-4. Yeni aileyi proje agregatörü ve malzeme tüketimiyle birleştirerek mixed-family quantity/material özetini doğrulamak.
-5. Frontend JSON/CSV adapter'ı domain Part listesini kullandığında export satırlarının hesapla birebir eşleşmesini otomatik test etmek.
+3. Karışık gardırop + masa + kitaplık projelerinde bölme rafı, malzeme/kalınlık, quantity ve kenar bantlama sınır testlerini genişletmek.
+4. Domain tarafında kullanıcı ölçülü TV ünitesi ailesini mevcut cabinet motorunu yeniden kullanarak küçük bir sürüm 1 dilimine ayırmak.
+5. Frontend JSON/CSV adapter'ı domain Part listesini kullandığında export satırlarının hesapla birebir eşleşmesini ayrı frontend sahibinin otomatik testleriyle doğrulamak.
 
 
 ## 16 Kasım 2026 — gardırop gövdesi ve dikey bölücü domain dilimi
 
 - Yeni domain/production/wardrobeConstruction.ts motoru, wardrobe ailesi için mevcut doğrulanmış gövde konstrüksiyonunu yeniden kullanır; legacy cabinet ve bookshelf formüllerini kopyalamaz.
-- Her gardırop bölücüsü açık kimlik, iç sol yüzeyden ofset (mm), kalınlık, katalog materialId, dört kenar bandı bayrağı ve damar yönü ister. Bölücüler tam iç yükseklik ve derinlikte panel satırlarıdır.
-- Çakışan, sınırı aşan, yinelenen kimlikli veya katalog kalınlığı uyuşmayan bölücüler reddedilir. Bölücü varken tam genişlik rafı reddedilir; bölme bazlı raflar henüz desteklenmez.
+- Her gardırop bölücüsü açık kimlik, iç sol yüzeyden ofset (mm), kalınlık, katalog materialId, dört kenar bandı bayrağı ve damar yönü ister. Bölücüler net iç yükseklik ve derinlikte panel satırlarıdır.
+- Her özel rafın açık X/Y/Z ölçüleri, katalog malzemesi, kenar bandı ve damar yönü gerekir. Raflar bölücü açıklığına sığmalı; sınır aşımı ve raflar arası hacim çakışması reddedilir. Tam genişlik raf adedi özel raflarla birleştirilmez.
 - Proje agregatörü wardrobe ailesini ready/blocked tanı akışına ve ortak Part listesine ekler. Proje malzeme özeti bölücü adet/alan/hacim/bantlama tüketimini aynı Part listesi üzerinden hesaplar.
 - Değişen dosyalar: domain/production/wardrobeConstruction.ts, domain/production/wardrobeConstruction.test.mjs, domain/production/projectProduction.ts, .github/workflows/qa-test.yml, docs/production-domain-contract.md, PRODUCT_ROADMAP.md, AI_PROGRESS.md.
 - Kabul kriterleri: cabinet/bookshelf/table sonuç şekilleri korunur; wardrobe iç ölçüsü, stabil divider ID, mm konumu, malzeme kalınlığı, grainDirection ve edgeBanding doğrulanır; karışık proje raporu ready olur; geçersiz bölücüde result null ve export kapalı kalır.
 - Kod commit SHA: 66b106e9726388240326170a6671bf30bebfb4b0.
 - Otomatik kontroller: bu commit için CI, QA ve Pages Actions sonuçları henüz oluşmadı.
-- Bilinen sınırlar: bölücüler tam iç yükseklik/derinliktedir; bölmeli raflar, askı borusu, çekmece yerleşimi, bağlantı, delik, CNC, nesting, fire ve fiyat hesabı yoktur. Frontend JSON v1/CSV entegrasyonu ayrı frontend sahibinin kapsamındadır; hiçbir frontend/** dosyası değiştirilmedi.
-- Sonraki görevler: bölme bazlı raf sözleşmesi; karışık aile malzeme/kalınlık sınır testleri; frontend wardrobe JSON/CSV kabul kriterleri; kullanıcı girdili TV ünitesi domain motoru; doğrulanmış üretici standartları olmadan CNC/nesting/teklif yok.
+- Bilinen sınırlar: raf taşıma kapasitesi, askı borusu, çekmece yerleşimi, bağlantı, delik, CNC, nesting, fire ve fiyat hesabı yoktur. Frontend JSON v1/CSV entegrasyonu ayrı frontend sahibinin kapsamındadır; hiçbir frontend/** dosyası değiştirilmedi.
+- Sonraki görevler: karışık aile raf/malzeme/kenar bantlama sınır testleri; frontend wardrobe JSON/CSV kabul kriterleri; kullanıcı girdili TV ünitesi domain motoru; doğrulanmış üretici standartları olmadan CNC/nesting/teklif yok.
 
 
 - İlk wardrobe QA kontrolü: run 43915442898 içinde yeni gardırop testleri başarılıydı; iki mevcut proje tanılama testi wardrobe ailesini desteklenmeyen sayan eski fixture nedeniyle başarısız oldu. Bu fixture'lar yeni desteklenen aileye dokunmadan, gerçekten bilinmeyen sofa ailesini sınayacak şekilde düzeltildi; doğrulama düzeltme commit'i sonrasında yeniden çalıştırılacak.
 
 
 - QA düzeltme notu: wardrobe artık desteklenen aile olduğundan bilinmeyen aile regresyon fixture'ı sofa olarak değiştirildi. İlk düzeltme sonrası tek kalan başarısız assertion eski wardrobe-unsupported kimlik metnini bekliyordu; beklenen kimlik de sofa-unsupported olarak güncellendi. Yeni Actions doğrulaması bekleniyor.
+
+
+## 16 Kasım 2026 — gardırop bölme rafları ve net iç yükseklik
+
+- `WardrobeConstructionRequest.shelves` geriye uyumlu opsiyonel bir alan olarak eklendi; eski wardrobe istekleri ve açık `verticalDividers: []` davranışı korunur.
+- Her özel raf açık X/Y/Z yerleşim ölçüsü, katalog malzeme kimliği/kalınlığı, kenar bandı ve damar yönü ister. Raf ölçüleri 0.1 mm'ye normalize edilir; bölücü alanına girme, iç sınırı aşma, raflar arası hacim çakışması ve yinelenen kimlikler reddedilir.
+- Gardırop net iç yüksekliği, gerçek üst/alt panel kalınlıkları dış yükseklikten çıkarılarak hesaplanır; dikey bölücü uzunluğu da aynı net açıklığı kullanır. Düzeltme legacy cabinet/bookshelf motorlarına dokunmaz.
+- Proje agregatörü ve malzeme özeti yeni raf Part satırlarını mevcut ortak listeden tüketir. Frontend JSON v1/CSV adapter'ı değiştirilmedi.
+- Kabul kriterleri: bölücülerin iki yanında raf; sınır/kalınlık/malzeme/çakışma reddi; temas eden raf yüzeylerinin kabulü; ready/blocked proje raporu; eski istek uyumluluğu.
+- Değişen dosyalar: `domain/production/wardrobeConstruction.ts`, `domain/production/wardrobeConstruction.test.mjs`, `docs/production-domain-contract.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`.
+- Kod commit SHA ve Actions sonuçları, commit oluşturulup QA/CI tamamlandıktan sonra ilerleme kaydına eklenecek.
+- Bilinen sınırlar: raf taşıma kapasitesi, bağlantı, askı borusu, çekmece yerleşimi, donanım, delik, CNC, nesting, fire ve fiyat hesabı yok; fiziksel üretim öncesi atölye doğrulaması gerekir.

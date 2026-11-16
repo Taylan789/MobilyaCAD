@@ -206,8 +206,22 @@ Kaynak: domain/production/wardrobeConstruction.ts ve domain/production/projectPr
 
 - Gardırop dış ölçüleri, gövde stili, panel kalınlıkları, arkalık, raf ve kapak ayarları mevcut cabinet gövde motorunun açık parametreli sözleşmesini kullanır; legacy dolap hesapları değişmez.
 - verticalDividers alanı zorunludur. Boş liste, dikey bölücü olmadığını açıkça belirtir. Her bölücü için benzersiz kimlik, iç sol panel yüzünden sol yüzüne kadar mm ofset, pozitif kalınlık, katalog malzeme kimliği, dört kenar bandı bayrağı ve damar yönü açıkça sağlanır.
-- Bölücüler mevcut gövdenin hesaplanmış iç yüksekliği ve iç derinliği boyunca tam panel olarak üretilir. Konumlar 0.1 mm hassasiyetinde doğrulanır; birbirleriyle çakışamaz ve iç genişlik sınırını aşamaz. Katalogda bulunmayan malzeme veya eşleşmeyen kalınlık reddedilir.
-- Bölücü varken tam genişlik rafları reddedilir; bölme bazlı raf geometrisi ve konumları henüz modellenmemiştir. Bu kural, birbirinin içinden geçen raf/bölücü parçalarını üretim listesine sokmamak için bilinçli bir güvenlik sınırıdır.
+- Gardırop `innerDimensionsMm.height`, üst ve alt panel kalınlıkları dış yükseklikten çıkarılarak net iç açıklık olarak döner; bu ailede dikey bölücü de aynı net yüksekliğe göre üretilir. Legacy cabinet/bookshelf sonuçları değiştirilmez. Konumlar 0.1 mm hassasiyetinde doğrulanır; bölücüler birbirleriyle çakışamaz ve iç genişlik sınırını aşamaz. Katalogda bulunmayan malzeme veya eşleşmeyen kalınlık reddedilir.
+- Bölücü varken `profile.shelfCount` ile tam genişlik rafı reddedilir. Açık ölçülü `shelves` alanı ise bölme bazlı rafları destekler; her rafın sol/sağ X ofseti, net iç tabandan Y kotu, ön Z ofseti, derinliği, kalınlığı, katalog `materialId`, dört kenar bandı bayrağı ve damar yönü açıkça sağlanır. Raf açıklığı bölücü yüzleri arasında kalmalı; raflar net iç genişlik/yükseklik/derinlik sınırlarını aşmamalı ve birbirleriyle hacimsel olarak çakışmamalıdır. Rafların katalog kalınlığı gerçek malzemede bulunmalıdır.
 - Proje agregatörü wardrobe ailesini destekler; sonuç cabinet/bookshelf ile aynı innerDimensionsMm alanını ve ortak Part listesini kullanır. Malzeme tüketim özeti bölücü satırlarını aynı quantity/alan/hacim/kenar bantlama hesabına dahil eder.
-- Bu dilim askı borusu, çekmece yerleşimi, kısmi bölücü, raf bölümlendirmesi, menteşe/delik, bağlantı elemanı, nesting, CNC veya montaj güvenliği hesaplamaz. Fiziksel üretimden önce atölye doğrulaması gerekir.
-- Frontend JSON v1/CSV adapter'ı bu domain motoruna henüz bağlı değildir; frontend sahibi family=wardrobe için explicit verticalDividers girdisini ve ready/blocked tanı durumunu ayrı entegrasyon diliminde bağlamalıdır. Bu otomasyon frontend/** dosyalarını değiştirmez.
+- Bu dilim askı borusu, çekmece yerleşimi, kısmi bölücü, raf taşıma kapasitesi, menteşe/delik, bağlantı elemanı, nesting, CNC veya montaj güvenliği hesaplamaz. Fiziksel üretimden önce atölye doğrulaması gerekir.
+- Frontend JSON v1/CSV adapter'ı bu domain motoruna henüz bağlı değildir; frontend sahibi family=wardrobe için explicit verticalDividers/shelves girdilerini ve ready/blocked tanı durumunu ayrı entegrasyon diliminde bağlamalıdır. Bu otomasyon frontend/** dosyalarını değiştirmez.
+
+
+### 2.9 Açık ölçülü gardırop bölme rafları
+
+Kaynak: `domain/production/wardrobeConstruction.ts`.
+
+- `WardrobeConstructionRequest.shelves` geriye uyumlu opsiyonel bir alandır. Alanın olmaması veya boş liste, özel raf üretilmeyeceğini belirtir; mevcut v1 wardrobe istekleri geçerli kalır.
+- Her raf benzersiz bir `id`, `leftOffsetMm`, `rightOffsetMm`, `heightFromInnerBottomMm`, `frontOffsetMm`, `depthMm`, `thicknessMm`, katalog `materialId`, dört kenar bantlama bayrağı ve `width | length | none` damar yönü ister. Tüm ölçüler mm'dir ve 0.1 mm hassasiyetinde normalize edilir.
+- Parça ölçüleri `width = depthMm`, `length = rightOffsetMm - leftOffsetMm`, `thickness = thicknessMm` olarak türetilir. Raf sol/sağ ofsetleri iç sol yan panel yüzüne; yükseklik net iç taban yüzüne; ön ofset iç ön referans düzlemine göredir.
+- Net gardırop iç yüksekliği dış yükseklikten gerçek üst/alt panel kalınlıkları çıkarılarak hesaplanır. Bu düzeltme yalnızca wardrobe sonucu ve bölücüler için geçerlidir; legacy cabinet/bookshelf geometri sözleşmesi değişmez.
+- Raflar bölücü panel aralıklarının içine tamamen sığmalıdır; bölücü alanına giren, iç sınırları aşan, katalogda bulunmayan malzeme/kalınlık kullanan, yinelenen kimlik taşıyan veya başka rafla 3D hacimde çakışan istek reddedilir. Yüzeylerin yalnızca temas etmesi çakışma sayılmaz.
+- Özel raflarla `profile.shelfCount` tam genişlik rafları aynı istekte birleştirilemez. Bu, çift sayım ve çakışan üretim satırlarını engeller.
+- Proje agregatörü ve malzeme tüketim özeti rafları ortak Part listesi üzerinden taşır; her raf quantity 1 olarak ayrı izlenir. Frontend JSON v1/CSV adapter entegrasyonu bu domain diliminin kapsamında değildir.
+- Bu model raf panel geometrisi ve yerleşim zarfını doğrular; raf taşıma kapasitesi, bağlantı elemanı, delik, ray/donanım, CNC, nesting, fire veya montaj güvenliği hesaplamaz. Fiziksel üretim öncesi atölye doğrulaması gerekir.
