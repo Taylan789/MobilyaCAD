@@ -42,15 +42,15 @@ Gövde parça ID son ekleri sabit eşlemedir: `left-side`, `right-side`, `top`, 
 
 Kaynak: `domain/production/projectProduction.ts`
 
-Çağrı: `calculateCabinetProjectProduction({ schemaVersion: 1, furniture: [...] })`.
+Çağrı: `calculateCabinetProjectProduction({ schemaVersion: 1, furniture: [...], drawerBoxes?: [...] })`.
 
-Mevcut TypeScript giriş tipi `furniture: readonly unknown[]` kullanır; her eleman çalışma anında geçerli bir sürüm 1 dolap konstrüksiyon isteği olarak doğrulanır. Çıktı:
+- `furniture`, mevcut sürüm 1 dolap konstrüksiyon isteklerini taşır ve her mobilya için `furnitureId` + `innerDimensionsMm` sonucu üretir.
+- İsteğe bağlı `drawerBoxes`, `calculateDrawerBoxConstruction` tarafından doğrulanan sürüm 1 çekmece kutusu isteklerini taşır. Her çekmece isteğinin `furniture.id` değeri `furniture` listesindeki bir mobilyaya ait olmalıdır.
+- Aynı mobilya altında `drawerGroup.id` benzersiz olmalıdır. Bilinmeyen mobilya, yinelenen grup/parça kimliği veya geçersiz çekmece girdisi reddedilir.
+- Çıktı, gövde ve çekmece satırlarını tek `parts` listesinde birleştirir. Çekmece satırları ek olarak `drawerGroupId` ve `grainDirection` taşır; `drawerGroups` ölçü özeti yalnızca en az bir çekmece grubu varsa bulunur.
+- `drawerBoxes` alanı verilmeyen veya boş olan eski çağrılarda önceki sonuç şekli korunur; `drawerGroups` alanı eklenmez.
 
-- `schemaVersion: 1)
-- her mobilya için `furnitureId` ve `innerDimensionsMm`
-- kaynak mobilya/parça kimliklerini, mm ölçülerini, malzeme alanlarını, kenar bayraklarını ve `quantity` değerini koruyan tek `parts` listesi
-
-Yinelenen mobilya veya parça kimliği, kimlik uyuşmazlığı ve geçersiz konstrüksiyon reddedilir. Boş mobilya listesi geçerli boş sonuçtur. Satırlar birleştirilmez; adetler yeniden yorumlanmaz.
+Gövde ve çekmece parçaları ayrı satırlar olarak kalır. Kaynak mobilya/parça kimlikleri, mm ölçüleri, katalog malzeme alanları, kenar bayrakları ve `quantity` korunur; adetler yeniden yorumlanmaz.
 
 ### 2.3 Proje malzeme tüketimi ve kenar bantlama özeti
 
@@ -82,7 +82,7 @@ Kaynak: `domain/production/drawerBoxConstruction.ts`
 - `innerWidthMm = outerWidth - 2 × sideThickness`; `bottomLengthMm = outerDepth - 2 × frontBackThickness`. Sonuçlar 0.1 mm hassasiyetinde yuvarlanır ve pozitif kalmalıdır.
 - Her grup için kalınlık, kenar bantlama bayrakları ve damar yönü açık girdidir. `panelMaterialIds` override'ı ilgili katalog kimliğini ve o grubun gerçek kalınlığını doğrular; override yoksa `materialId`, o da yoksa legacy serbest metin malzeme korunur.
 - Taban montajı yalnızca `between-sides-and-front-back` olarak desteklenir. Eksik ölçü, katalog referansı, kenar bayrağı veya damar yönü varsayılmaz.
-- Bu modül henüz `calculateCabinetProjectProduction` agregatörüne bağlı değildir. Proje seviyesinde birleştirme sonraki domain dilimidir.
+- Bu modül artık `calculateCabinetProjectProduction` içindeki isteğe bağlı `drawerBoxes` listesiyle proje seviyesinde birleştirilebilir. Her grup, mevcut bir gövde mobilya kimliğine bağlanır; grup ve parça kimlikleri proje çapında doğrulanır. Frontend JSON/CSV adapter'ı henüz bu domain alanını çağırmamaktadır.
 
 Motor ray boşluğu, reveal, bağlantı, delik, işleme payı, CNC koordinatı, fire veya üretim güvenliği hesabı yapmaz. Gerçek ray/bağlantı seçimi ve fiziksel uygunluk operatör/atölye doğrulaması gerektirir.
 ## 3. Mevcut frontend proje verisi ve uyumluluk
@@ -93,7 +93,7 @@ Kaynaklar: `frontend/src/types/placedFurniture.ts`, `frontend/src/engine/project
 - Eski v1 dosyalarında `room.unit` ve `drawerBoxSpecs` bulunmayabilir; mevcut parser bunları geriye uyumlu kabul eder ve oda ölçülerini mm yorumlar.
 - `PlacedFurniture` mevcut durumda `drawerBoxSpecs?: DrawerBoxProjectConfig[]` alanını taşır. Bu konfigürasyonlar proje v1 JSON içinde saklanır; hesaplanan domain sonuçları henüz bu dosya biçimine bağlanmış değildir.
 - Çekmece kutusu girdisi açık dış genişlik, yan yüksekliği, dış derinlik, dört panel grubu için kalınlık, görünür ön ölçüleri, adet, malzeme, kenar bayrakları, damar yönü ve yalnızca `between-sides-and-front-back` taban kurgusunu ister. Ray boşluğu, reveal, bağlantı ve CNC koordinatı çıkarılmaz.
-- Çekmece kutusu geometrisinin mevcut kullanıcı akışı `frontend/src/engine/drawerBoxParts.ts` içindedir. Aynı açık ölçü ve panel grubu sözleşmesini kullanan frontend dışı domain motoru `domain/production/drawerBoxConstruction.ts` içinde mevcuttur; proje agregatörüne bağlantısı henüz yapılmamıştır.
+- Çekmece kutusu geometrisinin mevcut kullanıcı akışı `frontend/src/engine/drawerBoxParts.ts` içindedir. Aynı açık ölçü ve panel grubu sözleşmesini kullanan frontend dışı domain motoru `domain/production/drawerBoxConstruction.ts`, artık proje agregatörünün isteğe bağlı `drawerBoxes` girdisine bağlanmıştır. Frontend JSON v1 / CSV adapter'ı henüz bu domain agregatörünü çağırmamaktadır.
 - Frontend `projectProduction.ts` mevcut aşamada yalnızca belirli düz mutfak gövde katalog kimliklerini destekler; köşe, cihaz ve evye varyasyonları ile diğer mobilya ailelerini özel geometri olmadan dışarıda bırakır. Çekmece yapılandırması geçersiz/eksikse kesim listesi dışa aktarımı engellenir.
 
 Önemli veri boşluğu: mevcut `PlacedFurniture` tipinde gövde panel grubu malzeme override'larını kalıcılaştıran bir alan henüz tanımlı değildir. Domain `panelMaterialOverrides` girdisini kabul etse de frontend bunu proje v1'e eklemiş gibi davranmamalıdır. Gelecekte eklenecek alanlar v1'e yalnızca opsiyonel ve eski dosyalar için güvenli varsayılanı olmayan şekilde eklenmeli; uyumsuz değişiklikte format sürümü artırılmalıdır.
@@ -105,9 +105,9 @@ Frontend sahibi entegrasyonu aşağıdaki sırayla yapmalıdır:
 1. Her desteklenen mobilya için mevcut `PlacedFurniture`, katalog kaydı, mobilyaya çözülmüş konstrüksiyon kuralları ve malzeme kataloğundan açık bir `CabinetConstructionRequest` üret.
 2. mm ölçülerini dönüştürmeden taşı; mm dışı bir kaynaktan dönüşüm gerekiyorsa tek adapter noktasında yap ve test et.
 3. `materialId` ve panel override referanslarını katalogda doğrula; gerçek parça kalınlığı `thicknessesMm` listesinde yoksa sonucu hatalı/engelli göster.
-4. Her mobilyanın stabil ID'sini ve agregatörün ürettiği parça ID'sini aynen koru. Aynı projedeki tüm desteklenen mobilyalar tek agregatör çağrısında hesaplanmalıdır.
-5. Domain `CabinetConstructionPart` → frontend `Part` dönüşümünde zorunlu frontend alanlarını açıkça eşle. Domain sonucu `grainDirection` veya CNC operasyonu sağlamaz; bunları gerçek kullanıcı/üretici girdisi olmadan üretim verisi gibi doldurma.
-6. Malzeme özeti aynı agregatör sonucundan hesaplanmalıdır; UI veya CSV için ikinci, bağımsız geometri hesabı yazılmamalıdır.
+4. Her mobilyanın stabil ID'sini ve agregatörün ürettiği parça ID'sini aynen koru. Gövde isteklerini `furniture`, bu mobilyalara ait açık çekmece isteklerini `drawerBoxes` alanında aynı agregatör çağrısına ver.
+5. Domain `ProjectProductionPart` birleşiminde gövde ve çekmece satırlarını ayırt et. Çekmece satırlarının `drawerGroupId` ve `grainDirection` alanlarını koru; gövde satırlarına uydurma damar yönü veya CNC operasyonu ekleme.
+6. Malzeme özeti aynı birleşik agregatör sonucundan hesaplanmalıdır; UI veya CSV için ikinci, bağımsız geometri hesabı yazılmamalıdır.
 7. Üretilmiş parça listesi ve özet proje JSON'a sessizce yazılmaz. JSON v1 mevcut tasarım girdilerini ve katalog referanslarını saklamaya devam eder; türetilmiş sonuç gerektiğinde yeniden hesaplanır.
 
 ### UI durumları ve kabul kriterleri
@@ -123,10 +123,12 @@ Frontend sahibi entegrasyonu aşağıdaki sırayla yapmalıdır:
 
 Bu sözleşme makineye hazır CNC, DXF, nesting/levha optimizasyonu, kesim kerfi, fire, levha verimi, donanım/bağlantı koordinatı, ray boşluğu, fiyat, işçilik veya fiziksel üretim güvenliği onayı sağlamaz. Bunlar için kullanıcı kataloğu, gerçek üretici standardı ve atölye doğrulaması gerekir.
 
-## 6. Sıradaki teknik dilimler
 
-1. Mevcut çekmece kutusu geometri kurallarını frontend dışı `domain/production` motoruna açık sürümlü giriş/çıkış ve regresyon testleriyle taşı; ray/donanım varsayma.
-2. Domain proje agregatörüne gövde ve çekmece sonuçlarını aynı stabil `Part` sözleşmesinde birleştiren küçük, testli bir dilim ekle.
-3. Frontend sahibi, `drawerBoxSpecs` ve proje JSON v1 uyumluluğunu koruyan adapter'ı kendi frontend dalında uygulasın.
-4. Domain agregatörü için mobilya ailelerini discriminated request tipleriyle güçlendir; desteklenmeyen aileleri açıkça reddet.
-5. İlk kitaplık/gardırop konstrüksiyon ailesini açık montaj girdileriyle ekle; üretici verisi olmadan donanım/CNC üretme.
+
+
+
+1. Frontend sahibi, mevcut `drawerBoxSpecs` kayıtlarını domain `drawerBoxes` isteklerine dönüştüren adapter'ı kendi frontend dalında uygulasın; JSON v1 geriye uyumluluğunu ve boş/hata durumlarını korusun.
+2. Domain proje isteğini aile-discriminated bir sözleşmeye evrilt; mevcut `furniture` + opsiyonel `drawerBoxes` biçimini geriye uyumlu tut.
+3. İlk kitaplık konstrüksiyon ailesini açık raf adedi, panel kalınlığı, arkalık montajı ve kenar bantlama girdileriyle ekle; donanım/CNC varsayma.
+4. Kitaplık parçalarının kimlik, malzeme, damar yönü ve quantity semantiğini ortak proje agregatörü ve malzeme özetinde doğrula.
+5. Frontend adapter tamamlandıktan sonra proje JSON/CSV çıktılarının aynı domain parça listesiyle birebir uzlaşmasını otomatik test et; makine profili olmadan CNC üretme.

@@ -3,10 +3,14 @@ import type {
   CabinetConstructionPart,
   CabinetInnerDimensionsMm
 } from "./cabinetConstruction.ts";
+import { calculateDrawerBoxConstruction } from "./drawerBoxConstruction.ts";
+import type { DrawerBoxConstructionPart } from "./drawerBoxConstruction.ts";
 
 export interface CabinetProjectProductionRequest {
   schemaVersion: 1;
   furniture: readonly unknown[];
+  /** Optional drawer-box requests, each attached to a furniture entry above. */
+  drawerBoxes?: readonly unknown[];
 }
 
 export interface CabinetProjectFurnitureResult {
@@ -14,10 +18,21 @@ export interface CabinetProjectFurnitureResult {
   innerDimensionsMm: CabinetInnerDimensionsMm;
 }
 
+export interface DrawerGroupProductionResult {
+  furnitureId: string;
+  drawerGroupId: string;
+  innerWidthMm: number;
+  bottomLengthMm: number;
+}
+
+export type ProjectProductionPart = CabinetConstructionPart | DrawerBoxConstructionPart;
+
 export interface CabinetProjectProductionResult {
   schemaVersion: 1;
   furniture: CabinetProjectFurnitureResult[];
-  parts: CabinetConstructionPart[];
+  /** Present only when at least one drawer-box request was calculated. */
+  drawerGroups?: DrawerGroupProductionResult[];
+  parts: ProjectProductionPart[];
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -36,13 +51,27 @@ function readFurnitureId(value: unknown, index: number): string {
   return id;
 }
 
+function readDrawerGroupId(value: unknown, index: number): string {
+  if (!isRecord(value) || !isRecord(value.drawerGroup)) {
+    throw new Error(`Projenin ${index + 1}. çekmece grubu isteği geçersiz.`);
+  }
+
+  const id = value.drawerGroup.id;
+  if (typeof id !== "string" || id.trim() === "" || id.trim() !== id) {
+    throw new Error(`Projenin ${index + 1}. çekmece grubu kimliği geçersiz.`);
+  }
+  return id;
+}
+
 /**
- * Calculates and combines explicit cabinet construction requests for a project.
+ * Calculates and combines explicit cabinet and optional drawer-box requests.
  *
- * Each furniture item is calculated independently using its own profile and
- * material catalogue. Part IDs, furniture IDs, dimensions and quantity values
- * are retained; no rows are merged and no missing construction defaults are
- * inferred. This is a domain aggregation primitive, not a CNC-ready export.
+ * Each cabinet is calculated independently using its own profile and material
+ * catalogue. Drawer groups must reference one of those furniture IDs. The
+ * shared Part list preserves source IDs, mm dimensions, quantities, material
+ * references and edge flags; drawer rows additionally retain drawerGroupId
+ * and grainDirection. No rows are merged and no missing construction defaults
+ * are inferred. This is a domain aggregation primitive, not a CNC-ready export.
  */
 export function calculateCabinetProjectProduction(
   value: unknown
@@ -56,10 +85,15 @@ export function calculateCabinetProjectProduction(
   if (!Array.isArray(value.furniture)) {
     throw new Error("Proje mobilya konstrüksiyon istekleri bir liste olmalıdır.");
   }
+  if (value.drawerBoxes !== undefined && !Array.isArray(value.drawerBoxes)) {
+    throw new Error("Proje çekmece kutusu konstrüksiyon istekleri bir liste olmalıdır.");
+  }
 
   const furniture: CabinetProjectFurnitureResult[] = [];
-  const parts: CabinetConstructionPart[] = [];
+  const drawerGroups: DrawerGroupProductionResult[] = [];
+  const parts: ProjectProductionPart[] = [];
   const seenFurnitureIds = new Set<string>();
+  const seenDrawerGroupIds = new Set<string>();
   const seenPartIds = new Set<string>();
 
   for (const [index, request] of value.furniture.entries()) {
@@ -87,5 +121,44 @@ export function calculateCabinetProjectProduction(
     });
   }
 
-  return { schemaVersion: 1, furniture, parts };
+  const drawerRequests = value.drawerBoxes ?? [];
+  for (const [index, request] of drawerRequests.entries()) {
+    const furnitureId = readFurnitureId(request, index);
+    if (!seenFurnitureIds.has(furnitureId)) {
+      throw new Error(`${furnitureId} çekmece grubu için proje mobilya listesinde bulunamadı.`);
+    }
+
+    const drawerGroupId = readDrawerGroupId(request, index);
+    const groupKey = JSON.stringify([furnitureId, drawerGroupId]);
+    if (seenDrawerGroupIds.has(groupKey)) {
+      throw new Error(`Proje içinde yinelenen çekmece grubu kimliği: ${furnitureId}/${drawerGroupId}.`);
+    }
+    seenDrawerGroupIds.add(groupKey);
+
+    const result = calculateDrawerBoxConstruction(request);
+    for (const part of result.parts) {
+      if (part.furnitureId !== furnitureId || part.drawerGroupId !== drawerGroupId) {
+        throw new Error(`${part.id} parçasının mobilya veya çekmece grubu kimliği proje girdisiyle eşleşmiyor.`);
+      }
+      if (seenPartIds.has(part.id)) {
+        throw new Error(`Proje içinde yinelenen üretim parçası kimliği: ${part.id}.`);
+      }
+      seenPartIds.add(part.id);
+      parts.push(part);
+    }
+
+    drawerGroups.push({
+      furnitureId,
+      drawerGroupId,
+      innerWidthMm: result.innerWidthMm,
+      bottomLengthMm: result.bottomLengthMm
+    });
+  }
+
+  return {
+    schemaVersion: 1,
+    furniture,
+    ...(drawerGroups.length === 0 ? {} : { drawerGroups }),
+    parts
+  };
 }
