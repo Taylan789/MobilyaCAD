@@ -625,3 +625,15 @@
     transition: none;
   }
 }
+
+
+@media (max-width: 520px) {
+  .mc-panel-preview__options {
+    gap: 4px;
+  }
+
+  .mc-panel-preview__options button {
+    min-height: 30px;
+    padding-inline: 8px;
+  }
+}
