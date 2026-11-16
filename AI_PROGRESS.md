@@ -379,3 +379,19 @@
 - Sınırlar: domain motoru henüz proje agregatörüne, JSON v1, tüketim özeti veya CSV'ye bağlı değildir. Ray boşluğu, reveal, bağlantı, delik, CNC, fire ve fiziksel üretim güvenliği hesabı yapılmaz; gerçek üretim için operatör/atölye doğrulaması gerekir. Hiçbir `frontend/**` dosyası değiştirilmedi.
 - AI Developer workflow run'ı bu kontrolde bulunamadı; workflow `workflow_dispatch` ile tetikleniyor ve bu bağlantıda dispatch aracı yok.
 - Sonraki görev: gövde ve çekmece konstrüksiyon sonuçlarını tek proje agregatöründe ortak parça sözleşmesiyle birleştir; `furnitureId`, drawer group/part ID, mm ölçü, quantity, malzeme, kenar bantlama ve damar yönünü koruyan regresyon testleri ekle.
+
+## 16 Kasım 2026 — gövde ve çekmece kutusu domain parçalarını proje agregatöründe birleştirme
+
+- Başlangıç HEAD: `3922689ccf7b97c93d52bebe7130700b50ebbe37`.
+- Kod commit'i: `6fa2c86b49fe634cb83910af77c14cc3c89e9abe` — [commit](https://github.com/Taylan789/MobilyaCAD/commit/6fa2c86b49fe634cb83910af77c14cc3c89e9abe).
+- Değişen dosyalar:
+  - `domain/production/projectProduction.ts` — opsiyonel `drawerBoxes` isteklerini mevcut gövde mobilyalarına bağlayıp aynı `ProjectProductionPart[]` listesine ekler; `drawerGroups` ölçü özetini yalnızca çekmece varsa döndürür.
+  - `domain/production/projectProduction.test.mjs` — beş yeni test; gövde + çekmece birleşimi, grup/owner kimliği, eski sonuç şekli ve domain malzeme özetinin aynı birleşik parça listesinden hesaplanması.
+  - `docs/production-domain-contract.md` ve `PRODUCT_ROADMAP.md` — sürüm 1 API, entegrasyon sınırı, yol haritası ve sonraki görevler güncellendi.
+- Veri doğruluğu: her çekmece grubu proje içindeki bir mobilyaya bağlı olmalı; aynı mobilyada grup kimliği ve projede parça kimliği benzersiz olmalı. `furnitureId`, `drawerGroupId`, `grainDirection`, materialId, dört kenar bayrağı, mm ölçüleri ve quantity korunur. Eksik alan veya bozuk çekmece şeması mevcut drawer motoru tarafından reddedilir.
+- Geriye uyumluluk: `drawerBoxes` verilmez veya boşsa önceki proje sonuç nesnesi değişmez; yeni `drawerGroups` alanı eklenmez.
+- Gerçek GitHub Actions doğrulaması: CI run `43854675631` başarılı; QA run `43854675624` başarılı (**101/101 frontend + 56/56 domain testi**, 0 başarısız); Pages run `43854675588` başarılı (build + deploy). QA strict domain TypeScript, lint, production build ve production dependency audit adımları başarılı.
+- Kalite notları: Oxlint 24 uyarı / 0 hata; npm audit raporunda 6 mevcut bulgu (2 düşük, 4 orta; yüksek eşik aşılmadı); bundle boyutu ve Actions Node 20 deprecation uyarıları sürüyor.
+- Sınırlar: frontend JSON v1/CSV adapter'ı henüz bu domain agregatörünü çağırmıyor. Ray boşluğu, donanım, delik, CNC, nesting, fire, kerf veya fiziksel üretim onayı eklenmedi. Hiçbir `frontend/**` dosyası değiştirilmedi; açık frontend PR #7 ve #8 sahiplenilmedi/merge edilmedi.
+- AI Developer: `.github/workflows/ai-developer.yml` yalnızca `workflow_dispatch` ile çalışır; mevcut Actions listesinde bu workflow run'ı yoktur ve bu bağlantıda workflow dispatch işlemi desteklenmediğinden yeni run başlatılmadı.
+- Sonraki görev: frontend sahibi `drawerBoxSpecs` → `drawerBoxes` adapter'ını kendi dalında uygulasın; domain tarafında ardından aile-discriminated request sözleşmesi ve açık parametreli kitaplık konstrüksiyon motoru geliştirilsin.

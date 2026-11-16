@@ -123,9 +123,7 @@ Frontend sahibi entegrasyonu aşağıdaki sırayla yapmalıdır:
 
 Bu sözleşme makineye hazır CNC, DXF, nesting/levha optimizasyonu, kesim kerfi, fire, levha verimi, donanım/bağlantı koordinatı, ray boşluğu, fiyat, işçilik veya fiziksel üretim güvenliği onayı sağlamaz. Bunlar için kullanıcı kataloğu, gerçek üretici standardı ve atölye doğrulaması gerekir.
 
-
-
-
+## 6. Sıradaki teknik dilimler
 
 1. Frontend sahibi, mevcut `drawerBoxSpecs` kayıtlarını domain `drawerBoxes` isteklerine dönüştüren adapter'ı kendi frontend dalında uygulasın; JSON v1 geriye uyumluluğunu ve boş/hata durumlarını korusun.
 2. Domain proje isteğini aile-discriminated bir sözleşmeye evrilt; mevcut `furniture` + opsiyonel `drawerBoxes` biçimini geriye uyumlu tut.
