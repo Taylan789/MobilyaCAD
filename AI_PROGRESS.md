@@ -485,3 +485,21 @@
 - Geriye uyumluluk: family-less cabinet ve bookshelf sonuçları aynı kaldı; table için `overallDimensionsMm` kullanılır; ortak Part listesi ve malzeme özeti otomatik testle doğrulandı.
 - Hiçbir `frontend/**` dosyası değiştirilmedi. Frontend PR #8 sahiplenilmedi veya birleştirilmedi.
 - Sonraki görev: proje agregatörüne desteklenmeyen aile/konfigürasyon için açık, mobilya kimliğine bağlı tanılama/engelleme sonucu eklemek.
+
+
+## 16 Kasım 2026 — proje üretim hazır olma raporu ve otomatik doğrulama
+
+- Başlangıç HEAD: `ffac36aca0dcff9ac614143d16c7c0593a2b39c2` (`dev/github-work`).
+- Domain API / test / sözleşme / yol haritası commit'i: `c3c932ddbc862b4d874adc56e9eb3f413a7d4872`.
+- QA test beklentisi düzeltme commit'i: `4821fc89ac38e62c5ae10cd37e9284c3c29752d4`.
+- Değişen dosyalar:
+  - `domain/production/projectProduction.ts` — `calculateCabinetProjectProductionWithDiagnostics`; `ready` / `blocked` / `empty` durumları, desteklenmeyen aile, geçersiz konstrüksiyon/çekmece ve proje düzeyi tanılar. Bloklu projede `result: null`; kısmi kesim listesi dışarı verilmez.
+  - `domain/production/projectProduction.test.mjs` — 6 yeni kabul testi; ilk Actions çalıştırmasındaki tek başarısız beklenti, motorun gerçek Türkçe hata mesajına göre düzeltildi.
+  - `docs/production-domain-contract.md`, `PRODUCT_ROADMAP.md` — API, export kapısı, entegrasyon durumları ve sıradaki işler.
+- Kabul kriterleri: desteklenen + bilinmeyen aile karışımı; geçersiz gövde ve çekmece; hazır raporun strict agregatör sonucu ile eşitliği; boş proje; bozuk proje zarfı. Mevcut strict `calculateCabinetProjectProduction` API'si ve geçerli sonuç şekli korundu.
+- İlk doğrulama: CI run `43910481411` başarılı, Pages run `43910481479` başarılı; QA run `43910481483` yalnızca yeni çekmece testi assertion'ında başarısız oldu. Domain davranışı doğru hata metnini (`Çekmece kutusu dış genişliği...`) üretti; test beklentisi `4821fc8` ile düzeltildi, test kaldırılmadı veya gevşetilmedi.
+- Nihai gerçek GitHub Actions (HEAD `4821fc89ac38e62c5ae10cd37e9284c3c29752d4`): CI run `43910636895` başarılı; QA run `43910637014` başarılı (**101/101 frontend + 88/88 domain testi**, 0 başarısız); Pages deploy run `43910636854` başarılı. QA'da shared-domain strict TypeScript, lint, frontend TypeScript/production build ve `npm audit --omit=dev --audit-level=high` adımları başarılı.
+- Kalite notları: Oxlint 32 uyarı / 0 hata; production audit'te 6 mevcut bulgu (2 düşük, 4 orta; yüksek önem eşiği geçilmedi); büyük JS chunk ve GitHub Actions Node 20 deprecation uyarıları sürüyor. Kırıcı bağımlılık güncellemesi yapılmadı.
+- Sınırlar: hiçbir `frontend/**` dosyası değiştirilmedi. Frontend JSON v1/CSV adapter'ı henüz bu raporu kullanmıyor; UI sahibi ready/blocked/unsupported/empty durumlarını ve güvenli export kapısını bağlamalı. CNC, ray/donanım, delik, nesting, fire, fiyat veya fiziksel üretim güvenliği onayı üretilmedi.
+- AI Developer workflow'u `.github/workflows/ai-developer.yml` yalnızca `workflow_dispatch` ile çalışır; branch run listesinde bu workflow'a ait run bulunmadı. Dispatch işlemi desteklenmediği için yeni run başlatılmadı.
+- Sonraki görev: frontend sahibinin `drawerBoxSpecs` → `drawerBoxes` adapter'ını ve tanılama raporuna bağlı güvenli export kapısını kendi dalında tamamlaması; domain tarafında ardından açık ölçülü gardırop/TV ünitesi ailesini ve karışık aile malzeme toplamlarını test etmek.
