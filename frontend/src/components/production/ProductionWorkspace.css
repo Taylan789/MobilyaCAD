@@ -366,3 +366,24 @@
   .mc-production-studio,
   .mc-production-studio * { animation-duration: .01ms !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
 }
+
+.cad-topbar--production .cad-top-actions { display: none; }
+.cad-topbar--production .cad-top-right { margin-left: auto; }
+.cad-production-mode-button {
+  gap: 7px !important;
+  border-color: rgba(145,180,202,.3) !important;
+  color: #d8e5eb !important;
+  background: rgba(145,180,202,.08) !important;
+}
+.cad-production-mode-button:hover {
+  border-color: rgba(145,180,202,.55) !important;
+  background: rgba(145,180,202,.15) !important;
+}
+.cad-production-mode-button svg { width: 14px; height: 14px; }
+@media (max-width: 900px) {
+  .cad-topbar--production .cad-document-status { display: none; }
+}
+@media (max-width: 620px) {
+  .cad-production-mode-button span { display: none; }
+  .cad-production-mode-button { width: 34px; padding: 0 !important; }
+}
