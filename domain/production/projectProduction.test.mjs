@@ -322,8 +322,12 @@ test("aile ayrımlı proje agregatörü kitaplık parçalarını ortak tüketim 
   const materialSummary = calculateProjectMaterialConsumptionSummary(result);
   const mdf = materialSummary.find((entry) => entry.materialId === "mdf-18");
   assert.ok(mdf);
-  assert.equal(mdf.totalQuantity, 11);
-  assert.equal(mdf.partLineCount, 9);
+  assert.equal(mdf.totalQuantity, 7);
+  assert.equal(mdf.partLineCount, 5);
+  assert.equal(
+    materialSummary.reduce((total, entry) => total + entry.totalQuantity, 0),
+    11
+  );
 });
 
 test("proje agregatörü bilinmeyen mobilya ailesini cabinet olarak varsaymaz", () => {
