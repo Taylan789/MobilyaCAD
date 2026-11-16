@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import type { ChangeEvent, CSSProperties } from "react";
 import {
   Box,
+  ArrowLeft,
+  Factory,
   CookingPot,
   Layers,
   DoorOpen,
@@ -73,6 +75,7 @@ import "./styles/workbench.css";
 import Scene3D from "./components/viewport/Scene3D";
 import { DrawerBoxConfigurator } from "./components/production/DrawerBoxConfigurator";
 import { ProductionOverview } from "./components/production/ProductionOverview";
+import { ProductionWorkspace } from "./components/production/ProductionWorkspace";
 import { MaterialCatalogManager } from "./components/production/MaterialCatalogManager";
 import { FurnitureTransformFields } from "./components/workspace/FurnitureTransformFields";
 import { FurniturePartInspector } from "./components/workspace/FurniturePartInspector";
@@ -112,6 +115,8 @@ function App() {
   const [sceneSearch, setSceneSearch] = useState("");
   const [collapsedSceneFurnitureIds, setCollapsedSceneFurnitureIds] = useState<string[]>([]);
   const [inspectorTab, setInspectorTab] = useState<"room" | "furniture" | "production" | "materials">("room");
+  const [workspaceMode, setWorkspaceMode] = useState<"design" | "production">("design");
+  const [productionSection, setProductionSection] = useState<"report" | "materials">("report");
 
   const [constructionRules] = useState<CabinetConstructionRules>({
     panelThickness: 18,
@@ -200,6 +205,8 @@ function App() {
     setSceneSearch("");
     setCollapsedSceneFurnitureIds([]);
     setInspectorTab(initialInspector);
+    setWorkspaceMode(initialInspector === "production" ? "production" : "design");
+    setProductionSection("report");
     setDimensionDraft(null);
     setSelectedCategory("Tümü");
     setCatalogSearch("");
@@ -901,7 +908,7 @@ function App() {
         </div>
       ) : (
       <div className="cad-app">
-        <header className="cad-topbar">
+        <header className={`cad-topbar${workspaceMode === "production" ? " cad-topbar--production" : ""}`}>
           <div className="cad-brand">
             <MobilyaCadLogo className="cad-brand-lockup" tone="inverse" descriptor="DESIGN &amp; MANUFACTURING" />
           </div>
@@ -974,8 +981,27 @@ function App() {
           <div className="cad-top-right">
             <div className="cad-mode-indicator">
               <span />
-              Tasarım modu
+              {workspaceMode === "production" ? "Üretim modu" : "Tasarım modu"}
             </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="cad-production-mode-button"
+              aria-pressed={workspaceMode === "production"}
+              onClick={() => {
+                if (workspaceMode === "production") {
+                  setWorkspaceMode("design");
+                  setInspectorTab("production");
+                } else {
+                  setWorkspaceMode("production");
+                  setProductionSection("report");
+                  setInspectorTab("production");
+                }
+              }}
+            >
+              {workspaceMode === "production" ? <ArrowLeft /> : <Factory />}
+              <span>{workspaceMode === "production" ? "Modelleme" : "Üretim"}</span>
+            </Button>
             <Button variant="ghost" size="sm" className="cad-home-button" aria-label="Stüdyoya dön" onClick={() => setWorkspaceOpen(false)}>
               <House />
               <span>Stüdyo</span>
@@ -1073,6 +1099,60 @@ function App() {
           </div>
         </header>
 
+        {workspaceMode === "production" ? (
+          <ProductionWorkspace
+            section={productionSection}
+            onSectionChange={setProductionSection}
+            onBackToDesign={() => {
+              setWorkspaceMode("design");
+              setInspectorTab("production");
+            }}
+            furnitureCount={furniture.length}
+            partCount={productionParts.length}
+            supportedFurnitureCount={projectProduction.supportedFurnitureCount}
+            unsupportedCount={projectProduction.unsupportedFurniture.length}
+            documentStatusLabel={documentStatusLabel}
+            exportBlockReason={productionExportBlockReason}
+          >
+            {productionSection === "report" ? (
+              <>
+                {selectedFurniture &&
+                  isSupportedCabinetCatalogItem(selectedCatalogItem) &&
+                  selectedFurniture.drawerCount > 0 && (
+                    <DrawerBoxConfigurator
+                      key={selectedFurniture.id}
+                      furnitureId={selectedFurniture.id}
+                      expectedDrawerCount={selectedFurniture.drawerCount}
+                      configs={selectedFurniture.drawerBoxSpecs ?? []}
+                      materials={materials}
+                      onChange={(drawerBoxSpecs) =>
+                        setFurniture((previous) =>
+                          previous.map((item) =>
+                            item.id === selectedFurniture.id
+                              ? { ...item, drawerBoxSpecs }
+                              : item
+                          )
+                        )
+                      }
+                    />
+                  )}
+                <ProductionOverview
+                  furnitureCount={furniture.length}
+                  production={projectProduction}
+                  edgeBanding={edgeBandingSummary}
+                  materialConsumption={materialConsumptionSummary}
+                  onExport={exportProductionCsv}
+                />
+              </>
+            ) : (
+              <MaterialCatalogManager
+                materials={materials}
+                referencedMaterialIds={referencedMaterialIds}
+                onChange={updateMaterials}
+              />
+            )}
+          </ProductionWorkspace>
+        ) : (
         <SidebarProvider
           defaultOpen
           style={sidebarStyle}
@@ -1801,7 +1881,9 @@ function App() {
             </div>
           </div>
         </SidebarProvider>
+        )}
 
+        {workspaceMode === "design" && (
         <nav className="cad-mobile-toolbar" aria-label="Mobil çalışma araçları">
           <button type="button" onClick={() => setMobilePanel(mobilePanel === "catalog" ? null : "catalog")} aria-pressed={mobilePanel === "catalog"}>
             <Package />
@@ -1824,6 +1906,7 @@ function App() {
             <span>Özellik</span>
           </button>
         </nav>
+        )}
 
         {workspaceLoading && <div className="cad-loading-screen" role="status" aria-live="polite">
           <MobilyaCadLogo className="cad-loading-brand" tone="inverse" descriptor="STUDIO" />
