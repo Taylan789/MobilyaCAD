@@ -1038,7 +1038,32 @@ function App() {
                             onClick={() => addFurniture(item.id)}
                             title={`${item.name} modelini odaya ekle`}
                           >
-                            <span className=            ) : (
+                            <span className="cad-catalog-card-icon">
+                              <Icon />
+                            </span>
+                            <span className="cad-catalog-card-add">
+                              <Plus />
+                            </span>
+                            <strong>{item.name}</strong>
+                            <small>
+                              {item.width} × {item.height} × {item.depth} mm
+                            </small>
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {filteredFurnitureCatalog.length === 0 && (
+                      <p className="cad-empty-state">
+                        Aramanızla eşleşen model bulunamadı.
+                      </p>
+                    )}
+                  </ScrollArea>
+                </SidebarGroupContent>
+              </SidebarGroup>
+            
+              </>
+            ) : (
               <div className="studio-scene-tree">
                 <div className="studio-tree-heading">
                   <span>PROJE HİYERARŞİSİ</span>
