@@ -104,6 +104,17 @@ Kaynak: domain/production/bookshelfConstruction.ts
 - Kalınlığı override edilen her grup için seçili malzeme kimliği (grup override'ı veya mobilyanın varsayılan `materialId` değeri) zorunludur ve katalog kaydının `thicknessesMm` listesinde gerçek kalınlık bulunmalıdır. Serbest metin legacy malzeme, grup kalınlığı override'ı verilmediğinde geriye uyumlu kalır.
 - Dikey bölücü, raf aralığı, duvar sabitlemesi, delik, bağlantı, donanım, nesting, CNC, fire veya üretim güvenliği hesabı bu dilime dahil değildir; bunlar ayrı ve açık parametreli dilimlerdir.
 
+### 2.7 Masa ailesinin proje agregatörüne bağlanması
+
+Kaynaklar: `domain/production/tableConstruction.ts`, `domain/production/projectProduction.ts`, `domain/production/projectMaterialSummary.ts`.
+
+- Proje isteğinde `family: "table"` bulunan kayıtlar `calculateTableConstruction` motoruna yönlendirilir; `TableConstructionPart` satırları cabinet/bookshelf/drawer satırlarıyla aynı `parts` listesine eklenir.
+- Masa mobilya sonucu `overallDimensionsMm: { width, length, height }` alanını taşır. Dolap ve kitaplık sonuçlarının `innerDimensionsMm` alanı ve family-less legacy dolap sonucu değişmez; masa sonucuna sahte iç ölçü eklenmez.
+- Stabil parça ID'si, kaynak `furnitureId`, mm ölçüleri, quantity, `materialId`, kenar bantlama ve damar yönü aynen korunur. Masa ailesi çekmece kutusu isteği kabul etmez; mevcut `drawerBoxes` sözleşmesi yalnızca açıkça bağlı olduğu mevcut mobilya kimliğini doğrular ve masa konstrüksiyonuna çekmece varsayımı eklemez.
+- Proje malzeme özeti aynı birleşik `parts` listesini kullanır. Malzeme katalog kimliği ve gerçek kalınlık grupları ayrıdır; quantity ağırlıklı net alan/hacim ve yalnızca açık kenar bayraklarından bant uzunluğu hesaplanır.
+- Kabul testleri cabinet + bookshelf + table karışık projede legacy/inner/overall ölçü şekillerini, masa parça ID/adet/malzeme alanlarını ve aynı liste üzerinden masa alan/hacim/bantlama toplamlarını doğrular. Bozuk masa isteği ve bilinmeyen aile reddedilir.
+- Bu entegrasyon yalnızca domain agregatörüdür. Frontend JSON v1/CSV adapter'ı henüz bu domain API'yi çağırmaz; UI, CNC, nesting, bağlantı koordinatı, fire, levha verimi, fiyat veya üretim güvenliği onayı sağlamaz.
+
 ## 3. Mevcut frontend proje verisi ve uyumluluk
 
 Kaynaklar: `frontend/src/types/placedFurniture.ts`, `frontend/src/engine/projectFile.ts`, `frontend/src/engine/drawerBoxParts.ts`, `frontend/src/engine/projectProduction.ts`.
@@ -121,10 +132,10 @@ Kaynaklar: `frontend/src/types/placedFurniture.ts`, `frontend/src/engine/project
 
 Frontend sahibi entegrasyonu aşağıdaki sırayla yapmalıdır:
 
-1. Her desteklenen mobilya için mevcut `PlacedFurniture`, katalog kaydı, mobilyaya çözülmüş konstrüksiyon kuralları ve malzeme kataloğundan aile ayrımlı bir istek üret: legacy/dolap için `CabinetConstructionRequest`, açık kitaplık için `BookshelfConstructionRequest`.
+1. Her desteklenen mobilya için mevcut `PlacedFurniture`, katalog kaydı, mobilyaya çözülmüş konstrüksiyon kuralları ve malzeme kataloğundan aile ayrımlı bir istek üret: legacy/dolap için `CabinetConstructionRequest`, açık kitaplık için `BookshelfConstructionRequest`, masa için `TableConstructionRequest` üret.
 2. mm ölçülerini dönüştürmeden taşı; mm dışı bir kaynaktan dönüşüm gerekiyorsa tek adapter noktasında yap ve test et.
 3. `materialId` ve panel override referanslarını katalogda doğrula; gerçek parça kalınlığı `thicknessesMm` listesinde yoksa sonucu hatalı/engelli göster.
-4. Her mobilyanın stabil ID'sini ve agregatörün ürettiği parça ID'sini aynen koru. Dolap ve kitaplık isteklerini `furniture` listesinde, bu mobilyalara ait açık çekmece isteklerini `drawerBoxes` alanında aynı agregatör çağrısına ver.
+4. Her mobilyanın stabil ID'sini ve agregatörün ürettiği parça ID'sini aynen koru. Dolap, kitaplık ve masa isteklerini `furniture` listesinde; yalnızca ilgili gövde mobilyasına ait açık çekmece isteklerini `drawerBoxes` alanında aynı agregatör çağrısına ver.
 5. Domain `ProjectProductionPart` birleşiminde gövde ve çekmece satırlarını ayırt et. Çekmece satırlarının `drawerGroupId` ve `grainDirection` alanlarını koru; gövde satırlarına uydurma damar yönü veya CNC operasyonu ekleme.
 6. Malzeme özeti aynı birleşik agregatör sonucundan hesaplanmalıdır; UI veya CSV için ikinci, bağımsız geometri hesabı yazılmamalıdır.
 7. Üretilmiş parça listesi ve özet proje JSON'a sessizce yazılmaz. JSON v1 mevcut tasarım girdilerini ve katalog referanslarını saklamaya devam eder; türetilmiş sonuç gerektiğinde yeniden hesaplanır.
@@ -146,7 +157,7 @@ Bu sözleşme makineye hazır CNC, DXF, nesting/levha optimizasyonu, kesim kerfi
 
 1. Frontend sahibi, mevcut `drawerBoxSpecs` kayıtlarını domain `drawerBoxes` isteklerine dönüştüren adapter'ı kendi frontend dalında uygulasın; JSON v1 geriye uyumluluğunu ve boş/hata durumlarını korusun.
 2. [x] Kitaplık panel grubu bazlı kalınlık girdileri: opsiyonel `panelThicknessMmByGroup`; legacy ortak kalınlık fallback'i; her override için katalog kimliği ve gerçek `thicknessesMm` doğrulaması.
-3. İlk farklı konstrüksiyon ailesi olarak masa motorunu açık tabla, ayak ve varsa kayıt/apron ölçüleriyle tasarla; bağlantı standardı uydurma.
+3. [x] Masa motorunu proje agregatörüne bağla; masa için `overallDimensionsMm` döndür, eski cabinet/bookshelf `innerDimensionsMm` sonuçlarını koru ve ortak Part listesinde malzeme özetini test et.
 4. Proje agregatörüne aile bazlı destek/engelleme tanılaması ekle; desteklenmeyen mobilyalar sessizce kesim listesine girmesin.
 5. Frontend sahibi domain agregatörünü JSON v1/CSV adapter'ına bağladıktan sonra aynı Part listesinin export ile birebir uzlaştığını otomatik test et.
 
