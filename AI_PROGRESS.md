@@ -508,7 +508,7 @@
 ## 16 Kasım 2026 — parametrik gardırop dikey bölücüleri
 
 - Başlangıç HEAD: 1b511d78006aa1281b56bcf993908b3aa1cecd52 (dev/github-work).
-- Kod commit SHA: sonraki doğrulama güncellemesinde GitHub commit SHA ile tamamlanacak.
+- Kod commit SHA: 66b106e9726388240326170a6671bf30bebfb4b0.
 - Değişen dosyalar: domain/production/wardrobeConstruction.ts; domain/production/wardrobeConstruction.test.mjs; domain/production/projectProduction.ts; .github/workflows/qa-test.yml; docs/production-domain-contract.md; PRODUCT_ROADMAP.md; AI_PROGRESS.md.
 - Wardrobe motoru mevcut cabinet gövde motorunu kullanır; her dikey bölücü için açık ofset, kalınlık, katalog materialId, kenar bantlama ve damar yönü ister. Bölücüler tam iç yükseklik/derinlikte panel satırlarıdır.
 - Kabul kriterleri: wardrobe aile yönlendirmesi; 0.1 mm konum; iç genişlik sınırı ve çakışma kontrolü; katalog kalınlığı; geçersiz durumda blocked/result=null; ortak Part listesi üzerinden malzeme özeti.
@@ -516,3 +516,13 @@
 - AI Developer workflow yalnızca workflow_dispatch; son 100 branch run'ında yok, dispatch aracı bulunmadığından yeni run başlatılmadı.
 - Bilinen sınırlar: bölme bazlı raf, askı borusu, çekmece yerleşimi, bağlantı/delik, CNC, nesting, fire ve fiyat yok. Frontend JSON v1/CSV entegrasyonu ayrı frontend sahibinin kapsamındadır; frontend/** değiştirilmedi.
 - Sonraki görev: bölücüleri açık ölçülü bölme raflarıyla ilişkilendiren domain sözleşmesi ve testleri tasarlamak.
+
+
+## 16 Kasım 2026 — gardırop ailesi tanılama test uyarlaması
+
+- İlgili özellik commit'i: 66b106e9726388240326170a6671bf30bebfb4b0.
+- İlk QA run 43915442898, 96 domain testinden 94'ünü geçti. Yeni gardırop motorunun 8 testi başarılıydı; iki eski projectProduction testi wardrobe ailesini hâlâ desteklenmeyen aile olarak bekliyordu.
+- Ürün davranışı doğru: wardrobe artık desteklenen bir aile. Eski test fixture'ları, gerçekten desteklenmeyen aileyi sınamak için sofa olarak güncellendi; test kapsamı kaldırılmadı veya gevşetilmedi.
+- Değişen dosya: domain/production/projectProduction.test.mjs. Bu düzeltme commit'inin CI/QA/Pages sonuçları henüz bekleniyor.
+- İlk özellik commit'inde CI 43915443067 ve Pages 43915443151 başarılı; QA 43915442898 yalnızca eski test beklentilerinde başarısız.
+- Sonraki görev: test fixture düzeltmesinin yeni HEAD'indeki tüm Actions sonuçlarını kontrol et; ardından gardırop bölme rafları için açık konum/ölçü sözleşmesini tasarla.

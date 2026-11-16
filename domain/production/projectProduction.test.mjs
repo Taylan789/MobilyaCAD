@@ -335,7 +335,7 @@ test("aile ayrımlı proje agregatörü kitaplık parçalarını ortak tüketim 
 
 test("proje agregatörü bilinmeyen mobilya ailesini cabinet olarak varsaymaz", () => {
   const invalid = createBookshelfRequest("book-invalid");
-  invalid.family = "wardrobe";
+  invalid.family = "sofa";
 
   assert.throws(
     () => calculateCabinetProjectProduction({
@@ -493,8 +493,8 @@ test("geçersiz masa konstrüksiyonu proje agregatöründe reddedilir", () => {
 
 
 test("proje raporu desteklenen aileleri ve desteklenmeyen mobilyaları ayrı tanılar", () => {
-  const unsupported = createBookshelfRequest("wardrobe-unsupported");
-  unsupported.family = "wardrobe";
+  const unsupported = createBookshelfRequest("sofa-unsupported");
+  unsupported.family = "sofa";
 
   const report = calculateCabinetProjectProductionWithDiagnostics({
     schemaVersion: 1,
@@ -513,10 +513,10 @@ test("proje raporu desteklenen aileleri ve desteklenmeyen mobilyaları ayrı tan
     code: item.code
   })), [{
     furnitureId: "wardrobe-unsupported",
-    family: "wardrobe",
+    family: "sofa",
     code: "unsupported-family"
   }]);
-  assert.equal(report.firstError?.includes("wardrobe"), true);
+  assert.equal(report.firstError?.includes("sofa"), true);
 });
 
 test("proje raporu geçersiz desteklenen konstrüksiyonu mobilya kimliğiyle engeller", () => {
