@@ -807,6 +807,12 @@ function App() {
         return;
       }
 
+      if (hasModifier && key === "n") {
+        event.preventDefault();
+        startNewProject();
+        return;
+      }
+
       if (hasModifier && key === "k") {
         event.preventDefault();
         const searchInput = document.getElementById("cad-catalog-search") as HTMLInputElement | null;
@@ -978,6 +984,7 @@ function App() {
               variant="outline"
               size="sm"
               className="cad-new-project-button"
+              aria-keyshortcuts="Control+N Meta+N"
               onClick={() => startNewProject()}
               title="Yeni proje oluştur"
             >
@@ -1047,6 +1054,7 @@ function App() {
                     </Button>
                   </div>
                   <div className="cad-shortcuts-list">
+                    <div><span>Yeni proje oluştur</span><kbd>Ctrl / ⌘ N</kbd></div>
                     <div><span>Kütüphanede ara</span><kbd>Ctrl / ⌘ K</kbd></div>
                     <div><span>Projeyi JSON olarak indir</span><kbd>Ctrl / ⌘ S</kbd></div>
                     <div><span>JSON proje dosyası aç</span><kbd>Ctrl / ⌘ O</kbd></div>
