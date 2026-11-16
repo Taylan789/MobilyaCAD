@@ -11,6 +11,7 @@ import {
   updateMaterialCatalogEntry,
   type MaterialCatalogEntry
 } from "../../engine/materialCatalog";
+import "./MaterialCatalogManager.css";
 
 interface MaterialCatalogManagerProps {
   materials: MaterialCatalogEntry[];
@@ -25,12 +26,97 @@ interface MaterialDraft {
   thicknessesMm: string;
 }
 
+interface PanelSectionPreviewProps {
+  thicknessesMm: number[];
+  decor?: string;
+  compact?: boolean;
+}
+
 const emptyDraft: MaterialDraft = {
   id: "",
   name: "",
   decor: "",
   thicknessesMm: ""
 };
+
+function PanelSectionPreview({
+  thicknessesMm,
+  decor,
+  compact = false
+}: PanelSectionPreviewProps) {
+  const sampleThickness = [...thicknessesMm].sort((a, b) => a - b)[0];
+  const sectionHeight = sampleThickness === undefined
+    ? 0
+    : Math.max(5, Math.min(22, sampleThickness * 0.7));
+  const top = 48 - sectionHeight;
+
+  return (
+    <div
+      className={"mc-panel-preview" + (compact ? " mc-panel-preview--compact" : "")}
+      aria-label={
+        sampleThickness === undefined
+          ? "Panel kesit önizlemesi için kalınlık girilmedi"
+          : "Temsili panel kesiti, ilk kalınlık seçeneği " + sampleThickness + " milimetre"
+      }
+    >
+      <svg viewBox="0 0 164 76" aria-hidden="true">
+        <path d="M8 62H154M8 68H154" stroke="currentColor" strokeOpacity=".14" strokeWidth="1" />
+        {sampleThickness === undefined ? (
+          <g fill="none" stroke="currentColor" strokeOpacity=".45" strokeDasharray="4 4">
+            <path d="M28 43 116 43 137 31 49 31Z" />
+            <path d="M28 43V53L116 53V43M116 43 137 31V41L116 53" />
+          </g>
+        ) : (
+          <g strokeLinejoin="round">
+            <path
+              d={"M25 " + top + " L113 " + top + " L135 " + (top - 12) + " L47 " + (top - 12) + " Z"}
+              fill="#91a9b7"
+              fillOpacity=".72"
+              stroke="#c4d2da"
+              strokeOpacity=".72"
+            />
+            <path
+              d={"M25 " + top + " L113 " + top + " L113 48 L25 48 Z"}
+              fill="#647d8b"
+              stroke="#b2c2cb"
+              strokeOpacity=".78"
+            />
+            <path
+              d={"M113 " + top + " L135 " + (top - 12) + " L135 " + (48 - 12) + " L113 48 Z"}
+              fill="#344c59"
+              stroke="#91a9b7"
+              strokeOpacity=".8"
+            />
+            <path d={"M34 " + (top + 3) + " H105"} stroke="#dce5e9" strokeOpacity=".36" />
+            <path d="M25 53H113" stroke="#c39470" strokeWidth="2" />
+            <circle cx="122" cy="56" r="2" fill="#c39470" />
+          </g>
+        )}
+        {sampleThickness !== undefined && (
+          <text x="139" y="66" fill="currentColor" fontSize="8" textAnchor="end">
+            {sampleThickness}
+          </text>
+        )}
+      </svg>
+      <div className="mc-panel-preview__caption">
+        <span>KESİT ŞEMASI</span>
+        <strong>
+          {sampleThickness === undefined
+            ? "Kalınlık bekleniyor"
+            : sampleThickness.toLocaleString("tr-TR") + " mm"}
+        </strong>
+        <small>{decor || "Yüzey rengi / dokusu tanımlı değil"}</small>
+      </div>
+    </div>
+  );
+}
+
+function parseThicknessDraft(value: string): number[] {
+  return value
+    .split(";")
+    .map((token) => Number(token.trim()))
+    .filter((thickness) => Number.isFinite(thickness) && thickness > 0);
+}
 
 export function MaterialCatalogManager({
   materials,
@@ -75,7 +161,7 @@ export function MaterialCatalogManager({
 
     try {
       const tokens = draft.thicknessesMm.split(";").map((value) => value.trim());
-      if (tokens.length === 0 || tokens.some((value) => !/^\d+(?:\.\d+)?$/.test(value))) {
+      if (tokens.length === 0 || tokens.some((value) => !/^\\d+(?:\\.\\d+)?$/.test(value))) {
         throw new Error("Kalınlıkları mm olarak noktalı ondalıkla ve noktalı virgülle ayırarak gir. Örnek: 8; 12; 18");
       }
 
@@ -117,7 +203,6 @@ export function MaterialCatalogManager({
   const usedMaterialCount = materials.filter((material) =>
     referencedMaterialIds.has(material.id)
   ).length;
-
   const unusedMaterialCount = materials.length - usedMaterialCount;
   const normalizedSearch = searchQuery.trim().toLocaleLowerCase("tr-TR");
   const filteredMaterials = materials.filter((material) => {
@@ -138,122 +223,130 @@ export function MaterialCatalogManager({
     return matchesFilter && matchesSearch;
   });
 
+  const draftThicknesses = parseThicknessDraft(draft.thicknessesMm);
+  const isEditing = editingId !== null;
+
   return (
-    <section className="cad-property-section space-y-4">
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex min-w-0 items-center gap-3">
-          <div className="flex size-9 shrink-0 items-center justify-center rounded-xl border border-primary/25 bg-primary/10 text-primary">
-            <Layers3 className="size-[18px]" />
-          </div>
-          <div className="min-w-0">
-            <h3 className="text-sm font-semibold tracking-wide text-foreground">Malzeme kütüphanesi</h3>
-            <p className="text-xs text-muted-foreground">Panel, dekor ve kalınlık tanımları</p>
+    <section className="mc-material-library" aria-label="Malzeme kütüphanesi">
+      <header className="mc-material-library__header">
+        <div className="mc-material-library__title">
+          <span className="mc-material-library__mark" aria-hidden="true"><Layers3 /></span>
+          <div>
+            <span className="mc-material-library__eyebrow">KÜTÜPHANE / PANEL ENVANTERİ</span>
+            <h2>Malzeme kütüphanesi</h2>
+            <p>Projede kullanılan panel türlerini ve tanımlı kalınlık seçeneklerini yönet.</p>
           </div>
         </div>
-        <span className="rounded-full border border-border bg-muted/70 px-2.5 py-1 text-xs font-semibold tabular-nums text-foreground">
-          {materials.length} kayıt
+        <span className="mc-material-library__record-count">
+          {materials.length.toLocaleString("tr-TR")} KAYIT
         </span>
+      </header>
+
+      <div className="mc-material-library__metrics">
+        <div className="mc-material-library__metric">
+          <span>TOPLAM MALZEME</span>
+          <strong>{materials.length.toLocaleString("tr-TR")}</strong>
+          <small>Bu proje dosyasında</small>
+        </div>
+        <div className="mc-material-library__metric mc-material-library__metric--used">
+          <span>PROJEDE KULLANILAN</span>
+          <strong>{usedMaterialCount.toLocaleString("tr-TR")}</strong>
+          <small>Aktif malzeme referansı</small>
+        </div>
+        <div className="mc-material-library__metric">
+          <span>ATANMAMIŞ</span>
+          <strong>{unusedMaterialCount.toLocaleString("tr-TR")}</strong>
+          <small>Henüz bir mobilyaya bağlı değil</small>
+        </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-2">
-        <div className="rounded-xl border border-border/80 bg-card/70 p-3">
-          <span className="block text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Toplam malzeme</span>
-          <strong className="mt-1 block text-2xl font-semibold tabular-nums text-foreground">{materials.length}</strong>
-        </div>
-        <div className="rounded-xl border border-border/80 bg-card/70 p-3">
-          <span className="block text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Projede kullanılan</span>
-          <strong className="mt-1 block text-2xl font-semibold tabular-nums text-primary">{usedMaterialCount}</strong>
-        </div>
-      </div>
-
-      <p className="rounded-lg border border-border/70 bg-muted/30 px-3 py-2.5 text-xs leading-relaxed text-muted-foreground">
-        Katalog bu proje dosyasında saklanır. Kalınlıklar mm cinsindendir; fiyat,
-        tedarikçi, fire veya üretim standardı otomatik olarak atanmaz.
-      </p>
-
-      {materials.length === 0 ? (
-        <div className="flex flex-col items-center rounded-xl border border-dashed border-border bg-card/40 px-4 py-7 text-center" role="status">
-          <div className="mb-3 flex size-11 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-            <Layers3 className="size-5" />
-          </div>
-          <strong className="text-sm font-semibold text-foreground">Kütüphane henüz boş</strong>
-          <p className="mt-1 max-w-[240px] text-xs leading-relaxed text-muted-foreground">
-            Kullandığın MDF, suntalam ve diğer panel türlerini tanımlayarak başlayabilirsin.
-          </p>
-        </div>
-      ) : (
-        <div className="space-y-3">
-          <div className="space-y-2">
-            <div className="relative">
-              <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                value={searchQuery}
-                onChange={(event) => setSearchQuery(event.target.value)}
-                placeholder="Malzeme, dekor, kimlik veya kalınlık ara..."
-                aria-label="Malzeme kataloğunda ara"
-                className="pl-9 pr-9"
-              />
-              {searchQuery !== "" && (
-                <button
-                  type="button"
-                  className="absolute right-2 top-1/2 flex size-7 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring"
-                  aria-label="Aramayı temizle"
-                  onClick={() => setSearchQuery("")}
-                >
-                  <X className="size-3.5" />
-                </button>
-              )}
+      <div className="mc-material-library__workspace">
+        <section className="mc-material-library__catalog" aria-label="Kayıtlı malzemeler">
+          <div className="mc-material-library__section-heading">
+            <div>
+              <span className="mc-material-library__eyebrow">ENVANTER</span>
+              <h3>Kayıtlı malzemeler</h3>
             </div>
-            <div className="flex flex-wrap gap-1.5" role="group" aria-label="Malzeme kullanım filtresi">
-              <Button
-                type="button"
-                size="sm"
-                variant={materialFilter === "all" ? "secondary" : "ghost"}
-                aria-pressed={materialFilter === "all"}
-                onClick={() => setMaterialFilter("all")}
-              >
-                Tümü <span className="ml-1 tabular-nums opacity-70">{materials.length}</span>
-              </Button>
-              <Button
-                type="button"
-                size="sm"
-                variant={materialFilter === "used" ? "secondary" : "ghost"}
-                aria-pressed={materialFilter === "used"}
-                onClick={() => setMaterialFilter("used")}
-              >
-                Kullanılan <span className="ml-1 tabular-nums opacity-70">{usedMaterialCount}</span>
-              </Button>
-              <Button
-                type="button"
-                size="sm"
-                variant={materialFilter === "unused" ? "secondary" : "ghost"}
-                aria-pressed={materialFilter === "unused"}
-                onClick={() => setMaterialFilter("unused")}
-              >
-                Atanmamış <span className="ml-1 tabular-nums opacity-70">{unusedMaterialCount}</span>
-              </Button>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between px-0.5">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Kayıtlı malzemeler</span>
-            <span className="text-[11px] tabular-nums text-muted-foreground" role="status" aria-live="polite">
-              {filteredMaterials.length} / {materials.length} sonuç
+            <span className="mc-material-library__result-count" role="status" aria-live="polite">
+              {filteredMaterials.length} / {materials.length}
             </span>
           </div>
 
-          {filteredMaterials.length === 0 ? (
-            <div className="flex flex-col items-center rounded-xl border border-dashed border-border bg-card/40 px-4 py-6 text-center" role="status">
-              <Search className="mb-2 size-5 text-muted-foreground" />
-              <strong className="text-sm font-semibold text-foreground">Eşleşen malzeme bulunamadı</strong>
-              <p className="mt-1 max-w-[240px] text-xs leading-relaxed text-muted-foreground">
-                Arama terimini veya kullanım filtresini değiştir.
-              </p>
+          <p className="mc-material-library__notice">
+            <Palette aria-hidden="true" />
+            <span>
+              Katalog yalnızca kimlik, ad, dekor etiketi ve kalınlıkları saklar.
+              Renk, gerçek yüzey dokusu, fiyat, tedarikçi ve fire bilgisi tanımlı değildir.
+            </span>
+          </p>
+
+          {materials.length > 0 && (
+            <div className="mc-material-library__toolbar">
+              <div className="mc-material-library__search">
+                <Search aria-hidden="true" />
+                <Input
+                  value={searchQuery}
+                  onChange={(event) => setSearchQuery(event.target.value)}
+                  placeholder="Malzeme, dekor, kimlik veya kalınlık ara..."
+                  aria-label="Malzeme kataloğunda ara"
+                />
+                {searchQuery !== "" && (
+                  <button
+                    type="button"
+                    aria-label="Aramayı temizle"
+                    onClick={() => setSearchQuery("")}
+                  >
+                    <X />
+                  </button>
+                )}
+              </div>
+              <div className="mc-material-library__filters" role="group" aria-label="Malzeme kullanım filtresi">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={materialFilter === "all" ? "secondary" : "ghost"}
+                  aria-pressed={materialFilter === "all"}
+                  onClick={() => setMaterialFilter("all")}
+                >
+                  Tümü <span>{materials.length}</span>
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={materialFilter === "used" ? "secondary" : "ghost"}
+                  aria-pressed={materialFilter === "used"}
+                  onClick={() => setMaterialFilter("used")}
+                >
+                  Kullanılan <span>{usedMaterialCount}</span>
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={materialFilter === "unused" ? "secondary" : "ghost"}
+                  aria-pressed={materialFilter === "unused"}
+                  onClick={() => setMaterialFilter("unused")}
+                >
+                  Atanmamış <span>{unusedMaterialCount}</span>
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {materials.length === 0 ? (
+            <div className="mc-material-library__empty" role="status">
+              <Layers3 aria-hidden="true" />
+              <strong>Kütüphane henüz boş</strong>
+              <p>Kullandığın MDF, suntalam ve diğer panel türlerini tanımlayarak başlayabilirsin.</p>
+            </div>
+          ) : filteredMaterials.length === 0 ? (
+            <div className="mc-material-library__empty mc-material-library__empty--search" role="status">
+              <Search aria-hidden="true" />
+              <strong>Eşleşen malzeme bulunamadı</strong>
+              <p>Arama terimini veya kullanım filtresini değiştir.</p>
               <Button
                 type="button"
                 size="sm"
                 variant="outline"
-                className="mt-3"
                 onClick={() => {
                   setSearchQuery("");
                   setMaterialFilter("all");
@@ -263,170 +356,164 @@ export function MaterialCatalogManager({
               </Button>
             </div>
           ) : (
-            <div className="space-y-2">
+            <div className="mc-material-library__grid">
               {filteredMaterials.map((material) => {
                 const isReferenced = referencedMaterialIds.has(material.id);
                 return (
                   <article
                     key={material.id}
-                    className="group rounded-xl border border-border/80 bg-card/65 p-3 transition-colors hover:border-primary/35 hover:bg-card"
+                    className={"mc-material-card" + (isReferenced ? " mc-material-card--used" : "")}
                   >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex min-w-0 items-start gap-2.5">
-                        <div className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg bg-secondary text-secondary-foreground">
-                          <PackageIcon />
+                    <div className="mc-material-card__sample">
+                      <PanelSectionPreview
+                        thicknessesMm={material.thicknessesMm}
+                        decor={material.decor}
+                        compact
+                      />
+                    </div>
+                    <div className="mc-material-card__body">
+                      <div className="mc-material-card__heading">
+                        <div>
+                          <span className="mc-material-library__eyebrow">{material.category.toUpperCase()} PANEL</span>
+                          <strong>{material.name}</strong>
+                          <small>{material.id}</small>
                         </div>
-                        <div className="min-w-0">
-                          <strong className="block truncate text-sm font-semibold text-foreground">{material.name}</strong>
-                          <span className="mt-0.5 block truncate font-mono text-[10px] text-muted-foreground">{material.id}</span>
+                        <div className="mc-material-card__actions">
+                          <Button
+                            type="button"
+                            size="icon-sm"
+                            variant="ghost"
+                            aria-label={material.name + " malzemesini düzenle"}
+                            title="Düzenle"
+                            onClick={() => editMaterial(material)}
+                          >
+                            <Pencil />
+                          </Button>
+                          <Button
+                            type="button"
+                            size="icon-sm"
+                            variant="ghost"
+                            aria-label={material.name + " malzemesini sil"}
+                            title={isReferenced ? "Bu malzeme projede kullanılıyor; önce atamayı kaldır." : "Sil"}
+                            disabled={isReferenced}
+                            onClick={() => deleteMaterial(material.id)}
+                          >
+                            <Trash2 />
+                          </Button>
                         </div>
                       </div>
-                      <div className="flex shrink-0 gap-1">
-                        <Button
-                          type="button"
-                          size="icon-sm"
-                          variant="ghost"
-                          className="size-8 text-muted-foreground hover:text-primary"
-                          aria-label={material.name + " malzemesini düzenle"}
-                          title="Düzenle"
-                          onClick={() => editMaterial(material)}
-                        >
-                          <Pencil />
-                        </Button>
-                        <Button
-                          type="button"
-                          size="icon-sm"
-                          variant="ghost"
-                          className="size-8 text-muted-foreground hover:text-destructive"
-                          aria-label={material.name + " malzemesini sil"}
-                          title={isReferenced ? "Bu malzeme projede kullanılıyor; önce atamayı kaldır." : "Sil"}
-                          disabled={isReferenced}
-                          onClick={() => deleteMaterial(material.id)}
-                        >
-                          <Trash2 />
-                        </Button>
+
+                      <div className="mc-material-card__thicknesses">
+                        {material.thicknessesMm.map((thickness) => (
+                          <span key={thickness}><Ruler /> {thickness} mm</span>
+                        ))}
                       </div>
-                    </div>
 
-                    <div className="mt-3 flex flex-wrap items-center gap-1.5">
-                      {material.thicknessesMm.map((thickness) => (
-                        <span key={thickness} className="inline-flex items-center gap-1 rounded-md border border-border bg-background/70 px-2 py-1 text-[11px] font-medium tabular-nums text-foreground">
-                          <Ruler className="size-3 text-muted-foreground" />
-                          {thickness} mm
-                        </span>
-                      ))}
-                      {material.decor && (
-                        <span className="inline-flex items-center gap-1 rounded-md border border-primary/20 bg-primary/8 px-2 py-1 text-[11px] text-primary">
-                          <Palette className="size-3" />
-                          {material.decor}
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="mt-2 flex items-center gap-1.5">
-                      {isReferenced ? (
-                        <>
-                          <Check className="size-3 text-primary" />
-                          <small className="text-[11px] text-primary">Projede kullanılıyor · Silme koruması aktif</small>
-                        </>
-                      ) : (
-                        <small className="text-[11px] text-muted-foreground">Henüz bir mobilyaya atanmamış</small>
-                      )}
+                      <div className="mc-material-card__footer">
+                        {material.decor ? (
+                          <span className="mc-material-card__decor"><Palette /> {material.decor}</span>
+                        ) : (
+                          <span className="mc-material-card__decor mc-material-card__decor--empty">Dekor etiketi yok</span>
+                        )}
+                        {isReferenced ? (
+                          <span className="mc-material-card__usage"><Check /> Kullanımda</span>
+                        ) : (
+                          <span className="mc-material-card__usage mc-material-card__usage--idle">Atanmamış</span>
+                        )}
+                      </div>
                     </div>
                   </article>
                 );
               })}
             </div>
           )}
-        </div>
-      )}
+        </section>
 
-      <form className="space-y-3 rounded-xl border border-border bg-card/55 p-3.5" onSubmit={submitMaterial}>
-        <div className="flex items-center justify-between gap-2 border-b border-border/70 pb-3">
-          <div>
-            <h4 className="text-sm font-semibold text-foreground">{editingId === null ? "Yeni malzeme oluştur" : "Malzemeyi düzenle"}</h4>
-            <p className="mt-0.5 text-[11px] text-muted-foreground">Teknik bilgileri eksiksiz tanımla</p>
-          </div>
-          <span className="rounded-lg bg-primary/10 px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-primary">
-            {editingId === null ? "Yeni kayıt" : "Düzenleme"}
-          </span>
-        </div>
+        <aside className="mc-material-library__editor">
+          <form onSubmit={submitMaterial}>
+            <div className="mc-material-library__editor-heading">
+              <div>
+                <span className="mc-material-library__eyebrow">MALZEME TANIMI</span>
+                <h3>{isEditing ? "Malzemeyi düzenle" : "Yeni malzeme"}</h3>
+                <p>Proje kataloğuna panel kaydı ekle.</p>
+              </div>
+              <span className="mc-material-library__editor-index">{isEditing ? "EDIT" : "NEW"}</span>
+            </div>
 
-        <div className="space-y-1.5">
-          <Label htmlFor="material-id">Kararlı malzeme kimliği</Label>
-          <Input
-            id="material-id"
-            value={draft.id}
-            onChange={(event) => updateDraft("id", event.target.value)}
-            placeholder="mdf-beyaz"
-            maxLength={64}
-            required
-            disabled={editingId !== null}
-          />
-          <p className="text-[11px] leading-relaxed text-muted-foreground">Küçük harf, rakam, nokta, tire ve alt çizgi kullan.</p>
-        </div>
+            <div className="mc-material-library__draft-preview">
+              <PanelSectionPreview thicknessesMm={draftThicknesses} decor={draft.decor.trim() || undefined} />
+              <p>Şematik kesit önizlemesi. Kalınlık etiketleri girilen mm değerlerini gösterir; yüzey rengi veya dokusu temsil edilmez.</p>
+            </div>
 
-        <div className="space-y-1.5">
-          <Label htmlFor="material-name">Malzeme adı</Label>
-          <Input
-            id="material-name"
-            value={draft.name}
-            onChange={(event) => updateDraft("name", event.target.value)}
-            placeholder="Örn. MDF"
-            maxLength={100}
-            required
-          />
-        </div>
+            <div className="mc-material-library__field">
+              <Label htmlFor="material-id">Kararlı malzeme kimliği</Label>
+              <Input
+                id="material-id"
+                value={draft.id}
+                onChange={(event) => updateDraft("id", event.target.value)}
+                placeholder="mdf-beyaz"
+                maxLength={64}
+                required
+                disabled={isEditing}
+              />
+              <small>Küçük harf, rakam, nokta, tire ve alt çizgi kullan.</small>
+            </div>
 
-        <div className="space-y-1.5">
-          <Label htmlFor="material-decor">Dekor etiketi <span className="font-normal text-muted-foreground">(isteğe bağlı)</span></Label>
-          <Input
-            id="material-decor"
-            value={draft.decor}
-            onChange={(event) => updateDraft("decor", event.target.value)}
-            placeholder="Örn. Mat Beyaz"
-            maxLength={100}
-          />
-        </div>
+            <div className="mc-material-library__field">
+              <Label htmlFor="material-name">Malzeme adı</Label>
+              <Input
+                id="material-name"
+                value={draft.name}
+                onChange={(event) => updateDraft("name", event.target.value)}
+                placeholder="Örn. MDF"
+                maxLength={100}
+                required
+              />
+            </div>
 
-        <div className="space-y-1.5">
-          <Label htmlFor="material-thicknesses">Panel kalınlıkları (mm)</Label>
-          <Input
-            id="material-thicknesses"
-            value={draft.thicknessesMm}
-            onChange={(event) => updateDraft("thicknessesMm", event.target.value)}
-            placeholder="8; 12; 18"
-            required
-            aria-describedby="material-thickness-help"
-          />
-          <p id="material-thickness-help" className="text-[11px] leading-relaxed text-muted-foreground">
-            Kalınlıkları noktalı virgülle ayır. Ondalık değerlerde nokta kullan.
-          </p>
-        </div>
+            <div className="mc-material-library__field">
+              <Label htmlFor="material-decor">Dekor etiketi <span>(isteğe bağlı)</span></Label>
+              <Input
+                id="material-decor"
+                value={draft.decor}
+                onChange={(event) => updateDraft("decor", event.target.value)}
+                placeholder="Örn. Mat Beyaz"
+                maxLength={100}
+              />
+              <small>Yalnızca metin etiketi olarak saklanır.</small>
+            </div>
 
-        {error && (
-          <p className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs leading-relaxed text-destructive" role="alert">
-            {error}
-          </p>
-        )}
+            <div className="mc-material-library__field">
+              <Label htmlFor="material-thicknesses">Panel kalınlıkları <span>mm</span></Label>
+              <Input
+                id="material-thicknesses"
+                value={draft.thicknessesMm}
+                onChange={(event) => updateDraft("thicknessesMm", event.target.value)}
+                placeholder="8; 12; 18"
+                required
+                aria-describedby="material-thickness-help"
+              />
+              <small id="material-thickness-help">Kalınlıkları noktalı virgülle ayır. Ondalık değerlerde nokta kullan.</small>
+            </div>
 
-        <div className="flex flex-wrap gap-2 pt-1">
-          <Button type="submit" className="flex-1">
-            {editingId === null ? <Plus /> : <Pencil />}
-            {editingId === null ? "Malzeme ekle" : "Değişiklikleri kaydet"}
-          </Button>
-          {editingId !== null && (
-            <Button type="button" variant="outline" onClick={resetForm}>
-              <X />
-              İptal
-            </Button>
-          )}
-        </div>
-      </form>
+            {error && (
+              <p className="mc-material-library__error" role="alert">{error}</p>
+            )}
+
+            <div className="mc-material-library__form-actions">
+              <Button type="submit">
+                {isEditing ? <Pencil /> : <Plus />}
+                {isEditing ? "Değişiklikleri kaydet" : "Malzeme ekle"}
+              </Button>
+              {isEditing && (
+                <Button type="button" variant="outline" onClick={resetForm}>
+                  <X /> İptal
+                </Button>
+              )}
+            </div>
+          </form>
+        </aside>
+      </div>
     </section>
   );
-}
-
-function PackageIcon() {
-  return <Layers3 className="size-4" />;
 }
