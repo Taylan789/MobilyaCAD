@@ -4150,3 +4150,117 @@ button:focus-visible, input:focus-visible, select:focus-visible {
     transition: none;
   }
 }
+
+
+/* Part inspector — precise local geometry editing */
+.cad-part-inspector {
+  gap: 14px;
+}
+
+.cad-part-editor-group {
+  display: grid;
+  gap: 10px;
+  padding: 11px;
+  background: var(--cad-ui-surface-soft, #f2f6f8);
+  border: 1px solid var(--cad-ui-border, #d8e2e8);
+  border-radius: 10px;
+}
+
+.cad-part-editor-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--cad-ui-border, #d8e2e8);
+}
+
+.cad-part-editor-heading > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--cad-ui-text, #263b49);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .09em;
+}
+
+.cad-part-editor-heading svg {
+  width: 14px;
+  height: 14px;
+  color: var(--cad-ui-accent, #167f83);
+}
+
+.cad-part-editor-heading > small {
+  color: var(--cad-ui-muted, #6d8290);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .08em;
+}
+
+.cad-part-coordinate-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.cad-part-axis-label {
+  display: inline-flex;
+  min-width: 14px;
+  justify-content: center;
+  margin-right: 4px;
+  font-weight: 850;
+}
+
+.cad-part-live-indicator {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: #2c9a69;
+  box-shadow: 0 0 0 3px rgba(44, 154, 105, .12);
+}
+
+.cad-part-production-note {
+  padding: 10px 11px;
+  background: #f7f4ec;
+  border: 1px solid #e9e1cf;
+  border-radius: 9px;
+}
+
+.cad-part-production-note > span {
+  color: #8b7653;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .1em;
+}
+
+.cad-part-production-note p {
+  margin: 5px 0 0;
+  color: #786d5d;
+  font-size: 10px;
+  line-height: 1.55;
+}
+
+.cad-part-inspector .cad-field-note {
+  margin-top: 0;
+}
+
+@media (max-width: 700px) {
+  .cad-part-editor-group {
+    padding: 10px;
+  }
+
+  .cad-part-coordinate-grid {
+    gap: 6px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cad-part-inspector *,
+  .cad-part-inspector *::before,
+  .cad-part-inspector *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
