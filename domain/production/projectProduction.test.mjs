@@ -394,6 +394,130 @@ function createTableRequest(id) {
   };
 }
 
+test("karışık cabinet, bookshelf, table ve wardrobe projesi malzeme tüketimini aileler arasında tutarlı toplar", () => {
+  const cabinet = createRequest("cab-mixed-all", {
+    furniture: { material: "MDF Lam 18", materialId: "mdf-18" }
+  });
+  const wardrobe = {
+    ...createRequest("wardrobe-mixed-all", {
+      furniture: {
+        widthMm: 1800,
+        heightMm: 2200,
+        depthMm: 600,
+        material: "MDF Lam 18",
+        materialId: "mdf-18"
+      }
+    }),
+    family: "wardrobe",
+    verticalDividers: [{
+      id: "center",
+      offsetFromInnerLeftMm: 882,
+      thicknessMm: 18,
+      materialId: "mdf-18",
+      edgeBanding: { ...noBanding, left: true, right: true },
+      grainDirection: "length"
+    }],
+    shelves: [{
+      id: "left",
+      leftOffsetMm: 0,
+      rightOffsetMm: 882,
+      heightFromInnerBottomMm: 500,
+      frontOffsetMm: 0,
+      depthMm: 582,
+      thicknessMm: 8,
+      materialId: "mdf-8",
+      edgeBanding: { ...noBanding, top: true, left: true },
+      grainDirection: "length"
+    }]
+  };
+
+  const result = calculateCabinetProjectProduction({
+    schemaVersion: 1,
+    furniture: [
+      cabinet,
+      createBookshelfRequest("book-mixed-all"),
+      createTableRequest("table-mixed-all"),
+      wardrobe
+    ]
+  });
+
+  assert.deepEqual(result.furniture.map((entry) => entry.furnitureId), [
+    "cab-mixed-all",
+    "book-mixed-all",
+    "table-mixed-all",
+    "wardrobe-mixed-all"
+  ]);
+  assert.equal(result.furniture[3].family, "wardrobe");
+  assert.deepEqual(
+    result.parts
+      .filter((part) => part.furnitureId === "wardrobe-mixed-all")
+      .map((part) => [part.id, part.materialId, part.quantity]),
+    [
+      ["wardrobe-mixed-all-left-side", "mdf-18", 1],
+      ["wardrobe-mixed-all-right-side", "mdf-18", 1],
+      ["wardrobe-mixed-all-top", "mdf-18", 1],
+      ["wardrobe-mixed-all-bottom", "mdf-18", 1],
+      ["wardrobe-mixed-all-vertical-divider-center", "mdf-18", 1],
+      ["wardrobe-mixed-all-shelf-left", "mdf-8", 1]
+    ]
+  );
+
+  const summary = calculateProjectMaterialConsumptionSummary(result);
+  const mdf18 = summary.find((entry) => entry.materialId === "mdf-18");
+  const mdf8 = summary.find((entry) => entry.materialId === "mdf-8");
+  const wood60 = summary.find((entry) => entry.materialId === "wood-60");
+
+  assert.deepEqual(mdf18, {
+    material: "MDF Lam 18",
+    materialId: "mdf-18",
+    thicknessMm: 18,
+    partLineCount: 17,
+    totalQuantity: 21,
+    panelAreaM2: 10.40456,
+    volumeM3: 0.18728208,
+    edgeBanding: {
+      widthEdgesLengthMm: 2400,
+      lengthEdgesLengthMm: 4328,
+      totalLengthMm: 6728,
+      edgeCount: 4
+    }
+  });
+  assert.deepEqual(mdf8, {
+    material: "MDF Lam 8",
+    materialId: "mdf-8",
+    thicknessMm: 8,
+    partLineCount: 1,
+    totalQuantity: 1,
+    panelAreaM2: 0.513324,
+    volumeM3: 0.004106592,
+    edgeBanding: {
+      widthEdgesLengthMm: 582,
+      lengthEdgesLengthMm: 882,
+      totalLengthMm: 1464,
+      edgeCount: 2
+    }
+  });
+  assert.deepEqual(wood60, {
+    material: "Masif 60",
+    materialId: "wood-60",
+    thicknessMm: 60,
+    partLineCount: 1,
+    totalQuantity: 4,
+    panelAreaM2: 0.17568,
+    volumeM3: 0.0105408,
+    edgeBanding: {
+      widthEdgesLengthMm: 0,
+      lengthEdgesLengthMm: 0,
+      totalLengthMm: 0,
+      edgeCount: 0
+    }
+  });
+  assert.equal(
+    summary.reduce((total, entry) => total + entry.totalQuantity, 0),
+    result.parts.reduce((total, part) => total + part.quantity, 0)
+  );
+});
+
 test("masa ailesi proje agregatöründe dış ölçü ve parça kimlikleriyle korunur", () => {
   const result = calculateCabinetProjectProduction({
     schemaVersion: 1,
