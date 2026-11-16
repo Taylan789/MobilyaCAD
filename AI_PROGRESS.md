@@ -627,3 +627,19 @@
 - Bilinen sınırlar: bağlantı/vida, yük, ayak/baza, duvar montajı/ankraj, delik/donanım, CNC, nesting, fire ve maliyet yoktur. Fiziksel üretim öncesi atölye doğrulaması gerekir.
 - Frontend JSON v1/CSV entegrasyonu ayrı frontend sahibinin kapsamındadır; hiçbir `frontend/**` dosyası değiştirilmedi.
 - Sonraki görev: ayrı frontend sahibinin TV bölücü/raf JSON v1 adapter'ı; domain tarafında ardından banyo dolabı için yalnızca açık üretici/atölye girdili lavabo boşluğu ve baza sözleşmesi.
+
+
+## 17 Kasım 2026 — çoklu çekmece gruplarında malzeme tüketimi (Actions doğrulandı)
+
+- Başlangıç HEAD: `524aabf6c534a763ac6f7066bffdd16a231d3a7a`.
+- Geliştirme commit SHA: `288678e90c1f466e8f3f689a7cd590fb10a19e20`.
+- Değişen dosyalar:
+  - `domain/production/projectProduction.test.mjs` — aynı mobilyaya bağlı iki çekmece grubunun farklı panel malzeme/kalınlık override'ları ve farklı adetleriyle proje malzeme özetine katılmasını doğrulayan entegrasyon testi.
+  - `docs/production-domain-contract.md` — çoklu çekmece gruplarının ortak Part listesi ve quantity ağırlıklı tüketim sözleşmesi.
+  - `PRODUCT_ROADMAP.md` — tamamlanan dikey dilim, ölçü/alan/hacim/bant kabul değerleri ve sonraki kesit geometrisi görevleri.
+- Kabul sonucu: MDF 16 için 3 satır / 14 adet / 0.903840 m² / 0.014461440 m³ / 560 mm; MDF 18 için 3 satır / 11 adet / 0.846000 m² / 0.015228000 m³ / 840 mm; MDF 8 için 2 satır / 5 adet / 0.973104 m² / 0.007784832 m³ / 0 mm. Değerler aynı proje Part listesinden hesaplandı.
+- GitHub Actions: CI #299 (`43981754758`) başarılı; QA #186 (`43981754768`) başarılı (**101/101 frontend + 124/124 domain testi, 0 başarısız**); Pages build/deploy #147 (`43981754767`) başarılı. Shared-domain strict TypeScript, lint, frontend TypeScript/production build ve production dependency audit adımları geçti.
+- Kalite notları: Oxlint 32 uyarı / 0 hata; production audit 4 orta önem bulgusu raporladı, yüksek önem eşiği geçilmedi. Büyük JS chunk, punycode ve GitHub Actions Node 20 deprecation uyarıları sürüyor. Kırıcı shadcn güncellemesi gerektiren `npm audit fix --force` çalıştırılmadı.
+- Bilinen sınırlar: çekmece ray boşluğu, reveal, bağlantı, delik, donanım, CNC, nesting, fire ve fiyat hesabı yoktur; bu test bunları üretime hazır ilan etmez. Fiziksel üretim öncesi atölye doğrulaması gerekir.
+- AI Developer workflow'u yalnızca `workflow_dispatch` ile tetikleniyor; bu dalın son run listesinde AI Developer çalışması yoktu. Otomatik bir run başlatıldığı iddia edilmedi. Açık CSS PR'ı ayrı sahiplikte bırakıldı; hiçbir `frontend/**` dosyası değiştirilmedi veya PR merge edilmedi.
+- Sonraki görev: banyo dolabı ailesinden önce kesit destekli panel geometri sözleşmesini (açık lavabo açıklığı, net alan/hacim ve iç kenar işlemleri) tanımlamak; mevcut dikdörtgen Part/CSV/JSON tüketicileri kesiti kayıpsız taşıyamıyorsa export'u engellemek.
