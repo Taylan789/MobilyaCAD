@@ -161,7 +161,7 @@ export function MaterialCatalogManager({
 
     try {
       const tokens = draft.thicknessesMm.split(";").map((value) => value.trim());
-      if (tokens.length === 0 || tokens.some((value) => !/^\\d+(?:\\.\\d+)?$/.test(value))) {
+      if (tokens.length === 0 || tokens.some((value) => !/^\d+(?:\.\d+)?$/.test(value))) {
         throw new Error("Kalınlıkları mm olarak noktalı ondalıkla ve noktalı virgülle ayırarak gir. Örnek: 8; 12; 18");
       }
 
