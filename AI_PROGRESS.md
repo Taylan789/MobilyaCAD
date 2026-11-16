@@ -239,3 +239,16 @@
 - Kalite: Oxlint 16 uyarı / 0 hata. npm audit 6 bulgu (2 düşük, 4 orta); production audit yüksek önem eşiğini geçti. Bundle boyutu uyarısı sürüyor.
 - Bilinen sınırlar: tek materialId tüm çekmece panel gruplarına uygulanır; panel-grubu bazında farklı malzeme seçimi sonraki dilimdir. Ray boşluğu, donanım, CNC operasyonu, fire ve fiziksel üretim doğrulaması dahil değildir. `frontend/src/App.css` ve ayrı viewport ajanının `Scene3D.tsx` dosyası değiştirilmedi.
 - Sonraki görev: gövde ve çekmece panel grupları için parça bazlı malzeme override modelini eklemek; UI, proje JSON, üretim hesabı, tüketim ve CSV'yi aynı katalog kimliğine bağlamak.
+
+
+## 16 Kasım 2026 — çekmece panel grubu bazında malzeme override
+
+- Başlangıç HEAD: `0adff4580df8a44b4d56c9d8b461d56aa091ee61`.
+- Kod commit'i: `40b57f933405ddc7adc34e71a3c4776c868b89c1`; düzeltme commit'i: `4a5c456fd5c87f24107631ce7ad4ead00434a3fd`.
+- Değişen dosyalar: `frontend/src/engine/drawerBoxParts.ts`, `drawerBoxProject.ts`, `projectFile.ts`, `projectProduction.ts`, `cabinetRules.ts`, `frontend/src/components/production/DrawerBoxConfigurator.tsx`, `frontend/src/App.tsx`, `frontend/tests/projectProduction.test.mjs`.
+- Yeni davranış: çekmece yan, ön/arka, taban ve görünür ön panel grupları ayrı materialId override alabilir. Override olmayan grup varsayılan malzemeye, varsayılan ID olmayan eski konfigürasyonlar serbest metin malzemeye geri döner.
+- Ortak resolver grup bazında kalınlık kontrolü yapar; JSON v1 serializer/parser, kesim listesi ön kontrolü, üretim motoru, tüketim ve CSV aynı atamaları kullanır. Silme koruması panel override ID'lerini de kapsar.
+- İlk QA run `43782899944` 3 testte başarısız oldu. Loglar: eski hata mesajı regex'i, `getCabinetCutListExportBlockReason` içinde resolved panel malzemelerinin kullanılmaması ve JSON hata metni regex'i. Düzeltme commit'i bu üç noktayı giderdi.
+- Otomatik doğrulama: CI run `43783058466` başarılı; QA run `43783058478` başarılı (**101/101 test, 0 fail**); Pages deploy run `43783058489` başarılı. Production audit, TypeScript/build ve lint başarılı.
+- Bilinen kısıtlar: gövde panellerinde parça bazlı override henüz yok; fiyat, fire, donanım, ray ve CNC standartları tanımlanmadı. Fiziksel üretim doğrulaması gerektiren konular üretim onayı olarak sunulmuyor.
+- Sonraki görev: gövde yan/üst/alt, raf, arkalık ve kapak parçalarına bağımsız katalog malzemesi atamak ve her parçanın kalınlığını kendi malzemesinde doğrulamak.

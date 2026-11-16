@@ -20,7 +20,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 | Hesap motoru | Mutfak tipi gövdeler için yan, üst, alt, raf, kapak ve arkalık hesabı | Çekmece kutusu, tüm aileler ve üreticiye özel konstrüksiyonlar eksik |
 | Kesim listesi | Projedeki desteklenen düz mutfak gövdeleri ve tam tanımlı çekmece parçaları için tek Türkçe Excel uyumlu CSV; her satır kaynak mobilya adı/ID'si ve varsa katalog Malzeme ID değeriyle izlenir | Köşe/cihaz/evye konstrüksiyonları, diğer aileler, nesting ve CNC çıktısı yok |
 | Kenar bantlama / malzeme tüketimi | Projedeki desteklenen modüllerin birleşik parçalarından malzeme + kalınlık bazında adet, net alan/hacim ve kenar bantlama toplamı | Yalnızca desteklenen düz gövdeler; fire, levha verimi, kesim payı ve rulo payı yok |
-| Malzeme kataloğu | UI CRUD; mobilya ve çekmece grubu düzeyinde opsiyonel materialId; JSON v1 referans ve çekmece panel kalınlığı doğrulaması; referanslı kayıtların silinmesi engellenir; desteklenen gövde/çekmece parçaları ID taşır, tüketim ve CSV ID + kalınlıkla gruplanır | Dört çekmece panel grubuna tek ortak katalog malzemesi atanır; panel-grubu override, fiyat, tedarikçi ve fire henüz yok |
+| Malzeme kataloğu | UI CRUD; mobilya varsayılan materialId ve çekmece grubunda varsayılan + dört panel grubu override; JSON v1 referans/kalınlık doğrulaması; referanslı kayıtların silinmesi engellenir; desteklenen parçalar ID + kalınlıkla tüketim ve CSV'ye taşınır | Gövde yan/üst/alt, raf, arkalık ve kapak için bağımsız parça override; fiyat, tedarikçi ve fire henüz yok |
 | Proje dosyası | Yerel JSON v1 indirme/yükleme; saf serializer/parser; round-trip ve eski v1 uyumluluk; mm, mobilya ve çekmece grubu katalog referansları ile dört çekmece panel kalınlığının doğrulanması | Şema migrasyonu, otomatik kayıt ve kurtarma yok |
 | Test/CI | Kod commit'i CI #92, QA #58 (98/98 test) ve Pages deploy #57 ile başarılı; TypeScript/build/lint ve production audit eşiği geçti | Fiziksel üretim doğrulaması otomatik testle yapılamaz; lint'te 16 uyarı, audit'te 6 bulgu (2 düşük/4 orta) ve bundle boyutu uyarısı sürüyor |
 
@@ -29,7 +29,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 - `frontend/src/engine/furnitureCalculator.ts` ölçü kontrolünden sonra boş liste döndüren bir altyapı stub'ıdır; üretim hesaplayıcısı olarak kullanılmamalıdır.
 - Konstrüksiyon kurallarının bir kısmı `App.tsx` içinde sabit başlangıç değerleriyle tutuluyor; proje ve mobilya bazında yapılandırılabilir hale getirilmeli.
 - Çekmece görsel sayısı ile gerçek çekmece kutusu/önü parça ağacı aynı şey değildir; kullanıcı ölçü, malzeme, kenar bantlama ve damar yönünü açıkça tanımlar. Hesaplanan dört çekmece parça grubu gövde parçalarıyla aynı üretim listesine ve CSV'ye eklenir; eksik veya geçersiz yapılandırma dışa aktarımı engeller. Ray boşluğu, donanım ve CNC işlemleri hesaplanmaz.
-- Panel malzeme kataloğunun domain sözleşmesi, UI CRUD akışı, mobilya materialId bağlantısı ve çekmece grubu materialId bağlantısı tamamlandı. Desteklenen gövde ve çekmece parçaları katalog kimliğini taşır; katalog dışı kimlik veya kullanılmayan panel kalınlığı üretim export'unu engeller. Çekmece grubu başına tek malzeme dört panel grubuna uygulanır; panel-grubu override henüz yoktur. Donanım tüketimi, nesting ve CNC postprocessor katmanları tamamlanmış değildir.
+- Panel malzeme kataloğunun domain sözleşmesi, UI CRUD akışı, mobilya materialId bağlantısı ve çekmece grubu materialId bağlantısı tamamlandı. Çekmece gruplarında varsayılan malzemeye ek olarak yan, ön/arka, taban ve görünür ön panel için bağımsız katalog override desteklenir; her grubun kendi mm kalınlığı doğrulanır. Gövde yan/üst/alt, raf, arkalık ve kapak için bağımsız parça override henüz yoktur. Donanım tüketimi, nesting ve CNC postprocessor katmanları tamamlanmış değildir.
 - Kenar bantlama ve malzeme tüketimi proje genelinde desteklenen düz mutfak modüllerinin birleştirilmiş parça listesinden hesaplanır; katalog referanslı gövde parçaları ID + kalınlıkla ayrı gruplanır. Özel köşe/cihaz/evye geometrileri ve diğer mobilya aileleri kapsam dışıdır. Fire ve rulo payı hesaplanmaz.
 - Yerleşim doğrulaması XZ düzlemindeki yatay dikdörtgen ayak izlerini ve oda sınırlarını denetler; dikey çakışma, kapak/çekmece açılımı, duvar sabitlemesi ve montaj toleranslarını hesaplamaz.
 
@@ -240,7 +240,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 
 ## Sıradaki 5 küçük görev
 
-1. Panel/parça bazında malzeme override modelini ekle; gövde, arkalık, raf, kapak ve dört çekmece panel grubu ayrı katalog malzemesi seçebilsin; tüketim/CSV aynı kaynaktan beslensin.
+1. Düz gövde konstrüksiyonunda yan, üst/alt, raf, arkalık ve kapak için ayrı katalog malzemesi override'ı ekle; her parçanın kalınlığını kendi malzemesinde doğrulayıp tüketim/CSV'ye taşı.
 2. Düz gövde konstrüksiyon kurallarını proje/mobilya bazında yapılandırılabilir hale getir; mevcut sabit panel/arkalık varsayımlarını açıkça modele taşı.
 3. Gardırop veya kitaplık için tek bir basit, dikdörtgen konstrüksiyon profilini parça motoru, proje verisi ve testlerle uçtan uca tamamla.
 4. Proje JSON v1 için sürüm migration, otomatik kayıt ve güvenli kurtarma akışını küçük parçalara ayır.
@@ -252,3 +252,17 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 - Fiyat, fire ve kâr oranları varsayılan gerçek değer gibi sunulmaz; kullanıcı/üretici kataloğundan alınır.
 - Fiziksel CNC denemesi, bağlantı dayanımı ve gerçek malzeme davranışı atölye/operatör doğrulaması gerektirir.
 - Her küçük aşama otomatik test edilebilir tutulur; kullanıcıdan manuel yazılım testi istenmez.
+
+
+## 16 Kasım 2026 — çekmece panel grubu bazında malzeme override (doğrulandı)
+
+- Başlangıç HEAD: `0adff4580df8a44b4d56c9d8b461d56aa091ee61`. Başlangıçta aktif CI/QA işi yoktu. Açık yardımcı ajan PR #7 `dev/assistant-viewport-gizmo` yalnızca viewport bileşenine aitti; bu çalışma PR'ı sahiplenmedi ve `frontend/src/components/viewport/Scene3D.tsx` dosyasına dokunmadı. Tasarım ajanının sahibi olduğu `frontend/src/App.css` de değiştirilmedi.
+- Kod commit'i: `40b57f933405ddc7adc34e71a3c4776c868b89c1`; doğrulama düzeltmesi: `4a5c456fd5c87f24107631ce7ad4ead00434a3fd`.
+- Değişen dosyalar: `frontend/src/engine/drawerBoxParts.ts`, `drawerBoxProject.ts`, `projectFile.ts`, `projectProduction.ts`, `cabinetRules.ts`, `frontend/src/components/production/DrawerBoxConfigurator.tsx`, `frontend/src/App.tsx`, `frontend/tests/projectProduction.test.mjs`.
+- Çekmece kutusu verisine opsiyonel `panelMaterialIds` eklendi. Yan, ön/arka, taban ve görünür ön panel ayrı katalog malzemesi seçebilir; boş override çekmece grubunun varsayılan `materialId` değerine geri döner. Varsayılan katalog ID'si olmayan eski serbest metin kayıtları korunur.
+- Ortak çözücü her panel grubunun efektif malzeme kimliğini ve yalnızca o grubun kalınlığını doğrular. Proje JSON v1, üretim dışa aktarım koruması ve üretim parça motoru aynı çözücüyü kullanır. Part kayıtları malzeme ID + katalog adını taşır; malzeme tüketimi ve CSV aynı Part listesinden beslenir. Panel override referansları katalog silme korumasına dahil edildi.
+- Kullanıcı akışı: çekmece formunda varsayılan malzeme seçilir; dört panel grubu için isteğe bağlı ayrı malzeme seçilir; boş gruplar varsayılanı kullanır. Herhangi bir override kimliği veya kalınlığı geçersizse kaydetme/üretim dışa aktarımı engellenir.
+- İlk kod commit'inde QA #60 (run `43782899944`) üç testi yakaladı: eski serializer hata mesajı beklentisi, üretim ön kontrolünün panel override çözücüsünü kullanmaması ve bir test regex'inin gerçek hata metniyle uyuşmaması. Loglar incelendi; ortak export guard çözücüye bağlandı, eski hata mesajı uyumluluğu korundu ve test beklentisi düzeltildi. Testler silinmedi veya gevşetilmedi.
+- Son doğrulama: CI #? run `43783058466` başarılı; QA #? run `43783058478` başarılı, **101/101 test**; Pages deploy run `43783058489` başarılı. TypeScript, production build, lint ve production dependency audit adımları tamamlandı.
+- Bilinen sınırlar: bu dilim çekmece kutusunun dört panel grubuyla sınırlı. Gövde yan/üst/alt, raf, arkalık ve kapak için bağımsız malzeme override sonraki iştir. Fiyat, fire, ray/donanım, CNC ve fiziksel üretim doğrulaması dahil değildir.
+- Sonraki görev: düz gövde konstrüksiyonunda yan, üst/alt, raf, arkalık ve kapak için ayrı katalog malzemesi override'ı eklemek; her parçanın kalınlığını kendi malzemesinde doğrulayıp tüketim ve CSV'ye taşımak.
