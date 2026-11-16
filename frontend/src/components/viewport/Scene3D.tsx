@@ -6,7 +6,9 @@ import {
   Grid,
   Environment,
   PerspectiveCamera,
-  ContactShadows
+  ContactShadows,
+  GizmoHelper,
+  GizmoViewport
 } from "@react-three/drei";
 
 import PlacedFurniture3D from "../furniture/PlacedFurniture3D";
@@ -389,6 +391,16 @@ export default function Scene3D({
         maxDistance={maxDimension * 5}
         maxPolarAngle={Math.PI / 2}
       />
+
+      {/* CAD görünüm yönlendiricisi: eksenlere tıklayarak kamerayı hizala */}
+      <GizmoHelper alignment="bottom-right" margin={[76, 76]}>
+        <GizmoViewport
+          axisColors={["#ef4444", "#22c55e", "#3b82f6"]}
+          labelColor="#e2e8f0"
+          hideNegativeAxes
+          axisHeadScale={0.9}
+        />
+      </GizmoHelper>
     </Canvas>
   );
 }
