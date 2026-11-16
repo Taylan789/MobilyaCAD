@@ -550,7 +550,7 @@ test("proje raporu bozuk çekmece grubunu kısmi kesim listesi oluşturmadan eng
   assert.equal(report.result, null);
   assert.equal(report.blockedFurniture[0].furnitureId, "cab-drawer-report");
   assert.equal(report.blockedFurniture[0].code, "invalid-drawer");
-  assert.match(report.blockedFurniture[0].message, /Çekmece dış genişliği/);
+  assert.match(report.blockedFurniture[0].message, /Çekmece kutusu dış genişliği/);
 });
 
 test("hazır proje raporu strict agregatörle aynı tam sonucu verir", () => {
