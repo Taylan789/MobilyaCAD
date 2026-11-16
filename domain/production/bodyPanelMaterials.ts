@@ -268,20 +268,21 @@ export function resolveCabinetBodyPanelParts<T extends CabinetBodyPanelPartLike>
 
   const recognized: Array<{ index: number; part: T; group: BodyPanelGroup }> = [];
   for (const [index, part] of parts.entries()) {
-    if (!isRecord(part)) {
+    if (typeof part !== "object" || part === null || Array.isArray(part)) {
       throw new Error(`Gövde panel parçalarının ${index + 1}. kaydı geçersiz.`);
     }
+    const record = part as unknown as Record<string, unknown>;
     if (
-      typeof part.furnitureId !== "string" ||
-      part.furnitureId.trim() === "" ||
-      typeof part.id !== "string" ||
-      part.id.trim() === ""
+      typeof record.furnitureId !== "string" ||
+      record.furnitureId.trim() === "" ||
+      typeof record.id !== "string" ||
+      record.id.trim() === ""
     ) {
       throw new Error(`Gövde panel parçalarının ${index + 1}. mobilya/parça kimliği eksik.`);
     }
-    if (part.furnitureId !== furnitureId) continue;
+    if (record.furnitureId !== furnitureId) continue;
 
-    const group = getBodyPanelGroupFromPartId(furnitureId, part.id);
+    const group = getBodyPanelGroupFromPartId(furnitureId, record.id);
     if (group === null) continue;
     recognized.push({ index, part, group });
   }
