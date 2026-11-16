@@ -443,3 +443,22 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 - Bu geri yükleme commit'i için yeni CI/QA/Pages doğrulaması push sonrasında bekleniyor. Önceki kod doğrulaması #133, kaynak kodun bulunduğu HEAD `6fb558d6a2bb9a197ea01f65141855d9593ebe47` üzerinde 101/101 frontend + 82/82 domain testiyle başarılıydı; güncel HEAD yeniden doğrulanmalıdır.
 
 - **Geri yükleme doğrulaması:** kaynak restorasyon commit'i `67b2d8444adb3a50997f2ce6592b6318c4ca48ba`; son doğrulanan branch HEAD `fdba90a1d4e27c9d418281ff88c07211d79945cf`. CI #220 (`43899762924`), QA #135 (`43899762852`, **101/101 frontend + 82/82 domain testi**) ve Pages #111 (`43899762943`) başarılı. Strict domain TypeScript, lint, frontend production build ve yüksek önem dependency audit kapısı geçti.
+
+
+## 16 Kasım 2026 — proje üretim hazır olma raporu
+
+- `domain/production/projectProduction.ts` içine `calculateCabinetProjectProductionWithDiagnostics` eklendi. Desteklenen cabinet/bookshelf/table aileleri, bilinmeyen aileler, geçersiz konstrüksiyonlar, çekmece grubu hataları ve proje düzeyi hatalar ayrı alanlarda raporlanır.
+- Güvenlik kapısı: herhangi bir mobilya veya çekmece hatasında `result` null olur; kısmi Part listesi dışarı verilmez. `canExport` yalnızca hatasız ve boş olmayan projede true'dur; boş proje `empty` durumuyla ayrılır.
+- Mevcut `calculateCabinetProjectProduction` strict API'si korunur ve aynı geçerli sonuç şekline devam eder; tanılama API'si mevcut hesap motorlarını kullanır, geometri formüllerini kopyalamaz.
+- Değişen dosyalar: `domain/production/projectProduction.ts`, `domain/production/projectProduction.test.mjs`, `docs/production-domain-contract.md`, `PRODUCT_ROADMAP.md`.
+- Otomatik kabul testleri: desteklenen + desteklenmeyen karışık aile, geçersiz gövde, geçersiz çekmece, hazır rapor/strict sonuç eşitliği, boş proje ve bozuk proje zarfı.
+- Sınırlar: bu rapor yalnızca yazılım girdilerini doğrular; fiziksel üretim, bağlantı, makine koordinatı, CNC veya güvenlik onayı değildir. Hiçbir `frontend/**` dosyası değiştirilmedi.
+- Gerçek Actions doğrulaması commit sonrasında kaydedilecektir.
+
+### Sıradaki 3-5 küçük görev
+
+1. Frontend sahibinin `drawerBoxSpecs` → `drawerBoxes` adapter'ını ve JSON v1 geriye uyumluluğunu kendi frontend dalında tamamlaması.
+2. Frontend sahibinin ready/blocked/unsupported/empty rapor durumlarını güvenli CSV export kapısına bağlaması.
+3. Domain tarafında açık ölçülü gardırop veya TV ünitesi ailesi için sürüm 1 konstrüksiyon motoru ve regresyon testleri eklemek.
+4. Yeni aileyi proje agregatörü ve malzeme tüketimiyle birleştirerek mixed-family quantity/material özetini doğrulamak.
+5. Frontend JSON/CSV adapter'ı domain Part listesini kullandığında export satırlarının hesapla birebir eşleşmesini otomatik test etmek.

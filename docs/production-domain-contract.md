@@ -156,10 +156,21 @@ Bu sözleşme makineye hazır CNC, DXF, nesting/levha optimizasyonu, kesim kerfi
 ## 6. Sıradaki teknik dilimler
 
 1. Frontend sahibi, mevcut `drawerBoxSpecs` kayıtlarını domain `drawerBoxes` isteklerine dönüştüren adapter'ı kendi frontend dalında uygulasın; JSON v1 geriye uyumluluğunu ve boş/hata durumlarını korusun.
-2. [x] Kitaplık panel grubu bazlı kalınlık girdileri: opsiyonel `panelThicknessMmByGroup`; legacy ortak kalınlık fallback'i; her override için katalog kimliği ve gerçek `thicknessesMm` doğrulaması.
-3. [x] Masa motorunu proje agregatörüne bağla; masa için `overallDimensionsMm` döndür, eski cabinet/bookshelf `innerDimensionsMm` sonuçlarını koru ve ortak Part listesinde malzeme özetini test et.
-4. Proje agregatörüne aile bazlı destek/engelleme tanılaması ekle; desteklenmeyen mobilyalar sessizce kesim listesine girmesin.
+2. [x] Kitaplık panel grubu bazlı kalınlık girdileri ve gerçek katalog kalınlığı doğrulaması.
+3. [x] Masa motorunu proje agregatörüne bağla; aileye özgü `overallDimensionsMm` ve ortak Part listesi doğrulandı.
+4. [x] `calculateCabinetProjectProductionWithDiagnostics` ile desteklenmeyen aile, geçersiz konstrüksiyon/çekmece ve proje düzeyi hataları açıkça raporla; bloklu projede kısmi Part listesi verme.
 5. Frontend sahibi domain agregatörünü JSON v1/CSV adapter'ına bağladıktan sonra aynı Part listesinin export ile birebir uzlaştığını otomatik test et.
+
+### Proje üretim hazır olma raporu
+
+Kaynak: `domain/production/projectProduction.ts`.
+
+- `calculateCabinetProjectProductionWithDiagnostics(value)` `cabinet`, `bookshelf` ve `table` ailelerini doğrular; bilinmeyen aileleri `unsupportedFurniture` listesinde mobilya ID'siyle bildirir.
+- Geçersiz mobilya/çekmece konfigürasyonları `blockedFurniture` içinde `invalid-request`, `invalid-construction` veya `invalid-drawer` koduyla döner. Proje zarfı ve yinelenen kimlik sorunları `projectErrors` alanındadır.
+- `status` `ready`, `blocked` veya `empty`; `canExport` yalnızca hatasız ve boş olmayan projede true'dur.
+- Herhangi bir hata varsa `result: null`; kısmi parça listesi dışarı verilmez. UI tanılama gösterebilir ancak blocked durumda kesim listesi/CSV export etmemelidir.
+- Eski `calculateCabinetProjectProduction` strict API'si ve geçerli proje sonuç şekli korunur. Boş proje strict agregatörde boş sonuç döndürür; rapor ise boş durumu ayrıca işaretler.
+- Hesap CNC, ray/donanım, delik, nesting, fire veya fiyat tahmini yapmaz; fiziksel üretim onayı değildir.
 
 
 ### 2.6 Açık parametreli masa konstrüksiyon domain motoru

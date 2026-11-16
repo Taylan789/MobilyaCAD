@@ -1,7 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { BODY_PANEL_GROUPS } from "./bodyPanelMaterials.ts";
-import { calculateCabinetProjectProduction } from "./projectProduction.ts";
+import {
+  calculateCabinetProjectProduction,
+  calculateCabinetProjectProductionWithDiagnostics
+} from "./projectProduction.ts";
 import { BOOKSHELF_PANEL_GROUPS } from "./bookshelfConstruction.ts";
 import { calculateProjectMaterialConsumptionSummary } from "./projectMaterialSummary.ts";
 
@@ -486,4 +489,113 @@ test("geçersiz masa konstrüksiyonu proje agregatöründe reddedilir", () => {
     }),
     /Masa ayağı adedi/
   );
+});
+
+
+test("proje raporu desteklenen aileleri ve desteklenmeyen mobilyaları ayrı tanılar", () => {
+  const unsupported = createBookshelfRequest("wardrobe-unsupported");
+  unsupported.family = "wardrobe";
+
+  const report = calculateCabinetProjectProductionWithDiagnostics({
+    schemaVersion: 1,
+    furniture: [createRequest("cab-supported"), unsupported]
+  });
+
+  assert.equal(report.status, "blocked");
+  assert.equal(report.canExport, false);
+  assert.equal(report.result, null);
+  assert.deepEqual(report.supportedFurniture, [
+    { furnitureId: "cab-supported", family: "cabinet" }
+  ]);
+  assert.deepEqual(report.unsupportedFurniture.map((item) => ({
+    furnitureId: item.furnitureId,
+    family: item.family,
+    code: item.code
+  })), [{
+    furnitureId: "wardrobe-unsupported",
+    family: "wardrobe",
+    code: "unsupported-family"
+  }]);
+  assert.equal(report.firstError?.includes("wardrobe"), true);
+});
+
+test("proje raporu geçersiz desteklenen konstrüksiyonu mobilya kimliğiyle engeller", () => {
+  const invalid = createRequest("cab-invalid-report", {
+    furniture: { widthMm: 0 }
+  });
+  const report = calculateCabinetProjectProductionWithDiagnostics({
+    schemaVersion: 1,
+    furniture: [invalid]
+  });
+
+  assert.equal(report.status, "blocked");
+  assert.equal(report.canExport, false);
+  assert.equal(report.result, null);
+  assert.equal(report.blockedFurniture[0].furnitureId, "cab-invalid-report");
+  assert.equal(report.blockedFurniture[0].code, "invalid-construction");
+  assert.match(report.blockedFurniture[0].message, /Dolap genişliği/);
+});
+
+test("proje raporu bozuk çekmece grubunu kısmi kesim listesi oluşturmadan engeller", () => {
+  const drawer = createDrawerRequest("cab-drawer-report", "drawer-invalid");
+  drawer.spec.outerWidth = 0;
+  const report = calculateCabinetProjectProductionWithDiagnostics({
+    schemaVersion: 1,
+    furniture: [createRequest("cab-drawer-report")],
+    drawerBoxes: [drawer]
+  });
+
+  assert.equal(report.status, "blocked");
+  assert.equal(report.canExport, false);
+  assert.equal(report.result, null);
+  assert.equal(report.blockedFurniture[0].furnitureId, "cab-drawer-report");
+  assert.equal(report.blockedFurniture[0].code, "invalid-drawer");
+  assert.match(report.blockedFurniture[0].message, /Çekmece dış genişliği/);
+});
+
+test("hazır proje raporu strict agregatörle aynı tam sonucu verir", () => {
+  const request = {
+    schemaVersion: 1,
+    furniture: [
+      createRequest("cab-ready-report"),
+      createBookshelfRequest("book-ready-report"),
+      createTableRequest("table-ready-report")
+    ]
+  };
+  const report = calculateCabinetProjectProductionWithDiagnostics(request);
+
+  assert.equal(report.status, "ready");
+  assert.equal(report.canExport, true);
+  assert.equal(report.isEmpty, false);
+  assert.deepEqual(report.unsupportedFurniture, []);
+  assert.deepEqual(report.blockedFurniture, []);
+  assert.deepEqual(report.projectErrors, []);
+  assert.deepEqual(report.result, calculateCabinetProjectProduction(request));
+});
+
+test("boş proje raporu boş durum verir ve boş CSV dışa aktarımına izin vermez", () => {
+  const report = calculateCabinetProjectProductionWithDiagnostics({
+    schemaVersion: 1,
+    furniture: []
+  });
+
+  assert.equal(report.status, "empty");
+  assert.equal(report.isEmpty, true);
+  assert.equal(report.canExport, false);
+  assert.deepEqual(report.result, {
+    schemaVersion: 1,
+    furniture: [],
+    parts: []
+  });
+});
+
+test("geçersiz proje zarfı proje düzeyi hatayla raporlanır", () => {
+  const report = calculateCabinetProjectProductionWithDiagnostics({
+    schemaVersion: 2,
+    furniture: []
+  });
+
+  assert.equal(report.status, "blocked");
+  assert.equal(report.result, null);
+  assert.match(report.projectErrors[0], /şema sürümü/);
 });
