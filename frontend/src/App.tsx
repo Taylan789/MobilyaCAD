@@ -22,7 +22,6 @@ import {
   Settings2,
   House,
   Package,
-  PanelLeft,
   MousePointer2,
   Layers3,
 } from "lucide-react";
