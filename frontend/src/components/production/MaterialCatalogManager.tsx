@@ -339,6 +339,7 @@ export function MaterialCatalogManager({
             </div>
           )}
         </div>
+      )}
 
       <form className="space-y-3 rounded-xl border border-border bg-card/55 p-3.5" onSubmit={submitMaterial}>
         <div className="flex items-center justify-between gap-2 border-b border-border/70 pb-3">
