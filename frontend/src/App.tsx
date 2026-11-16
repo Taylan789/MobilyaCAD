@@ -1907,6 +1907,8 @@ function App() {
 
                         <ProductionOverview
                           furnitureCount={furniture.length}
+                          selectedFurnitureId={selectedFurnitureId}
+                          onFocusFurniture={focusProductionFurniture}
                           production={projectProduction}
                           edgeBanding={edgeBandingSummary}
                           materialConsumption={materialConsumptionSummary}
