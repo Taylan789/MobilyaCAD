@@ -400,12 +400,16 @@
 ## 16 Kasım 2026 — aile ayrımlı proje agregatörü ve açık kitaplık konstrüksiyonu
 
 - Başlangıç HEAD: 0775f3c84cc6e9961a1df45ba852c15b63696665.
-- Kod commit SHA ve CI/QA run kimlikleri: ilk commit ve Actions sonuçları alındıktan sonra bu kayda eklenecek.
+- Kod commit'i: 4aaf94e19e7ee69c6b3fcc068371eb07d174fb63.
+- QA düzeltme commit'i: d2fab99183c8f0cf236694b0d957053e989c3bb7.
 - Geliştirme: family alanı olmayan eski dolap istekleri korunurken family: cabinet ve family: bookshelf ayrımı eklendi. Bilinmeyen aile sessizce dolap olarak yorumlanmaz.
-- Yeni kitaplık domain motoru, altı panel grubunun kenar bantlama bayraklarını, raf adedini, ortak panel kalınlığını, arkalık montajını ve malzeme override'larını açıkça doğrular. Kapak alanı ve kapak malzeme override'ı reddedilir.
+- Yeni kitaplık domain motoru altı panel grubunun kenar bantlama bayraklarını, raf adedini, ortak panel kalınlığını, arkalık montajını ve malzeme override'larını açıkça doğrular. Kapak alanı ve kapak malzeme override'ı reddedilir.
 - Kitaplık geometrisi mevcut cabinetConstruction motorunu kullanır; duplicate formül oluşturulmaz. Kitaplık satırları proje agregatörünün ortak Part listesine girer ve projectMaterialSummary ile quantity ağırlıklı tüketim hesabına katılır.
 - Değişen dosyalar: domain/production/bookshelfConstruction.ts, domain/production/bookshelfConstruction.test.mjs, domain/production/projectProduction.ts, domain/production/projectProduction.test.mjs, .github/workflows/qa-test.yml, docs/production-domain-contract.md, PRODUCT_ROADMAP.md, AI_PROGRESS.md.
 - Kabul testleri: kitaplık ölçü/raf adetleri, arkalık ve panel malzeme override'ı, kapak/eksik grup reddi, bilinmeyen aile, sıfır raf, proje agregasyonu ve malzeme özeti.
-- Otomatik doğrulama: bu ilk commitin Actions sonuçları henüz alınmadı; doğrulama bekliyor.
-- Bilinen sınırlar: farklı panel grubu kalınlığı, dikey bölücü, raf aralığı, duvar montajı, ray/donanım, delik, CNC, nesting, fire ve fiziksel üretim güvenliği hesabı yok. Frontend JSON/CSV adapter'ına bağlanmadı.
+- İlk QA run 43868921997 tek bir test beklentisinde başarısız oldu: legacy serbest metin malzemesi ile mdf-18 katalog kimliği ayrı gruplandığından mdf-18 toplamı 7 idi; test yanlışlıkla 11 bekliyordu. Test düzeltmesi sonrası sonuç 7 mdf-18 + 4 legacy adet, proje toplamı 11 olarak doğrulandı.
+- Nihai otomatik doğrulama: CI 43869039873 başarılı; QA 43869039844 başarılı (101/101 frontend + 63/63 domain testi, 0 başarısız); Pages deploy 43869039738 başarılı. Strict domain TypeScript, lint, production build ve production dependency audit eşiği geçti.
+- Kalite notları: Oxlint 30 uyarı / 0 hata; npm audit 6 mevcut bulgu (2 düşük, 4 orta; yüksek önem eşiği geçti); bundle boyutu ve GitHub Actions Node 20 deprecation uyarısı sürüyor.
+- Bilinen sınırlar: farklı panel grubu kalınlığı, dikey bölücü, raf aralığı, duvar montajı, ray/donanım, delik, CNC, nesting, fire ve fiziksel üretim güvenliği hesabı yok. Frontend JSON/CSV adapter'ına bağlanmadı; hiçbir frontend/** dosyası bu domain çalışmasında değiştirilmedi.
+- AI Developer workflow'u son run listesinde yok; yalnızca workflow_dispatch ile çalışıyor ve bu bağlantıda dispatch işlemi desteklenmediği için yeni run başlatılmadı.
 - Sonraki görev: kitaplık panel grubu bazlı kalınlık girdilerini eklemek; ardından açık parametreli masa konstrüksiyon ailesine geçmek.
