@@ -535,3 +535,16 @@
 - QA run 43915698736 sonucunda frontend 101/101 test geçti; domain 95/96 geçti. Tek kalan assertion, fixture ailesi sofa olarak değiştirilirken beklenen furnitureId değerinin eski wardrobe-unsupported metninde kalmasıydı. Motor ve sekiz yeni wardrobe testi başarılıydı.
 - domain/production/projectProduction.test.mjs içindeki beklenen kimlik sofa-unsupported olarak düzeltildi; bilinmeyen aile tanılama kapsamı korunuyor. Bu düzeltmenin CI/QA/Pages sonuçları bekleniyor.
 - CI run 43915698633 başarılı; Pages run 43915698589 henüz kuyruktaydı.
+
+
+## 16 Kasım 2026 — gardırop dikey bölücü dilimi nihai doğrulaması
+
+- Domain özellik commit'i: 66b106e9726388240326170a6671bf30bebfb4b0.
+- Bilinmeyen aile fixture düzeltme commit'i: 7c42d9d865694da9d8092bdf987f6e83c0fd8780.
+- Fixture kimliği düzeltme commit'i: 90b5eb8f4c3828dd7700d16fee1dc2ede7389b45.
+- Son doğrulama HEAD'i: 90b5eb8f4c3828dd7700d16fee1dc2ede7389b45.
+- Nihai GitHub Actions: CI run 43915944138 başarılı; QA run 43915944128 başarılı (**101/101 frontend + 96/96 domain testi**, 0 başarısız); Pages deploy run 43915944284 başarılı. QA'da shared-domain strict TypeScript, lint, frontend production build ve production dependency audit adımları başarılı.
+- Ara QA hataları test kapsamını gevşetmeden düzeltildi: ilkinde wardrobe artık desteklenen aile olduğu için eski unsupported fixture sofa yapıldı; ikincisinde fixture ID beklentisi sofa-unsupported olarak eşitlendi. Nihai QA tüm testleri geçti.
+- AI Developer workflow: yalnızca workflow_dispatch ile tetikleniyor; mevcut bağlantıda dispatch işlemi yok ve branch run listesinde AI Developer run'ı bulunmadı. Sahte run başlatıldığı iddia edilmedi.
+- Bilinen sınırlar: wardrobe bölücüler tam iç yükseklik/derinliktedir; bölme rafları, askı borusu, çekmece yerleşimi, donanım/delik, CNC, nesting, fire ve fiyat hesabı yoktur. Frontend JSON v1/CSV adapter entegrasyonu ayrı frontend sahibinin kapsamındadır; hiçbir frontend/** dosyası değiştirilmedi.
+- Sonraki görev: her bölme için açık net genişlik, raf kotu, derinlik, kalınlık, malzeme, kenar bandı ve damar yönü isteyen raf sözleşmesini tasarlamak; raf/bölücü çakışmalarını test etmek.
