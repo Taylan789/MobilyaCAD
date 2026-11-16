@@ -721,12 +721,14 @@ function App() {
     URL.revokeObjectURL(url);
   }
 
-  function focusProductionFurniture(furnitureId: string) {
+  function focusSceneFurniture(furnitureId: string, partId: string | null = null) {
     const target = furniture.find((item) => item.id === furnitureId);
     if (!target) return;
 
+    if (partId && !target.parts.some((part) => part.id === partId)) return;
+
     setSelectedFurnitureId(target.id);
-    setSelectedPartId(null);
+    setSelectedPartId(partId);
     setLeftPanelMode("scene");
     setLeftDockCollapsed(false);
     setInspectorCollapsed(false);
@@ -734,6 +736,10 @@ function App() {
     setMobilePanel(null);
     setFocusRequestId((current) => current + 1);
     setWorkspaceMode("design");
+  }
+
+  function focusProductionFurniture(furnitureId: string) {
+    focusSceneFurniture(furnitureId);
   }
 
   function saveProject() {
@@ -1409,7 +1415,9 @@ function App() {
                             <button
                               type="button"
                               className={"studio-tree-object-select" + (selectedFurnitureId === item.id && !selectedPartId ? " selected" : "")}
-                              onClick={() => { setSelectedFurnitureId(item.id); setSelectedPartId(null); }}
+                              aria-label={item.name + " mobilyasını seç ve 3D sahnede odakla"}
+                              title="Mobilyayı seç ve 3D sahnede odakla"
+                              onClick={() => focusSceneFurniture(item.id)}
                             >
                               <Box />
                               <span>
@@ -1441,7 +1449,9 @@ function App() {
                                   type="button"
                                   className={selectedFurnitureId === item.id && selectedPartId === part.id ? "studio-tree-part selected" : "studio-tree-part"}
                                   key={part.id}
-                                  onClick={() => { setSelectedFurnitureId(item.id); setSelectedPartId(part.id); }}
+                                  aria-label={item.name + " içindeki " + part.name + " parçasını seç ve sahnede odakla"}
+                                  title="Parçayı seç ve 3D sahnede odakla"
+                                  onClick={() => focusSceneFurniture(item.id, part.id)}
                                 >
                                   <span className="studio-tree-part-line" />
                                   <span>{part.name}</span>
@@ -1481,10 +1491,7 @@ function App() {
                     <SidebarMenuItem key={item.id}>
                       <SidebarMenuButton
                         isActive={selectedFurnitureId === item.id}
-                        onClick={() => {
-                          setSelectedFurnitureId(item.id);
-                          setSelectedPartId(null);
-                        }}
+                        onClick={() => focusSceneFurniture(item.id)}
                       >
                         <Box />
                         <span>{item.name}</span>
