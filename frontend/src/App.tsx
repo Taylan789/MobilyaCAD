@@ -291,6 +291,10 @@ function App() {
   const referencedMaterialIds = new Set(
     furniture.flatMap((item) => [
       ...(item.materialId ? [item.materialId] : []),
+      ...item.parts.flatMap((part) => {
+        const matchingMaterial = materials.find((entry) => entry.name === part.material);
+        return matchingMaterial ? [matchingMaterial.id] : [];
+      }),
       ...(item.drawerBoxSpecs ?? []).flatMap((config) => [
         ...(config.spec.materialId ? [config.spec.materialId] : []),
         ...Object.values(config.spec.panelMaterialIds ?? {}).filter(
@@ -389,14 +393,16 @@ function App() {
     setFurniture((previous) =>
       previous.map((item) => {
         if (item.id !== id) return item;
+        const nextMaterialName = material?.name ?? item.material;
         return {
           ...item,
-          material: material?.name ?? item.material,
+          material: nextMaterialName,
           materialId: material?.id,
-          parts: item.parts.map((part) => ({
-            ...part,
-            material: material?.name ?? part.material
-          }))
+          parts: item.parts.map((part) =>
+            part.material === item.material
+              ? { ...part, material: nextMaterialName }
+              : part
+          )
         };
       })
     );
@@ -418,12 +424,27 @@ function App() {
             ? { ...config, spec: { ...config.spec, material: drawerMaterial.name } }
             : config;
         });
+        const parts = item.parts.map((part) => {
+          const previousCatalogMaterial = materials.find((entry) => entry.name === part.material);
+          const renamedCatalogMaterial = previousCatalogMaterial
+            ? materialById.get(previousCatalogMaterial.id)
+            : undefined;
+
+          if (renamedCatalogMaterial) {
+            return { ...part, material: renamedCatalogMaterial.name };
+          }
+
+          if (assignedMaterial && part.material === item.material) {
+            return { ...part, material: assignedMaterial.name };
+          }
+
+          return part;
+        });
+
         return {
           ...item,
           ...(assignedMaterial ? { material: assignedMaterial.name } : {}),
-          ...(assignedMaterial
-            ? { parts: item.parts.map((part) => ({ ...part, material: assignedMaterial.name })) }
-            : {}),
+          parts,
           ...(drawerBoxSpecs ? { drawerBoxSpecs } : {})
         };
       })
@@ -1805,8 +1826,11 @@ function App() {
                               <Separator className="cad-section-separator" />
                               <FurniturePartInspector
                                 part={selectedPart}
+                                materials={materials}
+                                defaultMaterial={selectedFurniture?.material ?? selectedPart.material}
                                 onFieldChange={updateSelectedPart}
                                 onPositionChange={updateSelectedPartPosition}
+                                onOpenMaterialLibrary={() => setInspectorTab("materials")}
                                 onClearSelection={() => setSelectedPartId(null)}
                               />
                             </>

@@ -1,10 +1,18 @@
 import { useEffect, useState } from "react";
-import { Layers3, Move3D, Ruler } from "lucide-react";
+import { Layers3, Move3D, Palette, Ruler } from "lucide-react";
 
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import type { FurniturePart } from "../../types/placedFurniture";
+import "./FurniturePartInspector.css";
+
+interface PartMaterialOption {
+  id: string;
+  name: string;
+  decor?: string;
+  thicknessesMm: number[];
+}
 
 type DimensionField = "width" | "height" | "depth";
 type Axis = "x" | "y" | "z";
@@ -13,8 +21,11 @@ type PositionDraft = Record<Axis, string>;
 
 interface FurniturePartInspectorProps {
   part: FurniturePart;
-  onFieldChange: (field: "name" | DimensionField, value: string | number) => void;
+  materials: PartMaterialOption[];
+  defaultMaterial: string;
+  onFieldChange: (field: "name" | DimensionField | "material", value: string | number) => void;
   onPositionChange: (position: [number, number, number]) => void;
+  onOpenMaterialLibrary: () => void;
   onClearSelection: () => void;
 }
 
@@ -59,8 +70,11 @@ function createPositionDraft(position: [number, number, number]): PositionDraft 
 
 export function FurniturePartInspector({
   part,
+  materials,
+  defaultMaterial,
   onFieldChange,
   onPositionChange,
+  onOpenMaterialLibrary,
   onClearSelection,
 }: FurniturePartInspectorProps) {
   const [dimensionDraft, setDimensionDraft] = useState(() => createDimensionDraft(part));
@@ -78,6 +92,12 @@ export function FurniturePartInspector({
     part.position[1],
     part.position[2],
   ]);
+
+  const inheritsFurnitureMaterial = part.material === defaultMaterial;
+  const assignedMaterial = materials.find((material) => material.name === part.material);
+  const materialSelectValue = inheritsFurnitureMaterial
+    ? "__default__"
+    : assignedMaterial?.id ?? "__current__";
 
   function commitDimension(field: DimensionField) {
     const rawValue = dimensionDraft[field];
@@ -220,6 +240,97 @@ export function FurniturePartInspector({
         <p className="cad-field-note">
           X, Y ve Z değerleri parçanın mobilya merkezine göre yerel konumudur.
           Değişiklikler 3D önizlemeye ve proje verisine uygulanır.
+        </p>
+      </div>
+
+      <div className="cad-part-material-group">
+        <div className="cad-part-editor-heading">
+          <span><Palette /> MALZEME ATAMASI</span>
+          <small>KATALOG</small>
+        </div>
+
+        <div className="cad-part-material-summary">
+          <div className="cad-part-material-summary__icon" aria-hidden="true">
+            <Layers3 />
+          </div>
+          <div className="cad-part-material-summary__copy">
+            <strong>{part.material || "Malzeme atanmadı"}</strong>
+            <small>
+              {inheritsFurnitureMaterial
+                ? "Mobilya varsayılanını kullanıyor"
+                : assignedMaterial
+                  ? "Malzeme kataloğundan atandı"
+                  : "Katalog dışı mevcut değer"}
+            </small>
+          </div>
+          {assignedMaterial && (
+            <span className="cad-part-material-thickness">
+              {assignedMaterial.thicknessesMm.join(" / ")} mm
+            </span>
+          )}
+        </div>
+
+        <div className="cad-field">
+          <Label htmlFor="selected-part-material">Parça malzemesi</Label>
+          <select
+            id="selected-part-material"
+            className="cad-part-material-select"
+            value={materialSelectValue}
+            onChange={(event) => {
+              const nextValue = event.target.value;
+              if (nextValue === "__default__") {
+                onFieldChange("material", defaultMaterial);
+                return;
+              }
+              if (nextValue === "__current__") return;
+              const nextMaterial = materials.find((material) => material.id === nextValue);
+              if (nextMaterial) onFieldChange("material", nextMaterial.name);
+            }}
+          >
+            <option value="__default__">
+              Mobilya varsayılanı · {defaultMaterial}
+            </option>
+            {!inheritsFurnitureMaterial && !assignedMaterial && (
+              <option value="__current__">Mevcut değer · {part.material}</option>
+            )}
+            {materials.map((material) => (
+              <option key={material.id} value={material.id}>
+                {material.name}
+                {material.decor ? " · " + material.decor : ""}
+                {" — " + material.thicknessesMm.join(" / ") + " mm"}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {assignedMaterial?.decor && (
+          <div className="cad-part-material-decor">
+            <span>DEKOR</span>
+            <strong>{assignedMaterial.decor}</strong>
+          </div>
+        )}
+
+        {materials.length === 0 && (
+          <p className="cad-field-note">
+            Projede henüz katalog malzemesi yok. Malzeme kütüphanesinden MDF,
+            suntalam ve kullandığın panel türlerini tanımlayabilirsin.
+          </p>
+        )}
+
+        <Button
+          type="button"
+          variant="outline"
+          className="cad-part-material-manage"
+          onClick={onOpenMaterialLibrary}
+        >
+          <Layers3 />
+          Malzeme kütüphanesini yönet
+        </Button>
+
+        <p className="cad-part-material-note">
+          Atama parça verisine ve proje JSON'una kaydedilir. Mevcut üretim kesim
+          listesi desteklenen konstrüksiyon kurallarından hesaplanır; bu parça
+          ataması kesim ölçülerini veya 3D yüzey görünümünü henüz değiştirmez.
         </p>
       </div>
 
