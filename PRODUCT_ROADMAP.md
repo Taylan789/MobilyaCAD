@@ -414,3 +414,24 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 
 
 - **Masa motoru doğrulaması:** kod commit'i `8477ac40aca83efc7acd1983358e5ee8a2514cc4`, test fixture düzeltmesi `06e8a1b91b1dae7f3d16926ff218e71e303d2e97`. CI #211 `43893588170`, QA #131 `43893588200` (**101/101 frontend + 79/79 domain testi**) ve Pages #107 `43893588256` başarılı. QA strict domain TypeScript, lint, production build ve yüksek önem dependency audit eşiği başarılıdır. İlk QA #130'da üç fixture hatası bulundu ve testler gevşetilmeden düzeltildi.
+
+## 16 Kasım 2026 — masa ailesinin proje üretim agregasyonuna eklenmesi
+
+- `calculateCabinetProjectProduction` artık açık `family: "table"` isteklerini `calculateTableConstruction` motoruna yönlendirir. Masa tabla/ayak/kayıt parçaları cabinet, bookshelf ve drawer satırlarıyla aynı `ProjectProductionPart[]` listesine girer.
+- Proje mobilya sonucunda masa için `overallDimensionsMm: { width, length, height }` döner. Legacy family-less dolaplar ve açık kitaplıklar mevcut `innerDimensionsMm` sonuç şeklini korur; masa için yapay iç ölçü üretilmez.
+- Kaynak mobilya/parça ID'leri, mm ölçüleri, quantity, katalog malzeme kimliği, kenar bantlama ve damar yönü korunur. Malzeme tüketim özeti aynı birleşik Part listesinden hesaplanır; ikinci bir geometri/özet listesi üretilmez.
+- Otomatik kabul testleri karışık dolap + kitaplık + masa projesini, masa-only quantity/alan/hacim/bantlama toplamlarını ve geçersiz masa konfigürasyonunun reddini kapsar.
+- Değişen dosyalar: `domain/production/projectProduction.ts`, `domain/production/projectProduction.test.mjs`, `docs/production-domain-contract.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`.
+- Kod commit'i: `a003f81479602c2ce3d6491f3a4665e92d275f57`.
+- Gerçek GitHub Actions: CI #213 `43899050507` başarılı; QA #133 `43899050521` başarılı (**101/101 frontend + 82/82 domain testi**, 0 başarısız); Pages deploy #109 `43899050832` başarılı. QA strict domain TypeScript, lint, production build ve `npm audit --omit=dev --audit-level=high` adımları geçti.
+- Kalite notları: Oxlint 32 uyarı / 0 hata; audit raporunda 6 mevcut bulgu (2 düşük, 4 orta; yüksek önem eşiği aşılmadı). Büyük frontend chunk ve GitHub Actions Node 20 deprecation uyarıları sürüyor.
+- Sınırlar: masa ayak/kayıt koordinatı, tabla taşması, bağlantı standardı, delik/donanım, CNC, nesting, fire, levha verimi, fiyat ve fiziksel üretim güvenliği hesaplanmaz. Frontend JSON v1/CSV adapter'ı domain agregatörüne henüz bağlanmamıştır. Hiçbir `frontend/**` dosyası değiştirilmemiştir.
+
+### Sıradaki 3-5 küçük görev
+
+1. Proje agregatörüne desteklenmeyen aile/konfigürasyon için açık, mobilya kimliğine bağlı tanılama/engelleme sonucu ekle; bilinmeyen aile hiçbir zaman dolap olarak varsayılmamalı.
+2. Domain Part listesi ile frontend JSON v1/CSV adapter'ı arasındaki entegrasyon kabul testlerini ayrı frontend sahibinin kullanacağı şekilde tamamla; bu otomasyon `frontend/**` dosyalarına dokunmaz.
+3. Karışık masa/kitaplık/dolap projelerinde malzeme, kalınlık, quantity ve kenar bantlama toplamları için ek sınır/regresyon testleri ekle.
+4. Masa ailesi için açık ayak/kayıt yerleşim koordinatı sözleşmesini, yalnızca kullanıcı/atölye girdisiyle ve CNC standardı uydurmadan tasarla.
+5. Kullanıcı kataloğu ve üretici/atölye girdileri doğrulanmadan nesting, CNC postprocessor veya fiyat/teklif çıktısı ekleme.
+
