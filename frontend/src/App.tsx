@@ -25,6 +25,7 @@ import {
   MousePointer2,
   Layers3,
   X,
+  Keyboard,
 } from "lucide-react";
 
 import { Button } from "./components/ui/button";
@@ -63,6 +64,7 @@ import {
 } from "./components/ui/tooltip";
 import { ScrollArea } from "./components/ui/scroll-area";
 import { MobilyaCadLogo } from "./components/brand/MobilyaCadLogo";
+import "./components/workspace/KeyboardShortcuts.css";
 
 import Scene3D from "./components/viewport/Scene3D";
 import { DrawerBoxConfigurator } from "./components/production/DrawerBoxConfigurator";
@@ -97,6 +99,7 @@ function App() {
   const [selectedPartId, setSelectedPartId] = useState<string | null>(null);
   const [transformMode, setTransformMode] = useState<"translate" | "scale" | "rotate">("translate");
   const [mobilePanel, setMobilePanel] = useState<"catalog" | "inspector" | null>(null);
+  const [showShortcuts, setShowShortcuts] = useState(false);
   const [leftPanelMode, setLeftPanelMode] = useState<"catalog" | "scene">("catalog");
   const [inspectorTab, setInspectorTab] = useState<"room" | "furniture" | "production" | "materials">("room");
 
@@ -615,6 +618,58 @@ function App() {
     return Layers;
   }
 
+  useEffect(() => {
+    if (!workspaceOpen) {
+      setShowShortcuts(false);
+      return;
+    }
+
+    function handleWorkspaceShortcut(event: KeyboardEvent) {
+      const key = event.key.toLowerCase();
+      const hasModifier = event.ctrlKey || event.metaKey;
+      const target = event.target;
+      const isTextEntry = target instanceof HTMLElement && (
+        target.isContentEditable ||
+        ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName)
+      );
+
+      if (event.key === "Escape" && showShortcuts) {
+        setShowShortcuts(false);
+        return;
+      }
+
+      if (hasModifier && key === "k") {
+        event.preventDefault();
+        const searchInput = document.getElementById("cad-catalog-search") as HTMLInputElement | null;
+        searchInput?.focus();
+        searchInput?.select();
+        return;
+      }
+
+      if (hasModifier && key === "s") {
+        event.preventDefault();
+        saveProject();
+        return;
+      }
+
+      if (hasModifier && key === "o") {
+        event.preventDefault();
+        document.getElementById("mobilyacad-project-file")?.click();
+        return;
+      }
+
+      if (hasModifier || event.altKey || isTextEntry) return;
+
+      if (key === "1") setTransformMode("translate");
+      else if (key === "2") setTransformMode("scale");
+      else if (key === "3") setTransformMode("rotate");
+      else if (event.key === "?") setShowShortcuts((current) => !current);
+    }
+
+    window.addEventListener("keydown", handleWorkspaceShortcut);
+    return () => window.removeEventListener("keydown", handleWorkspaceShortcut);
+  }, [workspaceOpen, showShortcuts, saveProject]);
+
   const sidebarStyle = {
     "--sidebar-width": "278px",
     "--sidebar-width-icon": "52px",
@@ -722,7 +777,7 @@ function App() {
               <Tooltip>
                 <TooltipTrigger
                   render={
-                    <ToggleGroupItem value="translate" aria-label="Taşı">
+                    <ToggleGroupItem value="translate" aria-label="Taşı" aria-keyshortcuts="1">
                       <Move3D />
                       <span>Taşı</span>
                     </ToggleGroupItem>
@@ -734,7 +789,7 @@ function App() {
               <Tooltip>
                 <TooltipTrigger
                   render={
-                    <ToggleGroupItem value="scale" aria-label="Boyutlandır">
+                    <ToggleGroupItem value="scale" aria-label="Boyutlandır" aria-keyshortcuts="2">
                       <Maximize2 />
                       <span>Boyutlandır</span>
                     </ToggleGroupItem>
@@ -746,7 +801,7 @@ function App() {
               <Tooltip>
                 <TooltipTrigger
                   render={
-                    <ToggleGroupItem value="rotate" aria-label="Döndür">
+                    <ToggleGroupItem value="rotate" aria-label="Döndür" aria-keyshortcuts="3">
                       <RotateCw />
                       <span>Döndür</span>
                     </ToggleGroupItem>
@@ -775,14 +830,72 @@ function App() {
             />
             <Button
               variant="outline"
+              aria-keyshortcuts="Control+O Meta+O"
               onClick={() => document.getElementById("mobilyacad-project-file")?.click()}
             >
               Proje Aç
             </Button>
-            <Button className="cad-save-button" onClick={saveProject}>
+            <Button className="cad-save-button" aria-keyshortcuts="Control+S Meta+S" onClick={saveProject}>
               <Save />
               Projeyi İndir
             </Button>
+            <div className="cad-shortcut-anchor">
+              <Tooltip>
+                <TooltipTrigger
+                  render={
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="cad-shortcut-trigger"
+                      aria-label="Klavye kısayollarını göster"
+                      aria-haspopup="dialog"
+                      aria-expanded={showShortcuts}
+                      aria-controls="cad-shortcuts-dialog"
+                      onClick={() => setShowShortcuts((current) => !current)}
+                    >
+                      <Keyboard />
+                    </Button>
+                  }
+                />
+                <TooltipContent>Klavye kısayolları · ?</TooltipContent>
+              </Tooltip>
+              {showShortcuts && (
+                <section
+                  id="cad-shortcuts-dialog"
+                  className="cad-shortcuts-panel"
+                  role="dialog"
+                  aria-modal="false"
+                  aria-labelledby="cad-shortcuts-title"
+                >
+                  <div className="cad-shortcuts-panel__header">
+                    <div>
+                      <strong id="cad-shortcuts-title">Klavye kısayolları</strong>
+                      <span>Çalışma alanında daha hızlı ilerle</span>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon-sm"
+                      aria-label="Kısayol penceresini kapat"
+                      onClick={() => setShowShortcuts(false)}
+                    >
+                      <X />
+                    </Button>
+                  </div>
+                  <div className="cad-shortcuts-list">
+                    <div><span>Kütüphanede ara</span><kbd>Ctrl / ⌘ K</kbd></div>
+                    <div><span>Projeyi JSON olarak indir</span><kbd>Ctrl / ⌘ S</kbd></div>
+                    <div><span>JSON proje dosyası aç</span><kbd>Ctrl / ⌘ O</kbd></div>
+                    <div><span>Taşıma aracını seç</span><kbd>1</kbd></div>
+                    <div><span>Boyutlandırma aracını seç</span><kbd>2</kbd></div>
+                    <div><span>Döndürme aracını seç</span><kbd>3</kbd></div>
+                    <div><span>Bu yardımı aç / kapat</span><kbd>?</kbd></div>
+                  </div>
+                  <p className="cad-shortcuts-note">1, 2 ve 3 kısayolları metin alanlarında yazı yazarken devre dışıdır.</p>
+                </section>
+              )}
+            </div>
           </div>
         </header>
 
@@ -812,11 +925,13 @@ function App() {
               <div className="cad-search">
                 <Search />
                 <Input
+                  id="cad-catalog-search"
+                  aria-keyshortcuts="Control+K Meta+K"
                   value={catalogSearch}
                   onChange={(event) => setCatalogSearch(event.target.value)}
                   placeholder="Model veya mobilya ara..."
                 />
-                <kbd>⌘ K</kbd>
+                <kbd>Ctrl K</kbd>
               </div>
             </SidebarHeader>
 
