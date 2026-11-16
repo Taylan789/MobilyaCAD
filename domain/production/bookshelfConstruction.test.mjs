@@ -9,7 +9,10 @@ const noBanding = { top: false, bottom: false, left: false, right: false };
 const materials = [
   { id: "mdf-18", name: "MDF Lam 18", category: "panel", thicknessesMm: [18], unit: "mm" },
   { id: "mdf-8", name: "MDF Lam 8", category: "panel", thicknessesMm: [8], unit: "mm" },
-  { id: "ply-18", name: "Kontrplak 18", category: "panel", thicknessesMm: [18], unit: "mm" }
+  { id: "ply-18", name: "Kontrplak 18", category: "panel", thicknessesMm: [18], unit: "mm" },
+  { id: "mdf-25", name: "MDF Lam 25", category: "panel", thicknessesMm: [25], unit: "mm" },
+  { id: "ply-16", name: "Kontrplak 16", category: "panel", thicknessesMm: [16], unit: "mm" },
+  { id: "mdf-6", name: "MDF Lam 6", category: "panel", thicknessesMm: [6], unit: "mm" }
 ];
 
 function createRequest(overrides = {}) {
@@ -27,7 +30,8 @@ function createRequest(overrides = {}) {
       heightMm: 2000,
       depthMm: 300,
       material: "MDF Lam 18",
-      materialId: "mdf-18"
+      materialId: "mdf-18",
+      ...overrides.furniture
     },
     profile: {
       panelThicknessMm: 18,
@@ -86,6 +90,71 @@ test("arkalık montajı ve panel grubu malzeme override'ı gerçek parça kalın
   assert.equal(back?.thickness, 8);
   assert.equal(back?.materialId, "mdf-8");
   assert.equal(back?.material, "MDF Lam 8");
+});
+
+test("panel grubu kalınlıkları ölçüleri, gerçek parça kalınlıklarını ve katalog atamalarını korur", () => {
+  const result = calculateBookshelfConstruction(createRequest({
+    profile: {
+      carcassStyle: "over-sides",
+      panelThicknessMmByGroup: {
+        leftSide: 18,
+        rightSide: 25,
+        top: 25,
+        bottom: 18,
+        shelf: 16,
+        back: 6
+      },
+      backPanel: { enabled: true, thicknessMm: 8, installation: "inset", insetMm: 5 }
+    },
+    panelMaterialOverrides: {
+      rightSide: "mdf-25",
+      top: "mdf-25",
+      shelf: "ply-16",
+      back: "mdf-6"
+    }
+  }));
+  const part = (id) => result.parts.find((item) => item.id === id);
+
+  assert.deepEqual(result.innerDimensionsMm, { width: 757, height: 1957, depth: 271 });
+  assert.equal(part("book-1-left-side")?.thickness, 18);
+  assert.equal(part("book-1-right-side")?.thickness, 25);
+  assert.equal(part("book-1-right-side")?.materialId, "mdf-25");
+  assert.equal(part("book-1-top")?.thickness, 25);
+  assert.equal(part("book-1-bottom")?.thickness, 18);
+  assert.equal(part("book-1-shelf")?.thickness, 16);
+  assert.equal(part("book-1-shelf")?.materialId, "ply-16");
+  assert.equal(part("book-1-back")?.thickness, 6);
+  assert.equal(part("book-1-back")?.materialId, "mdf-6");
+  assert.equal(part("book-1-back")?.width, 757);
+  assert.equal(part("book-1-back")?.length, 1957);
+});
+
+test("panel grubu kalınlığı katalogda bulunmayan veya malzeme kimliği olmayan ayarda reddedilir", () => {
+  assert.throws(
+    () => calculateBookshelfConstruction(createRequest({
+      profile: { panelThicknessMmByGroup: { top: 25 } }
+    })),
+    /25 mm kalınlık katalogda tanımlı değil/
+  );
+  assert.throws(
+    () => calculateBookshelfConstruction(createRequest({
+      furniture: { materialId: undefined },
+      profile: { panelThicknessMmByGroup: { top: 25 } }
+    })),
+    /katalog malzeme kimliği gereklidir/
+  );
+  assert.throws(
+    () => calculateBookshelfConstruction(createRequest({
+      profile: { panelThicknessMmByGroup: { door: 18 } }
+    })),
+    /desteklenmeyen panel kalınlık grubu/
+  );
+  assert.throws(
+    () => calculateBookshelfConstruction(createRequest({
+      profile: { panelThicknessMmByGroup: { shelf: 16 }, shelfCount: 0 }
+    })),
+    /Raf adedi sıfırken shelf panel kalınlığı/
+  );
 });
 
 test("kitaplıkta olmayan kapak grubu veya kapak profili reddedilir", () => {

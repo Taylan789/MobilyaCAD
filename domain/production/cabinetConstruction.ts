@@ -34,6 +34,8 @@ export type DoorConstruction =
 
 export interface CabinetConstructionProfile {
   panelThicknessMm: number;
+  /** Optional per-group mm overrides; omitted groups retain panelThicknessMm. */
+  panelThicknessMmByGroup?: Partial<Record<BodyPanelGroup, number>>;
   carcassStyle: "between-sides" | "over-sides";
   backPanel: BackPanelConstruction;
   shelfCount: number;
@@ -220,6 +222,21 @@ function validateEdgeBandingByGroup(
   return result;
 }
 
+function validatePanelThicknessMmByGroup(
+  value: unknown
+): Partial<Record<BodyPanelGroup, number>> | undefined {
+  if (value === undefined) return undefined;
+  const source = requireRecord(value, "Panel grubu kalınlık ayarları");
+  const result: Partial<Record<BodyPanelGroup, number>> = {};
+  for (const [group, thickness] of Object.entries(source)) {
+    if (!(BODY_PANEL_GROUPS as readonly string[]).includes(group)) {
+      throw new Error("Desteklenmeyen panel kalınlık grubu: " + group + ".");
+    }
+    result[group as BodyPanelGroup] = requirePositiveMm(thickness, group + " panel kalınlığı");
+  }
+  return result;
+}
+
 /**
  * Validates the versioned, frontend-independent cabinet construction input.
  * All geometry is expressed in mm; no material, gap, hardware or CNC default
@@ -260,15 +277,31 @@ export function validateCabinetConstructionRequest(
     ...(materialId === undefined ? {} : { materialId: materialId as string })
   };
 
+  const panelThicknessMm = requirePositiveMm(profile.panelThicknessMm, "Gövde panel kalınlığı");
+  const panelThicknessMmByGroup = validatePanelThicknessMmByGroup(profile.panelThicknessMmByGroup);
+  const backPanel = validateBackPanel(profile.backPanel);
+  const shelfCount = requireCount(profile.shelfCount, "Raf adedi", true);
+  const doors = validateDoors(profile.doors);
+  if (!backPanel.enabled && panelThicknessMmByGroup?.back !== undefined) {
+    throw new Error("Arkalık kapalıyken back panel kalınlığı tanımlanamaz.");
+  }
+  if (shelfCount === 0 && panelThicknessMmByGroup?.shelf !== undefined) {
+    throw new Error("Raf adedi sıfırken shelf panel kalınlığı tanımlanamaz.");
+  }
+  if (!doors.enabled && panelThicknessMmByGroup?.door !== undefined) {
+    throw new Error("Kapaklar kapalıyken door panel kalınlığı tanımlanamaz.");
+  }
+
   return {
     schemaVersion: 1,
     furniture: normalizedFurniture,
     profile: {
-      panelThicknessMm: requirePositiveMm(profile.panelThicknessMm, "Gövde panel kalınlığı"),
+      panelThicknessMm,
+      ...(panelThicknessMmByGroup === undefined ? {} : { panelThicknessMmByGroup }),
       carcassStyle: profile.carcassStyle,
-      backPanel: validateBackPanel(profile.backPanel),
-      shelfCount: requireCount(profile.shelfCount, "Raf adedi", true),
-      doors: validateDoors(profile.doors),
+      backPanel,
+      shelfCount,
+      doors,
       edgeBandingByGroup: validateEdgeBandingByGroup(profile.edgeBandingByGroup)
     },
     materials: root.materials as BodyPanelMaterialCatalogEntry[],
@@ -327,10 +360,16 @@ export function calculateCabinetConstruction(
   const request = validateCabinetConstructionRequest(value);
   const { furniture, profile } = request;
   const panel = profile.panelThicknessMm;
+  const thicknessForGroup = (group: BodyPanelGroup, fallback = panel): number =>
+    profile.panelThicknessMmByGroup?.[group] ?? fallback;
+  const leftSideThickness = thicknessForGroup("leftSide");
+  const rightSideThickness = thicknessForGroup("rightSide");
+  const topThickness = thicknessForGroup("top");
+  const bottomThickness = thicknessForGroup("bottom");
 
-  const innerWidth = furniture.widthMm - panel * 2;
+  const innerWidth = furniture.widthMm - leftSideThickness - rightSideThickness;
   const innerHeight = profile.carcassStyle === "over-sides"
-    ? furniture.heightMm - panel * 2
+    ? furniture.heightMm - topThickness - bottomThickness
     : furniture.heightMm;
   let innerDepth = furniture.depthMm - panel;
 
@@ -338,7 +377,7 @@ export function calculateCabinetConstruction(
     if (profile.backPanel.installation === "grooved") {
       innerDepth -= profile.backPanel.grooveDepthMm;
     } else if (profile.backPanel.installation === "inset") {
-      innerDepth -= profile.backPanel.thicknessMm + profile.backPanel.insetMm;
+      innerDepth -= thicknessForGroup("back", profile.backPanel.thicknessMm) + profile.backPanel.insetMm;
     }
   }
 
@@ -357,21 +396,21 @@ export function calculateCabinetConstruction(
 
   const parts: CabinetConstructionPart[] = [];
   const sideHeight = profile.carcassStyle === "over-sides"
-    ? furniture.heightMm - panel * 2
+    ? furniture.heightMm - topThickness - bottomThickness
     : furniture.heightMm;
 
   parts.push(createPart(request, "leftSide", "left-side", "Sol Yan Panel",
-    furniture.depthMm, sideHeight, panel, 1));
+    furniture.depthMm, sideHeight, leftSideThickness, 1));
   parts.push(createPart(request, "rightSide", "right-side", "Sağ Yan Panel",
-    furniture.depthMm, sideHeight, panel, 1));
+    furniture.depthMm, sideHeight, rightSideThickness, 1));
   parts.push(createPart(request, "top", "top", "Üst Tabla",
-    innerDimensionsMm.width, furniture.depthMm - panel, panel, 1));
+    innerDimensionsMm.width, furniture.depthMm - panel, topThickness, 1));
   parts.push(createPart(request, "bottom", "bottom", "Alt Tabla",
-    innerDimensionsMm.width, furniture.depthMm - panel, panel, 1));
+    innerDimensionsMm.width, furniture.depthMm - panel, bottomThickness, 1));
 
   if (profile.shelfCount > 0) {
     parts.push(createPart(request, "shelf", "shelf", "Raf",
-      innerDimensionsMm.width, innerDimensionsMm.depth, panel, profile.shelfCount));
+      innerDimensionsMm.width, innerDimensionsMm.depth, thicknessForGroup("shelf"), profile.shelfCount));
   }
 
   if (profile.doors.enabled) {
@@ -382,19 +421,19 @@ export function calculateCabinetConstruction(
     } else if (profile.doors.style === "half-overlay") {
       totalDoorWidth = furniture.widthMm + panel - totalGaps;
     } else {
-      totalDoorWidth = furniture.widthMm - panel * 2 - totalGaps;
+      totalDoorWidth = furniture.widthMm - leftSideThickness - rightSideThickness - totalGaps;
     }
 
     const doorWidth = totalDoorWidth / profile.doors.count;
     const doorHeight = profile.doors.style === "inset"
-      ? furniture.heightMm - panel * 2 - profile.doors.gapMm * 2
+      ? furniture.heightMm - topThickness - bottomThickness - profile.doors.gapMm * 2
       : furniture.heightMm - profile.doors.gapMm * 2;
     if (doorWidth <= 0 || doorHeight <= 0) {
       throw new Error("Kapak ölçüleri geçersiz.");
     }
 
     parts.push(createPart(request, "door", "door", "Dolap Kapağı",
-      doorWidth, doorHeight, panel, profile.doors.count));
+      doorWidth, doorHeight, thicknessForGroup("door"), profile.doors.count));
   }
 
   if (profile.backPanel.enabled) {
@@ -409,7 +448,7 @@ export function calculateCabinetConstruction(
     }
 
     parts.push(createPart(request, "back", "back", "Arkalık",
-      backWidth, backHeight, profile.backPanel.thicknessMm, 1));
+      backWidth, backHeight, thicknessForGroup("back", profile.backPanel.thicknessMm), 1));
   }
 
   const resolvedParts = resolveCabinetBodyPanelParts(

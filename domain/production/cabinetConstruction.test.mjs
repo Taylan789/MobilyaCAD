@@ -75,6 +75,38 @@ test("over-sides profili yan panel ve iç yüksekliği iki panel kalınlığı k
   assert.equal(result.parts.find((part) => part.id === "cab-1-left-side")?.length, 684);
 });
 
+test("panel grubu kalınlıkları asimetrik gövde açıklıklarını ve parça ölçülerini günceller", () => {
+  const result = calculateCabinetConstruction(createRequest({
+    profile: {
+      carcassStyle: "over-sides",
+      panelThicknessMmByGroup: {
+        leftSide: 16,
+        rightSide: 18,
+        top: 25,
+        bottom: 18,
+        shelf: 12,
+        door: 18,
+        back: 6
+      },
+      backPanel: { enabled: true, thicknessMm: 8, installation: "inset", insetMm: 5 },
+      doors: { enabled: true, count: 2, style: "inset", gapMm: 2 }
+    })
+  }));
+  const part = (id) => result.parts.find((item) => item.id === id);
+
+  assert.deepEqual(result.innerDimensionsMm, { width: 766, height: 677, depth: 531 });
+  assert.equal(part("cab-1-left-side")?.thickness, 16);
+  assert.equal(part("cab-1-right-side")?.thickness, 18);
+  assert.equal(part("cab-1-left-side")?.length, 677);
+  assert.equal(part("cab-1-top")?.width, 766);
+  assert.equal(part("cab-1-top")?.thickness, 25);
+  assert.equal(part("cab-1-bottom")?.thickness, 18);
+  assert.equal(part("cab-1-shelf")?.thickness, 12);
+  assert.equal(part("cab-1-door")?.width, 380);
+  assert.equal(part("cab-1-door")?.length, 673);
+  assert.equal(part("cab-1-back")?.thickness, 6);
+});
+
 test("kanallı arkalık profili kanal derinliğini iç derinlikten düşer", () => {
   const result = calculateCabinetConstruction(createRequest({
     profile: {

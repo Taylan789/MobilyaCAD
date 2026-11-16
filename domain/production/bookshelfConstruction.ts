@@ -29,6 +29,8 @@ export const BOOKSHELF_PANEL_GROUPS: readonly BookshelfPanelGroup[] = [
 
 export interface BookshelfConstructionProfile {
   panelThicknessMm: number;
+  /** Optional per-group mm overrides; omitted groups use panelThicknessMm. */
+  panelThicknessMmByGroup?: Partial<Record<BookshelfPanelGroup, number>>;
   carcassStyle: "between-sides" | "over-sides";
   backPanel: BackPanelConstruction;
   shelfCount: number;
@@ -66,6 +68,7 @@ const ROOT_KEYS = [
 
 const PROFILE_KEYS = [
   "panelThicknessMm",
+  "panelThicknessMmByGroup",
   "carcassStyle",
   "backPanel",
   "shelfCount",
@@ -126,6 +129,17 @@ export function validateBookshelfConstructionRequest(
     }
   }
 
+  const rawPanelThicknesses = profile.panelThicknessMmByGroup === undefined
+    ? undefined
+    : requireRecord(profile.panelThicknessMmByGroup, "Kitaplık panel grubu kalınlıkları");
+  if (rawPanelThicknesses !== undefined) {
+    for (const key of Object.keys(rawPanelThicknesses)) {
+      if (!(BOOKSHELF_PANEL_GROUPS as readonly string[]).includes(key)) {
+        throw new Error("Kitaplık için desteklenmeyen panel kalınlık grubu: " + key + ".");
+      }
+    }
+  }
+
   const panelMaterialOverrides = validateBodyPanelMaterialOverrides(root.panelMaterialOverrides);
   if (Object.prototype.hasOwnProperty.call(panelMaterialOverrides, "door")) {
     throw new Error("Kitaplık konstrüksiyonunda kapak malzeme override alanı kullanılamaz.");
@@ -136,6 +150,7 @@ export function validateBookshelfConstructionRequest(
     furniture: root.furniture,
     profile: {
       panelThicknessMm: profile.panelThicknessMm,
+      ...(rawPanelThicknesses === undefined ? {} : { panelThicknessMmByGroup: rawPanelThicknesses }),
       carcassStyle: profile.carcassStyle,
       backPanel: profile.backPanel,
       shelfCount: profile.shelfCount,
@@ -151,6 +166,23 @@ export function validateBookshelfConstructionRequest(
       : { panelMaterialOverrides })
   });
 
+  for (const group of BOOKSHELF_PANEL_GROUPS) {
+    const thickness = cabinetRequest.profile.panelThicknessMmByGroup?.[group];
+    if (thickness === undefined) continue;
+
+    const materialId = panelMaterialOverrides[group] ?? cabinetRequest.furniture.materialId;
+    if (materialId === undefined) {
+      throw new Error(group + " panel grubu kalınlığı için katalog malzeme kimliği gereklidir.");
+    }
+    const material = cabinetRequest.materials.find((entry) => entry.id === materialId);
+    if (!material) {
+      throw new Error(group + " panel grubu için " + materialId + " malzeme kimliği katalogda bulunamadı.");
+    }
+    if (!Array.isArray(material.thicknessesMm) || !material.thicknessesMm.includes(thickness)) {
+      throw new Error(group + " panel grubu için " + material.name + " malzemesinde " + thickness + " mm kalınlık katalogda tanımlı değil.");
+    }
+  }
+
   const edgeBandingByGroup = {} as Record<BookshelfPanelGroup, EdgeBandingEdges>;
   for (const group of BOOKSHELF_PANEL_GROUPS) {
     edgeBandingByGroup[group] = { ...cabinetRequest.profile.edgeBandingByGroup[group] };
@@ -162,6 +194,9 @@ export function validateBookshelfConstructionRequest(
     furniture: cabinetRequest.furniture,
     profile: {
       panelThicknessMm: cabinetRequest.profile.panelThicknessMm,
+      ...(cabinetRequest.profile.panelThicknessMmByGroup === undefined
+        ? {}
+        : { panelThicknessMmByGroup: cabinetRequest.profile.panelThicknessMmByGroup as Partial<Record<BookshelfPanelGroup, number>> }),
       carcassStyle: cabinetRequest.profile.carcassStyle,
       backPanel: cabinetRequest.profile.backPanel,
       shelfCount: cabinetRequest.profile.shelfCount,
