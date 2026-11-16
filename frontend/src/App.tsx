@@ -8,8 +8,8 @@ import {
   BookOpen,
   Monitor,
   Table2,
-  Undo2,
-  Redo2,
+  PanelLeft,
+  PanelRight,
   Move3D,
   Maximize2,
   RotateCw,
@@ -68,6 +68,7 @@ import {
 import { ScrollArea } from "./components/ui/scroll-area";
 import { MobilyaCadLogo } from "./components/brand/MobilyaCadLogo";
 import "./components/workspace/KeyboardShortcuts.css";
+import "./styles/workbench.css";
 
 import Scene3D from "./components/viewport/Scene3D";
 import { DrawerBoxConfigurator } from "./components/production/DrawerBoxConfigurator";
@@ -104,6 +105,8 @@ function App() {
   const [selectedPartId, setSelectedPartId] = useState<string | null>(null);
   const [transformMode, setTransformMode] = useState<"translate" | "scale" | "rotate">("translate");
   const [mobilePanel, setMobilePanel] = useState<"catalog" | "inspector" | null>(null);
+  const [leftDockCollapsed, setLeftDockCollapsed] = useState(false);
+  const [inspectorCollapsed, setInspectorCollapsed] = useState(false);
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [leftPanelMode, setLeftPanelMode] = useState<"catalog" | "scene">("catalog");
   const [sceneSearch, setSceneSearch] = useState("");
@@ -759,12 +762,12 @@ function App() {
               <div className="atelier-section-heading"><div><span className="atelier-eyebrow">BAŞLANGIÇ NOKTASI</span><h2>Ne tasarlıyoruz?</h2></div><span className="atelier-section-note">Bir çalışma türü seçerek başla</span></div>
               <div className="atelier-start-grid">
                 <button className="atelier-start-card atelier-start-card-wide" onClick={startWorkspace}><span className="atelier-card-number">01</span><div className="atelier-card-visual atelier-visual-furniture"><div className="mini-cabinet"><i></i><i></i><i></i></div></div><div className="atelier-card-copy"><b>Mobilya tasarımı</b><span>Dolap, masa, kitaplık ve özel ürünler</span></div><span className="atelier-card-arrow">↗</span></button>
-                <button className="atelier-start-card" onClick={startWorkspace}><span className="atelier-card-number">02</span><div className="atelier-card-visual atelier-visual-parts"><div className="mini-panels"><i></i><i></i><i></i></div></div><div className="atelier-card-copy"><b>Parça modelleme</b><span>Panel, profil ve bileşenler</span></div><span className="atelier-card-arrow">↗</span></button>
-                <button className="atelier-start-card" onClick={startWorkspace}><span className="atelier-card-number">03</span><div className="atelier-card-visual atelier-visual-production"><div className="mini-cut"><i></i><i></i><i></i><i></i></div></div><div className="atelier-card-copy"><b>Üretim hazırlığı</b><span>Kesim, malzeme ve imalat</span></div><span className="atelier-card-arrow">↗</span></button>
+                <button className="atelier-start-card" onClick={() => { setLeftPanelMode("scene"); startWorkspace(); }}><span className="atelier-card-number">02</span><div className="atelier-card-visual atelier-visual-parts"><div className="mini-panels"><i></i><i></i><i></i></div></div><div className="atelier-card-copy"><b>Parça modelleme</b><span>Panel, profil ve bileşenler</span></div><span className="atelier-card-arrow">↗</span></button>
+                <button className="atelier-start-card" onClick={() => { setInspectorTab("production"); startWorkspace(); }}><span className="atelier-card-number">03</span><div className="atelier-card-visual atelier-visual-production"><div className="mini-cut"><i></i><i></i><i></i><i></i></div></div><div className="atelier-card-copy"><b>Üretim hazırlığı</b><span>Kesim, malzeme ve imalat</span></div><span className="atelier-card-arrow">↗</span></button>
               </div>
             </section>
             <section className="atelier-bottom-row">
-              <div className="atelier-recent" id="recent"><div className="atelier-section-heading"><div><span className="atelier-eyebrow">ÇALIŞMALARIN</span><h2>Son projeler</h2></div><button onClick={startWorkspace}>Tüm projeler ↗</button></div><button className="atelier-empty-project" onClick={startWorkspace}><span className="atelier-empty-plus">＋</span><span><b>İlk projen burada başlayacak</b><small>Yeni bir tasarım alanı oluştur ve çalışmaya başla.</small></span><span className="atelier-empty-arrow">→</span></button></div>
+              <div className="atelier-recent" id="recent"><div className="atelier-section-heading"><div><span className="atelier-eyebrow">ÇALIŞMALARIN</span><h2>Son projeler</h2></div><button onClick={startWorkspace}>Yeni proje ↗</button></div><button className="atelier-empty-project" onClick={startWorkspace}><span className="atelier-empty-plus">＋</span><span><b>İlk projen burada başlayacak</b><small>Yeni bir tasarım alanı oluştur ve çalışmaya başla.</small></span><span className="atelier-empty-arrow">→</span></button></div>
               <aside className="atelier-tip"><span className="atelier-eyebrow">STÜDYO NOTU / 01</span><b>Önce geometri.<br/>Sonra üretim.</b><p>MobilyaCAD'de tasarladığın her parça, üretim verisinin bir parçası olarak yaşar.</p><span className="atelier-tip-mark">M / CAD</span></aside>
             </section>
           </main>
@@ -786,28 +789,6 @@ function App() {
           </div>
 
           <div className="cad-top-actions">
-            <Tooltip>
-              <TooltipTrigger
-                render={
-                  <Button variant="ghost" size="icon" disabled>
-                    <Undo2 />
-                  </Button>
-                }
-              />
-              <TooltipContent>Geri al</TooltipContent>
-            </Tooltip>
-
-            <Tooltip>
-              <TooltipTrigger
-                render={
-                  <Button variant="ghost" size="icon" disabled>
-                    <Redo2 />
-                  </Button>
-                }
-              />
-              <TooltipContent>Yinele</TooltipContent>
-            </Tooltip>
-
             <Separator orientation="vertical" className="cad-top-separator" />
 
             <ToggleGroup
@@ -948,7 +929,7 @@ function App() {
         <SidebarProvider
           defaultOpen
           style={sidebarStyle}
-          className={`cad-workspace${mobilePanel === "catalog" ? " mobile-catalog-open" : mobilePanel === "inspector" ? " mobile-inspector-open" : ""}`}
+          className={`cad-workspace${mobilePanel === "catalog" ? " mobile-catalog-open" : mobilePanel === "inspector" ? " mobile-inspector-open" : ""}${leftDockCollapsed ? " cad-workspace--left-collapsed" : ""}`}
         >
           <Sidebar
             collapsible="none"
@@ -1279,11 +1260,13 @@ function App() {
                 <button type="button" className={transformMode === "scale" ? "active" : ""} onClick={() => setTransformMode("scale")}><Maximize2 /> Ölçekle</button>
                 <button type="button" className={transformMode === "rotate" ? "active" : ""} onClick={() => setTransformMode("rotate")}><RotateCw /> Döndür</button>
                 <span className="studio-heading-divider" />
+                <button type="button" className="studio-panel-toggle" aria-label={leftDockCollapsed ? "Sol paneli göster" : "Sol paneli gizle"} title={leftDockCollapsed ? "Sol paneli göster" : "Sol paneli gizle"} aria-pressed={!leftDockCollapsed} onClick={() => setLeftDockCollapsed((current) => !current)}><PanelLeft /></button>
+                <button type="button" className="studio-panel-toggle" aria-label={inspectorCollapsed ? "Özellik panelini göster" : "Özellik panelini gizle"} title={inspectorCollapsed ? "Özellik panelini göster" : "Özellik panelini gizle"} aria-pressed={!inspectorCollapsed} onClick={() => setInspectorCollapsed((current) => !current)}><PanelRight /></button>
                 <span className="studio-unit-pill">MM</span>
               </div>
             </div>
 
-            <div className="cad-workspace-content">
+            <div className={`cad-workspace-content${inspectorCollapsed ? " inspector-collapsed" : ""}`}>
               <main className="cad-viewport">
                 <div className="cad-viewport-info">
                   <span>MODEL ALANI</span>
