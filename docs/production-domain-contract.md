@@ -225,3 +225,16 @@ Kaynak: `domain/production/wardrobeConstruction.ts`.
 - Özel raflarla `profile.shelfCount` tam genişlik rafları aynı istekte birleştirilemez. Bu, çift sayım ve çakışan üretim satırlarını engeller.
 - Proje agregatörü ve malzeme tüketim özeti rafları ortak Part listesi üzerinden taşır; her raf quantity 1 olarak ayrı izlenir. Frontend JSON v1/CSV adapter entegrasyonu bu domain diliminin kapsamında değildir.
 - Bu model raf panel geometrisi ve yerleşim zarfını doğrular; raf taşıma kapasitesi, bağlantı elemanı, delik, ray/donanım, CNC, nesting, fire veya montaj güvenliği hesaplamaz. Fiziksel üretim öncesi atölye doğrulaması gerekir.
+
+
+## 2.10 Floor-standing TV ünitesi v1
+
+Kaynak: `domain/production/tvUnitConstruction.ts` ve `domain/production/projectProduction.ts`.
+
+Çağrı: `calculateTvUnitConstruction({ schemaVersion: 1, family: "tv-unit", mounting: "floor-standing", furniture, profile, materials, panelMaterialOverrides? })`.
+
+- V1 sözleşmesi `family: "tv-unit"` ve `mounting: "floor-standing"` alanlarını açıkça ister. Gövde dış ölçüleri, panel kalınlıkları, gövde stili, arkalık, raf/kapak, panel malzeme override'ları ve kenar bantlama mevcut cabinet motorunun aynı doğrulanmış parametrelerini kullanır.
+- Çıktı `family: "tv-unit"`, `mounting: "floor-standing"`, `innerDimensionsMm` ve ortak Part satırlarını taşır. Proje agregatörü TV ünitesini ayrı bir desteklenen aile olarak tanır; kaynak mobilya/parça kimlikleri, mm ölçüleri, quantity, katalog malzeme kimliği ve kenar bayrakları korunur. Malzeme tüketimi aynı Part listesinden hesaplanır.
+- Bu dilim yalnızca açıkça tanımlanmış, zemine oturan gövde parçalarını kapsar. Ayak, baza/plinth, duvar braketi, ankraj, duvar taşıma kapasitesi, TV yükü, bağlantı/delik, donanım, CNC, nesting, fire veya fiyat hesabı üretmez.
+- `mounting: "wall-mounted"` ve diğer montaj biçimleri reddedilir; gerçek üretici/duvar/ankraj standardı doğrulanmadan duvara montajlı üretim verisi sunulmaz.
+- Frontend JSON v1/CSV adapter'ı bu aileyi henüz çağırmaz. Ayrı frontend sahibi, TV ünitesi isteği için açık montaj seçimini, `ready/blocked` raporunu ve ortak Part listesini kendi entegrasyon testleriyle bağlamalıdır. Bu domain dilimi hiçbir `frontend/**` dosyasını değiştirmez.

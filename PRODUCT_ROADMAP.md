@@ -16,8 +16,8 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 | Oda ve 3D sahne | Ölçülü oda ve perspektif sahne | Tam 2D teknik çizim, kesit ve görünüş araçları yok |
 | Yerleşim | Katalogdan ekleme, seçme, taşıma, döndürme ve boyutlandırma; SAT tabanlı yatay ayak izi çakışma ve oda sınırı uyarıları 3D sahnede gösterilir | Gelişmiş snap, çoklu seçim, duvar montajı/kapak açılımı boşlukları ve tam undo/redo akışı doğrulanmış değil |
 | Katalog | Mutfak, gardırop, banyo, masa, kitaplık ve diğer ailelerden 100 varyasyon | Şablonlar tam parametrik konstrüksiyon aileleri değil |
-| Parçalar | Görsel kapak/çekmece/raf parçaları; domain düz gövde, çekmece kutusu, açık kitaplık, masa ve gardırop dikey bölücü + açık ölçülü bölme rafı parçaları; proje agregatörü bunları ortak Part listesinde birleştirir | Domain sonucu henüz frontend JSON/CSV adapter'ına bağlı değil; diğer mobilya aileleri ve askı/çekmece yerleşimi eksik; ray, donanım ve CNC operasyonları dahil değil |
-| Hesap motoru | `cabinetConstruction`, `drawerBoxConstruction`, `bookshelfConstruction`, `tableConstruction`, `wardrobeConstruction` ve aile ayrımlı sürüm 1 proje agregatörü; ortak Part listesi quantity, malzeme, damar yönü ve kenar bantlamayı korur | Frontend adapter henüz domain agregatörünü çağırmıyor; TV ünitesi ve diğer aileler, üreticiye özel konstrüksiyonlar eksik |
+| Parçalar | Görsel kapak/çekmece/raf parçaları; domain düz gövde, çekmece kutusu, açık kitaplık, masa ve gardırop dikey bölücü + açık ölçülü bölme rafı parçaları ve TV ünitesi floor-standing gövde parçaları; proje agregatörü bunları ortak Part listesinde birleştirir | Domain sonucu henüz frontend JSON/CSV adapter'ına bağlı değil; diğer mobilya aileleri ve askı/çekmece yerleşimi eksik; ray, donanım ve CNC operasyonları dahil değil |
+| Hesap motoru | `cabinetConstruction`, `drawerBoxConstruction`, `bookshelfConstruction`, `tableConstruction`, `wardrobeConstruction`, `tvUnitConstruction` ve aile ayrımlı sürüm 1 proje agregatörü; ortak Part listesi quantity, malzeme, damar yönü ve kenar bantlamayı korur | Frontend adapter henüz domain agregatörünü çağırmıyor; duvar montajlı TV ünitesi/ayak-baza modelleri ve diğer aileler, üreticiye özel konstrüksiyonlar eksik |
 | Kesim listesi | Projedeki desteklenen düz mutfak gövdeleri ve tam tanımlı çekmece parçaları için tek Türkçe Excel uyumlu CSV; her satır kaynak mobilya adı/ID'si ve varsa katalog Malzeme ID değeriyle izlenir | Köşe/cihaz/evye konstrüksiyonları, diğer aileler, nesting ve CNC çıktısı yok |
 | Kenar bantlama / malzeme tüketimi | Domain malzeme özeti gövde, çekmece, kitaplık, masa ve gardırop bölücü/raf parçalarının ortak Part listesinden quantity ağırlıklı alan/hacim ve kenar bantlamasını hesaplayabilir | Domain özeti henüz UI/JSON/CSV'ye bağlı değil; fire, levha verimi, kerf, bant kalınlığı ve rulo payı yok |
 | Malzeme kataloğu | UI CRUD; mobilya varsayılan materialId ve çekmece grubunda varsayılan + dört panel grubu override; domain gövde/kitaplık motorları altı gövde panel grubu için malzeme override'ını doğrular | Gövde panel override'ları henüz frontend JSON v1/CSV ve UI akışına bağlanmadı; fiyat, tedarikçi ve fire henüz yok |
@@ -505,3 +505,21 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 - Test commit'i: `f60d89081a51d308b8015e580b8ecc163d6a3310`; doğrulanmış beklenti düzeltmesi: `62e9dfc5e980f27754faa3ce794f149843f82fda`.
 - GitHub Actions: CI #266, QA #163 (101/101 frontend + 105/105 domain, 0 başarısız) ve Pages #130 başarılı.
 - Sınırlar: fire/levha verimi, kerf, bant rulo payı, donanım, CNC ve maliyet hesabı yoktur; fiziksel üretim doğrulaması ayrıca gerekir.
+
+
+## 16 Kasım 2026 — TV ünitesi v1 domain dilimi
+
+- `family: "tv-unit"` ve `mounting: "floor-standing"` açıkça istenen TV ünitesi v1, mevcut cabinet gövde motorunu tekrar kullanır; geometri formülleri kopyalanmaz.
+- Proje agregatörü aileyi `ready/blocked` tanılamasına ve ortak Part listesine ekler. Malzeme özeti aynı parça listesinden quantity ve malzeme/kalınlık gruplarını hesaplar.
+- Duvara montajlı istekler, ayak/baza/braket/ankraj ve yük hesapları bu dilimde desteklenmez; doğrulanmış montaj standardı olmadan üretim verisi üretilmez.
+- Kabul testleri: TV ünitesi dış ölçülerinin cabinet iç ölçülerinden ayrı aile etiketiyle korunması; parça kimlik/adet/malzeme satırlarının ortak listede bulunması; duvar montajı isteğinin `blocked` olması.
+- Değişen dosyalar: `domain/production/tvUnitConstruction.ts`, `domain/production/tvUnitConstruction.test.mjs`, `domain/production/projectProduction.ts`, `domain/production/projectProduction.test.mjs`, `.github/workflows/qa-test.yml`, `docs/production-domain-contract.md`, `PRODUCT_ROADMAP.md`.
+- GitHub Actions doğrulaması commit sonrasında kaydedilecek; fiziksel montaj/üretim doğrulaması kapsam dışıdır.
+
+### Sıradaki 3-5 küçük görev
+
+1. TV ünitesi için açık ölçülü bölme/özel raf yerleşimini ve farklı panel kalınlıklarını, mevcut wardrobe raf sözleşmesini körlemesine kopyalamadan tasarla.
+2. Banyo dolabı ailesini, yalnızca kullanıcı/üretici tarafından verilen ayak, lavabo boşluğu ve arkalık kurallarıyla küçük bir domain dilimine ayır.
+3. Karışık cabinet/bookshelf/table/wardrobe/tv-unit projelerinde katalog malzeme, quantity, net alan/hacim ve kenar bantlama uzlaşmasını genişlet.
+4. Domain Part listesi ile frontend JSON v1/CSV adapter entegrasyonunu ayrı frontend sahibinin kabul testleri üzerinden takip et; bu otomasyon `frontend/**` dosyalarına dokunmaz.
+5. CNC, duvar montajı, ayak/ankraj, nesting, fire ve maliyet çıktıları için gerçek üretici/atölye girdisi ve standart olmadan varsayılan üretim kuralı ekleme.

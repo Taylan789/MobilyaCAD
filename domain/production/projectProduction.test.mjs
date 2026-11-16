@@ -14,6 +14,14 @@ const materials = [
 ];
 const noBanding = { top: false, bottom: false, left: false, right: false };
 
+function createTvUnitRequest(id, overrides = {}) {
+  return {
+    ...createRequest(id, overrides),
+    family: "tv-unit",
+    mounting: "floor-standing"
+  };
+}
+
 function createRequest(id, overrides = {}) {
   const edgeBandingByGroup = Object.fromEntries(
     BODY_PANEL_GROUPS.map((group) => [group, { ...noBanding }])
@@ -615,6 +623,53 @@ test("geçersiz masa konstrüksiyonu proje agregatöründe reddedilir", () => {
   );
 });
 
+
+test("floor-standing TV ünitesi proje agregatöründe ortak Part ve malzeme özetine katılır", () => {
+  const request = createTvUnitRequest("tv-floor-1", {
+    profile: { shelfCount: 2 }
+  });
+  const report = calculateCabinetProjectProductionWithDiagnostics({
+    schemaVersion: 1,
+    furniture: [request]
+  });
+
+  assert.equal(report.status, "ready");
+  assert.equal(report.canExport, true);
+  assert.deepEqual(report.supportedFurniture, [
+    { furnitureId: "tv-floor-1", family: "tv-unit" }
+  ]);
+  assert.deepEqual(report.result.furniture, [{
+    furnitureId: "tv-floor-1",
+    family: "tv-unit",
+    innerDimensionsMm: { width: 764, height: 720, depth: 542 }
+  }]);
+  assert.deepEqual(report.result.parts.map((part) => part.id), [
+    "tv-floor-1-left-side",
+    "tv-floor-1-right-side",
+    "tv-floor-1-top",
+    "tv-floor-1-bottom",
+    "tv-floor-1-shelf"
+  ]);
+  const summary = calculateProjectMaterialConsumptionSummary(report.result);
+  assert.equal(summary[0].totalQuantity, 6);
+  assert.equal(summary[0].partLineCount, 5);
+});
+
+test("duvara monte TV ünitesi doğrulanmış bağlantı standardı olmadığı için projeyi engeller", () => {
+  const request = createTvUnitRequest("tv-wall-1");
+  request.mounting = "wall-mounted";
+  const report = calculateCabinetProjectProductionWithDiagnostics({
+    schemaVersion: 1,
+    furniture: [request]
+  });
+
+  assert.equal(report.status, "blocked");
+  assert.equal(report.canExport, false);
+  assert.equal(report.result, null);
+  assert.equal(report.blockedFurniture[0].furnitureId, "tv-wall-1");
+  assert.equal(report.blockedFurniture[0].family, "tv-unit");
+  assert.match(report.blockedFurniture[0].message, /duvar montajı/);
+});
 
 test("proje raporu desteklenen aileleri ve desteklenmeyen mobilyaları ayrı tanılar", () => {
   const unsupported = createBookshelfRequest("sofa-unsupported");
