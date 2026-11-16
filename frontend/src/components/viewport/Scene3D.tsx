@@ -486,7 +486,12 @@ export default function Scene3D({
   }, [furniture, selectedFurnitureId, selectedPartId, requestCamera]);
 
   useEffect(() => {
-    if (focusRequestId <= 0 || handledFocusRequestId.current === focusRequestId) return;
+    if (focusRequestId <= 0) {
+      handledFocusRequestId.current = 0;
+      return;
+    }
+    if (handledFocusRequestId.current === focusRequestId) return;
+
     handledFocusRequestId.current = focusRequestId;
     focusSelectedObject();
   }, [focusRequestId, focusSelectedObject]);
