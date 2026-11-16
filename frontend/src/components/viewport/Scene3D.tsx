@@ -40,7 +40,7 @@ interface Scene3DProps {
   onRotate: (id: string, rotation: number) => void;
 }
 
-type CameraOrientation = "perspective" | "top" | "front";
+type CameraOrientation = "perspective" | "top" | "front" | "back" | "left" | "right";
 
 interface CameraCommand {
   id: number;
@@ -90,6 +90,12 @@ function CameraRig({
       up.set(0, 0, -1);
     } else if (command.orientation === "front") {
       direction.set(0, 0, 1);
+    } else if (command.orientation === "back") {
+      direction.set(0, 0, -1);
+    } else if (command.orientation === "left") {
+      direction.set(-1, 0, 0);
+    } else if (command.orientation === "right") {
+      direction.set(1, 0, 0);
     } else {
       direction.set(0.72, 0.58, 0.82);
     }
@@ -632,6 +638,39 @@ export default function Scene3D({
         >
           <Square aria-hidden="true" />
           <span>Ön</span>
+        </button>
+        <button
+          type="button"
+          className={activeView === "back" ? "is-active" : ""}
+          aria-label="Arka görünüş"
+          aria-pressed={activeView === "back"}
+          title="Arka görünüş"
+          onClick={() => selectCameraView("back")}
+        >
+          <Square aria-hidden="true" />
+          <span>Arka</span>
+        </button>
+        <button
+          type="button"
+          className={activeView === "left" ? "is-active" : ""}
+          aria-label="Sol görünüş"
+          aria-pressed={activeView === "left"}
+          title="Sol görünüş"
+          onClick={() => selectCameraView("left")}
+        >
+          <Square aria-hidden="true" />
+          <span>Sol</span>
+        </button>
+        <button
+          type="button"
+          className={activeView === "right" ? "is-active" : ""}
+          aria-label="Sağ görünüş"
+          aria-pressed={activeView === "right"}
+          title="Sağ görünüş"
+          onClick={() => selectCameraView("right")}
+        >
+          <Square aria-hidden="true" />
+          <span>Sağ</span>
         </button>
         <span className="cad-viewport-camera-tools__divider" />
         <button
