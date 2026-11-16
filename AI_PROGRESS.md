@@ -550,14 +550,14 @@
 - Sonraki görev: her bölme için açık net genişlik, raf kotu, derinlik, kalınlık, malzeme, kenar bandı ve damar yönü isteyen raf sözleşmesini tasarlamak; raf/bölücü çakışmalarını test etmek.
 
 
-## 16 Kasım 2026 — gardırop bölme rafları (doğrulama bekliyor)
+## 16 Kasım 2026 — gardırop bölme rafları (Actions doğrulandı)
 
-- Başlangıç HEAD: `0fd156cf42cc99f03b177134433df7d581bf3b4d` (`dev/github-work`).
+- Başlangıç HEAD: `0fd156cf42cc99f03b177134433df7d581bf3b4d`; geliştirme yalnızca `dev/github-work` üzerinde yapıldı.
+- Kod commit SHA: `2dd891cb68be80dbd6e091774369e3a4cc4f43eb`.
 - Geliştirme: wardrobe domain isteğine geriye uyumlu `shelves` alanı eklendi. Her raf açık sol/sağ ofset, net iç tabandan kot, ön ofset, derinlik, kalınlık, katalog malzeme kimliği, kenar bandı ve damar yönü taşır.
 - Veri doğruluğu: net iç yükseklik üst/alt panel kalınlıklarından türetilir; raflar bölücülerin içine giremez, iç hacim sınırını aşamaz ve diğer raflarla 3D hacim çakışması yapamaz. Sadece yüzey teması geçerlidir. Özel raflar tam genişlik `shelfCount` ile birleştirilemez.
-- Değişen dosyalar: `domain/production/wardrobeConstruction.ts`, `domain/production/wardrobeConstruction.test.mjs`, `docs/production-domain-contract.md`, `PRODUCT_ROADMAP.md`.
-- Kod commit SHA: GitHub commit oluşturulduktan sonra bu kayda eklenecek.
-- Otomatik kontroller: QA/CI/Pages yeni commit için henüz çalışmadı; gerçek Actions sonuçları görülmeden başarılı sayılmayacak.
-- Başlangıç HEAD QA kanıtı: QA #158 `43933617113` başarılı (**101/101 frontend + 96/96 domain**); CI #258 `43933617028` başarılı; Pages #126 `43933617040` başarılı.
-- Bilinen kısıtlar: raf taşıma kapasitesi, bağlantı, donanım, delik, CNC, nesting, fire ve fiyat hesabı yok. Frontend JSON v1/CSV entegrasyonu ayrı frontend sahibinin kapsamındadır; hiçbir `frontend/**` dosyası değiştirilmez.
+- Değişen dosyalar: `domain/production/wardrobeConstruction.ts`, `domain/production/wardrobeConstruction.test.mjs`, `docs/production-domain-contract.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`.
+- CI #259 (`43935535640`) başarılı; QA #159 (`43935535641`) başarılı (**101/101 frontend + 104/104 domain testi, 0 başarısız**); Pages #127 (`43935535931`) başarılı.
+- QA adımları: shared-domain strict TypeScript, lint, frontend production build ve production dependency audit başarılı. Oxlint 32 uyarı / 0 hata; audit 6 bulgu (2 düşük, 4 orta), yüksek önem eşiği geçti.
+- Bilinen kısıtlar: raf taşıma kapasitesi, bağlantı, donanım, delik, CNC, nesting, fire ve fiyat hesabı yok. Frontend JSON v1/CSV entegrasyonu ayrı frontend sahibinin kapsamındadır; hiçbir `frontend/**` dosyası değiştirilmedi.
 - Sonraki görev: karışık wardrobe/table/bookshelf projelerinde raflı malzeme ve kenar bantlama toplamlarının sınır testleri; ardından kullanıcı girdili TV ünitesi motoru.

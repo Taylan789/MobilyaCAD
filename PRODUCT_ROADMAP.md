@@ -22,7 +22,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 | Kenar bantlama / malzeme tüketimi | Domain malzeme özeti gövde, çekmece, kitaplık, masa ve gardırop bölücü/raf parçalarının ortak Part listesinden quantity ağırlıklı alan/hacim ve kenar bantlamasını hesaplayabilir | Domain özeti henüz UI/JSON/CSV'ye bağlı değil; fire, levha verimi, kerf, bant kalınlığı ve rulo payı yok |
 | Malzeme kataloğu | UI CRUD; mobilya varsayılan materialId ve çekmece grubunda varsayılan + dört panel grubu override; domain gövde/kitaplık motorları altı gövde panel grubu için malzeme override'ını doğrular | Gövde panel override'ları henüz frontend JSON v1/CSV ve UI akışına bağlanmadı; fiyat, tedarikçi ve fire henüz yok |
 | Proje dosyası | Yerel JSON v1 indirme/yükleme; saf serializer/parser; round-trip ve eski v1 uyumluluk; mm, mobilya ve çekmece grubu katalog referansları ile dört çekmece panel kalınlığının doğrulanması | Şema migrasyonu, otomatik kayıt ve kurtarma yok |
-| Test/CI | HEAD `0fd156cf42cc99f03b177134433df7d581bf3b4d`: CI #258 `43933617028`, QA #158 `43933617113` (101/101 frontend + 96/96 domain testi) ve Pages #126 `43933617040` başarılı; strict domain TypeScript, lint, production build ve yüksek önem audit kapısı geçti | Fiziksel üretim doğrulaması otomatik testle yapılamaz; Oxlint 32 uyarı/0 hata, audit'te 6 bulgu (2 düşük/4 orta), büyük bundle chunk ve Actions Node 20 deprecation uyarıları sürüyor |
+| Test/CI | HEAD `2dd891cb68be80dbd6e091774369e3a4cc4f43eb`: CI #259 `43935535640`, QA #159 `43935535641` (101/101 frontend + 104/104 domain testi) ve Pages #127 `43935535931` başarılı; strict domain TypeScript, lint, production build ve yüksek önem audit kapısı geçti | Fiziksel üretim doğrulaması otomatik testle yapılamaz; Oxlint 32 uyarı/0 hata, audit'te 6 bulgu (2 düşük/4 orta), büyük bundle chunk ve Actions Node 20 deprecation uyarıları sürüyor |
 
 ### Bilinen mimari ve veri boşlukları
 
@@ -492,5 +492,6 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 - Proje agregatörü ve malzeme özeti yeni raf Part satırlarını mevcut ortak listeden tüketir. Frontend JSON v1/CSV adapter'ı değiştirilmedi.
 - Kabul kriterleri: bölücülerin iki yanında raf; sınır/kalınlık/malzeme/çakışma reddi; temas eden raf yüzeylerinin kabulü; ready/blocked proje raporu; eski istek uyumluluğu.
 - Değişen dosyalar: `domain/production/wardrobeConstruction.ts`, `domain/production/wardrobeConstruction.test.mjs`, `docs/production-domain-contract.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`.
-- Kod commit SHA ve Actions sonuçları, commit oluşturulup QA/CI tamamlandıktan sonra ilerleme kaydına eklenecek.
+- Kod commit SHA: `2dd891cb68be80dbd6e091774369e3a4cc4f43eb`.
+- GitHub Actions: CI #259 (`43935535640`), QA #159 (`43935535641`) ve Pages #127 (`43935535931`) başarılı. QA 101/101 frontend + 104/104 domain testiyle 0 başarısız; strict domain TypeScript, lint, production build ve production dependency audit adımları geçti. Oxlint 32 uyarı/0 hata; audit 6 bulgu (2 düşük/4 orta), yüksek önem eşiği geçti.
 - Bilinen sınırlar: raf taşıma kapasitesi, bağlantı, askı borusu, çekmece yerleşimi, donanım, delik, CNC, nesting, fire ve fiyat hesabı yok; fiziksel üretim öncesi atölye doğrulaması gerekir.
