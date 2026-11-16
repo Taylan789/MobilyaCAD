@@ -1140,9 +1140,10 @@ function App() {
                             <button
                               type="button"
                               className="studio-tree-disclosure"
+                              disabled={normalizedSceneSearch.length > 0}
                               aria-expanded={isExpanded}
                               aria-label={item.name + " parçalarını " + (isExpanded ? "daralt" : "genişlet")}
-                              title={isExpanded ? "Parçaları daralt" : "Parçaları genişlet"}
+                              title={normalizedSceneSearch ? "Arama sonuçları açık tutulur" : isExpanded ? "Parçaları daralt" : "Parçaları genişlet"}
                               onClick={() => setCollapsedSceneFurnitureIds((current) =>
                                 current.includes(item.id)
                                   ? current.filter((id) => id !== item.id)
@@ -1171,15 +1172,6 @@ function App() {
                       );
                     })
                   )}
-                </div>
-              </div>
-            )}    <div className="studio-tree-object" key={item.id}>
-                      <button type="button" className={selectedFurnitureId === item.id && !selectedPartId ? "selected" : ""} onClick={() => { setSelectedFurnitureId(item.id); setSelectedPartId(null); }}>
-                        <Box /><span><strong>{item.name}</strong><small>{item.width} × {item.height} × {item.depth} mm</small></span><em>{item.parts.length}</em>
-                      </button>
-                      {item.parts.map((part) => <button type="button" className={selectedFurnitureId === item.id && selectedPartId === part.id ? "studio-tree-part selected" : "studio-tree-part"} key={part.id} onClick={() => { setSelectedFurnitureId(item.id); setSelectedPartId(part.id); }}><span className="studio-tree-part-line" /><span>{part.name}</span></button>)}
-                    </div>
-                  ))}
                 </div>
               </div>
             )}
