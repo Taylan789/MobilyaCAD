@@ -1084,7 +1084,7 @@ function App() {
                   </div>
                 </div>
 
-                <label className="studio-tree-search">
+                <div className="studio-tree-search">
                   <Search aria-hidden="true" />
                   <Input
                     id="cad-scene-search"
@@ -1103,7 +1103,7 @@ function App() {
                       <X />
                     </button>
                   )}
-                </label>
+                </div>
 
                 <button
                   type="button"
