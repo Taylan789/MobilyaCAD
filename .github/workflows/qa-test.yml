@@ -57,6 +57,14 @@ jobs:
           echo "configured=true" >> "$GITHUB_OUTPUT"
           echo "result=passed" >> "$GITHUB_OUTPUT"
 
+      - name: Run shared domain tests
+        working-directory: .
+        run: node --experimental-strip-types --test domain/production/*.test.mjs
+
+      - name: Type-check shared domain modules
+        working-directory: frontend
+        run: npx tsc --noEmit --strict --target ES2022 --module ESNext --moduleResolution Bundler ../domain/production/bodyPanelMaterials.ts
+
       - name: Lint
         run: npm run lint
 
