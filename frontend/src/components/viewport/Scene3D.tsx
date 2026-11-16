@@ -65,7 +65,13 @@ interface CameraTransition {
   duration: number;
 }
 
-function CameraRig({ command }: { command: CameraCommand | null }) {
+function CameraRig({
+  command,
+  reducedMotion,
+}: {
+  command: CameraCommand | null;
+  reducedMotion: boolean;
+}) {
   const { camera, controls } = useThree();
   const transition = useRef<CameraTransition | null>(null);
 
@@ -93,6 +99,16 @@ function CameraRig({ command }: { command: CameraCommand | null }) {
     );
 
     camera.up.copy(up);
+
+    if (reducedMotion) {
+      camera.position.copy(toPosition);
+      orbit.target.copy(target);
+      camera.lookAt(orbit.target);
+      orbit.update();
+      transition.current = null;
+      return;
+    }
+
     transition.current = {
       fromPosition: camera.position.clone(),
       toPosition,
@@ -101,7 +117,7 @@ function CameraRig({ command }: { command: CameraCommand | null }) {
       elapsed: 0,
       duration: 0.24,
     };
-  }, [camera, command, controls]);
+  }, [camera, command, controls, reducedMotion]);
 
   useEffect(() => {
     const orbit = controls as unknown as OrbitControlsApi | null;
@@ -385,7 +401,20 @@ export default function Scene3D({
   );
   const [activeView, setActiveView] = useState<CameraOrientation>("perspective");
   const [cameraCommand, setCameraCommand] = useState<CameraCommand | null>(null);
+  const [reducedMotion, setReducedMotion] = useState(
+    () =>
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  );
   const cameraRequestId = useRef(0);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const syncPreference = () => setReducedMotion(mediaQuery.matches);
+
+    mediaQuery.addEventListener("change", syncPreference);
+    return () => mediaQuery.removeEventListener("change", syncPreference);
+  }, []);
 
   function requestCamera(
     orientation: CameraOrientation,
@@ -557,7 +586,7 @@ export default function Scene3D({
         maxDistance={maxDimension * 5}
         maxPolarAngle={Math.PI / 2}
       />
-      <CameraRig command={cameraCommand} />
+      <CameraRig command={cameraCommand} reducedMotion={reducedMotion} />
 
       {/* CAD görünüm yönlendiricisi: eksenlere tıklayarak kamerayı hizala */}
       <GizmoHelper alignment="bottom-right" margin={[76, 76]}>
