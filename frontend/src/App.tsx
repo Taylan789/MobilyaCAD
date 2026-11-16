@@ -778,6 +778,10 @@ function App() {
               <span />
               Tasarım modu
             </div>
+            <Button variant="ghost" size="sm" className="cad-home-button" onClick={() => setWorkspaceOpen(false)}>
+              <House />
+              Stüdyo
+            </Button>
             <input
               id="mobilyacad-project-file"
               type="file"
