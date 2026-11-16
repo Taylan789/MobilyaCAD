@@ -3594,3 +3594,302 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   .cad-workspace.mobile-inspector-open .cad-inspector { transform: translateX(0); }
   .cad-statusbar { display: none; }
 }
+
+
+/* Studio v2 — structural workspace */
+.cad-app{grid-template-rows:62px minmax(0,1fr) 30px;background:#e9e9e3}
+.cad-topbar{height:62px;min-height:62px}
+.cad-workspace{grid-template-columns:278px minmax(0,1fr)!important;padding:0!important;gap:0!important;background:#e9e9e3!important}
+.cad-sidebar{width:278px!important;min-width:278px!important;border:0!important;border-right:1px solid #d8d9d1!important;border-radius:0!important;box-shadow:4px 0 20px rgba(29,39,31,.035)}
+.cad-sidebar-header{padding:20px 17px 16px}
+.studio-sidebar-switch{display:grid;grid-template-columns:1fr 1fr;gap:5px;padding:9px 12px;background:#eeede7;border-top:1px solid #e2e1d9;border-bottom:1px solid #ddddd4}
+.studio-sidebar-switch button{display:flex;align-items:center;justify-content:center;gap:7px;height:35px;border:1px solid transparent;border-radius:6px;background:transparent;color:#788176;font:600 10px/1 inherit;cursor:pointer}
+.studio-sidebar-switch button svg{width:14px;height:14px}
+.studio-sidebar-switch button.active{background:#fff;color:#925c3e;border-color:#e0d7cc;box-shadow:0 1px 3px #29342d12}
+.studio-sidebar-switch button span{display:grid;place-items:center;min-width:17px;height:17px;padding:0 4px;border-radius:10px;background:#e9e7df;color:#777f74;font-size:9px}
+.cad-sidebar-content{min-height:0}
+.studio-scene-tree{padding:17px 13px 22px;overflow:auto}
+.studio-tree-heading{display:flex;justify-content:space-between;align-items:center;margin:2px 3px 14px;color:#a06b4b;font-size:9px;font-weight:800;letter-spacing:1.2px}
+.studio-tree-heading small{color:#92988f;font-size:8px;letter-spacing:.7px}
+.studio-tree-room,.studio-tree-object>button:first-child{display:flex;width:100%;align-items:center;gap:10px;padding:10px;border:1px solid #deded5;border-radius:7px;background:#fff;color:#59665b;text-align:left;cursor:pointer}
+.studio-tree-room>svg,.studio-tree-object>button>svg{width:16px;height:16px;color:#a96843;flex:none}
+.studio-tree-room span,.studio-tree-object>button:first-child span{display:flex;min-width:0;flex:1;flex-direction:column;gap:3px}
+.studio-tree-room strong,.studio-tree-object strong{overflow:hidden;color:#344037;font-size:10px;text-overflow:ellipsis;white-space:nowrap}
+.studio-tree-room small,.studio-tree-object small{color:#92988f;font-size:8px}
+.studio-tree-branch{position:relative;margin:17px 0 0 9px;padding-left:13px;border-left:1px solid #d9d9d0}
+.studio-tree-branch-label{display:flex;justify-content:space-between;margin:0 0 10px;color:#92988f;font-size:8px;font-weight:800;letter-spacing:1px}
+.studio-tree-branch-label b{color:#a96843}
+.studio-tree-object{position:relative;margin:0 0 7px}
+.studio-tree-object:before{position:absolute;top:18px;left:-14px;width:13px;border-top:1px solid #d9d9d0;content:""}
+.studio-tree-object>button:first-child{padding:9px;background:#fafaf7}
+.studio-tree-object>button.selected,.studio-tree-room:focus-visible{border-color:#c18a68;background:#f8f0e9}
+.studio-tree-object em{display:grid;place-items:center;min-width:18px;height:18px;border-radius:5px;background:#efeee8;color:#8a9187;font-size:9px;font-style:normal}
+.studio-tree-part{display:flex;align-items:center;gap:8px;width:calc(100% - 16px);height:27px;margin-left:16px;padding:0 8px;border:0;border-radius:4px;background:transparent;color:#7b857a;text-align:left;font-size:9px;cursor:pointer}
+.studio-tree-part.selected{background:#f0e5dc;color:#925c3e}
+.studio-tree-part-line{width:9px;height:1px;background:#d2d2c8}
+.studio-tree-empty{display:flex;align-items:center;flex-direction:column;gap:8px;padding:35px 14px;text-align:center}
+.studio-tree-empty svg{width:26px;height:26px;color:#b07a59}
+.studio-tree-empty strong{color:#485449;font-size:11px}
+.studio-tree-empty span{color:#92988f;font-size:9px;line-height:1.6}
+.studio-tree-empty button{margin-top:5px;padding:7px 11px;border:1px solid #dfd5ca;border-radius:5px;background:#f4ebe3;color:#925c3e;font-size:9px;cursor:pointer}
+.cad-main-area{border:0!important;border-radius:0!important;box-shadow:none!important;background:#e9e9e3!important}
+.studio-workspace-heading{display:flex;align-items:center;justify-content:space-between;min-height:38px;padding:0 22px;background:#f7f6f1;border-bottom:1px solid #e1e0d8}
+.studio-breadcrumb{display:flex;align-items:center;gap:10px;color:#9aa095;font-size:9px}
+.studio-breadcrumb i{color:#c0c1b8;font-style:normal}
+.studio-breadcrumb strong{color:#38443a;font-size:10px}
+.studio-breadcrumb b{margin-left:4px;padding:4px 7px;border-radius:4px;background:#f2e8df;color:#986044;font-size:8px;font-weight:600}
+.studio-heading-actions{display:flex;align-items:center;gap:12px;color:#818a80;font-size:9px}
+.studio-live-indicator{display:flex;align-items:center;gap:6px;color:#607b64;font-size:8px;font-weight:700;letter-spacing:.5px}
+.studio-live-indicator i,.studio-canvas-footer span:first-child i{width:6px;height:6px;border-radius:50%;background:#7da486;box-shadow:0 0 0 3px #7da48620}
+.studio-heading-divider{width:1px;height:16px;background:#deded5}
+.cad-viewport-toolbar{min-height:62px;padding:0 20px;background:#f1f0ea;border-bottom:1px solid #d9d9d0}
+.cad-viewport-title-icon{width:32px;height:32px}
+.studio-viewport-actions{display:flex;align-items:center;gap:5px}
+.studio-view-label{margin-right:5px;color:#a0a49a;font-size:8px;font-weight:800;letter-spacing:1px}
+.studio-viewport-actions button{display:flex;align-items:center;gap:6px;height:31px;padding:0 10px;border:1px solid transparent;border-radius:5px;background:transparent;color:#737e73;font-size:9px;cursor:pointer}
+.studio-viewport-actions button svg{width:13px;height:13px}
+.studio-viewport-actions button:hover{background:#fff;border-color:#deddd4}
+.studio-viewport-actions button.active{background:#f2e7dd;border-color:#e5d2c2;color:#945b3c}
+.studio-unit-pill{padding:5px 7px;border:1px solid #deddd4;border-radius:4px;background:#fff;color:#7b857a;font-size:8px;font-weight:800;letter-spacing:.7px}
+.cad-workspace-content{grid-template-columns:minmax(0,1fr) 318px!important;gap:0!important;background:#e9e9e3!important}
+.cad-viewport{margin:13px!important;border:1px solid #cbd0c6!important;border-radius:5px!important;background:#e2e6df!important;box-shadow:0 5px 18px #2836290c!important}
+.cad-inspector{margin:13px 13px 13px 0!important;border:1px solid #d9d9d1!important;border-radius:6px!important;box-shadow:0 4px 16px #2836290a!important}
+.studio-canvas-footer{position:absolute;right:12px;bottom:10px;left:12px;display:flex;align-items:center;justify-content:space-between;pointer-events:none;color:#879187;font-size:7px;font-weight:800;letter-spacing:.8px}
+.studio-canvas-footer span:first-child{display:flex;align-items:center;gap:7px;color:#647365}
+.cad-viewport-hint{bottom:37px!important}
+.cad-statusbar{height:30px;min-height:30px}
+@media(max-width:1100px){.cad-workspace{grid-template-columns:238px minmax(0,1fr)!important}.cad-sidebar{width:238px!important;min-width:238px!important}.cad-workspace-content{grid-template-columns:minmax(0,1fr) 280px!important}.studio-heading-actions{display:none}}
+@media(max-width:760px){.cad-workspace{display:flex!important}.cad-sidebar{width:min(310px,calc(100vw - 10px))!important;min-width:0!important}.studio-workspace-heading{min-height:34px;padding:0 10px}.studio-breadcrumb{gap:6px;font-size:8px}.studio-heading-actions{display:none}.cad-viewport-toolbar{padding:0 9px}.studio-view-label,.studio-viewport-actions button{font-size:0;padding:0 7px}.studio-viewport-actions button svg{width:15px;height:15px}.studio-unit-pill{display:none}.cad-workspace-content{grid-template-columns:minmax(0,1fr)!important}}
+
+
+/* MobilyaCAD brand system — joinery-inspired mark, warm timber accent */
+:root {
+  --mc-forest: #243b31;
+  --mc-forest-deep: #182a22;
+  --mc-wood: #b7754d;
+  --mc-wood-light: #e4b47d;
+  --mc-paper: #f2f0e8;
+  --mc-ink: #26342c;
+  --mc-line: #d8d6cb;
+  --mc-focus: #247c70;
+}
+
+.mc-brand {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 11px;
+  color: var(--mc-ink);
+  white-space: nowrap;
+}
+
+.mc-brand__mark {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 auto;
+  place-items: center;
+  overflow: hidden;
+  color: var(--mc-forest);
+  border-radius: 12px;
+  filter: drop-shadow(0 4px 8px rgba(25, 45, 34, .12));
+  transition: filter .18s ease, transform .18s ease;
+}
+
+.mc-brand__mark svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.mc-brand__copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mc-brand__copy strong {
+  color: var(--mc-ink);
+  font-size: 15px;
+  font-weight: 820;
+  line-height: 1;
+  letter-spacing: .055em;
+}
+
+.mc-brand__copy strong span {
+  margin-left: 2px;
+  color: var(--mc-wood);
+}
+
+.mc-brand__copy small {
+  color: #879087;
+  font-size: 8px;
+  font-weight: 720;
+  line-height: 1.2;
+  letter-spacing: 1.65px;
+}
+
+.mc-brand--inverse .mc-brand__copy strong {
+  color: #f3f0e7;
+}
+
+.mc-brand--inverse .mc-brand__copy small {
+  color: #aab6aa;
+}
+
+.mc-brand:hover .mc-brand__mark {
+  filter: drop-shadow(0 6px 12px rgba(25, 45, 34, .2));
+  transform: translateY(-1px);
+}
+
+.atelier-brand-lockup {
+  min-width: 184px;
+}
+
+.atelier-home-nav {
+  gap: 28px;
+}
+
+.atelier-home-nav a {
+  position: relative;
+  display: flex;
+  height: 100%;
+  align-items: center;
+  color: #788078;
+  font-size: 11px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: color .16s ease;
+}
+
+.atelier-home-nav a:hover,
+.atelier-home-nav a:focus-visible {
+  color: var(--mc-forest);
+}
+
+.atelier-home-nav a.active {
+  color: var(--mc-forest);
+  font-weight: 760;
+}
+
+.atelier-home-nav a.active::after,
+.atelier-home-nav a:hover::after {
+  position: absolute;
+  right: 0;
+  bottom: -1px;
+  left: 0;
+  height: 2px;
+  background: var(--mc-wood);
+  content: "";
+}
+
+.atelier-profile {
+  gap: 10px;
+}
+
+.atelier-profile > .atelier-profile-indicator {
+  width: 8px;
+  height: 8px;
+  flex: 0 0 auto;
+  border: 0;
+  border-radius: 50%;
+  background: #78957d;
+  box-shadow: 0 0 0 4px rgba(120, 149, 125, .13);
+}
+
+.atelier-profile b {
+  color: #455247;
+  font-size: 9px;
+  font-weight: 780;
+  letter-spacing: 1px;
+}
+
+.atelier-profile small {
+  color: #858d82;
+  font-size: 9px;
+}
+
+.cad-brand-lockup {
+  gap: 10px;
+}
+
+.cad-brand-lockup .mc-brand__mark {
+  width: 38px;
+  height: 38px;
+}
+
+.cad-brand-lockup .mc-brand__copy strong {
+  font-size: 14px;
+}
+
+.cad-loading-brand {
+  top: 32px;
+  left: clamp(18px, 4vw, 44px);
+  gap: 12px;
+}
+
+.cad-loading-brand .mc-brand__mark {
+  width: 42px;
+  height: 42px;
+}
+
+.cad-loading-brand .mc-brand__copy strong {
+  font-size: 15px;
+}
+
+.cad-loading-brand .mc-brand__copy small {
+  color: #aeb9ad;
+}
+
+.atelier-home-nav a:focus-visible,
+.atelier-home button:focus-visible,
+.cad-topbar button:focus-visible {
+  outline: 2px solid var(--mc-focus);
+  outline-offset: 3px;
+}
+
+.atelier-start-card {
+  transition: transform .2s cubic-bezier(.2, .75, .25, 1), box-shadow .2s ease, border-color .2s ease;
+}
+
+.atelier-start-card:hover {
+  transform: translateY(-3px);
+}
+
+@media (max-width: 560px) {
+  .atelier-brand-lockup {
+    min-width: 0;
+    gap: 8px;
+  }
+
+  .atelier-brand-lockup .mc-brand__mark {
+    width: 34px;
+    height: 34px;
+  }
+
+  .atelier-brand-lockup .mc-brand__copy strong {
+    font-size: 12px;
+  }
+
+  .atelier-brand-lockup .mc-brand__copy small,
+  .atelier-profile div {
+    display: none;
+  }
+
+  .atelier-profile {
+    margin-left: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mc-brand__mark,
+  .atelier-home-nav a,
+  .atelier-start-card {
+    transition: none !important;
+  }
+
+  .atelier-start-card:hover {
+    transform: none;
+  }
+}
