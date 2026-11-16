@@ -43,6 +43,7 @@ function createRequest(overrides = {}) {
       legWidthMm: 60,
       legDepthMm: 60,
       legCount: 4,
+      materialIdByGroup: { legs: "wood-60" },
       aprons: {
         enabled: true,
         heightMm: 100,
@@ -159,7 +160,7 @@ test("parça grubu malzeme override'ı katalog adını ve gerçek kalınlığı 
 test("katalogda bulunmayan malzeme veya parça kalınlığı reddedilir", () => {
   assert.throws(
     () => calculateTableConstruction(createRequest({
-      profile: { materialIdByGroup: { top: "mdf-16" } }
+      profile: { materialIdByGroup: { top: "mdf-16", legs: "wood-60" } }
     })),
     /18 mm kalınlık katalogda tanımlı değil/
   );
@@ -225,8 +226,8 @@ test("etkin kayıtta en az bir pozitif adet ve kullanılmayan yönde sıfır uzu
           thicknessMm: 18,
           longApronLengthMm: 900,
           longApronCount: 0,
-          shortApronLengthMm: 0,
-          shortApronCount: 0
+          shortApronLengthMm: 500,
+          shortApronCount: 1
         }
       }
     })),
