@@ -641,7 +641,7 @@ test("floor-standing TV ünitesi proje agregatöründe ortak Part ve malzeme öz
   assert.deepEqual(report.result.furniture, [{
     furnitureId: "tv-floor-1",
     family: "tv-unit",
-    innerDimensionsMm: { width: 764, height: 720, depth: 542 }
+    innerDimensionsMm: { width: 764, height: 684, depth: 542 }
   }]);
   assert.deepEqual(report.result.parts.map((part) => part.id), [
     "tv-floor-1-left-side",
@@ -835,7 +835,7 @@ test("TV ünitesi dikey bölücü ve bölme rafları ortak Part listesiyle malze
     id: "center",
     leftOffsetMm: 380,
     bottomOffsetMm: 0,
-    heightMm: 720,
+    heightMm: 684,
     frontOffsetMm: 0,
     depthMm: 542,
     thicknessMm: 18,
@@ -910,7 +910,7 @@ test("TV ünitesi rafı dikey bölücü panelini keserse proje export için enge
     id: "center",
     leftOffsetMm: 380,
     bottomOffsetMm: 0,
-    heightMm: 720,
+    heightMm: 684,
     frontOffsetMm: 0,
     depthMm: 542,
     thicknessMm: 18,

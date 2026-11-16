@@ -108,6 +108,7 @@ export interface TvUnitConstructionResult {
 interface ResolvedTvUnitInput {
   cabinetRequest: CabinetConstructionRequest;
   baseResult: CabinetConstructionResult;
+  innerDimensionsMm: CabinetConstructionResult["innerDimensionsMm"];
   verticalDividers: TvUnitVerticalDividerSpec[];
   shelves: TvUnitShelfSpec[];
 }
@@ -370,6 +371,10 @@ function resolveTvUnitInput(value: unknown): ResolvedTvUnitInput {
   if (!Number.isSafeInteger(innerHeightTenths) || innerHeightTenths <= 0) {
     throw new Error("TV ünitesi net iç yüksekliği üst ve alt panel kalınlıklarından sonra pozitif kalmalıdır.");
   }
+  const innerDimensionsMm = {
+    ...baseResult.innerDimensionsMm,
+    height: innerHeightTenths / 10
+  };
 
   const innerWidthTenths = toTenthsMm(baseResult.innerDimensionsMm.width, "TV ünitesi iç genişliği");
   const innerDepthTenths = toTenthsMm(baseResult.innerDimensionsMm.depth, "TV ünitesi iç derinliği");
@@ -508,7 +513,7 @@ function resolveTvUnitInput(value: unknown): ResolvedTvUnitInput {
     shelfIntervals.push({ id: shelf.id, left, right, bottom, top, front, back });
   }
 
-  return { cabinetRequest, baseResult, verticalDividers, shelves };
+  return { cabinetRequest, baseResult, innerDimensionsMm, verticalDividers, shelves };
 }
 
 /**
@@ -519,7 +524,7 @@ function resolveTvUnitInput(value: unknown): ResolvedTvUnitInput {
 export function calculateTvUnitConstruction(
   value: unknown
 ): TvUnitConstructionResult {
-  const { cabinetRequest, baseResult, verticalDividers, shelves } = resolveTvUnitInput(value);
+  const { cabinetRequest, baseResult, innerDimensionsMm, verticalDividers, shelves } = resolveTvUnitInput(value);
   const dividerParts: TvUnitVerticalDividerPart[] = verticalDividers.map((divider) => {
     const material = cabinetRequest.materials.find((entry) => entry.id === divider.materialId);
     if (!material) {
@@ -571,7 +576,7 @@ export function calculateTvUnitConstruction(
   return {
     family: "tv-unit",
     mounting: "floor-standing",
-    innerDimensionsMm: { ...baseResult.innerDimensionsMm },
+    innerDimensionsMm: { ...innerDimensionsMm },
     parts: [...baseResult.parts, ...dividerParts, ...shelfParts]
   };
 }

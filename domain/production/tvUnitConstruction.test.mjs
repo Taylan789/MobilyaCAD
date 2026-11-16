@@ -16,7 +16,7 @@ function createRequest(overrides = {}) {
     furniture: {
       id: "tv-1",
       widthMm: 1800,
-      heightMm: 420,
+      heightMm: 384,
       depthMm: 450,
       material: "Legacy MDF"
     },
@@ -40,7 +40,7 @@ test("floor-standing TV ünitesi açık gövde parametrelerinden ortak Part sat�
   assert.equal(result.mounting, "floor-standing");
   assert.deepEqual(result.innerDimensionsMm, {
     width: 1764,
-    height: 420,
+    height: 384,
     depth: 432
   });
   assert.deepEqual(result.parts.map((part) => part.id), [
@@ -137,7 +137,7 @@ test("TV ünitesi açık ölçülü rafı katalog malzemesi ve yerleşim bilgisi
   assert.deepEqual(shelf.edgeBanding, {
     top: true, bottom: false, left: true, right: false
   });
-  assert.equal(result.innerDimensionsMm.height, 420);
+  assert.equal(result.innerDimensionsMm.height, 384);
 });
 
 test("TV ünitesi rafları net iç yükseklik, genişlik ve derinlik sınırlarını aşamaz", () => {
