@@ -574,3 +574,21 @@
 - QA adımları: shared-domain strict TypeScript, lint, frontend production build ve production dependency audit başarılı. Oxlint 32 uyarı / 0 hata; production audit 6 bulgu (2 düşük, 4 orta), yüksek önem eşiği geçti.
 - Bilinen sınırlar: fire/levha verimi, kerf, bant rulo payı, taşıma kapasitesi, bağlantı, donanım, delik, CNC, nesting ve fiyat hesabı yok. Frontend JSON v1/CSV adapter entegrasyonu ayrı frontend sahibinin kapsamındadır; hiçbir `frontend/**` dosyası değiştirilmedi.
 - Sonraki görev: kullanıcı girdili TV ünitesi v1 domain konstrüksiyon dilimi; frontend JSON/CSV entegrasyonu ayrı sahibinde kalır.
+
+
+## 16 Kasım 2026 — floor-standing TV ünitesi v1 domain dilimi
+
+- Başlangıç HEAD: `1cce803c8fda6538edbec02e05109245a56088ff`; geliştirme yalnızca `dev/github-work` dalında yapıldı.
+- Kod commit SHA: `a29f7a254bba0f652d50c0378303300d3f57aa20`.
+- Değişen dosyalar:
+  - `domain/production/tvUnitConstruction.ts` — `family: "tv-unit"` ve `mounting: "floor-standing"` zorunlu sözleşmesi; cabinet gövde motorunu yeniden kullanır, formül kopyalamaz.
+  - `domain/production/tvUnitConstruction.test.mjs` — floor-standing parça/ölçü, wall-mounted reddi, bilinmeyen alan ve aile etiketi testleri.
+  - `domain/production/projectProduction.ts` / `domain/production/projectProduction.test.mjs` — TV ünitesi aile yönlendirmesi, ortak Part listesi ve malzeme özeti, duvar montajı için blocked rapor.
+  - `.github/workflows/qa-test.yml` — yeni domain modülünü strict TypeScript kontrolüne ekler.
+  - `docs/production-domain-contract.md`, `PRODUCT_ROADMAP.md` — API sınırları, entegrasyon ve sıradaki görevler.
+- Kabul kriterleri: 1800 × 420 × 450 mm örneğinde 1764 × 420 × 432 mm net iç ölçü; stabil Part kimlikleri ve shelf quantity; proje agregatöründe `ready`; duvara montaj isteğinde `blocked` ve `result: null`. Eksik ayak, baza, braket, ankraj, yük veya CNC verisi uydurulmaz.
+- Gerçek GitHub Actions: CI #268 `43947151618` başarılı; QA #165 `43947151884` başarılı (**101/101 frontend + 111/111 domain testi, 0 başarısız**); Pages deploy #132 `43947151610` başarılı. QA shared-domain strict TypeScript, lint, frontend TypeScript/production build ve `npm audit --omit=dev --audit-level=high` adımları geçti.
+- Kalite notları: Oxlint 32 uyarı / 0 hata; production audit 6 mevcut bulgu (2 düşük, 4 orta; yüksek önem eşiği geçilmedi). Büyük JS chunk ve GitHub Actions Node 20 deprecation uyarıları sürüyor.
+- Bilinen sınırlar: v1 yalnızca floor-standing gövdeyi üretir; ayak/baza, duvar braketi/ankraj, taşıma yükü, bağlantı/delik, donanım, CNC, nesting, fire ve fiyat yoktur. Fiziksel üretim doğrulaması atölyeye aittir.
+- Frontend sahipliği korundu: hiçbir `frontend/**` dosyası değiştirilmedi; JSON v1/CSV adapter entegrasyonu ayrı frontend sahibinin kapsamındadır.
+- Sonraki görev: TV ünitesi için kullanıcı girdili bölme/özel raf yerleşimi; ardından banyo dolabı ailesini yalnızca doğrulanmış kullanıcı/üretici girdileriyle küçük domain dilimine ayırmak.

@@ -22,7 +22,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 | Kenar bantlama / malzeme tüketimi | Domain malzeme özeti gövde, çekmece, kitaplık, masa ve gardırop bölücü/raf parçalarının ortak Part listesinden quantity ağırlıklı alan/hacim ve kenar bantlamasını hesaplayabilir | Domain özeti henüz UI/JSON/CSV'ye bağlı değil; fire, levha verimi, kerf, bant kalınlığı ve rulo payı yok |
 | Malzeme kataloğu | UI CRUD; mobilya varsayılan materialId ve çekmece grubunda varsayılan + dört panel grubu override; domain gövde/kitaplık motorları altı gövde panel grubu için malzeme override'ını doğrular | Gövde panel override'ları henüz frontend JSON v1/CSV ve UI akışına bağlanmadı; fiyat, tedarikçi ve fire henüz yok |
 | Proje dosyası | Yerel JSON v1 indirme/yükleme; saf serializer/parser; round-trip ve eski v1 uyumluluk; mm, mobilya ve çekmece grubu katalog referansları ile dört çekmece panel kalınlığının doğrulanması | Şema migrasyonu, otomatik kayıt ve kurtarma yok |
-| Test/CI | HEAD `62e9dfc5e980f27754faa3ce794f149843f82fda`: CI #266 (`43943019284`), QA #163 (`43943019308`; 101/101 frontend + 105/105 domain testi, 0 başarısız) ve Pages #130 (`43943019262`) başarılı; strict domain TypeScript, lint, production build ve production dependency audit adımları geçti | Fiziksel üretim doğrulaması otomatik testle yapılamaz; Oxlint 32 uyarı/0 hata, audit'te 6 bulgu (2 düşük, 4 orta), büyük bundle chunk ve Actions Node 20 deprecation uyarıları sürüyor |
+| Test/CI | HEAD `a29f7a254bba0f652d50c0378303300d3f57aa20`: CI #268 (`43947151618`), QA #165 (`43947151884`; 101/101 frontend + 111/111 domain testi, 0 başarısız) ve Pages #132 (`43947151610`) başarılı; strict domain TypeScript, lint, production build ve yüksek önem dependency audit adımları geçti | Fiziksel üretim doğrulaması otomatik testle yapılamaz; Oxlint 32 uyarı/0 hata, audit'te 6 bulgu (2 düşük, 4 orta), büyük bundle chunk ve Actions Node 20 deprecation uyarıları sürüyor |
 
 ### Bilinen mimari ve veri boşlukları
 
@@ -514,7 +514,9 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 - Duvara montajlı istekler, ayak/baza/braket/ankraj ve yük hesapları bu dilimde desteklenmez; doğrulanmış montaj standardı olmadan üretim verisi üretilmez.
 - Kabul testleri: TV ünitesi dış ölçülerinin cabinet iç ölçülerinden ayrı aile etiketiyle korunması; parça kimlik/adet/malzeme satırlarının ortak listede bulunması; duvar montajı isteğinin `blocked` olması.
 - Değişen dosyalar: `domain/production/tvUnitConstruction.ts`, `domain/production/tvUnitConstruction.test.mjs`, `domain/production/projectProduction.ts`, `domain/production/projectProduction.test.mjs`, `.github/workflows/qa-test.yml`, `docs/production-domain-contract.md`, `PRODUCT_ROADMAP.md`.
-- GitHub Actions doğrulaması commit sonrasında kaydedilecek; fiziksel montaj/üretim doğrulaması kapsam dışıdır.
+- Kod commit SHA: `a29f7a254bba0f652d50c0378303300d3f57aa20`.
+- GitHub Actions: CI #268 (`43947151618`), QA #165 (`43947151884`; 101/101 frontend + 111/111 domain testi, 0 başarısız) ve Pages #132 (`43947151610`) başarılı. Strict domain TypeScript, lint, frontend production build ve `npm audit --omit=dev --audit-level=high` başarılı.
+- Fiziksel montaj/üretim doğrulaması kapsam dışıdır.
 
 ### Sıradaki 3-5 küçük görev
 
