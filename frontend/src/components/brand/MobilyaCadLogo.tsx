@@ -1,27 +1,18 @@
-type MobilyaCadLogoProps = {
-  className?: string;
-  tone?: "light" | "inverse";
-  descriptor?: string;
-};
+type MobilyaCadLogoProps = { className?: string; tone?: "light" | "inverse"; descriptor?: string; };
 
-export function MobilyaCadLogo({
-  className = "",
-  tone = "light",
-  descriptor = "STUDIO",
-}: MobilyaCadLogoProps) {
-  const classes = ["mc-brand", `mc-brand--${tone}`, className]
-    .filter(Boolean)
-    .join(" ");
-
+export function MobilyaCadLogo({ className = "", tone = "light", descriptor = "STUDIO" }: MobilyaCadLogoProps) {
+  const classes = ["mc-brand", `mc-brand--${tone}`, className].filter(Boolean).join(" ");
   return (
     <div className={classes} role="img" aria-label="MobilyaCAD Studio">
       <span className="mc-brand__mark" aria-hidden="true">
-        <svg viewBox="0 0 48 48" fill="none" focusable="false">
-          <rect x="2" y="2" width="44" height="44" rx="11" fill="currentColor" />
-          <path d="M10.5 14.2 24 7.2l13.5 7v19.6L24 40.8l-13.5-7V14.2Z" stroke="#F5F0E6" strokeWidth="1.5" strokeLinejoin="round" />
-          <path d="M10.5 14.2 24 21.4l13.5-7.2M24 21.4v19.4" stroke="#F5F0E6" strokeWidth="1.5" strokeLinejoin="round" />
-          <path d="M16 17.1v13.1l8 4.3 8-4.3V17.1" stroke="#E4B47D" strokeWidth="1.8" strokeLinejoin="round" />
-          <path d="m16 17.1 8-4.2 8 4.2-8 4.3-8-4.3Z" fill="#E4B47D" fillOpacity=".2" stroke="#E4B47D" strokeWidth="1.5" strokeLinejoin="round" />
+        <svg viewBox="0 0 52 52" fill="none" focusable="false">
+          <rect x="1.5" y="1.5" width="49" height="49" rx="13" fill="#17222B" stroke="#43535E" />
+          <path d="M10 14 26 6 42 14V38L26 46 10 38V14Z" stroke="#D8E1E6" strokeWidth="1.45" strokeLinejoin="round" />
+          <path d="M17 35V17L26 24L35 17V35" stroke="#8FB2C8" strokeWidth="2" strokeLinecap="square" strokeLinejoin="round" />
+          <path d="M17 28H35" stroke="#C39470" strokeWidth="1.8" strokeLinecap="round" />
+          <path d="M22 28V35M30 28V35" stroke="#C39470" strokeWidth="1.35" strokeLinecap="round" />
+          <path d="M10 14 17 17M42 14 35 17" stroke="#D8E1E6" strokeOpacity=".7" strokeWidth="1.2" />
+          <circle cx="26" cy="28" r="1.7" fill="#E1B48F" />
         </svg>
       </span>
       <span className="mc-brand__copy">
