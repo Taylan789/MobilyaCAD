@@ -4264,3 +4264,466 @@ button:focus-visible, input:focus-visible, select:focus-visible {
     transition: none !important;
   }
 }
+
+
+/* =========================================================
+   MOBILYACAD INDUSTRIAL DESIGN SYSTEM — REFERENCE PASS 01
+   Graphite / forged steel / precision blue / timber detail
+   ========================================================= */
+:root {
+  --cad-bg: #11171d;
+  --cad-panel: #1a222a;
+  --cad-panel-raised: #222d37;
+  --cad-panel-hover: #2a3945;
+  --cad-border: #354450;
+  --cad-border-soft: #2b3741;
+  --cad-text: #e7edf2;
+  --cad-muted: #a0afbb;
+  --cad-subtle: #788b99;
+  --cad-accent: #8bb8d8;
+  --cad-accent-soft: rgba(112, 166, 204, .16);
+  --cad-danger: #d17b78;
+  --cad-ui-bg: #141c23;
+  --cad-ui-surface: #1c2730;
+  --cad-ui-surface-soft: #202d37;
+  --cad-ui-border: #354653;
+  --cad-ui-border-strong: #4b6170;
+  --cad-ui-text: #e3ebf1;
+  --cad-ui-muted: #91a2af;
+  --cad-ui-accent: #8bb8d8;
+  --cad-ui-accent-soft: rgba(112, 166, 204, .14);
+  --cad-ui-shadow: 0 18px 48px rgba(0, 0, 0, .28);
+  --cad-ui-focus: rgba(139, 184, 216, .28);
+  --mc-forest: #263744;
+  --mc-forest-deep: #17232d;
+  --mc-wood: #c08a62;
+  --mc-wood-light: #e1b48d;
+  --mc-paper: #e9edf0;
+  --mc-ink: #e4ebf0;
+  --mc-line: #354450;
+  --mc-focus: #8bb8d8;
+}
+.cad-app {
+  color: #e7edf2 !important;
+  background: #11171d !important;
+  grid-template-rows: 66px minmax(0, 1fr) 30px !important;
+}
+.cad-topbar {
+  min-height: 66px !important;
+  height: 66px !important;
+  padding: 0 22px !important;
+  gap: 18px !important;
+  background: #1a232c !important;
+  border-bottom: 1px solid #3a4a56 !important;
+  box-shadow: 0 4px 18px rgba(0,0,0,.16) !important;
+}
+.cad-brand-lockup .mc-brand__mark { width: 40px; height: 40px; }
+.mc-brand__copy strong { letter-spacing: .075em; }
+.mc-brand--inverse .mc-brand__copy strong { color: #edf2f5; }
+.mc-brand--inverse .mc-brand__copy small { color: #91a4b2; }
+.cad-top-separator { background: #3c4c58 !important; }
+.cad-document-name { color: #d9e2e9 !important; }
+.cad-document-status {
+  color: #c1d0da !important;
+  background: #263640 !important;
+  border-color: #435763 !important;
+}
+.cad-top-actions button { color: #b4c2cc !important; }
+.cad-top-actions button:hover { color: #f4f7f9 !important; background: #2a3944 !important; }
+.cad-tool-toggle { background: #121a21 !important; border-color: #3b4c58 !important; }
+.cad-tool-toggle button { color: #9eafbb !important; }
+.cad-tool-toggle button[data-pressed="true"],
+.cad-tool-toggle button[data-state="on"] {
+  color: #eaf4fb !important;
+  background: #344e60 !important;
+  box-shadow: inset 0 0 0 1px #587b94 !important;
+}
+.cad-save-button {
+  background: #456b86 !important;
+  border-color: #5e87a2 !important;
+  color: #f5f8fa !important;
+  box-shadow: 0 3px 10px rgba(64, 112, 145, .24) !important;
+}
+.cad-save-button:hover { background: #547e9b !important; }
+.cad-workspace {
+  background: #11171d !important;
+  grid-template-columns: 292px minmax(0,1fr) !important;
+  padding: 0 !important;
+  gap: 0 !important;
+}
+.cad-sidebar {
+  width: 292px !important;
+  min-width: 292px !important;
+  background: #1a232c !important;
+  color: #dce5eb !important;
+  border: 0 !important;
+  border-right: 1px solid #354652 !important;
+  border-radius: 0 !important;
+  box-shadow: 8px 0 24px rgba(0,0,0,.10) !important;
+}
+.cad-sidebar-header { padding: 19px 16px 15px !important; }
+.cad-sidebar-heading strong { color: #e4ebf0 !important; font-size: 12px !important; }
+.cad-sidebar-heading span { color: #8295a3 !important; }
+.cad-sidebar-heading-icon {
+  color: #b6d3e7 !important;
+  background: #2a4151 !important;
+  border-color: #496477 !important;
+}
+.cad-library-count, .cad-project-heading > span {
+  color: #c2d4df !important;
+  background: #2a3a46 !important;
+  border-color: #435866 !important;
+}
+.cad-search input, .studio-tree-search input {
+  color: #e4ebf0 !important;
+  background: #111a21 !important;
+  border-color: #3b4b57 !important;
+}
+.cad-search input::placeholder, .studio-tree-search input::placeholder { color: #718592 !important; }
+.cad-search kbd { color: #91a3af !important; background: #25333d !important; border-color: #40515d !important; }
+.cad-sidebar [data-slot="sidebar-separator"] { background: #2e3c47 !important; }
+.cad-sidebar [data-slot="sidebar-group-label"] { color: #8496a3 !important; }
+.cad-sidebar [data-slot="sidebar-menu-button"] { color: #b7c4cd !important; }
+.cad-sidebar [data-slot="sidebar-menu-button"]:hover { color: #f0f5f8 !important; background: #293945 !important; }
+.cad-sidebar [data-slot="sidebar-menu-button"][data-active="true"] {
+  color: #e7f1f7 !important;
+  background: #30495b !important;
+  box-shadow: inset 2px 0 #8bb8d8 !important;
+}
+.cad-category-count, .cad-model-heading > span { color: #8295a2 !important; }
+.cad-catalog-card {
+  min-height: 118px !important;
+  padding: 12px !important;
+  background: linear-gradient(145deg, #26333d, #202b34) !important;
+  border-color: #3c4d59 !important;
+  border-radius: 8px !important;
+  box-shadow: inset 0 1px rgba(255,255,255,.025) !important;
+}
+.cad-catalog-card:hover {
+  background: #2c3d49 !important;
+  border-color: #789bb4 !important;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 18px rgba(0,0,0,.18) !important;
+}
+.cad-catalog-card-icon {
+  color: #c5deee !important;
+  background: #304d61 !important;
+  border-color: #52738a !important;
+}
+.cad-catalog-card-add { color: #c3d5e0 !important; background: #344854 !important; }
+.cad-catalog-card strong { color: #e5edf2 !important; font-size: 11px !important; }
+.cad-catalog-card small { color: #95a8b5 !important; font-variant-numeric: tabular-nums; }
+.cad-project-footer { background: #151e25 !important; border-top: 1px solid #354450 !important; }
+.cad-project-heading strong { color: #e0e8ed !important; }
+.cad-project-heading > div span { color: #8295a2 !important; }
+.cad-project-footer [data-slot="sidebar-menu-button"] { color: #b9c8d2 !important; }
+.cad-main-area { background: #151d24 !important; }
+.studio-workspace-heading {
+  min-height: 39px !important;
+  background: #202b34 !important;
+  border-bottom: 1px solid #3a4a55 !important;
+}
+.studio-breadcrumb { color: #879aa7 !important; }
+.studio-breadcrumb strong { color: #e3ebf0 !important; }
+.studio-breadcrumb b { color: #c59a76 !important; }
+.studio-heading-actions { color: #93a5b1 !important; }
+.studio-live-indicator { color: #9fc3d9 !important; }
+.cad-viewport-toolbar {
+  min-height: 58px !important;
+  height: 58px !important;
+  padding: 0 19px !important;
+  background: #1b252e !important;
+  border-bottom: 1px solid #3a4a56 !important;
+}
+.cad-viewport-title strong { color: #e6edf2 !important; }
+.cad-viewport-title small, .studio-view-label { color: #8296a4 !important; }
+.cad-viewport-title-icon {
+  color: #c3ddec !important;
+  background: #2d485b !important;
+  border: 1px solid #49677c !important;
+}
+.studio-viewport-actions button {
+  color: #aebdc7 !important;
+  background: #202d37 !important;
+  border: 1px solid #3b4e5b !important;
+  border-radius: 6px !important;
+  transition: background .16s ease, border-color .16s ease, color .16s ease, transform .16s ease !important;
+}
+.studio-viewport-actions button:hover {
+  color: #f0f5f8 !important;
+  background: #2c414f !important;
+  border-color: #66849a !important;
+}
+.studio-viewport-actions button.active {
+  color: #eaf4fb !important;
+  background: #36546a !important;
+  border-color: #7298b2 !important;
+  box-shadow: inset 0 0 0 1px rgba(139,184,216,.12) !important;
+}
+.studio-unit-pill {
+  color: #b9d0df !important;
+  background: #243743 !important;
+  border-color: #425c6c !important;
+}
+.cad-workspace-content { background: #11171d !important; }
+.cad-viewport {
+  margin: 12px !important;
+  background: #111920 !important;
+  border: 1px solid #354651 !important;
+  border-radius: 9px !important;
+  box-shadow: 0 12px 30px rgba(0,0,0,.20) !important;
+}
+.cad-viewport canvas { border-radius: 8px; }
+.cad-viewport-info {
+  color: #a8bac6 !important;
+  background: rgba(24,35,44,.92) !important;
+  border-color: #425663 !important;
+}
+.cad-viewport-info span:first-child { color: #a8cce2 !important; }
+.cad-viewport-hint {
+  color: #b3c1ca !important;
+  background: rgba(27,40,49,.94) !important;
+  border-color: #465b68 !important;
+}
+.cad-viewport-hint svg { color: #a5c9df !important; }
+.studio-canvas-footer { color: #718592 !important; }
+.studio-canvas-footer span:first-child { color: #9cb4c3 !important; }
+.cad-inspector {
+  width: 326px !important;
+  min-width: 326px !important;
+  margin: 12px 12px 12px 0 !important;
+  color: #e0e8ed !important;
+  background: #1a242d !important;
+  border: 1px solid #3b4c58 !important;
+  border-radius: 9px !important;
+  box-shadow: 0 12px 30px rgba(0,0,0,.20) !important;
+}
+.cad-inspector-header {
+  background: #222f39 !important;
+  border-bottom-color: #3a4b57 !important;
+}
+.cad-inspector-header strong { color: #e6edf2 !important; }
+.cad-inspector-header span, .cad-inspector-header > svg { color: #8fa3b1 !important; }
+.cad-inspector-tab-list { background: #172129 !important; border-bottom-color: #354651 !important; }
+.cad-inspector-tab-list button { color: #91a4b1 !important; }
+.cad-inspector-tab-list button[data-active="true"] {
+  color: #e4f0f7 !important;
+  background: #304b5e !important;
+}
+.cad-inspector-scroll { color: #dce5eb !important; }
+.cad-property-section > .cad-section-heading {
+  color: #a7b8c3 !important;
+  border-bottom-color: #344550 !important;
+}
+.cad-property-section > .cad-section-heading svg { color: #9bbbd0 !important; background: #2a3c49 !important; }
+.cad-field label, .cad-dimension-field label { color: #b5c2cb !important; }
+.cad-field input, .cad-dimension-field input,
+.cad-input-with-unit input {
+  color: #e7edf2 !important;
+  background: #121b22 !important;
+  border-color: #40515d !important;
+}
+.cad-input-with-unit > span { color: #8da0ad !important; }
+.cad-summary-row { border-bottom-color: #34434e !important; }
+.cad-summary-row span { color: #9babb6 !important; }
+.cad-summary-row strong { color: #e1e9ee !important; }
+.cad-selected-object {
+  color: #e0eaf0 !important;
+  background: #263945 !important;
+  border-color: #496273 !important;
+}
+.cad-selected-object strong { color: #edf3f6 !important; }
+.cad-selected-object small { color: #a2b4c0 !important; }
+.cad-selected-object-icon { color: #c6dfef !important; background: #35566b !important; }
+.cad-production-summary, .cad-production-card, .cad-part-editor-group {
+  color: #dce6ec !important;
+  background: #202e38 !important;
+  border-color: #3a4e5b !important;
+}
+.cad-production-card strong, .cad-part-editor-heading > span { color: #e4edf2 !important; }
+.cad-production-card small, .cad-part-editor-heading > small { color: #9aadb9 !important; }
+.cad-part-editor-heading { border-bottom-color: #3b4c58 !important; }
+.cad-part-editor-heading svg { color: #9bc4df !important; }
+.cad-part-production-note { background: #302c27 !important; border-color: #65503e !important; }
+.cad-part-production-note > span { color: #dfb48d !important; }
+.cad-part-production-note p { color: #c5b4a3 !important; }
+.studio-sidebar-switch {
+  background: #17212a !important;
+  border-top-color: #354651 !important;
+  border-bottom-color: #354651 !important;
+}
+.studio-sidebar-switch button { color: #94a7b3 !important; }
+.studio-sidebar-switch button.active {
+  color: #e5f0f6 !important;
+  background: #2a4050 !important;
+  border-color: #486476 !important;
+}
+.studio-sidebar-switch button span { color: #b6c8d3 !important; background: #354956 !important; }
+.studio-scene-tree { color: #dce6ec !important; }
+.studio-tree-heading, .studio-tree-branch-label { color: #a5c0d1 !important; }
+.studio-tree-heading small, .studio-tree-branch-label b { color: #8095a3 !important; }
+.studio-tree-toggle-all, .studio-tree-disclosure {
+  color: #b1c4cf !important;
+  background: #23323c !important;
+  border-color: #41545f !important;
+}
+.studio-tree-toggle-all:hover, .studio-tree-disclosure:hover:not(:disabled) {
+  color: #eff6fa !important;
+  background: #304a5b !important;
+  border-color: #66879d !important;
+}
+.studio-tree-room, .studio-tree-object-select {
+  color: #c7d4dc !important;
+  background: #202d37 !important;
+  border-color: #3b4d59 !important;
+}
+.studio-tree-room strong, .studio-tree-object-select strong { color: #e2ebf0 !important; }
+.studio-tree-room small, .studio-tree-object-select small { color: #91a4b0 !important; }
+.studio-tree-room > svg, .studio-tree-object-select > svg { color: #a7c9de !important; }
+.studio-tree-object-select:hover { background: #293c48 !important; border-color: #607d91 !important; }
+.studio-tree-object-select.selected {
+  color: #f0f6fa !important;
+  background: #304b5e !important;
+  border-color: #759bb5 !important;
+}
+.studio-tree-object-select em { color: #b7c9d3 !important; background: #354b58 !important; }
+.studio-tree-part { color: #aebec8 !important; }
+.studio-tree-part:hover, .studio-tree-part.selected {
+  color: #e7f2f8 !important;
+  background: #2a3e4b !important;
+}
+.studio-tree-part-line { background: #536d7e !important; }
+.studio-tree-empty { color: #a8b8c2 !important; }
+.studio-tree-empty strong { color: #e0e9ee !important; }
+.studio-tree-empty button { color: #a8cce2 !important; }
+.cad-statusbar {
+  color: #8fa2ae !important;
+  background: #18232b !important;
+  border-top: 1px solid #354651 !important;
+}
+.cad-status-item, .cad-status-right { color: #8fa2ae !important; }
+.cad-app button:focus-visible, .cad-app input:focus-visible,
+.cad-app select:focus-visible, .cad-app textarea:focus-visible {
+  outline: 2px solid #8bb8d8 !important;
+  outline-offset: 2px !important;
+}
+.atelier-home {
+  --ink: #e6edf1 !important;
+  --paper: #111920 !important;
+  --muted: #95a6b2 !important;
+  --line: #344550 !important;
+  color: #e6edf1 !important;
+  background:
+    radial-gradient(ellipse at 78% 12%, rgba(68,105,128,.18), transparent 34%),
+    linear-gradient(135deg, #111920 0%, #151f27 52%, #111920 100%) !important;
+}
+.atelier-homebar {
+  height: 66px !important;
+  padding: 0 clamp(22px,4vw,64px) !important;
+  background: rgba(25,36,45,.94) !important;
+  border-bottom-color: #3a4b57 !important;
+  backdrop-filter: blur(16px);
+}
+.atelier-home-nav a, .atelier-home-nav { color: #91a4b0 !important; }
+.atelier-home-nav a.active, .atelier-home-nav a:hover { color: #e5edf2 !important; }
+.atelier-profile b { color: #b6c9d4 !important; }
+.atelier-profile small { color: #8498a5 !important; }
+.atelier-welcome { border-bottom-color: #344550 !important; }
+.atelier-eyebrow { color: #c49a79 !important; }
+.atelier-welcome h1 { color: #edf2f5 !important; }
+.atelier-welcome h1 em { color: #a9cce2 !important; }
+.atelier-welcome-copy > p { color: #9aabb6 !important; }
+.atelier-primary-action {
+  color: #f3f7f9 !important;
+  background: #456b86 !important;
+  box-shadow: 4px 4px 0 #263c4b !important;
+}
+.atelier-primary-action:hover { background: #567f9c !important; }
+.atelier-open-action { color: #b8c7d0 !important; }
+.atelier-open-action span { color: #d0a27f !important; }
+.atelier-feature-art {
+  background: linear-gradient(145deg, #263a48, #182630) !important;
+  border-color: #526c7d !important;
+  box-shadow: 0 22px 55px rgba(0,0,0,.25) !important;
+}
+.atelier-art-index, .atelier-art-caption { color: #c0d1dc !important; }
+.atelier-art-caption span { color: #8ea5b4 !important; }
+.atelier-section-heading h2 { color: #e6edf1 !important; }
+.atelier-section-note { color: #879ba8 !important; }
+.atelier-start-card {
+  color: #e3ebf0 !important;
+  background: linear-gradient(150deg, #202d37, #1a252e) !important;
+  border-color: #3b4d59 !important;
+  box-shadow: 0 6px 18px rgba(0,0,0,.10) !important;
+}
+.atelier-start-card:hover {
+  border-color: #779bb3 !important;
+  background: linear-gradient(150deg, #293c49, #202f39) !important;
+  box-shadow: 0 14px 30px rgba(0,0,0,.22) !important;
+}
+.atelier-card-number { color: #c29a79 !important; }
+.atelier-card-visual { background: #293945 !important; }
+.atelier-visual-furniture { background: linear-gradient(145deg,#304552,#253640) !important; }
+.atelier-visual-parts { background: linear-gradient(145deg,#2d414d,#22313b) !important; }
+.atelier-visual-production { background: linear-gradient(145deg,#3c403d,#2a3437) !important; }
+.atelier-card-copy b { color: #e6edf1 !important; }
+.atelier-card-copy span { color: #94a7b3 !important; }
+.atelier-card-arrow { color: #a9cce2 !important; }
+.atelier-recent .atelier-section-heading button { color: #a9cce2 !important; }
+.atelier-empty-project {
+  color: #dce6ec !important;
+  background: rgba(35,49,59,.42) !important;
+  border-color: #506473 !important;
+}
+.atelier-empty-project:hover { background: #263945 !important; border-color: #87abc3 !important; }
+.atelier-empty-plus { color: #c7a080 !important; background: #2c3d47 !important; }
+.atelier-empty-project small { color: #90a3af !important; }
+.atelier-empty-arrow { color: #a9cce2 !important; }
+.atelier-tip {
+  background: linear-gradient(145deg,#2b3b43,#202e36) !important;
+  border: 1px solid #465b66 !important;
+}
+.atelier-tip > b { color: #e6edf1 !important; }
+.atelier-tip p { color: #a1b1ba !important; }
+.atelier-tip-mark { color: #7893a2 !important; }
+.atelier-home-footer {
+  color: #8195a1 !important;
+  border-top-color: #344550 !important;
+}
+.atelier-home-footer b { color: #c49a79 !important; }
+.mc-brand__mark { filter: drop-shadow(0 5px 12px rgba(0,0,0,.28)) !important; }
+@media (max-width: 1250px) {
+  .cad-workspace { grid-template-columns: 258px minmax(0,1fr) !important; }
+  .cad-sidebar { width: 258px !important; min-width: 258px !important; }
+  .cad-inspector { width: 292px !important; min-width: 292px !important; }
+}
+@media (max-width: 980px) {
+  .cad-workspace { grid-template-columns: 230px minmax(0,1fr) !important; }
+  .cad-sidebar { width: 230px !important; min-width: 230px !important; }
+  .cad-inspector { width: 270px !important; min-width: 270px !important; }
+}
+@media (max-width: 760px) {
+  .cad-app { grid-template-rows: 58px minmax(0,1fr) 0 !important; }
+  .cad-topbar { min-height: 58px !important; height: 58px !important; }
+  .cad-workspace { display: flex !important; }
+  .cad-sidebar { border: 1px solid #3a4c58 !important; }
+  .cad-main-area { border-radius: 8px; }
+  .cad-inspector { background: #1a242d !important; border-color: #40525e !important; }
+  .cad-viewport { margin: 6px !important; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .cad-catalog-card, .studio-viewport-actions button, .studio-tree-object-select,
+  .atelier-start-card, .cad-top-actions button {
+    transition-duration: 180ms;
+    transition-timing-function: cubic-bezier(.2,.75,.25,1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cad-app *, .atelier-home *, .cad-app *::before, .atelier-home *::before,
+  .cad-app *::after, .atelier-home *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
