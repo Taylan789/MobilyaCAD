@@ -592,3 +592,20 @@
 - Bilinen sınırlar: v1 yalnızca floor-standing gövdeyi üretir; ayak/baza, duvar braketi/ankraj, taşıma yükü, bağlantı/delik, donanım, CNC, nesting, fire ve fiyat yoktur. Fiziksel üretim doğrulaması atölyeye aittir.
 - Frontend sahipliği korundu: hiçbir `frontend/**` dosyası değiştirilmedi; JSON v1/CSV adapter entegrasyonu ayrı frontend sahibinin kapsamındadır.
 - Sonraki görev: TV ünitesi için kullanıcı girdili bölme/özel raf yerleşimi; ardından banyo dolabı ailesini yalnızca doğrulanmış kullanıcı/üretici girdileriyle küçük domain dilimine ayırmak.
+
+
+## 17 Kasım 2026 — floor-standing TV ünitesi açık ölçülü raflar
+
+- Başlangıç HEAD: \`00cdd171ca052285706fb988dbfd205446a6df19\`; kod commit SHA: \`9b6aa30bf6b74b666afff75acdf1813ce81cbe27\`.
+- Değişen dosyalar:
+  - \`domain/production/tvUnitConstruction.ts\` — geriye uyumlu opsiyonel \`shelves\` sözleşmesi; açık X/Y/Z yerleşimi, 0.1 mm normalizasyonu, net iç sınır ve hacimsel çakışma kontrolü, katalog kalınlığı, kenar bandı ve damar yönü doğrulaması.
+  - \`domain/production/tvUnitConstruction.test.mjs\` — özel raf, sınır, çakışma/temas, tam genişlik rafı ile çift sayım, katalog kalınlığı, kimlik ve alan doğrulaması.
+  - \`domain/production/projectProduction.ts\` / \`domain/production/projectProduction.test.mjs\` — TV özel raf Part tipinin ortak proje listesine eklenmesi ve malzeme özeti quantity/alan/hacim/kenar bantlama uzlaşması.
+  - \`docs/production-domain-contract.md\`, \`PRODUCT_ROADMAP.md\` — domain sözleşmesi, kabul kriterleri ve sonraki görevler.
+- GitHub Actions: CI run \`43958175764\` başarılı; QA run \`43958176225\` başarılı (**101/101 frontend + 116/116 domain testi, 0 başarısız**); Pages deploy run \`43958175910\` başarılı. Shared domain strict TypeScript, lint, frontend production build ve \`npm audit --omit=dev --audit-level=high\` kontrolleri geçti.
+- Kalite notları: Oxlint 32 uyarı / 0 hata; production audit 4 orta önem bulgusu raporladı ve yüksek önem eşiğini geçti. Bundle chunk-size ve GitHub Actions Node 20 deprecation uyarıları sürüyor.
+- AI Developer workflow yalnızca \`workflow_dispatch\` ile tetikleniyor; son 100 Actions run'ında AI Developer çalışması bulunmadı. Dispatch aracı bulunmadığı için yeni run başlatılmadı.
+- Bilinen sınırlar: özel raflar için taşıma kapasitesi, bağlantı/delik, ayak/baza, duvar montajı/ankraj, donanım, CNC, nesting, fire ve maliyet hesabı yoktur. Fiziksel üretim öncesi atölye doğrulaması gerekir.
+- Frontend JSON v1/CSV entegrasyonu ayrı frontend sahibinin kapsamındadır; hiçbir \`frontend/**\` dosyası değiştirilmedi.
+- Sonraki görev: TV ünitesi için açık ölçülü dikey bölücü/compartment paneli sözleşmesi; raflarla kesişim kontrolü ve ortak Part/malzeme özeti testleri. Ardından banyo dolabı ailesini yalnızca açık üretici/atölye girdileriyle ele al.
+
