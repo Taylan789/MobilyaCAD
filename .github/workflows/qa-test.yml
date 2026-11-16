@@ -63,7 +63,7 @@ jobs:
 
       - name: Type-check shared domain modules
         working-directory: frontend
-        run: npx tsc --ignoreConfig --noEmit --strict --target ES2022 --module ESNext --moduleResolution Bundler --allowImportingTsExtensions ../domain/production/bodyPanelMaterials.ts ../domain/production/cabinetConstruction.ts ../domain/production/projectProduction.ts
+        run: npx tsc --ignoreConfig --noEmit --strict --target ES2022 --module ESNext --moduleResolution Bundler --allowImportingTsExtensions ../domain/production/bodyPanelMaterials.ts ../domain/production/cabinetConstruction.ts ../domain/production/projectProduction.ts ../domain/production/projectMaterialSummary.ts
 
       - name: Lint
         run: npm run lint
