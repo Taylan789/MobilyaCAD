@@ -174,6 +174,15 @@ export function resolveBodyPanelMaterialAssignments<T extends BodyPanelMaterialP
 
   const normalizedOverrides = validateBodyPanelMaterialOverrides(overrides);
   const catalog = normalizeMaterialCatalog(materials);
+
+  for (const [group, materialId] of Object.entries(normalizedOverrides)) {
+    if (!catalog.has(materialId)) {
+      throw new Error(
+        `${group} panel grubu için ${materialId} malzeme kimliği katalogda bulunamadı.`
+      );
+    }
+  }
+
   const seenPartIds = new Set<string>();
 
   return parts.map((part, index) => {
@@ -223,5 +232,92 @@ export function resolveBodyPanelMaterialAssignments<T extends BodyPanelMaterialP
       material: material.name,
       materialId
     } as T;
+  });
+}
+
+
+/** Minimal shape of the existing production Part rows; no frontend type import is required. */
+export interface CabinetBodyPanelPartLike {
+  id: string;
+  furnitureId: string;
+  thickness: number;
+  material: string;
+  materialId?: string;
+}
+
+/**
+ * Applies the shared body-panel material contract to known cabinet Part rows.
+ *
+ * Stable part IDs are mapped explicitly. Unknown rows and rows belonging to
+ * other furniture instances pass through unchanged; no drawer/hardware/CNC
+ * part is guessed to be a carcass panel. Original Part fields and mm thickness
+ * values are preserved.
+ */
+export function resolveCabinetBodyPanelParts<T extends CabinetBodyPanelPartLike>(
+  furnitureId: string,
+  parts: readonly T[],
+  overrides: unknown,
+  materials: readonly BodyPanelMaterialCatalogEntry[]
+): T[] {
+  if (typeof furnitureId !== "string" || furnitureId.trim() === "" || furnitureId.trim() !== furnitureId) {
+    throw new Error("Gövde panel malzeme çözümlemesi için geçerli mobilya kimliği gereklidir.");
+  }
+  if (!Array.isArray(parts)) {
+    throw new Error("Gövde panel parçaları bir liste olmalıdır.");
+  }
+
+  const recognized: Array<{ index: number; part: T; group: BodyPanelGroup }> = [];
+  for (const [index, part] of parts.entries()) {
+    if (!isRecord(part)) {
+      throw new Error(`Gövde panel parçalarının ${index + 1}. kaydı geçersiz.`);
+    }
+    if (
+      typeof part.furnitureId !== "string" ||
+      part.furnitureId.trim() === "" ||
+      typeof part.id !== "string" ||
+      part.id.trim() === ""
+    ) {
+      throw new Error(`Gövde panel parçalarının ${index + 1}. mobilya/parça kimliği eksik.`);
+    }
+    if (part.furnitureId !== furnitureId) continue;
+
+    const group = getBodyPanelGroupFromPartId(furnitureId, part.id);
+    if (group === null) continue;
+    recognized.push({ index, part, group });
+  }
+
+  const resolved = resolveBodyPanelMaterialAssignments(
+    recognized.map(({ part, group }) => ({
+      id: part.id,
+      group,
+      thicknessMm: part.thickness,
+      material: part.material,
+      ...(part.materialId === undefined ? {} : { materialId: part.materialId })
+    })),
+    overrides,
+    materials
+  );
+
+  const assignments = new Map(
+    recognized.map(({ index }, resolvedIndex) => {
+      const part = resolved[resolvedIndex];
+      return [
+        index,
+        {
+          material: part.material,
+          ...(part.materialId === undefined ? {} : { materialId: part.materialId })
+        }
+      ] as const;
+    })
+  );
+
+  return parts.map((part, index) => {
+    const assignment = assignments.get(index);
+    if (!assignment) return part;
+    return {
+      ...part,
+      material: assignment.material,
+      ...(assignment.materialId === undefined ? {} : { materialId: assignment.materialId })
+    };
   });
 }

@@ -269,3 +269,18 @@
 - Kalite notu: `npm audit --omit=dev --audit-level=high` eşiği geçti; toplam 6 mevcut bulgu (2 düşük, 4 orta) raporlanıyor. Bundle boyutu uyarısı sürüyor.
 - Bilinen kısıtlar: bu bir domain primitive dilimidir; henüz UI, `PlacedFurniture`, proje JSON v1, mevcut üretim motoru, tüketim özeti veya CSV'ye bağlanmamıştır. Frontend yenileme akışının tüm `frontend/**` sahipliği nedeniyle entegrasyon ayrı frontend sahibinin kapsamındadır. Fiziksel panel/CNC doğrulaması yapılmadı.
 - Sonraki görev: frontend sahibi `bodyPanelMaterialIds` opsiyonel alanını proje v1'e geriye uyumlu ekleyip resolver'ı üretilen gövde Part listesine bağlamalı; ardından tüketim/CSV ve katalog silme koruması aynı efektif malzeme kimliklerini kullanmalı.
+
+
+## 16 Kasım 2026 — gövde panel resolver sertleştirmesi ve Part adaptörü
+
+- Başlangıç HEAD: `a509551fdf975909ddbec0235d96e768abb87c6f` (`dev/github-work`). Ön incelemede HEAD'in önceki domain commit'inden sonra frontend marka/çalışma alanı commit'iyle ilerlediği doğrulandı; bu çalışmada frontend sahiplik sınırına uyuldu.
+- Başlangıç kalite durumu: aktif CI/QA/Pages işi yoktu. En güncel QA run `43795442619`, CI run `43795442580` ve Pages run `43795442672` aynı HEAD üzerinde başarılıydı. QA 101/101 uygulama testi + 9/9 ortak domain testini, strict domain type-check, lint, production build ve audit adımlarını geçti.
+- AI Developer workflow dosyası `.github/workflows/ai-developer.yml` mevcut ancak yalnızca `workflow_dispatch` ile başlıyor; branch'in son run listesinde AI Developer çalışması bulunmadı ve bu bağlantıda workflow dispatch aracı bulunmadığından yeni run başlatılmadı.
+- Açık yardımcı PR #8 (CSS cleanup) ve PR #7 (viewport gizmo) ayrı branch'lerinde bırakıldı; sahiplenilmedi veya merge edilmedi. PR #1'in hedefi `main` olduğundan dokunulmadı.
+- Bulgu: resolver, override kimliğini yalnızca aynı gruptan gerçek parça satırı varsa katalogda arıyordu. Örneğin arkalıksız mobilyada `back` override'ı eksik katalog referansıyla doğrulamadan geçebiliyordu.
+- Düzeltme: tüm override referansları parça iterasyonundan önce katalogda doğrulanır; ilgili grup için parça satırı olmasa da bozuk kimlik reddedilir.
+- Yeni domain adaptörü `resolveCabinetBodyPanelParts`, gerçek üretim Part satırlarını açık furnitureId + parça ID eşlemesiyle işler. Sadece hedef mobilyanın bilinen gövde parçalarının malzeme alanlarını değiştirir; çekmece/donanım/diğer mobilya satırları ve Part ölçü/quantity alanları korunur.
+- Değişen dosyalar: `domain/production/bodyPanelMaterials.ts`, `domain/production/bodyPanelMaterials.test.mjs`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`.
+- Kabul testleri: kullanılmayan override kimliğinin reddi; geçerli boş-grup override'ının kabulü; birden çok mobilya satırında hedef kimlik izolasyonu; tanınmayan çekmece parçasının değişmeden kalması; mm thickness ve quantity alanlarının korunması; boş/bozuk furnitureId reddi.
+- Bilinen sınırlar: adaptör mevcut frontend production pipeline, JSON v1, malzeme tüketimi veya CSV'ye henüz bağlı değil; `frontend/**` sahipliği ayrı yenileme akışında. Gerçek konstrüksiyon kuralları ve üretici standardı insan/atölye doğrulaması olmadan üretim onaylı sayılmaz.
+- Sonraki görev: frontend dışı konstrüksiyon profili şeması ve düz gövde parça hesaplayıcısı için tek kaynaklı, açık parametreli domain sözleşmesi oluştur.

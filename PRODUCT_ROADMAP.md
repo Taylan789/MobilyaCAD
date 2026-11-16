@@ -238,13 +238,13 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 - Kalite: Oxlint 16 uyarı / 0 hata; npm audit 6 bulgu (2 düşük, 4 orta), `audit-level=high` eşiği geçti; bundle boyutu uyarısı sürüyor. Güvenlik güncellemesi için kırıcı `--force` kullanılmadı.
 - Sınırlar: tek materialId tüm çekmece panel gruplarına uygulanır; yan/ön-arka/taban/görünür ön için ayrı malzeme override sonraki iştir. Ray, donanım, CNC operasyonu ve fiziksel üretim onayı bu dilime dahil değildir.
 
-## Sıradaki 5 küçük görev
+## Sıradaki 5 küçük görev — domain sahipliği
 
-1. Frontend sahipliği serbest kaldığında `bodyPanelMaterialIds` alanını mobilya/proje JSON v1 sözleşmesine geriye uyumlu ekle ve bu resolver'ı üretim parça akışına bağla.
-2. Gövde panel gruplarının malzeme atamalarını tüketim özeti, CSV ve katalog silme referans korumasıyla uçtan uca birleştir; her parçanın gerçek kalınlığını doğrula.
-3. Düz gövde konstrüksiyon kurallarını proje/mobilya bazında yapılandırılabilir hale getir; mevcut sabit panel/arkalık varsayımlarını açıkça modele taşı.
-4. Gardırop veya kitaplık için tek bir basit, dikdörtgen konstrüksiyon profilini domain motoru, proje verisi ve testlerle uçtan uca tamamla.
-5. Proje JSON migration/otomatik kayıt/kurtarma ve temel 2D plan/snap/undo-redo işleri için bağımsız, test edilebilir dilimler hazırla.
+1. Mobilya bazlı konstrüksiyon profili için frontend dışı tipli şema ve ölçü/adet doğrulayıcıları oluştur.
+2. Düz gövde parça üretiminde mevcut panel/arkalık kurallarını aynı açık profil girdilerinden türeten saf domain hesaplayıcısını test et.
+3. Proje bazlı birden çok mobilyanın üretim parçalarını kimlik ve quantity kaybı olmadan birleştiren ortak domain agregatörünü ekle.
+4. Gövde panel malzeme adaptörünü frontend yenileme sahibine net entegrasyon sözleşmesiyle teslim et; bu otomasyon `frontend/**` dosyalarını değiştirmez.
+5. İlk basit kitaplık/gardırop konstrüksiyon ailesinin yalnızca doğrulanmış ölçü girdileriyle parça ağacını ve kesim verisini domain testleriyle hazırla.
 
 ## Üretim güvenliği ve karar sınırları
 
@@ -281,4 +281,15 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 - Kod commit zinciri: `4905293d2e12c2181dab32c1c930218df1fdbae5`, `3d1306b2e22351dda589a08893b2c420a7f3cc12`, `2729298edc976a04d346da1d3816a8c32fbfaadf`, son kod düzeltmesi `c6bc33b1feccf776aa2ec4bcfa4be5355dd6a4a4`.
 - Nihai doğrulama: QA run `43792112640` başarılı (mevcut 101/101 + ortak domain 9/9; type-check, lint, build ve audit adımları başarılı); CI run `43792112631` başarılı. Pages run `43792112615` build/artifact başarılı, deploy job'u son kontrolde kuyruktaydı.
 - QA sırasında bulunan üç otomasyon/test uyumsuzluğu loglarla teşhis edilip düzeltildi; hiçbir test silinmedi veya gevşetilmedi. Bu domain modülü henüz çalışan UI/proje/CSV akışına entegre değildir.
+
+
+
+## 16 Kasım 2026 — gövde paneli resolver ve gerçek Part satırı adaptörü
+
+- `resolveBodyPanelMaterialAssignments` artık parça listesinde o gruba ait satır bulunmasa bile her override malzeme kimliğinin katalogda bulunduğunu doğrular. Böylece örneğin mevcut konfigürasyonda arkalık yokken saklanan geçersiz bir `back` override'ı daha sonra sessizce üretime taşınamaz.
+- `resolveCabinetBodyPanelParts` ortak domain adaptörü, mevcut üretim `Part` satırlarının `furnitureId`, sabit parça kimliği ve gerçek `thickness` alanlarını kullanır. Yalnızca açıkça eşlenmiş gövde grupları çözülür; çekmece önü, donanım veya bilinmeyen parçalar değiştirilmez.
+- Adaptör birden fazla mobilyanın birleşik `Part[]` listesinde yalnızca hedef `furnitureId` değerine dokunur; diğer mobilyalar ve tanınmayan parça kayıtları aynen korunur. Orijinal parça alanları, mm kalınlığı ve quantity semantiği korunur.
+- Otomatik kabul kriterleri: boş parça listesinde dahi katalog referansı doğrulaması; farklı mobilya kimliklerinin yalıtılması; bilinmeyen parça anahtarlarının tahmin edilmemesi; resolver yardımcı alanlarının üretim `Part` nesnesine sızmaması.
+- Sınır: bu domain adaptörü henüz `frontend/**` üretim akışına bağlanmadı. Frontend yenileme dalı bu dosyaların sahibi olduğundan entegrasyon UI/proje JSON/CSV katmanında ayrı frontend sahibince yapılmalıdır. Bu commit yalnızca frontend dışı domain sözleşmesini güçlendirir.
+- Sonraki domain adımı: mobilya bazlı konstrüksiyon profilini frontend'den bağımsız, doğrulanabilir bir domain sözleşmesine ayırmak; panel kalınlığı, arkalık montajı ve kapak/raf adetlerini açık girdiler olarak tanımlamak. Üretici/atölye standardı olmayan donanım veya CNC ölçüsü eklenmeyecek.
 

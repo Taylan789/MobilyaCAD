@@ -3,13 +3,15 @@ import test from "node:test";
 import {
   getBodyPanelGroupFromPartId,
   resolveBodyPanelMaterialAssignments,
+  resolveCabinetBodyPanelParts,
   validateBodyPanelMaterialOverrides
 } from "./bodyPanelMaterials.ts";
 
 const materials = [
   { id: "mdf-18", name: "MDF Lam 18", category: "panel", thicknessesMm: [18], unit: "mm" },
   { id: "mdf-8", name: "MDF Lam 8", category: "panel", thicknessesMm: [8], unit: "mm" },
-  { id: "ply-25", name: "Kontrplak 25", category: "panel", thicknessesMm: [25], unit: "mm" }
+  { id: "ply-25", name: "Kontrplak 25", category: "panel", thicknessesMm: [25], unit: "mm" },
+  { id: "ply-18", name: "Kontrplak 18", category: "panel", thicknessesMm: [18], unit: "mm" }
 ];
 
 const part = (id, group, thicknessMm, materialId = "mdf-18") => ({
@@ -146,4 +148,80 @@ test("mevcut parça anahtarları yalnızca bilinen gövde gruplarına eşlenir",
   assert.equal(getBodyPanelGroupFromPartId("cab-1", "cab-1-shelf"), "shelf");
   assert.equal(getBodyPanelGroupFromPartId("cab-1", "cab-1-drawer-front"), null);
   assert.equal(getBodyPanelGroupFromPartId("cab-1", "other-top"), null);
+});
+
+
+test("parça listesinde ilgili grup olmasa da her override katalog referansı doğrulanır", () => {
+  assert.throws(
+    () => resolveBodyPanelMaterialAssignments([], { back: "missing-panel" }, materials),
+    /back panel grubu için missing-panel malzeme kimliği katalogda bulunamadı/
+  );
+  assert.deepEqual(
+    resolveBodyPanelMaterialAssignments([], { back: "mdf-8" }, materials),
+    []
+  );
+});
+
+test("gerçek Part satırları yalnızca hedef mobilyanın bilinen gövde panellerine uygulanır", () => {
+  const productionParts = [
+    {
+      id: "cab-1-left-side",
+      furnitureId: "cab-1",
+      name: "Sol Yan Panel",
+      width: 560,
+      length: 720,
+      thickness: 18,
+      quantity: 1,
+      material: "MDF Lam 18",
+      materialId: "mdf-18"
+    },
+    {
+      id: "cab-1-drawer-front",
+      furnitureId: "cab-1",
+      name: "Çekmece Önü",
+      width: 500,
+      length: 180,
+      thickness: 18,
+      quantity: 1,
+      material: "MDF Lam 18",
+      materialId: "mdf-18"
+    },
+    {
+      id: "cab-2-left-side",
+      furnitureId: "cab-2",
+      name: "Diğer Dolap Sol Yan",
+      width: 560,
+      length: 720,
+      thickness: 18,
+      quantity: 1,
+      material: "MDF Lam 18",
+      materialId: "mdf-18"
+    }
+  ];
+
+  const resolved = resolveCabinetBodyPanelParts(
+    "cab-1",
+    productionParts,
+    { leftSide: "ply-18" },
+    materials
+  );
+
+  assert.equal(resolved[0].materialId, "ply-18");
+  assert.equal(resolved[0].material, "Kontrplak 18");
+  assert.equal(resolved[0].thickness, 18);
+  assert.equal("group" in resolved[0], false);
+  assert.equal("thicknessMm" in resolved[0], false);
+  assert.deepEqual(resolved[1], productionParts[1]);
+  assert.deepEqual(resolved[2], productionParts[2]);
+});
+
+test("Part adapter boş veya boşluklu mobilya kimliğini reddeder", () => {
+  assert.throws(
+    () => resolveCabinetBodyPanelParts(" ", [], {}, materials),
+    /geçerli mobilya kimliği/
+  );
+  assert.throws(
+    () => resolveCabinetBodyPanelParts("cab-1", [{ id: "cab-1-top" }], {}, materials),
+    /mobilya\/parça kimliği eksik/
+  );
 });
