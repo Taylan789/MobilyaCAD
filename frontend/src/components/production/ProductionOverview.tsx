@@ -3,6 +3,7 @@ import {
   ArrowDownToLine,
   CheckCircle2,
   ClipboardList,
+  Crosshair,
   Layers3,
   Package,
   Ruler,
@@ -16,6 +17,8 @@ import "./ProductionOverview.css";
 
 interface ProductionOverviewProps {
   furnitureCount: number;
+  selectedFurnitureId: string | null;
+  onFocusFurniture: (furnitureId: string) => void;
   production: ProjectProductionResult;
   edgeBanding: EdgeBandingSummary;
   materialConsumption: MaterialConsumptionSummary[];
@@ -28,6 +31,8 @@ function formatNumber(value: number, maximumFractionDigits = 2) {
 
 export function ProductionOverview({
   furnitureCount,
+  selectedFurnitureId,
+  onFocusFurniture,
   production,
   edgeBanding,
   materialConsumption,
@@ -208,20 +213,38 @@ export function ProductionOverview({
         </div>
         {production.parts.length > 0 ? (
           <div className="mc-production__cut-list">
-            {production.parts.map((part) => (
-              <article className="mc-production__cut-row" key={part.id}>
-                <div className="mc-production__cut-main">
-                  <strong>{part.name}</strong>
-                  <span>{production.furnitureNames.get(part.furnitureId) ?? "Mobilya"}</span>
-                  <small>{part.material} · {part.thickness} mm</small>
-                </div>
-                <div className="mc-production__cut-side">
-                  <b>×{formatNumber(part.quantity, 0)}</b>
-                  <span>{formatNumber(part.width, 1)} × {formatNumber(part.length, 1)}</span>
-                  <small>mm</small>
-                </div>
-              </article>
-            ))}
+            {production.parts.map((part) => {
+              const furnitureName = production.furnitureNames.get(part.furnitureId) ?? "Mobilya";
+              const isSelected = selectedFurnitureId === part.furnitureId;
+
+              return (
+                <article
+                  className={"mc-production__cut-row" + (isSelected ? " is-selected" : "")}
+                  key={part.id}
+                >
+                  <div className="mc-production__cut-main">
+                    <strong>{part.name}</strong>
+                    <span>{furnitureName}</span>
+                    <small>{part.material} · {part.thickness} mm</small>
+                  </div>
+                  <div className="mc-production__cut-side">
+                    <b>×{formatNumber(part.quantity, 0)}</b>
+                    <span>{formatNumber(part.width, 1)} × {formatNumber(part.length, 1)}</span>
+                    <small>mm</small>
+                  </div>
+                  <button
+                    type="button"
+                    className="mc-production__cut-focus"
+                    onClick={() => onFocusFurniture(part.furnitureId)}
+                    aria-label={furnitureName + " mobilyasını 3D sahnede göster"}
+                    title="Bu parçanın bağlı olduğu mobilyayı modelleme alanında göster"
+                  >
+                    <Crosshair aria-hidden="true" />
+                    <span>{isSelected ? "Sahnede seçili" : "Mobilyayı göster"}</span>
+                  </button>
+                </article>
+              );
+            })}
           </div>
         ) : (
           <div className="mc-production__empty">
