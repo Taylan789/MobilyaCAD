@@ -130,3 +130,51 @@
     transition: none;
   }
 }
+
+/* Selection callout: anchored to the active furniture part in the 3D viewport. */
+.cad-part-selection-callout {
+  display: grid;
+  min-width: 126px;
+  gap: 3px;
+  padding: 7px 10px 8px;
+  color: #e7eef2;
+  border: 1px solid rgba(145, 180, 202, 0.5);
+  border-left: 2px solid #c39470;
+  border-radius: 5px;
+  background: rgba(17, 27, 34, 0.95);
+  box-shadow: 0 7px 20px rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(10px);
+  font-family: "Geist Variable", ui-sans-serif, system-ui, sans-serif;
+  white-space: nowrap;
+}
+
+.cad-part-selection-callout > span {
+  overflow: hidden;
+  color: #a9c3d2;
+  font-size: 8px;
+  font-weight: 760;
+  letter-spacing: 0.1em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+}
+
+.cad-part-selection-callout > strong {
+  color: #f0f3f5;
+  font-size: 11px;
+  font-weight: 680;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+.cad-part-selection-callout > small {
+  overflow: hidden;
+  color: #c7a98e;
+  font-size: 8px;
+  text-overflow: ellipsis;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cad-part-selection-callout {
+    scroll-behavior: auto;
+  }
+}

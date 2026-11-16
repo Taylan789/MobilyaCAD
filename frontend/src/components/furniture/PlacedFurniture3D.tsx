@@ -1,7 +1,7 @@
 
 import { useRef } from "react";
 import { useThree } from "@react-three/fiber";
-import { Html } from "@react-three/drei";
+import { Edges, Html } from "@react-three/drei";
 import { Plane, Vector2, Vector3 } from "three";
 import type { Group } from "three";
 import type {
@@ -29,6 +29,18 @@ interface Props {
 }
 
 type PartType = "door" | "drawer" | "shelf";
+
+const CAD_SELECTION = {
+  furniture: "#91b4ca",
+  part: "#c39470",
+  outline: "#e3c2a4",
+  rotation: "#91b4ca",
+  axes: {
+    x: "#c47f7f",
+    y: "#91a994",
+    z: "#91b4ca"
+  }
+} as const;
 
 export default function PlacedFurniture3D({
   furniture,
@@ -220,10 +232,51 @@ export default function PlacedFurniture3D({
     onSelectPart(furniture.id, getPartId(type, index));
   }
 
+  function partIsSelected(type: PartType, index: number) {
+    return selected && selectedPartId === getPartId(type, index);
+  }
+
   function partColor(type: PartType, index: number) {
-    return selectedPartId === getPartId(type, index)
-      ? "#71e0a0"
-      : furniture.color;
+    return partIsSelected(type, index) ? CAD_SELECTION.part : furniture.color;
+  }
+
+  function partCallout(
+    type: PartType,
+    index: number,
+    position: [number, number, number],
+    size: { width: number; height: number; depth: number }
+  ) {
+    if (!partIsSelected(type, index)) return null;
+
+    const part = getPart(type, index);
+    const fallbackName = type === "door"
+      ? "Kapak"
+      : type === "drawer"
+        ? "Çekmece"
+        : "Raf";
+    const dimensions = [size.width, size.height, size.depth]
+      .map((value) => Math.round(value * 1000).toLocaleString("tr-TR"))
+      .join(" × ");
+
+    return (
+      <Html
+        position={[
+          position[0],
+          position[1] + size.height / 2 + 0.075,
+          position[2] + size.depth / 2 + 0.04
+        ]}
+        center
+        distanceFactor={9}
+        zIndexRange={[50, 0]}
+        style={{ pointerEvents: "none", userSelect: "none" }}
+      >
+        <div className="cad-part-selection-callout" role="status">
+          <span>{part?.name ?? `${fallbackName} ${index + 1}`}</span>
+          <strong>{dimensions} mm</strong>
+          <small>{part?.material ?? furniture.material}</small>
+        </div>
+      </Html>
+    );
   }
 
   function partDimensions(
@@ -551,7 +604,11 @@ export default function PlacedFurniture3D({
                 <mesh position={position} castShadow>
                   <boxGeometry args={[size.width, size.height, size.depth]} />
                   <meshStandardMaterial color={partColor("drawer", index)} />
+                  {partIsSelected("drawer", index) && (
+                    <Edges color={CAD_SELECTION.outline} threshold={15} />
+                  )}
                 </mesh>
+                {partCallout("drawer", index, position, size)}
               </group>
             );
           })}
@@ -627,7 +684,11 @@ export default function PlacedFurniture3D({
                     color={partColor("shelf", index)}
                     roughness={0.55}
                   />
+                  {partIsSelected("shelf", index) && (
+                    <Edges color={CAD_SELECTION.outline} threshold={15} />
+                  )}
                 </mesh>
+                {partCallout("shelf", index, position, size)}
               </group>
             );
           })}
@@ -669,7 +730,11 @@ export default function PlacedFurniture3D({
                     color={partColor("door", index)}
                     roughness={0.42}
                   />
+                  {partIsSelected("door", index) && (
+                    <Edges color={CAD_SELECTION.outline} threshold={15} />
+                  )}
                 </mesh>
+                {partCallout("door", index, position, size)}
 
                 <mesh
                   position={[
@@ -722,7 +787,11 @@ export default function PlacedFurniture3D({
                     color={partColor("drawer", index)}
                     roughness={0.4}
                   />
+                  {partIsSelected("drawer", index) && (
+                    <Edges color={CAD_SELECTION.outline} threshold={15} />
+                  )}
                 </mesh>
+                {partCallout("drawer", index, position, size)}
 
                 <mesh
                   position={[
@@ -764,7 +833,7 @@ export default function PlacedFurniture3D({
             {/* Ana döndürme halkası */}
             <mesh rotation={[Math.PI / 2, 0, 0]}>
               <torusGeometry args={[rotateRadius, 0.025, 12, 128]} />
-              <meshBasicMaterial color="#55c8ff" depthTest={false} />
+              <meshBasicMaterial color={CAD_SELECTION.rotation} depthTest={false} />
             </mesh>
 
             {/* Dokunmatik kontrol noktaları */}
@@ -813,7 +882,7 @@ export default function PlacedFurniture3D({
                   padding: "7px 13px",
                   borderRadius: "9px",
                   background: "rgba(12, 22, 35, 0.94)",
-                  border: "1px solid #55c8ff",
+                  border: `1px solid ${CAD_SELECTION.rotation}`,
                   color: "#ffffff",
                   fontSize: "14px",
                   fontWeight: 700,
@@ -840,12 +909,7 @@ export default function PlacedFurniture3D({
             { axis: "z", sign: -1, position: [0, 0, -d / 2], size: furniture.depth },
             { axis: "z", sign: 1, position: [0, 0, d / 2], size: furniture.depth }
           ] as const).map(handle => {
-            const color =
-              handle.axis === "x"
-                ? "#ff626b"
-                : handle.axis === "y"
-                  ? "#55d99a"
-                  : "#55aaff";
+            const color = CAD_SELECTION.axes[handle.axis];
 
             return (
               <group
@@ -905,7 +969,7 @@ export default function PlacedFurniture3D({
       {selected && (
         <mesh>
           <boxGeometry args={[w + 0.025, h + 0.025, d + 0.025]} />
-          <meshBasicMaterial color="#71e0a0" wireframe />
+          <meshBasicMaterial color={CAD_SELECTION.furniture} wireframe transparent opacity={0.78} depthWrite={false} />
         </mesh>
       )}
     </group>
