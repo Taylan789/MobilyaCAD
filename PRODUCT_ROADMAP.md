@@ -520,8 +520,21 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 
 ### Sıradaki 3-5 küçük görev
 
-1. TV ünitesi için açık ölçülü bölme/özel raf yerleşimini ve farklı panel kalınlıklarını, mevcut wardrobe raf sözleşmesini körlemesine kopyalamadan tasarla.
-2. Banyo dolabı ailesini, yalnızca kullanıcı/üretici tarafından verilen ayak, lavabo boşluğu ve arkalık kurallarıyla küçük bir domain dilimine ayır.
-3. Karışık cabinet/bookshelf/table/wardrobe/tv-unit projelerinde katalog malzeme, quantity, net alan/hacim ve kenar bantlama uzlaşmasını genişlet.
+1. TV ünitesi için kullanıcı girdili dikey bölücü/compartment panellerini, açık ölçü ve katalog malzeme/kalınlık sözleşmesiyle tasarla; raflarla çakışma testlerini ekle.
+2. Banyo dolabı ailesini yalnızca kullanıcı/üretici tarafından verilen lavabo boşluğu, ayak/baza ve arkalık kurallarıyla küçük bir domain dilimine ayır.
+3. Karışık cabinet/bookshelf/table/wardrobe/tv-unit projelerinde özel TV raflarının malzeme, quantity, net alan/hacim ve kenar bantlama uzlaşmasını doğrula.
 4. Domain Part listesi ile frontend JSON v1/CSV adapter entegrasyonunu ayrı frontend sahibinin kabul testleri üzerinden takip et; bu otomasyon `frontend/**` dosyalarına dokunmaz.
 5. CNC, duvar montajı, ayak/ankraj, nesting, fire ve maliyet çıktıları için gerçek üretici/atölye girdisi ve standart olmadan varsayılan üretim kuralı ekleme.
+
+
+### 16 Kasım 2026 — floor-standing TV ünitesi açık ölçülü raflar
+
+- TV ünitesi v1'e geriye uyumlu shelves alanı eklendi; eski isteklerde alanın olmaması mevcut cabinet gövde/raf davranışını değiştirmez.
+- Her özel raf için açık X/Y/Z yerleşimi, katalog malzemesi/kalınlığı, damar yönü ve dört kenar bantlama bayrağı zorunludur. Net iç genişlik, gerçek üst-alt panel kalınlıklarıyla bulunan net iç yükseklik ve arkalık sonrası iç derinlik sınırları kontrol edilir.
+- Hacimsel çakışma reddedilir; yüzey teması kabul edilir. Özel raflar profile.shelfCount tam genişlik raflarıyla aynı istekte çift sayım oluşturamaz.
+- Proje agregatörü TV raflarını ortak Part listesine taşır; malzeme özeti aynı satırdan quantity, alan, hacim ve kenar bantlama hesaplar.
+- Kabul kriterleri: legacy TV ünitesi isteği aynı sonuç şeklini korur; özel rafın ölçü/kimlik/malzeme/kenar/damar alanları korunur; sınır, çakışma, katalog kalınlığı ve yinelenen kimlik hataları reddedilir; proje raporu geçerli istekte ready kalır.
+- Değişen dosyalar: domain/production/tvUnitConstruction.ts, domain/production/tvUnitConstruction.test.mjs, domain/production/projectProduction.ts, domain/production/projectProduction.test.mjs, docs/production-domain-contract.md, PRODUCT_ROADMAP.md.
+- Commit SHA ve GitHub Actions doğrulaması bu dilimin commit'i sonrasında AI_PROGRESS.md içinde kaydedilecektir.
+- Bilinen sınırlar: dikey bölücü, ayak/baza, ankraj, yük, bağlantı/delik, donanım, CNC, nesting, fire ve fiyat hesabı yoktur. Fiziksel üretim doğrulaması atölyeye aittir.
+- Frontend JSON v1/CSV entegrasyonu ayrı frontend sahibindedir; hiçbir frontend/** dosyası değiştirilmedi.

@@ -238,3 +238,16 @@ Kaynak: `domain/production/tvUnitConstruction.ts` ve `domain/production/projectP
 - Bu dilim yalnızca açıkça tanımlanmış, zemine oturan gövde parçalarını kapsar. Ayak, baza/plinth, duvar braketi, ankraj, duvar taşıma kapasitesi, TV yükü, bağlantı/delik, donanım, CNC, nesting, fire veya fiyat hesabı üretmez.
 - `mounting: "wall-mounted"` ve diğer montaj biçimleri reddedilir; gerçek üretici/duvar/ankraj standardı doğrulanmadan duvara montajlı üretim verisi sunulmaz.
 - Frontend JSON v1/CSV adapter'ı bu aileyi henüz çağırmaz. Ayrı frontend sahibi, TV ünitesi isteği için açık montaj seçimini, `ready/blocked` raporunu ve ortak Part listesini kendi entegrasyon testleriyle bağlamalıdır. Bu domain dilimi hiçbir `frontend/**` dosyasını değiştirmez.
+
+
+### 2.11 Açık ölçülü floor-standing TV ünitesi rafları
+
+Kaynak: domain/production/tvUnitConstruction.ts ve domain/production/projectProduction.ts.
+
+- TvUnitConstructionRequest.shelves geriye uyumlu opsiyonel bir alandır. Alanın bulunmaması veya boş liste mevcut TV ünitesi v1 davranışını korur; profile.shelfCount ile üretilen tam genişlik raflar aynı şekilde çalışmaya devam eder.
+- Özel raflar için benzersiz id, iç sol yan panel yüzünden sol/sağ ofset, net iç taban referansından alt yüzey kotu, iç ön referans düzleminden ön ofset, derinlik, kalınlık, katalog materialId, dört kenar bandı bayrağı ve width | length | none damar yönü açıkça sağlanır. Ölçüler mm ve 0.1 mm hassasiyetinde normalize edilir.
+- Raf parçası width = depthMm, length = rightOffsetMm - leftOffsetMm, thickness = thicknessMm, quantity = 1 olarak ortak Part listesine eklenir. Kendi malzeme kimliği ve katalog kalınlığı kullanılır; diğer gövde panellerinin grup override'larından türetilmez.
+- Raflar gövde motorunun net iç genişliği/derinliği ve dış yükseklikten üst-alt gerçek panel kalınlıkları çıkarılarak bulunan net iç yüksekliği içinde kalmalıdır. Raflar 3D hacimde çakışamaz; yalnızca yüzey teması kabul edilir. Açık ölçülü raflarla profile.shelfCount birlikte kullanılamaz.
+- Proje agregatörü yeni TV raf Part satırlarını aynı listeye taşır; malzeme özeti quantity, alan, hacim ve kenar bantlamayı bu gerçek Part satırlarından hesaplar.
+- Bu dilim bölücü/compartment paneli, raf taşıma kapasitesi, ayak/baza, duvar braketi/ankraj, bağlantı/delik, donanım, CNC, nesting, fire veya fiyat hesabı üretmez. Bu sınırlar için üretici/atölye girdisi ve fiziksel doğrulama gerekir.
+- Frontend JSON v1/CSV adapter'ı bu alanı henüz çağırmaz; frontend sahibinin family: tv-unit için shelves girdisini ve ready/blocked raporunu ayrı otomatik entegrasyon testleriyle bağlaması gerekir. Bu otomasyon hiçbir frontend/** dosyasını değiştirmez.

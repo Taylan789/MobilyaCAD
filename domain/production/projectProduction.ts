@@ -3,6 +3,7 @@ import { calculateBookshelfConstruction } from "./bookshelfConstruction.ts";
 import { calculateTableConstruction } from "./tableConstruction.ts";
 import { calculateWardrobeConstruction } from "./wardrobeConstruction.ts";
 import { calculateTvUnitConstruction } from "./tvUnitConstruction.ts";
+import type { TvUnitConstructionPart } from "./tvUnitConstruction.ts";
 import type {
   CabinetConstructionPart,
   CabinetInnerDimensionsMm
@@ -39,7 +40,7 @@ export interface DrawerGroupProductionResult {
   bottomLengthMm: number;
 }
 
-export type ProjectProductionPart = CabinetConstructionPart | DrawerBoxConstructionPart | TableConstructionPart | WardrobeConstructionPart;
+export type ProjectProductionPart = CabinetConstructionPart | DrawerBoxConstructionPart | TableConstructionPart | WardrobeConstructionPart | TvUnitConstructionPart;
 
 export interface CabinetProjectProductionResult {
   schemaVersion: 1;

@@ -778,3 +778,50 @@ test("geçersiz proje zarfı proje düzeyi hatayla raporlanır", () => {
   assert.equal(report.result, null);
   assert.match(report.projectErrors[0], /şema sürümü/);
 });
+
+
+test("TV ünitesi özel rafı proje Part listesi ve malzeme tüketim özetine taşınır", () => {
+  const request = createTvUnitRequest("tv-shelf-1", {
+    profile: { shelfCount: 0 }
+  });
+  request.shelves = [{
+    id: "lower",
+    leftOffsetMm: 10,
+    rightOffsetMm: 750,
+    heightFromInnerBottomMm: 200,
+    frontOffsetMm: 10,
+    depthMm: 500,
+    thicknessMm: 8,
+    materialId: "mdf-8",
+    edgeBanding: { top: true, bottom: false, left: true, right: false },
+    grainDirection: "width"
+  }];
+
+  const report = calculateCabinetProjectProductionWithDiagnostics({
+    schemaVersion: 1,
+    furniture: [request]
+  });
+
+  assert.equal(report.status, "ready");
+  assert.equal(report.canExport, true);
+  const shelf = report.result.parts.find((part) => part.id === "tv-shelf-1-shelf-lower");
+  assert.ok(shelf);
+  assert.deepEqual([shelf.width, shelf.length, shelf.thickness, shelf.quantity], [500, 740, 8, 1]);
+
+  const summary = calculateProjectMaterialConsumptionSummary(report.result);
+  assert.deepEqual(summary.find((entry) => entry.materialId === "mdf-8"), {
+    material: "MDF Lam 8",
+    materialId: "mdf-8",
+    thicknessMm: 8,
+    partLineCount: 1,
+    totalQuantity: 1,
+    panelAreaM2: 0.37,
+    volumeM3: 0.00296,
+    edgeBanding: {
+      widthEdgesLengthMm: 500,
+      lengthEdgesLengthMm: 740,
+      totalLengthMm: 1240,
+      edgeCount: 2
+    }
+  });
+});

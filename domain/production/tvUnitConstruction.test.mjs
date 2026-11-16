@@ -73,3 +73,139 @@ test("TV ünitesi aile etiketi ve montaj biçimi açıkça belirtilmelidir", () 
     /family alanı tv-unit/
   );
 });
+
+
+function createShelf(overrides = {}) {
+  return {
+    id: "middle",
+    leftOffsetMm: 10,
+    rightOffsetMm: 1754,
+    heightFromInnerBottomMm: 100,
+    frontOffsetMm: 5,
+    depthMm: 420,
+    thicknessMm: 8,
+    materialId: "mdf-8",
+    edgeBanding: { top: true, bottom: false, left: true, right: false },
+    grainDirection: "width",
+    ...overrides
+  };
+}
+
+const shelfMaterials = [
+  { id: "mdf-8", name: "MDF Lam 8", category: "panel", thicknessesMm: [8], unit: "mm" }
+];
+
+test("TV ünitesi açık ölçülü rafı katalog malzemesi ve yerleşim bilgisiyle ortak Part listesine ekler", () => {
+  const request = createRequest();
+  request.profile.shelfCount = 0;
+  request.materials = shelfMaterials;
+  request.shelves = [createShelf()];
+
+  const result = calculateTvUnitConstruction(request);
+  const shelf = result.parts.find((part) => part.id === "tv-1-shelf-middle");
+
+  assert.ok(shelf);
+  assert.deepEqual(
+    [shelf.width, shelf.length, shelf.thickness, shelf.quantity],
+    [420, 1744, 8, 1]
+  );
+  assert.deepEqual(
+    [shelf.materialId, shelf.material, shelf.grainDirection],
+    ["mdf-8", "MDF Lam 8", "width"]
+  );
+  assert.deepEqual(
+    [shelf.leftOffsetMm, shelf.rightOffsetMm, shelf.heightFromInnerBottomMm, shelf.frontOffsetMm],
+    [10, 1754, 100, 5]
+  );
+  assert.deepEqual(shelf.edgeBanding, {
+    top: true, bottom: false, left: true, right: false
+  });
+  assert.equal(result.innerDimensionsMm.height, 420);
+});
+
+test("TV ünitesi rafları net iç yükseklik, genişlik ve derinlik sınırlarını aşamaz", () => {
+  const request = createRequest();
+  request.profile.shelfCount = 0;
+  request.materials = shelfMaterials;
+
+  assert.throws(
+    () => calculateTvUnitConstruction({ ...request, shelves: [createShelf({ rightOffsetMm: 1765 })] }),
+    /iç genişlik sınırını/
+  );
+  assert.throws(
+    () => calculateTvUnitConstruction({ ...request, shelves: [createShelf({ heightFromInnerBottomMm: 377 })] }),
+    /net iç yüksekliğini/
+  );
+  assert.throws(
+    () => calculateTvUnitConstruction({ ...request, shelves: [createShelf({ frontOffsetMm: 13 })] }),
+    /iç derinlik sınırını/
+  );
+});
+
+test("TV ünitesi rafları hacimsel çakışamaz ve tam genişlik raf adediyle birleştirilemez", () => {
+  const request = createRequest();
+  request.profile.shelfCount = 0;
+  request.materials = shelfMaterials;
+
+  assert.throws(
+    () => calculateTvUnitConstruction({
+      ...request,
+      shelves: [
+        createShelf({ id: "lower" }),
+        createShelf({ id: "overlap", heightFromInnerBottomMm: 105 })
+      ]
+    }),
+    /rafıyla çakışamaz/
+  );
+  assert.throws(
+    () => calculateTvUnitConstruction({
+      ...request,
+      profile: { ...request.profile, shelfCount: 1 },
+      shelves: [createShelf()]
+    }),
+    /tam genişlik raf adedi sıfır olmalıdır/
+  );
+  const touching = calculateTvUnitConstruction({
+    ...request,
+    shelves: [
+      createShelf({ id: "lower" }),
+      createShelf({ id: "upper", heightFromInnerBottomMm: 108 })
+    ]
+  });
+  assert.equal(touching.parts.filter((part) => part.id.includes("-shelf-")).length, 2);
+});
+
+test("TV ünitesi raf kimliği, katalog kalınlığı ve alan sözleşmesi doğrulanır", () => {
+  const request = createRequest();
+  request.profile.shelfCount = 0;
+  request.materials = shelfMaterials;
+
+  assert.throws(
+    () => calculateTvUnitConstruction({
+      ...request,
+      shelves: [createShelf(), createShelf({ id: "middle", heightFromInnerBottomMm: 700 })]
+    }),
+    /yinelenen raf kimliği/
+  );
+  assert.throws(
+    () => calculateTvUnitConstruction({
+      ...request,
+      shelves: [createShelf({ thicknessMm: 18 })]
+    }),
+    /18 mm kalınlık katalogda tanımlı değil/
+  );
+  assert.throws(
+    () => calculateTvUnitConstruction({
+      ...request,
+      shelves: [createShelf({ grainDirection: "vertical" })]
+    }),
+    /damar yönü/
+  );
+  assert.throws(
+    () => calculateTvUnitConstruction({
+      ...request,
+      shelves: [createShelf({ unknown: true })]
+    }),
+    /desteklenmeyen alan/
+  );
+});
