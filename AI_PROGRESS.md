@@ -413,3 +413,4 @@
 - Bilinen sınırlar: farklı panel grubu kalınlığı, dikey bölücü, raf aralığı, duvar montajı, ray/donanım, delik, CNC, nesting, fire ve fiziksel üretim güvenliği hesabı yok. Frontend JSON/CSV adapter'ına bağlanmadı; hiçbir frontend/** dosyası bu domain çalışmasında değiştirilmedi.
 - AI Developer workflow'u son run listesinde yok; yalnızca workflow_dispatch ile çalışıyor ve bu bağlantıda dispatch işlemi desteklenmediği için yeni run başlatılmadı.
 - Sonraki görev: kitaplık panel grubu bazlı kalınlık girdilerini eklemek; ardından açık parametreli masa konstrüksiyon ailesine geçmek.
+- Roadmap/contract dokümantasyon commit'i e71fe35c9880b5627fa75bf49233724879f38e70 için CI 43869305727, QA 43869305867 (101/101 frontend + 63/63 domain) ve Pages 43869305728 başarılı.
