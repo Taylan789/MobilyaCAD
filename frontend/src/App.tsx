@@ -26,6 +26,9 @@ import {
   Layers3,
   X,
   Keyboard,
+  ChevronDown,
+  ChevronRight,
+  ChevronsUpDown,
 } from "lucide-react";
 
 import { Button } from "./components/ui/button";
@@ -102,6 +105,8 @@ function App() {
   const [mobilePanel, setMobilePanel] = useState<"catalog" | "inspector" | null>(null);
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [leftPanelMode, setLeftPanelMode] = useState<"catalog" | "scene">("catalog");
+  const [sceneSearch, setSceneSearch] = useState("");
+  const [collapsedSceneFurnitureIds, setCollapsedSceneFurnitureIds] = useState<string[]>([]);
   const [inspectorTab, setInspectorTab] = useState<"room" | "furniture" | "production" | "materials">("room");
 
   const [constructionRules] = useState<CabinetConstructionRules>({
@@ -129,6 +134,15 @@ function App() {
 
   useEffect(() => {
     setInspectorTab(selectedFurnitureId ? "furniture" : "room");
+  }, [selectedFurnitureId, selectedPartId]);
+
+  useEffect(() => {
+    if (!selectedFurnitureId) return;
+    setCollapsedSceneFurnitureIds((current) =>
+      current.includes(selectedFurnitureId)
+        ? current.filter((id) => id !== selectedFurnitureId)
+        : current
+    );
   }, [selectedFurnitureId, selectedPartId]);
 
   const catalogCategories = [
@@ -168,6 +182,14 @@ function App() {
   const selectedCatalogItem = furnitureCatalog.find(
     (item) => item.id === selectedFurniture?.catalogId
   );
+
+  const normalizedSceneSearch = sceneSearch.trim().toLocaleLowerCase("tr");
+  const filteredSceneFurniture = furniture.filter((item) =>
+    item.name.toLocaleLowerCase("tr").includes(normalizedSceneSearch) ||
+    item.parts.some((part) => part.name.toLocaleLowerCase("tr").includes(normalizedSceneSearch))
+  );
+  const allSceneFurnitureCollapsed = furniture.length > 0 &&
+    furniture.every((item) => collapsedSceneFurnitureIds.includes(item.id));
   const referencedMaterialIds = new Set(
     furniture.flatMap((item) => [
       ...(item.materialId ? [item.materialId] : []),
@@ -1016,39 +1038,142 @@ function App() {
                             onClick={() => addFurniture(item.id)}
                             title={`${item.name} modelini odaya ekle`}
                           >
-                            <span className="cad-catalog-card-icon">
-                              <Icon />
-                            </span>
-                            <span className="cad-catalog-card-add">
-                              <Plus />
-                            </span>
-                            <strong>{item.name}</strong>
-                            <small>
-                              {item.width} × {item.height} × {item.depth} mm
-                            </small>
-                          </button>
-                        );
-                      })}
-                    </div>
-
-                    {filteredFurnitureCatalog.length === 0 && (
-                      <p className="cad-empty-state">
-                        Aramanızla eşleşen model bulunamadı.
-                      </p>
-                    )}
-                  </ScrollArea>
-                </SidebarGroupContent>
-              </SidebarGroup>
-            
-              </>
-            ) : (
+                            <span className=            ) : (
               <div className="studio-scene-tree">
-                <div className="studio-tree-heading"><span>PROJE HİYERARŞİSİ</span><small>{furniture.length + 1} ÖĞE</small></div>
-                <button type="button" className="studio-tree-room" onClick={() => { setSelectedFurnitureId(null); setSelectedPartId(null); }}><House /><span><strong>Çalışma odası</strong><small>{roomWidth} × {roomLength} × {roomHeight} mm</small></span></button>
+                <div className="studio-tree-heading">
+                  <span>PROJE HİYERARŞİSİ</span>
+                  <div className="studio-tree-heading-actions">
+                    <small>{filteredSceneFurniture.length} / {furniture.length} MOBİLYA</small>
+                    <button
+                      type="button"
+                      className="studio-tree-toggle-all"
+                      disabled={furniture.length === 0 || normalizedSceneSearch.length > 0}
+                      aria-label={allSceneFurnitureCollapsed ? "Tüm mobilya gruplarını aç" : "Tüm mobilya gruplarını daralt"}
+                      title={normalizedSceneSearch ? "Arama sonuçları açık tutulur" : allSceneFurnitureCollapsed ? "Tüm grupları aç" : "Tüm grupları daralt"}
+                      onClick={() => setCollapsedSceneFurnitureIds(
+                        allSceneFurnitureCollapsed ? [] : furniture.map((item) => item.id)
+                      )}
+                    >
+                      <ChevronsUpDown />
+                    </button>
+                  </div>
+                </div>
+
+                <label className="studio-tree-search">
+                  <Search aria-hidden="true" />
+                  <Input
+                    id="cad-scene-search"
+                    value={sceneSearch}
+                    onChange={(event) => setSceneSearch(event.target.value)}
+                    placeholder="Mobilya veya parça ara..."
+                    aria-label="Sahne ağacında mobilya veya parça ara"
+                  />
+                  {sceneSearch && (
+                    <button
+                      type="button"
+                      aria-label="Sahne aramasını temizle"
+                      title="Aramayı temizle"
+                      onClick={() => setSceneSearch("")}
+                    >
+                      <X />
+                    </button>
+                  )}
+                </label>
+
+                <button
+                  type="button"
+                  className="studio-tree-room"
+                  onClick={() => { setSelectedFurnitureId(null); setSelectedPartId(null); }}
+                >
+                  <House />
+                  <span>
+                    <strong>Çalışma odası</strong>
+                    <small>{roomWidth} × {roomLength} × {roomHeight} mm</small>
+                  </span>
+                </button>
+
                 <div className="studio-tree-branch">
-                  <span className="studio-tree-branch-label">MOBİLYALAR <b>{furniture.length}</b></span>
-                  {furniture.length === 0 ? <div className="studio-tree-empty"><Layers3 /><strong>Sahne henüz boş</strong><span>Kütüphaneden bir model ekleyerek başla.</span><button type="button" onClick={() => setLeftPanelMode("catalog")}>Kütüphaneyi aç</button></div> : furniture.map((item) => (
-                    <div className="studio-tree-object" key={item.id}>
+                  <span className="studio-tree-branch-label">
+                    MOBİLYALAR <b>{filteredSceneFurniture.length} / {furniture.length}</b>
+                  </span>
+                  {furniture.length === 0 ? (
+                    <div className="studio-tree-empty">
+                      <Layers3 />
+                      <strong>Sahne henüz boş</strong>
+                      <span>Kütüphaneden bir model ekleyerek başla.</span>
+                      <button type="button" onClick={() => setLeftPanelMode("catalog")}>Kütüphaneyi aç</button>
+                    </div>
+                  ) : filteredSceneFurniture.length === 0 ? (
+                    <div className="studio-tree-empty studio-tree-empty-search" role="status">
+                      <Search />
+                      <strong>Eşleşen nesne bulunamadı</strong>
+                      <span>Mobilya veya parça adını değiştirerek tekrar ara.</span>
+                      <button type="button" onClick={() => setSceneSearch("")}>Aramayı temizle</button>
+                    </div>
+                  ) : (
+                    filteredSceneFurniture.map((item) => {
+                      const itemMatches = normalizedSceneSearch.length === 0 ||
+                        item.name.toLocaleLowerCase("tr").includes(normalizedSceneSearch);
+                      const visibleParts = normalizedSceneSearch.length === 0 || itemMatches
+                        ? item.parts
+                        : item.parts.filter((part) =>
+                            part.name.toLocaleLowerCase("tr").includes(normalizedSceneSearch)
+                          );
+                      const isExpanded = normalizedSceneSearch.length > 0 ||
+                        !collapsedSceneFurnitureIds.includes(item.id);
+
+                      return (
+                        <div className="studio-tree-object" key={item.id}>
+                          <div className="studio-tree-object-row">
+                            <button
+                              type="button"
+                              className={"studio-tree-object-select" + (selectedFurnitureId === item.id && !selectedPartId ? " selected" : "")}
+                              onClick={() => { setSelectedFurnitureId(item.id); setSelectedPartId(null); }}
+                            >
+                              <Box />
+                              <span>
+                                <strong>{item.name}</strong>
+                                <small>{item.width} × {item.height} × {item.depth} mm</small>
+                              </span>
+                              <em>{item.parts.length}</em>
+                            </button>
+                            <button
+                              type="button"
+                              className="studio-tree-disclosure"
+                              aria-expanded={isExpanded}
+                              aria-label={item.name + " parçalarını " + (isExpanded ? "daralt" : "genişlet")}
+                              title={isExpanded ? "Parçaları daralt" : "Parçaları genişlet"}
+                              onClick={() => setCollapsedSceneFurnitureIds((current) =>
+                                current.includes(item.id)
+                                  ? current.filter((id) => id !== item.id)
+                                  : [...current, item.id]
+                              )}
+                            >
+                              {isExpanded ? <ChevronDown /> : <ChevronRight />}
+                            </button>
+                          </div>
+                          {isExpanded && visibleParts.length > 0 && (
+                            <div className="studio-tree-object-parts">
+                              {visibleParts.map((part) => (
+                                <button
+                                  type="button"
+                                  className={selectedFurnitureId === item.id && selectedPartId === part.id ? "studio-tree-part selected" : "studio-tree-part"}
+                                  key={part.id}
+                                  onClick={() => { setSelectedFurnitureId(item.id); setSelectedPartId(part.id); }}
+                                >
+                                  <span className="studio-tree-part-line" />
+                                  <span>{part.name}</span>
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+            )}    <div className="studio-tree-object" key={item.id}>
                       <button type="button" className={selectedFurnitureId === item.id && !selectedPartId ? "selected" : ""} onClick={() => { setSelectedFurnitureId(item.id); setSelectedPartId(null); }}>
                         <Box /><span><strong>{item.name}</strong><small>{item.width} × {item.height} × {item.depth} mm</small></span><em>{item.parts.length}</em>
                       </button>
