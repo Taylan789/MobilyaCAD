@@ -70,6 +70,7 @@ import Scene3D from "./components/viewport/Scene3D";
 import { DrawerBoxConfigurator } from "./components/production/DrawerBoxConfigurator";
 import { ProductionOverview } from "./components/production/ProductionOverview";
 import { MaterialCatalogManager } from "./components/production/MaterialCatalogManager";
+import { FurnitureTransformFields } from "./components/workspace/FurnitureTransformFields";
 import type { MaterialCatalogEntry } from "./engine/materialCatalog";
 import { furnitureCatalog } from "./data/furnitureCatalog";
 import { createPlacedFurniture } from "./types/placedFurniture";
@@ -1386,6 +1387,16 @@ function App() {
                               ))}
                             </div>
 
+                            <FurnitureTransformFields
+                              furniture={selectedFurniture}
+                              onPositionCommit={(position) =>
+                                updateFurniturePosition(selectedFurniture.id, position)
+                              }
+                              onRotationCommit={(rotation) =>
+                                updateFurnitureRotation(selectedFurniture.id, rotation)
+                              }
+                            />
+
                             <div className="cad-field">
                               <Label htmlFor="furniture-material">Malzeme kataloğu</Label>
                               <select
@@ -1410,28 +1421,6 @@ function App() {
                               </p>
                             </div>
 
-                            <div className="cad-field cad-rotation-field">
-                              <Label htmlFor="furniture-rotation">Dönüş Açısı</Label>
-                              <div className="cad-input-with-unit">
-                                <Input
-                                  id="furniture-rotation"
-                                  type="number"
-                                  min="0"
-                                  max="359"
-                                  step="1"
-                                  value={selectedFurniture.rotation}
-                                  onChange={(event) => {
-                                    if (event.target.value.trim() !== "") {
-                                      updateFurnitureRotation(
-                                        selectedFurniture.id,
-                                        Number(event.target.value)
-                                      );
-                                    }
-                                  }}
-                                />
-                                <span>°</span>
-                              </div>
-                            </div>
                           </section>
 
                           <Separator className="cad-section-separator" />
