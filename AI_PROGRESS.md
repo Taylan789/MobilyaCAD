@@ -344,3 +344,20 @@
 - Bilinen sınırlar: domain özeti henüz frontend üretim akışına, proje JSON v1 veya CSV'ye bağlı değil. Yalnızca mevcut düz gövde domain Part listesi kapsanır; fire, levha verimi, kerf, bant kalınlığı, rulo payı, ray/donanım, nesting, CNC ve fiziksel üretim doğrulaması yoktur.
 - Sahiplik: hiçbir `frontend/**` dosyası değiştirilmedi. Açık frontend PR #7 ve #8'e dokunulmadı/merge edilmedi.
 - Sonraki görev: frontend yenileme sahibine sürümlü domain istek/sonuç ve malzeme özeti sözleşmesini, JSON v1 geriye uyumluluk, hata ve boş durum kriterleriyle dokümante etmek; ardından domain çekmece konstrüksiyonunu proje agregatörüne taşımak.
+
+
+## 16 Kasım 2026 — üretim domain/frontend entegrasyon sözleşmesi
+
+- Başlangıç HEAD: `f6f3fa5b1bfe5b9f1cc67c9d3e5675cdccd6245a`.
+- Dokümantasyon commit'i: `473b599186bd233f62474493ac0658cae8c91fff` — yalnızca `dev/github-work`.
+- Değişen dosyalar:
+  - `docs/production-domain-contract.md` — mevcut domain API'leri, mm/adet/kimlik semantiği, gövde panel malzeme eşlemesi, proje agregatörü, malzeme özeti, JSON v1 ve çekmece konfigürasyonu, frontend adapter gereksinimleri ve UI hata/boş durumları.
+  - `PRODUCT_ROADMAP.md` — güncel Actions kanıtı, entegrasyon sınırı ve sıradaki beş domain görevi.
+  - `AI_PROGRESS.md` — bu çalışma kaydı.
+- Ön kontrol: güncel branch HEAD `f6f3fa5b1bfe5b9f1cc67c9d3e5675cdccd6245a`; aynı HEAD için CI run `43828263561`, QA run `43828263688` ve Pages run `43828263603` başarılıydı. QA: 101/101 frontend + 36/36 domain testi; strict domain TypeScript, lint, build ve production audit adımları başarılı.
+- Kabul kriterleri: belgelenen alanlar gerçek mevcut kaynak dosyalarından doğrulandı; domain gövde Part tipinin frontend Part ile birebir olmadığı açıklandı; JSON v1 eski kayıt uyumluluğu ve mevcut çekmece motorunun frontend içinde kaldığı belirtildi; UI hazır/boş/kısmi destek/engelli-hata durumları ve export engel koşulları tanımlandı.
+- Bu committe `frontend/**` dosyası değiştirilmedi; açık frontend yenileme PR'ları sahiplenilmedi veya birleştirilmedi. Domain API henüz frontend JSON/CSV akışına bağlanmış değildir.
+- Bu dokümantasyon commit'inden sonra tetiklenen CI/QA/Pages run'ları henüz sonuçlanmadı; gerçek sonuçlar sonraki kontrolde kaydedilecek. Önceki başarılı run sonuçları yeni commit'in doğrulaması olarak sayılmamalıdır.
+- Bilinen kalite notları: son QA logunda Oxlint 19 uyarı / 0 hata; production audit eşiği başarılı olmakla birlikte 6 mevcut bulgu (2 düşük, 4 orta); yaklaşık 1.545 kB JS chunk uyarısı ve Actions Node 20 deprecation uyarısı var. Kırıcı bağımlılık güncellemesi yapılmadı.
+- AI Developer workflow'u yalnızca `workflow_dispatch` ile çalışır; son 100 run içinde bu workflow'a ait aktif run görülmedi ve bu bağlantıda dispatch işlemi bulunmadığından yeni run başlatılmadı.
+- Sonraki görev: mevcut çekmece kutusu geometri kurallarını frontend dışı `domain/production` motoruna açık sürümlü sözleşme ve regresyon testleriyle taşımak; ray, donanım ve CNC varsaymamak.
