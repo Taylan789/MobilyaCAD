@@ -79,6 +79,8 @@ import { ProductionWorkspace } from "./components/production/ProductionWorkspace
 import { MaterialCatalogManager } from "./components/production/MaterialCatalogManager";
 import { FurnitureTransformFields } from "./components/workspace/FurnitureTransformFields";
 import { FurniturePartInspector } from "./components/workspace/FurniturePartInspector";
+import { FurnitureCatalogCard } from "./components/catalog/FurnitureCatalogCard";
+import "./components/catalog/FurnitureCatalogCard.css";
 import type { MaterialCatalogEntry } from "./engine/materialCatalog";
 import { furnitureCatalog } from "./data/furnitureCatalog";
 import { createPlacedFurniture } from "./types/placedFurniture";
@@ -806,15 +808,6 @@ function App() {
     setSelectedPartId(null);
   }
 
-  function getCatalogIcon(type: string) {
-    if (type === "kitchen") return CookingPot;
-    if (type === "wardrobe") return DoorOpen;
-    if (type === "bookcase") return BookOpen;
-    if (type === "desk") return Monitor;
-    if (type === "tv-unit") return Table2;
-    return Layers;
-  }
-
   useEffect(() => {
     if (!workspaceOpen) {
       setShowShortcuts(false);
@@ -1190,7 +1183,7 @@ function App() {
                 </div>
                 <div>
                   <strong>Mobilya Kütüphanesi</strong>
-                  <span>PARAMETRİK MODELLER</span>
+                  <span>ÖLÇÜ VARYANTLI MODELLER</span>
                 </div>
                 <span className="cad-library-count">
                   {furnitureCatalog.length}
@@ -1280,29 +1273,14 @@ function App() {
                 <SidebarGroupContent>
                   <ScrollArea className="cad-catalog-scroll">
                     <div className="cad-catalog-grid">
-                      {filteredFurnitureCatalog.map((item) => {
-                        const Icon = getCatalogIcon(item.type);
-
-                        return (
-                          <button
-                            key={item.id}
-                            className="cad-catalog-card"
-                            onClick={() => addFurniture(item.id)}
-                            title={`${item.name} modelini odaya ekle`}
-                          >
-                            <span className="cad-catalog-card-icon">
-                              <Icon />
-                            </span>
-                            <span className="cad-catalog-card-add">
-                              <Plus />
-                            </span>
-                            <strong>{item.name}</strong>
-                            <small>
-                              {item.width} × {item.height} × {item.depth} mm
-                            </small>
-                          </button>
-                        );
-                      })}
+                      {filteredFurnitureCatalog.map((item, index) => (
+                        <FurnitureCatalogCard
+                          key={item.id}
+                          item={item}
+                          index={index}
+                          onAdd={() => addFurniture(item.id)}
+                        />
+                      ))}
                     </div>
 
                     {filteredFurnitureCatalog.length === 0 && (
