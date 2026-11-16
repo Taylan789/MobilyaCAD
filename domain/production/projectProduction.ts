@@ -1,13 +1,11 @@
 import { calculateCabinetConstruction } from "./cabinetConstruction.ts";
 import { calculateBookshelfConstruction } from "./bookshelfConstruction.ts";
-import { calculateTableConstruction } from "./tableConstruction.ts";
 import type {
   CabinetConstructionPart,
   CabinetInnerDimensionsMm
 } from "./cabinetConstruction.ts";
 import { calculateDrawerBoxConstruction } from "./drawerBoxConstruction.ts";
 import type { DrawerBoxConstructionPart } from "./drawerBoxConstruction.ts";
-import type { TableConstructionPart, TableConstructionResult } from "./tableConstruction.ts";
 
 export interface CabinetProjectProductionRequest {
   schemaVersion: 1;
@@ -16,18 +14,12 @@ export interface CabinetProjectProductionRequest {
   drawerBoxes?: readonly unknown[];
 }
 
-export type CabinetProjectFurnitureResult =
-  | {
-      furnitureId: string;
-      /** Present for explicit cabinet/bookshelf requests; legacy cabinet results omit it. */
-      family?: "cabinet" | "bookshelf";
-      innerDimensionsMm: CabinetInnerDimensionsMm;
-    }
-  | {
-      furnitureId: string;
-      family: "table";
-      overallDimensionsMm: TableConstructionResult["overallDimensionsMm"];
-    };
+export interface CabinetProjectFurnitureResult {
+  furnitureId: string;
+  /** Present for explicit family-discriminated requests; legacy cabinet results omit it. */
+  family?: "cabinet" | "bookshelf";
+  innerDimensionsMm: CabinetInnerDimensionsMm;
+}
 
 export interface DrawerGroupProductionResult {
   furnitureId: string;
@@ -36,7 +28,7 @@ export interface DrawerGroupProductionResult {
   bottomLengthMm: number;
 }
 
-export type ProjectProductionPart = CabinetConstructionPart | DrawerBoxConstructionPart | TableConstructionPart;
+export type ProjectProductionPart = CabinetConstructionPart | DrawerBoxConstructionPart;
 
 export interface CabinetProjectProductionResult {
   schemaVersion: 1;
@@ -62,13 +54,12 @@ function readFurnitureId(value: unknown, index: number): string {
   return id;
 }
 
-function readFurnitureFamily(value: unknown, index: number): "cabinet" | "bookshelf" | "table" {
+function readFurnitureFamily(value: unknown, index: number): "cabinet" | "bookshelf" {
   if (!isRecord(value)) {
     throw new Error("Projenin " + (index + 1) + ". mobilya ailesi okunamadı.");
   }
   if (value.family === undefined || value.family === "cabinet") return "cabinet";
   if (value.family === "bookshelf") return "bookshelf";
-  if (value.family === "table") return "table";
   throw new Error("Projenin " + (index + 1) + ". mobilya ailesi desteklenmiyor: " + String(value.family) + ".");
 }
 
@@ -85,7 +76,7 @@ function readDrawerGroupId(value: unknown, index: number): string {
 }
 
 /**
- * Calculates and combines explicit cabinet, bookshelf, table and optional drawer-box requests.
+ * Calculates and combines explicit cabinet and optional drawer-box requests.
  *
  * Each cabinet is calculated independently using its own profile and material
  * catalogue. Drawer groups must reference one of those furniture IDs. The
@@ -125,31 +116,10 @@ export function calculateCabinetProjectProduction(
     seenFurnitureIds.add(furnitureId);
 
     const family = readFurnitureFamily(request, index);
-    let constructionParts: readonly ProjectProductionPart[];
-    let furnitureResult: CabinetProjectFurnitureResult;
-
-    if (family === "table") {
-      const result = calculateTableConstruction(request);
-      constructionParts = result.parts;
-      furnitureResult = {
-        furnitureId,
-        family: "table",
-        overallDimensionsMm: { ...result.overallDimensionsMm }
-      };
-    } else {
-      const result = family === "bookshelf"
-        ? calculateBookshelfConstruction(request)
-        : calculateCabinetConstruction(request);
-      constructionParts = result.parts;
-      const hasExplicitFamily = isRecord(request) && request.family !== undefined;
-      furnitureResult = {
-        furnitureId,
-        ...(hasExplicitFamily ? { family } : {}),
-        innerDimensionsMm: { ...result.innerDimensionsMm }
-      };
-    }
-
-    for (const part of constructionParts) {
+    const result = family === "bookshelf"
+      ? calculateBookshelfConstruction(request)
+      : calculateCabinetConstruction(request);
+    for (const part of result.parts) {
       if (part.furnitureId !== furnitureId) {
         throw new Error(`${part.id} parçasının mobilya kimliği proje girdisiyle eşleşmiyor.`);
       }
@@ -160,7 +130,12 @@ export function calculateCabinetProjectProduction(
       parts.push(part);
     }
 
-    furniture.push(furnitureResult);
+    const hasExplicitFamily = isRecord(request) && request.family !== undefined;
+    furniture.push({
+      furnitureId,
+      ...(hasExplicitFamily ? { family } : {}),
+      innerDimensionsMm: { ...result.innerDimensionsMm }
+    });
   }
 
   const drawerRequests = value.drawerBoxes ?? [];

@@ -422,7 +422,9 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 - Kaynak mobilya/parça ID'leri, mm ölçüleri, quantity, katalog malzeme kimliği, kenar bantlama ve damar yönü korunur. Malzeme tüketim özeti aynı birleşik Part listesinden hesaplanır; ikinci bir geometri/özet listesi üretilmez.
 - Otomatik kabul testleri karışık dolap + kitaplık + masa projesini, masa-only quantity/alan/hacim/bantlama toplamlarını ve geçersiz masa konfigürasyonunun reddini kapsar.
 - Değişen dosyalar: `domain/production/projectProduction.ts`, `domain/production/projectProduction.test.mjs`, `docs/production-domain-contract.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`.
-- Kod commit'i: `COMMIT_SHA_PENDING`. Bu commit anında CI/QA/Pages henüz tetiklenmemişti; sonuçlar gerçek Actions run'larından sonra kaydedilecek.
+- Kod commit'i: `a003f81479602c2ce3d6491f3a4665e92d275f57`.
+- Gerçek GitHub Actions: CI #213 `43899050507` başarılı; QA #133 `43899050521` başarılı (**101/101 frontend + 82/82 domain testi**, 0 başarısız); Pages deploy #109 `43899050832` başarılı. QA strict domain TypeScript, lint, production build ve `npm audit --omit=dev --audit-level=high` adımları geçti.
+- Kalite notları: Oxlint 32 uyarı / 0 hata; audit raporunda 6 mevcut bulgu (2 düşük, 4 orta; yüksek önem eşiği aşılmadı). Büyük frontend chunk ve GitHub Actions Node 20 deprecation uyarıları sürüyor.
 - Sınırlar: masa ayak/kayıt koordinatı, tabla taşması, bağlantı standardı, delik/donanım, CNC, nesting, fire, levha verimi, fiyat ve fiziksel üretim güvenliği hesaplanmaz. Frontend JSON v1/CSV adapter'ı domain agregatörüne henüz bağlanmamıştır. Hiçbir `frontend/**` dosyası değiştirilmemiştir.
 
 ### Sıradaki 3-5 küçük görev
