@@ -976,9 +976,9 @@ function App() {
               <span />
               Tasarım modu
             </div>
-            <Button variant="ghost" size="sm" className="cad-home-button" onClick={() => setWorkspaceOpen(false)}>
+            <Button variant="ghost" size="sm" className="cad-home-button" aria-label="Stüdyoya dön" onClick={() => setWorkspaceOpen(false)}>
               <House />
-              Stüdyo
+              <span>Stüdyo</span>
             </Button>
             <Button
               variant="outline"
@@ -989,7 +989,7 @@ function App() {
               title="Yeni proje oluştur"
             >
               <Plus />
-              Yeni
+              <span>Yeni</span>
             </Button>
             <input
               id="mobilyacad-project-file"
@@ -1000,14 +1000,17 @@ function App() {
             />
             <Button
               variant="outline"
+              className="cad-open-project-button"
+              aria-label="JSON proje dosyası aç"
               aria-keyshortcuts="Control+O Meta+O"
               onClick={() => document.getElementById("mobilyacad-project-file")?.click()}
             >
-              Proje Aç
+              <BookOpen />
+              <span>Proje Aç</span>
             </Button>
-            <Button className="cad-save-button" aria-keyshortcuts="Control+S Meta+S" onClick={saveProject}>
+            <Button className="cad-save-button" aria-label="Projeyi JSON olarak indir" aria-keyshortcuts="Control+S Meta+S" onClick={saveProject}>
               <Save />
-              Projeyi İndir
+              <span>Projeyi İndir</span>
             </Button>
             <div className="cad-shortcut-anchor">
               <Tooltip>
