@@ -90,7 +90,7 @@ test("panel grubu kalınlıkları asimetrik gövde açıklıklarını ve parça 
       },
       backPanel: { enabled: true, thicknessMm: 8, installation: "inset", insetMm: 5 },
       doors: { enabled: true, count: 2, style: "inset", gapMm: 2 }
-    })
+    }
   }));
   const part = (id) => result.parts.find((item) => item.id === id);
 
