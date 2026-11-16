@@ -294,3 +294,19 @@
 - Önceki QA hatasının kök nedeni ve düzeltmesi kaydedildi; son doğrulanan kod HEAD `8096ad9af489e92752dfbb3d56d4be3ae663a4cc`.
 - Bilinen kısıtlar: gövde panel adaptörü hâlâ `frontend/**` üretim akışına, JSON v1, tüketim özeti ve CSV'ye bağlanmış değildir. Frontend sahipliği ayrı yenileme akışındadır. Audit raporunda düşük/orta seviyeli mevcut bulgular sürer; yüksek önem eşiği geçilmiştir. Fiziksel konstrüksiyon/CNC onayı yapılmamıştır.
 - Sonraki görev: frontend dışı konstrüksiyon profili şeması ve düz gövde parça hesaplayıcısı için tek kaynaklı, açık parametreli domain sözleşmesi oluştur.
+
+## 16 Kasım 2026 — parametrik düz gövde konstrüksiyon domain motoru
+
+- Başlangıç branch HEAD: `f9c1995b3335ff09bb03cfb998714f05a306893e`. Önceki domain commit'i `dffec9bf5e62011b06ba146cbfedfc8f4d5873c9` sonrasında branch'e `feat: improve inspector and material catalog UX` commit'i gelmişti; bu değişiklik yalnızca frontend dosyalarındadır ve bu çalışma frontend sahiplik sınırına dokunmadı.
+- Başlangıç kalite durumu: aktif CI/QA/AI Developer run yoktu. Son HEAD üzerinde CI run `43805510257`, QA run `43805510103` ve Pages run `43805510165` tamamlandı. QA job logu 101/101 uygulama testi + 12/12 ortak domain testi, strict domain type-check, lint, production build ve production audit adımlarının başarılı olduğunu doğruladı. AI Developer workflow run listesinde yeni run yoktu; manuel dispatch aracı bulunmadığı için sahte run başlatılmadı.
+- Yeni modül: `domain/production/cabinetConstruction.ts`. Sürüm 1, frontend dışı konstrüksiyon isteği ve sonuç tipleri tanımlandı.
+- Kullanıcı/entegrasyon akışı: mobilya ID + dış ölçüler mm + açık konstrüksiyon profili + malzeme kataloğu + opsiyonel panel grup override girdisi; doğrulanmış iç ölçüler ve gövde parça listesi sonucu.
+- Profil doğrulaması: panel kalınlığı; between-sides/over-sides; arkalık kapalı/overlay/grooved/inset ayrımı ve ilgili kanal/inset parametresi; güvenli tam sayı raf/kapak adetleri; kapak stili ve pozitif boşluk; yedi gövde panel grubunun dört kenar bayrağının tamamının boolean olması.
+- Hesaplanan parçalar: sol/sağ yan, üst/alt, opsiyonel raf, kapak ve arkalık. Mevcut gövde Part ID suffix sözleşmesi korunur; malzeme ataması ortak `resolveCabinetBodyPanelParts` üzerinden uygulanır. Her parça gerçek kalınlığıyla kendi katalog kimliğine göre doğrulanır.
+- Değişen dosyalar: `domain/production/cabinetConstruction.ts` (yeni), `domain/production/cabinetConstruction.test.mjs` (yeni, 14 test), `.github/workflows/qa-test.yml`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`.
+- Kabul kriterleri: mm formüllerinin mevcut düz mutfak gövde davranışıyla eşleşmesi; sıfır raf/kapak ve arkalıksız durumun açıkça desteklenmesi; eksik arkalık/kapak parametrelerinin reddi; katalog ID ve kalınlık doğrulaması; quantity ve parça kimliklerinin korunması.
+- QA workflow strict TypeScript komutu, `.ts` domain modülü importunu da kontrol edecek şekilde genişletildi. Yeni testler mevcut `domain/production/*.test.mjs` glob'una dahildir.
+- Bu commit'in Actions sonuçları henüz bekleniyor; gerçek GitHub Actions sonucu görülmeden başarılı ilan edilmeyecek.
+- Bilinen sınırlar: modül henüz frontend üretim akışına, JSON v1, proje agregatörü, tüketim veya CSV'ye bağlanmadı. Konstrüksiyon formülleri mevcut düz gövde davranışının domain dilimine taşınmasıdır; gerçek üretici/atölye doğrulaması değildir. Değişken panel kalınlığı, raf delikleri, donanım, CNC, fire/kerf ve nesting kapsam dışıdır.
+- Sonraki görev: çoklu mobilya domain üretim agregatörü ve domain parça listelerinden doğrulanabilir malzeme/kenar bantlama toplamları.
+

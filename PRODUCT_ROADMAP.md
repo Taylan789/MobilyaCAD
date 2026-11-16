@@ -240,6 +240,13 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 
 ## Sıradaki 5 küçük görev — domain sahipliği
 
+1. Birden fazla mobilyanın doğrulanmış domain parça listelerini furnitureId, parça ID ve quantity kaybetmeden birleştiren proje üretim agregatörünü ekle.
+2. Domain parça listesinden malzeme + kalınlık bazında net alan/hacim ve kenar bantlama özetlerini hesapla; taşan toplamları reddet.
+3. Frontend yenileme sahibine sürümlü konstrüksiyon isteği/sonuç sözleşmesini ve entegrasyon kabul kriterlerini dokümante et; frontend dosyalarına yazma.
+4. Panel grubu bazında farklı kalınlık ihtiyacını konstrüksiyon geometrisi ve atölye kurallarıyla doğrula; doğrulanmadan varsayılan veya bağımsız kalınlık üretme.
+5. İlk kitaplık/gardırop ailesini yalnızca açıkça doğrulanmış ölçü ve montaj girdileriyle ayrı dikey dilim olarak geliştir.
+
+
 1. Mobilya bazlı konstrüksiyon profili için frontend dışı tipli şema ve ölçü/adet doğrulayıcıları oluştur.
 2. Düz gövde parça üretiminde mevcut panel/arkalık kurallarını aynı açık profil girdilerinden türeten saf domain hesaplayıcısını test et.
 3. Proje bazlı birden çok mobilyanın üretim parçalarını kimlik ve quantity kaybı olmadan birleştiren ortak domain agregatörünü ekle.
@@ -292,4 +299,18 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 - Otomatik kabul kriterleri: boş parça listesinde dahi katalog referansı doğrulaması; farklı mobilya kimliklerinin yalıtılması; bilinmeyen parça anahtarlarının tahmin edilmemesi; resolver yardımcı alanlarının üretim `Part` nesnesine sızmaması.
 - Sınır: bu domain adaptörü henüz `frontend/**` üretim akışına bağlanmadı. Frontend yenileme dalı bu dosyaların sahibi olduğundan entegrasyon UI/proje JSON/CSV katmanında ayrı frontend sahibince yapılmalıdır. Bu commit yalnızca frontend dışı domain sözleşmesini güçlendirir.
 - Sonraki domain adımı: mobilya bazlı konstrüksiyon profilini frontend'den bağımsız, doğrulanabilir bir domain sözleşmesine ayırmak; panel kalınlığı, arkalık montajı ve kapak/raf adetlerini açık girdiler olarak tanımlamak. Üretici/atölye standardı olmayan donanım veya CNC ölçüsü eklenmeyecek.
+
+
+
+## 16 Kasım 2026 — parametrik düz gövde konstrüksiyon domain motoru
+
+- Yeni frontend dışı modül: `domain/production/cabinetConstruction.ts`.
+- Sürüm 1 istek sözleşmesi mobilya kimliği, dış ölçüler (mm), varsayılan malzeme adı/ID'si, gövde panel kalınlığı, `between-sides` / `over-sides` konstrüksiyonu, arkalık montajı, raf/kapak adetleri ve her panel grubunun dört kenar bantlama bayrağını açıkça ister.
+- Arkalık montajı discriminated union olarak tanımlıdır: kapalı, overlay, grooved (açık kanal derinliği) veya inset (açık içe alma payı). Kapaklar kapalı veya açık adet/stil/boşluk ile tanımlanır. Eksik geometri parametresi varsayılmaz.
+- `calculateCabinetConstruction` mevcut düz gövde formüllerinin frontend dışı, saf domain karşılığını üretir: sol/sağ, üst/alt, raf, kapak ve varsa arkalık. Parça kimlikleri mevcut gövde malzeme eşlemesiyle uyumludur; mm ölçüler 0.1 mm hassasiyetinde yuvarlanır; quantity pozitif güvenli tam sayıdır.
+- Üretilen Part benzeri satırlar ortak `resolveCabinetBodyPanelParts` adaptöründen geçer. Her override katalog kimliği doğrulanır; gerçek parça kalınlığı ilgili panel malzemesinin mm kalınlık listesinde yoksa hesaplama reddedilir. Legacy serbest metin malzeme, materialId verilmediğinde korunur.
+- QA'ya 14 yeni domain testi ve strict TypeScript kontrolü eklendi. Test kapsamı: iki gövde stili, üç arkalık montajı, arkalıksız durum, kapak/raf adetleri, grup bazlı malzeme override, yanlış kalınlık, kullanılmayan grup override kimliği, kenar bantlama şeması, geçersiz ölçü/adet ve eksik montaj parametresi.
+- **Entegrasyon sınırı:** bu domain hesaplayıcısı henüz `frontend/**` üretim pipeline, proje JSON v1, mevcut `projectProduction`, tüketim özeti veya CSV'ye bağlı değildir. Frontend yenileme sahibine entegrasyon için sürümlü giriş/çıkış sözleşmesi sunar; bu otomasyon frontend dosyalarını değiştirmez.
+- **Üretim sınırı:** kitaplık/gardırop ailesi, değişken yan/üst/alt panel kalınlıkları, sabitleme/raf delikleri, donanım, CNC, kerf/fire ve nesting üretilmez. Fiziksel konstrüksiyon ve bağlantı güvenliği atölye doğrulaması gerektirir.
+- Sonraki domain görevi: birden fazla mobilyanın doğrulanmış domain parça listelerini furnitureId/parça ID/quantity kaybetmeden birleştiren proje üretim agregatörü; ardından aynı kaynaktan malzeme/kenar bantlama toplamları.
 
