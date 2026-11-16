@@ -401,14 +401,17 @@ export default function Scene3D({
   );
   const [activeView, setActiveView] = useState<CameraOrientation>("perspective");
   const [cameraCommand, setCameraCommand] = useState<CameraCommand | null>(null);
-  const [reducedMotion, setReducedMotion] = useState(false);
+  const [reducedMotion, setReducedMotion] = useState(
+    () =>
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  );
   const cameraRequestId = useRef(0);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
     const syncPreference = () => setReducedMotion(mediaQuery.matches);
 
-    syncPreference();
     mediaQuery.addEventListener("change", syncPreference);
     return () => mediaQuery.removeEventListener("change", syncPreference);
   }, []);
