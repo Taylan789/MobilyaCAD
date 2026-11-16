@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { ChangeEvent, CSSProperties } from "react";
 import {
   Box,
@@ -135,9 +135,96 @@ function App() {
 
   const [selectedCategory, setSelectedCategory] = useState("Tümü");
   const [catalogSearch, setCatalogSearch] = useState("");
+  const [projectName, setProjectName] = useState("Yeni Tasarım");
+  const [documentSource, setDocumentSource] = useState<"new" | "imported" | "exported">("new");
+  const [savedProjectSnapshot, setSavedProjectSnapshot] = useState(() =>
+    serializeProjectFile(
+      { width: 4000, length: 5000, height: 2800 },
+      [],
+      "snapshot",
+      []
+    )
+  );
+
+  const projectSnapshot = useMemo(
+    () =>
+      serializeProjectFile(
+        { width: roomWidth, length: roomLength, height: roomHeight },
+        furniture,
+        "snapshot",
+        materials
+      ),
+    [roomWidth, roomLength, roomHeight, furniture, materials]
+  );
+  const hasUnsavedChanges = projectSnapshot !== savedProjectSnapshot;
+  const documentStatusLabel = hasUnsavedChanges
+    ? "Değişiklik var"
+    : documentSource === "exported"
+      ? "JSON dışa aktarıldı"
+      : documentSource === "imported"
+        ? "Dosyadan açıldı"
+        : "Yeni proje";
+  const documentStatusTitle = hasUnsavedChanges
+    ? "Son JSON dışa aktarımından sonra kaydedilmemiş değişiklikler var."
+    : documentSource === "exported"
+      ? "Mevcut tasarım JSON dosyası olarak dışa aktarıldı."
+      : documentSource === "imported"
+        ? "Proje bir JSON dosyasından açıldı."
+        : "Yeni tasarım henüz dışa aktarılmadı.";
+
+  function startNewProject(
+    initialPanel: "catalog" | "scene" = "catalog",
+    initialInspector: "room" | "furniture" | "production" | "materials" = "room"
+  ) {
+    if (workspaceLoading) return;
+    if (
+      hasUnsavedChanges &&
+      !window.confirm("Kaydedilmemiş değişiklikler var. Yeni projeye geçmek istiyor musun?")
+    ) {
+      return;
+    }
+
+    setRoomWidth(4000);
+    setRoomLength(5000);
+    setRoomHeight(2800);
+    setFurniture([]);
+    setMaterials([]);
+    setSelectedFurnitureId(null);
+    setSelectedPartId(null);
+    setTransformMode("translate");
+    setMobilePanel(null);
+    setLeftDockCollapsed(false);
+    setInspectorCollapsed(false);
+    setShowShortcuts(false);
+    setLeftPanelMode(initialPanel);
+    setSceneSearch("");
+    setCollapsedSceneFurnitureIds([]);
+    setInspectorTab(initialInspector);
+    setDimensionDraft(null);
+    setSelectedCategory("Tümü");
+    setCatalogSearch("");
+    setProjectName("Yeni Tasarım");
+    setDocumentSource("new");
+    setSavedProjectSnapshot(
+      serializeProjectFile(
+        { width: 4000, length: 5000, height: 2800 },
+        [],
+        "snapshot",
+        []
+      )
+    );
+
+    if (!workspaceOpen) startWorkspace();
+  }
 
   useEffect(() => {
-    setInspectorTab(selectedFurnitureId ? "furniture" : "room");
+    setInspectorTab((current) =>
+      selectedFurnitureId
+        ? "furniture"
+        : current === "furniture"
+          ? "room"
+          : current
+    );
   }, [selectedFurnitureId, selectedPartId]);
 
   useEffect(() => {
@@ -612,19 +699,37 @@ function App() {
     const file = new Blob([json], { type: "application/json;charset=utf-8" });
     const url = URL.createObjectURL(file);
     const link = document.createElement("a");
-    const date = new Date().toISOString().replace(/[:.]/g, "-");
+    const safeProjectName =
+      projectName
+        .trim()
+        .replace(/[<>:"/\\|?*\u0000-\u001F]/g, "-")
+        .replace(/\s+/g, " ")
+        .slice(0, 80) || "MobilyaCAD-Proje";
 
     link.href = url;
-    link.download = `mobilyacad-proje-${date}.json`;
+    link.download = `${safeProjectName}.json`;
     document.body.appendChild(link);
     link.click();
     link.remove();
     URL.revokeObjectURL(url);
+    setSavedProjectSnapshot(projectSnapshot);
+    setDocumentSource("exported");
   }
 
-  async function loadProject(event: ChangeEvent<HTMLInputElement>) {
+  async function loadProject(event: ChangeEvent<HTMLInputElement>): Promise<boolean> {
     const file = event.target.files?.[0];
-    if (!file) return;
+    if (!file) {
+      event.target.value = "";
+      return false;
+    }
+
+    if (
+      hasUnsavedChanges &&
+      !window.confirm("Kaydedilmemiş değişiklikler var. Açacağın proje mevcut çalışmanın yerini alacak. Devam edilsin mi?")
+    ) {
+      event.target.value = "";
+      return false;
+    }
 
     try {
       const project = parseProjectFile(await file.text());
@@ -636,14 +741,29 @@ function App() {
       setMaterials(project.materials ?? []);
       setSelectedFurnitureId(null);
       setSelectedPartId(null);
+      setInspectorTab("room");
+      setLeftPanelMode("scene");
+      setCollapsedSceneFurnitureIds([]);
       setDimensionDraft(null);
       setMobilePanel(null);
+      setProjectName(file.name.replace(/\.[^.]+$/, "").trim() || "İçe Aktarılan Tasarım");
+      setDocumentSource("imported");
+      setSavedProjectSnapshot(
+        serializeProjectFile(
+          { width: project.room.width, length: project.room.length, height: project.room.height },
+          project.furniture,
+          "snapshot",
+          project.materials ?? []
+        )
+      );
+      return true;
     } catch (error) {
       window.alert(
         error instanceof Error
           ? error.message
           : "Proje dosyası okunamadı."
       );
+      return false;
     } finally {
       event.target.value = "";
     }
@@ -747,9 +867,9 @@ function App() {
                 <h1>Fikrini çiz.<br/><em>Üretime dönüştür.</em></h1>
                 <p>Mobilya, bileşen ve üretim projelerini tek bir tasarım alanında oluştur. İstediğin ölçekte başla, detayları sen belirle.</p>
                 <div className="atelier-welcome-actions">
-                  <Button className="atelier-primary-action" onClick={startWorkspace}><Plus /> Yeni tasarım başlat <span>↗</span></Button>
+                  <Button className="atelier-primary-action" onClick={() => startNewProject()}><Plus /> Yeni tasarım başlat <span>↗</span></Button>
                   <label className="atelier-open-action" htmlFor="atelier-open-project">Proje dosyası aç <span>↗</span></label>
-                  <input id="atelier-open-project" type="file" accept=".json,application/json" hidden onChange={(event) => { void loadProject(event).then(startWorkspace); }} />
+                  <input id="atelier-open-project" type="file" accept=".json,application/json" hidden onChange={(event) => { void loadProject(event).then((loaded) => { if (loaded) startWorkspace(); }); }} />
                 </div>
               </div>
               <div className="atelier-feature-art" aria-label="Parametrik mobilya tasarım illüstrasyonu">
@@ -761,13 +881,13 @@ function App() {
             <section className="atelier-section atelier-start-section" id="templates">
               <div className="atelier-section-heading"><div><span className="atelier-eyebrow">BAŞLANGIÇ NOKTASI</span><h2>Ne tasarlıyoruz?</h2></div><span className="atelier-section-note">Bir çalışma türü seçerek başla</span></div>
               <div className="atelier-start-grid">
-                <button className="atelier-start-card atelier-start-card-wide" onClick={startWorkspace}><span className="atelier-card-number">01</span><div className="atelier-card-visual atelier-visual-furniture"><div className="mini-cabinet"><i></i><i></i><i></i></div></div><div className="atelier-card-copy"><b>Mobilya tasarımı</b><span>Dolap, masa, kitaplık ve özel ürünler</span></div><span className="atelier-card-arrow">↗</span></button>
-                <button className="atelier-start-card" onClick={() => { setLeftPanelMode("scene"); startWorkspace(); }}><span className="atelier-card-number">02</span><div className="atelier-card-visual atelier-visual-parts"><div className="mini-panels"><i></i><i></i><i></i></div></div><div className="atelier-card-copy"><b>Parça modelleme</b><span>Panel, profil ve bileşenler</span></div><span className="atelier-card-arrow">↗</span></button>
-                <button className="atelier-start-card" onClick={() => { setInspectorTab("production"); startWorkspace(); }}><span className="atelier-card-number">03</span><div className="atelier-card-visual atelier-visual-production"><div className="mini-cut"><i></i><i></i><i></i><i></i></div></div><div className="atelier-card-copy"><b>Üretim hazırlığı</b><span>Kesim, malzeme ve imalat</span></div><span className="atelier-card-arrow">↗</span></button>
+                <button className="atelier-start-card atelier-start-card-wide" onClick={() => startNewProject()}><span className="atelier-card-number">01</span><div className="atelier-card-visual atelier-visual-furniture"><div className="mini-cabinet"><i></i><i></i><i></i></div></div><div className="atelier-card-copy"><b>Mobilya tasarımı</b><span>Dolap, masa, kitaplık ve özel ürünler</span></div><span className="atelier-card-arrow">↗</span></button>
+                <button className="atelier-start-card" onClick={() => startNewProject("scene")}><span className="atelier-card-number">02</span><div className="atelier-card-visual atelier-visual-parts"><div className="mini-panels"><i></i><i></i><i></i></div></div><div className="atelier-card-copy"><b>Parça modelleme</b><span>Panel, profil ve bileşenler</span></div><span className="atelier-card-arrow">↗</span></button>
+                <button className="atelier-start-card" onClick={() => startNewProject("catalog", "production")}><span className="atelier-card-number">03</span><div className="atelier-card-visual atelier-visual-production"><div className="mini-cut"><i></i><i></i><i></i><i></i></div></div><div className="atelier-card-copy"><b>Üretim hazırlığı</b><span>Kesim, malzeme ve imalat</span></div><span className="atelier-card-arrow">↗</span></button>
               </div>
             </section>
             <section className="atelier-bottom-row">
-              <div className="atelier-recent" id="recent"><div className="atelier-section-heading"><div><span className="atelier-eyebrow">ÇALIŞMALARIN</span><h2>Son projeler</h2></div><button onClick={startWorkspace}>Yeni proje ↗</button></div><button className="atelier-empty-project" onClick={startWorkspace}><span className="atelier-empty-plus">＋</span><span><b>İlk projen burada başlayacak</b><small>Yeni bir tasarım alanı oluştur ve çalışmaya başla.</small></span><span className="atelier-empty-arrow">→</span></button></div>
+              <div className="atelier-recent" id="recent"><div className="atelier-section-heading"><div><span className="atelier-eyebrow">ÇALIŞMALARIN</span><h2>Son projeler</h2></div><button onClick={() => startNewProject()}>Yeni proje ↗</button></div><button className="atelier-empty-project" onClick={() => startNewProject()}><span className="atelier-empty-plus">＋</span><span><b>İlk projen burada başlayacak</b><small>Yeni bir tasarım alanı oluştur ve çalışmaya başla.</small></span><span className="atelier-empty-arrow">→</span></button></div>
               <aside className="atelier-tip"><span className="atelier-eyebrow">STÜDYO NOTU / 01</span><b>Önce geometri.<br/>Sonra üretim.</b><p>MobilyaCAD'de tasarladığın her parça, üretim verisinin bir parçası olarak yaşar.</p><span className="atelier-tip-mark">M / CAD</span></aside>
             </section>
           </main>
@@ -783,9 +903,15 @@ function App() {
           <Separator orientation="vertical" className="cad-top-separator" />
 
           <div className="cad-document-name">
-            <span className="cad-document-dot" />
-            <span>Yeni Tasarım</span>
-            <span className="cad-document-status">Kaydedilmedi</span>
+            <span className={`cad-document-dot${hasUnsavedChanges ? " cad-document-dot--dirty" : ""}`} />
+            <span className="cad-document-title" title={projectName}>{projectName}</span>
+            <span
+              className={`cad-document-status cad-document-status--${hasUnsavedChanges ? "dirty" : documentSource}`}
+              aria-live="polite"
+              title={documentStatusTitle}
+            >
+              {documentStatusLabel}
+            </span>
           </div>
 
           <div className="cad-top-actions">
@@ -847,6 +973,16 @@ function App() {
             <Button variant="ghost" size="sm" className="cad-home-button" onClick={() => setWorkspaceOpen(false)}>
               <House />
               Stüdyo
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="cad-new-project-button"
+              onClick={() => startNewProject()}
+              title="Yeni proje oluştur"
+            >
+              <Plus />
+              Yeni
             </Button>
             <input
               id="mobilyacad-project-file"
