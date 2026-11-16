@@ -1092,17 +1092,14 @@ function App() {
                     <TabsTrigger value="furniture">
                       <Box />
                       Mobilya
-                      <span className="ml-0.5 rounded-md bg-muted px-1.5 py-0.5 text-[9px] font-semibold tabular-nums">{furniture.length}</span>
                     </TabsTrigger>
                     <TabsTrigger value="production">
                       <Ruler />
                       Üretim
-                      <span className="ml-0.5 rounded-md bg-muted px-1.5 py-0.5 text-[9px] font-semibold tabular-nums">{productionParts.length}</span>
                     </TabsTrigger>
                     <TabsTrigger value="materials">
                       <Package />
                       Malzeme
-                      <span className="ml-0.5 rounded-md bg-muted px-1.5 py-0.5 text-[9px] font-semibold tabular-nums">{materials.length}</span>
                     </TabsTrigger>
                   </TabsList>
 
