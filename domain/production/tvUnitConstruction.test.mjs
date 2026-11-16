@@ -16,7 +16,7 @@ function createRequest(overrides = {}) {
     furniture: {
       id: "tv-1",
       widthMm: 1800,
-      heightMm: 384,
+      heightMm: 420,
       depthMm: 450,
       material: "Legacy MDF"
     },
@@ -101,7 +101,7 @@ function createDivider(overrides = {}) {
     id: "center",
     leftOffsetMm: 500,
     bottomOffsetMm: 0,
-    heightMm: 420,
+    heightMm: 384,
     frontOffsetMm: 0,
     depthMm: 432,
     thicknessMm: 18,
