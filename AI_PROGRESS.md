@@ -284,3 +284,13 @@
 - Kabul testleri: kullanılmayan override kimliğinin reddi; geçerli boş-grup override'ının kabulü; birden çok mobilya satırında hedef kimlik izolasyonu; tanınmayan çekmece parçasının değişmeden kalması; mm thickness ve quantity alanlarının korunması; boş/bozuk furnitureId reddi.
 - Bilinen sınırlar: adaptör mevcut frontend production pipeline, JSON v1, malzeme tüketimi veya CSV'ye henüz bağlı değil; `frontend/**` sahipliği ayrı yenileme akışında. Gerçek konstrüksiyon kuralları ve üretici standardı insan/atölye doğrulaması olmadan üretim onaylı sayılmaz.
 - Sonraki görev: frontend dışı konstrüksiyon profili şeması ve düz gövde parça hesaplayıcısı için tek kaynaklı, açık parametreli domain sözleşmesi oluştur.
+
+## 16 Kasım 2026 — gövde panel Part adaptörü QA düzeltmesi ve doğrulama
+
+- İlk geliştirme commit'i: `219cf0f3b887acbbe9360e1296ac22ce978ada44`.
+- İlk QA run `43796653636` başarısız oldu: 101/101 uygulama testi ve 12/12 domain testi geçmişti; strict TypeScript kontrolü, runtime `isRecord` kontrolünün generic `T` Part tipini `Record<string, unknown>` olarak daraltması nedeniyle TS2322 verdi. Testler ve üretim davranışı değişmemişti.
+- Düzeltme commit'i: `8096ad9af489e92752dfbb3d56d4be3ae663a4cc`. Runtime shape validation artık ayrı bir `Record<string, unknown>` görünümü üzerinden okunuyor; özgün generic Part değeri `T` olarak korunuyor. Testler değiştirilmedi veya gevşetilmedi.
+- Düzeltme commit'i üzerindeki doğrulama: CI run `43796790104` başarılı; QA run `43796790012` başarılı (**101/101 uygulama testi + 12/12 ortak domain testi**); Pages deploy run `43796790033` başarılı. QA adımları: shared domain tests, strict domain type-check, lint, TypeScript/production build ve `npm audit --omit=dev --audit-level=high` başarılı.
+- Önceki QA hatasının kök nedeni ve düzeltmesi kaydedildi; son doğrulanan kod HEAD `8096ad9af489e92752dfbb3d56d4be3ae663a4cc`.
+- Bilinen kısıtlar: gövde panel adaptörü hâlâ `frontend/**` üretim akışına, JSON v1, tüketim özeti ve CSV'ye bağlanmış değildir. Frontend sahipliği ayrı yenileme akışındadır. Audit raporunda düşük/orta seviyeli mevcut bulgular sürer; yüksek önem eşiği geçilmiştir. Fiziksel konstrüksiyon/CNC onayı yapılmamıştır.
+- Sonraki görev: frontend dışı konstrüksiyon profili şeması ve düz gövde parça hesaplayıcısı için tek kaynaklı, açık parametreli domain sözleşmesi oluştur.
