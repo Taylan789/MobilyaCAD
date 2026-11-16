@@ -181,6 +181,7 @@ function App() {
     constructionRules,
     materials
   );
+  const productionExportBlockReason = projectProduction.exportBlockReason;
   const productionParts = projectProduction.parts;
 
   const edgeBandingSummary = calculateEdgeBandingSummary(productionParts);
