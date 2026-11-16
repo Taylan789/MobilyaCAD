@@ -22,7 +22,6 @@ import {
   Settings2,
   House,
   Package,
-  PanelLeft,
   MousePointer2,
   Layers3,
 } from "lucide-react";
@@ -62,6 +61,7 @@ import {
   TooltipTrigger,
 } from "./components/ui/tooltip";
 import { ScrollArea } from "./components/ui/scroll-area";
+import { MobilyaCadLogo } from "./components/brand/MobilyaCadLogo";
 
 import Scene3D from "./components/viewport/Scene3D";
 import { DrawerBoxConfigurator } from "./components/production/DrawerBoxConfigurator";
@@ -95,6 +95,7 @@ function App() {
   const [selectedPartId, setSelectedPartId] = useState<string | null>(null);
   const [transformMode, setTransformMode] = useState<"translate" | "scale" | "rotate">("translate");
   const [mobilePanel, setMobilePanel] = useState<"catalog" | "inspector" | null>(null);
+  const [leftPanelMode, setLeftPanelMode] = useState<"catalog" | "scene">("catalog");
 
   const [constructionRules] = useState<CabinetConstructionRules>({
     panelThickness: 18,
@@ -617,11 +618,18 @@ function App() {
       {!workspaceOpen ? (
         <div className="atelier-home">
           <header className="atelier-homebar">
-            <div className="atelier-wordmark"><span className="atelier-mark">M</span><span>mobilya<span>cad</span></span><small>STUDIO</small></div>
-            <nav className="atelier-home-nav"><span className="active">Çalışma Alanı</span><span>Şablonlar</span><span>Öğren</span></nav>
-            <div className="atelier-profile"><span>TB</span><div><b>Tasarımcı</b><small>Kişisel çalışma alanı</small></div></div>
+            <MobilyaCadLogo className="atelier-brand-lockup" descriptor="STUDIO" />
+            <nav className="atelier-home-nav" aria-label="Stüdyo bölümleri">
+              <a className="active" href="#studio-home">Stüdyo</a>
+              <a href="#templates">Başlangıç</a>
+              <a href="#recent">Son projeler</a>
+            </nav>
+            <div className="atelier-profile">
+              <span className="atelier-profile-indicator" aria-hidden="true" />
+              <div><b>PARAMETRİK STÜDYO</b><small>Mobilya · Bileşen · Üretim</small></div>
+            </div>
           </header>
-          <main className="atelier-home-main">
+          <main className="atelier-home-main" id="studio-home">
             <section className="atelier-welcome">
               <div className="atelier-welcome-copy">
                 <span className="atelier-eyebrow">MOBİLYA TASARIM STÜDYOSU / 01</span>
@@ -639,7 +647,7 @@ function App() {
                 <div className="atelier-art-caption"><b>01 / PARAMETRİK MODÜL</b><span>ÖLÇÜ · MALZEME · MONTAJ</span></div>
               </div>
             </section>
-            <section className="atelier-section atelier-start-section">
+            <section className="atelier-section atelier-start-section" id="templates">
               <div className="atelier-section-heading"><div><span className="atelier-eyebrow">BAŞLANGIÇ NOKTASI</span><h2>Ne tasarlıyoruz?</h2></div><span className="atelier-section-note">Bir çalışma türü seçerek başla</span></div>
               <div className="atelier-start-grid">
                 <button className="atelier-start-card atelier-start-card-wide" onClick={startWorkspace}><span className="atelier-card-number">01</span><div className="atelier-card-visual atelier-visual-furniture"><div className="mini-cabinet"><i></i><i></i><i></i></div></div><div className="atelier-card-copy"><b>Mobilya tasarımı</b><span>Dolap, masa, kitaplık ve özel ürünler</span></div><span className="atelier-card-arrow">↗</span></button>
@@ -648,7 +656,7 @@ function App() {
               </div>
             </section>
             <section className="atelier-bottom-row">
-              <div className="atelier-recent"><div className="atelier-section-heading"><div><span className="atelier-eyebrow">ÇALIŞMALARIN</span><h2>Son projeler</h2></div><button onClick={startWorkspace}>Tüm projeler ↗</button></div><button className="atelier-empty-project" onClick={startWorkspace}><span className="atelier-empty-plus">＋</span><span><b>İlk projen burada başlayacak</b><small>Yeni bir tasarım alanı oluştur ve çalışmaya başla.</small></span><span className="atelier-empty-arrow">→</span></button></div>
+              <div className="atelier-recent" id="recent"><div className="atelier-section-heading"><div><span className="atelier-eyebrow">ÇALIŞMALARIN</span><h2>Son projeler</h2></div><button onClick={startWorkspace}>Tüm projeler ↗</button></div><button className="atelier-empty-project" onClick={startWorkspace}><span className="atelier-empty-plus">＋</span><span><b>İlk projen burada başlayacak</b><small>Yeni bir tasarım alanı oluştur ve çalışmaya başla.</small></span><span className="atelier-empty-arrow">→</span></button></div>
               <aside className="atelier-tip"><span className="atelier-eyebrow">STÜDYO NOTU / 01</span><b>Önce geometri.<br/>Sonra üretim.</b><p>MobilyaCAD'de tasarladığın her parça, üretim verisinin bir parçası olarak yaşar.</p><span className="atelier-tip-mark">M / CAD</span></aside>
             </section>
           </main>
@@ -658,38 +666,7 @@ function App() {
       <div className="cad-app">
         <header className="cad-topbar">
           <div className="cad-brand">
-            <div className="cad-brand-mark">
-              <svg viewBox="0 0 48 48" fill="none">
-                <path
-                  d="M24 3L44 14V34L24 45L4 34V14L24 3Z"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                />
-                <path
-                  d="M4 14L24 25L44 14M24 25V45"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                />
-                <path
-                  d="M13 19.5V31L24 37L35 31V19.5"
-                  stroke="#8DBCE3"
-                  strokeWidth="2"
-                />
-                <path
-                  d="M13 19.5L24 13L35 19.5L24 26L13 19.5Z"
-                  fill="#5799D1"
-                  fillOpacity="0.2"
-                  stroke="#8DBCE3"
-                  strokeWidth="1.5"
-                />
-              </svg>
-            </div>
-            <div className="cad-brand-copy">
-              <strong>
-                MOBİLYA<span>CAD</span>
-              </strong>
-              <small>DESIGN &amp; MANUFACTURING</small>
-            </div>
+            <MobilyaCadLogo className="cad-brand-lockup" tone="inverse" descriptor="DESIGN &amp; MANUFACTURING" />
           </div>
 
           <Separator orientation="vertical" className="cad-top-separator" />
@@ -838,7 +815,14 @@ function App() {
 
             <SidebarSeparator />
 
-            <SidebarContent className="cad-sidebar-content">
+            <div className="studio-sidebar-switch" role="tablist" aria-label="Sol panel görünümü">
+            <button type="button" role="tab" aria-selected={leftPanelMode === "catalog"} className={leftPanelMode === "catalog" ? "active" : ""} onClick={() => setLeftPanelMode("catalog")}><Package /> Kütüphane</button>
+            <button type="button" role="tab" aria-selected={leftPanelMode === "scene"} className={leftPanelMode === "scene" ? "active" : ""} onClick={() => setLeftPanelMode("scene")}><Layers3 /> Sahne ağacı <span>{furniture.length}</span></button>
+          </div>
+          <SidebarContent className="cad-sidebar-content">
+            {leftPanelMode === "catalog" ? (
+              <>
+
               <SidebarGroup>
                 <SidebarGroupLabel>KATEGORİLER</SidebarGroupLabel>
                 <SidebarGroupContent>
@@ -932,7 +916,26 @@ function App() {
                   </ScrollArea>
                 </SidebarGroupContent>
               </SidebarGroup>
-            </SidebarContent>
+            
+              </>
+            ) : (
+              <div className="studio-scene-tree">
+                <div className="studio-tree-heading"><span>PROJE HİYERARŞİSİ</span><small>{furniture.length + 1} ÖĞE</small></div>
+                <button type="button" className="studio-tree-room" onClick={() => { setSelectedFurnitureId(null); setSelectedPartId(null); }}><House /><span><strong>Çalışma odası</strong><small>{roomWidth} × {roomLength} × {roomHeight} mm</small></span></button>
+                <div className="studio-tree-branch">
+                  <span className="studio-tree-branch-label">MOBİLYALAR <b>{furniture.length}</b></span>
+                  {furniture.length === 0 ? <div className="studio-tree-empty"><Layers3 /><strong>Sahne henüz boş</strong><span>Kütüphaneden bir model ekleyerek başla.</span><button type="button" onClick={() => setLeftPanelMode("catalog")}>Kütüphaneyi aç</button></div> : furniture.map((item) => (
+                    <div className="studio-tree-object" key={item.id}>
+                      <button type="button" className={selectedFurnitureId === item.id && !selectedPartId ? "selected" : ""} onClick={() => { setSelectedFurnitureId(item.id); setSelectedPartId(null); }}>
+                        <Box /><span><strong>{item.name}</strong><small>{item.width} × {item.height} × {item.depth} mm</small></span><em>{item.parts.length}</em>
+                      </button>
+                      {item.parts.map((part) => <button type="button" className={selectedFurnitureId === item.id && selectedPartId === part.id ? "studio-tree-part selected" : "studio-tree-part"} key={part.id} onClick={() => { setSelectedFurnitureId(item.id); setSelectedPartId(part.id); }}><span className="studio-tree-part-line" /><span>{part.name}</span></button>)}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </SidebarContent>
 
             <SidebarSeparator />
 
@@ -973,26 +976,22 @@ function App() {
           </Sidebar>
 
           <div className="cad-main-area">
+            <div className="studio-workspace-heading">
+              <div className="studio-breadcrumb"><span>PROJELER</span><i>/</i><strong>Yeni tasarım</strong><b>● Kaydedilmedi</b></div>
+              <div className="studio-heading-actions"><span className="studio-live-indicator"><i /> 3D MOTOR AKTİF</span><span className="studio-heading-divider" /><span>{furniture.length} nesne · {productionParts.length} üretim parçası</span></div>
+            </div>
             <div className="cad-viewport-toolbar">
               <div className="cad-viewport-title">
-                <span className="cad-viewport-title-icon">
-                  <House />
-                </span>
-                <div>
-                  <strong>3D Çalışma Alanı</strong>
-                  <small>MODELLEME / PERSPEKTİF</small>
-                </div>
+                <span className="cad-viewport-title-icon"><BoxSelect /></span>
+                <div><strong>Modelleme alanı</strong><small>ORTOGRAFİK / 3 BOYUTLU SAHNE</small></div>
               </div>
-
-              <div className="cad-viewport-tools">
-                <span className="cad-view-label">GÖRÜNÜM</span>
-                <Button variant="outline" size="sm">
-                  <BoxSelect />
-                  Perspektif
-                </Button>
-                <Button variant="ghost" size="icon" disabled>
-                  <PanelLeft />
-                </Button>
+              <div className="studio-viewport-actions">
+                <span className="studio-view-label">ARAÇLAR</span>
+                <button type="button" className={transformMode === "translate" ? "active" : ""} onClick={() => setTransformMode("translate")}><Move3D /> Taşı</button>
+                <button type="button" className={transformMode === "scale" ? "active" : ""} onClick={() => setTransformMode("scale")}><Maximize2 /> Ölçekle</button>
+                <button type="button" className={transformMode === "rotate" ? "active" : ""} onClick={() => setTransformMode("rotate")}><RotateCw /> Döndür</button>
+                <span className="studio-heading-divider" />
+                <span className="studio-unit-pill">MM</span>
               </div>
             </div>
 
@@ -1025,10 +1024,9 @@ function App() {
 
                 <div className="cad-viewport-hint">
                   <MousePointer2 />
-                  <span>
-                    Katalogdan model ekle · Seçmek ve düzenlemek için nesneye tıkla
-                  </span>
+                  <span>{furniture.length === 0 ? "Sol panelden bir modül seçerek tasarıma başla" : "Nesneyi seç · Taşı, ölçekle veya döndür"}</span>
                 </div>
+                <div className="studio-canvas-footer"><span><i /> SAHNE GÖRÜNÜMÜ</span><span>GRID · SNAP 10 MM</span><span>{furniture.length} / {furnitureCatalog.length} MODÜL</span></div>
               </main>
 
               <aside className="cad-inspector">
@@ -1547,7 +1545,7 @@ function App() {
         </nav>
 
         {workspaceLoading && <div className="cad-loading-screen" role="status" aria-live="polite">
-          <div className="cad-loading-brand"><span className="cad-loading-mark">M</span><span>mobilya<strong>cad</strong></span></div>
+          <MobilyaCadLogo className="cad-loading-brand" tone="inverse" descriptor="STUDIO" />
           <div className="cad-loading-model" aria-hidden="true"><i className="cad-loading-panel cad-loading-panel-a" /><i className="cad-loading-panel cad-loading-panel-b" /><i className="cad-loading-panel cad-loading-panel-c" /><i className="cad-loading-shelf" /><i className="cad-loading-dimension">1200 mm</i></div>
           <p className="cad-loading-kicker">PARAMETRİK TASARIM ORTAMI</p><h2>Çalışma alanın hazırlanıyor</h2>
           <span className="cad-loading-caption">Geometri motoru · Malzeme kataloğu · Üretim araçları</span>
