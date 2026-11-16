@@ -239,13 +239,24 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 - Kalite: Oxlint 16 uyarı / 0 hata; npm audit 6 bulgu (2 düşük, 4 orta), `audit-level=high` eşiği geçti; bundle boyutu uyarısı sürüyor. Güvenlik güncellemesi için kırıcı `--force` kullanılmadı.
 - Sınırlar: tek materialId tüm çekmece panel gruplarına uygulanır; yan/ön-arka/taban/görünür ön için ayrı malzeme override sonraki iştir. Ray, donanım, CNC operasyonu ve fiziksel üretim onayı bu dilime dahil değildir.
 
+## 16 Kasım 2026 — çekmece kutusu domain konstrüksiyon motoru
+
+- Yeni frontend dışı sürümlü modül: `domain/production/drawerBoxConstruction.ts`.
+- Dört çekmece panel grubunu mevcut frontend geometri kurallarıyla uyumlu biçimde hesaplar; dış ölçüler, panel kalınlıkları, quantity, kenar bantlama ve damar yönü açık girdidir.
+- Yan ve ön/arka panel adetleri `2 × quantity`; taban ve görünür ön adetleri `quantity` olarak korunur. İç genişlik ve taban uzunluğu formülleri tek domain kaynağında 0.1 mm hassasiyetinde hesaplanır.
+- Grup bazlı malzeme override'ları katalog kimliği ve ilgili panel kalınlığıyla doğrulanır; katalog ID'si olmayan legacy serbest metin malzeme korunur.
+- `domain/production/drawerBoxConstruction.test.mjs` kabul testleri ve QA strict TypeScript kontrolü eklendi.
+- Bu modül henüz proje agregatörüne, JSON v1 veya CSV'ye bağlı değildir; hiçbir `frontend/**` dosyası değiştirilmemiştir.
+- Ray boşluğu, reveal, bağlantı, delik, CNC, fire ve fiziksel üretim güvenliği hesabı kapsam dışıdır; gerçek atölye uygunluğu insan doğrulaması gerektirir.
+- Kod commit'i sonrası CI/QA/Pages sonuçları bu kayıttan ayrı olarak Actions üzerinden doğrulanacaktır.
+
 ## Sıradaki 5 küçük görev — domain sahipliği
 
-1. Mevcut çekmece kutusu geometri kurallarını frontend dışı `domain/production` motoruna açık sürümlü giriş/çıkış ve regresyon testleriyle taşı; ray/donanım varsayma.
-2. Domain proje agregatörüne gövde ve çekmece sonuçlarını aynı stabil parça sözleşmesinde birleştiren küçük, testli bir dilim ekle.
-3. Frontend sahibi, `drawerBoxSpecs` ve proje JSON v1 geriye uyumluluğunu koruyan adapter'ı kendi frontend dalında uygulasın; bu otomasyon `frontend/**` dosyalarına yazmaz.
-4. Domain agregatörü için mobilya ailelerini discriminated request tipleriyle güçlendir; desteklenmeyen aileleri açıkça reddet.
-5. İlk kitaplık/gardırop konstrüksiyon ailesini açık montaj girdileriyle ekle; üretici verisi olmadan donanım/CNC üretme.
+1. Domain proje agregatörüne gövde ve çekmece sonuçlarını ortak, stabil parça sözleşmesinde birleştiren küçük, testli dilim ekle; kimlik, quantity, damar yönü, malzeme ve kenar bayraklarını koru.
+2. Frontend sahibi, `drawerBoxSpecs` ve proje JSON v1 geriye uyumluluğunu koruyan domain adapter'ını kendi frontend dalında uygulasın.
+3. Domain agregatörünü discriminated furniture-family request tipleriyle genişlet; desteklenmeyen aileleri açıkça reddet.
+4. İlk kitaplık/gardırop konstrüksiyon ailesini açık montaj girdileriyle ekle; üretici verisi olmadan donanım/CNC üretme.
+5. Ortak üretim parça sözleşmesi ve proje malzeme özetini yeni mobilya ailelerine genişlet; eski düz gövde API'sini geriye uyumlu tut.
 
 ## Üretim güvenliği ve karar sınırları
 
