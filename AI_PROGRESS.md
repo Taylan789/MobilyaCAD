@@ -414,3 +414,20 @@
 - AI Developer workflow'u son run listesinde yok; yalnızca workflow_dispatch ile çalışıyor ve bu bağlantıda dispatch işlemi desteklenmediği için yeni run başlatılmadı.
 - Sonraki görev: kitaplık panel grubu bazlı kalınlık girdilerini eklemek; ardından açık parametreli masa konstrüksiyon ailesine geçmek.
 - Roadmap/contract dokümantasyon commit'i e71fe35c9880b5627fa75bf49233724879f38e70 için CI 43869305727, QA 43869305867 (101/101 frontend + 63/63 domain) ve Pages 43869305728 başarılı.
+
+
+## 16 Kasım 2026 — kitaplık panel grubu bazlı kalınlık domain dilimi (doğrulandı)
+
+- Başlangıç HEAD: `b3b00d4bf6e1ebadb14e71b8535f2d0546683cb5` (`dev/github-work`).
+- Domain kod commit'i: `ba30ffbbf2f9eb5a6742430a2c2ff1a8424fc18c`.
+- Test sözdizimi düzeltme commit'i: `e9715a8fb490b65e3e484d399f150e8d433e42c5`.
+- Değişen dosyalar: `domain/production/cabinetConstruction.ts`, `domain/production/cabinetConstruction.test.mjs`, `domain/production/bookshelfConstruction.ts`, `domain/production/bookshelfConstruction.test.mjs`, `docs/production-domain-contract.md`, `PRODUCT_ROADMAP.md`; düzeltme commit'inde yalnızca `domain/production/cabinetConstruction.test.mjs`.
+- API: opsiyonel `profile.panelThicknessMmByGroup`; verilmeyen gruplar ortak `panelThicknessMm` değerini kullanır. Kitaplıkta yalnızca leftSide/rightSide/top/bottom/shelf/back geçerlidir. Kalınlığı override edilen her grup, grup malzeme ID'si veya mobilyanın varsayılan materialId'si üzerinden katalogdaki gerçek `thicknessesMm` listesine bağlanır.
+- Geometri: sol/sağ kalınlık iç genişliği ayrı ayrı etkiler; `over-sides` düzeninde üst/alt kalınlık iç yüksekliği ve yan boyunu belirler; raf ve arkalık Part kalınlıkları grup değerini kullanır; inset arkalık derinlik payı etkin arkalık kalınlığına göre hesaplanır. Eski ortak kalınlık istekleri aynı sonucu korur.
+- İlk QA run `43881344222` yeni cabinet regresyon testindeki fazla kapatma parantezi nedeniyle başarısız oldu (SyntaxError; üretim kodu testi çalıştırılmadan önce). Hata `e9715a8` ile düzeltildi; testler silinmedi veya gevşetilmedi.
+- Nihai otomatik doğrulama: QA run `43881598804` başarılı (**101/101 frontend + 66/66 domain testi**, 0 başarısız); strict domain TypeScript, lint, frontend TypeScript/production build ve `npm audit --omit=dev --audit-level=high` adımları başarılı. CI run `43881598968` başarılı. Pages run `43881598819` build ve deploy job'ları başarılı.
+- İlk denemedeki CI `43881344246` ve Pages `43881344251` de başarılıydı; QA yalnızca test dosyası sözdizimi yüzünden başarısızdı. Düzeltme commit'inden sonraki üç workflow da başarılıdır.
+- Kalite notları: Oxlint 30 uyarı / 0 hata; audit raporunda 6 mevcut bulgu (2 düşük, 4 orta; yüksek önem eşiği geçilmedi); yaklaşık 1.55 MB JS chunk uyarısı ve Actions Node 20 deprecation uyarısı sürüyor.
+- Sınırlar: hiçbir `frontend/**` dosyası değiştirilmedi; domain sonucu henüz frontend JSON v1/CSV adapter'ına bağlı değil. Donanım, delik, CNC, nesting, fire, fiyat veya fiziksel üretim güvenliği iddiası eklenmedi. Atölye/operatör doğrulaması üretim öncesi gereklidir.
+- AI Developer workflow'u son 100 branch run'ında görünmedi; `.github/workflows/ai-developer.yml` yalnızca `workflow_dispatch` ile çalışıyor ve bu bağlantıda dispatch aracı bulunmadığından yeni run başlatılmadı.
+- Sonraki görev: masa konstrüksiyon ailesi için açık tabla/ayak/kayıt ölçülerini, bağlantı standardı veya CNC varsaymadan, sürüm 1 domain motoru ve regresyon testleriyle tasarlamak.
