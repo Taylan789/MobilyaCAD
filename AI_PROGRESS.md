@@ -475,3 +475,13 @@
 - Düzeltme commit'i: `67b2d8444adb3a50997f2ce6592b6318c4ca48ba` — doğrulanmış masa agregatörü ve test blob'ları, güncel branch tree'si üzerine geri yüklendi. Force-push veya history rewrite yapılmadı.
 - Değişen dosyalar: `domain/production/projectProduction.ts`, `domain/production/projectProduction.test.mjs`.
 - Sonraki adım: bu restorasyonun yeni HEAD'indeki CI, QA (101 frontend + 82 domain testi beklenen) ve Pages sonuçlarını kontrol et; gerçek Actions tamamlanmadan doğrulama başarılı ilan edilmemelidir.
+
+## 16 Kasım 2026 — masa agregatörü geri yükleme doğrulaması
+
+- Kaynak restorasyon commit'i: `67b2d8444adb3a50997f2ce6592b6318c4ca48ba`; doğrulanan son branch HEAD: `fdba90a1d4e27c9d418281ff88c07211d79945cf`.
+- Değişen kod dosyaları: `domain/production/projectProduction.ts`, `domain/production/projectProduction.test.mjs` (orijinal masa agregatörü uygulama blob'ları geri yüklendi).
+- Gerçek GitHub Actions: CI #220 `43899762924` başarılı; QA #135 `43899762852` başarılı (**101/101 frontend + 82/82 domain testi**, 0 başarısız); Pages deploy #111 `43899762943` başarılı. QA shared-domain strict TypeScript, lint, frontend TypeScript/production build ve production dependency audit adımları geçti.
+- Kalite notları: Oxlint 32 uyarı / 0 hata; npm audit raporunda 6 mevcut bulgu (2 düşük, 4 orta; yüksek önem eşiği aşılmadı); büyük JS chunk ve GitHub Actions Node 20 deprecation uyarıları sürüyor.
+- Geriye uyumluluk: family-less cabinet ve bookshelf sonuçları aynı kaldı; table için `overallDimensionsMm` kullanılır; ortak Part listesi ve malzeme özeti otomatik testle doğrulandı.
+- Hiçbir `frontend/**` dosyası değiştirilmedi. Frontend PR #8 sahiplenilmedi veya birleştirilmedi.
+- Sonraki görev: proje agregatörüne desteklenmeyen aile/konfigürasyon için açık, mobilya kimliğine bağlı tanılama/engelleme sonucu eklemek.
