@@ -512,7 +512,7 @@ test("proje raporu desteklenen aileleri ve desteklenmeyen mobilyaları ayrı tan
     family: item.family,
     code: item.code
   })), [{
-    furnitureId: "wardrobe-unsupported",
+    furnitureId: "sofa-unsupported",
     family: "sofa",
     code: "unsupported-family"
   }]);

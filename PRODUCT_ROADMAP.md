@@ -479,3 +479,6 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 
 
 - İlk wardrobe QA kontrolü: run 43915442898 içinde yeni gardırop testleri başarılıydı; iki mevcut proje tanılama testi wardrobe ailesini desteklenmeyen sayan eski fixture nedeniyle başarısız oldu. Bu fixture'lar yeni desteklenen aileye dokunmadan, gerçekten bilinmeyen sofa ailesini sınayacak şekilde düzeltildi; doğrulama düzeltme commit'i sonrasında yeniden çalıştırılacak.
+
+
+- QA düzeltme notu: wardrobe artık desteklenen aile olduğundan bilinmeyen aile regresyon fixture'ı sofa olarak değiştirildi. İlk düzeltme sonrası tek kalan başarısız assertion eski wardrobe-unsupported kimlik metnini bekliyordu; beklenen kimlik de sofa-unsupported olarak güncellendi. Yeni Actions doğrulaması bekleniyor.

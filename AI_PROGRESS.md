@@ -526,3 +526,12 @@
 - Değişen dosya: domain/production/projectProduction.test.mjs. Bu düzeltme commit'inin CI/QA/Pages sonuçları henüz bekleniyor.
 - İlk özellik commit'inde CI 43915443067 ve Pages 43915443151 başarılı; QA 43915442898 yalnızca eski test beklentilerinde başarısız.
 - Sonraki görev: test fixture düzeltmesinin yeni HEAD'indeki tüm Actions sonuçlarını kontrol et; ardından gardırop bölme rafları için açık konum/ölçü sözleşmesini tasarla.
+
+
+## 16 Kasım 2026 — desteklenmeyen aile test kimliği düzeltmesi
+
+- İlgili wardrobe kod commit'i: 66b106e9726388240326170a6671bf30bebfb4b0.
+- İlk fixture düzeltme commit'i: 7c42d9d865694da9d8092bdf987f6e83c0fd8780.
+- QA run 43915698736 sonucunda frontend 101/101 test geçti; domain 95/96 geçti. Tek kalan assertion, fixture ailesi sofa olarak değiştirilirken beklenen furnitureId değerinin eski wardrobe-unsupported metninde kalmasıydı. Motor ve sekiz yeni wardrobe testi başarılıydı.
+- domain/production/projectProduction.test.mjs içindeki beklenen kimlik sofa-unsupported olarak düzeltildi; bilinmeyen aile tanılama kapsamı korunuyor. Bu düzeltmenin CI/QA/Pages sonuçları bekleniyor.
+- CI run 43915698633 başarılı; Pages run 43915698589 henüz kuyruktaydı.
