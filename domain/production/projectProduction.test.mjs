@@ -20,7 +20,8 @@ function createRequest(id, overrides = {}) {
       widthMm: 800,
       heightMm: 720,
       depthMm: 560,
-      material: "Legacy MDF"
+      material: "Legacy MDF",
+      ...overrides.furniture
     },
     profile: {
       panelThicknessMm: 18,
