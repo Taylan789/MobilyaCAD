@@ -391,3 +391,23 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 3. Kitaplık ve masa parça gruplarının quantity ağırlıklı malzeme tüketimi ile kenar bantlama özetinde ayrı kalınlık/materialId grupları olarak doğrulanması.
 4. Frontend yenileme dalı sahibinin domain adapter'ı için JSON v1 geriye uyumlu entegrasyon ve CSV eşitliği testleri (frontend dosyalarına bu otomasyon dokunmayacak).
 5. CNC/teklif katmanına geçmeden önce kullanıcı katalog girdileri ve gerçek üretici/atölye standartları için yapılandırma sözleşmesi tasarlamak.
+
+
+## 16 Kasım 2026 — açık parametreli masa konstrüksiyon domain dilimi
+
+- Yeni `domain/production/tableConstruction.ts` motoru, `family: "table"` ve `schemaVersion: 1` sözleşmesiyle eklendi.
+- Tabla genişliği/uzunluğu/toplam yüksekliği, tabla kalınlığı, ayak kesiti/adedi ve etkinse uzun/kısa kayıt ölçüleri/adetleri zorunlu girdidir. Ayak yüksekliği toplam yükseklikten tabla kalınlığı çıkarılarak hesaplanır; 0.1 mm hassasiyetinde pozitif kalması gerekir.
+- Tabla, ayak, uzun kayıt ve kısa kayıt ayrı parça satırlarıdır. Her satır kaynak mobilya ID'si, stabil parça ID'si, quantity, mm ölçüleri, malzeme kataloğu referansı, kenar bantlama ve damar yönü taşır. Grup malzeme override'ları gerçek katalog kalınlığıyla doğrulanır.
+- Kayıt uzunlukları ve adetleri kullanıcı girdisidir; sistem 2 uzun + 2 kısa kayıt, ayak konumu, tabla taşması veya birleşim standardı varsaymaz. Kullanılmayan kayıt yönü için hem adet hem uzunluk sıfır olmalıdır.
+- Kabul kapsamı: açık/kapalı kayıt, yalnız tek yönde kayıt, grup malzeme override'ı, katalog kalınlığı, eksik kenar/damar girdisi, geçersiz ölçü/adet, bilinmeyen alan/aile ve güvenli toplam adet sınırı test edilir.
+- `qa-test.yml` domain strict TypeScript kontrolüne yeni motoru ekler; mevcut `domain/production/*.test.mjs` glob'u yeni regresyon testini otomatik çalıştırır.
+- Sınırlar: bu dilim kesim-parça hesabıdır; parça yerleşim koordinatı, bağlantı, delik, donanım, CNC, nesting, fire ve fiyat üretmez. Gerçek montaj/üretim için atölye doğrulaması gerekir.
+- Hiçbir `frontend/**` dosyası değiştirilmedi.
+
+### Güncel sıradaki küçük görevler
+
+1. [x] Açık parametreli masa parça motoru ve otomatik kabul testleri.
+2. [ ] Masa ailesini proje agregatörüne ekle; aileye özgü dış ölçü sonucunu, parça kimliklerini ve malzeme özetini geriye dönük uyumlu biçimde koru.
+3. [ ] Proje agregatörüne desteklenmeyen aile/konfigürasyon tanılaması ekle; hiçbir aile sessizce dolap olarak yorumlanmasın.
+4. [ ] Domain parça listesinin frontend JSON v1/CSV adapter'ına bağlanması için ayrı frontend sahibinin kullanacağı entegrasyon kabul testlerini ve sözleşmesini netleştir.
+5. [ ] Masa, kitaplık ve dolap ailelerinin birleşik quantity, malzeme ve kenar bantlama özetlerini proje düzeyinde regresyon testleriyle doğrula.
