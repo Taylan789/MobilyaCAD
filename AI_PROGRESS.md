@@ -252,3 +252,5 @@
 - Otomatik doğrulama: CI run `43783058466` başarılı; QA run `43783058478` başarılı (**101/101 test, 0 fail**); Pages deploy run `43783058489` başarılı. Production audit, TypeScript/build ve lint başarılı.
 - Bilinen kısıtlar: gövde panellerinde parça bazlı override henüz yok; fiyat, fire, donanım, ray ve CNC standartları tanımlanmadı. Fiziksel üretim doğrulaması gerektiren konular üretim onayı olarak sunulmuyor.
 - Sonraki görev: gövde yan/üst/alt, raf, arkalık ve kapak parçalarına bağımsız katalog malzemesi atamak ve her parçanın kalınlığını kendi malzemesinde doğrulamak.
+
+- Önceki yol haritası/ilerleme güncellemesi commit'i: `68272d7bf8a52d61c11e5f1c0e9de618ad51c54d`; bu commit üzerinde CI #96, QA #62 (101/101) ve Pages #61 başarılı.
