@@ -17,7 +17,7 @@ const part = (id, group, thicknessMm, materialId = "mdf-18") => ({
   group,
   thicknessMm,
   material: "Eski malzeme adı",
-  ...(materialId === undefined ? {} : { materialId }),
+  ...(materialId === null ? {} : { materialId }),
   quantity: 2
 });
 
@@ -73,7 +73,7 @@ test("her gövde panel grubu kendi override malzemesini alır ve diğerleri vars
 });
 
 test("legacy serbest metin malzeme, katalog kimliği olmadan değiştirilmez", () => {
-  const legacyPart = part("cab-legacy-top", "top", 18, undefined);
+  const legacyPart = part("cab-legacy-top", "top", 18, null);
   const [resolved] = resolveBodyPanelMaterialAssignments([legacyPart], {}, materials);
 
   assert.deepEqual(resolved, legacyPart);
