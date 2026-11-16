@@ -108,7 +108,7 @@ export function FurnitureTransformFields({
                   id={inputId}
                   type="number"
                   inputMode="decimal"
-                  step="1"
+                  step="0.1"
                   value={positionDraft[axis.key]}
                   aria-label={`${axis.label} ekseni konumu, milimetre`}
                   className="min-w-0 text-right font-mono tabular-nums"
@@ -159,7 +159,7 @@ export function FurnitureTransformFields({
 
       <p className="cad-field-note">
         X ve Z oda merkezine, Y zeminden nesne merkezine göre ölçülür.
-        Oda sınırlarını aşan değerler otomatik olarak sınırlandırılır.
+        X ve Z konumları oda sınırlarına göre otomatik sınırlandırılır.
       </p>
     </section>
   );
