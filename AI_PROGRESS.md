@@ -326,3 +326,21 @@
 - Kalite/kısıtlar: lint 19 uyarı / 0 hata; audit raporunda 6 mevcut bulgu (2 düşük, 4 orta); bundle boyutu uyarısı sürüyor. Üretim fiyatı, fire, nesting, CNC, donanım veya fiziksel atölye doğrulaması eklenmedi.
 - AI Developer: workflow dosyası `workflow_dispatch` ile tetikleniyor; bu bağlantıda workflow dispatch aracı bulunmadığından run başlatılmadı. Branch run listesinde AI Developer çalışması yoktu.
 - Sonraki görev: proje agregatörünün birleşik Part listesi üzerinden quantity ağırlıklı malzeme tüketimi ve kenar bantlama özetini frontend dışı domain modülünde geliştirmek.
+
+
+## 16 Kasım 2026 — proje malzeme tüketimi ve kenar bantlama domain özeti
+
+- Başlangıç branch HEAD: `d9182c08ba8555894a6f04ea524aabe21e9c5b9b`. Ön kontrolde CI, QA ve Pages aktif işi yoktu; AI Developer workflow run'ı da bulunmadı. `.github/workflows/ai-developer.yml` yalnızca `workflow_dispatch` ile tetikleniyor; bu bağlantıda dispatch aracı olmadığından yeni run başlatılmadı.
+- Kod commit'i: `f6cdf58458eaa8b7dade6360d5538c59ef054e2f` (yalnızca `dev/github-work`).
+- Kod commit'inde değişen dosyalar:
+  - `domain/production/projectMaterialSummary.ts` — yeni saf domain hesaplayıcısı.
+  - `domain/production/projectMaterialSummary.test.mjs` — beş yeni kabul/regresyon testi.
+  - `.github/workflows/qa-test.yml` — yeni domain modülü strict TypeScript kontrolüne eklendi; test glob'u yeni testi otomatik kapsıyor.
+- API: `calculateProjectMaterialConsumptionSummary(CabinetProjectProductionResult)`; proje agregatörünün döndürdüğü aynı Part satırlarını kullanır. Gruplama materialId + normalize malzeme adı + thicknessMm ile yapılır. Legacy materialId'siz satırlar isim/kalınlık üzerinden gruplanır.
+- Hesaplar: quantity ağırlıklı net panel alanı (m²), hacim (m³), bantlı kenar adedi ve bant uzunluğu (mm). top/bottom kenarları width, left/right kenarları length yönündedir. Alan 6, hacim 9, bant uzunluğu 0.1 ondalık basamağa yuvarlanır.
+- Kabul kriterleri: birden çok mobilya ve raf adet çarpanı; aynı etiketli farklı malzeme kimliklerinin ayrılması; aynı malzeme kimliğinde farklı kalınlıkların ayrılması; boş proje; bozuk şema, proje ilişkisi, yinelenen ID, adet ve kenar bayraklarının reddi; taşan toplamların reddi.
+- Gerçek doğrulama: CI run `43827969421` başarılı; QA run `43827969438` başarılı (**101/101 frontend + 36/36 domain testi**, 0 başarısız); Pages run `43827969425` başarılı (build + deploy). QA strict domain TypeScript, lint, production build ve production dependency audit adımları başarılı.
+- Bilinen kalite notları: Oxlint 19 uyarı / 0 hata; npm audit raporunda 6 düşük/orta bulgu (2 düşük, 4 orta), bundle boyutu uyarısı ve Actions Node 20 deprecation uyarısı sürüyor. Yüksek önem audit eşiği geçti; bağımlılıklara force güncelleme yapılmadı.
+- Bilinen sınırlar: domain özeti henüz frontend üretim akışına, proje JSON v1 veya CSV'ye bağlı değil. Yalnızca mevcut düz gövde domain Part listesi kapsanır; fire, levha verimi, kerf, bant kalınlığı, rulo payı, ray/donanım, nesting, CNC ve fiziksel üretim doğrulaması yoktur.
+- Sahiplik: hiçbir `frontend/**` dosyası değiştirilmedi. Açık frontend PR #7 ve #8'e dokunulmadı/merge edilmedi.
+- Sonraki görev: frontend yenileme sahibine sürümlü domain istek/sonuç ve malzeme özeti sözleşmesini, JSON v1 geriye uyumluluk, hata ve boş durum kriterleriyle dokümante etmek; ardından domain çekmece konstrüksiyonunu proje agregatörüne taşımak.
