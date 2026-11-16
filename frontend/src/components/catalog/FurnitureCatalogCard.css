@@ -1,0 +1,211 @@
+/* Furniture library — technical specimen cards */
+.cad-catalog-grid {
+  grid-template-columns: minmax(0, 1fr) !important;
+  gap: 9px !important;
+  padding: 2px 2px 14px !important;
+}
+
+.cad-catalog-card.mc-catalog-card {
+  position: relative !important;
+  display: grid !important;
+  grid-template-columns: 112px minmax(0, 1fr) !important;
+  align-items: stretch !important;
+  min-height: 108px !important;
+  width: 100% !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  text-align: left !important;
+  border: 1px solid #394e59 !important;
+  border-radius: 10px !important;
+  background: linear-gradient(145deg, #202f38 0%, #19262e 100%) !important;
+  box-shadow: 0 5px 15px rgba(0,0,0,.12) !important;
+  transition: transform .18s ease, border-color .18s ease, background .18s ease, box-shadow .18s ease !important;
+}
+
+.cad-catalog-card.mc-catalog-card:hover {
+  transform: translateY(-2px) !important;
+  border-color: #7896a8 !important;
+  background: linear-gradient(145deg, #293d48 0%, #1e3039 100%) !important;
+  box-shadow: 0 12px 24px rgba(0,0,0,.24) !important;
+}
+
+.cad-catalog-card.mc-catalog-card:active {
+  transform: translateY(0) scale(.995) !important;
+}
+
+.cad-catalog-card.mc-catalog-card:focus-visible {
+  outline: 2px solid #a9c7d8 !important;
+  outline-offset: 3px !important;
+}
+
+.mc-catalog-card__visual {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  min-height: 108px;
+  place-items: center;
+  overflow: hidden;
+  border-right: 1px solid rgba(125,157,176,.2);
+  background:
+    linear-gradient(rgba(143,173,190,.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(143,173,190,.07) 1px, transparent 1px),
+    radial-gradient(ellipse at 50% 65%, rgba(132,164,184,.16), transparent 65%),
+    #172630;
+  background-size: 16px 16px, 16px 16px, auto, auto;
+}
+
+.mc-catalog-card__visual::after {
+  position: absolute;
+  inset: auto 0 0;
+  height: 1px;
+  content: "";
+  background: linear-gradient(90deg, transparent, rgba(168,194,209,.36), transparent);
+}
+
+.mc-catalog-card__visual svg {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  max-width: 126px;
+  height: 90px;
+  overflow: visible;
+  filter: drop-shadow(0 7px 8px rgba(0,0,0,.22));
+  transition: transform .22s cubic-bezier(.2,.75,.25,1);
+}
+
+.cad-catalog-card.mc-catalog-card:hover .mc-catalog-card__visual svg {
+  transform: translateY(-2px) scale(1.035);
+}
+
+.mc-catalog-card__serial {
+  position: absolute;
+  z-index: 2;
+  top: 7px;
+  left: 9px;
+  color: #91a8b5;
+  font: 650 7px/1 "Geist Variable", sans-serif;
+  letter-spacing: .13em;
+}
+
+.mc-catalog-card__content {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  padding: 9px 11px;
+}
+
+.mc-catalog-card__category {
+  overflow: hidden;
+  color: #c49b7c;
+  font-size: 8px;
+  font-weight: 750;
+  letter-spacing: .13em;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.mc-catalog-card__content strong {
+  display: -webkit-box !important;
+  width: 100%;
+  margin: 0 !important;
+  overflow: hidden;
+  color: #e8eef1 !important;
+  font-size: 11px !important;
+  font-weight: 650 !important;
+  line-height: 1.35 !important;
+  text-overflow: ellipsis;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.mc-catalog-card__dimensions {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 4px;
+  overflow: hidden;
+  color: #c0d0d9;
+  font-size: 9px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+.mc-catalog-card__dimensions svg {
+  width: 11px;
+  height: 11px;
+  flex: 0 0 auto;
+  color: #8da9ba;
+}
+
+.mc-catalog-card__details {
+  overflow: hidden;
+  color: #8499a4;
+  font-size: 8px;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mc-catalog-card__add {
+  position: absolute;
+  z-index: 3;
+  right: 8px;
+  bottom: 8px;
+  display: grid;
+  width: 23px;
+  height: 23px;
+  place-items: center;
+  color: #dce8ee;
+  border: 1px solid rgba(150,181,199,.36);
+  border-radius: 6px;
+  background: rgba(48,72,86,.94);
+  opacity: 0;
+  transform: translateY(3px);
+  transition: opacity .16s ease, transform .16s ease, background .16s ease;
+}
+
+.mc-catalog-card__add svg {
+  width: 13px;
+  height: 13px;
+}
+
+.cad-catalog-card.mc-catalog-card:hover .mc-catalog-card__add,
+.cad-catalog-card.mc-catalog-card:focus-visible .mc-catalog-card__add {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (hover: none) {
+  .mc-catalog-card__add {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (max-width: 820px) {
+  .cad-catalog-grid { gap: 8px !important; }
+  .cad-catalog-card.mc-catalog-card {
+    grid-template-columns: 104px minmax(0,1fr) !important;
+    min-height: 102px !important;
+  }
+  .mc-catalog-card__visual { min-height: 102px; }
+  .mc-catalog-card__visual svg { height: 84px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cad-catalog-card.mc-catalog-card,
+  .mc-catalog-card__visual svg,
+  .mc-catalog-card__add {
+    transition-duration: .01ms !important;
+  }
+  .cad-catalog-card.mc-catalog-card:hover,
+  .cad-catalog-card.mc-catalog-card:active {
+    transform: none !important;
+  }
+}
