@@ -74,6 +74,7 @@ import { DrawerBoxConfigurator } from "./components/production/DrawerBoxConfigur
 import { ProductionOverview } from "./components/production/ProductionOverview";
 import { MaterialCatalogManager } from "./components/production/MaterialCatalogManager";
 import { FurnitureTransformFields } from "./components/workspace/FurnitureTransformFields";
+import { FurniturePartInspector } from "./components/workspace/FurniturePartInspector";
 import type { MaterialCatalogEntry } from "./engine/materialCatalog";
 import { furnitureCatalog } from "./data/furnitureCatalog";
 import { createPlacedFurniture } from "./types/placedFurniture";
@@ -254,6 +255,28 @@ function App() {
             part.id === selectedPartId
               ? { ...part, [field]: value }
               : part
+          ),
+        };
+      })
+    );
+  }
+
+  function updateSelectedPartPosition(position: [number, number, number]) {
+    if (
+      !selectedFurnitureId ||
+      !selectedPartId ||
+      !position.every(Number.isFinite)
+    ) {
+      return;
+    }
+
+    setFurniture((previous) =>
+      previous.map((item) => {
+        if (item.id !== selectedFurnitureId) return item;
+        return {
+          ...item,
+          parts: item.parts.map((part) =>
+            part.id === selectedPartId ? { ...part, position } : part
           ),
         };
       })
@@ -1568,74 +1591,15 @@ function App() {
                           <Separator className="cad-section-separator" />
 
                           {selectedPart && (
-                            <section className="cad-property-section">
-                              <div className="cad-section-heading">
-                                <span>SEÇİLİ PARÇA</span>
-                                <Layers3 />
-                              </div>
-
-                              <div className="cad-field">
-                                <Label>Parça adı</Label>
-                                <Input
-                                  value={selectedPart.name}
-                                  onChange={(event) =>
-                                    updateSelectedPart("name", event.target.value)
-                                  }
-                                />
-                              </div>
-
-                              {([
-                                { field: "width", label: "Genişlik" },
-                                { field: "height", label: "Yükseklik" },
-                                { field: "depth", label: "Derinlik" },
-                              ] as const).map(({ field, label }) => (
-                                <div className="cad-field" key={field}>
-                                  <Label>{label} (mm)</Label>
-                                  <Input
-                                    type="number"
-                                    min="1"
-                                    value={selectedPart[field]}
-                                    onChange={(event) => {
-                                      const value = Number(event.target.value);
-                                      if (value >= 1) {
-                                        updateSelectedPart(field, value);
-                                      }
-                                    }}
-                                  />
-                                </div>
-                              ))}
-
-                              <div className="cad-field">
-                                <Label>Malzeme</Label>
-                                <select
-                                  className="cad-native-select"
-                                  value={selectedPart.material}
-                                  onChange={(event) =>
-                                    updateSelectedPart("material", event.target.value)
-                                  }
-                                >
-                                  <option value="Suntalam">Suntalam</option>
-                                  <option value="MDF">MDF</option>
-                                  <option value="MDF Lam">MDF Lam</option>
-                                  <option value="Kontrplak">Kontrplak</option>
-                                  <option value="Masif Ahşap">Masif Ahşap</option>
-                                  <option value="Lake">Lake</option>
-                                </select>
-                              </div>
-
-                              <Button
-                                variant="outline"
-                                className="cad-full-button"
-                                onClick={() => setSelectedPartId(null)}
-                              >
-                                Parça seçimini kaldır
-                              </Button>
-
-                              <p className="cad-field-note">
-                                Parça bilgileri mobilya verisine kaydedilir.
-                                3D ölçü bağlantısı sonraki aşamada yapılacaktır.
-                              </p>
-                            </section>
+                            <>
+                              <Separator className="cad-section-separator" />
+                              <FurniturePartInspector
+                                part={selectedPart}
+                                onFieldChange={updateSelectedPart}
+                                onPositionChange={updateSelectedPartPosition}
+                                onClearSelection={() => setSelectedPartId(null)}
+                              />
+                            </>
                           )}
 
                           <Button
