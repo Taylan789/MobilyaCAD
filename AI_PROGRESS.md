@@ -304,9 +304,11 @@
 - Profil doğrulaması: panel kalınlığı; between-sides/over-sides; arkalık kapalı/overlay/grooved/inset ayrımı ve ilgili kanal/inset parametresi; güvenli tam sayı raf/kapak adetleri; kapak stili ve pozitif boşluk; yedi gövde panel grubunun dört kenar bayrağının tamamının boolean olması.
 - Hesaplanan parçalar: sol/sağ yan, üst/alt, opsiyonel raf, kapak ve arkalık. Mevcut gövde Part ID suffix sözleşmesi korunur; malzeme ataması ortak `resolveCabinetBodyPanelParts` üzerinden uygulanır. Her parça gerçek kalınlığıyla kendi katalog kimliğine göre doğrulanır.
 - Değişen dosyalar: `domain/production/cabinetConstruction.ts` (yeni), `domain/production/cabinetConstruction.test.mjs` (yeni, 14 test), `.github/workflows/qa-test.yml`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`.
+- Sonraki dokümantasyon commit'i Actions sonuçlarını kaydeder; bu kod commit'inin doğrulama sonuçları yukarıdaki run kimlikleriyle kesinleşmiştir.
 - Kabul kriterleri: mm formüllerinin mevcut düz mutfak gövde davranışıyla eşleşmesi; sıfır raf/kapak ve arkalıksız durumun açıkça desteklenmesi; eksik arkalık/kapak parametrelerinin reddi; katalog ID ve kalınlık doğrulaması; quantity ve parça kimliklerinin korunması.
 - QA workflow strict TypeScript komutu, `.ts` domain modülü importunu da kontrol edecek şekilde genişletildi. Yeni testler mevcut `domain/production/*.test.mjs` glob'una dahildir.
-- Bu commit'in Actions sonuçları henüz bekleniyor; gerçek GitHub Actions sonucu görülmeden başarılı ilan edilmeyecek.
+- Kod commit'i: `a76fff96ce82d524a30c9d3d910de4b934fd0a13`.
+- Gerçek doğrulama: QA run #87 (`43807168292`) başarılı; 101/101 frontend testi + 26/26 ortak domain testi geçti. Shared domain strict TypeScript, lint, TypeScript/production build ve production dependency audit adımları başarılı. CI run #140 (`43807168281`) başarılı; Pages deploy #77 (`43807168390`) build ve deploy job'larıyla başarılı.
 - Bilinen sınırlar: modül henüz frontend üretim akışına, JSON v1, proje agregatörü, tüketim veya CSV'ye bağlanmadı. Konstrüksiyon formülleri mevcut düz gövde davranışının domain dilimine taşınmasıdır; gerçek üretici/atölye doğrulaması değildir. Değişken panel kalınlığı, raf delikleri, donanım, CNC, fire/kerf ve nesting kapsam dışıdır.
 - Sonraki görev: çoklu mobilya domain üretim agregatörü ve domain parça listelerinden doğrulanabilir malzeme/kenar bantlama toplamları.
 
