@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { ChangeEvent, CSSProperties } from "react";
 import {
   Box,
@@ -24,6 +24,7 @@ import {
   Package,
   MousePointer2,
   Layers3,
+  X,
 } from "lucide-react";
 
 import { Button } from "./components/ui/button";
@@ -96,6 +97,7 @@ function App() {
   const [transformMode, setTransformMode] = useState<"translate" | "scale" | "rotate">("translate");
   const [mobilePanel, setMobilePanel] = useState<"catalog" | "inspector" | null>(null);
   const [leftPanelMode, setLeftPanelMode] = useState<"catalog" | "scene">("catalog");
+  const [inspectorTab, setInspectorTab] = useState<"room" | "furniture" | "production" | "materials">("room");
 
   const [constructionRules] = useState<CabinetConstructionRules>({
     panelThickness: 18,
@@ -119,6 +121,10 @@ function App() {
 
   const [selectedCategory, setSelectedCategory] = useState("Tümü");
   const [catalogSearch, setCatalogSearch] = useState("");
+
+  useEffect(() => {
+    setInspectorTab(selectedFurnitureId ? "furniture" : "room");
+  }, [selectedFurnitureId, selectedPartId]);
 
   const catalogCategories = [
     "Tümü",
@@ -1038,7 +1044,46 @@ function App() {
                   <Settings2 />
                 </div>
 
-                <Tabs defaultValue="room" className="cad-inspector-tabs">
+                <div className="flex min-w-0 items-center gap-2 border-b border-border/70 bg-muted/20 px-3 py-2" aria-live="polite">
+                  <div className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-primary/20 bg-primary/10 text-primary">
+                    {selectedPart ? <Layers3 className="size-4" /> : selectedFurniture ? <Box className="size-4" /> : <House className="size-4" />}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <span className="block text-[9px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                      {selectedPart ? "Parça seçili" : selectedFurniture ? "Mobilya seçili" : "Oda düzenleme"}
+                    </span>
+                    <strong className="block truncate text-xs font-semibold text-foreground">
+                      {selectedPart ? selectedPart.name : selectedFurniture ? selectedFurniture.name : "Çalışma alanı"}
+                    </strong>
+                  </div>
+                  {selectedFurniture && (
+                    <Button
+                      type="button"
+                      size="icon-sm"
+                      variant="ghost"
+                      className="size-7 shrink-0 text-muted-foreground hover:text-foreground"
+                      aria-label="Mobilya ve parça seçimini temizle"
+                      title="Seçimi temizle"
+                      onClick={() => {
+                        setSelectedPartId(null);
+                        setSelectedFurnitureId(null);
+                        setInspectorTab("room");
+                      }}
+                    >
+                      <X className="size-3.5" />
+                    </Button>
+                  )}
+                </div>
+
+                <Tabs
+                  value={inspectorTab}
+                  onValueChange={(value) => {
+                    if (value === "room" || value === "furniture" || value === "production" || value === "materials") {
+                      setInspectorTab(value);
+                    }
+                  }}
+                  className="cad-inspector-tabs"
+                >
                   <TabsList className="cad-inspector-tab-list">
                     <TabsTrigger value="room">
                       <House />
@@ -1047,14 +1092,17 @@ function App() {
                     <TabsTrigger value="furniture">
                       <Box />
                       Mobilya
+                      <span className="ml-0.5 rounded-md bg-muted px-1.5 py-0.5 text-[9px] font-semibold tabular-nums">{furniture.length}</span>
                     </TabsTrigger>
                     <TabsTrigger value="production">
                       <Ruler />
                       Üretim
+                      <span className="ml-0.5 rounded-md bg-muted px-1.5 py-0.5 text-[9px] font-semibold tabular-nums">{productionParts.length}</span>
                     </TabsTrigger>
                     <TabsTrigger value="materials">
                       <Package />
                       Malzeme
+                      <span className="ml-0.5 rounded-md bg-muted px-1.5 py-0.5 text-[9px] font-semibold tabular-nums">{materials.length}</span>
                     </TabsTrigger>
                   </TabsList>
 
