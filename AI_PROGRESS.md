@@ -451,3 +451,19 @@
 - Bilinen sınırlar: masa motoru henüz proje agregatörüne veya frontend JSON v1/CSV adapter'ına bağlı değildir. Ayak/kayıt koordinatı, tabla taşması, birleşim standardı, vida/delik, donanım, CNC, nesting, fire, fiyat veya montaj güvenliği hesabı yapılmaz. Gerçek atölye/üretim doğrulaması gerekir. Hiçbir `frontend/**` dosyası değiştirilmedi.
 - AI Developer workflow'u son 100 Actions run'ında bulunmadı; `.github/workflows/ai-developer.yml` yalnızca `workflow_dispatch` ile tetiklenir ve mevcut GitHub bağlantısında dispatch aracı yoktur. Yeni run başlatılmış gibi gösterilmedi.
 - Sonraki görev: `TableConstructionPart` tipini proje agregatörüne ekle; masa ailesinin dış ölçülerini mevcut dolap/kitaplık `innerDimensionsMm` sonucunu bozmadan aileye özgü biçimde taşı; karışık masa/kitaplık/dolap projelerinde malzeme ve quantity toplamlarını test et.
+
+## 16 Kasım 2026 — masa ailesi proje agregatörü entegrasyonu
+
+- Başlangıç HEAD: `2055b3e7e707666526cfe32a3f53934821e00b75` (`dev/github-work`).
+- Kod commit'i: `a003f81479602c2ce3d6491f3a4665e92d275f57`.
+- Değişen dosyalar:
+  - `domain/production/projectProduction.ts` — `table` ailesi için yönlendirme, `TableConstructionPart` birleşimi ve aileye özgü `overallDimensionsMm` sonucu.
+  - `domain/production/projectProduction.test.mjs` — karışık dolap/kitaplık/masa projesi, parça kimliği/adet/malzeme korunumu, masa malzeme özeti ve geçersiz masa girdisi için üç kabul testi.
+  - `docs/production-domain-contract.md` — masa agregasyon API'si, ölçü sonucu, ortak Part listesi ve frontend entegrasyon sınırı.
+  - `PRODUCT_ROADMAP.md` — tamamlanan dilim ve sonraki beş domain görevi.
+- Kabul kriterleri: legacy family-less cabinet ve bookshelf `innerDimensionsMm` sonuçları değişmeden kalır; masa `overallDimensionsMm` döndürür; masa parçaları tek Part listesinde stabil ID, mm, quantity, materialId, kenar bantlama ve damar yönüyle korunur; proje malzeme özeti aynı listeden alan/hacim/bantlama hesaplar; bozuk masa isteği ve bilinmeyen aile reddedilir.
+- Ön kontrol: branch HEAD `2055b3e7e707666526cfe32a3f53934821e00b75`; hedef dosyaların blob SHA'ları yazma öncesi tekrar okundu ve değişmedi. Aktif `dev/github-work` workflow'u yoktu.
+- Önceki HEAD doğrulaması: CI #212 `43893905911`, QA #132 `43893905984` ve Pages #108 `43893905966` başarılı. QA #132'de 101/101 frontend + 79/79 domain testi başarılı; strict domain TypeScript, lint, production build ve production dependency audit adımları geçti.
+- Yeni commit için Actions sonucu: push sonrasında tetiklenmesi bekleniyor; bu kayıt hazırlanırken yeni run sonucu henüz yoktu.
+- Bilinen sınırlar: frontend JSON v1/CSV adapter'ı henüz domain agregatörünü çağırmıyor. Masa ayak/kayıt koordinatı, tabla taşması, birleşim/delik/donanım, CNC, nesting, fire, levha verimi, fiyat veya fiziksel üretim güvenliği üretilmez. Hiçbir `frontend/**` dosyası değiştirilmedi; açık frontend PR #8 sahiplenilmedi veya birleştirilmedi.
+- Sonraki görev: proje agregatörüne açık desteklenmeyen aile/konfigürasyon tanılaması ekle; ardından karışık ailelerin üretim dışa aktarma entegrasyon kriterlerini frontend sahibine hazırla.
