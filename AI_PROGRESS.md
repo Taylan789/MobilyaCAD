@@ -361,3 +361,21 @@
 - Bilinen kalite notları: son QA logunda Oxlint 19 uyarı / 0 hata; production audit eşiği başarılı olmakla birlikte 6 mevcut bulgu (2 düşük, 4 orta); yaklaşık 1.545 kB JS chunk uyarısı ve Actions Node 20 deprecation uyarısı var. Kırıcı bağımlılık güncellemesi yapılmadı.
 - AI Developer workflow'u yalnızca `workflow_dispatch` ile çalışır; son 100 run içinde bu workflow'a ait aktif run görülmedi ve bu bağlantıda dispatch işlemi bulunmadığından yeni run başlatılmadı.
 - Sonraki görev: mevcut çekmece kutusu geometri kurallarını frontend dışı `domain/production` motoruna açık sürümlü sözleşme ve regresyon testleriyle taşımak; ray, donanım ve CNC varsaymamak.
+
+
+## 16 Kasım 2026 — frontend dışı çekmece kutusu domain motoru
+
+- Başlangıç HEAD: `13ff4a8cb605a824bb6bb58a40891bc47a83581e` (`dev/github-work`).
+- Kod commit'i: `918cea2b1bcd5f414b0afd5e74031531b990d8e3` — [commit](https://github.com/Taylan789/MobilyaCAD/commit/918cea2b1bcd5f414b0afd5e74031531b990d8e3).
+- Değişen dosyalar:
+  - `domain/production/drawerBoxConstruction.ts` — sürüm 1 çekmece konstrüksiyon isteği, doğrulayıcı ve dört panel grubu için saf geometri hesaplayıcısı.
+  - `domain/production/drawerBoxConstruction.test.mjs` — 14 kabul testi.
+  - `.github/workflows/qa-test.yml` — yeni modül strict TypeScript kontrolüne eklendi.
+  - `docs/production-domain-contract.md` ve `PRODUCT_ROADMAP.md` — domain sözleşmesi ve sonraki adımlar güncellendi.
+- Hesap: iç genişlik `outerWidth - 2 × sideThickness`; taban uzunluğu `outerDepth - 2 × frontBackThickness`; tüm sonuçlar 0.1 mm hassasiyetinde. Yan ve ön/arka panel quantity değerleri ikiyle çarpılır; taban ve görünür ön panel quantity değerini korur.
+- Veri doğruluğu: dört panel grubunun ayrı kalınlığı, kenar bayrakları, damar yönü ve opsiyonel katalog malzeme override'ı doğrulanır. Katalog ID'si olmayan legacy serbest metin malzeme korunur; bilinmeyen alan, grup, taban kurgusu, katalog ID'si veya kalınlık sessizce kabul edilmez.
+- Gerçek Actions doğrulaması: QA run `43845683055` başarılı (**101/101 frontend testi + 51/51 domain testi**); strict domain TypeScript, lint, production build ve `npm audit --omit=dev --audit-level=high` adımları başarılı. CI run `43845683170` başarılı. Pages run `43845683089` build ve deploy ile başarılı.
+- Bilinen kalite notları: audit raporunda 6 mevcut bulgu (2 düşük, 4 orta; yüksek eşik aşılmadı); yaklaşık 1.545 kB JS chunk uyarısı ve Actions Node 20 deprecation uyarısı sürüyor. Bu domain dilimi frontend bundle'ını değiştirmedi.
+- Sınırlar: domain motoru henüz proje agregatörüne, JSON v1, tüketim özeti veya CSV'ye bağlı değildir. Ray boşluğu, reveal, bağlantı, delik, CNC, fire ve fiziksel üretim güvenliği hesabı yapılmaz; gerçek üretim için operatör/atölye doğrulaması gerekir. Hiçbir `frontend/**` dosyası değiştirilmedi.
+- AI Developer workflow run'ı bu kontrolde bulunamadı; workflow `workflow_dispatch` ile tetikleniyor ve bu bağlantıda dispatch aracı yok.
+- Sonraki görev: gövde ve çekmece konstrüksiyon sonuçlarını tek proje agregatöründe ortak parça sözleşmesiyle birleştir; `furnitureId`, drawer group/part ID, mm ölçü, quantity, malzeme, kenar bantlama ve damar yönünü koruyan regresyon testleri ekle.
