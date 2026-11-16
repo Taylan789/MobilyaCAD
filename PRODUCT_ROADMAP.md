@@ -435,3 +435,10 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 4. Masa ailesi için açık ayak/kayıt yerleşim koordinatı sözleşmesini, yalnızca kullanıcı/atölye girdisiyle ve CNC standardı uydurmadan tasarla.
 5. Kullanıcı kataloğu ve üretici/atölye girdileri doğrulanmadan nesting, CNC postprocessor veya fiyat/teklif çıktısı ekleme.
 
+## 16 Kasım 2026 — masa agregatörü kaynaklarının geri yüklenmesi
+
+- Masa agregatörü uygulaması ve üç regresyon testi, kaynak commit `a003f81479602c2ce3d6491f3a4665e92d275f57` içindeki doğrulanmış blob'lardan geri yüklendi.
+- Geri yükleme commit'i: `67b2d8444adb3a50997f2ce6592b6318c4ca48ba` — yalnızca `domain/production/projectProduction.ts` ve `domain/production/projectProduction.test.mjs`.
+- Önceki dokümantasyon commit'inde ağaç tabanı yanlışlıkla eski bir commit'ten alındığı için bu iki dosya geçici olarak dal ağacından çıkmıştı. Bu düzeltme yeni HEAD üzerine fast-forward commit ile dosyaları geri getirir; history rewrite/force-push kullanılmadı.
+- Bu geri yükleme commit'i için yeni CI/QA/Pages doğrulaması push sonrasında bekleniyor. Önceki kod doğrulaması #133, kaynak kodun bulunduğu HEAD `6fb558d6a2bb9a197ea01f65141855d9593ebe47` üzerinde 101/101 frontend + 82/82 domain testiyle başarılıydı; güncel HEAD yeniden doğrulanmalıdır.
+

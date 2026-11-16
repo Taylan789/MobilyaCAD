@@ -468,3 +468,10 @@
 - Kalite notları: Oxlint 32 uyarı / 0 hata; audit raporunda 6 bulgu (2 düşük, 4 orta; yüksek önem eşiği geçilmedi); büyük JS chunk ve Actions Node 20 deprecation uyarıları devam ediyor.
 - Bilinen sınırlar: frontend JSON v1/CSV adapter'ı henüz domain agregatörünü çağırmıyor. Masa ayak/kayıt koordinatı, tabla taşması, birleşim/delik/donanım, CNC, nesting, fire, levha verimi, fiyat veya fiziksel üretim güvenliği üretilmez. Hiçbir `frontend/**` dosyası değiştirilmedi; açık frontend PR #8 sahiplenilmedi veya birleştirilmedi.
 - Sonraki görev: proje agregatörüne açık desteklenmeyen aile/konfigürasyon tanılaması ekle; ardından karışık ailelerin üretim dışa aktarma entegrasyon kriterlerini frontend sahibine hazırla.
+
+## 16 Kasım 2026 — masa agregatörü kaynaklarının geri yüklenmesi ve dal doğrulaması
+
+- Tespit: dokümantasyon güncellemesi sırasında oluşturulan `3276bceb6fe0b001a2d223a357c336c5cff0d90f` commit'i eski tree SHA tabanını kullandığından `projectProduction.ts` ve `projectProduction.test.mjs` dosyalarını geçici olarak önceki sürüme döndürmüştü. CI/QA bu ara HEAD'de başarılı olsa da masa entegrasyonunu kapsamıyordu.
+- Düzeltme commit'i: `67b2d8444adb3a50997f2ce6592b6318c4ca48ba` — doğrulanmış masa agregatörü ve test blob'ları, güncel branch tree'si üzerine geri yüklendi. Force-push veya history rewrite yapılmadı.
+- Değişen dosyalar: `domain/production/projectProduction.ts`, `domain/production/projectProduction.test.mjs`.
+- Sonraki adım: bu restorasyonun yeni HEAD'indeki CI, QA (101 frontend + 82 domain testi beklenen) ve Pages sonuçlarını kontrol et; gerçek Actions tamamlanmadan doğrulama başarılı ilan edilmemelidir.
