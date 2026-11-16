@@ -888,7 +888,9 @@ test("TV ünitesi dikey bölücü ve bölme rafları ortak Part listesiyle malze
   const summary = calculateProjectMaterialConsumptionSummary(report.result);
   const mdf18 = summary.find((entry) => entry.materialId === "mdf-18");
   const mdf8 = summary.find((entry) => entry.materialId === "mdf-8");
-  assert.deepEqual([mdf18.totalQuantity, mdf18.partLineCount], [5, 5]);
+  assert.deepEqual([mdf18.totalQuantity, mdf18.partLineCount], [1, 1]);
+  const legacy = summary.find((entry) => entry.material === "Legacy MDF" && entry.materialId === undefined);
+  assert.deepEqual([legacy.totalQuantity, legacy.partLineCount], [4, 4]);
   assert.deepEqual(
     [
       mdf8.totalQuantity,

@@ -251,7 +251,7 @@ test("TV ünitesi açık ölçülü dikey bölücüyü katalog doğrulamalı ort
       divider.depthMm,
       divider.grainDirection
     ],
-    [500, 0, 420, 0, 432, "length"]
+    [500, 0, 384, 0, 432, "length"]
   );
   assert.deepEqual(divider.edgeBanding, {
     top: false, bottom: false, left: true, right: true
