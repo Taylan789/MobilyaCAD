@@ -431,3 +431,23 @@
 - Sınırlar: hiçbir `frontend/**` dosyası değiştirilmedi; domain sonucu henüz frontend JSON v1/CSV adapter'ına bağlı değil. Donanım, delik, CNC, nesting, fire, fiyat veya fiziksel üretim güvenliği iddiası eklenmedi. Atölye/operatör doğrulaması üretim öncesi gereklidir.
 - AI Developer workflow'u son 100 branch run'ında görünmedi; `.github/workflows/ai-developer.yml` yalnızca `workflow_dispatch` ile çalışıyor ve bu bağlantıda dispatch aracı bulunmadığından yeni run başlatılmadı.
 - Sonraki görev: masa konstrüksiyon ailesi için açık tabla/ayak/kayıt ölçülerini, bağlantı standardı veya CNC varsaymadan, sürüm 1 domain motoru ve regresyon testleriyle tasarlamak.
+
+
+## 16 Kasım 2026 — masa konstrüksiyon domain motoru ve otomatik doğrulama
+
+- Başlangıç HEAD: `8f643b8544a9354b7822e763e6a9a9bc75d3012b` (`dev/github-work`).
+- Domain/QA/dokümantasyon commit'i: `8477ac40aca83efc7acd1983358e5ee8a2514cc4`.
+- Regresyon test düzeltme commit'i: `06e8a1b91b1dae7f3d16926ff218e71e303d2e97`.
+- Değişen dosyalar:
+  - `domain/production/tableConstruction.ts` — sürüm 1 açık masa konstrüksiyon isteği, doğrulayıcı, katalog kontrolü ve kesim-parça üretimi.
+  - `domain/production/tableConstruction.test.mjs` — 13 masa kabul/regresyon testi; ilk QA bulgusuna göre yalnızca test fixture'ları düzeltildi.
+  - `.github/workflows/qa-test.yml` — masa domain motoru strict TypeScript kontrolüne eklendi; test glob'u yeni test dosyasını otomatik kapsıyor.
+  - `docs/production-domain-contract.md`, `PRODUCT_ROADMAP.md` — masa API'si, sınırlar ve sonraki teknik görevler.
+- API: `calculateTableConstruction({ schemaVersion: 1, family: "table", furniture, profile, materials })`. Tabla eni/boyu ve toplam yüksekliği, tabla kalınlığı, ayak kesiti/adedi ve kayıt seçimi/ölçüleri açık girdidir. Ayak yüksekliği toplam yükseklikten tabla kalınlığı çıkarılarak hesaplanır; tüm parça ölçüleri mm ve 0.1 mm hassasiyetindedir.
+- Parça grupları: tabla, ayak, uzun kayıt ve kısa kayıt. Her grup için kenar bantlama, damar yönü ve gerektiğinde katalog malzeme override'ı korunur. Override kalınlığı katalogdaki gerçek `thicknessesMm` listesinde bulunmalıdır. Kayıt adetleri ve uzunlukları ayrı ayrı verilir; varsayılan 2 uzun + 2 kısa kayıt veya ayak yerleşimi üretilmez.
+- İlk QA denemesi: QA run #130 / `43893285999` başarısız (**101/101 frontend + 76/79 domain testi**). Üretim motoru değil, üç test fixture beklentisi hatalıydı: varsayılan MDF kimliği 60 mm ayak kesitini kapsamıyordu; sıfır kayıt adedi senaryosu önceki doğrulama kuralını tetikliyordu. Testler zayıflatılmadı; ayak için açık `wood-60` katalog ataması ve ikinci kayıt yönünde pozitif adet verilerek senaryolar ayrıştırıldı.
+- Düzeltme sonrası gerçek Actions: CI run #211 / `43893588170` başarılı; QA run #131 / `43893588200` başarılı (**101/101 frontend + 79/79 domain testi, 0 başarısız**); Pages deploy run #107 / `43893588256` başarılı (build + deploy). QA'da yeni masa modülü strict TypeScript kontrolünden geçti.
+- Kalite notları: Oxlint 32 uyarı / 0 hata; production audit raporunda 6 mevcut bulgu (2 düşük, 4 orta; yüksek önem eşiği geçilmedi); 500 kB üstü frontend chunk uyarısı ve GitHub Actions Node 20 deprecation uyarısı sürüyor. Bağımlılık güncellemesi yapılmadı.
+- Bilinen sınırlar: masa motoru henüz proje agregatörüne veya frontend JSON v1/CSV adapter'ına bağlı değildir. Ayak/kayıt koordinatı, tabla taşması, birleşim standardı, vida/delik, donanım, CNC, nesting, fire, fiyat veya montaj güvenliği hesabı yapılmaz. Gerçek atölye/üretim doğrulaması gerekir. Hiçbir `frontend/**` dosyası değiştirilmedi.
+- AI Developer workflow'u son 100 Actions run'ında bulunmadı; `.github/workflows/ai-developer.yml` yalnızca `workflow_dispatch` ile tetiklenir ve mevcut GitHub bağlantısında dispatch aracı yoktur. Yeni run başlatılmış gibi gösterilmedi.
+- Sonraki görev: `TableConstructionPart` tipini proje agregatörüne ekle; masa ailesinin dış ölçülerini mevcut dolap/kitaplık `innerDimensionsMm` sonucunu bozmadan aileye özgü biçimde taşı; karışık masa/kitaplık/dolap projelerinde malzeme ve quantity toplamlarını test et.

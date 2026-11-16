@@ -411,3 +411,6 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 3. [ ] Proje agregatörüne desteklenmeyen aile/konfigürasyon tanılaması ekle; hiçbir aile sessizce dolap olarak yorumlanmasın.
 4. [ ] Domain parça listesinin frontend JSON v1/CSV adapter'ına bağlanması için ayrı frontend sahibinin kullanacağı entegrasyon kabul testlerini ve sözleşmesini netleştir.
 5. [ ] Masa, kitaplık ve dolap ailelerinin birleşik quantity, malzeme ve kenar bantlama özetlerini proje düzeyinde regresyon testleriyle doğrula.
+
+
+- **Masa motoru doğrulaması:** kod commit'i `8477ac40aca83efc7acd1983358e5ee8a2514cc4`, test fixture düzeltmesi `06e8a1b91b1dae7f3d16926ff218e71e303d2e97`. CI #211 `43893588170`, QA #131 `43893588200` (**101/101 frontend + 79/79 domain testi**) ve Pages #107 `43893588256` başarılı. QA strict domain TypeScript, lint, production build ve yüksek önem dependency audit eşiği başarılıdır. İlk QA #130'da üç fixture hatası bulundu ve testler gevşetilmeden düzeltildi.

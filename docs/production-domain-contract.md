@@ -163,3 +163,14 @@ Kaynak: `domain/production/tableConstruction.ts`
 - Parça grupları `top`, `legs`, `longApron`, `shortApron` şeklindedir. Her grup için dört kenar bantlama bayrağı ve `length | width | none` damar yönü açıkça verilir. Grup malzeme override'ı katalog kimliği ve gerçek `thicknessesMm` değeriyle doğrulanır.
 - Çıktı tabla, ayak ve etkin kayıtları ayrı satırlar olarak verir; stabil parça kimliği, kaynak mobilya kimliği, mm ölçüleri, quantity, malzeme kimliği, kenar bantlama ve damar yönü korunur.
 - Bu ilk dilim bir kesim-parça hesabıdır; ayak/kayıt konumları, tabla taşması, birleşim/vida standardı, delik, donanım, CNC, nesting, fire veya montaj güvenliği üretmez. Fiziksel yerleşim ve bağlantı seçimi atölye tarafından doğrulanmalıdır.
+
+
+## 7. Masa motoru sonrası güncel domain sırası — 16 Kasım 2026
+
+1. Masa ailesini `calculateCabinetProjectProduction` proje agregatörüne ekle. `ProjectProductionPart` birleşimine `TableConstructionPart` eklenirken eski cabinet/bookshelf isteklerinin sonuç şekli ve legacy family-less davranışı değişmemelidir.
+2. Proje mobilya sonucunda masa için `overallDimensionsMm` gibi aileye özgü dış ölçü alanı ekle; mevcut cabinet/bookshelf `innerDimensionsMm` alanını kaldırma veya yeniden yorumlama. Eski sonuçlarda yeni alan bulunmaması geriye uyumlu kalmalıdır.
+3. `calculateProjectMaterialConsumptionSummary` aynı birleşik Part listesinden masa quantity, net alan/hacim ve kenar bantlama toplamlarını hesaplamalı; farklı ailelerin malzeme kimliği/kalınlık grupları ayrılmalıdır.
+4. Desteklenmeyen aile ve eksik konfigürasyonlar için proje düzeyinde açık `unsupportedFurniture` / hata tanılaması tasarla; bilinmeyen aile hiçbir zaman dolap olarak varsayılmamalıdır.
+5. Frontend sahibi domain agregatörünü JSON v1/CSV adapter'ına bağlarken masa sonuçlarını aynı Part listesinden kullanmalı; bu domain dalı `frontend/**` dosyalarını değiştirmez.
+
+Bu sıra masa motorunun mevcut durumunu supersede eder; motor tek başına üretim koordinatı, bağlantı standardı veya CNC çıktısı sağlamaz.
