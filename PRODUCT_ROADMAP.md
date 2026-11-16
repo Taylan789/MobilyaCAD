@@ -16,13 +16,13 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 | Oda ve 3D sahne | Ölçülü oda ve perspektif sahne | Tam 2D teknik çizim, kesit ve görünüş araçları yok |
 | Yerleşim | Katalogdan ekleme, seçme, taşıma, döndürme ve boyutlandırma; SAT tabanlı yatay ayak izi çakışma ve oda sınırı uyarıları 3D sahnede gösterilir | Gelişmiş snap, çoklu seçim, duvar montajı/kapak açılımı boşlukları ve tam undo/redo akışı doğrulanmış değil |
 | Katalog | Mutfak, gardırop, banyo, masa, kitaplık ve diğer ailelerden 100 varyasyon | Şablonlar tam parametrik konstrüksiyon aileleri değil |
-| Parçalar | Görsel kapak/çekmece/raf parçaları; açık ölçülü çekmece kutusu motoru; proje v1 yapılandırması; Üretim paneli formu; hesaplanan çekmece grupları birleşik üretim listesine bağlı | Diğer mobilya aileleri için tam üretim parça ağacı yok; ray, donanım ve CNC operasyonları dahil değil |
-| Hesap motoru | Mutfak tipi gövdeler için yan, üst, alt, raf, kapak ve arkalık hesabı | Çekmece kutusu, tüm aileler ve üreticiye özel konstrüksiyonlar eksik |
+| Parçalar | Görsel kapak/çekmece/raf parçaları; açık ölçülü çekmece kutusu motoru; proje v1 yapılandırması; Üretim paneli formu; hesaplanan çekmece grupları birleşik üretim listesine bağlı; frontend dışı domain düz gövde hesaplayıcısı ve çoklu mobilya üretim agregatörü mevcut | Domain agregatörü henüz frontend proje JSON/CSV akışına bağlı değil; diğer mobilya aileleri için tam üretim parça ağacı yok; ray, donanım ve CNC operasyonları dahil değil |
+| Hesap motoru | Mevcut mutfak üretim hesabına ek olarak frontend dışı `cabinetConstruction` sürüm 1 mm tabanlı saf hesaplayıcı ve `projectProduction` çoklu mobilya agregatörü | Yeni domain sözleşmesi mevcut frontend proje JSON/CSV pipeline'ına henüz bağlanmadı; diğer aileler ve üreticiye özel konstrüksiyonlar eksik |
 | Kesim listesi | Projedeki desteklenen düz mutfak gövdeleri ve tam tanımlı çekmece parçaları için tek Türkçe Excel uyumlu CSV; her satır kaynak mobilya adı/ID'si ve varsa katalog Malzeme ID değeriyle izlenir | Köşe/cihaz/evye konstrüksiyonları, diğer aileler, nesting ve CNC çıktısı yok |
 | Kenar bantlama / malzeme tüketimi | Projedeki desteklenen modüllerin birleşik parçalarından malzeme + kalınlık bazında adet, net alan/hacim ve kenar bantlama toplamı | Yalnızca desteklenen düz gövdeler; fire, levha verimi, kesim payı ve rulo payı yok |
 | Malzeme kataloğu | UI CRUD; mobilya varsayılan materialId ve çekmece grubunda varsayılan + dört panel grubu override; JSON v1 referans/kalınlık doğrulaması; referanslı kayıtların silinmesi engellenir; desteklenen parçalar ID + kalınlıkla tüketim ve CSV'ye taşınır | Gövde yan/üst/alt, raf, arkalık ve kapak için bağımsız parça override; fiyat, tedarikçi ve fire henüz yok |
 | Proje dosyası | Yerel JSON v1 indirme/yükleme; saf serializer/parser; round-trip ve eski v1 uyumluluk; mm, mobilya ve çekmece grubu katalog referansları ile dört çekmece panel kalınlığının doğrulanması | Şema migrasyonu, otomatik kayıt ve kurtarma yok |
-| Test/CI | Kod commit'i CI #92, QA #58 (98/98 test) ve Pages deploy #57 ile başarılı; TypeScript/build/lint ve production audit eşiği geçti | Fiziksel üretim doğrulaması otomatik testle yapılamaz; lint'te 16 uyarı, audit'te 6 bulgu (2 düşük/4 orta) ve bundle boyutu uyarısı sürüyor |
+| Test/CI | `01b62a8331b7403d483246e94aca5fa28c5c6a33` üzerinde CI run `43821494725`, QA run `43821494753` (101/101 frontend + 31/31 domain testi) ve Pages deploy `43821494767` başarılı; strict domain type-check, lint, build ve audit adımları geçti | Fiziksel üretim doğrulaması otomatik testle yapılamaz; lint'te 19 uyarı, audit'te 6 bulgu (2 düşük/4 orta) ve bundle boyutu uyarısı sürüyor |
 
 ### Bilinen mimari ve veri boşlukları
 
@@ -240,18 +240,11 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 
 ## Sıradaki 5 küçük görev — domain sahipliği
 
-1. Birden fazla mobilyanın doğrulanmış domain parça listelerini furnitureId, parça ID ve quantity kaybetmeden birleştiren proje üretim agregatörünü ekle.
-2. Domain parça listesinden malzeme + kalınlık bazında net alan/hacim ve kenar bantlama özetlerini hesapla; taşan toplamları reddet.
-3. Frontend yenileme sahibine sürümlü konstrüksiyon isteği/sonuç sözleşmesini ve entegrasyon kabul kriterlerini dokümante et; frontend dosyalarına yazma.
-4. Panel grubu bazında farklı kalınlık ihtiyacını konstrüksiyon geometrisi ve atölye kurallarıyla doğrula; doğrulanmadan varsayılan veya bağımsız kalınlık üretme.
-5. İlk kitaplık/gardırop ailesini yalnızca açıkça doğrulanmış ölçü ve montaj girdileriyle ayrı dikey dilim olarak geliştir.
-
-
-1. Mobilya bazlı konstrüksiyon profili için frontend dışı tipli şema ve ölçü/adet doğrulayıcıları oluştur.
-2. Düz gövde parça üretiminde mevcut panel/arkalık kurallarını aynı açık profil girdilerinden türeten saf domain hesaplayıcısını test et.
-3. Proje bazlı birden çok mobilyanın üretim parçalarını kimlik ve quantity kaybı olmadan birleştiren ortak domain agregatörünü ekle.
-4. Gövde panel malzeme adaptörünü frontend yenileme sahibine net entegrasyon sözleşmesiyle teslim et; bu otomasyon `frontend/**` dosyalarını değiştirmez.
-5. İlk basit kitaplık/gardırop konstrüksiyon ailesinin yalnızca doğrulanmış ölçü girdileriyle parça ağacını ve kesim verisini domain testleriyle hazırla.
+1. Çoklu mobilya agregatörünün döndürdüğü Part listesi üzerinden materialId + malzeme adı + kalınlık bazında net alan/hacim ve kenar bantlama toplamlarını quantity ağırlıklı hesapla; taşan toplamları reddet.
+2. Frontend yenileme sahibine sürümlü proje konstrüksiyon istek/sonuç sözleşmesini, eski JSON v1 uyumluluğunu ve hata/boş durum kabul kriterlerini dokümante et; `frontend/**` dosyalarına yazma.
+3. Agregatör giriş/çıkış tiplerini daha güçlü hale getirirken runtime şema doğrulamasını koru; bilinmeyen mobilya ailelerini açıkça reddet.
+4. Panel grubu bazında farklı kalınlık ihtiyacını ancak her grubun geometri formülleri ve atölye kuralları açık girdiyse destekle; varsayılan kalınlık uydurma.
+5. İlk kitaplık/gardırop konstrüksiyon ailesini açık ölçü ve montaj girdileriyle ayrı domain dilimi olarak geliştir; donanım/CNC koordinatlarını üretici verisi olmadan üretme.
 
 ## Üretim güvenliği ve karar sınırları
 
@@ -316,3 +309,16 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 - Otomatik doğrulama: QA #87 (`43807168292`) başarılı (101/101 uygulama + 26/26 ortak domain testi); strict TypeScript, lint, production build ve audit başarılı. CI #140 (`43807168281`) ve Pages deploy #77 (`43807168390`) başarılı.
 - Sonraki domain görevi: birden fazla mobilyanın doğrulanmış domain parça listelerini furnitureId/parça ID/quantity kaybetmeden birleştiren proje üretim agregatörü; ardından aynı kaynaktan malzeme/kenar bantlama toplamları.
 
+
+
+## 16 Kasım 2026 — çoklu mobilya domain üretim agregatörü (doğrulandı)
+
+- `domain/production/projectProduction.ts`, her mobilyanın sürüm 1 konstrüksiyon isteğini bağımsız hesaplayıp proje seviyesinde tek `Part[]` listesinde birleştirir.
+- Her satırın `furnitureId`, sabit parça `id`, mm ölçüleri, katalog malzeme kimliği/adı, kenar bayrakları ve `quantity` değeri korunur; parça satırları birleştirilmez veya adetleri yeniden yorumlanmaz.
+- Yinelenen mobilya/parça kimlikleri, bozuk istek, desteklenmeyen şema ve geçersiz konstrüksiyon girdileri reddedilir. Boş proje boş sonuç verir.
+- Yeni domain modülü strict TypeScript kontrolüne ve `domain/production/*.test.mjs` QA testlerine eklendi.
+- Kod commit zinciri: `6b72e43fe38762f66baaa325ad815e22957c775a` (özellik) ve `01b62a8331b7403d483246e94aca5fa28c5c6a33` (test fixture düzeltmesi).
+- Gerçek doğrulama: CI run `43821494725` başarılı; QA run `43821494753` başarılı (**101/101 frontend + 31/31 domain testi**); Pages deploy run `43821494767` başarılı. Lint 19 uyarı / 0 hata; TypeScript, strict domain type-check, production build ve production audit eşiği başarılı.
+- İlk QA denemesi `43821376989` bir yeni testte başarısız oldu: test fixture'ı `overrides.furniture` alanını nesneye aktarmadığı için geçersiz genişlik senaryosu hesaplayıcıya ulaşmıyordu. Fixture düzeltildi; test silinmedi veya gevşetilmedi.
+- Sınırlar: agregatör yalnızca mevcut düz gövde domain hesaplayıcısını çağırır; kitaplık/gardırop, çekmece entegrasyonu, malzeme tüketim özeti, JSON/CSV entegrasyonu, donanım, nesting ve CNC çıktısı sağlamaz. Fiziksel üretim onayı değildir.
+- Sonraki görev: agregatörün birleşik Part listesi üzerinden quantity ağırlıklı malzeme tüketimi ve kenar bantlama özetini domain seviyesinde hesaplamak.

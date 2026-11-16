@@ -312,3 +312,17 @@
 - Bilinen sınırlar: modül henüz frontend üretim akışına, JSON v1, proje agregatörü, tüketim veya CSV'ye bağlanmadı. Konstrüksiyon formülleri mevcut düz gövde davranışının domain dilimine taşınmasıdır; gerçek üretici/atölye doğrulaması değildir. Değişken panel kalınlığı, raf delikleri, donanım, CNC, fire/kerf ve nesting kapsam dışıdır.
 - Sonraki görev: çoklu mobilya domain üretim agregatörü ve domain parça listelerinden doğrulanabilir malzeme/kenar bantlama toplamları.
 
+
+
+## 16 Kasım 2026 — çoklu mobilya domain üretim agregatörü
+
+- Başlangıç HEAD: `8c1295ec5b6adccb6a11e165f8c70274c80e3da4`; kod commit'i: `6b72e43fe38762f66baaa325ad815e22957c775a`; QA fixture düzeltmesi: `01b62a8331b7403d483246e94aca5fa28c5c6a33`.
+- Değişen dosyalar: `domain/production/projectProduction.ts` (yeni), `domain/production/projectProduction.test.mjs` (yeni), `.github/workflows/qa-test.yml`; bu dokümantasyon güncellemesi `PRODUCT_ROADMAP.md` ve `AI_PROGRESS.md` dosyalarını kapsar. Hiçbir `frontend/**` dosyası değiştirilmedi.
+- API: `calculateCabinetProjectProduction(unknown)`, her mobilyanın kendi sürüm 1 konstrüksiyon isteğini `calculateCabinetConstruction` ile hesaplar; sonuçta mobilya iç ölçülerini ve sıralı birleşik Part listesini döndürür.
+- Veri doğruluğu: furnitureId ve part ID benzersizliği; kaynak mobilya kimliği eşleşmesi; mm ölçüler ve quantity değerlerinin korunması; boş proje; hatalı şema/kimlik/geometri test edildi. Hesaplayıcı girişleri değiştirmez.
+- İlk doğrulama: CI run `43821376970` başarılı; QA run `43821376989` başarısız (**30/31 domain testi**). Kök neden üretim kodu değil, geçersiz genişlik fixture'ının `overrides.furniture` alanını oluşturmamasıydı.
+- Düzeltme: `01b62a8331b7403d483246e94aca5fa28c5c6a33` test fixture'ının açık mobilya override'ını yaymasını sağladı; üretim davranışı ve test kapsamı korunarak gerçek geçersiz ölçü kontrolü çalıştırıldı.
+- Nihai Actions: CI `43821494725` başarılı; QA `43821494753` başarılı (**101/101 frontend + 31/31 domain testi**); Pages `43821494767` build ve deploy job'ları başarılı. Strict domain type-check, lint, TypeScript/production build ve `npm audit --omit=dev --audit-level=high` adımları başarılı.
+- Kalite/kısıtlar: lint 19 uyarı / 0 hata; audit raporunda 6 mevcut bulgu (2 düşük, 4 orta); bundle boyutu uyarısı sürüyor. Üretim fiyatı, fire, nesting, CNC, donanım veya fiziksel atölye doğrulaması eklenmedi.
+- AI Developer: workflow dosyası `workflow_dispatch` ile tetikleniyor; bu bağlantıda workflow dispatch aracı bulunmadığından run başlatılmadı. Branch run listesinde AI Developer çalışması yoktu.
+- Sonraki görev: proje agregatörünün birleşik Part listesi üzerinden quantity ağırlıklı malzeme tüketimi ve kenar bantlama özetini frontend dışı domain modülünde geliştirmek.
