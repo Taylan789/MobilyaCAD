@@ -30,6 +30,8 @@ interface PanelSectionPreviewProps {
   thicknessesMm: number[];
   decor?: string;
   compact?: boolean;
+  selectedThickness?: number;
+  onSelectThickness?: (thickness: number) => void;
 }
 
 const emptyDraft: MaterialDraft = {
@@ -42,9 +44,17 @@ const emptyDraft: MaterialDraft = {
 function PanelSectionPreview({
   thicknessesMm,
   decor,
-  compact = false
+  compact = false,
+  selectedThickness,
+  onSelectThickness
 }: PanelSectionPreviewProps) {
-  const sampleThickness = [...thicknessesMm].sort((a, b) => a - b)[0];
+  const availableThicknesses = [...new Set(
+    thicknessesMm.filter((thickness) => Number.isFinite(thickness) && thickness > 0)
+  )].sort((a, b) => a - b);
+  const sampleThickness = selectedThickness !== undefined &&
+    availableThicknesses.includes(selectedThickness)
+    ? selectedThickness
+    : availableThicknesses[0];
   const sectionHeight = sampleThickness === undefined
     ? 0
     : Math.max(5, Math.min(22, sampleThickness * 0.7));
@@ -53,10 +63,11 @@ function PanelSectionPreview({
   return (
     <div
       className={"mc-panel-preview" + (compact ? " mc-panel-preview--compact" : "")}
+      role="group"
       aria-label={
         sampleThickness === undefined
           ? "Panel kesit önizlemesi için kalınlık girilmedi"
-          : "Temsili panel kesiti, ilk kalınlık seçeneği " + sampleThickness + " milimetre"
+          : "Temsili panel kesiti, gösterilen kalınlık " + sampleThickness + " milimetre"
       }
     >
       <svg viewBox="0 0 164 76" aria-hidden="true">
@@ -98,7 +109,7 @@ function PanelSectionPreview({
           </text>
         )}
       </svg>
-      <div className="mc-panel-preview__caption">
+      <div className="mc-panel-preview__caption" aria-live="polite">
         <span>KESİT ŞEMASI</span>
         <strong>
           {sampleThickness === undefined
@@ -107,6 +118,22 @@ function PanelSectionPreview({
         </strong>
         <small>{decor || "Yüzey rengi / dokusu tanımlı değil"}</small>
       </div>
+      {!compact && onSelectThickness && availableThicknesses.length > 1 && (
+        <div className="mc-panel-preview__options" role="group" aria-label="Kesit önizleme kalınlığı">
+          <span>ÖNİZLEME</span>
+          {availableThicknesses.map((thickness) => (
+            <button
+              key={thickness}
+              type="button"
+              aria-label={"Kesit önizlemesini " + thickness + " mm göster"}
+              aria-pressed={sampleThickness === thickness}
+              onClick={() => onSelectThickness(thickness)}
+            >
+              {thickness.toLocaleString("tr-TR")} mm
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -124,6 +151,7 @@ export function MaterialCatalogManager({
   onChange
 }: MaterialCatalogManagerProps) {
   const [draft, setDraft] = useState<MaterialDraft>(emptyDraft);
+  const [previewThickness, setPreviewThickness] = useState<number | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -131,12 +159,14 @@ export function MaterialCatalogManager({
 
   useEffect(() => {
     setDraft(emptyDraft);
+    setPreviewThickness(null);
     setEditingId(null);
     setError(null);
   }, [materials]);
 
   function resetForm() {
     setDraft(emptyDraft);
+    setPreviewThickness(null);
     setEditingId(null);
     setError(null);
   }
@@ -153,6 +183,7 @@ export function MaterialCatalogManager({
       thicknessesMm: material.thicknessesMm.join("; ")
     });
     setEditingId(material.id);
+    setPreviewThickness(material.thicknessesMm[0] ?? null);
     setError(null);
   }
 
@@ -441,7 +472,12 @@ export function MaterialCatalogManager({
             </div>
 
             <div className="mc-material-library__draft-preview">
-              <PanelSectionPreview thicknessesMm={draftThicknesses} decor={draft.decor.trim() || undefined} />
+              <PanelSectionPreview
+                thicknessesMm={draftThicknesses}
+                decor={draft.decor.trim() || undefined}
+                selectedThickness={previewThickness ?? undefined}
+                onSelectThickness={setPreviewThickness}
+              />
               <p>Şematik kesit önizlemesi. Kalınlık etiketleri girilen mm değerlerini gösterir; yüzey rengi veya dokusu temsil edilmez.</p>
             </div>
 
