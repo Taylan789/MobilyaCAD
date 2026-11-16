@@ -22,7 +22,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 | Kenar bantlama / malzeme tüketimi | Frontend'de desteklenen mutfak parçaları için mevcut özet; ayrıca frontend dışı proje agregatörünün birleşik Part listesi üzerinden materialId + malzeme adı + kalınlık bazında quantity ağırlıklı net alan/hacim ve kenar bantlama özeti | Domain özeti henüz UI/JSON/CSV'ye bağlı değil; yalnızca mevcut düz gövde domain parçaları; fire, levha verimi, kerf, bant kalınlığı ve rulo payı yok |
 | Malzeme kataloğu | UI CRUD; mobilya varsayılan materialId ve çekmece grubunda varsayılan + dört panel grubu override; JSON v1 referans/kalınlık doğrulaması; referanslı kayıtların silinmesi engellenir; desteklenen parçalar ID + kalınlıkla tüketim ve CSV'ye taşınır | Gövde yan/üst/alt, raf, arkalık ve kapak için bağımsız parça override; fiyat, tedarikçi ve fire henüz yok |
 | Proje dosyası | Yerel JSON v1 indirme/yükleme; saf serializer/parser; round-trip ve eski v1 uyumluluk; mm, mobilya ve çekmece grubu katalog referansları ile dört çekmece panel kalınlığının doğrulanması | Şema migrasyonu, otomatik kayıt ve kurtarma yok |
-| Test/CI | `01b62a8331b7403d483246e94aca5fa28c5c6a33` üzerinde CI run `43821494725`, QA run `43821494753` (101/101 frontend + 31/31 domain testi) ve Pages deploy `43821494767` başarılı; strict domain type-check, lint, build ve audit adımları geçti | Fiziksel üretim doğrulaması otomatik testle yapılamaz; lint'te 19 uyarı, audit'te 6 bulgu (2 düşük/4 orta) ve bundle boyutu uyarısı sürüyor |
+| Test/CI | Güncel HEAD `f6f3fa5b1bfe5b9f1cc67c9d3e5675cdccd6245a` üzerinde CI run `43828263561`, QA run `43828263688` (101/101 frontend + 36/36 domain testi) ve Pages deploy `43828263603` başarılı; strict domain TypeScript, lint, production build ve production audit adımları geçti | Fiziksel üretim doğrulaması otomatik testle yapılamaz; lint'te 19 uyarı, audit'te 6 bulgu (2 düşük/4 orta), bundle boyutu ve Actions Node 20 deprecation uyarıları sürüyor |
 
 ### Bilinen mimari ve veri boşlukları
 
@@ -31,6 +31,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 - Çekmece görsel sayısı ile gerçek çekmece kutusu/önü parça ağacı aynı şey değildir; kullanıcı ölçü, malzeme, kenar bantlama ve damar yönünü açıkça tanımlar. Hesaplanan dört çekmece parça grubu gövde parçalarıyla aynı üretim listesine ve CSV'ye eklenir; eksik veya geçersiz yapılandırma dışa aktarımı engeller. Ray boşluğu, donanım ve CNC işlemleri hesaplanmaz.
 - Panel malzeme kataloğunun domain sözleşmesi, UI CRUD akışı, mobilya materialId bağlantısı ve çekmece grubu materialId bağlantısı tamamlandı. Çekmece gruplarında varsayılan malzemeye ek olarak yan, ön/arka, taban ve görünür ön panel için bağımsız katalog override desteklenir; her grubun kendi mm kalınlığı doğrulanır. Gövde yan/üst/alt, raf, arkalık ve kapak için bağımsız parça override henüz yoktur. Donanım tüketimi, nesting ve CNC postprocessor katmanları tamamlanmış değildir.
 - Kenar bantlama ve malzeme tüketimi proje genelinde desteklenen düz mutfak modüllerinin birleştirilmiş parça listesinden hesaplanır; katalog referanslı gövde parçaları ID + kalınlıkla ayrı gruplanır. Özel köşe/cihaz/evye geometrileri ve diğer mobilya aileleri kapsam dışıdır. Fire ve rulo payı hesaplanmaz.
+- Domain/frontend entegrasyon sınırı `docs/production-domain-contract.md` içinde belgelenmiştir: sürüm 1 konstrüksiyon isteği, proje agregatörü, malzeme özeti, mevcut JSON v1/çekmece girdisi ve frontend durum/kabul kriterleri. Bu bir entegrasyon sözleşmesidir; domain motorlarının frontend'e bağlandığı anlamına gelmez.
 - Yerleşim doğrulaması XZ düzlemindeki yatay dikdörtgen ayak izlerini ve oda sınırlarını denetler; dikey çakışma, kapak/çekmece açılımı, duvar sabitlemesi ve montaj toleranslarını hesaplamaz.
 
 ## Geliştirme aşamaları
@@ -240,11 +241,11 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 
 ## Sıradaki 5 küçük görev — domain sahipliği
 
-1. Frontend yenileme sahibine sürümlü proje konstrüksiyon/üretim sonucu sözleşmesini, JSON v1 geriye uyumluluğunu ve hata/boş durum kabul kriterlerini dokümante et; `frontend/**` dosyalarına yazma.
-2. Proje agregatörü giriş/çıkış tiplerini güçlendirirken runtime şema doğrulamasını koru; desteklenmeyen mobilya ailelerini açıkça reddet.
-3. Çekmece kutusu konstrüksiyonunu frontend dışı domain motoruna taşıyıp proje agregatörüne bağla; ölçü, panel kalınlığı, malzeme, kenar ve damar girdilerini açıkça iste, ray/donanım varsayma.
-4. Panel grubu bazında farklı kalınlığı yalnızca her grubun geometri formülleri ve atölye kuralları açık girdiyse destekle; varsayılan kalınlık uydurma.
-5. İlk kitaplık/gardırop konstrüksiyon ailesini açık ölçü ve montaj girdileriyle ayrı domain dilimi olarak geliştir; donanım/CNC koordinatlarını üretici verisi olmadan üretme.
+1. Mevcut çekmece kutusu geometri kurallarını frontend dışı `domain/production` motoruna açık sürümlü giriş/çıkış ve regresyon testleriyle taşı; ray/donanım varsayma.
+2. Domain proje agregatörüne gövde ve çekmece sonuçlarını aynı stabil parça sözleşmesinde birleştiren küçük, testli bir dilim ekle.
+3. Frontend sahibi, `drawerBoxSpecs` ve proje JSON v1 geriye uyumluluğunu koruyan adapter'ı kendi frontend dalında uygulasın; bu otomasyon `frontend/**` dosyalarına yazmaz.
+4. Domain agregatörü için mobilya ailelerini discriminated request tipleriyle güçlendir; desteklenmeyen aileleri açıkça reddet.
+5. İlk kitaplık/gardırop konstrüksiyon ailesini açık montaj girdileriyle ekle; üretici verisi olmadan donanım/CNC üretme.
 
 ## Üretim güvenliği ve karar sınırları
 
