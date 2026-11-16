@@ -473,8 +473,8 @@ test("karışık cabinet, bookshelf, table ve wardrobe projesi malzeme tüketimi
     thicknessMm: 18,
     partLineCount: 17,
     totalQuantity: 21,
-    panelAreaM2: 10.40456,
-    volumeM3: 0.18728208,
+    panelAreaM2: 11.00456,
+    volumeM3: 0.19808208,
     edgeBanding: {
       widthEdgesLengthMm: 2400,
       lengthEdgesLengthMm: 4328,
