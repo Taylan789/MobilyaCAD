@@ -614,15 +614,16 @@
 ## 17 Kasım 2026 — floor-standing TV ünitesi dikey bölücü panelleri
 
 - Başlangıç HEAD: `8499317c8b4ee276fca85af889a21a0f6b5540e6`.
-- Kod commit SHA: `3e4254830d37b4b3f6fdb9fe5fb55cf858d06e40`.
+- Özellik commit SHA: `3e4254830d37b4b3f6fdb9fe5fb55cf858d06e40`; net iç yükseklik doğruluğu follow-up: `a170961a340e37517a4045078f2461c7359ec475`; test/QA düzeltme commits: `cfd49462b34d35e6d7a7145717fb8e3a28a4ddc1`, `df4fc4a5985c3d4ac97fc0ed7874f2586124c5c8`; final verified code/test HEAD: `e83a5ab4eefa91a82d5d8e9027ab1472f2162a20`.
 - Değişen dosyalar:
   - `domain/production/tvUnitConstruction.ts` — opsiyonel `verticalDividers` sözleşmesi; açık sol/alt/ön ofset, yükseklik, derinlik, kalınlık, katalog malzemesi, kenar bandı ve damar yönü.
   - `domain/production/tvUnitConstruction.test.mjs` — eski istek uyumluluğu, 0.1 mm normalizasyon, sınır/katalog/kimlik, bölücü ve raf çakışma/temas testleri.
   - `domain/production/projectProduction.test.mjs` — TV bölücü + bölme raflarının ortak Part listesi ve MDF 18/MDF 8 malzeme tüketim uzlaşması; çakışmada export bloklama.
   - `docs/production-domain-contract.md`, `PRODUCT_ROADMAP.md` — yeni domain sözleşmesi, sınırlar ve sonraki görevler.
 - Kabul kriteri: bölücüler birbiriyle ve özel raflarla pozitif hacimde çakışamaz; yüzey teması kabul edilir; bölücü varken koordinatsız `shelfCount` reddedilir; geçerli proje `ready`, çakışan proje `blocked/result: null` olur.
-- İlk GitHub Actions sonucu: CI #285 (`43967346321`) başarılı; Pages #138 (`43967345920`) başarılı; QA #174 (`43967346352`) başarısız (117/123 domain testi). Altı başarısız testin ortak nedeni test fikstürlerinin net iç yükseklik yerine dış yüksekliği kullanmasıydı: 420 mm dış yükseklikten 18+18 mm üst/alt panel çıkarılınca net açıklık 384 mm; 720 mm dış yükseklikte 684 mm. Motorun sınır reddi doğruydu; test verisi düzeltildi ve TV sonucundaki `innerDimensionsMm.height` alanı da net açıklıkla tutarlı hale getirildi.
-- Düzeltme commit SHA: bu QA geri bildirimi sonrasında oluşturulacak ve yeni CI/QA ile doğrulanacak.
+- QA geri bildirimleri ve düzeltmeler: QA #174 (`43967346352`) ve #175 (`43967659714`) 117/123 testte dış yükseklik/net açıklık fikstür uyuşmazlığını yakaladı; #176 (`43967822020`) 121/123 testte 420/720 mm dış yükseklik beklentilerinin 384/684 mm net panel ölçülerine göre güncellenmediğini gösterdi; #177 (`43968020240`) 121/123 testte katalog kimlikli bölücü ile kimliksiz legacy gövde parçalarının malzeme özetinde ayrı gruplandığını ve bir metadata beklentisinin eski dış yükseklikte kaldığını yakaladı. Geometri sınır reddi doğruydu; fikstür ve beklentiler düzeltildi. `innerDimensionsMm.height` artık üst/alt panel kalınlıkları düşülmüş net açıklığı verir.
+- Son GitHub Actions doğrulaması: CI #289 (`43968217809`) başarılı; QA #178 (`43968217451`) başarılı (**101/101 frontend + 123/123 domain testi, 0 başarısız**); Pages build/deploy #142 (`43968217448`) başarılı. Shared-domain strict TypeScript, lint, frontend TypeScript/production build ve yüksek önem eşiğinde production dependency audit adımları geçti.
+- Kalite notları: Oxlint 32 uyarı / 0 hata; production audit 4 orta önem bulgusu raporladı (shadcn → ts-morph → @ts-morph/common → minimatch). `npm audit fix --force` shadcn 1.0.0 gibi kırıcı bir sürüm gerektirdiği için çalıştırılmadı; yüksek önem eşiği geçti. Büyük bundle chunk, punycode ve GitHub Actions Node 20 deprecation uyarıları sürüyor.
 - Bilinen sınırlar: bağlantı/vida, yük, ayak/baza, duvar montajı/ankraj, delik/donanım, CNC, nesting, fire ve maliyet yoktur. Fiziksel üretim öncesi atölye doğrulaması gerekir.
 - Frontend JSON v1/CSV entegrasyonu ayrı frontend sahibinin kapsamındadır; hiçbir `frontend/**` dosyası değiştirilmedi.
 - Sonraki görev: ayrı frontend sahibinin TV bölücü/raf JSON v1 adapter'ı; domain tarafında ardından banyo dolabı için yalnızca açık üretici/atölye girdili lavabo boşluğu ve baza sözleşmesi.
