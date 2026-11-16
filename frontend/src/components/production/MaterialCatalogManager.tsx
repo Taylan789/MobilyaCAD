@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
-import { Check, Layers3, Palette, Pencil, Plus, Ruler, Trash2, X } from "lucide-react";
+import { Check, Layers3, Palette, Pencil, Plus, Ruler, Search, Trash2, X } from "lucide-react";
 
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
@@ -40,6 +40,8 @@ export function MaterialCatalogManager({
   const [draft, setDraft] = useState<MaterialDraft>(emptyDraft);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [materialFilter, setMaterialFilter] = useState<"all" | "used" | "unused">("all");
 
   useEffect(() => {
     setDraft(emptyDraft);
@@ -116,6 +118,26 @@ export function MaterialCatalogManager({
     referencedMaterialIds.has(material.id)
   ).length;
 
+  const unusedMaterialCount = materials.length - usedMaterialCount;
+  const normalizedSearch = searchQuery.trim().toLocaleLowerCase("tr-TR");
+  const filteredMaterials = materials.filter((material) => {
+    const isReferenced = referencedMaterialIds.has(material.id);
+    const matchesFilter =
+      materialFilter === "all" ||
+      (materialFilter === "used" && isReferenced) ||
+      (materialFilter === "unused" && !isReferenced);
+    const matchesSearch =
+      normalizedSearch === "" ||
+      [material.name, material.id, material.decor ?? ""].some((value) =>
+        value.toLocaleLowerCase("tr-TR").includes(normalizedSearch)
+      ) ||
+      material.thicknessesMm.some((thickness) =>
+        String(thickness).includes(normalizedSearch)
+      );
+
+    return matchesFilter && matchesSearch;
+  });
+
   return (
     <section className="cad-property-section space-y-4">
       <div className="flex items-center justify-between gap-3">
@@ -160,85 +182,163 @@ export function MaterialCatalogManager({
           </p>
         </div>
       ) : (
-        <div className="space-y-2">
+        <div className="space-y-3">
+          <div className="space-y-2">
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
+                placeholder="Malzeme, dekor, kimlik veya kalınlık ara..."
+                aria-label="Malzeme kataloğunda ara"
+                className="pl-9 pr-9"
+              />
+              {searchQuery !== "" && (
+                <button
+                  type="button"
+                  className="absolute right-2 top-1/2 flex size-7 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring"
+                  aria-label="Aramayı temizle"
+                  onClick={() => setSearchQuery("")}
+                >
+                  <X className="size-3.5" />
+                </button>
+              )}
+            </div>
+            <div className="flex flex-wrap gap-1.5" role="group" aria-label="Malzeme kullanım filtresi">
+              <Button
+                type="button"
+                size="sm"
+                variant={materialFilter === "all" ? "secondary" : "ghost"}
+                aria-pressed={materialFilter === "all"}
+                onClick={() => setMaterialFilter("all")}
+              >
+                Tümü <span className="ml-1 tabular-nums opacity-70">{materials.length}</span>
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant={materialFilter === "used" ? "secondary" : "ghost"}
+                aria-pressed={materialFilter === "used"}
+                onClick={() => setMaterialFilter("used")}
+              >
+                Kullanılan <span className="ml-1 tabular-nums opacity-70">{usedMaterialCount}</span>
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant={materialFilter === "unused" ? "secondary" : "ghost"}
+                aria-pressed={materialFilter === "unused"}
+                onClick={() => setMaterialFilter("unused")}
+              >
+                Atanmamış <span className="ml-1 tabular-nums opacity-70">{unusedMaterialCount}</span>
+              </Button>
+            </div>
+          </div>
+
           <div className="flex items-center justify-between px-0.5">
             <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Kayıtlı malzemeler</span>
-            <span className="text-[11px] text-muted-foreground">Kimliğe göre sıralı</span>
+            <span className="text-[11px] tabular-nums text-muted-foreground" role="status" aria-live="polite">
+              {filteredMaterials.length} / {materials.length} sonuç
+            </span>
           </div>
-          {materials.map((material) => {
-            const isReferenced = referencedMaterialIds.has(material.id);
-            return (
-              <article
-                key={material.id}
-                className="group rounded-xl border border-border/80 bg-card/65 p-3 transition-colors hover:border-primary/35 hover:bg-card"
+
+          {filteredMaterials.length === 0 ? (
+            <div className="flex flex-col items-center rounded-xl border border-dashed border-border bg-card/40 px-4 py-6 text-center" role="status">
+              <Search className="mb-2 size-5 text-muted-foreground" />
+              <strong className="text-sm font-semibold text-foreground">Eşleşen malzeme bulunamadı</strong>
+              <p className="mt-1 max-w-[240px] text-xs leading-relaxed text-muted-foreground">
+                Arama terimini veya kullanım filtresini değiştir.
+              </p>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                className="mt-3"
+                onClick={() => {
+                  setSearchQuery("");
+                  setMaterialFilter("all");
+                }}
               >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex min-w-0 items-start gap-2.5">
-                    <div className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg bg-secondary text-secondary-foreground">
-                      <PackageIcon />
+                Filtreleri temizle
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {filteredMaterials.map((material) => {
+                const isReferenced = referencedMaterialIds.has(material.id);
+                return (
+                  <article
+                    key={material.id}
+                    className="group rounded-xl border border-border/80 bg-card/65 p-3 transition-colors hover:border-primary/35 hover:bg-card"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex min-w-0 items-start gap-2.5">
+                        <div className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg bg-secondary text-secondary-foreground">
+                          <PackageIcon />
+                        </div>
+                        <div className="min-w-0">
+                          <strong className="block truncate text-sm font-semibold text-foreground">{material.name}</strong>
+                          <span className="mt-0.5 block truncate font-mono text-[10px] text-muted-foreground">{material.id}</span>
+                        </div>
+                      </div>
+                      <div className="flex shrink-0 gap-1">
+                        <Button
+                          type="button"
+                          size="icon-sm"
+                          variant="ghost"
+                          className="size-8 text-muted-foreground hover:text-primary"
+                          aria-label={material.name + " malzemesini düzenle"}
+                          title="Düzenle"
+                          onClick={() => editMaterial(material)}
+                        >
+                          <Pencil />
+                        </Button>
+                        <Button
+                          type="button"
+                          size="icon-sm"
+                          variant="ghost"
+                          className="size-8 text-muted-foreground hover:text-destructive"
+                          aria-label={material.name + " malzemesini sil"}
+                          title={isReferenced ? "Bu malzeme projede kullanılıyor; önce atamayı kaldır." : "Sil"}
+                          disabled={isReferenced}
+                          onClick={() => deleteMaterial(material.id)}
+                        >
+                          <Trash2 />
+                        </Button>
+                      </div>
                     </div>
-                    <div className="min-w-0">
-                      <strong className="block truncate text-sm font-semibold text-foreground">{material.name}</strong>
-                      <span className="mt-0.5 block truncate font-mono text-[10px] text-muted-foreground">{material.id}</span>
+
+                    <div className="mt-3 flex flex-wrap items-center gap-1.5">
+                      {material.thicknessesMm.map((thickness) => (
+                        <span key={thickness} className="inline-flex items-center gap-1 rounded-md border border-border bg-background/70 px-2 py-1 text-[11px] font-medium tabular-nums text-foreground">
+                          <Ruler className="size-3 text-muted-foreground" />
+                          {thickness} mm
+                        </span>
+                      ))}
+                      {material.decor && (
+                        <span className="inline-flex items-center gap-1 rounded-md border border-primary/20 bg-primary/8 px-2 py-1 text-[11px] text-primary">
+                          <Palette className="size-3" />
+                          {material.decor}
+                        </span>
+                      )}
                     </div>
-                  </div>
-                  <div className="flex shrink-0 gap-1">
-                    <Button
-                      type="button"
-                      size="icon-sm"
-                      variant="ghost"
-                      className="size-8 text-muted-foreground hover:text-primary"
-                      aria-label={material.name + " malzemesini düzenle"}
-                      title="Düzenle"
-                      onClick={() => editMaterial(material)}
-                    >
-                      <Pencil />
-                    </Button>
-                    <Button
-                      type="button"
-                      size="icon-sm"
-                      variant="ghost"
-                      className="size-8 text-muted-foreground hover:text-destructive"
-                      aria-label={material.name + " malzemesini sil"}
-                      title={isReferenced ? "Bu malzeme projede kullanılıyor; önce atamayı kaldır." : "Sil"}
-                      disabled={isReferenced}
-                      onClick={() => deleteMaterial(material.id)}
-                    >
-                      <Trash2 />
-                    </Button>
-                  </div>
-                </div>
 
-                <div className="mt-3 flex flex-wrap items-center gap-1.5">
-                  {material.thicknessesMm.map((thickness) => (
-                    <span key={thickness} className="inline-flex items-center gap-1 rounded-md border border-border bg-background/70 px-2 py-1 text-[11px] font-medium tabular-nums text-foreground">
-                      <Ruler className="size-3 text-muted-foreground" />
-                      {thickness} mm
-                    </span>
-                  ))}
-                  {material.decor && (
-                    <span className="inline-flex items-center gap-1 rounded-md border border-primary/20 bg-primary/8 px-2 py-1 text-[11px] text-primary">
-                      <Palette className="size-3" />
-                      {material.decor}
-                    </span>
-                  )}
-                </div>
-
-                <div className="mt-2 flex items-center gap-1.5">
-                  {isReferenced ? (
-                    <>
-                      <Check className="size-3 text-primary" />
-                      <small className="text-[11px] text-primary">Projede kullanılıyor · Silme koruması aktif</small>
-                    </>
-                  ) : (
-                    <small className="text-[11px] text-muted-foreground">Henüz bir mobilyaya atanmamış</small>
-                  )}
-                </div>
-              </article>
-            );
-          })}
+                    <div className="mt-2 flex items-center gap-1.5">
+                      {isReferenced ? (
+                        <>
+                          <Check className="size-3 text-primary" />
+                          <small className="text-[11px] text-primary">Projede kullanılıyor · Silme koruması aktif</small>
+                        </>
+                      ) : (
+                        <small className="text-[11px] text-muted-foreground">Henüz bir mobilyaya atanmamış</small>
+                      )}
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          )}
         </div>
-      )}
 
       <form className="space-y-3 rounded-xl border border-border bg-card/55 p-3.5" onSubmit={submitMaterial}>
         <div className="flex items-center justify-between gap-2 border-b border-border/70 pb-3">
