@@ -22,7 +22,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 | Kenar bantlama / malzeme tüketimi | Domain malzeme özeti gövde, çekmece, kitaplık, masa ve gardırop bölücü/raf parçalarının ortak Part listesinden quantity ağırlıklı alan/hacim ve kenar bantlamasını hesaplayabilir | Domain özeti henüz UI/JSON/CSV'ye bağlı değil; fire, levha verimi, kerf, bant kalınlığı ve rulo payı yok |
 | Malzeme kataloğu | UI CRUD; mobilya varsayılan materialId ve çekmece grubunda varsayılan + dört panel grubu override; domain gövde/kitaplık motorları altı gövde panel grubu için malzeme override'ını doğrular | Gövde panel override'ları henüz frontend JSON v1/CSV ve UI akışına bağlanmadı; fiyat, tedarikçi ve fire henüz yok |
 | Proje dosyası | Yerel JSON v1 indirme/yükleme; saf serializer/parser; round-trip ve eski v1 uyumluluk; mm, mobilya ve çekmece grubu katalog referansları ile dört çekmece panel kalınlığının doğrulanması | Şema migrasyonu, otomatik kayıt ve kurtarma yok |
-| Test/CI | HEAD `2dd891cb68be80dbd6e091774369e3a4cc4f43eb`: CI #259 `43935535640`, QA #159 `43935535641` (101/101 frontend + 104/104 domain testi) ve Pages #127 `43935535931` başarılı; strict domain TypeScript, lint, production build ve yüksek önem audit kapısı geçti | Fiziksel üretim doğrulaması otomatik testle yapılamaz; Oxlint 32 uyarı/0 hata, audit'te 6 bulgu (2 düşük/4 orta), büyük bundle chunk ve Actions Node 20 deprecation uyarıları sürüyor |
+| Test/CI | HEAD `62e9dfc5e980f27754faa3ce794f149843f82fda`: CI #266 (`43943019284`), QA #163 (`43943019308`; 101/101 frontend + 105/105 domain testi, 0 başarısız) ve Pages #130 (`43943019262`) başarılı; strict domain TypeScript, lint, production build ve production dependency audit adımları geçti | Fiziksel üretim doğrulaması otomatik testle yapılamaz; Oxlint 32 uyarı/0 hata, audit'te 6 bulgu (2 düşük, 4 orta), büyük bundle chunk ve Actions Node 20 deprecation uyarıları sürüyor |
 
 ### Bilinen mimari ve veri boşlukları
 
@@ -386,11 +386,11 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 
 ### Sıradaki 3-5 küçük görev
 
-1. Masa konstrüksiyon motoru: açık tabla/ayak/kayıt ölçüleri; bağlantı standardı veya CNC koordinatı varsaymadan.
-2. Proje agregatöründe desteklenen aileler için ortak tanılama/engelleme sonucu; bilinmeyen aileler kesim listesine sessizce girmemeli.
-3. Kitaplık ve masa parça gruplarının quantity ağırlıklı malzeme tüketimi ile kenar bantlama özetinde ayrı kalınlık/materialId grupları olarak doğrulanması.
-4. Frontend yenileme dalı sahibinin domain adapter'ı için JSON v1 geriye uyumlu entegrasyon ve CSV eşitliği testleri (frontend dosyalarına bu otomasyon dokunmayacak).
-5. CNC/teklif katmanına geçmeden önce kullanıcı katalog girdileri ve gerçek üretici/atölye standartları için yapılandırma sözleşmesi tasarlamak.
+1. Frontend sahibinin `drawerBoxSpecs` → `drawerBoxes` adapter'ını ve JSON v1 geriye uyumluluğunu kendi frontend dalında tamamlaması.
+2. Frontend sahibinin ready/blocked/unsupported/empty rapor durumlarını güvenli CSV export kapısına bağlaması.
+3. [x] Karışık cabinet + bookshelf + table + wardrobe projelerinde bölücü/raf, malzeme/kalınlık, quantity, alan/hacim ve kenar bantlama toplamlarını ortak Part listesinden doğrulayan regresyon testi (QA #163: 105/105 domain testi).
+4. Domain tarafında kullanıcı ölçülü TV ünitesi ailesini mevcut cabinet motorunu yeniden kullanarak küçük bir sürüm 1 dilimine ayırmak.
+5. Frontend JSON/CSV adapter'ı domain Part listesini kullandığında export satırlarının hesapla birebir eşleşmesini ayrı frontend sahibinin otomatik testleriyle doğrulamak.
 
 
 ## 16 Kasım 2026 — açık parametreli masa konstrüksiyon domain dilimi
@@ -495,3 +495,13 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 - Kod commit SHA: `2dd891cb68be80dbd6e091774369e3a4cc4f43eb`.
 - GitHub Actions: CI #259 (`43935535640`), QA #159 (`43935535641`) ve Pages #127 (`43935535931`) başarılı. QA 101/101 frontend + 104/104 domain testiyle 0 başarısız; strict domain TypeScript, lint, production build ve production dependency audit adımları geçti. Oxlint 32 uyarı/0 hata; audit 6 bulgu (2 düşük/4 orta), yüksek önem eşiği geçti.
 - Bilinen sınırlar: raf taşıma kapasitesi, bağlantı, askı borusu, çekmece yerleşimi, donanım, delik, CNC, nesting, fire ve fiyat hesabı yok; fiziksel üretim öncesi atölye doğrulaması gerekir.
+
+
+### Son tamamlanan dikey dilim — karışık aile malzeme özeti
+
+- Tek proje içinde cabinet, bookshelf, table ve wardrobe istekleri birleştirildi; gardırop dikey bölücüsü ve farklı katalog kalınlığındaki bölme rafı aynı ortak Part listesinde korundu.
+- Malzeme özeti MDF 18, MDF 8 ve masif ayak grupları için parça satırı/adet, net alan, hacim ve kenar bantlama uzunluğunu ayrı ayrı doğruladı; toplam adet tüm Part satırlarıyla eşleşti.
+- İlk test commit'indeki MDF 18 beklenen alan/hacim toplamı eksikti; QA gerçek Part listesi üzerinden daha yüksek toplamı gösterdi. Yalnızca test beklentisi düzeltildi; üretim hesap motoru değiştirilmedi.
+- Test commit'i: `f60d89081a51d308b8015e580b8ecc163d6a3310`; doğrulanmış beklenti düzeltmesi: `62e9dfc5e980f27754faa3ce794f149843f82fda`.
+- GitHub Actions: CI #266, QA #163 (101/101 frontend + 105/105 domain, 0 başarısız) ve Pages #130 başarılı.
+- Sınırlar: fire/levha verimi, kerf, bant rulo payı, donanım, CNC ve maliyet hesabı yoktur; fiziksel üretim doğrulaması ayrıca gerekir.

@@ -561,3 +561,16 @@
 - QA adımları: shared-domain strict TypeScript, lint, frontend production build ve production dependency audit başarılı. Oxlint 32 uyarı / 0 hata; audit 6 bulgu (2 düşük, 4 orta), yüksek önem eşiği geçti.
 - Bilinen kısıtlar: raf taşıma kapasitesi, bağlantı, donanım, delik, CNC, nesting, fire ve fiyat hesabı yok. Frontend JSON v1/CSV entegrasyonu ayrı frontend sahibinin kapsamındadır; hiçbir `frontend/**` dosyası değiştirilmedi.
 - Sonraki görev: karışık wardrobe/table/bookshelf projelerinde raflı malzeme ve kenar bantlama toplamlarının sınır testleri; ardından kullanıcı girdili TV ünitesi motoru.
+
+
+## 16 Kasım 2026 — karışık aile malzeme özeti sınır testi (Actions doğrulandı)
+
+- Başlangıç HEAD: `f4cda4d176c530ed07ab40620c8e1d3ad86e5134`; yalnızca `dev/github-work` üzerinde çalışıldı.
+- Test ekleme commit'i: `f60d89081a51d308b8015e580b8ecc163d6a3310`; test beklentisi düzeltme commit'i: `62e9dfc5e980f27754faa3ce794f149843f82fda`.
+- Değişen dosya: `domain/production/projectProduction.test.mjs`. Üretim motoru veya `frontend/**` değiştirilmedi.
+- Kapsam: tek projede cabinet, bookshelf, table ve wardrobe; gardırop dikey bölücü ve 8 mm özel raf; MDF 18 / MDF 8 / masif malzeme grupları; Part satırı, quantity, alan, hacim, iki eksendeki kenar bantlama ve proje toplam adet uzlaşması.
+- İlk QA run `43942864079` yeni testin MDF 18 alan/hacim beklentisini 10.40456 / 0.18728208 olarak düşük buldu; gerçek Part toplamı 11.00456 m² / 0.19808208 m³ çıktı. Sadece test beklentisi düzeltildi; test kapsamı korunarak yeniden çalıştırıldı.
+- Doğrulama HEAD'i: `62e9dfc5e980f27754faa3ce794f149843f82fda`. CI #266 (`43943019284`) başarılı; QA #163 (`43943019308`) başarılı (**101/101 frontend + 105/105 domain testi, 0 başarısız**); Pages #130 (`43943019262`) başarılı.
+- QA adımları: shared-domain strict TypeScript, lint, frontend production build ve production dependency audit başarılı. Oxlint 32 uyarı / 0 hata; production audit 6 bulgu (2 düşük, 4 orta), yüksek önem eşiği geçti.
+- Bilinen sınırlar: fire/levha verimi, kerf, bant rulo payı, taşıma kapasitesi, bağlantı, donanım, delik, CNC, nesting ve fiyat hesabı yok. Frontend JSON v1/CSV adapter entegrasyonu ayrı frontend sahibinin kapsamındadır; hiçbir `frontend/**` dosyası değiştirilmedi.
+- Sonraki görev: kullanıcı girdili TV ünitesi v1 domain konstrüksiyon dilimi; frontend JSON/CSV entegrasyonu ayrı sahibinde kalır.
