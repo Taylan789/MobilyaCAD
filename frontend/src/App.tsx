@@ -108,6 +108,7 @@ function App() {
   const [materials, setMaterials] = useState<MaterialCatalogEntry[]>([]);
   const [selectedFurnitureId, setSelectedFurnitureId] = useState<string | null>(null);
   const [selectedPartId, setSelectedPartId] = useState<string | null>(null);
+  const [focusRequestId, setFocusRequestId] = useState(0);
   const [transformMode, setTransformMode] = useState<"translate" | "scale" | "rotate">("translate");
   const [mobilePanel, setMobilePanel] = useState<"catalog" | "inspector" | null>(null);
   const [leftDockCollapsed, setLeftDockCollapsed] = useState(false);
@@ -199,6 +200,7 @@ function App() {
     setMaterials([]);
     setSelectedFurnitureId(null);
     setSelectedPartId(null);
+    setFocusRequestId(0);
     setTransformMode("translate");
     setMobilePanel(null);
     setLeftDockCollapsed(false);
@@ -719,6 +721,21 @@ function App() {
     URL.revokeObjectURL(url);
   }
 
+  function focusProductionFurniture(furnitureId: string) {
+    const target = furniture.find((item) => item.id === furnitureId);
+    if (!target) return;
+
+    setSelectedFurnitureId(target.id);
+    setSelectedPartId(null);
+    setLeftPanelMode("scene");
+    setLeftDockCollapsed(false);
+    setInspectorCollapsed(false);
+    setInspectorTab("furniture");
+    setMobilePanel(null);
+    setFocusRequestId((current) => current + 1);
+    setWorkspaceMode("design");
+  }
+
   function saveProject() {
     const json = serializeProjectFile(
       {
@@ -1122,6 +1139,7 @@ function App() {
             section={productionSection}
             onSectionChange={setProductionSection}
             onBackToDesign={() => {
+              setFocusRequestId(0);
               setWorkspaceMode("design");
               setInspectorTab("production");
             }}
@@ -1156,6 +1174,8 @@ function App() {
                   )}
                 <ProductionOverview
                   furnitureCount={furniture.length}
+                  selectedFurnitureId={selectedFurnitureId}
+                  onFocusFurniture={focusProductionFurniture}
                   production={projectProduction}
                   edgeBanding={edgeBandingSummary}
                   materialConsumption={materialConsumptionSummary}
@@ -1532,6 +1552,7 @@ function App() {
                   furniture={furniture}
                   selectedFurnitureId={selectedFurnitureId}
                   selectedPartId={selectedPartId}
+                  focusRequestId={focusRequestId}
                   transformMode={transformMode}
                   onSelectFurniture={setSelectedFurnitureId}
                   onSelectPart={(furnitureId, partId) => {
@@ -1886,6 +1907,8 @@ function App() {
 
                         <ProductionOverview
                           furnitureCount={furniture.length}
+                          selectedFurnitureId={selectedFurnitureId}
+                          onFocusFurniture={focusProductionFurniture}
                           production={projectProduction}
                           edgeBanding={edgeBandingSummary}
                           materialConsumption={materialConsumptionSummary}

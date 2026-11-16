@@ -1,6 +1,6 @@
 
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Vector3 } from "three";
 import { Box, Focus, Maximize2, PanelTop, Square } from "lucide-react";
 import {
@@ -25,6 +25,7 @@ interface Scene3DProps {
   furniture: PlacedFurniture[];
   selectedFurnitureId: string | null;
   selectedPartId: string | null;
+  focusRequestId: number;
   transformMode: "translate" | "scale" | "rotate";
   onSelectFurniture: (id: string) => void;
   onSelectPart: (furnitureId: string, partId: string) => void;
@@ -393,6 +394,7 @@ export default function Scene3D({
   furniture,
   selectedFurnitureId,
   selectedPartId,
+  focusRequestId,
   transformMode,
   onSelectFurniture,
   onSelectPart,
@@ -413,6 +415,7 @@ export default function Scene3D({
       window.matchMedia("(prefers-reduced-motion: reduce)").matches
   );
   const cameraRequestId = useRef(0);
+  const handledFocusRequestId = useRef(0);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -422,11 +425,11 @@ export default function Scene3D({
     return () => mediaQuery.removeEventListener("change", syncPreference);
   }, []);
 
-  function requestCamera(
+  const requestCamera = useCallback((
     orientation: CameraOrientation,
     target: [number, number, number],
     distance: number
-  ) {
+  ) => {
     cameraRequestId.current += 1;
     setCameraCommand({
       id: cameraRequestId.current,
@@ -434,7 +437,7 @@ export default function Scene3D({
       target,
       distance,
     });
-  }
+  }, []);
 
   function selectCameraView(orientation: CameraOrientation) {
     setActiveView(orientation);
@@ -454,7 +457,7 @@ export default function Scene3D({
     );
   }
 
-  function focusSelectedObject() {
+  const focusSelectedObject = useCallback(() => {
     const selected = furniture.find((item) => item.id === selectedFurnitureId);
     if (!selected) return;
 
@@ -480,7 +483,18 @@ export default function Scene3D({
       [target.x, target.y, target.z],
       Math.max(1, extent * 3.6)
     );
-  }
+  }, [furniture, selectedFurnitureId, selectedPartId, requestCamera]);
+
+  useEffect(() => {
+    if (focusRequestId <= 0) {
+      handledFocusRequestId.current = 0;
+      return;
+    }
+    if (handledFocusRequestId.current === focusRequestId) return;
+
+    handledFocusRequestId.current = focusRequestId;
+    focusSelectedObject();
+  }, [focusRequestId, focusSelectedObject]);
 
   return (
     <>
