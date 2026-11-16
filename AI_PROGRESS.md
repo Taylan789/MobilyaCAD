@@ -254,3 +254,18 @@
 - Sonraki görev: gövde yan/üst/alt, raf, arkalık ve kapak parçalarına bağımsız katalog malzemesi atamak ve her parçanın kalınlığını kendi malzemesinde doğrulamak.
 
 - Önceki yol haritası/ilerleme güncellemesi commit'i: `68272d7bf8a52d61c11e5f1c0e9de618ad51c54d`; bu commit üzerinde CI #96, QA #62 (101/101) ve Pages #61 başarılı.
+
+
+## 16 Kasım 2026 — gövde paneli malzeme ataması için bağımsız domain dilimi
+
+- Başlangıç HEAD: `294de907e5efac78eea34fb3b5402f5d6b3bb78d`; başlangıçta CI/QA/AI Developer aktif değildi. Tasarım/viewport yardımcı PR'ları ayrı dallarında bırakıldı; bu çalışma hiçbir yardımcı PR'ı değiştirmedi veya birleştirmedi.
+- Kod commit zinciri: `4905293d2e12c2181dab32c1c930218df1fdbae5` (domain modülü, testler, QA workflow ve roadmap); `3d1306b2e22351dda589a08893b2c420a7f3cc12` (legacy test fixture düzeltmesi); `2729298edc976a04d346da1d3816a8c32fbfaadf` (TypeScript 7 CLI için `--ignoreConfig`); son kod düzeltmesi `c6bc33b1feccf776aa2ec4bcfa4be5355dd6a4a4`.
+- Değişen dosyalar: `domain/production/bodyPanelMaterials.ts`, `domain/production/bodyPanelMaterials.test.mjs`, `.github/workflows/qa-test.yml`, `PRODUCT_ROADMAP.md`. Hiçbir `frontend/**` dosyasına dokunulmadı.
+- Domain davranışı: `leftSide`, `rightSide`, `top`, `bottom`, `shelf`, `back`, `door` grupları için bağımsız materialId override; mevcut Part materialId değerine geri dönüş; katalog ID/kategori/mm birimi/gerçek parça kalınlığı doğrulaması; legacy serbest metin malzemenin korunması; sabit parça ID anahtarları için açık eşleme. Bilinmeyen parça veya malzeme varsayılmaz.
+- İlk QA denemesi `43791864820`: 101 mevcut test geçti; yeni domain testindeki fixture, JavaScript varsayılan parametre davranışı nedeniyle legacy materialId alanını yanlışlıkla ekliyordu. Test fixture'ı null sentinel ile düzeltildi; test gevşetilmedi.
+- İkinci QA denemesi `43791948869`: 101 mevcut + 9 domain testi geçti; TypeScript 7, komut satırında dosya verildiğinde tsconfig'in yüklenmesini reddetti. QA komutuna `--ignoreConfig` eklendi.
+- Üçüncü QA denemesi `43792033139`: 101 mevcut + 9 domain testi geçti; strict type-check, generic dönüşte tek bir cast'i reddetti. Runtime davranışı değiştirmeden cast `unknown` üzerinden güvenli biçimde daraltıldı.
+- Nihai otomatik doğrulama: QA run `43792112640` başarılı; mevcut test paketi **101/101**, yeni ortak domain paketi **9/9**; bağımsız TypeScript kontrolü, lint, mevcut TypeScript/production build ve production dependency audit başarılı. CI run `43792112631` başarılı. Pages run `43792112615` build/artifact adımlarını geçti; deploy job'u son kontrolde kuyruktaydı.
+- Kalite notu: `npm audit --omit=dev --audit-level=high` eşiği geçti; toplam 6 mevcut bulgu (2 düşük, 4 orta) raporlanıyor. Bundle boyutu uyarısı sürüyor.
+- Bilinen kısıtlar: bu bir domain primitive dilimidir; henüz UI, `PlacedFurniture`, proje JSON v1, mevcut üretim motoru, tüketim özeti veya CSV'ye bağlanmamıştır. Frontend yenileme akışının tüm `frontend/**` sahipliği nedeniyle entegrasyon ayrı frontend sahibinin kapsamındadır. Fiziksel panel/CNC doğrulaması yapılmadı.
+- Sonraki görev: frontend sahibi `bodyPanelMaterialIds` opsiyonel alanını proje v1'e geriye uyumlu ekleyip resolver'ı üretilen gövde Part listesine bağlamalı; ardından tüketim/CSV ve katalog silme koruması aynı efektif malzeme kimliklerini kullanmalı.
