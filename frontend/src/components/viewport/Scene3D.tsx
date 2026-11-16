@@ -1,6 +1,8 @@
 
-import { Canvas, useThree } from "@react-three/fiber";
-import { useEffect } from "react";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { useEffect, useRef, useState } from "react";
+import { Vector3 } from "three";
+import { Box, Focus, Maximize2, PanelTop, Square } from "lucide-react";
 import {
   OrbitControls,
   Grid,
@@ -14,6 +16,7 @@ import {
 import PlacedFurniture3D from "../furniture/PlacedFurniture3D";
 import type { PlacedFurniture } from "../../types/placedFurniture";
 import { calculatePlacementIssues } from "../../engine/placementValidation";
+import "./ViewportCameraControls.css";
 
 interface Scene3DProps {
   width: number;
@@ -37,14 +40,113 @@ interface Scene3DProps {
   onRotate: (id: string, rotation: number) => void;
 }
 
+type CameraOrientation = "perspective" | "top" | "front";
+
+interface CameraCommand {
+  id: number;
+  orientation: CameraOrientation;
+  target: [number, number, number];
+  distance: number;
+}
+
+interface OrbitControlsApi {
+  target: Vector3;
+  update: () => void;
+  addEventListener?: (type: string, listener: () => void) => void;
+  removeEventListener?: (type: string, listener: () => void) => void;
+}
+
+interface CameraTransition {
+  fromPosition: Vector3;
+  toPosition: Vector3;
+  fromTarget: Vector3;
+  toTarget: Vector3;
+  elapsed: number;
+  duration: number;
+}
+
+function CameraRig({ command }: { command: CameraCommand | null }) {
+  const { camera, controls } = useThree();
+  const transition = useRef<CameraTransition | null>(null);
+
+  useEffect(() => {
+    if (!command) return;
+
+    const orbit = controls as unknown as OrbitControlsApi | null;
+    if (!orbit?.target) return;
+
+    const target = new Vector3(...command.target);
+    const direction = new Vector3();
+    const up = new Vector3(0, 1, 0);
+
+    if (command.orientation === "top") {
+      direction.set(0, 1, 0);
+      up.set(0, 0, -1);
+    } else if (command.orientation === "front") {
+      direction.set(0, 0, 1);
+    } else {
+      direction.set(0.72, 0.58, 0.82);
+    }
+
+    const toPosition = target.clone().add(
+      direction.normalize().multiplyScalar(command.distance)
+    );
+
+    camera.up.copy(up);
+    transition.current = {
+      fromPosition: camera.position.clone(),
+      toPosition,
+      fromTarget: orbit.target.clone(),
+      toTarget: target,
+      elapsed: 0,
+      duration: 0.24,
+    };
+  }, [camera, command, controls]);
+
+  useEffect(() => {
+    const orbit = controls as unknown as OrbitControlsApi | null;
+    if (!orbit?.addEventListener) return;
+
+    const cancelTransition = () => {
+      transition.current = null;
+    };
+
+    orbit.addEventListener("start", cancelTransition);
+    return () => orbit.removeEventListener?.("start", cancelTransition);
+  }, [controls]);
+
+  useFrame((_, delta) => {
+    const current = transition.current;
+    const orbit = controls as unknown as OrbitControlsApi | null;
+    if (!current || !orbit?.target) return;
+
+    current.elapsed += Math.min(delta, 0.05);
+    const progress = Math.min(1, current.elapsed / current.duration);
+    const eased = progress * progress * (3 - 2 * progress);
+
+    camera.position.lerpVectors(current.fromPosition, current.toPosition, eased);
+    orbit.target.lerpVectors(current.fromTarget, current.toTarget, eased);
+    camera.lookAt(orbit.target);
+    orbit.update();
+
+    if (progress >= 1) transition.current = null;
+  });
+
+  return null;
+}
+
 function ResponsiveCamera({ width, length, height }: {
   width: number;
   length: number;
   height: number;
 }) {
   const { camera, size, controls } = useThree();
+  const initialized = useRef(false);
 
   useEffect(() => {
+    if (initialized.current) return;
+    initialized.current = true;
+
     const maxDimension = Math.max(width / 1000, length / 1000, height / 1000);
     const mobile = size.width <= 700;
     const targetY = height / 2000;
@@ -281,8 +383,72 @@ export default function Scene3D({
     length / 1000,
     height / 1000
   );
+  const [activeView, setActiveView] = useState<CameraOrientation>("perspective");
+  const [cameraCommand, setCameraCommand] = useState<CameraCommand | null>(null);
+  const cameraRequestId = useRef(0);
+
+  function requestCamera(
+    orientation: CameraOrientation,
+    target: [number, number, number],
+    distance: number
+  ) {
+    cameraRequestId.current += 1;
+    setCameraCommand({
+      id: cameraRequestId.current,
+      orientation,
+      target,
+      distance,
+    });
+  }
+
+  function selectCameraView(orientation: CameraOrientation) {
+    setActiveView(orientation);
+    requestCamera(
+      orientation,
+      [0, height / 2000, 0],
+      Math.max(1, maxDimension * 2.7)
+    );
+  }
+
+  function fitRoomToView() {
+    setActiveView("perspective");
+    requestCamera(
+      "perspective",
+      [0, height / 2000, 0],
+      Math.max(1, maxDimension * 2.8)
+    );
+  }
+
+  function focusSelectedObject() {
+    const selected = furniture.find((item) => item.id === selectedFurnitureId);
+    if (!selected) return;
+
+    const part = selectedPartId
+      ? selected.parts.find((item) => item.id === selectedPartId)
+      : undefined;
+    const target = new Vector3(...selected.position);
+    let extent = Math.max(selected.width, selected.height, selected.depth) / 1000;
+
+    if (part) {
+      const localOffset = new Vector3(...part.position);
+      localOffset.applyAxisAngle(
+        new Vector3(0, 1, 0),
+        (selected.rotation * Math.PI) / 180
+      );
+      target.add(localOffset);
+      extent = Math.max(part.width, part.height, part.depth) / 1000;
+    }
+
+    setActiveView("perspective");
+    requestCamera(
+      "perspective",
+      [target.x, target.y, target.z],
+      Math.max(1, extent * 3.6)
+    );
+  }
 
   return (
+    <>
     <Canvas
       shadows
       dpr={[1, 1.75]}
@@ -391,6 +557,7 @@ export default function Scene3D({
         maxDistance={maxDimension * 5}
         maxPolarAngle={Math.PI / 2}
       />
+      <CameraRig command={cameraCommand} />
 
       {/* CAD görünüm yönlendiricisi: eksenlere tıklayarak kamerayı hizala */}
       <GizmoHelper alignment="bottom-right" margin={[76, 76]}>
@@ -402,5 +569,62 @@ export default function Scene3D({
         />
       </GizmoHelper>
     </Canvas>
+      <div className="cad-viewport-camera-tools" role="toolbar" aria-label="Kamera görünüşleri">
+        <span className="cad-viewport-camera-tools__label">GÖRÜNÜŞ</span>
+        <button
+          type="button"
+          className={activeView === "perspective" ? "is-active" : ""}
+          aria-label="Perspektif görünüş"
+          aria-pressed={activeView === "perspective"}
+          title="Perspektif görünüş"
+          onClick={() => selectCameraView("perspective")}
+        >
+          <Box aria-hidden="true" />
+          <span>3D</span>
+        </button>
+        <button
+          type="button"
+          className={activeView === "top" ? "is-active" : ""}
+          aria-label="Üst görünüş"
+          aria-pressed={activeView === "top"}
+          title="Üst görünüş"
+          onClick={() => selectCameraView("top")}
+        >
+          <PanelTop aria-hidden="true" />
+          <span>Üst</span>
+        </button>
+        <button
+          type="button"
+          className={activeView === "front" ? "is-active" : ""}
+          aria-label="Ön görünüş"
+          aria-pressed={activeView === "front"}
+          title="Ön görünüş"
+          onClick={() => selectCameraView("front")}
+        >
+          <Square aria-hidden="true" />
+          <span>Ön</span>
+        </button>
+        <span className="cad-viewport-camera-tools__divider" />
+        <button
+          type="button"
+          aria-label="Odayı görünüme sığdır"
+          title="Odayı görünüme sığdır"
+          onClick={fitRoomToView}
+        >
+          <Maximize2 aria-hidden="true" />
+          <span>Sığdır</span>
+        </button>
+        <button
+          type="button"
+          aria-label={selectedPartId ? "Seçili parçaya odaklan" : "Seçili mobilyaya odaklan"}
+          title={selectedPartId ? "Seçili parçaya odaklan" : "Seçili mobilyaya odaklan"}
+          disabled={!selectedFurnitureId}
+          onClick={focusSelectedObject}
+        >
+          <Focus aria-hidden="true" />
+          <span>Odakla</span>
+        </button>
+      </div>
+    </>
   );
 }
