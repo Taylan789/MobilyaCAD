@@ -609,3 +609,19 @@
 - Frontend JSON v1/CSV entegrasyonu ayrı frontend sahibinin kapsamındadır; hiçbir \`frontend/**\` dosyası değiştirilmedi.
 - Sonraki görev: TV ünitesi için açık ölçülü dikey bölücü/compartment paneli sözleşmesi; raflarla kesişim kontrolü ve ortak Part/malzeme özeti testleri. Ardından banyo dolabı ailesini yalnızca açık üretici/atölye girdileriyle ele al.
 
+
+
+## 17 Kasım 2026 — floor-standing TV ünitesi dikey bölücü panelleri
+
+- Başlangıç HEAD: `8499317c8b4ee276fca85af889a21a0f6b5540e6`.
+- Kod commit SHA: doğrulama sonrası bu kayıtta kesin SHA ile tamamlanacak.
+- Değişen dosyalar:
+  - `domain/production/tvUnitConstruction.ts` — opsiyonel `verticalDividers` sözleşmesi; açık sol/alt/ön ofset, yükseklik, derinlik, kalınlık, katalog malzemesi, kenar bandı ve damar yönü.
+  - `domain/production/tvUnitConstruction.test.mjs` — eski istek uyumluluğu, 0.1 mm normalizasyon, sınır/katalog/kimlik, bölücü ve raf çakışma/temas testleri.
+  - `domain/production/projectProduction.test.mjs` — TV bölücü + bölme raflarının ortak Part listesi ve MDF 18/MDF 8 malzeme tüketim uzlaşması; çakışmada export bloklama.
+  - `docs/production-domain-contract.md`, `PRODUCT_ROADMAP.md` — yeni domain sözleşmesi, sınırlar ve sonraki görevler.
+- Kabul kriteri: bölücüler birbiriyle ve özel raflarla pozitif hacimde çakışamaz; yüzey teması kabul edilir; bölücü varken koordinatsız `shelfCount` reddedilir; geçerli proje `ready`, çakışan proje `blocked/result: null` olur.
+- Otomatik kontroller: kod commit'i sonrasında GitHub Actions CI, QA ve Pages sonuçları bekleniyor.
+- Bilinen sınırlar: bağlantı/vida, yük, ayak/baza, duvar montajı/ankraj, delik/donanım, CNC, nesting, fire ve maliyet yoktur. Fiziksel üretim öncesi atölye doğrulaması gerekir.
+- Frontend JSON v1/CSV entegrasyonu ayrı frontend sahibinin kapsamındadır; hiçbir `frontend/**` dosyası değiştirilmedi.
+- Sonraki görev: ayrı frontend sahibinin TV bölücü/raf JSON v1 adapter'ı; domain tarafında ardından banyo dolabı için yalnızca açık üretici/atölye girdili lavabo boşluğu ve baza sözleşmesi.

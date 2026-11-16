@@ -251,3 +251,20 @@ Kaynak: domain/production/tvUnitConstruction.ts ve domain/production/projectProd
 - Proje agregatörü yeni TV raf Part satırlarını aynı listeye taşır; malzeme özeti quantity, alan, hacim ve kenar bantlamayı bu gerçek Part satırlarından hesaplar.
 - Bu dilim bölücü/compartment paneli, raf taşıma kapasitesi, ayak/baza, duvar braketi/ankraj, bağlantı/delik, donanım, CNC, nesting, fire veya fiyat hesabı üretmez. Bu sınırlar için üretici/atölye girdisi ve fiziksel doğrulama gerekir.
 - Frontend JSON v1/CSV adapter'ı bu alanı henüz çağırmaz; frontend sahibinin family: tv-unit için shelves girdisini ve ready/blocked raporunu ayrı otomatik entegrasyon testleriyle bağlaması gerekir. Bu otomasyon hiçbir frontend/** dosyasını değiştirmez.
+
+
+## 2.12 Açık ölçülü floor-standing TV ünitesi dikey bölücüleri
+
+Kaynak: `domain/production/tvUnitConstruction.ts` ve mevcut `projectProduction.ts` / `projectMaterialSummary.ts` akışı.
+
+Çağrı: `calculateTvUnitConstruction({ schemaVersion: 1, family: "tv-unit", mounting: "floor-standing", furniture, profile, materials, verticalDividers?, shelves? })`.
+
+- `verticalDividers` geriye uyumlu opsiyonel bir listedir. Alanın bulunmaması veya `[]`, önceki TV ünitesi v1 gövde/raf davranışını korur.
+- Her panel benzersiz `id`, iç sol yan panel yüzünden sol yüz ofseti, net iç tabandan alt yüzey ofseti, açık `heightMm`, iç ön referanstan `frontOffsetMm`, açık `depthMm`, `thicknessMm`, katalog `materialId`, dört kenar bantlama bayrağı ve `width | length | none` damar yönü taşır. Hiçbir bölücünün tam yükseklikte veya tam derinlikte olduğu varsayılmaz.
+- Bütün ölçüler mm'dir ve 0.1 mm hassasiyetinde normalize edilir. Panelin sağ yüzü `leftOffsetMm + thicknessMm`; üst yüzü `bottomOffsetMm + heightMm`; arka yüzü `frontOffsetMm + depthMm` olarak doğrulanır. Net iç genişlik/yükseklik/derinlik dışına taşma, yinelenen kimlik, bilinmeyen alan, katalogda bulunmayan malzeme veya gerçek katalog kalınlığıyla uyuşmayan panel reddedilir.
+- Dikey bölücüler birbiriyle ve özel raflarla pozitif hacimde çakışamaz. Yüzey teması serbesttir; rafın bölücü yüzünde bitmesi ve diğer bölmede başlaması geçerlidir. Bölücü varken koordinatsız `profile.shelfCount` tam genişlik rafları reddedilir; kullanıcı bölme raflarını açık `shelves` girdileriyle tanımlar.
+- Üretilen Part satırı `width = depthMm`, `length = heightMm`, `thickness = thicknessMm`, `quantity = 1` kullanır; konum, malzeme kimliği, damar yönü ve kenar bayrakları korunur. Proje agregatörü yeni Part tipini mevcut TV ünitesi birleşimine taşır; malzeme özeti aynı Part listesinden quantity, net alan/hacim ve kenar bantlama hesabını yapar.
+- Kabul testleri: eski istek ve `verticalDividers: []` uyumluluğu; panel sınırları ve katalog kalınlığı; bölücü-bölücü ve raf-bölücü hacim çakışması; yüzey teması; proje `ready/blocked` durumu; MDF 18 / MDF 8 quantity, alan, hacim ve bant uzunluğu uzlaşması.
+- Bu dilim bağlantı/vida, taşıma kapasitesi, TV yükü, ayak/baza, duvar braketi/ankraj, delik, donanım, CNC, nesting, fire veya fiyat hesabı sağlamaz. Fiziksel üretim öncesi gerçek atölye ve malzeme standardı doğrulanmalıdır.
+- Frontend JSON v1/CSV adapter'ı bu alanı henüz çağırmaz. Ayrı frontend sahibi `verticalDividers` ve bölme `shelves` girdilerini proje dosyasında açıkça saklamalı, aynı domain agregatörünü çağırmalı ve herhangi bir `blocked` raporda export'u kapatmalıdır. Bu otomasyon `frontend/**` dosyalarını değiştirmez.
+

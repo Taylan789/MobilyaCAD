@@ -18,10 +18,12 @@ const ROOT_KEYS = [
   "profile",
   "materials",
   "panelMaterialOverrides",
+  "verticalDividers",
   "shelves"
 ] as const;
 const MATERIAL_ID_PATTERN = /^[a-z0-9][a-z0-9._-]{0,63}$/;
 const SHELF_ID_PATTERN = /^[a-z0-9][a-z0-9._-]{0,63}$/;
+const DIVIDER_ID_PATTERN = /^[a-z0-9][a-z0-9._-]{0,63}$/;
 
 export type TvUnitGrainDirection = "width" | "length" | "none";
 
@@ -42,6 +44,24 @@ export interface TvUnitShelfSpec {
   grainDirection: TvUnitGrainDirection;
 }
 
+export interface TvUnitVerticalDividerSpec {
+  id: string;
+  /** Left face from the inside face of the left side panel, in mm. */
+  leftOffsetMm: number;
+  /** Bottom face from the clear inside bottom reference, in mm. */
+  bottomOffsetMm: number;
+  /** Explicit panel height in mm; no full-height assumption is inferred. */
+  heightMm: number;
+  /** Front edge from the inside front reference plane, in mm. */
+  frontOffsetMm: number;
+  /** Explicit panel depth in mm. */
+  depthMm: number;
+  thicknessMm: number;
+  materialId: string;
+  edgeBanding: EdgeBandingEdges;
+  grainDirection: TvUnitGrainDirection;
+}
+
 export interface TvUnitConstructionRequest {
   schemaVersion: 1;
   family: "tv-unit";
@@ -50,6 +70,8 @@ export interface TvUnitConstructionRequest {
   profile: unknown;
   materials: unknown;
   panelMaterialOverrides?: unknown;
+  /** Optional explicit vertical panels; omitted or [] preserves existing behavior. */
+  verticalDividers?: readonly TvUnitVerticalDividerSpec[];
   /** Optional explicit shelf placements; omitted or [] preserves cabinet shelfCount behavior. */
   shelves?: readonly TvUnitShelfSpec[];
 }
@@ -62,7 +84,19 @@ export interface TvUnitShelfPart extends CabinetConstructionPart {
   grainDirection: TvUnitGrainDirection;
 }
 
-export type TvUnitConstructionPart = CabinetConstructionPart | TvUnitShelfPart;
+export interface TvUnitVerticalDividerPart extends CabinetConstructionPart {
+  leftOffsetMm: number;
+  bottomOffsetMm: number;
+  heightMm: number;
+  frontOffsetMm: number;
+  depthMm: number;
+  grainDirection: TvUnitGrainDirection;
+}
+
+export type TvUnitConstructionPart =
+  | CabinetConstructionPart
+  | TvUnitShelfPart
+  | TvUnitVerticalDividerPart;
 
 export interface TvUnitConstructionResult {
   family: "tv-unit";
@@ -74,6 +108,7 @@ export interface TvUnitConstructionResult {
 interface ResolvedTvUnitInput {
   cabinetRequest: CabinetConstructionRequest;
   baseResult: CabinetConstructionResult;
+  verticalDividers: TvUnitVerticalDividerSpec[];
   shelves: TvUnitShelfSpec[];
 }
 
@@ -195,6 +230,66 @@ function validateShelf(value: unknown, index: number): TvUnitShelfSpec {
   };
 }
 
+function validateVerticalDivider(value: unknown, index: number): TvUnitVerticalDividerSpec {
+  const divider = requireRecord(value, "TV ünitesi dikey bölücüsünün " + (index + 1) + ". kaydı");
+  const allowedKeys = [
+    "id", "leftOffsetMm", "bottomOffsetMm", "heightMm", "frontOffsetMm",
+    "depthMm", "thicknessMm", "materialId", "edgeBanding", "grainDirection"
+  ];
+  for (const key of Object.keys(divider)) {
+    if (!allowedKeys.includes(key)) {
+      throw new Error("TV ünitesi dikey bölücüsünde desteklenmeyen alan: " + key + ".");
+    }
+  }
+
+  const id = requireIdentifier(divider.id, "TV ünitesi dikey bölücü kimliği");
+  if (!DIVIDER_ID_PATTERN.test(id)) {
+    throw new Error("TV ünitesi dikey bölücü kimliği yalnızca küçük harf, rakam, nokta, alt çizgi ve tire içerebilir.");
+  }
+  const materialId = requireIdentifier(divider.materialId, "TV ünitesi dikey bölücü malzeme kimliği");
+  if (!MATERIAL_ID_PATTERN.test(materialId)) {
+    throw new Error("TV ünitesi dikey bölücü malzeme kimliği geçersiz.");
+  }
+  if (
+    divider.grainDirection !== "width" &&
+    divider.grainDirection !== "length" &&
+    divider.grainDirection !== "none"
+  ) {
+    throw new Error("TV ünitesi dikey bölücü damar yönü width, length veya none olmalıdır.");
+  }
+
+  return {
+    id,
+    leftOffsetMm: toTenthsMm(
+      requireNonNegativeMm(divider.leftOffsetMm, "TV ünitesi dikey bölücü sol ofseti"),
+      "TV ünitesi dikey bölücü sol ofseti"
+    ) / 10,
+    bottomOffsetMm: toTenthsMm(
+      requireNonNegativeMm(divider.bottomOffsetMm, "TV ünitesi dikey bölücü alt ofseti"),
+      "TV ünitesi dikey bölücü alt ofseti"
+    ) / 10,
+    heightMm: toTenthsMm(
+      requirePositiveMm(divider.heightMm, "TV ünitesi dikey bölücü yüksekliği"),
+      "TV ünitesi dikey bölücü yüksekliği"
+    ) / 10,
+    frontOffsetMm: toTenthsMm(
+      requireNonNegativeMm(divider.frontOffsetMm, "TV ünitesi dikey bölücü ön ofseti"),
+      "TV ünitesi dikey bölücü ön ofseti"
+    ) / 10,
+    depthMm: toTenthsMm(
+      requirePositiveMm(divider.depthMm, "TV ünitesi dikey bölücü derinliği"),
+      "TV ünitesi dikey bölücü derinliği"
+    ) / 10,
+    thicknessMm: toTenthsMm(
+      requirePositiveMm(divider.thicknessMm, "TV ünitesi dikey bölücü kalınlığı"),
+      "TV ünitesi dikey bölücü kalınlığı"
+    ) / 10,
+    materialId,
+    edgeBanding: validateEdgeBanding(divider.edgeBanding, "TV ünitesi dikey bölücüsü " + id),
+    grainDirection: divider.grainDirection
+  };
+}
+
 function resolveTvUnitInput(value: unknown): ResolvedTvUnitInput {
   const root = requireRecord(value, "TV ünitesi konstrüksiyon isteği");
   for (const key of Object.keys(root)) {
@@ -212,6 +307,10 @@ function resolveTvUnitInput(value: unknown): ResolvedTvUnitInput {
     throw new Error("TV ünitesi v1 yalnızca floor-standing gövdeyi destekler; duvar montajı için doğrulanmış bağlantı standardı gerekir.");
   }
 
+  const rawDividers = root.verticalDividers === undefined ? [] : root.verticalDividers;
+  if (!Array.isArray(rawDividers)) {
+    throw new Error("TV ünitesi dikey bölücüleri bir liste olmalıdır.");
+  }
   const rawShelves = root.shelves === undefined ? [] : root.shelves;
   if (!Array.isArray(rawShelves)) {
     throw new Error("TV ünitesi rafları bir liste olmalıdır.");
@@ -227,6 +326,16 @@ function resolveTvUnitInput(value: unknown): ResolvedTvUnitInput {
       : { panelMaterialOverrides: root.panelMaterialOverrides })
   });
 
+  const seenDividerIds = new Set<string>();
+  const verticalDividers = rawDividers.map((entry, index) => {
+    const divider = validateVerticalDivider(entry, index);
+    if (seenDividerIds.has(divider.id)) {
+      throw new Error("TV ünitesi içinde yinelenen dikey bölücü kimliği: " + divider.id + ".");
+    }
+    seenDividerIds.add(divider.id);
+    return divider;
+  });
+
   const seenShelfIds = new Set<string>();
   const shelves = rawShelves.map((entry, index) => {
     const shelf = validateShelf(entry, index);
@@ -237,6 +346,9 @@ function resolveTvUnitInput(value: unknown): ResolvedTvUnitInput {
     return shelf;
   });
 
+  if (verticalDividers.length > 0 && cabinetRequest.profile.shelfCount > 0) {
+    throw new Error("Dikey TV ünitesi bölücüleri tanımlandığında tam genişlik raf adedi sıfır olmalıdır.");
+  }
   if (shelves.length > 0 && cabinetRequest.profile.shelfCount > 0) {
     throw new Error("Açık ölçülü TV ünitesi rafları tanımlandığında tam genişlik raf adedi sıfır olmalıdır.");
   }
@@ -261,6 +373,70 @@ function resolveTvUnitInput(value: unknown): ResolvedTvUnitInput {
 
   const innerWidthTenths = toTenthsMm(baseResult.innerDimensionsMm.width, "TV ünitesi iç genişliği");
   const innerDepthTenths = toTenthsMm(baseResult.innerDimensionsMm.depth, "TV ünitesi iç derinliği");
+  const dividerIntervals: Array<{
+    id: string;
+    left: number;
+    right: number;
+    bottom: number;
+    top: number;
+    front: number;
+    back: number;
+  }> = [];
+
+  for (const divider of verticalDividers) {
+    const left = toTenthsMm(divider.leftOffsetMm, "TV ünitesi dikey bölücü sol ofseti");
+    const thickness = toTenthsMm(divider.thicknessMm, "TV ünitesi dikey bölücü kalınlığı");
+    const right = left + thickness;
+    const bottom = toTenthsMm(divider.bottomOffsetMm, "TV ünitesi dikey bölücü alt ofseti");
+    const height = toTenthsMm(divider.heightMm, "TV ünitesi dikey bölücü yüksekliği");
+    const top = bottom + height;
+    const front = toTenthsMm(divider.frontOffsetMm, "TV ünitesi dikey bölücü ön ofseti");
+    const depth = toTenthsMm(divider.depthMm, "TV ünitesi dikey bölücü derinliği");
+    const back = front + depth;
+
+    if (
+      !Number.isSafeInteger(right) ||
+      !Number.isSafeInteger(top) ||
+      !Number.isSafeInteger(back) ||
+      thickness <= 0 ||
+      height <= 0 ||
+      depth <= 0
+    ) {
+      throw new Error(divider.id + " dikey bölücüsü 0.1 mm hassasiyetinde güvenli ve pozitif ölçüler taşımalıdır.");
+    }
+    if (right > innerWidthTenths) {
+      throw new Error(divider.id + " dikey bölücüsü TV ünitesi iç genişlik sınırını aşıyor.");
+    }
+    if (top > innerHeightTenths) {
+      throw new Error(divider.id + " dikey bölücüsü TV ünitesi net iç yüksekliğini aşıyor.");
+    }
+    if (back > innerDepthTenths) {
+      throw new Error(divider.id + " dikey bölücüsü TV ünitesi iç derinlik sınırını aşıyor.");
+    }
+
+    for (const previous of dividerIntervals) {
+      const overlapsX = left < previous.right && right > previous.left;
+      const overlapsY = bottom < previous.top && top > previous.bottom;
+      const overlapsZ = front < previous.back && back > previous.front;
+      if (overlapsX && overlapsY && overlapsZ) {
+        throw new Error(divider.id + " dikey bölücüsü " + previous.id + " dikey bölücüsüyle hacimsel olarak çakışamaz.");
+      }
+    }
+
+    const material = cabinetRequest.materials.find((entry) => entry.id === divider.materialId);
+    if (!material) {
+      throw new Error(divider.id + " dikey bölücüsü için " + divider.materialId + " malzemesi katalogda bulunamadı.");
+    }
+    if (!material.thicknessesMm.includes(divider.thicknessMm)) {
+      throw new Error(
+        divider.id + " dikey bölücüsü için " + material.name + " malzemesinde " +
+        divider.thicknessMm + " mm kalınlık katalogda tanımlı değil."
+      );
+    }
+
+    dividerIntervals.push({ id: divider.id, left, right, bottom, top, front, back });
+  }
+
   const shelfIntervals: Array<{
     id: string;
     left: number;
@@ -300,6 +476,15 @@ function resolveTvUnitInput(value: unknown): ResolvedTvUnitInput {
       throw new Error(shelf.id + " rafı TV ünitesi iç derinlik sınırını aşıyor.");
     }
 
+    for (const divider of dividerIntervals) {
+      const overlapsX = left < divider.right && right > divider.left;
+      const overlapsY = bottom < divider.top && top > divider.bottom;
+      const overlapsZ = front < divider.back && back > divider.front;
+      if (overlapsX && overlapsY && overlapsZ) {
+        throw new Error(shelf.id + " rafı " + divider.id + " dikey bölücüsüyle çakışamaz.");
+      }
+    }
+
     for (const previous of shelfIntervals) {
       const overlapsX = left < previous.right && right > previous.left;
       const overlapsY = bottom < previous.top && top > previous.bottom;
@@ -323,7 +508,7 @@ function resolveTvUnitInput(value: unknown): ResolvedTvUnitInput {
     shelfIntervals.push({ id: shelf.id, left, right, bottom, top, front, back });
   }
 
-  return { cabinetRequest, baseResult, shelves };
+  return { cabinetRequest, baseResult, verticalDividers, shelves };
 }
 
 /**
@@ -334,7 +519,31 @@ function resolveTvUnitInput(value: unknown): ResolvedTvUnitInput {
 export function calculateTvUnitConstruction(
   value: unknown
 ): TvUnitConstructionResult {
-  const { cabinetRequest, baseResult, shelves } = resolveTvUnitInput(value);
+  const { cabinetRequest, baseResult, verticalDividers, shelves } = resolveTvUnitInput(value);
+  const dividerParts: TvUnitVerticalDividerPart[] = verticalDividers.map((divider) => {
+    const material = cabinetRequest.materials.find((entry) => entry.id === divider.materialId);
+    if (!material) {
+      throw new Error("Doğrulanmış TV ünitesi dikey bölücü malzemesi katalogda bulunamadı.");
+    }
+    return {
+      id: cabinetRequest.furniture.id + "-vertical-divider-" + divider.id,
+      furnitureId: cabinetRequest.furniture.id,
+      name: "TV Ünitesi Dikey Bölücüsü " + divider.id,
+      width: divider.depthMm,
+      length: divider.heightMm,
+      thickness: divider.thicknessMm,
+      quantity: 1,
+      material: material.name.trim(),
+      materialId: divider.materialId,
+      edgeBanding: { ...divider.edgeBanding },
+      leftOffsetMm: divider.leftOffsetMm,
+      bottomOffsetMm: divider.bottomOffsetMm,
+      heightMm: divider.heightMm,
+      frontOffsetMm: divider.frontOffsetMm,
+      depthMm: divider.depthMm,
+      grainDirection: divider.grainDirection
+    };
+  });
   const shelfParts: TvUnitShelfPart[] = shelves.map((shelf) => {
     const material = cabinetRequest.materials.find((entry) => entry.id === shelf.materialId);
     if (!material) {
@@ -363,6 +572,6 @@ export function calculateTvUnitConstruction(
     family: "tv-unit",
     mounting: "floor-standing",
     innerDimensionsMm: { ...baseResult.innerDimensionsMm },
-    parts: [...baseResult.parts, ...shelfParts]
+    parts: [...baseResult.parts, ...dividerParts, ...shelfParts]
   };
 }

@@ -8,7 +8,7 @@ MobilyaCAD'i tarayıcıda çalışan bir 3D mobilya yerleşim aracından; parame
 
 Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarılan veriler aynı kaynak parametreleri kullanmalı. Fiziksel üretime giden ölçüler, bağlantılar ve CNC işlemleri ancak gerçek üretici/atölye standardı doğrulandığında onaylı kabul edilebilir.
 
-## Doğrulanmış mevcut temel — 16 Kasım 2026
+## Doğrulanmış mevcut temel — 17 Kasım 2026
 
 | Alan | Mevcut durum | Sınır |
 |---|---|---|
@@ -16,13 +16,13 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 | Oda ve 3D sahne | Ölçülü oda ve perspektif sahne | Tam 2D teknik çizim, kesit ve görünüş araçları yok |
 | Yerleşim | Katalogdan ekleme, seçme, taşıma, döndürme ve boyutlandırma; SAT tabanlı yatay ayak izi çakışma ve oda sınırı uyarıları 3D sahnede gösterilir | Gelişmiş snap, çoklu seçim, duvar montajı/kapak açılımı boşlukları ve tam undo/redo akışı doğrulanmış değil |
 | Katalog | Mutfak, gardırop, banyo, masa, kitaplık ve diğer ailelerden 100 varyasyon | Şablonlar tam parametrik konstrüksiyon aileleri değil |
-| Parçalar | Görsel kapak/çekmece/raf parçaları; domain düz gövde, çekmece kutusu, açık kitaplık, masa ve gardırop dikey bölücü + açık ölçülü bölme rafı parçaları ve TV ünitesi floor-standing gövde parçaları; proje agregatörü bunları ortak Part listesinde birleştirir | Domain sonucu henüz frontend JSON/CSV adapter'ına bağlı değil; diğer mobilya aileleri ve askı/çekmece yerleşimi eksik; ray, donanım ve CNC operasyonları dahil değil |
-| Hesap motoru | `cabinetConstruction`, `drawerBoxConstruction`, `bookshelfConstruction`, `tableConstruction`, `wardrobeConstruction`, `tvUnitConstruction` ve aile ayrımlı sürüm 1 proje agregatörü; ortak Part listesi quantity, malzeme, damar yönü ve kenar bantlamayı korur | Frontend adapter henüz domain agregatörünü çağırmıyor; duvar montajlı TV ünitesi/ayak-baza modelleri ve diğer aileler, üreticiye özel konstrüksiyonlar eksik |
+| Parçalar | Görsel kapak/çekmece/raf parçaları; domain düz gövde, çekmece kutusu, açık kitaplık, masa ve gardırop dikey bölücü + açık ölçülü bölme rafı parçaları ve TV ünitesi floor-standing gövde ve açık ölçülü dikey bölücü parçaları; proje agregatörü bunları ortak Part listesinde birleştirir | Domain sonucu henüz frontend JSON/CSV adapter'ına bağlı değil; diğer mobilya aileleri ve askı/çekmece yerleşimi eksik; ray, donanım ve CNC operasyonları dahil değil |
+| Hesap motoru | `cabinetConstruction`, `drawerBoxConstruction`, `bookshelfConstruction`, `tableConstruction`, `wardrobeConstruction`, `tvUnitConstruction` (floor-standing gövde, açık ölçülü raf ve dikey bölücü) ve aile ayrımlı sürüm 1 proje agregatörü; ortak Part listesi quantity, malzeme, damar yönü ve kenar bantlamayı korur | Frontend adapter henüz domain agregatörünü çağırmıyor; duvar montajlı TV ünitesi/ayak-baza modelleri ve diğer aileler, üreticiye özel konstrüksiyonlar eksik |
 | Kesim listesi | Projedeki desteklenen düz mutfak gövdeleri ve tam tanımlı çekmece parçaları için tek Türkçe Excel uyumlu CSV; her satır kaynak mobilya adı/ID'si ve varsa katalog Malzeme ID değeriyle izlenir | Köşe/cihaz/evye konstrüksiyonları, diğer aileler, nesting ve CNC çıktısı yok |
-| Kenar bantlama / malzeme tüketimi | Domain malzeme özeti gövde, çekmece, kitaplık, masa ve gardırop bölücü/raf parçalarının ortak Part listesinden quantity ağırlıklı alan/hacim ve kenar bantlamasını hesaplayabilir | Domain özeti henüz UI/JSON/CSV'ye bağlı değil; fire, levha verimi, kerf, bant kalınlığı ve rulo payı yok |
+| Kenar bantlama / malzeme tüketimi | Domain malzeme özeti gövde, çekmece, kitaplık, masa, gardırop ve TV ünitesi bölücü/raf parçalarının ortak Part listesinden quantity ağırlıklı alan/hacim ve kenar bantlamasını hesaplayabilir | Domain özeti henüz UI/JSON/CSV'ye bağlı değil; fire, levha verimi, kerf, bant kalınlığı ve rulo payı yok |
 | Malzeme kataloğu | UI CRUD; mobilya varsayılan materialId ve çekmece grubunda varsayılan + dört panel grubu override; domain gövde/kitaplık motorları altı gövde panel grubu için malzeme override'ını doğrular | Gövde panel override'ları henüz frontend JSON v1/CSV ve UI akışına bağlanmadı; fiyat, tedarikçi ve fire henüz yok |
 | Proje dosyası | Yerel JSON v1 indirme/yükleme; saf serializer/parser; round-trip ve eski v1 uyumluluk; mm, mobilya ve çekmece grubu katalog referansları ile dört çekmece panel kalınlığının doğrulanması | Şema migrasyonu, otomatik kayıt ve kurtarma yok |
-| Test/CI | HEAD `a29f7a254bba0f652d50c0378303300d3f57aa20`: CI #268 (`43947151618`), QA #165 (`43947151884`; 101/101 frontend + 111/111 domain testi, 0 başarısız) ve Pages #132 (`43947151610`) başarılı; strict domain TypeScript, lint, production build ve yüksek önem dependency audit adımları geçti | Fiziksel üretim doğrulaması otomatik testle yapılamaz; Oxlint 32 uyarı/0 hata, audit'te 6 bulgu (2 düşük, 4 orta), büyük bundle chunk ve Actions Node 20 deprecation uyarıları sürüyor |
+| Test/CI | HEAD `8499317c8b4ee276fca85af889a21a0f6b5540e6`: CI run `43958390487`, QA run `43958390461` (101/101 frontend + 116/116 domain testi, 0 başarısız) ve Pages run `43958390612` başarılı; strict domain TypeScript, lint, production build ve yüksek önem dependency audit adımları geçti | Fiziksel üretim doğrulaması otomatik testle yapılamaz; Oxlint 32 uyarı/0 hata, audit'te 6 bulgu (2 düşük, 4 orta), büyük bundle chunk ve Actions Node 20 deprecation uyarıları sürüyor |
 
 ### Bilinen mimari ve veri boşlukları
 
@@ -538,3 +538,21 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 - Commit SHA ve GitHub Actions doğrulaması bu dilimin commit'i sonrasında AI_PROGRESS.md içinde kaydedilecektir.
 - Bilinen sınırlar: dikey bölücü, ayak/baza, ankraj, yük, bağlantı/delik, donanım, CNC, nesting, fire ve fiyat hesabı yoktur. Fiziksel üretim doğrulaması atölyeye aittir.
 - Frontend JSON v1/CSV entegrasyonu ayrı frontend sahibindedir; hiçbir frontend/** dosyası değiştirilmedi.
+
+
+## 17 Kasım 2026 — floor-standing TV ünitesi dikey bölücü panelleri
+
+- `TvUnitConstructionRequest.verticalDividers` geriye uyumlu opsiyonel alan olarak eklendi; alanın olmaması veya boş liste eski TV ünitesi isteklerini değiştirmez.
+- Her bölücü açık X/Y/Z panel zarfı, gerçek katalog malzemesi/kalınlığı, damar yönü ve dört kenar bandı bayrağı taşır. Tam yükseklik/derinlik varsayımı yapılmaz; 0.1 mm çözünürlük ve iç hacim sınırları doğrulanır.
+- Dikey paneller birbiriyle ve özel raflarla pozitif hacimde çakışamaz; yüzey teması geçerlidir. Bölücü varken koordinatsız tam genişlik raf adedi reddedilir.
+- Proje agregatörü zaten `TvUnitConstructionPart` birleşimini kullandığından yeni panel satırları ortak Part listesine taşınır; malzeme özeti aynı listeden MDF 18 / MDF 8 quantity, alan, hacim ve kenar bantlama toplamlarını hesaplar.
+- Otomatik kabul kapsamı: eski istek uyumluluğu, 0.1 mm normalizasyon, sınır/katalog/kimlik doğrulaması, divider-divider ve shelf-divider çakışması, yüzey teması, ready/blocked proje raporu ve malzeme özeti uzlaşması.
+- Bilinen sınırlar: bağlantı, yük, ayak/baza, ankraj, delik/donanım, CNC, nesting, fire ve maliyet hesabı yoktur; fiziksel üretim öncesi atölye doğrulaması gerekir. Frontend JSON v1/CSV entegrasyonu ayrı frontend sahibindedir; hiçbir `frontend/**` dosyası değiştirilmedi.
+
+### Sıradaki 3-5 küçük görev
+
+1. Frontend sahibinin TV ünitesi `verticalDividers` + `shelves` alanlarını JSON v1'e geriye uyumlu bağlaması ve `ready/blocked` export kapısını otomatik test etmesi.
+2. Domain tarafında banyo dolabı için lavabo boşluğu, ayak/baza ve arkalık ölçülerini yalnızca kullanıcı/üretici girdisiyle açık sözleşmeye ayırmak; varsayılan kesim/ankraj standardı uydurmamak.
+3. Karışık cabinet/bookshelf/table/wardrobe/tv-unit projelerinde yeni TV bölücü satırlarını malzeme ve kenar bantlama toplamlarıyla birlikte doğrulayan son sınır testlerini genişletmek.
+4. TV ünitesi ve gardırop için kullanıcı girdili bağlantı/delik veri modelinin önkoşullarını araştırmak; gerçek üretici standardı yoksa CNC koordinatı üretmemek.
+5. CNC, nesting, fire ve teklif/maliyet katmanlarına ancak katalog, makine profili ve kullanıcı fiyat verisi tanımlandığında geçmek.

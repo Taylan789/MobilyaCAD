@@ -92,8 +92,25 @@ function createShelf(overrides = {}) {
 }
 
 const shelfMaterials = [
-  { id: "mdf-8", name: "MDF Lam 8", category: "panel", thicknessesMm: [8], unit: "mm" }
+  { id: "mdf-8", name: "MDF Lam 8", category: "panel", thicknessesMm: [8], unit: "mm" },
+  { id: "mdf-18", name: "MDF Lam 18", category: "panel", thicknessesMm: [18], unit: "mm" }
 ];
+
+function createDivider(overrides = {}) {
+  return {
+    id: "center",
+    leftOffsetMm: 500,
+    bottomOffsetMm: 0,
+    heightMm: 420,
+    frontOffsetMm: 0,
+    depthMm: 432,
+    thicknessMm: 18,
+    materialId: "mdf-18",
+    edgeBanding: { ...noBanding, left: true, right: true },
+    grainDirection: "length",
+    ...overrides
+  };
+}
 
 test("TV ünitesi açık ölçülü rafı katalog malzemesi ve yerleşim bilgisiyle ortak Part listesine ekler", () => {
   const request = createRequest();
@@ -208,4 +225,171 @@ test("TV ünitesi raf kimliği, katalog kalınlığı ve alan sözleşmesi doğr
     }),
     /desteklenmeyen alan/
   );
+});
+
+
+test("TV ünitesi açık ölçülü dikey bölücüyü katalog doğrulamalı ortak Part satırına ekler", () => {
+  const request = createRequest();
+  request.profile.shelfCount = 0;
+  request.materials = shelfMaterials;
+  request.verticalDividers = [createDivider({ leftOffsetMm: 500.04 })];
+
+  const result = calculateTvUnitConstruction(request);
+  const divider = result.parts.find((part) => part.id === "tv-1-vertical-divider-center");
+
+  assert.ok(divider);
+  assert.deepEqual(
+    [divider.width, divider.length, divider.thickness, divider.quantity],
+    [432, 420, 18, 1]
+  );
+  assert.deepEqual(
+    [
+      divider.leftOffsetMm,
+      divider.bottomOffsetMm,
+      divider.heightMm,
+      divider.frontOffsetMm,
+      divider.depthMm,
+      divider.grainDirection
+    ],
+    [500, 0, 420, 0, 432, "length"]
+  );
+  assert.deepEqual(divider.edgeBanding, {
+    top: false, bottom: false, left: true, right: true
+  });
+});
+
+test("TV ünitesi rafları dikey bölücünün iki yanında yüzeye temas edebilir ancak panel hacmine giremez", () => {
+  const request = createRequest();
+  request.profile.shelfCount = 0;
+  request.materials = shelfMaterials;
+  request.verticalDividers = [createDivider()];
+  request.shelves = [
+    createShelf({
+      id: "left",
+      leftOffsetMm: 0,
+      rightOffsetMm: 500,
+      frontOffsetMm: 0,
+      depthMm: 432
+    }),
+    createShelf({
+      id: "right",
+      leftOffsetMm: 518,
+      rightOffsetMm: 1764,
+      frontOffsetMm: 0,
+      depthMm: 432
+    })
+  ];
+
+  const result = calculateTvUnitConstruction(request);
+  assert.equal(result.parts.filter((part) => part.id.includes("-shelf-")).length, 2);
+
+  assert.throws(
+    () => calculateTvUnitConstruction({
+      ...request,
+      shelves: [createShelf({
+        id: "crossing",
+        leftOffsetMm: 490,
+        rightOffsetMm: 700,
+        frontOffsetMm: 0,
+        depthMm: 432
+      })]
+    }),
+    /dikey bölücüsüyle çakışamaz/
+  );
+});
+
+test("TV ünitesi dikey bölücüleri iç ölçü sınırlarını ve birbirleriyle hacimsel ayrımı korur", () => {
+  const request = createRequest();
+  request.profile.shelfCount = 0;
+  request.materials = shelfMaterials;
+
+  assert.throws(
+    () => calculateTvUnitConstruction({ ...request, verticalDividers: [createDivider({ leftOffsetMm: 1750 })] }),
+    /iç genişlik sınırını/
+  );
+  assert.throws(
+    () => calculateTvUnitConstruction({ ...request, verticalDividers: [createDivider({ heightMm: 421 })] }),
+    /net iç yüksekliğini/
+  );
+  assert.throws(
+    () => calculateTvUnitConstruction({ ...request, verticalDividers: [createDivider({ depthMm: 433 })] }),
+    /iç derinlik sınırını/
+  );
+  assert.throws(
+    () => calculateTvUnitConstruction({
+      ...request,
+      verticalDividers: [
+        createDivider({ id: "left" }),
+        createDivider({ id: "right", leftOffsetMm: 510 })
+      ]
+    }),
+    /hacimsel olarak çakışamaz/
+  );
+});
+
+test("TV ünitesi dikey bölücü kimliği, katalog kalınlığı, kenar ve alan sözleşmesi doğrulanır", () => {
+  const request = createRequest();
+  request.profile.shelfCount = 0;
+  request.materials = shelfMaterials;
+
+  assert.throws(
+    () => calculateTvUnitConstruction({
+      ...request,
+      verticalDividers: [createDivider(), createDivider({ id: "center", bottomOffsetMm: 200 })]
+    }),
+    /yinelenen dikey bölücü kimliği/
+  );
+  assert.throws(
+    () => calculateTvUnitConstruction({
+      ...request,
+      verticalDividers: [createDivider({ materialId: "mdf-8" })]
+    }),
+    /18 mm kalınlık katalogda tanımlı değil/
+  );
+  assert.throws(
+    () => calculateTvUnitConstruction({
+      ...request,
+      verticalDividers: [createDivider({ materialId: "missing-panel" })]
+    }),
+    /malzemesi katalogda bulunamadı/
+  );
+  assert.throws(
+    () => calculateTvUnitConstruction({
+      ...request,
+      verticalDividers: [createDivider({ grainDirection: "vertical" })]
+    }),
+    /damar yönü/
+  );
+  assert.throws(
+    () => calculateTvUnitConstruction({
+      ...request,
+      verticalDividers: [createDivider({ edgeBanding: { ...noBanding, top: "yes" } })]
+    }),
+    /boolean olmalıdır/
+  );
+  assert.throws(
+    () => calculateTvUnitConstruction({
+      ...request,
+      verticalDividers: [createDivider({ unsupported: true })]
+    }),
+    /desteklenmeyen alan/
+  );
+  assert.throws(
+    () => calculateTvUnitConstruction({ ...request, verticalDividers: {} }),
+    /bir liste olmalıdır/
+  );
+  assert.throws(
+    () => calculateTvUnitConstruction({
+      ...request,
+      profile: { ...request.profile, shelfCount: 1 },
+      verticalDividers: [createDivider()]
+    }),
+    /tam genişlik raf adedi sıfır olmalıdır/
+  );
+});
+
+test("açık dikey bölücü listesi boş olan eski TV ünitesi isteği aynı raf adetini korur", () => {
+  const request = createRequest({ verticalDividers: [] });
+  const result = calculateTvUnitConstruction(request);
+  assert.deepEqual(result.parts.map((part) => part.quantity), [1, 1, 1, 1, 2]);
 });

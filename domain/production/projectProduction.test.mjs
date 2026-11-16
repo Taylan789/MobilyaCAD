@@ -825,3 +825,120 @@ test("TV ünitesi özel rafı proje Part listesi ve malzeme tüketim özetine ta
     }
   });
 });
+
+
+test("TV ünitesi dikey bölücü ve bölme rafları ortak Part listesiyle malzeme tüketimine katılır", () => {
+  const request = createTvUnitRequest("tv-compartment-1", {
+    profile: { shelfCount: 0 }
+  });
+  request.verticalDividers = [{
+    id: "center",
+    leftOffsetMm: 380,
+    bottomOffsetMm: 0,
+    heightMm: 720,
+    frontOffsetMm: 0,
+    depthMm: 542,
+    thicknessMm: 18,
+    materialId: "mdf-18",
+    edgeBanding: { ...noBanding },
+    grainDirection: "length"
+  }];
+  request.shelves = [
+    {
+      id: "left",
+      leftOffsetMm: 0,
+      rightOffsetMm: 380,
+      heightFromInnerBottomMm: 200,
+      frontOffsetMm: 0,
+      depthMm: 542,
+      thicknessMm: 8,
+      materialId: "mdf-8",
+      edgeBanding: { ...noBanding, left: true, right: true },
+      grainDirection: "width"
+    },
+    {
+      id: "right",
+      leftOffsetMm: 398,
+      rightOffsetMm: 764,
+      heightFromInnerBottomMm: 200,
+      frontOffsetMm: 0,
+      depthMm: 542,
+      thicknessMm: 8,
+      materialId: "mdf-8",
+      edgeBanding: { ...noBanding, left: true, right: true },
+      grainDirection: "width"
+    }
+  ];
+
+  const report = calculateCabinetProjectProductionWithDiagnostics({
+    schemaVersion: 1,
+    furniture: [request]
+  });
+
+  assert.equal(report.status, "ready");
+  assert.equal(report.canExport, true);
+  const divider = report.result.parts.find((part) => part.id === "tv-compartment-1-vertical-divider-center");
+  assert.ok(divider);
+  assert.deepEqual(
+    [divider.width, divider.length, divider.thickness, divider.quantity],
+    [542, 720, 18, 1]
+  );
+  assert.equal(report.result.parts.length, 7);
+
+  const summary = calculateProjectMaterialConsumptionSummary(report.result);
+  const mdf18 = summary.find((entry) => entry.materialId === "mdf-18");
+  const mdf8 = summary.find((entry) => entry.materialId === "mdf-8");
+  assert.deepEqual([mdf18.totalQuantity, mdf18.partLineCount], [5, 5]);
+  assert.deepEqual(
+    [
+      mdf8.totalQuantity,
+      mdf8.partLineCount,
+      mdf8.panelAreaM2,
+      mdf8.volumeM3,
+      mdf8.edgeBanding.totalLengthMm,
+      mdf8.edgeBanding.edgeCount
+    ],
+    [2, 2, 0.404332, 0.003234656, 1492, 4]
+  );
+});
+
+test("TV ünitesi rafı dikey bölücü panelini keserse proje export için engellenir", () => {
+  const request = createTvUnitRequest("tv-compartment-blocked", {
+    profile: { shelfCount: 0 }
+  });
+  request.verticalDividers = [{
+    id: "center",
+    leftOffsetMm: 380,
+    bottomOffsetMm: 0,
+    heightMm: 720,
+    frontOffsetMm: 0,
+    depthMm: 542,
+    thicknessMm: 18,
+    materialId: "mdf-18",
+    edgeBanding: { ...noBanding },
+    grainDirection: "length"
+  }];
+  request.shelves = [{
+    id: "crossing",
+    leftOffsetMm: 370,
+    rightOffsetMm: 410,
+    heightFromInnerBottomMm: 200,
+    frontOffsetMm: 0,
+    depthMm: 542,
+    thicknessMm: 8,
+    materialId: "mdf-8",
+    edgeBanding: { ...noBanding },
+    grainDirection: "width"
+  }];
+
+  const report = calculateCabinetProjectProductionWithDiagnostics({
+    schemaVersion: 1,
+    furniture: [request]
+  });
+
+  assert.equal(report.status, "blocked");
+  assert.equal(report.canExport, false);
+  assert.equal(report.result, null);
+  assert.equal(report.blockedFurniture[0].furnitureId, "tv-compartment-blocked");
+  assert.match(report.blockedFurniture[0].message, /dikey bölücüsüyle çakışamaz/);
+});
