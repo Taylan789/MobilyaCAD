@@ -5,6 +5,8 @@ interface FurnitureCatalogCardProps {
   item: FurnitureCatalogItem;
   index: number;
   onAdd: () => void;
+  onDragStart?: () => void;
+  onDragEnd?: () => void;
 }
 
 function FurniturePreview({ item }: { item: FurnitureCatalogItem }) {
@@ -88,7 +90,7 @@ function FurniturePreview({ item }: { item: FurnitureCatalogItem }) {
   );
 }
 
-export function FurnitureCatalogCard({ item, index, onAdd }: FurnitureCatalogCardProps) {
+export function FurnitureCatalogCard({ item, index, onAdd, onDragStart, onDragEnd }: FurnitureCatalogCardProps) {
   const details = [
     item.doorCount ? `${item.doorCount} kapak` : "",
     item.drawerCount ? `${item.drawerCount} çekmece` : "",
@@ -103,6 +105,13 @@ export function FurnitureCatalogCard({ item, index, onAdd }: FurnitureCatalogCar
     <button
       type="button"
       className="cad-catalog-card mc-catalog-card"
+      draggable
+      onDragStart={(event) => {
+        event.dataTransfer.effectAllowed = "copy";
+        event.dataTransfer.setData("application/x-mobilyacad-catalog-id", item.id);
+        onDragStart?.();
+      }}
+      onDragEnd={onDragEnd}
       onClick={onAdd}
       title={`${item.name} modelini odaya ekle`}
       aria-label={`${item.name}, ${dimensions} milimetre. Odaya ekle.`}

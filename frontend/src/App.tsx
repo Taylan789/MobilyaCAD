@@ -142,6 +142,7 @@ function App() {
 
   const [selectedCategory, setSelectedCategory] = useState("Tümü");
   const [catalogSearch, setCatalogSearch] = useState("");
+  const [catalogDragActive, setCatalogDragActive] = useState(false);
   const [projectName, setProjectName] = useState("Yeni Tasarım");
   const [documentSource, setDocumentSource] = useState<"new" | "imported" | "exported">("new");
   const [savedProjectSnapshot, setSavedProjectSnapshot] = useState(() =>
@@ -317,17 +318,20 @@ function App() {
   const edgeBandingSummary = calculateEdgeBandingSummary(productionParts);
   const materialConsumptionSummary = calculateMaterialConsumptionSummary(productionParts);
 
-  function addFurniture(catalogId: string) {
+  function addFurniture(catalogId: string, dropPosition?: [number, number, number]) {
     const item = furnitureCatalog.find(
       (product) => product.id === catalogId
     );
 
     if (!item) return;
 
+    const rawPosition = dropPosition ?? [0, item.height / 2000, 0];
+    const halfWidth = item.width / 2000;
+    const halfDepth = item.depth / 2000;
     const placed = createPlacedFurniture(item, [
-      0,
+      Math.max(-roomWidth / 2000 + halfWidth, Math.min(roomWidth / 2000 - halfWidth, rawPosition[0])),
       item.height / 2000,
-      0,
+      Math.max(-roomLength / 2000 + halfDepth, Math.min(roomLength / 2000 - halfDepth, rawPosition[2])),
     ]);
 
     setFurniture((previous) => [...previous, placed]);
@@ -1279,6 +1283,8 @@ function App() {
                           item={item}
                           index={index}
                           onAdd={() => addFurniture(item.id)}
+                          onDragStart={() => setCatalogDragActive(true)}
+                          onDragEnd={() => setCatalogDragActive(false)}
                         />
                       ))}
                     </div>
@@ -1493,7 +1499,25 @@ function App() {
             </div>
 
             <div className={`cad-workspace-content${inspectorCollapsed ? " inspector-collapsed" : ""}`}>
-              <main className="cad-viewport">
+              <main
+                className={`cad-viewport${catalogDragActive ? " cad-viewport--drop-ready" : ""}`}
+                onDragOver={(event) => {
+                  if (event.dataTransfer.types.includes("application/x-mobilyacad-catalog-id")) {
+                    event.preventDefault();
+                    event.dataTransfer.dropEffect = "copy";
+                  }
+                }}
+                onDrop={(event) => {
+                  const catalogId = event.dataTransfer.getData("application/x-mobilyacad-catalog-id");
+                  if (!catalogId) return;
+                  event.preventDefault();
+                  const bounds = event.currentTarget.getBoundingClientRect();
+                  const x = ((event.clientX - bounds.left) / Math.max(bounds.width, 1) - 0.5) * (roomWidth / 1000);
+                  const z = ((event.clientY - bounds.top) / Math.max(bounds.height, 1) - 0.5) * (roomLength / 1000);
+                  addFurniture(catalogId, [x, 0, z]);
+                  setCatalogDragActive(false);
+                }}
+              >
                 <div className="cad-viewport-info">
                   <span>MODEL ALANI</span>
                   <span>
