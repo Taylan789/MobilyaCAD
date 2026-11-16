@@ -659,6 +659,7 @@
 }
 
 .mc-production__cut-focus {
+  position: relative;
   display: inline-flex;
   min-height: 32px;
   flex: 0 0 auto;
