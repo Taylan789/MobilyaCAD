@@ -152,9 +152,12 @@ function App() {
   const referencedMaterialIds = new Set(
     furniture.flatMap((item) => [
       ...(item.materialId ? [item.materialId] : []),
-      ...(item.drawerBoxSpecs ?? []).flatMap((config) =>
-        config.spec.materialId ? [config.spec.materialId] : []
-      )
+      ...(item.drawerBoxSpecs ?? []).flatMap((config) => [
+        ...(config.spec.materialId ? [config.spec.materialId] : []),
+        ...Object.values(config.spec.panelMaterialIds ?? {}).filter(
+          (id): id is string => typeof id === "string" && id.trim() !== ""
+        )
+      ])
     ])
   );
   const projectProduction = calculateProjectProduction(

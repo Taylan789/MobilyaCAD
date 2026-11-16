@@ -1,7 +1,9 @@
 import type { PlacedFurniture, FurniturePart } from "../types/placedFurniture";
-import { isValidDrawerBoxProjectSpecs } from "./drawerBoxProject";
 import {
-  resolveMaterialThickness,
+  isValidDrawerBoxProjectSpecs,
+  resolveDrawerPanelMaterialAssignments
+} from "./drawerBoxProject";
+import {
   validateMaterialCatalog,
   type MaterialCatalogEntry
 } from "./materialCatalog";
@@ -97,21 +99,13 @@ function validateProjectMaterialReferences(
       );
     }
     for (const config of item.drawerBoxSpecs ?? []) {
-      const drawerMaterialId = config.spec.materialId;
-      if (drawerMaterialId === undefined) continue;
-      const drawerMaterial = materialById.get(drawerMaterialId);
-      if (!drawerMaterial) {
+      try {
+        resolveDrawerPanelMaterialAssignments(config.spec, materials);
+      } catch (error) {
         throw new Error(
-          `${item.name}: çekmece grubu ${config.id} için ${drawerMaterialId} malzeme kimliği proje kataloğunda bulunamadı.`
+          `${item.name}: çekmece grubu ${config.id}: ${error instanceof Error ? error.message : "malzeme ataması geçersiz."}`
         );
       }
-      const thicknesses = [
-        config.spec.sideThickness,
-        config.spec.frontBackThickness,
-        config.spec.bottomThickness,
-        config.spec.visibleFrontThickness
-      ];
-      for (const thickness of thicknesses) resolveMaterialThickness(drawerMaterial, thickness);
     }
   }
 }

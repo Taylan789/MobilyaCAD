@@ -6,6 +6,7 @@ import {
   calculateProjectProduction
 } from "../src/engine/projectProduction.ts";
 import { createProjectCutListCsv } from "../src/engine/cutListCsv.ts";
+import { parseProjectFile, serializeProjectFile } from "../src/engine/projectFile.ts";
 
 const catalog = [
   {
@@ -339,5 +340,121 @@ test("CSV proje mobilya adı eşlemesi eksikse satır üretmez", () => {
   assert.throws(
     () => createProjectCutListCsv(new Map(), result.parts),
     /mobilya adı eşleşmesi/
+  );
+});
+
+
+test("çekmece panel override malzemeleri parça, tüketim ve CSV kimliklerinde korunur", () => {
+  const materials = [
+    { id: "drawer-default", name: "Varsayılan MDF", category: "panel", thicknessesMm: [6, 15, 18], unit: "mm" },
+    { id: "drawer-side", name: "Yan Suntalam", category: "panel", thicknessesMm: [15], unit: "mm" },
+    { id: "drawer-bottom", name: "Taban MDF", category: "panel", thicknessesMm: [6], unit: "mm" }
+  ];
+  const furniture = createPlacedFurniture("parametric-1-1", "drawer-override-1", {
+    drawerBoxSpecs: [{
+      ...drawerConfig,
+      spec: {
+        ...drawerConfig.spec,
+        materialId: "drawer-default",
+        panelMaterialIds: { sidePanels: "drawer-side", bottomPanel: "drawer-bottom" }
+      }
+    }]
+  });
+  const result = calculateProjectProduction([furniture], catalog, rules, materials);
+  const drawerParts = result.parts.filter((part) => part.name.startsWith("Çekmece "));
+  const side = drawerParts.find((part) => part.name === "Çekmece Yan Paneli");
+  const frontBack = drawerParts.find((part) => part.name === "Çekmece Ön/Arka Paneli");
+  const bottom = drawerParts.find((part) => part.name === "Çekmece Tabanı");
+  const visibleFront = drawerParts.find((part) => part.name === "Çekmece Ön Paneli");
+
+  assert.equal(result.errors.length, 0);
+  assert.equal(result.exportBlockReason, null);
+  assert.equal(side.materialId, "drawer-side");
+  assert.equal(side.material, "Yan Suntalam");
+  assert.equal(frontBack.materialId, "drawer-default");
+  assert.equal(bottom.materialId, "drawer-bottom");
+  assert.equal(bottom.material, "Taban MDF");
+  assert.equal(visibleFront.materialId, "drawer-default");
+
+  const summaries = calculateMaterialConsumptionSummary(drawerParts);
+  assert.ok(summaries.some((summary) => summary.materialId === "drawer-side" && summary.material === "Yan Suntalam"));
+  assert.ok(summaries.some((summary) => summary.materialId === "drawer-bottom" && summary.thickness === 6));
+
+  const csv = createProjectCutListCsv(result.furnitureNames, drawerParts);
+  assert.ok(csv.includes("Yan Suntalam;drawer-side;"));
+  assert.ok(csv.includes("Taban MDF;drawer-bottom;"));
+  assert.ok(csv.includes("Varsayılan MDF;drawer-default;"));
+});
+
+test("çekmece panel override malzemesi bulunmaz veya kalınlığı tanımlı değilse CSV engellenir", () => {
+  const furniture = createPlacedFurniture("parametric-1-1", "drawer-override-invalid", {
+    drawerBoxSpecs: [{
+      ...drawerConfig,
+      spec: {
+        ...drawerConfig.spec,
+        materialId: "drawer-default",
+        panelMaterialIds: { sidePanels: "drawer-side" }
+      }
+    }]
+  });
+  const materials = [
+    { id: "drawer-default", name: "Varsayılan MDF", category: "panel", thicknessesMm: [6, 15, 18], unit: "mm" }
+  ];
+
+  const missing = calculateProjectProduction([furniture], catalog, rules, materials);
+  assert.equal(missing.parts.some((part) => part.name.startsWith("Çekmece ")), false);
+  assert.match(missing.exportBlockReason, /sidePanels panel grubu.*drawer-side/);
+
+  const wrongThickness = calculateProjectProduction([furniture], catalog, rules, [
+    ...materials,
+    { id: "drawer-side", name: "Yan Suntalam", category: "panel", thicknessesMm: [18], unit: "mm" }
+  ]);
+  assert.equal(wrongThickness.parts.some((part) => part.name === "Çekmece Yan Paneli"), false);
+  assert.match(wrongThickness.exportBlockReason, /15 mm kalınlık katalogda tanımlı değil/);
+});
+
+test("çekmece panel override değerleri proje JSON v1 içinde korunur ve doğrulanır", () => {
+  const materials = [
+    { id: "drawer-default", name: "Varsayılan MDF", category: "panel", thicknessesMm: [6, 15, 18], unit: "mm" },
+    { id: "drawer-side", name: "Yan Suntalam", category: "panel", thicknessesMm: [15], unit: "mm" },
+    { id: "drawer-bottom", name: "Taban MDF", category: "panel", thicknessesMm: [6], unit: "mm" }
+  ];
+  const furniture = createPlacedFurniture("parametric-1-1", "drawer-json-1", {
+    drawerBoxSpecs: [{
+      ...drawerConfig,
+      spec: {
+        ...drawerConfig.spec,
+        materialId: "drawer-default",
+        panelMaterialIds: { sidePanels: "drawer-side", bottomPanel: "drawer-bottom" }
+      }
+    }]
+  });
+  const room = { width: 4000, length: 5000, height: 2800 };
+  const savedAt = "2026-11-16T00:00:00.000Z";
+  const parsed = parseProjectFile(
+    serializeProjectFile(room, [furniture], savedAt, materials)
+  );
+
+  assert.deepEqual(
+    parsed.furniture[0].drawerBoxSpecs[0].spec.panelMaterialIds,
+    { sidePanels: "drawer-side", bottomPanel: "drawer-bottom" }
+  );
+
+  const invalidReference = JSON.parse(
+    serializeProjectFile(room, [furniture], savedAt, materials)
+  );
+  invalidReference.furniture[0].drawerBoxSpecs[0].spec.panelMaterialIds.sidePanels = "missing-side";
+  assert.throws(
+    () => parseProjectFile(JSON.stringify(invalidReference)),
+    /malzeme referansı geçersiz/
+  );
+
+  const invalidGroup = JSON.parse(
+    serializeProjectFile(room, [furniture], savedAt, materials)
+  );
+  invalidGroup.furniture[0].drawerBoxSpecs[0].spec.panelMaterialIds.unknownPanel = "drawer-side";
+  assert.throws(
+    () => parseProjectFile(JSON.stringify(invalidGroup)),
+    /Mobilya proje formatıyla uyumlu değil/
   );
 });

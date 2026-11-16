@@ -8,6 +8,10 @@ import { resolveMaterialThickness } from "./materialCatalog";
 import { calculateCabinetParts } from "./cabinetParts";
 import { calculateDrawerBoxParts } from "./drawerBoxParts";
 import {
+  isDrawerBoxProjectConfig,
+  resolveDrawerPanelMaterialAssignments
+} from "./drawerBoxProject";
+import {
   getCabinetCutListExportBlockReason,
   resolveCabinetConstructionRules
 } from "./cabinetRules";
@@ -257,24 +261,16 @@ export function calculateProjectProduction(
     if (placed.drawerCount > 0) {
       for (const config of drawerConfigs) {
         try {
-          const drawerMaterial = config.spec.materialId === undefined
-            ? undefined
-            : materialById.get(config.spec.materialId);
-          if (config.spec.materialId !== undefined && !drawerMaterial) {
-            throw new Error(
-              `Çekmece malzeme kataloğunda ${config.spec.materialId} kimliği bulunamadı.`
-            );
+          if (!isDrawerBoxProjectConfig(config)) {
+            throw new Error("Çekmece yapılandırması geçersiz.");
           }
-          if (drawerMaterial) {
-            resolveMaterialThickness(drawerMaterial, config.spec.sideThickness);
-            resolveMaterialThickness(drawerMaterial, config.spec.frontBackThickness);
-            resolveMaterialThickness(drawerMaterial, config.spec.bottomThickness);
-            resolveMaterialThickness(drawerMaterial, config.spec.visibleFrontThickness);
-          }
-          const drawerSpec = drawerMaterial
-            ? { ...config.spec, material: drawerMaterial.name }
-            : config.spec;
-          drawerParts.push(...calculateDrawerBoxParts(furnitureId, config.id, drawerSpec));
+          const panelMaterials = resolveDrawerPanelMaterialAssignments(config.spec, materials);
+          drawerParts.push(...calculateDrawerBoxParts(
+            furnitureId,
+            config.id,
+            config.spec,
+            panelMaterials
+          ));
         } catch (error) {
           result.errors.push({
             furnitureId,

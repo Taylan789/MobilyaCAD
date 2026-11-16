@@ -1,11 +1,16 @@
 import type { Part } from "../types/part";
 import { roundMeasurement, validateMeasurement } from "./measurement";
 
-type DrawerPanelGroup =
+export type DrawerPanelGroup =
   | "sidePanels"
   | "frontBackPanels"
   | "bottomPanel"
   | "visibleFrontPanel";
+
+export interface DrawerPanelMaterialAssignment {
+  materialId: string;
+  material: string;
+}
 
 type DrawerEdgeBanding = Record<DrawerPanelGroup, Part["edgeBanding"]>;
 type DrawerGrainDirection = Record<DrawerPanelGroup, Part["grainDirection"]>;
@@ -29,6 +34,8 @@ export interface DrawerBoxConstructionSpec {
   material: string;
   /** Optional project catalogue reference; absent for legacy free-text drawer materials. */
   materialId?: string;
+  /** Optional per-panel-group catalogue overrides; each group falls back to materialId. */
+  panelMaterialIds?: Partial<Record<DrawerPanelGroup, string>>;
   bottomFit: "between-sides-and-front-back";
   edgeBanding: DrawerEdgeBanding;
   grainDirection: DrawerGrainDirection;
@@ -97,7 +104,8 @@ function cloneEdgeBanding(
 export function calculateDrawerBoxParts(
   furnitureId: string,
   drawerGroupId: string,
-  spec: DrawerBoxConstructionSpec
+  spec: DrawerBoxConstructionSpec,
+  panelMaterials: Partial<Record<DrawerPanelGroup, DrawerPanelMaterialAssignment>> = {}
 ): Part[] {
   if (typeof furnitureId !== "string" || furnitureId.trim() === "") {
     throw new Error("Mobilya kimliği gereklidir.");
@@ -165,6 +173,13 @@ export function calculateDrawerBoxParts(
     quantity: number,
     group: DrawerPanelGroup
   ): Part {
+    const assignment = panelMaterials[group];
+    if (spec.panelMaterialIds?.[group] && !assignment) {
+      throw new Error(`${group} panel grubu katalog malzeme çözümlemesi gerektiriyor.`);
+    }
+    const partMaterial = assignment?.material ?? material;
+    const partMaterialId = assignment?.materialId ?? spec.materialId;
+
     return {
       id: `${furnitureId}-${drawerGroupId}-${suffix}`,
       furnitureId,
@@ -174,8 +189,8 @@ export function calculateDrawerBoxParts(
       thickness: roundedPositiveMeasurement(thickness, `${name} kalınlığı`),
       quantity,
       edgeBanding: cloneEdgeBanding(spec.edgeBanding[group]),
-      material,
-      ...(spec.materialId ? { materialId: spec.materialId } : {}),
+      material: partMaterial,
+      ...(partMaterialId ? { materialId: partMaterialId } : {}),
       cncOperations: [],
       grainDirection: spec.grainDirection[group],
       productionNote
