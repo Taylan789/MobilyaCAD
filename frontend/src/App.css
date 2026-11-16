@@ -3326,3 +3326,50 @@ button:focus-visible, input:focus-visible, select:focus-visible {
  .atelier-bottom-row { padding-top:24px; }
  .atelier-home-footer { gap:10px; flex-direction:column; padding:14px 17px; }
 }
+
+
+/* Studio motion system */
+.atelier-homebar{animation:studio-drop .72s cubic-bezier(.2,.75,.25,1) both}
+.atelier-welcome-copy>*{animation:studio-rise .8s cubic-bezier(.2,.75,.25,1) both}
+.atelier-welcome-copy>:nth-child(2){animation-delay:.08s}.atelier-welcome-copy>:nth-child(3){animation-delay:.16s}.atelier-welcome-copy>:nth-child(4){animation-delay:.24s}
+.atelier-feature-art{animation:studio-art-in 1s .12s both}.atelier-art-cube{animation:studio-cube-float 5s ease-in-out infinite}
+.atelier-art-grid{animation:studio-grid-breathe 8s ease-in-out infinite alternate}
+.atelier-start-card{animation:studio-rise .7s both}.atelier-start-card:nth-child(2){animation-delay:.09s}.atelier-start-card:nth-child(3){animation-delay:.18s}
+.atelier-bottom-row{animation:studio-rise .8s .24s both}
+.atelier-mark{position:relative;overflow:hidden}.atelier-mark:after{content:"";position:absolute;inset:-60% auto -60% -35%;width:28%;transform:rotate(25deg);background:rgba(255,255,255,.5);animation:studio-shine 4.8s 1.2s infinite}
+.cad-app{position:relative;overflow:hidden}.cad-topbar{min-height:62px;background:linear-gradient(110deg,#202a26,#29352f 55%,#202a26)!important;border-bottom:1px solid #47564b!important;box-shadow:0 5px 22px rgba(15,22,18,.22)}
+.cad-workspace{background:#d8d9d2!important}.cad-sidebar{border:0!important;border-right:1px solid #c9cbc1!important;border-radius:0!important;box-shadow:5px 0 20px rgba(34,43,36,.05)}
+.cad-viewport{margin:12px!important;border:1px solid #59665c!important;border-radius:10px!important;box-shadow:0 12px 32px rgba(28,37,31,.18)!important;animation:studio-viewport-in .75s both}
+.cad-inspector{margin:12px 12px 12px 0;border-radius:0 10px 10px 0!important;box-shadow:8px 0 26px rgba(35,43,36,.07)}
+.cad-loading-screen{position:fixed;z-index:1000;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;color:#f0eee7;background:radial-gradient(ellipse at 50% 44%,#35463b 0,#26352d 34%,#1c2722 76%);animation:studio-loader-in .25s both}
+.cad-loading-screen:before,.cad-loading-screen:after{content:"";position:absolute;width:70vw;height:70vw;border:1px solid rgba(205,190,164,.09);border-radius:50%;pointer-events:none;animation:studio-orbit 18s linear infinite}
+.cad-loading-screen:after{width:52vw;height:52vw;border-style:dashed;animation-direction:reverse}
+.cad-loading-brand{position:absolute;top:34px;left:42px;display:flex;align-items:center;gap:12px;font-size:15px;font-weight:750}.cad-loading-brand strong{color:#d39a72}
+.cad-loading-mark{display:grid;place-items:center;width:32px;height:32px;border:1px solid #b98765;color:#e5c4a7;font:20px Georgia,serif}
+.cad-loading-model{position:relative;width:210px;height:180px;margin-bottom:20px;perspective:650px;animation:studio-loader-float 3.2s ease-in-out infinite}
+.cad-loading-panel{position:absolute;display:block;border:1px solid rgba(250,232,204,.85);background:linear-gradient(135deg,rgba(226,213,190,.9),rgba(159,135,107,.86));box-shadow:0 12px 35px rgba(0,0,0,.18)}
+.cad-loading-panel-a{width:94px;height:116px;left:45px;top:38px;transform:skewY(-27deg);animation:studio-panel-a 2.8s ease-in-out infinite}
+.cad-loading-panel-b{width:40px;height:116px;left:138px;top:13px;transform:skewY(27deg);background:linear-gradient(135deg,#bd8967,#76523d);animation:studio-panel-b 2.8s ease-in-out infinite}
+.cad-loading-panel-c{width:94px;height:39px;left:65px;top:1px;transform:rotate(-27deg) skewX(27deg);background:linear-gradient(135deg,#f0e5d1,#c9b89d);animation:studio-panel-c 2.8s ease-in-out infinite}
+.cad-loading-shelf{position:absolute;left:51px;top:91px;width:126px;height:3px;background:#8d654b;transform:rotate(-27deg);box-shadow:0 0 12px rgba(219,169,126,.65)}
+.cad-loading-dimension{position:absolute;right:-14px;bottom:2px;color:#d5ad8e;font-size:10px;letter-spacing:1.2px}
+.cad-loading-kicker{margin:0 0 11px;color:#d1a27f;font-size:9px;font-weight:700;letter-spacing:2.6px}
+.cad-loading-screen h2{margin:0;color:#f4f0e8;font:400 clamp(26px,3vw,36px)/1.2 Georgia,serif}
+.cad-loading-caption{margin-top:12px;color:#aeb8aa;font-size:10px}.cad-loading-track{width:min(280px,60vw);height:2px;margin-top:32px;overflow:hidden;background:rgba(232,223,206,.16)}
+.cad-loading-track span{display:block;width:40%;height:100%;background:#c88d66;box-shadow:0 0 12px #c88d66;animation:studio-progress 1.35s infinite}
+.cad-loading-percent{margin-top:12px;color:#7f9182;font-size:8px;letter-spacing:1.7px}
+@keyframes studio-drop{from{opacity:0;transform:translateY(-14px)}to{opacity:1;transform:translateY(0)}}
+@keyframes studio-rise{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
+@keyframes studio-art-in{from{opacity:0;transform:translateX(28px) scale(.97)}to{opacity:1;transform:translateX(0) scale(1)}}
+@keyframes studio-cube-float{0%,100%{translate:0 0}50%{translate:0 -8px}}
+@keyframes studio-grid-breathe{from{opacity:.12}to{opacity:.3}}
+@keyframes studio-shine{0%,65%{left:-35%}85%,100%{left:130%}}
+@keyframes studio-viewport-in{from{opacity:0;transform:scale(.985)}to{opacity:1;transform:scale(1)}}
+@keyframes studio-loader-in{from{opacity:0}to{opacity:1}}
+@keyframes studio-orbit{to{transform:rotate(360deg)}}
+@keyframes studio-loader-float{0%,100%{transform:translateY(0) rotateY(-8deg)}50%{transform:translateY(-9px) rotateY(8deg)}}
+@keyframes studio-panel-a{0%,100%{transform:skewY(-27deg)}50%{transform:skewY(-27deg) translateX(-4px)}}
+@keyframes studio-panel-b{0%,100%{transform:skewY(27deg)}50%{transform:skewY(27deg) translateX(4px)}}
+@keyframes studio-panel-c{0%,100%{transform:rotate(-27deg) skewX(27deg)}50%{transform:rotate(-27deg) skewX(27deg) translateY(-4px)}}
+@keyframes studio-progress{from{transform:translateX(-110%)}to{transform:translateX(270%)}}
+@media(prefers-reduced-motion:reduce){.atelier-home *, .cad-app *, .cad-loading-screen, .cad-loading-screen *{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
