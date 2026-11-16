@@ -66,6 +66,7 @@ import { MobilyaCadLogo } from "./components/brand/MobilyaCadLogo";
 
 import Scene3D from "./components/viewport/Scene3D";
 import { DrawerBoxConfigurator } from "./components/production/DrawerBoxConfigurator";
+import { ProductionOverview } from "./components/production/ProductionOverview";
 import { MaterialCatalogManager } from "./components/production/MaterialCatalogManager";
 import type { MaterialCatalogEntry } from "./engine/materialCatalog";
 import { furnitureCatalog } from "./data/furnitureCatalog";
@@ -181,7 +182,6 @@ function App() {
     materials
   );
   const productionParts = projectProduction.parts;
-  const productionExportBlockReason = projectProduction.exportBlockReason;
 
   const edgeBandingSummary = calculateEdgeBandingSummary(productionParts);
   const materialConsumptionSummary = calculateMaterialConsumptionSummary(productionParts);
@@ -1415,141 +1415,36 @@ function App() {
                     </TabsContent>
 
                     <TabsContent value="production" className="cad-tab-content">
-                      <section className="cad-property-section">
-                        <div className="cad-section-heading">
-                          <span>PROJE ÜRETİM PARÇALARI</span>
-                          <Ruler />
-                        </div>
-
-                        {furniture.length === 0 ? (
-                          <div className="cad-inspector-empty">
-                            <div><Package /></div>
-                            <strong>Projede mobilya bulunmuyor</strong>
-                            <p>Üretim özeti için önce odaya mobilya ekle.</p>
-                          </div>
-                        ) : (
-                          <>
-                            <div className="cad-production-summary">
-                              <span>Hesaplanan desteklenen modül</span>
-                              <strong>{projectProduction.supportedFurnitureCount} / {furniture.length}</strong>
-                            </div>
-                            <div className="cad-production-summary">
-                              <span>Hesaplanan parça türü</span>
-                              <strong>{productionParts.length}</strong>
-                            </div>
-
-                            {projectProduction.unsupportedFurniture.length > 0 && (
-                              <p className="cad-field-note" role="status">
-                                Henüz üretim hesabı desteklenmeyen mobilyalar: {projectProduction.unsupportedFurniture.map((item) => item.furnitureName).join(", ")}. Bu rapor ve CSV yalnızca desteklenen düz mutfak gövdelerini kapsar; özel köşe, cihaz ve evye boşlukları hesaplanmaz.
-                              </p>
-                            )}
-
-                            {selectedFurniture &&
-                              isSupportedCabinetCatalogItem(selectedCatalogItem) &&
-                              selectedFurniture.drawerCount > 0 && (
-                                <DrawerBoxConfigurator
-                                  key={selectedFurniture.id}
-                                  furnitureId={selectedFurniture.id}
-                                  expectedDrawerCount={selectedFurniture.drawerCount}
-                                  configs={selectedFurniture.drawerBoxSpecs ?? []}
-                                  materials={materials}
-                                  onChange={(drawerBoxSpecs) =>
-                                    setFurniture((previous) =>
-                                      previous.map((item) =>
-                                        item.id === selectedFurniture.id
-                                          ? { ...item, drawerBoxSpecs }
-                                          : item
-                                      )
-                                    )
-                                  }
-                                />
-                              )}
-
-                            <div className="cad-production-summary">
-                              <span>Toplam kenar bantlama</span>
-                              <strong>{edgeBandingSummary.totalLength.toLocaleString("tr-TR", { maximumFractionDigits: 1 })} mm</strong>
-                            </div>
-                            <div className="cad-production-summary">
-                              <span>Genişlik yönündeki kenarlar</span>
-                              <strong>{edgeBandingSummary.widthEdgesLength.toLocaleString("tr-TR", { maximumFractionDigits: 1 })} mm</strong>
-                            </div>
-                            <div className="cad-production-summary">
-                              <span>Uzunluk yönündeki kenarlar</span>
-                              <strong>{edgeBandingSummary.lengthEdgesLength.toLocaleString("tr-TR", { maximumFractionDigits: 1 })} mm</strong>
-                            </div>
-
-                            <div className="cad-section-heading">
-                              <span>MALZEME TÜKETİMİ</span>
-                              <Package />
-                            </div>
-                            {materialConsumptionSummary.length > 0 ? (
-                              materialConsumptionSummary.map((summary) => (
-                                <div
-                                  key={(summary.materialId ?? summary.material) + "-" + summary.material + "-" + summary.thickness}
-                                  className="cad-production-card"
-                                >
-                                  <strong>{summary.material} · {summary.thickness} mm</strong>
-                                  {summary.materialId && <small>Malzeme ID: {summary.materialId}</small>}
-                                  <span>{summary.partLineCount} parça çeşidi · {summary.totalQuantity} adet</span>
-                                  <small>
-                                    Net panel alanı: {summary.panelAreaM2.toLocaleString("tr-TR", { maximumFractionDigits: 6 })} m²
-                                  </small>
-                                  <small>
-                                    Net hacim: {summary.volumeM3.toLocaleString("tr-TR", { maximumFractionDigits: 9 })} m³
-                                  </small>
-                                  <small>
-                                    Kenar bantlama: {summary.edgeBanding.totalLength.toLocaleString("tr-TR", { maximumFractionDigits: 1 })} mm · {summary.edgeBanding.edgeCount} kenar
-                                  </small>
-                                </div>
-                              ))
-                            ) : (
-                              <p className="cad-field-note">
-                                Desteklenen mobilyalar için hesaplanan üretim parçası bulunmuyor.
-                              </p>
-                            )}
-
-                            {projectProduction.errors.map((issue) => (
-                              <p key={issue.furnitureId + issue.reason} className="text-xs text-muted-foreground" role="alert">
-                                {issue.furnitureName}: {issue.reason}
-                              </p>
-                            ))}
-                            {projectProduction.blockedFurniture.map((issue) => (
-                              <p key={issue.furnitureId + issue.reason} className="text-xs text-muted-foreground" role="status">
-                                {issue.furnitureName}: {issue.reason}
-                              </p>
-                            ))}
-                            {productionExportBlockReason && (
-                              <p className="text-xs text-muted-foreground" role="status">
-                                {productionExportBlockReason}
-                              </p>
-                            )}
-
-                            <p className="cad-field-note">
-                              Net panel alanı ve hacim fire, kesim payı, levha verimi veya rulo payı içermez. CNC, donanım ve özel konstrüksiyon boşlukları bu rapora dahil değildir.
-                            </p>
-                            <Button
-                              className="cad-production-export"
-                              variant="outline"
-                              onClick={exportProductionCsv}
-                              disabled={
-                                productionParts.length === 0 ||
-                                productionExportBlockReason !== null
+                      <div className="mc-production-tab">
+                        {selectedFurniture &&
+                          isSupportedCabinetCatalogItem(selectedCatalogItem) &&
+                          selectedFurniture.drawerCount > 0 && (
+                            <DrawerBoxConfigurator
+                              key={selectedFurniture.id}
+                              furnitureId={selectedFurniture.id}
+                              expectedDrawerCount={selectedFurniture.drawerCount}
+                              configs={selectedFurniture.drawerBoxSpecs ?? []}
+                              materials={materials}
+                              onChange={(drawerBoxSpecs) =>
+                                setFurniture((previous) =>
+                                  previous.map((item) =>
+                                    item.id === selectedFurniture.id
+                                      ? { ...item, drawerBoxSpecs }
+                                      : item
+                                  )
+                                )
                               }
-                            >
-                              Proje Kesim Listesini CSV İndir
-                            </Button>
+                            />
+                          )}
 
-                            {productionParts.map((part) => (
-                              <div key={part.id} className="cad-production-card">
-                                <strong>{part.name}</strong>
-                                <span>{part.width} × {part.length} × {part.thickness} mm</span>
-                                <small>{projectProduction.furnitureNames.get(part.furnitureId) ?? "Mobilya"}</small>
-                                <small>Adet: {part.quantity}</small>
-                              </div>
-                            ))}
-                          </>
-                        )}
-                      </section>
+                        <ProductionOverview
+                          furnitureCount={furniture.length}
+                          production={projectProduction}
+                          edgeBanding={edgeBandingSummary}
+                          materialConsumption={materialConsumptionSummary}
+                          onExport={exportProductionCsv}
+                        />
+                      </div>
                     </TabsContent>
 
                     <TabsContent value="materials" className="cad-tab-content">
