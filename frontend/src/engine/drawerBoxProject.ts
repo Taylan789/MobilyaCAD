@@ -69,7 +69,7 @@ export function resolveDrawerPanelMaterialAssignments(
 ): Partial<Record<DrawerPanelGroup, DrawerPanelMaterialAssignment>> {
   const materialById = new Map(materials.map((material) => [material.id, material]));
   if (spec.materialId !== undefined && !materialById.has(spec.materialId)) {
-    throw new Error(`Çekmece varsayılan malzemesi ${spec.materialId} katalogda bulunamadı.`);
+    throw new Error(`Çekmece grubu malzeme kimliği ${spec.materialId} katalogda bulunamadı.`);
   }
 
   const thicknessByGroup: Record<DrawerPanelGroup, number> = {

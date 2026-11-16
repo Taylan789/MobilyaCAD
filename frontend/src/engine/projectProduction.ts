@@ -218,7 +218,7 @@ export function calculateProjectProduction(
 
     let drawerBlockReason: string | null = null;
     try {
-      drawerBlockReason = getCabinetCutListExportBlockReason(placed);
+      drawerBlockReason = getCabinetCutListExportBlockReason(placed, materials);
     } catch (error) {
       result.errors.push({
         furnitureId,

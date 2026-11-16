@@ -1,7 +1,12 @@
 import type { CabinetConstructionRules } from "../types/construction/cabinetRules";
 import type { PlacedFurniture } from "../types/placedFurniture";
 import { calculateDrawerBoxParts } from "./drawerBoxParts";
-import { isDrawerBoxProjectConfig, isValidDrawerBoxProjectSpecs } from "./drawerBoxProject";
+import {
+  isDrawerBoxProjectConfig,
+  isValidDrawerBoxProjectSpecs,
+  resolveDrawerPanelMaterialAssignments
+} from "./drawerBoxProject";
+import type { MaterialCatalogEntry } from "./materialCatalog";
 
 export function resolveCabinetConstructionRules(
   baseRules: CabinetConstructionRules,
@@ -16,7 +21,8 @@ export function resolveCabinetConstructionRules(
 }
 
 export function getCabinetCutListExportBlockReason(
-  furniture: Pick<PlacedFurniture, "drawerCount" | "drawerBoxSpecs">
+  furniture: Pick<PlacedFurniture, "drawerCount" | "drawerBoxSpecs">,
+  materials: readonly MaterialCatalogEntry[] = []
 ): string | null {
   if (furniture.drawerCount <= 0) return null;
   const configs = furniture.drawerBoxSpecs;
@@ -35,7 +41,8 @@ export function getCabinetCutListExportBlockReason(
       return "Çekmece yapılandırması geçersiz; kesim listesi dışa aktarılamaz.";
     }
     try {
-      calculateDrawerBoxParts("export-validation", config.id, config.spec);
+      const panelMaterials = resolveDrawerPanelMaterialAssignments(config.spec, materials);
+      calculateDrawerBoxParts("export-validation", config.id, config.spec, panelMaterials);
     } catch {
       return "Çekmece ölçülerinden geçerli üretim parçaları hesaplanamıyor; ölçüleri kontrol et.";
     }

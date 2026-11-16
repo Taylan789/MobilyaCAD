@@ -455,6 +455,6 @@ test("çekmece panel override değerleri proje JSON v1 içinde korunur ve doğru
   invalidGroup.furniture[0].drawerBoxSpecs[0].spec.panelMaterialIds.unknownPanel = "drawer-side";
   assert.throws(
     () => parseProjectFile(JSON.stringify(invalidGroup)),
-    /Mobilya proje formatıyla uyumlu değil/
+    /MobilyaCAD proje formatıyla uyumlu değil/
   );
 });
