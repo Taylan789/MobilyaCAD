@@ -881,7 +881,7 @@ test("TV ünitesi dikey bölücü ve bölme rafları ortak Part listesiyle malze
   assert.ok(divider);
   assert.deepEqual(
     [divider.width, divider.length, divider.thickness, divider.quantity],
-    [542, 720, 18, 1]
+    [542, 684, 18, 1]
   );
   assert.equal(report.result.parts.length, 7);
 

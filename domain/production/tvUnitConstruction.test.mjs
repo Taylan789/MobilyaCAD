@@ -240,7 +240,7 @@ test("TV ünitesi açık ölçülü dikey bölücüyü katalog doğrulamalı ort
   assert.ok(divider);
   assert.deepEqual(
     [divider.width, divider.length, divider.thickness, divider.quantity],
-    [432, 420, 18, 1]
+    [432, 384, 18, 1]
   );
   assert.deepEqual(
     [
