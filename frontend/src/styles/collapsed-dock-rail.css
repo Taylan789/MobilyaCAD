@@ -1,0 +1,137 @@
+/* Desktop collapsed dock: keep the two navigation destinations reachable. */
+@media (min-width: 821px) {
+  .cad-workspace.cad-workspace--left-collapsed {
+    grid-template-columns: 56px minmax(0, 1fr) !important;
+  }
+
+  .cad-workspace--left-collapsed > .cad-sidebar {
+    display: flex !important;
+    flex: 0 0 56px !important;
+    width: 56px !important;
+    min-width: 56px !important;
+    max-width: 56px !important;
+    min-height: 0;
+    overflow: visible !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    border-right: 1px solid #354a56 !important;
+    z-index: 15;
+  }
+
+  .cad-workspace--left-collapsed .cad-sidebar-header,
+  .cad-workspace--left-collapsed .cad-sidebar-content,
+  .cad-workspace--left-collapsed .cad-project-footer,
+  .cad-workspace--left-collapsed .cad-sidebar [data-slot="sidebar-separator"] {
+    display: none !important;
+  }
+
+  .cad-workspace--left-collapsed .studio-sidebar-switch {
+    display: flex !important;
+    flex: 0 0 auto;
+    flex-direction: column;
+    align-items: center;
+    gap: 7px;
+    width: 100%;
+    margin: 12px 0 0 !important;
+    padding: 0 6px !important;
+    background: transparent !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+  }
+
+  .cad-workspace--left-collapsed .studio-sidebar-switch button {
+    position: relative;
+    display: grid !important;
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
+    min-height: 44px;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    padding: 0 !important;
+    overflow: visible;
+    color: #aabcc7;
+    background: #20313b;
+    border: 1px solid #3d5663;
+    border-radius: 9px;
+    font-size: 0 !important;
+    line-height: 0;
+    transition: color 160ms ease, background-color 160ms ease, border-color 160ms ease;
+  }
+
+  .cad-workspace--left-collapsed .studio-sidebar-switch button svg {
+    display: block;
+    width: 18px;
+    height: 18px;
+    flex: 0 0 auto;
+  }
+
+  .cad-workspace--left-collapsed .studio-sidebar-switch button span {
+    display: none !important;
+  }
+
+  .cad-workspace--left-collapsed .studio-sidebar-switch button.active,
+  .cad-workspace--left-collapsed .studio-sidebar-switch button[aria-selected="true"] {
+    color: #f0f6f9;
+    background: #304958;
+    border-color: #6b8da2;
+    box-shadow: inset 0 0 0 1px rgba(145, 180, 202, .16);
+  }
+
+  .cad-workspace--left-collapsed .studio-sidebar-switch button:hover {
+    color: #fff;
+    background: #2b414d;
+    border-color: #7292a5;
+  }
+
+  .cad-workspace--left-collapsed .studio-sidebar-switch button:focus-visible {
+    outline: 2px solid #a5c5d8;
+    outline-offset: 3px;
+  }
+
+  .cad-workspace--left-collapsed .studio-sidebar-switch button:first-child::after,
+  .cad-workspace--left-collapsed .studio-sidebar-switch button:last-child::after {
+    position: absolute;
+    top: 50%;
+    left: calc(100% + 9px);
+    z-index: 30;
+    padding: 6px 8px;
+    color: #e6edf1;
+    background: #17242d;
+    border: 1px solid #49616e;
+    border-radius: 6px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, .28);
+    font-size: 10px;
+    font-weight: 600;
+    line-height: 1.2;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transform: translate(-4px, -50%);
+    transition: opacity 120ms ease, transform 120ms ease;
+  }
+
+  .cad-workspace--left-collapsed .studio-sidebar-switch button:first-child::after {
+    content: "Kütüphane";
+  }
+
+  .cad-workspace--left-collapsed .studio-sidebar-switch button:last-child::after {
+    content: "Sahne ağacı";
+  }
+
+  .cad-workspace--left-collapsed .studio-sidebar-switch button:hover::after,
+  .cad-workspace--left-collapsed .studio-sidebar-switch button:focus-visible::after {
+    opacity: 1;
+    transform: translate(0, -50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cad-workspace--left-collapsed > .cad-sidebar,
+  .cad-workspace--left-collapsed .studio-sidebar-switch button,
+  .cad-workspace--left-collapsed .studio-sidebar-switch button::after {
+    transition: none !important;
+  }
+}
