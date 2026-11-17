@@ -720,6 +720,6 @@
 - Değişen dosyalar: `domain/production/projectProduction.ts`, `domain/production/projectProduction.test.mjs`, `docs/production-domain-contract.md`, `PRODUCT_ROADMAP.md`, `AI_COORDINATION.md`, `AI_PROGRESS.md`.
 - Teslimat commit: `6acf8f58fe3476f17e280cb3c6d580279ae49556` — [commit bağlantısı](https://github.com/Taylan789/MobilyaCAD/commit/6acf8f58fe3476f17e280cb3c6d580279ae49556).
 - [MobilyaCAD CI #44024961800](https://github.com/Taylan789/MobilyaCAD/actions/runs/44024961800) başarılı; [QA & Test #44024961750](https://github.com/Taylan789/MobilyaCAD/actions/runs/44024961750) başarılı (**101/101 frontend + 149/149 domain testi, 0 başarısız**). Shared-domain strict TypeScript, lint, frontend production build ve production dependency audit adımları geçti.
-- [Pages build/deploy #44024961772](https://github.com/Taylan789/MobilyaCAD/actions/runs/44024961772) bu kayıt hazırlanırken hâlâ çalışıyordu; tamamlandı olarak işaretlenmedi.
+- [Pages build/deploy #44024961772](https://github.com/Taylan789/MobilyaCAD/actions/runs/44024961772) başarılı; build, Pages yapılandırması ve artifact yükleme adımları tamamlandı.
 - PR açılmadı; doğrudan yalnızca `dev/github-work` dalına commit edildi. Fiyat, üretici standardı, montaj/delik koordinatı, CNC ve fiziksel üretim onayı yoktur. `frontend/**` değişmedi.
 - Sonraki görev: frontend sahibinin JSON v1/CSV adapter'ına `hardwareItems` desteği eklemesi; ardından birim bazlı donanım tüketim özeti.
