@@ -419,6 +419,10 @@ export default function Scene3D({
   );
   const [activeView, setActiveView] = useState<CameraOrientation>("perspective");
   const [cameraToolbarFocusIndex, setCameraToolbarFocusIndex] = useState(0);
+  const cameraToolbarTabStopIndex =
+    cameraToolbarFocusIndex === 7 && !selectedFurnitureId
+      ? 0
+      : cameraToolbarFocusIndex;
   const [cameraCommand, setCameraCommand] = useState<CameraCommand | null>(null);
   const [reducedMotion, setReducedMotion] = useState(
     () =>
@@ -435,10 +439,6 @@ export default function Scene3D({
     mediaQuery.addEventListener("change", syncPreference);
     return () => mediaQuery.removeEventListener("change", syncPreference);
   }, []);
-
-  useEffect(() => {
-    if (!selectedFurnitureId) setCameraToolbarFocusIndex(0);
-  }, [selectedFurnitureId]);
 
   const requestCamera = useCallback((
     orientation: CameraOrientation,
@@ -670,7 +670,7 @@ export default function Scene3D({
         <button
           type="button"
           data-toolbar-index={0}
-          tabIndex={cameraToolbarFocusIndex === 0 ? 0 : -1}
+          tabIndex={cameraToolbarTabStopIndex === 0 ? 0 : -1}
           onFocus={() => setCameraToolbarFocusIndex(0)}
           className={activeView === "perspective" ? "is-active" : ""}
           aria-label="Perspektif görünüş"
@@ -684,7 +684,7 @@ export default function Scene3D({
         <button
           type="button"
           data-toolbar-index={1}
-          tabIndex={cameraToolbarFocusIndex === 1 ? 0 : -1}
+          tabIndex={cameraToolbarTabStopIndex === 1 ? 0 : -1}
           onFocus={() => setCameraToolbarFocusIndex(1)}
           className={activeView === "top" ? "is-active" : ""}
           aria-label="Üst görünüş"
@@ -698,7 +698,7 @@ export default function Scene3D({
         <button
           type="button"
           data-toolbar-index={2}
-          tabIndex={cameraToolbarFocusIndex === 2 ? 0 : -1}
+          tabIndex={cameraToolbarTabStopIndex === 2 ? 0 : -1}
           onFocus={() => setCameraToolbarFocusIndex(2)}
           className={activeView === "front" ? "is-active" : ""}
           aria-label="Ön görünüş"
@@ -712,7 +712,7 @@ export default function Scene3D({
         <button
           type="button"
           data-toolbar-index={3}
-          tabIndex={cameraToolbarFocusIndex === 3 ? 0 : -1}
+          tabIndex={cameraToolbarTabStopIndex === 3 ? 0 : -1}
           onFocus={() => setCameraToolbarFocusIndex(3)}
           className={activeView === "back" ? "is-active" : ""}
           aria-label="Arka görünüş"
@@ -726,7 +726,7 @@ export default function Scene3D({
         <button
           type="button"
           data-toolbar-index={4}
-          tabIndex={cameraToolbarFocusIndex === 4 ? 0 : -1}
+          tabIndex={cameraToolbarTabStopIndex === 4 ? 0 : -1}
           onFocus={() => setCameraToolbarFocusIndex(4)}
           className={activeView === "left" ? "is-active" : ""}
           aria-label="Sol görünüş"
@@ -740,7 +740,7 @@ export default function Scene3D({
         <button
           type="button"
           data-toolbar-index={5}
-          tabIndex={cameraToolbarFocusIndex === 5 ? 0 : -1}
+          tabIndex={cameraToolbarTabStopIndex === 5 ? 0 : -1}
           onFocus={() => setCameraToolbarFocusIndex(5)}
           className={activeView === "right" ? "is-active" : ""}
           aria-label="Sağ görünüş"
@@ -755,7 +755,7 @@ export default function Scene3D({
         <button
           type="button"
           data-toolbar-index={6}
-          tabIndex={cameraToolbarFocusIndex === 6 ? 0 : -1}
+          tabIndex={cameraToolbarTabStopIndex === 6 ? 0 : -1}
           onFocus={() => setCameraToolbarFocusIndex(6)}
           aria-label="Odayı görünüme sığdır"
           title="Odayı görünüme sığdır"
@@ -767,7 +767,7 @@ export default function Scene3D({
         <button
           type="button"
           data-toolbar-index={7}
-          tabIndex={cameraToolbarFocusIndex === 7 ? 0 : -1}
+          tabIndex={cameraToolbarTabStopIndex === 7 ? 0 : -1}
           onFocus={() => setCameraToolbarFocusIndex(7)}
           aria-label={selectedPartId ? "Seçili parçaya odaklan" : "Seçili mobilyaya odaklan"}
           title={selectedPartId ? "Seçili parçaya odaklan" : "Seçili mobilyaya odaklan"}
