@@ -723,3 +723,21 @@
 - [Pages build/deploy #44024961772](https://github.com/Taylan789/MobilyaCAD/actions/runs/44024961772) başarılı; build, Pages yapılandırması ve artifact yükleme adımları tamamlandı.
 - PR açılmadı; doğrudan yalnızca `dev/github-work` dalına commit edildi. Fiyat, üretici standardı, montaj/delik koordinatı, CNC ve fiziksel üretim onayı yoktur. `frontend/**` değişmedi.
 - Sonraki görev: frontend sahibinin JSON v1/CSV adapter'ına `hardwareItems` desteği eklemesi; ardından birim bazlı donanım tüketim özeti.
+
+
+## 17 Kasım 2026 09:44 TRT — DOM-004 donanım BOM miktar özeti (Actions doğrulandı)
+
+- Başlangıç HEAD: `fb9ae5e536c4cd9c476a25dce8106e86a4f50667`.
+- Özellik commit'i: `c8ebbf9c9b1aad282a98073b264aac9152d75e70` — [commit](https://github.com/Taylan789/MobilyaCAD/commit/c8ebbf9c9b1aad282a98073b264aac9152d75e70).
+- QA'nın ilk çalıştırmasında `projectMaterialSummary.test.mjs` içindeki tek assertion, doğru hata metnini yanlış Türkçe ekle aramasıyla eşleştirdi; 152/153 domain testi geçti. Üretim davranışı değişmedi; test ifadesi gerçek mesajla hizalandı.
+- Test düzeltme commit'i: `a79dd4407f49c2fddd81bd848abf0f97478b834a` — [commit](https://github.com/Taylan789/MobilyaCAD/commit/a79dd4407f49c2fddd81bd848abf0f97478b834a).
+- Değişen dosyalar:
+  - `domain/production/projectMaterialSummary.ts` — `calculateProjectHardwareConsumptionSummary`; donanım satırlarını `hardwareId + unit` ile gruplar, kesirli miktarı tam ondalık toplamayla toplar, mobilya ve kaynak referanslarını izlenebilir tutar; birim dönüşümü ve fiyat üretmez.
+  - `domain/production/projectMaterialSummary.test.mjs` — 0.1 + 0.2 miktar doğruluğu, birimlerin ayrı kalması, boş legacy sonuç, bozuk ilişki/alan, yinelenen kimlik, ad çakışması ve toplam taşması testleri.
+  - `docs/production-domain-contract.md`, `PRODUCT_ROADMAP.md`, `AI_COORDINATION.md`.
+- [MobilyaCAD CI #44033999434](https://github.com/Taylan789/MobilyaCAD/actions/runs/44033999434) başarılı.
+- [MobilyaCAD QA & Test #44033999444](https://github.com/Taylan789/MobilyaCAD/actions/runs/44033999444) başarılı: **101/101 frontend + 153/153 domain testi, 0 başarısız**. Shared-domain strict TypeScript, lint, frontend production build ve `npm audit --omit=dev --audit-level=high` geçti. Oxlint 32 uyarı / 0 hata.
+- [Pages build/deploy #44033999427](https://github.com/Taylan789/MobilyaCAD/actions/runs/44033999427) başarılı.
+- PR açılmadı; doğrudan yalnızca `dev/github-work` dalına commit edildi. AI Developer workflow'u için listelenen son 100 run içinde çalıştırma yok; bu workflow `workflow_dispatch` gerektiriyor ve bu turda dispatch edilmedi.
+- Bilinen sınırlar: `hardwareItems` JSON v1/CSV adapter'ına henüz bağlanmadığı için `canExport: false` / `exportBlockers` kapısı korunuyor. Fiyat, stok, donanım standardı, delik/CNC veya fiziksel üretim onayı yok. `frontend/**` değişmedi; başka ajan PR'ı birleştirilmedi; `main` dalına dokunulmadı.
+- Sonraki görev: arayüz sahibinin `hardwareItems` JSON v1 round-trip ve CSV export engeli entegrasyonunu PR üzerinden denetle; ardından kullanıcı/katalog girdili donanım kimliği sürüm/kaynak sözleşmesini tasarla.
