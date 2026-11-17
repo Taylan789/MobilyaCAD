@@ -654,10 +654,18 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 - Donanım satırları panel alanı/hacmi ve kenar bantlama özetine karıştırılmaz. Fiyat, üretici standardı, montaj, delik koordinatı ve CNC operasyonu tahmin edilmez.
 - Geçerli donanım satırı içeren domain raporu `ready` olabilir; JSON v1/CSV adapter desteği olmadığı için `canExport: false` ve `exportBlockers` korunur.
 
-### Sıradaki küçük görevler
+## 17 Kasım 2026 — donanım BOM tüketim özeti (domain v1)
 
-1. Ayrı frontend sahibinin `hardwareItems` alanını JSON v1'e kayıpsız bağlamasını ve adapter desteği gelene kadar export'u kapalı tutmasını takip et; `frontend/**` dosyalarına dokunma.
-2. Donanım BOM satırları için kullanıcı birimi ve donanım kimliğine göre ayrı tüketim/teklif özeti tasarla; miktarları dönüştürme veya fiyat uydurma.
-3. Kullanıcı/katalog tarafından sağlanan donanım kimliklerini kaynak referansı ve sürümle izlemek için ayrı katalog sözleşmesi belirle.
-4. Banyo dolabı arkalık/baza/ayak seçeneklerini yalnızca açık kullanıcı/üretici ölç ve bağlantı girdileriyle parametrik dilimlere ayır.
-5. Delik/CNC operasyon modelini gerçek makine profili ve doğrulanmış koordinat standardı sağlandığında genişlet.
+- `calculateProjectHardwareConsumptionSummary`, açık `hardwareItems` satırlarını `hardwareId + unit` anahtarıyla gruplayarak donanım miktarlarını panel tüketiminden ayrı raporlar.
+- Aynı donanım kimliği ve özgün birim için satır adı tutarlı olmalıdır. Özet satır sayısını, kesirli miktar toplamını, mobilya kimliklerini ve varsa benzersiz kaynak referanslarını taşır.
+- Kesirli miktarlar tam ondalık toplama ile korunur; birimler arasında dönüşüm yapılmaz. Sayı türünde kayıpsız/güvenli temsil edilemeyen toplam reddedilir.
+- Donanım olmayan legacy v1 sonuçları boş özet üretir. Donanım satırı bulunan projelerde JSON v1/CSV adapter'ı `hardwareItems` alanını kayıpsız destekleyene kadar `canExport: false` korunur.
+- Fiyat, stok, tedarik, montaj/delik, bağlantı veya CNC standardı varsayılmaz; bu çıktı teklif fiyatı değil, kullanıcı girdili BOM miktar özetidir.
+
+### Güncel sıradaki 3-5 küçük görev
+
+1. Arayüz ajanının `hardwareItems` alanını JSON v1 round-trip'e bağlamasını ve desteklenmeyen CSV için export kapısını korumasını PR üzerinden doğrula; frontend dosyalarına dokunma.
+2. Donanım kataloğu kimlikleri için kullanıcı/katalog kaynak referansı ve sürüm sözleşmesini belirle; harici kimliği doğrulanmış gibi sunma.
+3. Fiyat/teklif motorunu yalnızca kullanıcı tarafından sağlanan para birimi, birim fiyat ve geçerlilik tarihi girdileriyle ayrı bir domain dilimine ayır.
+4. Banyo dolabı arkalık, baza ve ayak seçeneklerini yalnızca açık kullanıcı/üretici ölçüleri ve bağlantı girdileriyle parametrik hale getir.
+5. Delik/CNC operasyon modelini gerçek makine profili ve doğrulanmış koordinat standardı sağlandığında genişlet; standart yokken koordinat üretme.

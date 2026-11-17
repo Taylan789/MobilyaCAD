@@ -328,3 +328,15 @@ Miktar pozitif, sonlu ve güvenli sayısal aralıkta olmalıdır. Birim kullanı
 Geçerli satırlar `result.hardwareItems` içinde kaynak sırası ve miktarı korunarak taşınır; panel `Part[]`, alan/hacim ve kenar bantlama özetine karıştırılmaz. Mevcut JSON v1/CSV adapter'ı bu alanı kayıpsız taşımadığı için donanım satırı bulunan hazır sonuçta `canExport: false` ve açık `exportBlockers` döner. Frontend entegrasyonu tüm alanları kayıpsız saklamalı ve adapter desteği gelene kadar dışa aktarımı engellemelidir.
 
 Bu sözleşme üretici/model standardı, montaj reçetesi, vida/menteşe ölçüsü, delik koordinatı, bağlantı, fiyat, stok, CNC operasyonu veya güvenlik payı üretmez.
+
+
+## Donanım BOM tüketim özeti — domain v1
+
+Kaynak: `calculateProjectHardwareConsumptionSummary` in `domain/production/projectMaterialSummary.ts`.
+
+- Fonksiyon, proje agregatörünün doğruladığı `hardwareItems` satırlarını `hardwareId + unit` anahtarıyla gruplar. Aynı kimlik/birim grubundaki adlar tutarlı olmalıdır; farklı birimler ayrı satırlardır.
+- Her özet; donanım kimliği, ad, özgün birim, kaynak BOM satır sayısı, toplam miktar, ilişkili mobilya sayısı/kimlikleri ve varsa benzersiz kullanıcı kaynak referanslarını taşır.
+- Kesirli miktarlar korunur. Toplam, giriş sayıların ondalık metinsel gösterimlerinden tam ondalık aritmetik ile hesaplanır; JavaScript sayı türüne güvenli ve kayıpsız dönüştürülemeyen toplam reddedilir. Birimler arasında dönüşüm yapılmaz.
+- Donanım özeti panel Part listesine, panel alan/hacim hesabına veya kenar bantlama özetine karıştırılmaz. Donanım olmayan eski v1 proje sonuçları boş özet döndürür.
+- Bu çıktı yalnızca miktar/BOM özetidir; fiyat, stok, tedarik, montaj reçetesi, donanım ölçüsü, delik koordinatı veya CNC operasyonu üretmez. Teklif katmanı fiyatları ancak kullanıcı/katalog girdisi sağlandığında ekleyebilir.
+- Donanım satırı bulunan sonuçlarda JSON v1/CSV adapter desteği doğrulanana kadar proje agregatörünün `canExport: false` ve `exportBlockers` davranışı değişmez.

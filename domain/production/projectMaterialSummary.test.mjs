@@ -3,7 +3,7 @@ import test from "node:test";
 
 import { BODY_PANEL_GROUPS } from "./bodyPanelMaterials.ts";
 import { calculateCabinetProjectProduction } from "./projectProduction.ts";
-import { calculateProjectMaterialConsumptionSummary } from "./projectMaterialSummary.ts";
+import { calculateProjectHardwareConsumptionSummary, calculateProjectMaterialConsumptionSummary } from "./projectMaterialSummary.ts";
 
 const noBanding = { top: false, bottom: false, left: false, right: false };
 const materials = [
@@ -225,4 +225,118 @@ test("malformed kesit ölçüsü veya dış kenar bandı Part tüketiminde redde
       ? { ...entry, panelGeometry: { ...entry.panelGeometry, outerEdgeBanding: { ...noBanding, top: true } } }
       : entry)
   }), /dış kenar bantlaması üretim parçasıyla eşleşmelidir/);
+});
+
+
+test("donanım BOM özeti hardwareId ve özgün birime göre gruplanır; kesirli miktarı ve kaynak izini korur", () => {
+  const production = {
+    ...createProject([createRequest("cab-hardware-a"), createRequest("cab-hardware-b")]),
+    hardwareItems: [
+      { id: "bom-1", furnitureId: "cab-hardware-a", hardwareId: "hinge-110", name: "Menteşe", quantity: 0.1, unit: "adet", sourceReference: "catalog-A" },
+      { id: "bom-2", furnitureId: "cab-hardware-a", hardwareId: "hinge-110", name: "Menteşe", quantity: 0.2, unit: "adet", sourceReference: "catalog-B" },
+      { id: "bom-3", furnitureId: "cab-hardware-b", hardwareId: "hinge-110", name: "Menteşe", quantity: 2.5, unit: "adet", sourceReference: "catalog-A" },
+      { id: "bom-4", furnitureId: "cab-hardware-b", hardwareId: "hinge-110", name: "Menteşe", quantity: 1.5, unit: "takım" }
+    ]
+  };
+
+  const summaries = calculateProjectHardwareConsumptionSummary(production);
+
+  assert.deepEqual(summaries, [
+    {
+      hardwareId: "hinge-110",
+      name: "Menteşe",
+      unit: "adet",
+      lineCount: 3,
+      totalQuantity: 2.8,
+      furnitureCount: 2,
+      furnitureIds: ["cab-hardware-a", "cab-hardware-b"],
+      sourceReferences: ["catalog-A", "catalog-B"]
+    },
+    {
+      hardwareId: "hinge-110",
+      name: "Menteşe",
+      unit: "takım",
+      lineCount: 1,
+      totalQuantity: 1.5,
+      furnitureCount: 1,
+      furnitureIds: ["cab-hardware-b"]
+    }
+  ]);
+  assert.equal("price" in summaries[0], false);
+});
+
+test("donanım olmayan eski projeler boş özet döndürür", () => {
+  assert.deepEqual(
+    calculateProjectHardwareConsumptionSummary(createProject([createRequest("cab-legacy-hardware")])),
+    []
+  );
+  assert.deepEqual(calculateProjectHardwareConsumptionSummary(createProject([])), []);
+});
+
+test("geçersiz donanım ilişkisi, miktarı, birimi, kimliği veya satır alanı reddedilir", () => {
+  const production = createProject([createRequest("cab-hardware-invalid-summary")]);
+  const base = {
+    id: "bom-invalid",
+    furnitureId: "cab-hardware-invalid-summary",
+    hardwareId: "hinge-110",
+    name: "Menteşe",
+    quantity: 1,
+    unit: "adet"
+  };
+  const invalidItems = [
+    { ...base, furnitureId: "missing-furniture" },
+    { ...base, quantity: 0 },
+    { ...base, quantity: Number.POSITIVE_INFINITY },
+    { ...base, unit: " " },
+    { ...base, id: " " },
+    { ...base, sourceReference: " " },
+    { ...base, unexpected: true }
+  ];
+
+  for (const item of invalidItems) {
+    assert.throws(
+      () => calculateProjectHardwareConsumptionSummary({ ...production, hardwareItems: [item] })
+    );
+  }
+  assert.throws(
+    () => calculateProjectHardwareConsumptionSummary({ ...production, hardwareItems: {} }),
+    /donanım kalemleri bir liste olmalıdır/
+  );
+});
+
+test("yinelenen BOM kimliği, çakışan donanım adı ve güvenli aralığı aşan toplam reddedilir", () => {
+  const production = createProject([createRequest("cab-hardware-duplicate-summary")]);
+  const base = {
+    id: "bom-duplicate",
+    furnitureId: "cab-hardware-duplicate-summary",
+    hardwareId: "hinge-110",
+    name: "Menteşe",
+    quantity: 1,
+    unit: "adet"
+  };
+
+  assert.throws(
+    () => calculateProjectHardwareConsumptionSummary({
+      ...production,
+      hardwareItems: [base, { ...base, hardwareId: "screw-4x30" }]
+    }),
+    /yinelenen donanım kalemi kimliği/
+  );
+  assert.throws(
+    () => calculateProjectHardwareConsumptionSummary({
+      ...production,
+      hardwareItems: [base, { ...base, id: "bom-other", name: "Farklı ad" }]
+    }),
+    /adı tutarlı olmalıdır/
+  );
+  assert.throws(
+    () => calculateProjectHardwareConsumptionSummary({
+      ...production,
+      hardwareItems: [
+        { ...base, quantity: Number.MAX_SAFE_INTEGER },
+        { ...base, id: "bom-overflow", quantity: 1 }
+      ]
+    }),
+    /güvenli sayısal aralık/
+  );
 });
