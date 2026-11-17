@@ -1828,7 +1828,18 @@ function App() {
 
           <div className="cad-main-area">
             <div className="studio-workspace-heading">
-              <div className="studio-breadcrumb"><span>PROJELER</span><i>/</i><strong>Yeni tasarım</strong><b>● Kaydedilmedi</b></div>
+              <div className="studio-breadcrumb" aria-label="Proje konumu">
+                <span>PROJELER</span>
+                <i aria-hidden="true">/</i>
+                <strong title={projectName}>{projectName}</strong>
+                <b
+                  className={hasUnsavedChanges ? "is-dirty" : "is-saved"}
+                  aria-live="polite"
+                  title={documentStatusTitle}
+                >
+                  <span aria-hidden="true">●</span> {documentStatusLabel}
+                </b>
+              </div>
               <div className="studio-heading-actions"><span className="studio-live-indicator"><i /> 3D MOTOR AKTİF</span><span className="studio-heading-divider" /><span>{furniture.length} nesne · {productionParts.length} üretim parçası</span></div>
             </div>
             <div className="cad-viewport-toolbar">
