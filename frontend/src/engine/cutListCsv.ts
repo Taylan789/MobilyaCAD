@@ -23,7 +23,7 @@ const edgeKeys = ["top", "bottom", "left", "right"] as const;
 
 function escapeCsvCell(value: CsvCell): string {
   const text = String(value);
-  return /[;\"\n\r]/.test(text)
+  return /[;"\n\r]/.test(text)
     ? "\"" + text.replace(/"/g, "\"\"") + "\""
     : text;
 }
