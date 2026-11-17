@@ -23,6 +23,8 @@ interface Scene3DProps {
   length: number;
   height: number;
   furniture: PlacedFurniture[];
+  hiddenFurnitureIds: string[];
+  isolatedFurnitureId: string | null;
   selectedFurnitureId: string | null;
   selectedPartId: string | null;
   focusRequestId: number;
@@ -392,6 +394,8 @@ export default function Scene3D({
   length,
   height,
   furniture,
+  hiddenFurnitureIds,
+  isolatedFurnitureId,
   selectedFurnitureId,
   selectedPartId,
   focusRequestId,
@@ -402,6 +406,10 @@ export default function Scene3D({
   onResize,
   onRotate
 }: Scene3DProps) {
+  const visibleFurniture = furniture.filter((item) =>
+    !hiddenFurnitureIds.includes(item.id) &&
+    (isolatedFurnitureId === null || isolatedFurnitureId === item.id)
+  );
   const maxDimension = Math.max(
     width / 1000,
     length / 1000,
@@ -559,8 +567,8 @@ export default function Scene3D({
         height={height}
       />
 
-      {/* Mobilyalar */}
-      {furniture.map(item => (
+      {/* Mobilyalar: görünürlük yalnızca viewport sunumunu etkiler, proje verisini değiştirmez. */}
+      {visibleFurniture.map(item => (
         <PlacedFurniture3D
           key={item.id}
           furniture={item}
@@ -577,7 +585,7 @@ export default function Scene3D({
 
       {/* Yerleşim doğrulama uyarıları */}
       <PlacementWarnings
-        furniture={furniture}
+        furniture={visibleFurniture}
         roomWidth={width}
         roomLength={length}
       />
