@@ -327,7 +327,7 @@ test("yinelenen BOM kimliği, çakışan donanım adı ve güvenli aralığı a�
       ...production,
       hardwareItems: [base, { ...base, id: "bom-other", name: "Farklı ad" }]
     }),
-    /adı tutarlı olmalıdır/
+    /ad tutarlı olmalıdır/
   );
   assert.throws(
     () => calculateProjectHardwareConsumptionSummary({
