@@ -14,14 +14,17 @@ const edgeBandingByGroup = Object.fromEntries(
 const productionReport = calculateCabinetProjectProductionWithDiagnostics({
   schemaVersion: 1,
   furniture: [{
-    id: "revision-cabinet-1",
-    widthMm: 800,
-    heightMm: 720,
-    depthMm: 560,
-    material: "MDF Lam 18",
-    materialId: "mdf-18",
-    family: "cabinet"
-  , profile: {
+    schemaVersion: 1,
+    furniture: {
+      id: "revision-cabinet-1",
+      widthMm: 800,
+      heightMm: 720,
+      depthMm: 560,
+      material: "MDF Lam 18",
+      materialId: "mdf-18",
+      family: "cabinet"
+    },
+    profile: {
       panelThicknessMm: 18,
       carcassStyle: "between-sides",
       backPanel: { enabled: false },

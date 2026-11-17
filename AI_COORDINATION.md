@@ -93,3 +93,6 @@ Bu dosya dört geliştirme/denetim rolünün ortak görev panosu ve entegrasyon 
 
 
 - DOM-011 uygulandı ve doğrulama bekliyor: domain/production/projectQuoteRevision.ts ile hazır teklif snapshot'ını ayrı, salt okunur revizyon zarfına bağlayan domain API'si eklendi. Mevcut proje JSON v1 serializer/parser ve frontend dosyaları değiştirilmedi. CI/QA sonucu gelmeden DONE işaretlenmeyecek.
+
+
+- DOM-011 ilk QA #44106880875: 203/204 domain testi geçti; tek hata yeni test modülünün proje agregatörü fixture şekliydi. CI #44106880747 ve Pages #44106880876 başarılı. Fixture ve strict TypeScript daraltması düzeltildi; yeni QA doğrulaması bekleniyor.

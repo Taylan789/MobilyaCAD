@@ -319,10 +319,12 @@ function validatePricingSnapshot(value: unknown): asserts value is ProjectQuoteP
     throw new Error("Desteklenmeyen teklif fiyat snapshot sürümü.");
   }
   const quotedOn = requireDateOnly(value.quotedOn, "Teklif tarihi");
-  validateQuoteSummary(value.quoteSummary);
+  const quoteSummary = value.quoteSummary;
+  validateQuoteSummary(quoteSummary);
+  const lineSources = quoteSummary.lineSources as Array<Record<string, unknown>>;
 
   if (value.consumptionPriceList === null) {
-    if (value.quoteSummary.lineSources.some((line: Record<string, unknown>) => line.sourceType === "production-consumption")) {
+    if (lineSources.some((line) => line.sourceType === "production-consumption")) {
       throw new Error("Üretim tüketimi satırı olan snapshot fiyat listesi sürümü içermelidir.");
     }
   } else {
@@ -330,7 +332,7 @@ function validatePricingSnapshot(value: unknown): asserts value is ProjectQuoteP
   }
 
   if (value.laborOperationTariffList === null) {
-    if (value.quoteSummary.lineSources.some((line: Record<string, unknown>) => line.sourceType === "labor-operation")) {
+    if (lineSources.some((line) => line.sourceType === "labor-operation")) {
       throw new Error("İşçilik/operasyon satırı olan snapshot tarife listesi sürümü içermelidir.");
     }
   } else {

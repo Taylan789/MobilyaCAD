@@ -864,3 +864,11 @@
 - Kod/test commit SHA'sı ve CI/QA run bağlantıları, gerçek Actions sonuçları alındıktan sonra bu kayda eklenecek.
 - Bilinen sınırlar: tüm revizyon geçmişi boyunca kimlik tekilliği ve kalıcı saklama henüz bu domain diliminin dışında; frontend/JSON v1/CSV entegrasyonu ayrı sahibindedir. Vergi, kur, iskonto, otomatik yüzde, CNC ve fiziksel üretim onayı yoktur.
 - Sonraki görev: DOM-012 — fire/kâr için yalnızca açık kullanıcı maliyet satırları ve kaynak referansı; ardından INT-001/INT-002 adapter round-trip entegrasyonu.
+
+
+### DOM-011 ilk Actions sonucu ve test düzeltmesi
+
+- İlk kod commit'i: https://github.com/Taylan789/MobilyaCAD/commit/84a24e80ad2122d08c6384bfdc7ccc21fdb3a0b0
+- CI #44106880747 başarılı; Pages #44106880876 başarılı.
+- QA #44106880875 başarısız: 204 domain testinin 203'ü geçti; yeni revizyon test modülü fixture kurulumunda blocked !== ready hatasıyla durdu. Log, proje agregatörü isteğinde fixture'ın nested furniture/profile/materials sözleşmesini yanlış kurduğunu gösterdi; üretim kodu veya önceki testler değiştirilmedi.
+- Düzeltme: test fixture'ı mevcut proje agregatörü v1 istek şekline taşındı; revizyon snapshot doğrulamasında TypeScript için daraltılmış lineSources referansı kullanıldı. Yeni Actions sonucu bekleniyor.
