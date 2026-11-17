@@ -189,6 +189,7 @@ function App() {
   const [inspectorTab, setInspectorTab] = useState<"room" | "furniture" | "production" | "materials">("room");
   const [workspaceMode, setWorkspaceMode] = useState<"design" | "production">("design");
   const [productionSection, setProductionSection] = useState<"report" | "materials">("report");
+  const [bottomPanelTab, setBottomPanelTab] = useState<"parts" | "materials" | "issues">("parts");
 
   const [constructionRules] = useState<CabinetConstructionRules>({
     panelThickness: 18,
@@ -2283,6 +2284,34 @@ function App() {
                 </Tabs>
               </aside>
             </div>
+            <section className="cad-bottom-dock" aria-label="Proje üretim ve parça paneli">
+              <div className="cad-bottom-dock-header">
+                <div className="cad-bottom-dock-title"><span className="cad-dock-grip" /><div><strong>Üretim masası</strong><small>PROJE VERİLERİ · CANLI HESAP</small></div></div>
+                <div className="cad-bottom-dock-tabs" role="tablist" aria-label="Alt panel sekmeleri">
+                  <button type="button" role="tab" aria-selected={bottomPanelTab === "parts"} className={bottomPanelTab === "parts" ? "active" : ""} onClick={() => setBottomPanelTab("parts")}>Parça listesi <b>{productionParts.length}</b></button>
+                  <button type="button" role="tab" aria-selected={bottomPanelTab === "materials"} className={bottomPanelTab === "materials" ? "active" : ""} onClick={() => setBottomPanelTab("materials")}>Malzeme özeti <b>{materials.length}</b></button>
+                  <button type="button" role="tab" aria-selected={bottomPanelTab === "issues"} className={bottomPanelTab === "issues" ? "active" : ""} onClick={() => setBottomPanelTab("issues")}>Kontroller <b>{projectProduction.errors.length + projectProduction.blockedFurniture.length + projectProduction.unsupportedFurniture.length}</b></button>
+                </div>
+                <div className="cad-bottom-dock-metrics"><span>{furniture.length} mobilya</span><i /> <span>{productionParts.length} parça</span><i /> <span>{materials.length} malzeme</span></div>
+              </div>
+              <div className="cad-bottom-dock-body">
+                {bottomPanelTab === "parts" && (productionParts.length > 0 ? (
+                  <div className="cad-dock-table-wrap"><table className="cad-dock-table"><thead><tr><th>PARÇA</th><th>MOBİLYA</th><th>EN</th><th>BOY</th><th>KALINLIK</th><th>ADET</th><th>MALZEME</th></tr></thead><tbody>
+                    {productionParts.slice(0, 80).map((part) => <tr key={part.id}><td><strong>{part.name}</strong></td><td>{projectProduction.furnitureNames.get(part.furnitureId) ?? "—"}</td><td>{part.width} mm</td><td>{part.length} mm</td><td>{part.thickness} mm</td><td>{part.quantity}</td><td>{part.material || "Atanmamış"}</td></tr>)}
+                  </tbody></table></div>
+                ) : <div className="cad-dock-empty"><Layers3 /><strong>Henüz üretim parçası yok</strong><span>Üretim hesabını görmek için desteklenen bir mutfak gövdesi ekle.</span></div>)}
+                {bottomPanelTab === "materials" && (materials.length > 0 ? (
+                  <div className="cad-dock-materials">{materials.slice(0, 12).map((material) => <div key={material.id}><span className="cad-material-swatch" /><strong>{material.name}</strong><small>{material.decor || "Dekor tanımlanmamış"}</small></div>)}</div>
+                ) : <div className="cad-dock-empty"><Package /><strong>Malzeme kataloğu boş</strong><span>Sağdaki Malzeme sekmesinden proje malzemelerini yönetebilirsin.</span></div>)}
+                {bottomPanelTab === "issues" && (
+                  <div className="cad-dock-issues">
+                    {[...projectProduction.errors, ...projectProduction.blockedFurniture, ...projectProduction.unsupportedFurniture].length === 0
+                      ? <div className="cad-dock-empty"><span className="cad-dock-ok">✓</span><strong>Kontrol gerektiren sorun yok</strong><span>Mevcut proje üretim kontrollerinden temiz geçti.</span></div>
+                      : [...projectProduction.errors, ...projectProduction.blockedFurniture, ...projectProduction.unsupportedFurniture].slice(0, 12).map((issue, index) => <div className="cad-dock-issue" key={issue.furnitureId + "-" + index}><b>{issue.furnitureName}</b><span>{issue.reason}</span></div>)}
+                  </div>
+                )}
+              </div>
+            </section>
           </div>
         </SidebarProvider>
         )}
