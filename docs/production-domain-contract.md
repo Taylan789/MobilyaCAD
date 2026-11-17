@@ -452,3 +452,18 @@ Kaynak: domain/production/projectQuoteRevision.ts, createProjectQuoteRevision.
 - Bu dilim yalnızca önceki revizyon referansını, proje kimliğini, ardışık sıra numarasını ve kronolojiyi doğrular. Tüm geçmiş boyunca revisionId tekilliği ve kalıcı sıralama, ilerideki depolama/adapter katmanında ayrıca garanti edilmelidir.
 - Frontend entegrasyon sözleşmesi: ready sonucunda schemaVersion, projectId, revisionId, revisionNumber, createdAt, previousRevisionId ve pricingSnapshot alanları salt okunur geçmiş girdisi olarak gösterilebilir. blocked sonucunda diagnostics açıklanır; ready olmayan maliyet snapshot'ı revizyon geçmişine eklenmez.
 - Bu modül teklif fiyatının, katalog kaynağının veya üretici standardının gerçekliğini doğrulamaz; vergi, kur dönüşümü, iskonto, fiyat tahmini veya CNC/atölye üretim onayı eklemez.
+
+
+## Açık fire ve kâr maliyet satırları — domain v1
+
+Kaynak: `domain/production/projectQuoteSummary.ts`, `domain/production/projectQuotePricingSnapshot.ts` ve `domain/production/projectQuoteRevision.ts`.
+
+Çağrı: `calculateProjectQuoteSummary(productionReport, consumptionPriceTable, workItems, tariffTable, quoteAdjustments?)`. Teklif fiyat snapshot'ı oluşturulurken aynı opsiyonel `quoteAdjustments` alanı `createProjectQuotePricingSnapshot` girdisine eklenebilir.
+
+- `quoteAdjustments` yalnızca açık kullanıcı girdili `waste` veya `profit` maliyet satırlarını kabul eder. Her satır `id`, `category`, `description`, pozitif `quantity`, açık `unit`, negatif olmayan güvenli tam sayı `unitPriceMinor`, üç büyük harfli `currencyCode` ve zorunlu `sourceReference` taşır.
+- Miktar, birim fiyat, para birimi ve kaynak referansı kullanıcı tarafından sağlanır. Yüzde, marj, vergi, varsayılan fire oranı, varsayılan kâr veya katalog fiyatı hesaplanmaz. Bilinmeyen alanlar reddedilir.
+- Ek satırlar mevcut `calculateProjectCostSummary` motoruyla hesaplanır; satır bazında küçük para birimine yarım-yukarı yuvarlama, altı ondalık miktar hassasiyeti, güvenli tam sayı ve tek para birimi kuralları korunur.
+- Ek satırlar `adjustment-0001` gibi ayrı maliyet kimlikleriyle birleşik teklife eklenir. `lineSources` içinde `sourceType: "quote-adjustment"` ve kullanıcının özgün satır kimliği korunur; maliyet satırında `sourceReference` kaybolmaz.
+- Geçersiz kategori, eksik kaynak referansı, bozuk miktar/fiyat veya para birimi uyuşmazlığı tüm teklifi blocked yapar; kısmi toplam döndürülmez. Üretim ve işçilik kapsamları boş olsa bile en az bir geçerli açık ek satır ready teklif oluşturabilir.
+- Fiyat snapshot'ı ek satırları, kaynak referanslarını ve toplamları mevcut `quoteSummary` ağacında derin dondurur. Revizyon doğrulaması, fire/kâr kategorisini yalnızca `quote-adjustment` kaynağıyla kabul eder; tarife kimliği kabul etmez.
+- Bu dilim JSON v1 proje dosyasını, CSV adapter'ını veya frontend'i değiştirmez. Frontend entegrasyonu `quoteAdjustments` girdisini ve ready/blocked teklif durumunu kullanmalı; satır açıklaması, miktar, birim, kullanıcı fiyatı, para birimi ve kaynak referansını göstermelidir. Fiziksel fire verimi, levha nesting, kerf, vergi ve ticari marj varsayımı yapılmaz.

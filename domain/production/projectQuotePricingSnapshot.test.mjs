@@ -202,3 +202,24 @@ test("snapshot kaynak metadata'sını girdiden ayırır ve maliyet ağacını de
   assert.ok(Object.isFrozen(result.snapshot?.consumptionPriceList));
   assert.ok(Object.isFrozen(result.snapshot?.quoteSummary.costSummary?.lines));
 });
+
+
+test("açık fire/kâr satırları teklif fiyat snapshot'ında maliyet ve kaynak iziyle korunur", () => {
+  const result = createProjectQuotePricingSnapshot(createInput({
+    workItems: [],
+    tariffTable: [],
+    laborOperationTariffList: null,
+    quoteAdjustments: [{
+      id: "waste-board-cut", category: "waste", description: "Kullanıcı tarafından girilen fire",
+      quantity: 0.5, unit: "m2", unitPriceMinor: 1000, currencyCode: "TRY",
+      sourceReference: "atolye-fire-hesabi:v1"
+    }]
+  }));
+
+  assert.equal(result.status, "ready");
+  assert.equal(result.snapshot?.quoteSummary.costSummary?.categoryTotalsMinor.waste, 500);
+  assert.equal(result.snapshot?.quoteSummary.lineSources.at(-1).sourceType, "quote-adjustment");
+  assert.equal(result.snapshot?.quoteSummary.lineSources.at(-1).sourceId, "waste-board-cut");
+  assert.equal(result.snapshot?.quoteSummary.costSummary?.lines.at(-1).sourceReference, "atolye-fire-hesabi:v1");
+  assert.ok(Object.isFrozen(result.snapshot?.quoteSummary.costSummary?.lines.at(-1)));
+});

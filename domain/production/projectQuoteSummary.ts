@@ -16,7 +16,7 @@ import {
 
 export interface ProjectQuoteLineSource {
   costLineId: string;
-  sourceType: "production-consumption" | "labor-operation";
+  sourceType: "production-consumption" | "labor-operation" | "quote-adjustment";
   sourceId: string;
   tariffId?: string;
 }
@@ -38,7 +38,7 @@ function diagnosticMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
-function quoteLineId(prefix: "consumption" | "work", index: number): string {
+function quoteLineId(prefix: "consumption" | "work" | "adjustment", index: number): string {
   return prefix + "-" + String(index + 1).padStart(4, "0");
 }
 
@@ -65,29 +65,63 @@ function toCostLine(line: {
 
 /**
  * Builds one quote from fully priced production consumption and explicit
- * labor/operation usage. Neither sub-calculator's partial totals are exposed:
- * every required source line must be priced in one currency before the
- * combined cost summary can become ready.
+ * labor/operation usage and optional, explicit waste/profit quote lines.
+ * Neither sub-calculator's partial totals are exposed: every required source
+ * line must be priced in one currency before the combined cost summary is ready.
  */
 export function calculateProjectQuoteSummary(
   productionReport: unknown,
   consumptionPriceTable: unknown,
   workItems: unknown,
-  tariffTable: unknown
+  tariffTable: unknown,
+  quoteAdjustments: unknown = []
 ): ProjectQuoteSummary {
   const consumption: ProjectPricedConsumptionSummary =
     calculateProjectPricedConsumptionSummary(productionReport, consumptionPriceTable);
   const laborOperation: ProjectLaborOperationPricingSummary =
     calculateProjectLaborOperationPricingSummary(workItems, tariffTable);
 
-  const requiredLineCount = consumption.requiredLineCount + laborOperation.requiredLineCount;
-  const pricedLineCount = consumption.pricedLineCount + laborOperation.pricedLineCount;
   const missingPrices = consumption.missingPrices;
   const missingTariffs = laborOperation.missingTariffs;
   const diagnostics = [
     ...consumption.diagnostics.map((message) => "Üretim tüketimi: " + message),
     ...laborOperation.diagnostics.map((message) => "İşçilik/operasyon: " + message)
   ];
+  let adjustmentSummary: ProjectCostSummary;
+  try {
+    if (!Array.isArray(quoteAdjustments)) {
+      throw new Error("Teklif ek maliyetleri bir liste olmalıdır.");
+    }
+    for (const [index, rawLine] of quoteAdjustments.entries()) {
+      if (!isRecord(rawLine)) {
+        throw new Error("Teklif ek maliyetinin " + (index + 1) + ". satırı geçerli bir nesne olmalıdır.");
+      }
+      if (rawLine.category !== "waste" && rawLine.category !== "profit") {
+        throw new Error("Teklif ek maliyetleri yalnızca waste veya profit kategorisinde olabilir.");
+      }
+      if (typeof rawLine.sourceReference !== "string") {
+        throw new Error("Her fire/kâr maliyet satırı için açık kaynak referansı zorunludur.");
+      }
+    }
+    adjustmentSummary = calculateProjectCostSummary(quoteAdjustments);
+  } catch (error) {
+    return {
+      status: "blocked",
+      currencyCode: null,
+      requiredLineCount: consumption.requiredLineCount + laborOperation.requiredLineCount,
+      pricedLineCount: consumption.pricedLineCount + laborOperation.pricedLineCount,
+      missingPrices,
+      missingTariffs,
+      diagnostics: [...diagnostics, "Teklif ek maliyetleri: " + diagnosticMessage(error)],
+      lineSources: [],
+      costSummary: null
+    };
+  }
+  const adjustmentCount = adjustmentSummary.lines.length;
+  const requiredLineCount =
+    consumption.requiredLineCount + laborOperation.requiredLineCount + adjustmentCount;
+  const pricedLineCount =
+    consumption.pricedLineCount + laborOperation.pricedLineCount + adjustmentCount;
 
   const invalidCounts = !Number.isSafeInteger(requiredLineCount) ||
     !Number.isSafeInteger(pricedLineCount) ||
@@ -136,7 +170,7 @@ export function calculateProjectQuoteSummary(
     };
   }
 
-  if (consumption.status === "empty" && laborOperation.status === "empty") {
+  if (consumption.status === "empty" && laborOperation.status === "empty" && adjustmentCount === 0) {
     return {
       status: "empty",
       currencyCode: null,
@@ -191,6 +225,16 @@ export function calculateProjectQuoteSummary(
       sourceType: "labor-operation",
       sourceId: line.id,
       tariffId: line.tariffId
+    });
+  });
+
+  adjustmentSummary.lines.forEach((line, index) => {
+    const costLineId = quoteLineId("adjustment", index);
+    costLines.push(toCostLine(line, costLineId));
+    lineSources.push({
+      costLineId,
+      sourceType: "quote-adjustment",
+      sourceId: line.id
     });
   });
 

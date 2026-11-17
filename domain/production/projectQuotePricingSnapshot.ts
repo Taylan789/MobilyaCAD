@@ -33,6 +33,7 @@ export interface ProjectQuotePricingSnapshotInput {
   tariffTable: unknown;
   consumptionPriceList?: ProjectQuoteCatalogVersionInput | null;
   laborOperationTariffList?: ProjectQuoteCatalogVersionInput | null;
+  quoteAdjustments?: unknown;
 }
 
 export interface ProjectQuotePricingSnapshotResult {
@@ -49,7 +50,8 @@ const inputKeys = new Set([
   "workItems",
   "tariffTable",
   "consumptionPriceList",
-  "laborOperationTariffList"
+  "laborOperationTariffList",
+  "quoteAdjustments"
 ]);
 const catalogVersionKeys = new Set([
   "catalogId",
@@ -175,7 +177,8 @@ export function createProjectQuotePricingSnapshot(
       value.productionReport,
       value.consumptionPriceTable,
       value.workItems,
-      value.tariffTable
+      value.tariffTable,
+      value.quoteAdjustments
     );
   } catch (error) {
     return blocked(error instanceof Error ? error.message : String(error));

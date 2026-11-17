@@ -810,3 +810,30 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 - QA: **101/101 frontend + 214/214 domain testi, 0 başarısız**; shared-domain strict TypeScript, lint, production build ve yüksek önem eşiğinde dependency audit başarılı.
 - Lint 32 uyarı, production audit 4 orta seviye bulgu ve mevcut büyük bundle uyarısı sürüyor; bu dilimde bağımlılık yükseltmesi yapılmadı.
 - DOM-011 tamamlandı. Sonraki görev DOM-012: yalnızca açık kullanıcı fiyat satırlarıyla fire/kâr maliyet kapsamı.
+
+
+## 17 Kasım 2026 18:16 TRT — DOM-012 açık fire/kâr satırları
+
+### Kullanıcı akışı ve kabul ölçütleri
+
+- Teklif hazırlayan kişi fire veya kârı yüzdeyle tahmin ettirmek yerine ayrı bir maliyet satırı olarak girer.
+- Her satır için kimlik, kategori (`waste` / `profit`), açıklama, miktar, birim, birim fiyatı, para birimi ve kaynak referansı zorunludur.
+- Yalnızca açık satırlar birleşik teklif maliyet motoruna girer. Varsayılan oran, yüzde, vergi, marj veya fiyat üretilmez.
+- Satırların maliyeti, malzeme/donanım/işçilik/operasyonla aynı para birimi ve yuvarlama kurallarında hesaplanır. Hatalı satır veya para birimi uyuşmazlığında genel toplam gösterilmez.
+- Fire/kâr satırları tarihli fiyat snapshot'ında ve teklif revizyonunda kaynak kimliğiyle korunur.
+
+### Uygulama sınırı ve bağımlılıklar
+
+- Domain değişikliği `calculateProjectQuoteSummary` fonksiyonunun geriye uyumlu beşinci opsiyonel girdisidir; eski dört argümanlı çağrılar aynı sonucu korur.
+- `createProjectQuotePricingSnapshot` isteğe bağlı `quoteAdjustments` alanını snapshot içindeki birleşik maliyete aktarır.
+- `createProjectQuoteRevision` yalnızca `quote-adjustment` kaynak eşlemesiyle `waste` / `profit` satırlarını kabul eder.
+- JSON v1 proje serializer/parser, CSV adapter ve `frontend/**` bu dilimde değiştirilmez. Frontend entegrasyonu ayrı sahiplik alanındadır.
+- Fiziksel fire oranı, levha verimi, kerf, vergi ve ticari marj kararı kullanıcı/işletme girdisi olmadan hesaplanmaz.
+
+### Sıradaki 3-5 küçük görev
+
+1. DOM-012 Actions doğrulamasını tamamla; birleşik teklif, snapshot ve revizyon testlerinde gerçek CI/QA kanıtını kaydet.
+2. INT-001 domain üretim raporu için kesit geometrisi, malzeme ve quantity kaybını önleyen JSON/CSV round-trip veya güvenli export blocker sözleşmesini tamamla.
+3. INT-002 adapter sahibinin JSON/CSV round-trip testleri ve geometri/miktar sadakatini ayrı PR ile teslim etmesini bekle; aynı dosyalara dokunma.
+4. Frontend sahibinin DOM-009/010/011/012 ready/blocked teklif, snapshot ve revizyon sözleşmelerini bağlayan PR'larını dosya sahipliği sınırında denetle.
+5. INT-001 ve INT-002 tamamlandığında QA-003 uçtan uca export ve teklif veri akışı denetimini yürüt.

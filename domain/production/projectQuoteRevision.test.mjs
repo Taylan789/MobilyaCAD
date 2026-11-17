@@ -285,3 +285,60 @@ test("bilinmeyen revizyon alanları ve eksik önceki revizyon referansı reddedi
   assert.equal(missing.status, "blocked");
   assert.match(missing.diagnostics[0], /açıkça sağlanmalıdır/);
 });
+
+
+test("açık fire/kâr satırları revizyon snapshot'ında kaynak referansıyla korunur", () => {
+  const adjustedSnapshot = createProjectQuotePricingSnapshot({
+    quotedOn: "2026-11-30",
+    productionReport,
+    consumptionPriceTable: [{
+      resourceType: "material",
+      resourceId: "mdf-18",
+      unit: "m2",
+      unitPriceMinor: 1250,
+      currencyCode: "TRY",
+      sourceReference: "atolye-malzeme-fiyat-listesi"
+    }],
+    workItems: [],
+    tariffTable: [],
+    consumptionPriceList: {
+      catalogId: "workshop-materials",
+      version: "2026-11",
+      effectiveFrom: "2026-11-01",
+      effectiveTo: "2026-11-30"
+    },
+    laborOperationTariffList: null,
+    quoteAdjustments: [{
+      id: "waste-board-cut",
+      category: "waste",
+      description: "Kullanıcı tarafından girilen fire",
+      quantity: 0.5,
+      unit: "m2",
+      unitPriceMinor: 1000,
+      currencyCode: "TRY",
+      sourceReference: "atolye-fire-hesabi:v1"
+    }, {
+      id: "profit-service",
+      category: "profit",
+      description: "Kullanıcı tarafından girilen kâr",
+      quantity: 1,
+      unit: "adet",
+      unitPriceMinor: 2500,
+      currencyCode: "TRY",
+      sourceReference: "teklif-kalemleri:rev1"
+    }]
+  });
+  assert.equal(adjustedSnapshot.status, "ready");
+  const result = createProjectQuoteRevision(createFirstRevision({
+    pricingSnapshot: adjustedSnapshot.snapshot
+  }));
+
+  assert.equal(result.status, "ready");
+  assert.equal(result.revision?.pricingSnapshot.quoteSummary.costSummary?.categoryTotalsMinor.waste, 500);
+  assert.equal(result.revision?.pricingSnapshot.quoteSummary.costSummary?.categoryTotalsMinor.profit, 2500);
+  assert.equal(result.revision?.pricingSnapshot.quoteSummary.lineSources.at(-2).sourceType, "quote-adjustment");
+  assert.equal(
+    result.revision?.pricingSnapshot.quoteSummary.costSummary?.lines.at(-2).sourceReference,
+    "atolye-fire-hesabi:v1"
+  );
+});

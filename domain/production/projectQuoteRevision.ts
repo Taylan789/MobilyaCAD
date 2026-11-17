@@ -283,13 +283,21 @@ function validateQuoteSummary(value: unknown): asserts value is Record<string, u
       throw new Error("Teklif kaynak eşlemesi maliyet satırı kimliğiyle uyuşmuyor.");
     }
     requireIdentifier(source.sourceId, "Teklif kaynak kimliği");
-    if (source.sourceType !== "production-consumption" && source.sourceType !== "labor-operation") {
+    if (source.sourceType !== "production-consumption" && source.sourceType !== "labor-operation" && source.sourceType !== "quote-adjustment") {
       throw new Error("Teklif kaynak türü desteklenmiyor.");
     }
     if (source.sourceType === "labor-operation") {
       requireIdentifier(source.tariffId, "Tarife kimliği");
     } else if (source.tariffId !== undefined) {
-      throw new Error("Üretim tüketimi kaynağı tarife kimliği taşıyamaz.");
+      throw new Error("Tarife kullanmayan kaynak tarife kimliği taşıyamaz.");
+    }
+    if (source.sourceType === "quote-adjustment") {
+      if (line.category !== "waste" && line.category !== "profit") {
+        throw new Error("Teklif ek maliyet kaynağı yalnızca fire veya kâr kategorisini kullanabilir.");
+      }
+      requireText(line.sourceReference, "Fire/kâr kaynak referansı", 256);
+    } else if (line.category === "waste" || line.category === "profit") {
+      throw new Error("Fire/kâr maliyet satırı teklif ek maliyet kaynağına bağlı olmalıdır.");
     }
   }
 

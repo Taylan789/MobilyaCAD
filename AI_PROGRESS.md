@@ -888,3 +888,16 @@
 - AI Developer [#44076389923](https://github.com/Taylan789/MobilyaCAD/actions/runs/44076389923) başarısız kaldı: entegrasyon agent'ı OpenRouter free-model günlük 429 kotasına, ürün agent'ı OpenCode latest-release metadata adımındaki başarısızlığa takıldı. Loglar incelendi. Rerun başlatılmadı; 429 yanıtındaki kota sıfırlama zamanı 18 Kasım 2026 00:00 UTC olduğundan aynı job'ları bu saatten önce yinelemek aynı bilinen blokajı tekrarlar.
 - Bilinen sınırlar: bu modül ayrı revizyon zarfı üretir; mevcut proje JSON v1 ve frontend adapter'ı değiştirmez. Kalıcı geçmiş, tüm revizyonlarda ID tekilliği ve kullanıcı arayüzü entegrasyonu ayrı adapter/depolama işidir. Kaynak fiyat doğruluğu, vergi, kur, iskonto, CNC veya fiziksel üretim onayı yoktur.
 - Sonraki görev: DOM-012 — fire/kârı yalnızca açık kullanıcı maliyet satırlarıyla ekle; ardından INT-001/INT-002 adapter round-trip entegrasyonunu QA ile denetle.
+
+
+## 17 Kasım 2026 18:16 TRT — DOM-012 açık fire/kâr satırları (Actions doğrulaması bekleniyor)
+
+- Başlangıç HEAD: `73d33ea296c51ca5ad35796bc853402cead26b28`.
+- Geliştirme: `calculateProjectQuoteSummary` geriye uyumlu beşinci opsiyonel `quoteAdjustments` girdisi aldı. Yalnızca `waste` / `profit` satırları, pozitif miktar, açık birim, kullanıcı fiyatı, para birimi ve zorunlu kaynak referansıyla kabul edilir.
+- Güvenlik: yüzde, fire oranı, marj, vergi, fiyat veya birim varsayımı yapılmaz. Hatalı satır, eksik kaynak referansı ve para birimi uyuşmazlığında teklif `blocked`, maliyet toplamı null kalır.
+- Entegrasyon: açık ek satırlar birleşik teklif maliyetlerine, tarihli fiyat snapshot'ına ve salt okunur revizyon doğrulamasına kaynak kimliğiyle bağlandı. Eski dört argümanlı teklif çağrıları değişmeden çalışır.
+- Test kapsamı: teklif toplamı, satır kaynak eşlemesi, miktar yuvarlaması, yalnız ek satırla teklif, hatalı kategori/kaynak, para birimi uyuşmazlığı, snapshot ve revizyon koruması.
+- Değişen dosyalar: `domain/production/projectQuoteSummary.ts`, `domain/production/projectQuoteSummary.test.mjs`, `domain/production/projectQuotePricingSnapshot.ts`, `domain/production/projectQuotePricingSnapshot.test.mjs`, `domain/production/projectQuoteRevision.ts`, `domain/production/projectQuoteRevision.test.mjs`, `docs/production-domain-contract.md`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`.
+- Kod commit SHA'sı ve gerçek CI/QA sonuçları Actions tamamlandıktan sonra bu kayda eklenecek.
+- Bilinen kısıtlar: JSON v1 serializer/parser, CSV adapter ve frontend entegrasyonu bu sahiplik diliminin dışında; fiziksel fire verimi, nesting, kerf, vergi ve işletme marjı doğrulanmaz.
+- Sonraki görev: INT-001 domain üretim raporundaki geometri/malzeme/miktar sadakatini JSON/CSV adapter sözleşmesinde güvenceye almak; INT-002 adapter sahibinin test dosyalarına müdahale etmemek.

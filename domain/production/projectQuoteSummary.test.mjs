@@ -220,3 +220,97 @@ test("işçilik satır kimliği teklif içi kaynak eşlemesinde korunur ve maliy
   assert.notEqual(quote.costSummary.lines[0].id, quote.costSummary.lines[1].id);
   assert.equal(quote.lineSources[1].sourceId, "material-0001");
 });
+
+
+test("açık fire ve kâr satırları kullanıcı miktarı, birimi, fiyatı ve kaynak referansıyla teklife eklenir", () => {
+  const report = createReport();
+  const base = calculateProjectQuoteSummary(report, consumptionPrices, [], []);
+  const quote = calculateProjectQuoteSummary(report, consumptionPrices, [], [], [
+    {
+      id: "waste-board-cut",
+      category: "waste",
+      description: "Kullanıcı tarafından girilen fire levha payı",
+      quantity: 0.25,
+      unit: "m2",
+      unitPriceMinor: 1250,
+      currencyCode: "TRY",
+      sourceReference: "atolye-fire-hesabi:v1"
+    },
+    {
+      id: "profit-service",
+      category: "profit",
+      description: "Kullanıcı tarafından girilen kâr kalemi",
+      quantity: 1,
+      unit: "adet",
+      unitPriceMinor: 5000,
+      currencyCode: "TRY",
+      sourceReference: "teklif-kalemleri:rev1"
+    }
+  ]);
+
+  assert.equal(base.status, "ready");
+  assert.equal(quote.status, "ready");
+  assert.equal(quote.requiredLineCount, base.requiredLineCount + 2);
+  assert.equal(quote.pricedLineCount, quote.requiredLineCount);
+  assert.equal(quote.costSummary.categoryTotalsMinor.waste, 313);
+  assert.equal(quote.costSummary.categoryTotalsMinor.profit, 5000);
+  assert.equal(quote.costSummary.grandTotalMinor, base.costSummary.grandTotalMinor + 5313);
+  assert.deepEqual(quote.lineSources.slice(-2), [
+    { costLineId: "adjustment-0001", sourceType: "quote-adjustment", sourceId: "waste-board-cut" },
+    { costLineId: "adjustment-0002", sourceType: "quote-adjustment", sourceId: "profit-service" }
+  ]);
+  assert.equal(quote.costSummary.lines.at(-2).sourceReference, "atolye-fire-hesabi:v1");
+  assert.equal(quote.costSummary.lines.at(-1).sourceReference, "teklif-kalemleri:rev1");
+});
+
+test("yalnızca fire veya kâr kategorisi ve açık kaynak referansı kabul edilir", () => {
+  const invalidCategory = calculateProjectQuoteSummary(createReport(), consumptionPrices, [], [], [{
+    id: "extra-material", category: "material", description: "Başka bir malzeme",
+    quantity: 1, unit: "m2", unitPriceMinor: 100, currencyCode: "TRY", sourceReference: "user-entry"
+  }]);
+  const missingSource = calculateProjectQuoteSummary(createReport(), consumptionPrices, [], [], [{
+    id: "waste-no-source", category: "waste", description: "Kaynak referansı olmayan fire",
+    quantity: 1, unit: "m2", unitPriceMinor: 100, currencyCode: "TRY"
+  }]);
+  const percentage = calculateProjectQuoteSummary(createReport(), consumptionPrices, [], [], [{
+    id: "profit-percentage", category: "profit", description: "Varsayılan yüzde kabul edilmemeli",
+    quantity: 1, unit: "adet", unitPriceMinor: 100, currencyCode: "TRY",
+    sourceReference: "user-entry", percentage: 10
+  }]);
+
+  assert.equal(invalidCategory.status, "blocked");
+  assert.equal(invalidCategory.costSummary, null);
+  assert.match(invalidCategory.diagnostics[0], /yalnızca waste veya profit/);
+  assert.equal(missingSource.status, "blocked");
+  assert.equal(missingSource.costSummary, null);
+  assert.match(missingSource.diagnostics[0], /kaynak referansı zorunludur/);
+  assert.equal(percentage.status, "blocked");
+  assert.equal(percentage.costSummary, null);
+  assert.match(percentage.diagnostics[0], /desteklenmeyen alan/);
+});
+
+test("fire ve kâr satırlarında para birimi uyuşmazlığı genel toplamı bloklar", () => {
+  const quote = calculateProjectQuoteSummary(createReport(), consumptionPrices, [], [], [{
+    id: "profit-usd", category: "profit", description: "Kullanıcı girdili kâr",
+    quantity: 1, unit: "adet", unitPriceMinor: 100, currencyCode: "USD",
+    sourceReference: "teklif-kalemleri:rev1"
+  }]);
+
+  assert.equal(quote.status, "blocked");
+  assert.equal(quote.costSummary, null);
+  assert.equal(quote.currencyCode, null);
+  assert.match(quote.diagnostics.at(-1), /farklı para birimleri/);
+});
+
+test("üretim ve işçilik kapsamı boş olsa da açık fire/kâr satırları tek başına teklif oluşturabilir", () => {
+  const quote = calculateProjectQuoteSummary(createReport({ empty: true }), [], [], [], [{
+    id: "profit-only", category: "profit", description: "Açık kâr satırı",
+    quantity: 1, unit: "adet", unitPriceMinor: 2500, currencyCode: "TRY",
+    sourceReference: "teklif-kalemleri:rev1"
+  }]);
+
+  assert.equal(quote.status, "ready");
+  assert.equal(quote.requiredLineCount, 1);
+  assert.equal(quote.costSummary.categoryTotalsMinor.profit, 2500);
+  assert.equal(quote.costSummary.grandTotalMinor, 2500);
+});
