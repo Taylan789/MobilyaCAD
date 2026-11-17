@@ -841,12 +841,11 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 
 ### Güncel sıradaki 3-5 küçük görev
 
-1. DOM-013: teklif revizyon geçmişi aggregate'ında projectId, benzersiz revisionId, ardışık sıra, previousRevisionId zinciri ve tarih sırasını doğrula; fork/boşluk/çapraz proje kayıtlarını reddet.
+1. DOM-014: doğrulanmış teklif revizyon geçmişine immutable append API ekle; bozuk geçmişte veya zincir uyuşmazlığında yeni geçmiş üretme.
 2. INT-001: domain üretim raporundaki kesit geometrisi, malzeme ve quantity kaybını JSON/CSV adapter sözleşmesinde önle veya desteklenmeyen export'u engelle.
 3. INT-002: adapter sahibinin JSON/CSV round-trip ve geometri/miktar sadakati testlerini ayrı PR ile teslim etmesini bekle; aynı dosyalara dokunma.
 4. Frontend sahibinin DOM-009/010/011/012 ready/blocked teklif, snapshot ve revizyon sözleşmelerini bağlayan PR'larını denetle; frontend dosyalarına dokunma.
 5. INT-001 ve INT-002 tamamlandığında QA-003 uçtan uca export ve teklif veri akışı denetimini yürüt.
-
 ### DOM-012 ilk QA sonucu ve düzeltme — 17 Kasım 2026
 
 - İlk özellik commit'i `288baf10dfff33a393561b5c35a0fb9be79265ef` için CI #44113379490 ve Pages #44113379465 başarılıdır.

@@ -913,7 +913,12 @@
 - Geliştirme: domain/production/projectQuoteRevision.ts içine validateProjectQuoteRevisionHistory eklendi. Proje başına tekil revisionId, 1'den başlayan kesintisiz sıra, tam previousRevisionId zinciri, aynı proje kimliği, artan tarih ve her snapshot için mevcut revizyon doğrulaması uygulanır.
 - Test: domain/production/projectQuoteRevision.test.mjs içinde ready/empty/blocked, yinelenen ID, sıra boşluğu/ters sıra, fork, proje uyuşmazlığı, kronoloji, bilinmeyen alan ve şema sürümü testleri eklendi.
 - Sözleşme ve koordinasyon: docs/production-domain-contract.md, AI_COORDINATION.md, PRODUCT_ROADMAP.md güncellendi. Hiçbir frontend/** dosyası değiştirilmedi.
-- Commit SHA: bu kaydın bulunduğu commit GitHub tarafından oluşturuldu; SHA ve Actions bağlantıları doğrulama tamamlandığında eklenecek.
-- Actions: CI/QA/Pages sonucu henüz görülmedi; başarılı ilan edilmedi.
+- Kod commit SHA: 3d839a3041c4735647364d5c0de2c80e23a0f55d (https://github.com/Taylan789/MobilyaCAD/commit/3d839a3041c4735647364d5c0de2c80e23a0f55d).
+- Actions: [CI #44126170710](https://github.com/Taylan789/MobilyaCAD/actions/runs/44126170710) başarılı; [QA #44126169767](https://github.com/Taylan789/MobilyaCAD/actions/runs/44126169767) başarılı — 101/101 frontend + 228/228 domain testi, 0 başarısız; [Pages #44126171436](https://github.com/Taylan789/MobilyaCAD/actions/runs/44126171436) build/deploy başarılı. Shared-domain strict TypeScript, lint ve production build başarılı; lint 32 uyarı / 0 hata, production audit'te 4 orta seviye minimatch bulgusu sürüyor.
 - Bilinen sınırlar: kalıcı append-only depolama, eşzamanlı yazma kilidi ve cihazlar arası ID üretimi yoktur. CNC/atölye üretim onayı değildir.
-- Sonraki adım: Actions sonucu geldikten sonra DOM-013'ü DONE kanıtıyla kapat; ardından INT-001 adapter sözleşmesi ve INT-002 sahibinin round-trip testleriyle çakışmasız entegrasyon sırasını sürdür.
+- DOM-013 DONE: 8 yeni aggregate geçmiş testi dahil 101/101 frontend + 228/228 domain testi geçti. Sonraki adım: DOM-014 immutable append API; ardından INT-001/INT-002 entegrasyon kanıtları ve QA-003.
+
+### AI Developer workflow incelemesi — 17 Kasım 2026 19:29 TRT
+
+- [AI Developer #44076389923](https://github.com/Taylan789/MobilyaCAD/actions/runs/44076389923) başarısız job logları incelendi. Ürün job'u OpenCode latest-release metadata adımında tag_name alamadığı için model çalışmadan durdu; entegrasyon/performans job'u OpenRouter free-models-per-day 429 kotasına takıldı.
+- Rerun başlatılmadı: entegrasyon job'undaki kota sıfırlama zamanı 18 Kasım 2026 00:00 UTC olarak kaydedildi; şu an tekrar çalıştırmak bilinen 429 blokajını yineleyecekti. Secrets veya ücretli servis ayarı değiştirilmedi.
