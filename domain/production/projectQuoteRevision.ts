@@ -49,7 +49,7 @@ const inputKeys = new Set([
   "previousRevision",
   "pricingSnapshot"
 ]);
-const historyInputKeys = new Set(["projectId", "revisions"]);
+const historyInputKeys = new Set(["schemaVersion", "projectId", "revisions"]);
 const appendInputKeys = new Set(["revisionId", "createdAt", "pricingSnapshot"]);
 const revisionEnvelopeKeys = new Set([
   "schemaVersion",
@@ -525,6 +525,9 @@ export function validateProjectQuoteRevisionHistory(value: unknown): ProjectQuot
   if (!isRecord(value)) return blockedHistory("Teklif revizyon geçmişi geçerli bir nesne olmalıdır.");
   try {
     requireOnlyKeys(value, historyInputKeys, "Teklif revizyon geçmişi");
+    if (value.schemaVersion !== undefined && value.schemaVersion !== 1) {
+      throw new Error("Teklif revizyon geçmişi desteklenen şema sürümünü kullanmalıdır.");
+    }
     const projectId = requireIdentifier(value.projectId, "Geçmiş proje kimliği");
     if (!Array.isArray(value.revisions)) throw new Error("Teklif revizyon geçmişi revisions dizisi içermelidir.");
     if (value.revisions.length === 0) {
@@ -605,7 +608,7 @@ export function appendProjectQuoteRevision(
     const createdAt = requireDateTime(revisionValue.createdAt, "Yeni revizyon oluşturulma tarihi");
 
     if (currentHistory.revisions.some((revision) => revision.revisionId === revisionId)) {
-      throw new Error("Yeni revizyon kimliği mevcut geçmişte zaten kullanılmış olmalıdır; revisionId benzersiz olmalıdır.");
+      throw new Error("Yeni revizyon kimliği mevcut geçmişte daha önce kullanılmamış olmalıdır; revisionId benzersiz olmalıdır.");
     }
 
     const previous = currentHistory.revisions.length === 0

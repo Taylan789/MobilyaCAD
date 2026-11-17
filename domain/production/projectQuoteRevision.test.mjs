@@ -532,3 +532,37 @@ test("append kronolojiyi, hazır snapshot'ı ve kapalı girdi şemasını zorunl
   assert.equal(overriddenSequence.status, "blocked");
   assert.match(overriddenSequence.diagnostics[0], /desteklenmeyen alan/);
 });
+
+
+test("append çıktısı schemaVersion alanıyla yeniden doğrulanır ve sonraki revizyona bağlanır", () => {
+  const first = appendProjectQuoteRevision(
+    { projectId: "project-42", revisions: [] },
+    {
+      revisionId: "quote-r1",
+      createdAt: "2026-11-17T10:00:00Z",
+      pricingSnapshot: createSnapshot()
+    }
+  );
+  assert.equal(first.status, "ready");
+
+  const revalidated = validateProjectQuoteRevisionHistory(first.history);
+  assert.equal(revalidated.status, "ready");
+
+  const second = appendProjectQuoteRevision(first.history, {
+    revisionId: "quote-r2",
+    createdAt: "2026-11-17T11:00:00Z",
+    pricingSnapshot: createSnapshot()
+  });
+  assert.equal(second.status, "ready");
+  assert.equal(second.history?.schemaVersion, 1);
+  assert.equal(second.history?.revisions.length, 2);
+  assert.equal(second.history?.revisions[1].revisionNumber, 2);
+  assert.equal(second.history?.revisions[1].previousRevisionId, "quote-r1");
+
+  const unsupportedVersion = validateProjectQuoteRevisionHistory({
+    ...first.history,
+    schemaVersion: 2
+  });
+  assert.equal(unsupportedVersion.status, "blocked");
+  assert.match(unsupportedVersion.diagnostics[0], /desteklenen şema sürümünü/);
+});

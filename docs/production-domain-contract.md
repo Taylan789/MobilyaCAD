@@ -484,7 +484,7 @@ Kaynak: domain/production/projectQuoteRevision.ts, validateProjectQuoteRevisionH
 
 Kaynak: `domain/production/projectQuoteRevision.ts`, `appendProjectQuoteRevision(history, revisionInput)`.
 
-- Önce mevcut geçmiş `validateProjectQuoteRevisionHistory` ile doğrulanır. Bozuk geçmişe ekleme yapılmaz; blocked sonucu `history: null` döndürür, hiçbir kayıt onarılmaz veya sıralanmaz.
+- Önce mevcut geçmiş `validateProjectQuoteRevisionHistory` ile doğrulanır. Bozuk geçmişe ekleme yapılmaz; blocked sonucu `history: null` döndürür, hiçbir kayıt onarılmaz veya sıralanmaz. Fonksiyonun ürettiği `schemaVersion: 1` geçmiş aynı doğrulayıcıya ve sonraki append çağrısına yeniden girdi olarak verilebilir; eski girdilerde schemaVersion alanının bulunmaması geriye uyumludur, sağlanmışsa yalnızca 1 kabul edilir.
 - Yeni girdi yalnızca `revisionId`, saat dilimli ISO 8601 `createdAt` ve hazır `pricingSnapshot` alanlarını kabul eder. `projectId`, sıra numarası ve önceki revizyon bağlantısı çağıran tarafından override edilemez.
 - Proje kimliği doğrulanmış geçmişten alınır; yeni sıra numarası mevcut kayıt adedi + 1, `previousRevisionId` ise son doğrulanmış kaydın kimliğidir. Boş geçmişe ekleme ilk revizyonu 1 numarasıyla oluşturur.
 - `revisionId` tüm mevcut geçmiş boyunca benzersiz olmalıdır. Tarih son revizyondan kesin olarak sonra gelmeli; snapshot hazır, tutarlı ve desteklenen şemada olmalıdır.
