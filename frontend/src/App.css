@@ -5590,3 +5590,13 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 @media(max-width:1200px){.cad-workspace{grid-template-columns:238px minmax(0,1fr)!important}.cad-sidebar{width:238px!important;min-width:238px!important}.cad-workspace-content{grid-template-columns:minmax(0,1fr) 300px!important}.cad-bottom-dock-metrics{display:none}}
 @media(max-width:900px){.cad-main-area{grid-template-rows:38px 58px minmax(240px,1fr) 170px!important}.cad-workspace-content{grid-template-columns:minmax(0,1fr) 270px!important;padding:7px!important}.cad-bottom-dock{margin:0 7px 7px}.cad-bottom-dock-header{gap:8px;padding:0 9px}.cad-bottom-dock-title{min-width:120px}.cad-bottom-dock-tabs button{padding:0 7px}}
 @media(max-width:700px){.cad-main-area{grid-template-rows:48px 1fr 150px!important}.cad-workspace-content{display:flex!important}.cad-inspector{display:none!important}.cad-bottom-dock-title small,.cad-bottom-dock-metrics{display:none}.cad-bottom-dock-title{min-width:0}}
+
+
+/* PRECISION WORKSPACE TOOLBAR */
+.studio-viewport-actions .studio-snap-toggle{min-width:112px;color:#c2d2dc!important;background:#172b36!important;border:1px solid #3d5969!important}
+.studio-viewport-actions .studio-snap-toggle.active{color:#d8f0e2!important;background:#234536!important;border-color:#477b60!important}
+.studio-snap-step{height:34px;min-width:76px;padding:0 9px;color:#d2e0e8;background:#14232c;border:1px solid #3b5361;border-radius:7px;font-size:10px;font-weight:650;outline:none}
+.studio-snap-step:focus-visible{border-color:#8bb4ca;box-shadow:0 0 0 2px rgba(139,180,202,.16)}
+.studio-snap-step:disabled{opacity:.45;cursor:not-allowed}
+@media(max-width:1100px){.studio-viewport-actions .studio-snap-toggle{min-width:34px;font-size:0!important}.studio-viewport-actions .studio-snap-toggle svg{margin:0}.studio-snap-step{min-width:64px}}
+@media(max-width:760px){.studio-snap-step{display:none}}
