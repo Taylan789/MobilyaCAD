@@ -8,7 +8,7 @@ const stylesheet = readFileSync(
 );
 
 function cssRule(selector) {
-  const start = stylesheet.indexOf(selector);
+  const start = stylesheet.indexOf(selector + " {");
   assert.notEqual(start, -1, "CSS kuralı bulunamadı: " + selector);
   const open = stylesheet.indexOf("{", start);
   const close = stylesheet.indexOf("}", open);
