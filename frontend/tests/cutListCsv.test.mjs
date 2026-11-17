@@ -160,7 +160,7 @@ test("geçersiz parça ölçüsü, adedi veya malzemesi dışa aktarılmaz", () 
 
 test("standart dikdörtgen CSV başlığı mevcut sütun sırasını korur", () => {
   const csv = createCutListCsv("Modül", [createPart()]);
-  const header = csv.replace(/^\\uFEFF/, "").split("\\r\\n")[0];
+  const header = csv.replace(/^\uFEFF/, "").split("\r\n")[0];
   assert.equal(
     header,
     "Mobilya;Parça;Genişlik (mm);Uzunluk (mm);Kalınlık (mm);Adet;Malzeme;Malzeme ID;Bant Üst;Bant Alt;Bant Sol;Bant Sağ"
