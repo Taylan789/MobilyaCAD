@@ -341,3 +341,167 @@
     transition: none !important;
   }
 }
+
+
+/* MOBILYA CAD — COMPACT DESKTOP WORKBENCH */
+@media (min-width: 1101px) and (max-width: 1360px) {
+  .cad-topbar {
+    gap: 9px !important;
+    padding-inline: 12px !important;
+    overflow: hidden;
+  }
+
+  .cad-brand {
+    min-width: 158px !important;
+    gap: 8px !important;
+  }
+
+  .cad-brand-lockup .mc-brand__mark {
+    width: 32px !important;
+    height: 32px !important;
+  }
+
+  .mc-brand__copy strong {
+    font-size: 13px !important;
+    letter-spacing: .1em !important;
+  }
+
+  .mc-brand__copy small {
+    font-size: 7px !important;
+  }
+
+  .cad-document-name {
+    gap: 7px !important;
+    flex: 0 1 155px;
+    min-width: 0;
+    font-size: 10px !important;
+  }
+
+  .cad-document-name > span:nth-child(2) {
+    max-width: 118px !important;
+  }
+
+  .cad-document-status,
+  .cad-mode-indicator {
+    display: none !important;
+  }
+
+  .cad-top-actions {
+    gap: 6px !important;
+    min-width: 0;
+  }
+
+  .cad-tool-toggle {
+    gap: 2px !important;
+    padding: 3px !important;
+    border-radius: 8px !important;
+  }
+
+  .cad-tool-toggle button {
+    width: 36px !important;
+    min-width: 36px !important;
+    height: 33px !important;
+    justify-content: center !important;
+    padding: 0 !important;
+  }
+
+  .cad-tool-toggle button span {
+    display: none !important;
+  }
+
+  .cad-top-right {
+    gap: 5px !important;
+    margin-left: 0 !important;
+  }
+
+  .cad-top-right > button {
+    width: 35px !important;
+    min-width: 35px !important;
+    height: 35px !important;
+    justify-content: center !important;
+    padding: 0 !important;
+  }
+
+  .cad-top-right > button span {
+    display: none !important;
+  }
+
+  .cad-top-right .cad-save-button {
+    width: 38px !important;
+    min-width: 38px !important;
+    padding: 0 !important;
+  }
+
+  .cad-shortcut-trigger {
+    width: 35px !important;
+    height: 35px !important;
+  }
+
+  .cad-sidebar {
+    flex: 0 0 248px !important;
+    width: 248px !important;
+    min-width: 248px !important;
+  }
+
+  .cad-sidebar-header {
+    padding: 13px 12px 11px !important;
+  }
+
+  .cad-sidebar [data-slot="sidebar-group"] {
+    padding: 8px 10px !important;
+  }
+
+  .cad-catalog-grid {
+    gap: 7px !important;
+  }
+
+  .cad-catalog-card {
+    min-height: 108px !important;
+    padding: 9px !important;
+  }
+
+  .cad-catalog-card-icon {
+    width: 31px !important;
+    height: 31px !important;
+    margin-bottom: 7px !important;
+  }
+
+  .cad-inspector {
+    width: 286px !important;
+    min-width: 286px !important;
+  }
+
+  .cad-inspector-tab-list {
+    height: 40px !important;
+    padding: 3px 5px !important;
+  }
+
+  .cad-inspector-tab-list button {
+    height: 32px !important;
+    gap: 4px !important;
+    font-size: 9px !important;
+  }
+
+  .cad-viewport-toolbar {
+    padding-inline: 12px !important;
+  }
+
+  .studio-viewport-actions {
+    gap: 5px !important;
+  }
+
+  .studio-viewport-actions button {
+    padding-inline: 8px !important;
+    font-size: 10px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cad-app *,
+  .atelier-home * {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}
