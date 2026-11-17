@@ -736,10 +736,13 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 - Sonraki domain adımı DOM-008: kullanıcı girdili işçilik/operasyon tarifesi, süre ve özgün birim sözleşmesi.
 
 
-## 17 Kasım 2026 13:49 TRT — DOM-008 işçilik/operasyon tarifesi (Actions doğrulaması bekleniyor)
+## 17 Kasım 2026 13:49 TRT — DOM-008 işçilik/operasyon tarifesi (Actions doğrulandı)
 
 - Domain dilimi, kullanıcı girdili iş kullanım satırlarını ayrı tarife tablosuyla eşleştirir. Her kullanım satırı açık kategori, süre, süre birimi ve tarife kimliği taşır; tarife açık birim fiyatı, para birimi ve zorunlu kaynak referansı taşır.
 - Kabul kriterleri: tarife ve kullanım kimlikleri benzersiz; kategori eşleşmesi zorunlu; dakika/saat birimleri birebir eşleşir; otomatik dönüşüm ve varsayılan fiyat yoktur; eksik tarife/birim uyuşmazlığında kısmi parasal toplam yoktur; farklı para birimleri blocked olur.
 - Sıfır fiyat yalnızca açık tarife girdisiyle kabul edilir. Süre en fazla altı ondalık basamak; mevcut maliyet motorunun satır yuvarlaması kullanılır.
 - İlk uygulama commit SHA'sı ve Actions run bağlantıları doğrulama sonrasında AI_PROGRESS.md / AI_COORDINATION.md içine yazılacaktır.
 - Bilinen sınırlar: tarife kaynağının gerçekliği ve güncelliği doğrulanmaz; geçerlilik tarihi, vergi, kur, teklif revizyonu ve üretim tüketimiyle tek toplam sonraki görevlerdir. Fiziksel üretim onayı değildir.
+
+- Uygulama commit: [b42fe770c2045739c12366108489e28bec25591b](https://github.com/Taylan789/MobilyaCAD/commit/b42fe770c2045739c12366108489e28bec25591b).
+- [CI #44069400982](https://github.com/Taylan789/MobilyaCAD/actions/runs/44069400982), [QA #44069401154](https://github.com/Taylan789/MobilyaCAD/actions/runs/44069401154) ve [Pages #44069400970](https://github.com/Taylan789/MobilyaCAD/actions/runs/44069400970) başarılı. QA: 101/101 frontend + 187/187 domain testi, 0 başarısız; strict TypeScript, lint, production build ve production dependency audit geçti.

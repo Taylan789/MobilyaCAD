@@ -799,11 +799,11 @@
 
 ## 17 Kasım 2026 13:49 TRT — DOM-008 uygulaması (Actions doğrulaması bekleniyor)
 
-- Başlangıç HEAD: \`32af784ee86271e33654a6f4cc0a9197d8d0013f\`.
-- İlk uygulama commit SHA: doğrulama sonrası eklenecek.
-- Değişiklikler: \`domain/production/projectLaborOperationPricing.ts\` ve \`domain/production/projectLaborOperationPricing.test.mjs\` ile kullanıcı girdili işçilik/operasyon kullanım satırları, açık tarife tablosu, kategori ve birim eşleştirmesi, kaynak referansı ve eksik girdi durumları eklendi.
-- QA kapsamı: yeni domain testi \`domain/production/*.test.mjs\` desenine girer; strict TypeScript listesine yeni modül eklendi.
+- Başlangıç HEAD: `32af784ee86271e33654a6f4cc0a9197d8d0013f`.
+- Uygulama commit: [b42fe770c2045739c12366108489e28bec25591b](https://github.com/Taylan789/MobilyaCAD/commit/b42fe770c2045739c12366108489e28bec25591b).
+- Değişiklikler: `domain/production/projectLaborOperationPricing.ts` ve `domain/production/projectLaborOperationPricing.test.mjs` ile kullanıcı girdili işçilik/operasyon kullanım satırları, açık tarife tablosu, kategori ve birim eşleştirmesi, kaynak referansı ve eksik girdi durumları eklendi.
+- QA kapsamı: yeni domain testi `domain/production/*.test.mjs` desenine girer; strict TypeScript listesine yeni modül eklendi.
 - Otomatik kabul kapsamı: hazır işçilik + operasyon toplamı, boş proje, eksik tarife, birim uyuşmazlığı, kategori uyuşmazlığı, para birimi karışımı, yinelenen kimlikler, bilinmeyen alan, geçersiz süre/fiyat/kaynak referansı ve açık sıfır tarife.
-- Actions sonucu: push sonrasında CI/QA/Pages run bağlantıları ve gerçek durum eklenecek; bu kayıt yazılırken henüz doğrulama yok.
-- Bilinen sınırlar: dakika/saat otomatik dönüştürülmez; tarife kaynağı kullanıcı tarafından sağlanır ve gerçekliği/etkinlik tarihi doğrulanmaz. Üretim malzeme/donanım maliyetleriyle birleşik teklif toplamı, vergi, kur ve revizyon sonraki görevlerdir. \`frontend/**\` değiştirilmedi; başka ajan PR'larına dokunulmadı.
+- [MobilyaCAD CI #44069400982](https://github.com/Taylan789/MobilyaCAD/actions/runs/44069400982) başarılı; [QA & Test #44069401154](https://github.com/Taylan789/MobilyaCAD/actions/runs/44069401154) başarılı: 101/101 frontend + 187/187 domain testi, 0 başarısız. Strict TypeScript, lint, frontend production build ve production dependency audit geçti. [Pages #44069400970](https://github.com/Taylan789/MobilyaCAD/actions/runs/44069400970) build/deploy başarılı.
+- Bilinen sınırlar: dakika/saat otomatik dönüştürülmez; tarife kaynağı kullanıcı tarafından sağlanır ve gerçekliği/etkinlik tarihi doğrulanmaz. Üretim malzeme/donanım maliyetleriyle birleşik teklif toplamı, vergi, kur ve revizyon sonraki görevlerdir. `frontend/**` değiştirilmedi; başka ajan PR'larına dokunulmadı.
 - Sonraki görev: DOM-009 — üretim tüketimi ve işçilik/operasyon özetlerini tek, eksik-girdi güvenli teklif toplamında birleştir.
