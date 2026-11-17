@@ -1423,6 +1423,8 @@ function App() {
               <MaterialCatalogManager
                 materials={materials}
                 referencedMaterialIds={referencedMaterialIds}
+                usageByMaterialId={materialUsageById}
+                onSelectUsage={focusSceneFurniture}
                 onChange={updateMaterials}
               />
             )}
