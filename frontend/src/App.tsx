@@ -31,6 +31,9 @@ import {
   ChevronDown,
   ChevronRight,
   ChevronsUpDown,
+  Eye,
+  EyeOff,
+  Focus,
 } from "lucide-react";
 
 import { Button } from "./components/ui/button";
@@ -117,6 +120,8 @@ function App() {
   const [leftPanelMode, setLeftPanelMode] = useState<"catalog" | "scene">("catalog");
   const [sceneSearch, setSceneSearch] = useState("");
   const [collapsedSceneFurnitureIds, setCollapsedSceneFurnitureIds] = useState<string[]>([]);
+  const [hiddenFurnitureIds, setHiddenFurnitureIds] = useState<string[]>([]);
+  const [isolatedFurnitureId, setIsolatedFurnitureId] = useState<string | null>(null);
   const [inspectorTab, setInspectorTab] = useState<"room" | "furniture" | "production" | "materials">("room");
   const [workspaceMode, setWorkspaceMode] = useState<"design" | "production">("design");
   const [productionSection, setProductionSection] = useState<"report" | "materials">("report");
@@ -209,6 +214,8 @@ function App() {
     setLeftPanelMode(initialPanel);
     setSceneSearch("");
     setCollapsedSceneFurnitureIds([]);
+    setHiddenFurnitureIds([]);
+    setIsolatedFurnitureId(null);
     setInspectorTab(initialInspector);
     setWorkspaceMode(initialInspector === "production" ? "production" : "design");
     setProductionSection("report");
@@ -293,6 +300,7 @@ function App() {
   );
   const allSceneFurnitureCollapsed = furniture.length > 0 &&
     furniture.every((item) => collapsedSceneFurnitureIds.includes(item.id));
+  const hiddenFurnitureCount = furniture.filter((item) => hiddenFurnitureIds.includes(item.id)).length;
   const referencedMaterialIds = new Set(
     furniture.flatMap((item) => [
       ...(item.materialId ? [item.materialId] : []),
@@ -339,6 +347,7 @@ function App() {
     setFurniture((previous) => [...previous, placed]);
     setSelectedFurnitureId(placed.id);
     setSelectedPartId(null);
+    setIsolatedFurnitureId(null);
   }
 
   function updateSelectedPart(
@@ -727,6 +736,8 @@ function App() {
 
     if (partId && !target.parts.some((part) => part.id === partId)) return;
 
+    setHiddenFurnitureIds((current) => current.filter((id) => id !== target.id));
+    setIsolatedFurnitureId((current) => current && current !== target.id ? null : current);
     setSelectedFurnitureId(target.id);
     setSelectedPartId(partId);
     setLeftPanelMode("scene");
@@ -736,6 +747,45 @@ function App() {
     setMobilePanel(null);
     setFocusRequestId((current) => current + 1);
     setWorkspaceMode("design");
+  }
+
+  function toggleFurnitureVisibility(furnitureId: string) {
+    const isExcludedByIsolation =
+      isolatedFurnitureId !== null && isolatedFurnitureId !== furnitureId;
+
+    if (isExcludedByIsolation) {
+      setIsolatedFurnitureId(null);
+      setHiddenFurnitureIds((current) => current.filter((id) => id !== furnitureId));
+      return;
+    }
+
+    const isHidden = hiddenFurnitureIds.includes(furnitureId);
+    if (isHidden) {
+      setHiddenFurnitureIds((current) => current.filter((id) => id !== furnitureId));
+      return;
+    }
+
+    setHiddenFurnitureIds((current) => [...current, furnitureId]);
+    if (selectedFurnitureId === furnitureId) {
+      setSelectedFurnitureId(null);
+      setSelectedPartId(null);
+    }
+    if (isolatedFurnitureId === furnitureId) {
+      setIsolatedFurnitureId(null);
+    }
+  }
+
+  function toggleSceneIsolation() {
+    if (!selectedFurnitureId) return;
+    setHiddenFurnitureIds((current) => current.filter((id) => id !== selectedFurnitureId));
+    setIsolatedFurnitureId((current) =>
+      current === selectedFurnitureId ? null : selectedFurnitureId
+    );
+  }
+
+  function restoreSceneVisibility() {
+    setHiddenFurnitureIds([]);
+    setIsolatedFurnitureId(null);
   }
 
   function focusProductionFurniture(furnitureId: string) {
@@ -796,6 +846,8 @@ function App() {
       setRoomHeight(project.room.height);
       setFurniture(project.furniture);
       setMaterials(project.materials ?? []);
+      setHiddenFurnitureIds([]);
+      setIsolatedFurnitureId(null);
       setSelectedFurnitureId(null);
       setSelectedPartId(null);
       setInspectorTab("room");
@@ -830,6 +882,8 @@ function App() {
     setFurniture((previous) =>
       previous.filter((item) => item.id !== selectedFurnitureId)
     );
+    setHiddenFurnitureIds((current) => current.filter((id) => id !== selectedFurnitureId));
+    setIsolatedFurnitureId((current) => current === selectedFurnitureId ? null : current);
 
     setSelectedFurnitureId(null);
     setSelectedPartId(null);
@@ -1333,6 +1387,28 @@ function App() {
                     <small>{filteredSceneFurniture.length} / {furniture.length} MOBİLYA</small>
                     <button
                       type="button"
+                      className={isolatedFurnitureId === selectedFurnitureId && selectedFurnitureId ? "studio-tree-isolate is-active" : "studio-tree-isolate"}
+                      disabled={!selectedFurnitureId}
+                      aria-label={isolatedFurnitureId === selectedFurnitureId ? "Yalıtılmış görünümü kapat" : "Seçili mobilyayı yalıt"}
+                      aria-pressed={Boolean(selectedFurnitureId && isolatedFurnitureId === selectedFurnitureId)}
+                      title={!selectedFurnitureId ? "Önce bir mobilya seç" : isolatedFurnitureId === selectedFurnitureId ? "Yalıtılmış görünümü kapat" : "Yalnızca seçili mobilyayı göster"}
+                      onClick={toggleSceneIsolation}
+                    >
+                      <Focus aria-hidden="true" />
+                    </button>
+                    {(hiddenFurnitureCount > 0 || isolatedFurnitureId !== null) && (
+                      <button
+                        type="button"
+                        className="studio-tree-restore-visibility"
+                        aria-label="Tüm mobilyaları görünür yap"
+                        title="Tüm mobilyaları görünür yap"
+                        onClick={restoreSceneVisibility}
+                      >
+                        <Eye aria-hidden="true" />
+                      </button>
+                    )}
+                    <button
+                      type="button"
                       className="studio-tree-toggle-all"
                       disabled={furniture.length === 0 || normalizedSceneSearch.length > 0}
                       aria-label={allSceneFurnitureCollapsed ? "Tüm mobilya gruplarını aç" : "Tüm mobilya gruplarını daralt"}
@@ -1370,7 +1446,11 @@ function App() {
                 <button
                   type="button"
                   className="studio-tree-room"
-                  onClick={() => { setSelectedFurnitureId(null); setSelectedPartId(null); }}
+                  onClick={() => {
+                    setSelectedFurnitureId(null);
+                    setSelectedPartId(null);
+                    setIsolatedFurnitureId(null);
+                  }}
                 >
                   <House />
                   <span>
@@ -1408,15 +1488,22 @@ function App() {
                           );
                       const isExpanded = normalizedSceneSearch.length > 0 ||
                         !collapsedSceneFurnitureIds.includes(item.id);
+                      const isManuallyHidden = hiddenFurnitureIds.includes(item.id);
+                      const isExcludedByIsolation =
+                        isolatedFurnitureId !== null && isolatedFurnitureId !== item.id;
+                      const isHidden = isManuallyHidden || isExcludedByIsolation;
 
                       return (
-                        <div className="studio-tree-object" key={item.id}>
+                        <div
+                          className={`studio-tree-object${isHidden ? " is-hidden" : ""}${isExcludedByIsolation ? " is-isolated-out" : ""}`}
+                          key={item.id}
+                        >
                           <div className="studio-tree-object-row">
                             <button
                               type="button"
                               className={"studio-tree-object-select" + (selectedFurnitureId === item.id && !selectedPartId ? " selected" : "")}
                               aria-label={item.name + " mobilyasını seç ve 3D sahnede odakla"}
-                              title="Mobilyayı seç ve 3D sahnede odakla"
+                              title={isHidden ? "Mobilyayı görünür yap, seç ve 3D sahnede odakla" : "Mobilyayı seç ve 3D sahnede odakla"}
                               onClick={() => focusSceneFurniture(item.id)}
                             >
                               <Box />
@@ -1425,6 +1512,16 @@ function App() {
                                 <small>{item.width} × {item.height} × {item.depth} mm</small>
                               </span>
                               <em>{item.parts.length}</em>
+                            </button>
+                            <button
+                              type="button"
+                              className={isHidden ? "studio-tree-visibility-toggle is-hidden" : "studio-tree-visibility-toggle"}
+                              aria-label={isHidden ? item.name + " mobilyasını görünür yap" : item.name + " mobilyasını gizle"}
+                              aria-pressed={!isHidden}
+                              title={isHidden ? "Görünür yap" : "Sahnede gizle"}
+                              onClick={() => toggleFurnitureVisibility(item.id)}
+                            >
+                              {isHidden ? <EyeOff aria-hidden="true" /> : <Eye aria-hidden="true" />}
                             </button>
                             <button
                               type="button"
@@ -1454,6 +1551,9 @@ function App() {
                                   onClick={() => focusSceneFurniture(item.id, part.id)}
                                 >
                                   <span className="studio-tree-part-line" />
+                                  <span className="studio-tree-part-type-icon" aria-hidden="true">
+                                    {part.type === "door" ? <DoorOpen /> : part.type === "drawer" ? <Package /> : part.type === "shelf" ? <Layers3 /> : <PanelLeft />}
+                                  </span>
                                   <span>{part.name}</span>
                                 </button>
                               ))}
@@ -1557,6 +1657,8 @@ function App() {
                   length={roomLength}
                   height={roomHeight}
                   furniture={furniture}
+                  hiddenFurnitureIds={hiddenFurnitureIds}
+                  isolatedFurnitureId={isolatedFurnitureId}
                   selectedFurnitureId={selectedFurnitureId}
                   selectedPartId={selectedPartId}
                   focusRequestId={focusRequestId}
