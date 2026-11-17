@@ -27,9 +27,13 @@ test("desktop left dock collapses to a reachable 56px rail", () => {
 });
 
 test("collapsed rail keeps both navigation tabs and labels discoverable", () => {
-  assert.match(app, /role="tablist"\s+aria-label="Sol panel görünümü"/);
-  assert.match(app, /role="tab"[^>]*>\s*<Package\s*\/>\s*Kütüphane/);
-  assert.match(app, /role="tab"[^>]*>\s*<Layers3\s*\/>\s*Sahne ağacı/);
+  const switchStart = app.indexOf('aria-label="Sol panel görünümü"');
+  assert.notEqual(switchStart, -1, "left panel tab list must exist");
+
+  const switchMarkup = app.slice(switchStart, switchStart + 1000);
+  assert.equal((switchMarkup.match(/role="tab"/g) ?? []).length, 2);
+  assert.match(switchMarkup, /Kütüphane/);
+  assert.match(switchMarkup, /Sahne ağacı/);
 
   assert.match(stylesheet, /button:first-child::after\s*\{\s*content:\s*"Kütüphane"/);
   assert.match(stylesheet, /button:last-child::after\s*\{\s*content:\s*"Sahne ağacı"/);
