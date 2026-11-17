@@ -1,4 +1,5 @@
 import type { CabinetProjectProductionResult } from "./projectProduction.ts";
+import { calculatePanelCutoutGeometry } from "./panelCutoutGeometry.ts";
 
 const EDGE_KEYS = ["top", "bottom", "left", "right"] as const;
 type EdgeKey = (typeof EDGE_KEYS)[number];
@@ -56,6 +57,11 @@ interface ValidatedPart {
   material: string;
   materialId?: string;
   edgeBanding: Record<EdgeKey, boolean>;
+  panelAreaMm2: number;
+  volumeMm3: number;
+  widthEdgesLengthMm: number;
+  lengthEdgesLengthMm: number;
+  edgeCount: number;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -131,6 +137,48 @@ function validatePart(value: unknown, index: number): ValidatedPart {
     throw new Error(name + " malzeme kimliği geçersiz.");
   }
 
+  const edgeBanding = validateEdgeBanding(part.edgeBanding, name + " kenar bantlama");
+  const outerWidthEdgeCount = Number(edgeBanding.top) + Number(edgeBanding.bottom);
+  const outerLengthEdgeCount = Number(edgeBanding.left) + Number(edgeBanding.right);
+  let panelAreaMm2 = width * length;
+  let volumeMm3 = panelAreaMm2 * thickness;
+  let widthEdgesLengthMm = width * outerWidthEdgeCount;
+  let lengthEdgesLengthMm = length * outerLengthEdgeCount;
+  let edgeCount = outerWidthEdgeCount + outerLengthEdgeCount;
+
+  if (part.panelGeometry !== undefined) {
+    const rawGeometry = requireRecord(part.panelGeometry, name + " panel kesit geometrisi");
+    if (rawGeometry.schemaVersion !== 1) throw new Error(name + " panel kesit geometrisi şema sürümü desteklenmiyor.");
+    const geometryOuterEdges = validateEdgeBanding(rawGeometry.outerEdgeBanding, name + " panel kesit dış kenar bantlama");
+    for (const edge of EDGE_KEYS) {
+      if (geometryOuterEdges[edge] !== edgeBanding[edge]) {
+        throw new Error(name + " panel kesit dış kenar bantlaması üretim parçasıyla eşleşmelidir.");
+      }
+    }
+    const geometry = calculatePanelCutoutGeometry({
+      schemaVersion: rawGeometry.schemaVersion,
+      widthMm: rawGeometry.widthMm,
+      lengthMm: rawGeometry.lengthMm,
+      thicknessMm: rawGeometry.thicknessMm,
+      outerEdgeBanding: geometryOuterEdges,
+      cutouts: rawGeometry.cutouts
+    });
+    if (
+      geometry.widthMm !== normalizePanelMm(width, name + " genişliği") ||
+      geometry.lengthMm !== normalizePanelMm(length, name + " uzunluğu") ||
+      geometry.thicknessMm !== normalizePanelMm(thickness, name + " kalınlığı")
+    ) throw new Error(name + " panel kesit geometrisi ölçüleri üretim parçasıyla eşleşmelidir.");
+    panelAreaMm2 = geometry.netFaceAreaMm2;
+    volumeMm3 = geometry.netVolumeMm3;
+    for (const opening of geometry.cutouts) {
+      const openingWidthEdgeCount = Number(opening.edgeBanding.top) + Number(opening.edgeBanding.bottom);
+      const openingLengthEdgeCount = Number(opening.edgeBanding.left) + Number(opening.edgeBanding.right);
+      widthEdgesLengthMm += opening.widthMm * openingWidthEdgeCount;
+      lengthEdgesLengthMm += opening.lengthMm * openingLengthEdgeCount;
+      edgeCount += openingWidthEdgeCount + openingLengthEdgeCount;
+    }
+  }
+
   return {
     id,
     furnitureId,
@@ -140,8 +188,19 @@ function validatePart(value: unknown, index: number): ValidatedPart {
     quantity: part.quantity as number,
     material: (part.material as string).trim(),
     ...(materialId === undefined ? {} : { materialId: materialId as string }),
-    edgeBanding: validateEdgeBanding(part.edgeBanding, name + " kenar bantlama")
+    edgeBanding,
+    panelAreaMm2,
+    volumeMm3,
+    widthEdgesLengthMm,
+    lengthEdgesLengthMm,
+    edgeCount
   };
+}
+
+function normalizePanelMm(value: number, label: string): number {
+  const scaled = value * 10;
+  if (!Number.isFinite(scaled)) throw new Error(label + " 0.1 mm normalizasyon aralığını aşıyor.");
+  return Math.round(scaled + Number.EPSILON * 10) / 10;
 }
 
 function roundTo(value: number, decimalPlaces: number): number {
@@ -217,13 +276,11 @@ export function calculateProjectMaterialConsumptionSummary(
       groups.set(key, group);
     }
 
-    const widthEdgeCount = Number(part.edgeBanding.top) + Number(part.edgeBanding.bottom);
-    const lengthEdgeCount = Number(part.edgeBanding.left) + Number(part.edgeBanding.right);
-    const areaContribution = part.width * part.length * part.quantity;
-    const volumeContribution = areaContribution * part.thickness;
-    const widthBandingContribution = part.width * widthEdgeCount * part.quantity;
-    const lengthBandingContribution = part.length * lengthEdgeCount * part.quantity;
-    const edgeCountContribution = (widthEdgeCount + lengthEdgeCount) * part.quantity;
+    const areaContribution = part.panelAreaMm2 * part.quantity;
+    const volumeContribution = part.volumeMm3 * part.quantity;
+    const widthBandingContribution = part.widthEdgesLengthMm * part.quantity;
+    const lengthBandingContribution = part.lengthEdgesLengthMm * part.quantity;
+    const edgeCountContribution = part.edgeCount * part.quantity;
 
     group.partLineCount += 1;
     group.totalQuantity += part.quantity;

@@ -276,3 +276,18 @@ Kaynak: `domain/production/tvUnitConstruction.ts` ve mevcut `projectProduction.t
 - Kabul testleri: net alan/hacim ve iç çevre; dış/iç bantlama toplamı; 0.1 mm normalizasyon; çoklu ayrık açıklık; sınır, kesişim/temas, yinelenen kimlik, eksik/yanlış kenar bayrağı, bilinmeyen alan, şema ve taşma reddi; kaynak isteğin değişmezliği.
 - Bu modül henüz ProjectProductionPart, proje agregatörü veya calculateProjectMaterialConsumptionSummary ile birleştirilmez. Mevcut dikdörtgen Part ve CSV/JSON tüketicilerine kesitli parça gönderilmez; bu nedenle henüz üretim kesim listesi, CNC veya banyo dolabı desteği değildir.
 - Fiziksel lavabo/armatür ölçüsü, köşe yarıçapı, pah, iç yüzey işlemi, bağlantı ve makine standardı varsayılmaz. Bu dilim yalnızca dikdörtgen geçiş açıklığı geometri öncülüdür; atölye/operatör doğrulaması olmadan üretim onayı vermez.
+
+
+## 2.13 Proje üretim Part'larında kesitli panel geometrisi
+
+Kaynak: `domain/production/panelCutoutGeometry.ts`, `domain/production/projectProduction.ts` ve `domain/production/projectMaterialSummary.ts`.
+
+Çağrı: `calculateCabinetProjectProduction({ schemaVersion: 1, furniture, drawerBoxes?, panelCutouts? })`.
+
+- `panelCutouts` geriye uyumlu opsiyonel bir listedir. Her kayıt yalnızca mevcut üretim Part kimliğini (`partId`) ve açık geometri isteğini (`geometry`) taşır. Aynı Part için ikinci profil, bilinmeyen Part kimliği veya bilinmeyen alan reddedilir.
+- Geometri şema sürümü 1'dir; panelin normalize edilmiş genişlik/uzunluk/kalınlığı ve dış kenar bant bayrakları hedef Part ile eşleşmelidir. İç açıklıklar panelin içinde kalmalı, birbirleriyle kesişmemeli/temas etmemeli ve iç kenar bant bayrakları açıkça verilmelidir.
+- Doğrulanan geometri, yalnızca ilgili Part üzerinde opsiyonel `panelGeometry` alanı olarak saklanır. Profil alanı olmayan legacy dikdörtgen Part satırları ve mevcut proje isteği v1 davranışı değişmez.
+- `calculateProjectMaterialConsumptionSummary` kesitli Part için dış alan yerine net yüzey alanını, dış hacim yerine net hacmi kullanır. Dış ve iç kenar bantlama uzunlukları yönlerine göre ayrılır ve Part `quantity` değeriyle çarpılır. Geometri özetindeki türetilmiş sayılar doğrudan güvenilmez; tüketim sırasında geometri yeniden doğrulanıp hesaplanır.
+- Geçerli kesit geometrisi domain sonucu içinde `status: "ready"` kalır; ancak mevcut JSON v1/CSV adapter'ı `panelGeometry` alanını kayıpsız taşımadığı için `canExport: false` ve açık bir `exportBlockers` mesajı döner. Adapter destek eklediğinde bu blokaj kaldırılmalıdır.
+- Herhangi bir kesit kaydı geçersizse proje raporu `blocked`, `canExport: false` ve `result: null` olur; kısmi Part listesi verilmez. Eski isteklerde `panelCutouts` alanının bulunmaması geçerlidir.
+- Bu domain sonucu henüz frontend JSON v1/CSV adapter'ına bağlanmamıştır. Bu dilim CNC operasyonu, lavabo ölçüsü/armatür standardı, köşe yarıçapı, pah, fire, levha verimi veya makine postprocessor'ı üretmez; fiziksel üretim öncesi atölye doğrulaması gerekir.

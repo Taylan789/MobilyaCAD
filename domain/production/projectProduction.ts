@@ -9,6 +9,8 @@ import type {
   CabinetInnerDimensionsMm
 } from "./cabinetConstruction.ts";
 import { calculateDrawerBoxConstruction } from "./drawerBoxConstruction.ts";
+import { calculatePanelCutoutGeometry } from "./panelCutoutGeometry.ts";
+import type { PanelCutoutGeometryResult } from "./panelCutoutGeometry.ts";
 import type { DrawerBoxConstructionPart } from "./drawerBoxConstruction.ts";
 import type { TableConstructionPart, TableConstructionResult } from "./tableConstruction.ts";
 import type { WardrobeConstructionPart } from "./wardrobeConstruction.ts";
@@ -18,6 +20,8 @@ export interface CabinetProjectProductionRequest {
   furniture: readonly unknown[];
   /** Optional drawer-box requests, each attached to a furniture entry above. */
   drawerBoxes?: readonly unknown[];
+  /** Optional explicit through-cutout geometry, attached to existing Part IDs. */
+  panelCutouts?: readonly unknown[];
 }
 
 export type CabinetProjectFurnitureResult =
@@ -40,7 +44,12 @@ export interface DrawerGroupProductionResult {
   bottomLengthMm: number;
 }
 
-export type ProjectProductionPart = CabinetConstructionPart | DrawerBoxConstructionPart | TableConstructionPart | WardrobeConstructionPart | TvUnitConstructionPart;
+export type ProjectProductionPart = (
+  CabinetConstructionPart | DrawerBoxConstructionPart | TableConstructionPart | WardrobeConstructionPart | TvUnitConstructionPart
+) & {
+  /** Optional, explicitly validated panel profile; absent on legacy rectangular parts. */
+  panelGeometry?: PanelCutoutGeometryResult;
+};
 
 export interface CabinetProjectProductionResult {
   schemaVersion: 1;
@@ -56,7 +65,7 @@ export type SupportedProjectFurnitureFamily = "cabinet" | "bookshelf" | "table" 
 export interface ProjectProductionFurnitureDiagnostic {
   furnitureId: string | null;
   family: string | null;
-  code: "unsupported-family" | "invalid-request" | "invalid-construction" | "invalid-drawer";
+  code: "unsupported-family" | "invalid-request" | "invalid-construction" | "invalid-drawer" | "invalid-panel-geometry";
   message: string;
 }
 
@@ -73,6 +82,8 @@ export interface CabinetProjectProductionReport {
   unsupportedFurniture: ProjectProductionFurnitureDiagnostic[];
   blockedFurniture: ProjectProductionFurnitureDiagnostic[];
   projectErrors: string[];
+  /** Export adapters must explicitly support panelGeometry before these blockers can be cleared. */
+  exportBlockers: string[];
   firstError: string | null;
   /** Null whenever any furniture, drawer group or project-level validation fails. */
   result: CabinetProjectProductionResult | null;
@@ -157,6 +168,14 @@ function diagnosticMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
+function normalizePanelMm(value: number, label: string): number {
+  const scaled = value * 10;
+  if (!Number.isFinite(scaled)) {
+    throw new Error(label + " 0.1 mm normalizasyon aralığını aşıyor.");
+  }
+  return Math.round(scaled + Number.EPSILON * 10) / 10;
+}
+
 /**
  * Validates a complete project without exposing a partial cut list.
  * Unsupported families and invalid furniture/drawer configurations are
@@ -214,6 +233,8 @@ export function calculateCabinetProjectProductionWithDiagnostics(
     addProjectError("Proje mobilya konstrüksiyon istekleri bir liste olmalıdır.");
   } else if (value.drawerBoxes !== undefined && !Array.isArray(value.drawerBoxes)) {
     addProjectError("Proje çekmece kutusu konstrüksiyon istekleri bir liste olmalıdır.");
+  } else if (value.panelCutouts !== undefined && !Array.isArray(value.panelCutouts)) {
+    addProjectError("Proje panel açıklığı istekleri bir liste olmalıdır.");
   }
 
   if (projectErrors.length > 0 || !isRecord(value) || !Array.isArray(value.furniture)) {
@@ -226,6 +247,7 @@ export function calculateCabinetProjectProductionWithDiagnostics(
       unsupportedFurniture,
       blockedFurniture,
       projectErrors,
+      exportBlockers: [],
       firstError,
       result: null
     };
@@ -350,10 +372,62 @@ export function calculateCabinetProjectProductionWithDiagnostics(
     }
   }
 
+  const panelCutoutRequests = (value.panelCutouts ?? []) as readonly unknown[];
+  const partById = new Map<string, ProjectProductionPart>(parts.map((part) => [part.id, part] as const));
+  const panelGeometryByPartId = new Map<string, PanelCutoutGeometryResult>();
+  const seenPanelCutoutPartIds = new Set<string>();
+
+  for (const [index, request] of panelCutoutRequests.entries()) {
+    let partId: string | null = null;
+    let part: ProjectProductionPart | undefined;
+    try {
+      const entry = requireRecord(request, "Projenin " + (index + 1) + ". panel açıklığı isteği");
+      const unknownKey = Object.keys(entry).find((key) => key !== "partId" && key !== "geometry");
+      if (unknownKey !== undefined) throw new Error("Panel açıklığı isteği için desteklenmeyen alan: " + unknownKey + ".");
+      if (typeof entry.partId !== "string" || entry.partId.trim() === "" || entry.partId.trim() !== entry.partId) {
+        throw new Error("Panel açıklığı parça kimliği geçerli olmalıdır.");
+      }
+      partId = entry.partId;
+      if (seenPanelCutoutPartIds.has(partId)) throw new Error(partId + " parçası için yinelenen panel açıklığı geometrisi.");
+      seenPanelCutoutPartIds.add(partId);
+      part = partById.get(partId);
+      if (!part) throw new Error(partId + " panel açıklığı için proje üretim listesinde bulunamadı.");
+
+      const geometry = calculatePanelCutoutGeometry(entry.geometry);
+      if (
+        geometry.widthMm !== normalizePanelMm(part.width, part.name + " genişliği") ||
+        geometry.lengthMm !== normalizePanelMm(part.length, part.name + " uzunluğu") ||
+        geometry.thicknessMm !== normalizePanelMm(part.thickness, part.name + " kalınlığı")
+      ) throw new Error(partId + " panel kesit geometrisi ölçüleri üretim parçasıyla eşleşmelidir.");
+      for (const edge of ["top", "bottom", "left", "right"] as const) {
+        if (geometry.outerEdgeBanding[edge] !== part.edgeBanding[edge]) {
+          throw new Error(partId + " panel kesit geometrisinin dış kenar bantlaması üretim parçasıyla eşleşmelidir.");
+        }
+      }
+      panelGeometryByPartId.set(partId, geometry);
+    } catch (error) {
+      const matchedPart = part ?? (partId === null ? undefined : partById.get(partId));
+      addBlocked(
+        matchedPart?.furnitureId ?? null,
+        matchedPart ? familyByFurnitureId.get(matchedPart.furnitureId) ?? null : null,
+        "invalid-panel-geometry",
+        diagnosticMessage(error)
+      );
+    }
+  }
+
+  const productionParts = parts.map((part) => {
+    const panelGeometry = panelGeometryByPartId.get(part.id);
+    return panelGeometry === undefined ? part : { ...part, panelGeometry };
+  });
+
   const isEmpty = value.furniture.length === 0 && drawerRequests.length === 0;
   const canCalculate = unsupportedFurniture.length === 0 &&
     blockedFurniture.length === 0 &&
     projectErrors.length === 0;
+  const exportBlockers = canCalculate && panelGeometryByPartId.size > 0
+    ? ["Kesitli panel geometrisi mevcut; JSON v1/CSV dışa aktarıcısı panelGeometry alanını kayıpsız destekleyene kadar dışa aktarım kapalıdır."]
+    : [];
   const result: CabinetProjectProductionResult | null = canCalculate
     ? {
         schemaVersion: 1,
@@ -366,12 +440,13 @@ export function calculateCabinetProjectProductionWithDiagnostics(
   return {
     schemaVersion: 1,
     status: !canCalculate ? "blocked" : isEmpty ? "empty" : "ready",
-    canExport: canCalculate && !isEmpty,
+    canExport: canCalculate && !isEmpty && exportBlockers.length === 0,
     isEmpty,
     supportedFurniture,
     unsupportedFurniture,
     blockedFurniture,
     projectErrors,
+    exportBlockers,
     firstError,
     result
   };

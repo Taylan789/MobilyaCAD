@@ -1016,3 +1016,51 @@ test("birden fazla çekmece grubunun bağımsız panel malzemeleri proje tüketi
     [2, 5, 0.973104, 0.007784832, 0, 0]
   );
 });
+
+
+test("panel açıklığı geometrisi yalnız eşleşen Part ölçüsü ve dış bant bayraklarıyla projeye bağlanır", () => {
+  const request = createRequest("cab-panel-cutout", { profile: { shelfCount: 2 } });
+  request.profile.edgeBandingByGroup.shelf = { ...noBanding, left: true };
+  const base = calculateCabinetProjectProduction({ schemaVersion: 1, furniture: [request] });
+  const shelf = base.parts.find((part) => part.id === "cab-panel-cutout-shelf");
+  assert.ok(shelf);
+  const geometry = {
+    schemaVersion: 1, widthMm: shelf.width, lengthMm: shelf.length, thicknessMm: shelf.thickness,
+    outerEdgeBanding: shelf.edgeBanding,
+    cutouts: [{ id: "sink-opening", xMm: 100, yMm: 100, widthMm: 200, lengthMm: 150,
+      edgeBanding: { top: true, bottom: false, left: true, right: false } }]
+  };
+  const report = calculateCabinetProjectProductionWithDiagnostics({
+    schemaVersion: 1, furniture: [request], panelCutouts: [{ partId: shelf.id, geometry }]
+  });
+  assert.equal(report.status, "ready");
+  assert.equal(report.canExport, false);
+  assert.match(report.exportBlockers[0], /JSON v1\/CSV/);
+  assert.ok(report.result);
+  const profiledShelf = report.result.parts.find((part) => part.id === shelf.id);
+  assert.deepEqual(profiledShelf.panelGeometry.cutouts[0], geometry.cutouts[0]);
+  assert.equal(profiledShelf.panelGeometry.netFaceAreaMm2, shelf.width * shelf.length - 30000);
+  assert.equal(profiledShelf.quantity, 2);
+});
+
+test("bilinmeyen, yinelenen veya ölçüsü/dış bantlaması uyuşmayan kesit parçası export'u engeller", () => {
+  const request = createRequest("cab-invalid-cutout");
+  const base = calculateCabinetProjectProduction({ schemaVersion: 1, furniture: [request] });
+  const part = base.parts.find((entry) => entry.id === "cab-invalid-cutout-top");
+  assert.ok(part);
+  const geometry = { schemaVersion: 1, widthMm: part.width, lengthMm: part.length, thicknessMm: part.thickness,
+    outerEdgeBanding: part.edgeBanding, cutouts: [] };
+  const invalidRequests = [
+    [{ partId: "missing-part", geometry }],
+    [{ partId: part.id, geometry }, { partId: part.id, geometry }],
+    [{ partId: part.id, geometry: { ...geometry, widthMm: geometry.widthMm - 1 } }],
+    [{ partId: part.id, geometry: { ...geometry, outerEdgeBanding: { ...noBanding, top: true } } }]
+  ];
+  for (const panelCutouts of invalidRequests) {
+    const report = calculateCabinetProjectProductionWithDiagnostics({ schemaVersion: 1, furniture: [request], panelCutouts });
+    assert.equal(report.status, "blocked");
+    assert.equal(report.canExport, false);
+    assert.equal(report.result, null);
+    assert.equal(report.blockedFurniture[0].code, "invalid-panel-geometry");
+  }
+});

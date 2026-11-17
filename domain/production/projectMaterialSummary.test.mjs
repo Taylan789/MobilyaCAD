@@ -174,3 +174,55 @@ test("taşan alan ve adet toplamları reddedilir", () => {
     /güvenli aralık/
   );
 });
+
+
+test("kesitli Part net alan, hacim ve iç kenar bantlamasını quantity ile toplar", () => {
+  const request = createRequest("cab-cutout-summary", { shelfCount: 2 });
+  request.profile.edgeBandingByGroup.shelf = { ...noBanding, left: true };
+  const baseline = createProject([request]);
+  const shelf = baseline.parts.find((part) => part.id === "cab-cutout-summary-shelf");
+  assert.ok(shelf);
+  const panelGeometry = {
+    schemaVersion: 1, widthMm: shelf.width, lengthMm: shelf.length, thicknessMm: shelf.thickness,
+    outerEdgeBanding: shelf.edgeBanding,
+    cutouts: [{ id: "sink-opening", xMm: 100, yMm: 100, widthMm: 200, lengthMm: 150,
+      edgeBanding: { top: true, bottom: false, left: true, right: false } }]
+  };
+  const profiled = calculateCabinetProjectProduction({
+    schemaVersion: 1, furniture: [request], panelCutouts: [{ partId: shelf.id, geometry: panelGeometry }]
+  });
+  const before = calculateProjectMaterialConsumptionSummary(baseline)[0];
+  const after = calculateProjectMaterialConsumptionSummary(profiled)[0];
+  assert.equal(after.partLineCount, before.partLineCount);
+  assert.equal(after.totalQuantity, before.totalQuantity);
+  assert.equal(Number((before.panelAreaM2 - after.panelAreaM2).toFixed(6)), 0.06);
+  assert.equal(Number((before.volumeM3 - after.volumeM3).toFixed(9)), 0.00108);
+  assert.equal(after.edgeBanding.widthEdgesLengthMm - before.edgeBanding.widthEdgesLengthMm, 400);
+  assert.equal(after.edgeBanding.lengthEdgesLengthMm - before.edgeBanding.lengthEdgesLengthMm, 300);
+  assert.equal(after.edgeBanding.totalLengthMm - before.edgeBanding.totalLengthMm, 700);
+  assert.equal(after.edgeBanding.edgeCount - before.edgeBanding.edgeCount, 4);
+});
+
+test("malformed kesit ölçüsü veya dış kenar bandı Part tüketiminde reddedilir", () => {
+  const request = createRequest("cab-cutout-invalid-summary");
+  const baseline = createProject([request]);
+  const part = baseline.parts.find((entry) => entry.id === "cab-cutout-invalid-summary-top");
+  assert.ok(part);
+  const panelGeometry = { schemaVersion: 1, widthMm: part.width, lengthMm: part.length,
+    thicknessMm: part.thickness, outerEdgeBanding: part.edgeBanding, cutouts: [] };
+  const profiled = calculateCabinetProjectProduction({
+    schemaVersion: 1, furniture: [request], panelCutouts: [{ partId: part.id, geometry: panelGeometry }]
+  });
+  assert.throws(() => calculateProjectMaterialConsumptionSummary({
+    ...profiled,
+    parts: profiled.parts.map((entry) => entry.id === part.id
+      ? { ...entry, panelGeometry: { ...entry.panelGeometry, widthMm: entry.panelGeometry.widthMm - 1 } }
+      : entry)
+  }), /ölçüleri üretim parçasıyla eşleşmelidir/);
+  assert.throws(() => calculateProjectMaterialConsumptionSummary({
+    ...profiled,
+    parts: profiled.parts.map((entry) => entry.id === part.id
+      ? { ...entry, panelGeometry: { ...entry.panelGeometry, outerEdgeBanding: { ...noBanding, top: true } } }
+      : entry)
+  }), /dış kenar bantlaması üretim parçasıyla eşleşmelidir/);
+});
