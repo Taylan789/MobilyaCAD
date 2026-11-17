@@ -767,7 +767,12 @@
 - Güvenlik/doğruluk: eksik fiyat veya legacy malzeme kimliği, birim uyuşmazlığı ve kenar bandı katalog kimliği eksikliği parasal toplamı incomplete tutar; `costSummary` null olur. Farklı para birimleri, bozuk üretim raporu, yinelenen fiyat anahtarı ve fiyat şeması hatası blocked döndürür. Açık sıfır fiyat kabul edilir; varsayılan fiyat, birim dönüşümü, kur veya fire oranı üretilmez.
 - Kabul testleri: hazır malzeme + iki özgün donanım birimi, eksik fiyat, birim uyuşmazlığı, malzeme kimliği olmayan legacy Part, kenar bandı fiyat kapsamı, para birimi karışımı, yinelenen/geçersiz fiyat, blocked/empty proje, açık sıfır fiyat ve altı ondalık maliyet hassasiyeti sınırı.
 - Değişen dosyalar: `domain/production/projectPricedConsumption.ts`, `domain/production/projectPricedConsumption.test.mjs`, `.github/workflows/qa-test.yml`, `docs/production-domain-contract.md`, `PRODUCT_ROADMAP.md`, `AI_COORDINATION.md`, `AI_PROGRESS.md`.
-- Kod commit SHA ve Actions sonuçları: bu kayıt ilk committe doğrulama bekliyor olarak işaretlenmiştir; başarılı/başarısız gerçek CI/QA/Pages run kimlikleri doğrulama sonrasında eklenecektir.
+- Özellik commit: [106bb4d6da1cb1316f5386080e6b34d491a09016](https://github.com/Taylan789/MobilyaCAD/commit/106bb4d6da1cb1316f5386080e6b34d491a09016).
+- [MobilyaCAD CI #44048122112](https://github.com/Taylan789/MobilyaCAD/actions/runs/44048122112) başarılı.
+- [MobilyaCAD QA & Test #44048122147](https://github.com/Taylan789/MobilyaCAD/actions/runs/44048122147) başarılı: **101/101 frontend + 175/175 domain testi, 0 başarısız**. Shared-domain strict TypeScript, lint, frontend TypeScript/production build ve production dependency audit adımları geçti. Oxlint 32 uyarı / 0 hata; bu turda yeni lint hatası yok.
+- [Pages build/deploy #44048122140](https://github.com/Taylan789/MobilyaCAD/actions/runs/44048122140) başarılı.
+- PR açılmadı; kullanıcı yetkisi kapsamında doğrudan yalnızca `dev/github-work` dalına commit edildi. DOM-006 artık DONE; DOM-007 READY.
+- AI Developer workflow: son 100 Actions run içinde bu dal için AI Developer çalışması bulunmadı; workflow_dispatch bu turda tetiklenmedi.
 - Bilinen sınırlar: kenar bandı için ayrı katalog kimliği yok; bu nedenle bant tüketimi maliyet toplamını tamamlamayı engeller. Vergi, kur, fire, levha verimi, teklif revizyonu ve fiyat geçerlilik tarihi yoktur. Fiziksel üretim/CNC onayı değildir.
 - Frontend sahipliği: hiçbir `frontend/**` dosyası değiştirilmedi. Açık PR #41 ve #8 yalnızca frontend sahibinin ayrı akışında bırakıldı. main dalına dokunulmadı.
 - Sonraki görev: DOM-007 — kenar bandı için açık katalog kimliği ve özgün birim sözleşmesi.

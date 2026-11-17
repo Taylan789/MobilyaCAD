@@ -22,7 +22,8 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 | Kenar bantlama / malzeme tüketimi | Domain malzeme özeti gövde, çekmece, kitaplık, masa, gardırop, TV bölücü/raf ve kesitli panellerin ortak Part listesinden quantity ağırlıklı net alan/hacim ve dış/iç kenar bantlamasını hesaplayabilir | Domain özeti henüz UI/JSON/CSV'ye bağlı değil; fire, levha verimi, kerf, bant kalınlığı ve rulo payı yok |
 | Malzeme kataloğu | UI CRUD; mobilya varsayılan materialId ve çekmece grubunda varsayılan + dört panel grubu override; domain gövde/kitaplık motorları altı gövde panel grubu için malzeme override'ını doğrular | Gövde panel override'ları henüz frontend JSON v1/CSV ve UI akışına bağlanmadı; fiyat, tedarikçi ve fire henüz yok |
 | Proje dosyası | Yerel JSON v1 indirme/yükleme; saf serializer/parser; round-trip ve eski v1 uyumluluk; mm, mobilya ve çekmece grubu katalog referansları ile dört çekmece panel kalınlığının doğrulanması | Şema migrasyonu, otomatik kayıt ve kurtarma yok |
-| Test/CI | Son doğrulanmış domain/test HEAD `085d0d208b6efdefcf68147c8714a1ba163e46cb`: CI #323 (`44003546155`), QA #202 (`44003545938`, 101/101 frontend + 144/144 domain) ve Pages #158 (`44003545949`) başarılı | Shared-domain strict TypeScript, lint, frontend production build ve yüksek önem eşiğinde production dependency audit geçti; Oxlint 32 uyarı/0 hata, audit 4 orta önem bulgusu, büyük bundle ve Actions Node 20/punycode uyarıları sürüyor |
+| Teklif/maliyet | Kullanıcı fiyat tablosu domain adapter'ı malzeme tüketimini `materialId + m2`, donanımı `hardwareId + özgün BOM birimi` ile fiyatlandırır; yalnızca tam kapsam ve tek para biriminde toplam üretir | Kenar bandı katalog kimliği, işçilik/operasyon tarifesi, fiyat geçerlilik tarihi ve teklif revizyonu henüz yok; frontend fiyat kataloğu/UI entegrasyonu ayrı sahibinde |
+| Test/CI | Son doğrulanmış HEAD `106bb4d6da1cb1316f5386080e6b34d491a09016`: [CI #44048122112](https://github.com/Taylan789/MobilyaCAD/actions/runs/44048122112), [QA #44048122147](https://github.com/Taylan789/MobilyaCAD/actions/runs/44048122147, 101/101 frontend + 175/175 domain) ve [Pages #44048122140](https://github.com/Taylan789/MobilyaCAD/actions/runs/44048122140) başarılı | Shared-domain strict TypeScript, lint (32 uyarı/0 hata), frontend production build ve production dependency audit geçti; mevcut Actions Node 20/punycode uyarıları sürüyor |
 
 ### Bilinen mimari ve veri boşlukları
 
@@ -703,7 +704,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 - Eksik fiyat, eksik legacy malzeme kimliği ve birim uyuşmazlığı `incomplete` döndürür; `costSummary` null kalır. Üretim raporu bozuksa, fiyat tablosu geçersizse veya para birimleri karışıyorsa `blocked` döner.
 - Kenar bantlama uzunluğu domain özetinde bulunsa da henüz ayrı katalog kimliği taşımadığından toplamı tamamlamayı engeller; panel m² fiyatı kenar bandı fiyatı olarak kullanılamaz.
 - Açık sıfır fiyat geçerlidir; sıfır fiyat varsayılmaz. Tek toplam yalnızca tüm tüketim satırları açık fiyatlı ve aynı para birimindeyse üretilir.
-- Doğrulama: CI/QA sonuçları bu commit sonrasında bekleniyor; gerçek Actions kanıtı AI_PROGRESS.md içine eklenecektir.
+- Doğrulama: [özellik commit 106bb4d6](https://github.com/Taylan789/MobilyaCAD/commit/106bb4d6da1cb1316f5386080e6b34d491a09016); [CI #44048122112](https://github.com/Taylan789/MobilyaCAD/actions/runs/44048122112), [QA #44048122147](https://github.com/Taylan789/MobilyaCAD/actions/runs/44048122147) (101/101 frontend + 175/175 domain, 0 başarısız) ve [Pages #44048122140](https://github.com/Taylan789/MobilyaCAD/actions/runs/44048122140) başarılı.
 
 ### Sonraki küçük domain görevleri
 
@@ -712,3 +713,11 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 3. Fiyat listesi için kaynak sürümü ve geçerlilik tarihi taşıyan snapshot zarfı tasarla; eski proje JSON v1 alanlarını değiştirme.
 4. Teklif revizyonu ve fiyat snapshot'ı arasındaki ilişkiyi geriye uyumlu domain modelinde tanımla; vergi/kur/iskonto gibi ticari kuralları varsayma.
 5. Frontend sahibinin JSON v1/CSV round-trip ve maliyet eksik/ready durumlarını ayrı PR üzerinden bağlamasını doğrula; frontend dosyalarına dokunma.
+
+
+### DOM-006 kabul sonucu
+
+- Fiyat eşleşmesi `resourceType + resourceId + unit` anahtarıyla test edildi; malzeme için `m2`, donanım için özgün BOM birimi korunur.
+- Eksik fiyat, eksik malzeme kimliği, birim uyuşmazlığı ve henüz katalog kimliği taşımayan kenar bandı `costSummary: null` bırakır; farklı para birimi ve bozuk girdiler blocked olur.
+- Açık sıfır fiyat yalnızca fiyat satırı olarak verilmişse geçerlidir. Miktar hassasiyeti mevcut maliyet motorunun altı ondalık basamak sınırını aşarsa toplam reddedilir.
+- DOM-006 tamamlandı; sonraki domain görevi DOM-007 kenar bandı katalog kimliği ve özgün birim sözleşmesidir.
