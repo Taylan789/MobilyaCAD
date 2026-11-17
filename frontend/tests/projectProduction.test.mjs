@@ -234,6 +234,15 @@ test("çekmeceli modülde eksik kutu ölçüleri proje CSV dışa aktarımını 
   assert.match(result.exportBlockReason, /çekmece/i);
 });
 
+test("mobilya adı eksikse domain parça listesi export için açılmaz", () => {
+  const furniture = createPlacedFurniture("base-cabinet", "missing-name-1", { name: " " });
+  const result = calculateProjectProduction([furniture], catalog, rules);
+
+  assert.equal(result.canExport, false);
+  assert.equal(result.parts.length, 0);
+  assert.match(result.exportBlockReason, /Mobilya adı eksik/);
+});
+
 test("geçersiz geometri ve yinelenen mobilya kimliği güvenli dışa aktarımı engeller", () => {
   const invalidGeometry = calculateProjectProduction([
     createPlacedFurniture("base-cabinet", "invalid-1", { width: 20 })
