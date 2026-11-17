@@ -1,3 +1,5 @@
+import type { PanelCutoutGeometryResult } from "../../../domain/production/panelCutoutGeometry.ts";
+
 // Mobilya üretiminde kullanılacak parçaların veri yapısı.
 // Bütün ölçüler milimetredir.
 
@@ -44,6 +46,13 @@ export interface Part {
   material: string;
   /** Stable project material catalogue reference; absent on legacy/free-text parts. */
   materialId?: string;
+  /** Source drawer group identity; absent for body panels. */
+  drawerGroupId?: string;
+  /** Preserved domain cutout geometry; export remains blocked until serializers support it. */
+  panelGeometry?: PanelCutoutGeometryResult;
+  /** Explicit edge-band catalogue metadata from the domain report. */
+  edgeBandingMaterialId?: string;
+  edgeBandingUnit?: "mm" | "m";
 
   // CNC işlemleri
   cncOperations: CncOperation[];
