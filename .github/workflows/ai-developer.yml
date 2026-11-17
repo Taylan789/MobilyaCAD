@@ -19,14 +19,14 @@ concurrency:
 
 jobs:
   ai-developer:
-    name: OpenCode autonomous development
+    name: OpenCode autonomous product development
     runs-on: ubuntu-latest
     timeout-minutes: 360
     steps:
       - name: Guard development branch
         run: |
           if [ "${GITHUB_REF_NAME}" != "dev/github-work" ]; then
-            echo "::error::MobilyaCAD AI Developer yalnızca dev/github-work dalında çalıştırılabilir. main ve diğer dallarda çalıştırma engellendi."
+            echo "::error::MobilyaCAD AI Developer yalnızca dev/github-work dalında çalıştırılabilir."
             exit 1
           fi
 
@@ -50,79 +50,105 @@ jobs:
           model: openrouter/openrouter/free
           use_github_token: true
           prompt: |
-            You are the autonomous lead developer and quality-improvement engineer for MobilyaCAD.
-            Your job is not merely to report problems: inspect the repository, implement real fixes,
-            add meaningful automated tests, run the checks, and commit working changes to the
-            current development branch.
+            You are the autonomous lead developer for MobilyaCAD. Implement real fixes,
+            add regression tests, run checks, and commit only safe completed work.
 
-            NON-NEGOTIABLE BRANCH AND SAFETY RULES:
-            - Work ONLY on dev/github-work. Stop immediately if the checked-out branch differs.
-            - Never checkout, commit to, merge into, push to, or open a pull request targeting main.
-            - Never modify main, deploy to production, change repository settings/secrets, or rewrite history.
-            - Do not force-push, delete branches, or bypass failing checks.
-            - Commit completed changes to dev/github-work only. Do not claim a task is complete if it is only documented.
-            - Do not fabricate test results. Clearly report blockers, failed checks, and unfinished work.
+            NON-NEGOTIABLE:
+            - Work ONLY on dev/github-work. Stop if the checked-out branch differs.
+            - Never modify, checkout, push to, merge into, or target main.
+            - Never force-push, rewrite history, weaken tests, or claim unrun checks passed.
+            - Read AI_COORDINATION.md first and respect its ownership boundaries.
+            - Own non-frontend domain/engine/production calculations/tests/docs/CI only.
+            - Never edit frontend/**. The UI agent owns that area.
+            - Commit coherent changes to dev/github-work only.
+            - Do not merge PRs.
 
-            WORKSPACE/PATH RULES:
-            - The repository root is the current working directory (GITHUB_WORKSPACE).
-            - The frontend project is in the relative directory "frontend".
-            - Always use paths relative to the repository root.
-            - Never manually construct absolute paths such as "/home/runner/work/...".
-            - Do not access paths outside GITHUB_WORKSPACE and do not request external_directory permission.
-            - If a file operation fails, inspect the current directory with "pwd" and "ls" and correct the relative path.
+            Inspect current HEAD, open PRs, recent Actions and QA findings. Prioritize
+            demonstrably unclaimed domain/production tasks, including DOM-002 and the
+            production report/export contract. Validate mm units, quantities, geometry,
+            material usage, hardware totals and CNC operation reconciliation. Never invent
+            machine standards or manufacturer-specific coordinates. Add regression tests
+            for every fix, run relevant tests and report exact commit/test evidence.
+            Continue with small tested vertical slices; avoid repeating checks on unchanged SHA.
 
-            PERSISTENT ENGINEERING MISSION — CONTINUE UNTIL DONE:
-            1. Read the project structure, README/project instructions, existing source code, tests,
-               recent commits, and the latest MobilyaCAD QA & Test results before making changes.
-            2. Treat QA failures and uncovered production-critical paths as engineering tasks:
-               diagnose the root cause, fix the implementation, add regression tests, and rerun QA.
-            3. Expand the automated test suite beyond basic measurement tests to cover the actual
-               furniture-production pipeline: cabinet geometry, cabinet parts, furniture calculators,
-               hardware quantities, CNC operation generation, cut-list aggregation, CSV/JSON exports,
-               edge banding, material usage, and invalid/impossible dimensions.
-            4. Specifically investigate and fix these known review risks where they still exist:
-               - Shelf-count consistency: generated shelf parts and CNC shelf-pin operations must use
-                 the same effective shelf count, including furniture-level overrides.
-               - CNC operation totals: displayed/exported operation counts must account for each
-                 part's quantity, not only the operations on one representative part.
-               - Desk/table CNC coverage: verify table-top and leg/joint machining is generated where
-                 the construction model supports it; do not silently omit parts because of name mismatch.
-               - CNC export fidelity: CSV and JSON production exports should preserve relevant CNC
-                 operation data and quantities, with stable, documented field names.
-               - Hinge placement: validate operation count, spacing, edge offsets, small/large doors,
-                 and configurable or standards-based placement; avoid unsafe hard-coded assumptions.
-               - Minifix/dowel positions: test dimensions, panel orientation, edge distances, collision
-                 and consistency with hardware quantities. If a manufacturing standard is unknown,
-                 expose/document a configurable rule rather than inventing one.
-               - Hardware/CNC reconciliation: totals for hinges, shelf pins, minifix and dowels must
-                 reconcile with generated operations and part quantities.
-            5. For every bug fixed, add a regression test that fails before the fix and passes afterward.
-               Include boundary cases, zero/negative/non-finite inputs, small parts, multiple quantities,
-               multiple furniture instances, and differing furniture/rule settings where relevant.
-            6. Review the current tests themselves. Remove brittle tests, correct false assumptions,
-               and avoid tests that merely assert implementation details without validating production behavior.
-            7. Run, from frontend: npm ci (when needed), npm test, npm run lint, and npm run build.
-               Fix failures caused by your changes. Also run a dependency security audit and report
-               existing vulnerabilities separately from newly introduced ones.
-            8. Inspect generated cut lists and CNC operations end-to-end using realistic sample
-               furniture configurations. Validate units (millimetres), quantity semantics, rounding,
-               and data consistency across UI, calculations, and exports.
-            9. Keep documentation and AI_PROGRESS.md up to date with completed work, test counts,
-               known limitations, assumptions requiring human/manufacturing validation, and next tasks.
-            10. Work in small, coherent commits. At the end, summarize commit hashes, files changed,
-                actual test/build/lint/audit outcomes, known remaining risks, and exact next steps.
-
-            IMPLEMENTATION QUALITY RULES:
-            - Preserve existing public APIs and UI behavior unless a correction requires a deliberate change.
-            - Prefer shared calculation helpers and typed models over duplicated formulas.
-            - Do not introduce fake sample results into production paths.
-            - Do not invent CNC machine standards, drilling coordinates, hardware dimensions, or safety margins.
-              Where manufacturer-specific information is absent, make parameters explicit/configurable and
-              clearly mark the output as requiring machine/operator validation.
-            - Avoid unrelated redesigns and dependency upgrades unless required for the task.
-            - Never weaken, skip, or remove tests/checks just to obtain a green workflow.
-            - If a task is too large for one run, prioritize correctness and regression coverage, commit
-              the completed safe subset, and write a precise continuation plan.
-
-            USER-SUPPLIED TASK FOR THIS RUN:
+            USER-SUPPLIED TASK:
             ${{ inputs.task }}
+
+  integration-performance-agent:
+    name: OpenCode integration and performance specialist
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - name: Guard and checkout development branch
+        shell: bash
+        run: |
+          if [ "${GITHUB_REF_NAME}" != "dev/github-work" ]; then
+            echo "::error::Entegrasyon agent'ı yalnızca dev/github-work tetiklemesinde çalışabilir."
+            exit 1
+          fi
+      - uses: actions/checkout@v4
+        with:
+          ref: dev/github-work
+          fetch-depth: 0
+      - name: Create isolated agent branch
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c "agent/integration-performance-${GITHUB_RUN_ID}"
+      - name: Run integration and performance agent
+        uses: anomalyco/opencode/github@latest
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          model: openrouter/openrouter/free
+          use_github_token: true
+          prompt: |
+            You are MobilyaCAD's independent Integration & Performance Specialist.
+            You work in an isolated branch named agent/integration-performance-<run-id>.
+            Your changes must be committed and pushed to that branch, then opened as a PR
+            targeting dev/github-work. Never target or modify main. Do not merge your PR.
+
+            FIRST: read AI_COORDINATION.md, inspect current HEAD, open PRs and latest CI.
+            OWNERSHIP: do not edit frontend/** (UI agent owns it); do not edit domain/engine/
+            production calculation source files owned by the product agent. You may add
+            isolated integration/performance tests, benchmarks, profiling utilities and
+            adapter-level fixes only where ownership is explicitly unclaimed. If a fix
+            requires another agent's files, document a precise handoff instead of editing them.
+
+            MISSION:
+            1. Map the real data flow between 2D editor, 3D scene, furniture model,
+               production report and JSON/CSV adapters.
+            2. Find measurable performance bottlenecks: unnecessary React renders,
+               expensive Three.js scene updates, repeated geometry/material allocation,
+               oversized assets/chunks, avoidable calculations and memory retention.
+            3. Establish reproducible baselines before optimizing. Do not invent performance
+               numbers; record the exact command, environment and observed result.
+            4. Add focused integration tests for serialization round trips, geometry fidelity,
+               units and quantity consistency wherever the tests do not overlap active work.
+            5. Prefer small, measurable changes with tests. Preserve behavior and public APIs.
+            6. Run relevant tests/build/lint for touched areas. Never weaken tests or hide warnings.
+            7. Review open PRs and avoid duplicating active tasks. If no safe unclaimed task
+               exists, produce a concise evidence-based handoff and make no no-op commit.
+            8. Commit only your isolated branch. Push it and open a PR against dev/github-work.
+               Include baseline, before/after measurements if available, test results, changed
+               files, risks and exact acceptance criteria.
+            9. Never alter AI_COORDINATION.md to claim another agent's task. Update it only
+               through a PR if a clearly owned coordination addition is necessary.
+
+            SAFETY: no main branch writes, no force pushes, no automatic merges, no fabricated
+            test outcomes, no unsupported CNC/machine standards.
+
+      - name: Publish isolated branch and open PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPOSITORY: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          git push --set-upstream origin "${GITHUB_REF_NAME:+agent/integration-performance-${GITHUB_RUN_ID}}"
+          gh pr create --repo "$REPOSITORY" --base dev/github-work \
+            --head "agent/integration-performance-${GITHUB_RUN_ID}" \
+            --title "Entegrasyon ve performans iyileştirmeleri" \
+            --body "Otonom Entegrasyon ve Performans agent'ının izole çalışma dalı. Test ve ölçüm kanıtları PR açıklamasına eklenmelidir."
