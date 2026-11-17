@@ -765,3 +765,21 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 3. DOM-012: fire ve kârı yalnızca açık miktar/birim/fiyat satırlarıyla ekle; yüzde, vergi veya marj uydurma.
 4. Frontend sahibinin birleşik teklif ready/incomplete/blocked durumlarını kendi JSON/UI akışına bağlamasını PR üzerinden doğrula; `frontend/**` dosyalarına dokunma.
 5. INT-001/INT-002 tamamlandığında JSON/CSV round-trip ve export engellerini uçtan uca denetle; CNC/üretim onayı için fiziksel atölye doğrulaması ayrı kal.
+
+
+## 17 Kasım 2026 15:43 TRT — DOM-010 fiyat/tarife sürüm snapshot'ı (doğrulama bekleniyor)
+
+### Kullanıcı akışı ve kabul ölçütleri
+
+- Teklif oluşturulurken kullanıcı teklif tarihini, üretim tüketimi fiyat listesinin katalog kimliği/sürümünü ve işçilik/operasyon tarife listesinin katalog kimliği/sürümünü açıkça sağlar.
+- Her kaynak için başlangıç tarihi ve isteğe bağlı bitiş tarihi YYYY-MM-DD biçiminde doğrulanır; teklif tarihi aralığın içinde ve sınır günleri dahil olmalıdır.
+- Üretim tüketimi satırı bulunan hazır teklifte fiyat listesi; işçilik/operasyon satırı bulunan hazır teklifte tarife listesi metadata'sı zorunludur.
+- Snapshot, hazır birleşik teklif satırlarını, miktar/birim/fiyat/para birimi ve kaynak eşlemesini mevcut quote summary'den saklar; kullanıcı girdisi katalog kimliği, sürümü ve geçerlilik tarihleriyle birlikte derin dondurulur.
+- Eksik kaynak metadata'sı, geçersiz tarih, aralık dışı teklif tarihi veya desteklenmeyen alan snapshot'ı blocked yapar. Incomplete/blocked/empty teklif için hazır snapshot oluşturulmaz.
+- Tarih yalnızca kullanıcı tarafından sağlanan takvim günüdür; sistem saati, katalog sürümü, fiyat, vergi, kur veya geçerlilik aralığı tahmin edilmez.
+
+### Sınırlar ve entegrasyon
+
+- Kaynak katalogların gerçekliği, fiyatların doğruluğu ve geçmişte gerçekten yürürlükte olduğu dışarıdan doğrulanmaz; domain yalnızca kullanıcının verdiği sürüm ve tarih iddiasını saklar.
+- Bu domain snapshot henüz proje JSON v1/CSV adapter'ına veya arayüze bağlanmadı. Frontend sahibinin entegrasyonu için snapshot schemaVersion, quotedOn, consumptionPriceList, laborOperationTariffList ve quoteSummary alanları kullanılabilir.
+- Sonraki görevler: DOM-011 salt okunur teklif revizyon geçmişi; DOM-012 açık tutar satırlarıyla fire/kâr kapsamı; ayrı adapter sahibinin JSON/CSV round-trip sözleşmesi.

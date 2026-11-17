@@ -826,3 +826,15 @@
 - Kalite/risk notları: lint 32 uyarı / 0 hata; audit raporunda 4 orta seviye bulgu sürüyor. Force/breaking dependency güncellemesi yapılmadı.
 - Bilinen sınırlar: JSON v1/CSV/UI entegrasyonu yok; vergi, kur, iskonto, fire/kâr yüzdesi, fiyat geçerlilik tarihi ve teklif revizyonu yoktur. CNC veya fiziksel üretim onayı değildir.
 - Sonraki görev: DOM-010 — kullanıcı tarafından sağlanan fiyat/tarife katalog sürümü ve etkinlik tarihi snapshot'ı.
+
+
+## 17 Kasım 2026 15:43 TRT — DOM-010 fiyat/tarife snapshot'ı (Actions bekleniyor)
+
+- Başlangıç HEAD: 25e3264c1a04d5cafb4279863e33b3ee83059542.
+- Geliştirme: projectQuotePricingSnapshot.ts; hazır birleşik teklifin kaynak fiyat listesi/tarife katalog kimliği, sürümü ve teklif tarihindeki geçerlilik aralığını kaydeder.
+- Test: projectQuotePricingSnapshot.test.mjs; hazır ve işçilik-only teklif, eksik metadata, geçerlilik başlangıç/bitiş sınırı, imkânsız tarih, bilinmeyen alan, boş teklif ve runtime immutability kabul senaryoları.
+- QA strict TypeScript listesine yeni domain modülü eklendi. Domain test glob'u yeni .test.mjs dosyasını otomatik kapsar.
+- Bu ilk kayıt commit SHA'sı ve gerçek Actions sonuçları tamamlandığında doğrulama kaydıyla güncellenecektir.
+- Bilinen sınırlar: katalog/fiyat kaynağının gerçekliği doğrulanmaz; yalnızca kullanıcı tarafından sağlanan metadata saklanır. JSON v1/CSV ve frontend entegrasyonu ayrı sahibindedir. Vergi, kur, fiyat tahmini ve CNC/atölye onayı yoktur.
+- Aynı HEAD'deki AI Developer workflow #44076389923, OpenCode kurulmadan önce latest release API yanıtından sürüm etiketi çıkarılamadığı için iki job'da da başarısız oldu; bu kod değişikliğinden bağımsız bir başlatma hatasıdır. Loglar incelendi; güvenli failed-job rerun commit sonrası değerlendirilecek.
+- Sonraki görev: DOM-011 — teklif revizyonları için salt okunur maliyet snapshot'ı ve geriye uyumlu revizyon zarfı.

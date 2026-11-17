@@ -424,3 +424,16 @@ Kaynak: `domain/production/projectQuoteSummary.ts`.
 - Birleşik maliyet satırları kaynak tipine göre `consumption-0001` / `work-0001` kimlikleri alır. `lineSources`, her yeni maliyet kimliğini özgün üretim veya işçilik satırı kimliğine bağlar; işçilik/operasyon satırlarında tarife kimliği de korunur.
 - Miktar hassasiyeti ve satır bazlı küçük para birimi yuvarlaması mevcut `projectCostSummary.ts` sözleşmesini izler. Güvenli tam sayı taşması ve yinelenen kimlik kontrolü aynı motor tarafından uygulanır.
 - Bu dilim vergi, kur, indirim, fire/kâr yüzdesi, katalog geçerlilik tarihi, teklif revizyonu veya dışa aktarım sağlamaz. Fiziksel üretim/CNC onayı değildir.
+
+
+## Fiyat ve tarife sürüm snapshot'ı — domain v1
+
+Kaynak: domain/production/projectQuotePricingSnapshot.ts, createProjectQuotePricingSnapshot.
+
+- Girdi, teklif takvim günü (quotedOn), üretim fiyat tablosu ve işçilik/operasyon tarife tablosuna ait kullanıcı kaynaklı katalog kimliği, sürümü, effectiveFrom ve isteğe bağlı effectiveTo alanlarını taşır.
+- Tarihler katı YYYY-MM-DD takvim günüdür. effectiveTo dahil olmak üzere teklif günü başlangıç/bitiş aralığında olmalıdır. Saat dilimi veya sistem saati kullanılmaz.
+- Snapshot yalnızca birleşik teklif ready durumundaysa oluşturulur. Fiyatlı üretim tüketimi varsa consumptionPriceList; işçilik/operasyon satırı varsa laborOperationTariffList zorunludur. İlgili kapsam boşsa metadata null kalabilir.
+- Snapshot, teklif maliyet satırları ve lineSources eşlemesini mevcut quote summary üzerinden saklar. Kaynak metadata ve maliyet ağacı runtime'da derin dondurulur; snapshot sonradan fiyat tablosu değişse de eski teklifi yeniden fiyatlandırmaz.
+- Incomplete, blocked veya empty teklif için snapshot oluşturulmaz. Eksik metadata, geçersiz tarih, teklif gününün geçerlilik aralığı dışında kalması veya bilinmeyen alan blocked döndürür; kısmi snapshot sunulmaz.
+- Katalog kimliği/sürümü/geçerlilik tarihi kullanıcı girdisidir. Domain kaynağın gerçekliğini, fiyatın geçmişte gerçekten yürürlükte olduğunu veya üretici fiyatını doğruladığını iddia etmez.
+- Frontend entegrasyon sözleşmesi: ready snapshot için schemaVersion, quotedOn, consumptionPriceList, laborOperationTariffList ve quoteSummary alanları; boş/eksik/blok durumları için status ve diagnostics kullanılır. Bu dilimde frontend, JSON v1 ve CSV adapter dosyaları değiştirilmemiştir.
