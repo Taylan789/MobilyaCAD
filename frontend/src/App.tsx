@@ -1192,14 +1192,20 @@ function App() {
             <span className="cad-document-title" title={projectName}>{projectName}</span>
             <span
               className={`cad-document-status cad-document-status--${hasUnsavedChanges ? "dirty" : documentSource}`}
-              role="status"
-              aria-live="polite"
-              aria-atomic="true"
+              aria-hidden="true"
               title={documentStatusTitle}
             >
               {documentStatusLabel}
             </span>
           </div>
+          <span
+            className="cad-document-status-announcement"
+            role="status"
+            aria-live="polite"
+            aria-atomic="true"
+          >
+            {documentStatusLabel}
+          </span>
 
           <div className="cad-top-actions">
             <Separator orientation="vertical" className="cad-top-separator" />
