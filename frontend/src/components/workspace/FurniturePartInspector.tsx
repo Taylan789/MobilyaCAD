@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { validateDimensionMillimeters, validatePositionMillimeters } from "./inspectorFieldValidation";
 import { Layers3, MapPin, Move3D, Palette, Ruler } from "lucide-react";
 
@@ -89,11 +89,51 @@ export function FurniturePartInspector({
   const [dimensionDraft, setDimensionDraft] = useState(() => createDimensionDraft(part));
   const [positionDraft, setPositionDraft] = useState(() => createPositionDraft(part.position));
   const [fieldErrors, setFieldErrors] = useState<InspectorFieldErrors>({});
+  const previousPartRef = useRef({
+    id: part.id,
+    width: part.width,
+    height: part.height,
+    depth: part.depth,
+    position: [...part.position] as [number, number, number],
+  });
 
   useEffect(() => {
-    setDimensionDraft(createDimensionDraft(part));
-    setPositionDraft(createPositionDraft(part.position));
-    setFieldErrors({});
+    const previous = previousPartRef.current;
+
+    if (previous.id !== part.id) {
+      setDimensionDraft(createDimensionDraft(part));
+      setPositionDraft(createPositionDraft(part.position));
+      setFieldErrors({});
+    } else {
+      setDimensionDraft((current) => ({
+        width: previous.width !== part.width ? String(part.width) : current.width,
+        height: previous.height !== part.height ? String(part.height) : current.height,
+        depth: previous.depth !== part.depth ? String(part.depth) : current.depth,
+      }));
+      setPositionDraft((current) => ({
+        x: previous.position[0] !== part.position[0] ? toMillimeters(part.position[0]) : current.x,
+        y: previous.position[1] !== part.position[1] ? toMillimeters(part.position[1]) : current.y,
+        z: previous.position[2] !== part.position[2] ? toMillimeters(part.position[2]) : current.z,
+      }));
+      setFieldErrors((current) => {
+        const next = { ...current };
+        if (previous.width !== part.width) delete next.width;
+        if (previous.height !== part.height) delete next.height;
+        if (previous.depth !== part.depth) delete next.depth;
+        if (previous.position[0] !== part.position[0]) delete next.x;
+        if (previous.position[1] !== part.position[1]) delete next.y;
+        if (previous.position[2] !== part.position[2]) delete next.z;
+        return next;
+      });
+    }
+
+    previousPartRef.current = {
+      id: part.id,
+      width: part.width,
+      height: part.height,
+      depth: part.depth,
+      position: [...part.position] as [number, number, number],
+    };
   }, [
     part.id,
     part.width,
