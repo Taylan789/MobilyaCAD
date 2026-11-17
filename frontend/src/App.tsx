@@ -1142,7 +1142,7 @@ function App() {
             </nav>
             <div className="atelier-profile">
               <span className="atelier-profile-indicator" aria-hidden="true" />
-              <div><b>PARAMETRİK STÜDYO</b><small>Mobilya · Bileşen · Üretim</small></div>
+              <div><b>MODELLEME STÜDYOSU</b><small>Mobilya · Bileşen · Üretim</small></div>
             </div>
           </header>
           <main className="atelier-home-main" id="studio-home">
@@ -1157,10 +1157,10 @@ function App() {
                   <input id="atelier-open-project" type="file" accept=".json,application/json" hidden onChange={(event) => { void loadProject(event).then((loaded) => { if (loaded) startWorkspace(); }); }} />
                 </div>
               </div>
-              <div className="atelier-feature-art" aria-label="Parametrik mobilya tasarım illüstrasyonu">
-                <div className="atelier-art-grid"></div><div className="atelier-art-index">FIG. 001 — MODULAR SYSTEM</div>
+              <div className="atelier-feature-art" aria-label="Ölçülü mobilya modülü önizlemesi">
+                <div className="atelier-art-grid"></div><div className="atelier-art-index">FIG. 001 — MODÜL ÖNİZLEMESİ</div>
                 <div className="atelier-art-cube"><div className="atelier-cube-top"></div><div className="atelier-cube-front"></div><div className="atelier-cube-side"></div><span className="atelier-dim atelier-dim-x">1200</span><span className="atelier-dim atelier-dim-y">740</span><span className="atelier-dim atelier-dim-z">18</span></div>
-                <div className="atelier-art-caption"><b>01 / PARAMETRİK MODÜL</b><span>ÖLÇÜ · MALZEME · MONTAJ</span></div>
+                <div className="atelier-art-caption"><b>01 / ÖLÇÜLÜ MODÜL</b><span>ÖLÇÜ · MALZEME · YERLEŞİM</span></div>
               </div>
             </section>
             <section className="atelier-section atelier-start-section" id="templates">
@@ -1176,7 +1176,7 @@ function App() {
               <aside className="atelier-tip"><span className="atelier-eyebrow">STÜDYO NOTU / 01</span><b>Önce geometri.<br/>Sonra üretim.</b><p>MobilyaCAD'de tasarladığın her parça, üretim verisinin bir parçası olarak yaşar.</p><span className="atelier-tip-mark">M / CAD</span></aside>
             </section>
           </main>
-          <footer className="atelier-home-footer"><span>MOBİLYACAD STUDIO <b>·</b> TASARIM VE ÜRETİM ORTAMI</span><span>PARAMETRİK DÜŞÜN. ÖZGÜRCE TASARLA.</span></footer>
+          <footer className="atelier-home-footer"><span>MOBİLYACAD STUDIO <b>·</b> TASARIM VE ÜRETİM ORTAMI</span><span>ÖLÇÜLÜ TASARLA. ÜRETİME HAZIRLA.</span></footer>
         </div>
       ) : (
       <div className="cad-app">
@@ -2315,7 +2315,7 @@ function App() {
         {workspaceLoading && <div className="cad-loading-screen" role="status" aria-live="polite">
           <MobilyaCadLogo className="cad-loading-brand" tone="inverse" descriptor="STUDIO" />
           <div className="cad-loading-model" aria-hidden="true"><i className="cad-loading-panel cad-loading-panel-a" /><i className="cad-loading-panel cad-loading-panel-b" /><i className="cad-loading-panel cad-loading-panel-c" /><i className="cad-loading-shelf" /><i className="cad-loading-dimension">1200 mm</i></div>
-          <p className="cad-loading-kicker">PARAMETRİK TASARIM ORTAMI</p><h2>Çalışma alanın hazırlanıyor</h2>
+          <p className="cad-loading-kicker">3D MODELLEME ORTAMI</p><h2>Çalışma alanın hazırlanıyor</h2>
           <span className="cad-loading-caption">Geometri motoru · Malzeme kataloğu · Üretim araçları</span>
           <div className="cad-loading-track"><span /></div><span className="cad-loading-percent">MOBİLYACAD STUDIO / INITIALIZING</span>
         </div>}
