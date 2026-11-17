@@ -1259,6 +1259,8 @@ function App() {
               variant="outline"
               size="sm"
               className="cad-production-mode-button"
+              aria-label={workspaceMode === "production" ? "Tasarım moduna dön" : "Üretim alanını aç"}
+              title={workspaceMode === "production" ? "Tasarım moduna dön" : "Üretim alanını aç"}
               aria-pressed={workspaceMode === "production"}
               onClick={() => {
                 if (workspaceMode === "production") {
@@ -1282,6 +1284,7 @@ function App() {
               variant="outline"
               size="sm"
               className="cad-new-project-button"
+              aria-label="Yeni proje oluştur"
               aria-keyshortcuts="Control+N Meta+N"
               onClick={() => startNewProject()}
               title="Yeni proje oluştur"
