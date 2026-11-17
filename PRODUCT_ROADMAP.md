@@ -903,7 +903,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 - Append işlemi yalnızca v2 üzerinde çalışır; yeni proje nesnesi üretir, girdiyi mutate etmez ve geçersiz geçmiş/snapshot durumunda kısmi proje döndürmez.
 - Bu modül tam v2 proje şema doğrulaması, disk yazımı, atomik transaction, otomatik kayıt veya UI entegrasyonu değildir. Mevcut frontend JSON v1 serializer/parser değiştirilmemiştir; v2 serializer çağırmadan önce kendi tam proje şemasını doğrulamalıdır.
 - Kabul testleri: v1 legacy davranışı, v1 uzantı reddi, v2 boş geçmiş, ilk/ardışık append, kimlik uyuşmazlığı, bozuk geçmiş, eksik projectId, desteklenmeyen sürüm ve kısmi sonuçsuz hata.
-- İlk committe Actions doğrulaması bekleniyor; tam QA ayrıca production dependency audit kapısından geçmelidir.
+- Doğrulama: [CI #44187315115](https://github.com/Taylan789/MobilyaCAD/actions/runs/44187315115) ve [Pages #44187315339](https://github.com/Taylan789/MobilyaCAD/actions/runs/44187315339) başarılı. [QA #44187315211](https://github.com/Taylan789/MobilyaCAD/actions/runs/44187315211): 101/101 frontend + 254/254 domain testi, strict TypeScript, lint ve production build başarılı; yalnızca 12 production audit bulgusu (2 moderate, 10 high; picomatch ReDoS/minimatch) nedeniyle job başarısız. DOM-018 domain davranışı doğrulandı, genel QA SEC-001'e bağlı.
 
 ### Güncel sıradaki 3-5 küçük görev
 
