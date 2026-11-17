@@ -467,3 +467,14 @@ Kaynak: `domain/production/projectQuoteSummary.ts`, `domain/production/projectQu
 - Geçersiz kategori, eksik kaynak referansı, bozuk miktar/fiyat veya para birimi uyuşmazlığı tüm teklifi blocked yapar; kısmi toplam döndürülmez. Üretim ve işçilik kapsamları boş olsa bile en az bir geçerli açık ek satır ready teklif oluşturabilir.
 - Fiyat snapshot'ı ek satırları, kaynak referanslarını ve toplamları mevcut `quoteSummary` ağacında derin dondurur. Revizyon doğrulaması, fire/kâr kategorisini yalnızca `quote-adjustment` kaynağıyla kabul eder; tarife kimliği kabul etmez.
 - Bu dilim JSON v1 proje dosyasını, CSV adapter'ını veya frontend'i değiştirmez. Frontend entegrasyonu `quoteAdjustments` girdisini ve ready/blocked teklif durumunu kullanmalı; satır açıklaması, miktar, birim, kullanıcı fiyatı, para birimi ve kaynak referansını göstermelidir. Fiziksel fire verimi, levha nesting, kerf, vergi ve ticari marj varsayımı yapılmaz.
+
+## Teklif revizyon geçmişi aggregate'ı — domain v1
+
+Kaynak: domain/production/projectQuoteRevision.ts, validateProjectQuoteRevisionHistory.
+
+- Girdi projectId ve kronolojik sırada revisions dizisidir. Dizi sıralanmaz, eksik kayıt tamamlanmaz veya zincir otomatik onarılmaz.
+- Boş dizi empty, doğrulanmış geçmiş ready, bozuk kayıt veya zincir blocked döndürür. Blocked sonucunda kısmi geçmiş sunulmaz.
+- Her kayıt schemaVersion 1, aynı projectId, benzersiz revisionId, 1'den başlayan kesintisiz revisionNumber ve önceki kayda tam eşit previousRevisionId taşımalıdır.
+- Her revizyonun oluşturulma zamanı önceki revizyondan kesin olarak sonra olmalıdır. Önceki snapshot doğrulaması createProjectQuoteRevision ile yeniden yapılır; yalnızca hazır ve tutarlı maliyet snapshot'ları kabul edilir.
+- Başarılı geçmiş ve içindeki snapshot'lar runtime'da derin dondurulur. Kalıcı depolama, eşzamanlı yazma kilidi veya cihazlar arası ID üretimi bu fonksiyonun kapsamı dışındadır.
+- Frontend sözleşmesi: status, history.projectId, history.revisions[] ve diagnostics; empty boş liste, blocked ise kısmi kayıt içermez.

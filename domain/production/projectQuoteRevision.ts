@@ -29,6 +29,17 @@ export interface ProjectQuoteRevisionResult {
   revision: DeepReadonly<ProjectQuoteRevision> | null;
   diagnostics: readonly string[];
 }
+export interface ProjectQuoteRevisionHistory {
+  schemaVersion: 1;
+  projectId: string;
+  revisions: readonly DeepReadonly<ProjectQuoteRevision>[];
+}
+
+export interface ProjectQuoteRevisionHistoryResult {
+  status: "ready" | "empty" | "blocked";
+  history: DeepReadonly<ProjectQuoteRevisionHistory> | null;
+  diagnostics: readonly string[];
+}
 
 const inputKeys = new Set([
   "projectId",
@@ -36,6 +47,16 @@ const inputKeys = new Set([
   "revisionNumber",
   "createdAt",
   "previousRevision",
+  "pricingSnapshot"
+]);
+const historyInputKeys = new Set(["projectId", "revisions"]);
+const revisionEnvelopeKeys = new Set([
+  "schemaVersion",
+  "projectId",
+  "revisionId",
+  "revisionNumber",
+  "createdAt",
+  "previousRevisionId",
   "pricingSnapshot"
 ]);
 const referenceKeys = new Set(["projectId", "revisionId", "revisionNumber", "createdAt"]);
@@ -489,5 +510,71 @@ export function createProjectQuoteRevision(value: unknown): ProjectQuoteRevision
     });
   } catch (error) {
     return blocked(error instanceof Error ? error.message : String(error));
+  }
+}
+function blockedHistory(message: string): ProjectQuoteRevisionHistoryResult {
+  return deepFreeze({ status: "blocked" as const, history: null, diagnostics: [message] });
+}
+
+/**
+ * Validates an append-only quote revision history for one project.
+ * The supplied order is authoritative: revisions are never sorted or repaired.
+ */
+export function validateProjectQuoteRevisionHistory(value: unknown): ProjectQuoteRevisionHistoryResult {
+  if (!isRecord(value)) return blockedHistory("Teklif revizyon geçmişi geçerli bir nesne olmalıdır.");
+  try {
+    requireOnlyKeys(value, historyInputKeys, "Teklif revizyon geçmişi");
+    const projectId = requireIdentifier(value.projectId, "Geçmiş proje kimliği");
+    if (!Array.isArray(value.revisions)) throw new Error("Teklif revizyon geçmişi revisions dizisi içermelidir.");
+    if (value.revisions.length === 0) {
+      return deepFreeze({
+        status: "empty" as const,
+        history: { schemaVersion: 1 as const, projectId, revisions: [] },
+        diagnostics: []
+      });
+    }
+    const revisionIds = new Set<string>();
+    const revisions: DeepReadonly<ProjectQuoteRevision>[] = [];
+    for (let index = 0; index < value.revisions.length; index += 1) {
+      const candidate = value.revisions[index];
+      const label = "Revizyon " + (index + 1);
+      if (!isRecord(candidate)) throw new Error(label + " geçerli bir nesne olmalıdır.");
+      requireOnlyKeys(candidate, revisionEnvelopeKeys, label);
+      if (candidate.schemaVersion !== 1) throw new Error(label + " desteklenen revizyon şemasını kullanmalıdır.");
+      const candidateProjectId = requireIdentifier(candidate.projectId, label + " proje kimliği");
+      if (candidateProjectId !== projectId) throw new Error(label + " aynı proje kimliğine ait olmalıdır.");
+      const revisionId = requireIdentifier(candidate.revisionId, label + " kimliği");
+      if (revisionIds.has(revisionId)) {
+        throw new Error("Teklif revizyon geçmişinde revisionId değerleri benzersiz olmalıdır: " + revisionId + ".");
+      }
+      const expectedRevisionNumber = index + 1;
+      const revisionNumber = requireSafeInteger(candidate.revisionNumber, label + " numarası", 1);
+      if (revisionNumber !== expectedRevisionNumber) throw new Error(label + " numarası kesintisiz biçimde " + expectedRevisionNumber + " olmalıdır.");
+      const previous = revisions.length === 0 ? null : revisions[revisions.length - 1];
+      const expectedPreviousRevisionId = previous === null ? null : previous.revisionId;
+      if (candidate.previousRevisionId !== expectedPreviousRevisionId) {
+        throw new Error(label + " previousRevisionId alanı önceki kayıtla kesintisiz bir zincir oluşturmalıdır.");
+      }
+      const result = createProjectQuoteRevision({
+        projectId: candidateProjectId, revisionId, revisionNumber, createdAt: candidate.createdAt,
+        previousRevision: previous === null ? null : {
+          projectId: previous.projectId, revisionId: previous.revisionId,
+          revisionNumber: previous.revisionNumber, createdAt: previous.createdAt
+        },
+        pricingSnapshot: candidate.pricingSnapshot
+      });
+      if (result.status !== "ready" || result.revision === null) {
+        throw new Error(label + ": " + (result.diagnostics[0] ?? "revizyon doğrulanamadı."));
+      }
+      revisions.push(result.revision);
+      revisionIds.add(revisionId);
+    }
+    return deepFreeze({
+      status: "ready" as const,
+      history: { schemaVersion: 1 as const, projectId, revisions },
+      diagnostics: []
+    });
+  } catch (error) {
+    return blockedHistory(error instanceof Error ? error.message : String(error));
   }
 }

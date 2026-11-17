@@ -906,3 +906,14 @@
 - DOM-012 DONE. Sonraki domain görevi DOM-013: proje başına append-only teklif revizyon geçmişi, benzersiz kimlik ve zincir doğrulaması.
 - Bilinen kısıtlar: JSON v1 serializer/parser, CSV adapter ve frontend entegrasyonu bu sahiplik diliminin dışında; fiziksel fire verimi, nesting, kerf, vergi ve işletme marjı doğrulanmaz.
 - Sonraki görev: INT-001 domain üretim raporundaki geometri/malzeme/miktar sadakatini JSON/CSV adapter sözleşmesinde güvenceye almak; INT-002 adapter sahibinin test dosyalarına müdahale etmemek.
+
+## 17 Kasım 2026 19:24 TRT — DOM-013 revizyon geçmişi aggregate doğrulaması (Actions bekleniyor)
+
+- Başlangıç HEAD: 69a4af02566174945ccb5586e1ae6597cb726941.
+- Geliştirme: domain/production/projectQuoteRevision.ts içine validateProjectQuoteRevisionHistory eklendi. Proje başına tekil revisionId, 1'den başlayan kesintisiz sıra, tam previousRevisionId zinciri, aynı proje kimliği, artan tarih ve her snapshot için mevcut revizyon doğrulaması uygulanır.
+- Test: domain/production/projectQuoteRevision.test.mjs içinde ready/empty/blocked, yinelenen ID, sıra boşluğu/ters sıra, fork, proje uyuşmazlığı, kronoloji, bilinmeyen alan ve şema sürümü testleri eklendi.
+- Sözleşme ve koordinasyon: docs/production-domain-contract.md, AI_COORDINATION.md, PRODUCT_ROADMAP.md güncellendi. Hiçbir frontend/** dosyası değiştirilmedi.
+- Commit SHA: bu kaydın bulunduğu commit GitHub tarafından oluşturuldu; SHA ve Actions bağlantıları doğrulama tamamlandığında eklenecek.
+- Actions: CI/QA/Pages sonucu henüz görülmedi; başarılı ilan edilmedi.
+- Bilinen sınırlar: kalıcı append-only depolama, eşzamanlı yazma kilidi ve cihazlar arası ID üretimi yoktur. CNC/atölye üretim onayı değildir.
+- Sonraki adım: Actions sonucu geldikten sonra DOM-013'ü DONE kanıtıyla kapat; ardından INT-001 adapter sözleşmesi ve INT-002 sahibinin round-trip testleriyle çakışmasız entegrasyon sırasını sürdür.

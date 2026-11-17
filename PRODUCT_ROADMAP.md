@@ -852,3 +852,13 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 - İlk özellik commit'i `288baf10dfff33a393561b5c35a0fb9be79265ef` için CI #44113379490 ve Pages #44113379465 başarılıdır.
 - QA #44113379485: 214/220 domain testi geçti. Altı yeni teklif/snapshot/revizyon testi, `projectQuoteSummary.ts` içindeki kayıt doğrulama yardımcısının eksik tanımlanması nedeniyle başarısız oldu.
 - Düzeltme, `isRecord` koruyucusunu domain modülüne ekler. Testler silinmedi veya gevşetilmedi; DOM-012 yalnızca yeni CI/QA sonucu alındığında tamamlanmış sayılacaktır.
+
+## 17 Kasım 2026 19:24 TRT — DOM-013 revizyon geçmişi aggregate doğrulaması
+
+- Akış: çağıran katman tek proje kimliği ve sıralı revizyon kayıtları verir; sistem kayıtları sessizce sıralamaz veya onarmaz.
+- Kabul: boş geçmiş empty; geçerli zincir ready; yinelenen revisionId, sıra boşluğu, kopuk/fork previousRevisionId, farklı proje veya geriye giden tarih blocked. Blocked durumda kısmi geçmiş sunulmaz.
+- Mevcut createProjectQuoteRevision ve ProjectQuotePricingSnapshot doğrulaması yeniden kullanılır; frontend, JSON v1 ve kalıcı depolama katmanı eklenmez.
+- validateProjectQuoteRevisionHistory her snapshot'ı tekrar doğrular, kimlik/sıra/zincir/kronolojiyi kontrol eder ve başarılı sonucu derin dondurur.
+- Sınır: kalıcı depolama, eşzamanlı append kilidi ve cihazlar arası ID üretimi bu domain diliminin dışında kalır.
+- GitHub Actions domain testleri, strict TypeScript, lint ve production build doğrulaması tamamlanmadan DOM-013 DONE sayılmaz.
+- Frontend sözleşmesi: status, history.projectId, history.revisions[] ve diagnostics; empty listesi boş, blocked sonucu kısmi geçmiş içermez.

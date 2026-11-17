@@ -4,7 +4,7 @@ import test from "node:test";
 import { BODY_PANEL_GROUPS } from "./bodyPanelMaterials.ts";
 import { calculateCabinetProjectProductionWithDiagnostics } from "./projectProduction.ts";
 import { createProjectQuotePricingSnapshot } from "./projectQuotePricingSnapshot.ts";
-import { createProjectQuoteRevision } from "./projectQuoteRevision.ts";
+import { createProjectQuoteRevision, validateProjectQuoteRevisionHistory } from "./projectQuoteRevision.ts";
 
 const noBanding = { top: false, bottom: false, left: false, right: false };
 const edgeBandingByGroup = Object.fromEntries(
@@ -341,4 +341,103 @@ test("açık fire/kâr satırları revizyon snapshot'ında kaynak referansıyla 
     result.revision?.pricingSnapshot.quoteSummary.costSummary?.lines.at(-2).sourceReference,
     "atolye-fire-hesabi:v1"
   );
+});
+function createHistoryRevision(overrides = {}) {
+  return {
+    schemaVersion: 1, projectId: "project-42", revisionId: "quote-r1", revisionNumber: 1,
+    createdAt: "2026-11-17T10:00:00Z", previousRevisionId: null,
+    pricingSnapshot: createSnapshot(), ...overrides
+  };
+}
+
+function createTwoRevisionHistory(secondOverrides = {}) {
+  return {
+    projectId: "project-42",
+    revisions: [
+      createHistoryRevision(),
+      createHistoryRevision({
+        revisionId: "quote-r2", revisionNumber: 2, createdAt: "2026-11-17T11:00:00Z",
+        previousRevisionId: "quote-r1", ...secondOverrides
+      })
+    ]
+  };
+}
+
+test("teklif revizyon geçmişi proje başına kronolojik ve değiştirilemez zincir olarak doğrulanır", () => {
+  const result = validateProjectQuoteRevisionHistory(createTwoRevisionHistory());
+  assert.equal(result.status, "ready");
+  assert.equal(result.history?.projectId, "project-42");
+  assert.deepEqual(result.history?.revisions.map((revision) => ({
+    revisionId: revision.revisionId, revisionNumber: revision.revisionNumber,
+    previousRevisionId: revision.previousRevisionId
+  })), [
+    { revisionId: "quote-r1", revisionNumber: 1, previousRevisionId: null },
+    { revisionId: "quote-r2", revisionNumber: 2, previousRevisionId: "quote-r1" }
+  ]);
+  assert.equal(Object.isFrozen(result.history), true);
+  assert.equal(Object.isFrozen(result.history?.revisions), true);
+  assert.equal(Object.isFrozen(result.history?.revisions[1].pricingSnapshot), true);
+});
+
+test("boş revizyon geçmişi empty durumunu korur ve kayıt üretmez", () => {
+  const result = validateProjectQuoteRevisionHistory({ projectId: "project-42", revisions: [] });
+  assert.equal(result.status, "empty");
+  assert.deepEqual(result.history?.revisions, []);
+});
+
+test("revizyon geçmişinde yinelenen kimlikler reddedilir", () => {
+  const history = createTwoRevisionHistory();
+  history.revisions.push(createHistoryRevision({ revisionNumber: 3, createdAt: "2026-11-17T12:00:00Z", previousRevisionId: "quote-r2" }));
+  const result = validateProjectQuoteRevisionHistory(history);
+  assert.equal(result.status, "blocked");
+  assert.match(result.diagnostics[0], /revisionId değerleri benzersiz/);
+});
+
+test("revizyon geçmişindeki sıra boşluğu ve sırasız kayıtlar reddedilir", () => {
+  const gap = validateProjectQuoteRevisionHistory(createTwoRevisionHistory({ revisionNumber: 3 }));
+  const reversed = validateProjectQuoteRevisionHistory({
+    projectId: "project-42",
+    revisions: [
+      createHistoryRevision({ revisionId: "quote-r2", revisionNumber: 2, createdAt: "2026-11-17T11:00:00Z", previousRevisionId: "quote-r1" }),
+      createHistoryRevision({ revisionId: "quote-r1" })
+    ]
+  });
+  assert.equal(gap.status, "blocked");
+  assert.match(gap.diagnostics[0], /kesintisiz/);
+  assert.equal(reversed.status, "blocked");
+  assert.match(reversed.diagnostics[0], /numarası kesintisiz/);
+});
+
+test("revizyon geçmişindeki fork veya kopuk previousRevisionId zinciri reddedilir", () => {
+  const result = validateProjectQuoteRevisionHistory(createTwoRevisionHistory({ previousRevisionId: "unrelated-revision" }));
+  assert.equal(result.status, "blocked");
+  assert.match(result.diagnostics[0], /kesintisiz bir zincir/);
+});
+
+test("farklı projelere ait revizyonlar aynı geçmişte birleştirilemez", () => {
+  const result = validateProjectQuoteRevisionHistory(createTwoRevisionHistory({ projectId: "another-project" }));
+  assert.equal(result.status, "blocked");
+  assert.match(result.diagnostics[0], /aynı proje kimliğine/);
+});
+
+test("revizyon geçmişinde tarih sırası geriye gidemez", () => {
+  const result = validateProjectQuoteRevisionHistory(createTwoRevisionHistory({ createdAt: "2026-11-17T09:59:59Z" }));
+  assert.equal(result.status, "blocked");
+  assert.match(result.diagnostics[0], /önceki revizyon tarihinden sonra/);
+});
+
+test("bilinmeyen alan, şema sürümü ve bozuk geçmiş girdisi reddedilir", () => {
+  const unknownField = createTwoRevisionHistory();
+  unknownField.revisions[1].unexpected = true;
+  const unsupportedVersion = createTwoRevisionHistory();
+  unsupportedVersion.revisions[1].schemaVersion = 2;
+  const invalidInput = validateProjectQuoteRevisionHistory({ projectId: "project-42", revisions: "not-an-array" });
+  const unknown = validateProjectQuoteRevisionHistory(unknownField);
+  const version = validateProjectQuoteRevisionHistory(unsupportedVersion);
+  assert.equal(unknown.status, "blocked");
+  assert.match(unknown.diagnostics[0], /desteklenmeyen alan/);
+  assert.equal(version.status, "blocked");
+  assert.match(version.diagnostics[0], /şemasını kullanmalıdır/);
+  assert.equal(invalidInput.status, "blocked");
+  assert.match(invalidInput.diagnostics[0], /revisions dizisi/);
 });
