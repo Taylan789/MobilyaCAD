@@ -801,3 +801,12 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 - Maliyet snapshot'ı JSON uyumlu derin kopyaya alınır ve runtime'da dondurulur. Eksik/boş/incomplete/blocked teklif revizyon oluşturmaz.
 - Mevcut proje JSON v1 şeması ve frontend/adapter dosyaları değiştirilmedi; revizyon zarfı ayrı domain kaydıdır. Kalıcı geçmiş ve tüm geçmişte kimlik tekilliği sonraki depolama/adapter entegrasyonunda sağlanmalıdır.
 - Kod ve test commit'i oluşturuldu; gerçek CI/QA sonucu bu kayıt tamamlanmadan DONE ilan edilmeyecektir.
+
+
+### DOM-011 doğrulama sonucu — 17 Kasım 2026 17:49 TRT
+
+- [Özellik commit 84a24e80](https://github.com/Taylan789/MobilyaCAD/commit/84a24e80ad2122d08c6384bfdc7ccc21fdb3a0b0) ve [test düzeltmesi 49101591](https://github.com/Taylan789/MobilyaCAD/commit/491015912a38b47ef2f0d31b664d21038f790859).
+- [CI #44107254101](https://github.com/Taylan789/MobilyaCAD/actions/runs/44107254101), [QA #44107254191](https://github.com/Taylan789/MobilyaCAD/actions/runs/44107254191) ve [Pages #44107254198](https://github.com/Taylan789/MobilyaCAD/actions/runs/44107254198) başarılı.
+- QA: **101/101 frontend + 214/214 domain testi, 0 başarısız**; shared-domain strict TypeScript, lint, production build ve yüksek önem eşiğinde dependency audit başarılı.
+- Lint 32 uyarı, production audit 4 orta seviye bulgu ve mevcut büyük bundle uyarısı sürüyor; bu dilimde bağımlılık yükseltmesi yapılmadı.
+- DOM-011 tamamlandı. Sonraki görev DOM-012: yalnızca açık kullanıcı fiyat satırlarıyla fire/kâr maliyet kapsamı.

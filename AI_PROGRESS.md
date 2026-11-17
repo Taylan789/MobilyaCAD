@@ -872,3 +872,19 @@
 - CI #44106880747 başarılı; Pages #44106880876 başarılı.
 - QA #44106880875 başarısız: 204 domain testinin 203'ü geçti; yeni revizyon test modülü fixture kurulumunda blocked !== ready hatasıyla durdu. Log, proje agregatörü isteğinde fixture'ın nested furniture/profile/materials sözleşmesini yanlış kurduğunu gösterdi; üretim kodu veya önceki testler değiştirilmedi.
 - Düzeltme: test fixture'ı mevcut proje agregatörü v1 istek şekline taşındı; revizyon snapshot doğrulamasında TypeScript için daraltılmış lineSources referansı kullanıldı. Yeni Actions sonucu bekleniyor.
+
+
+## 17 Kasım 2026 17:49 TRT — DOM-011 doğrulandı
+
+- Başlangıç HEAD: e5156f0680fc51b506b79b9a22f831268f2089d9.
+- Özellik commit'i: [84a24e80ad2122d08c6384bfdc7ccc21fdb3a0b0](https://github.com/Taylan789/MobilyaCAD/commit/84a24e80ad2122d08c6384bfdc7ccc21fdb3a0b0).
+- Test düzeltmesi ve son doğrulanmış kod commit'i: [491015912a38b47ef2f0d31b664d21038f790859](https://github.com/Taylan789/MobilyaCAD/commit/491015912a38b47ef2f0d31b664d21038f790859).
+- Değişen alanlar: domain/production/projectQuoteRevision.ts; domain/production/projectQuoteRevision.test.mjs; .github/workflows/qa-test.yml; docs/production-domain-contract.md; AI_COORDINATION.md; PRODUCT_ROADMAP.md; AI_PROGRESS.md. Düzeltme commit'i test fixture'ını ve strict TypeScript daraltmasını güncelledi.
+- İlk QA [#44106880875](https://github.com/Taylan789/MobilyaCAD/actions/runs/44106880875) başarısız oldu: 203/204 domain testi geçti; yeni test modülünün agregatör fixture'ı yanlış şekillendirilmişti. Log incelendi, test kapsamı veya üretim davranışı zayıflatılmadan düzeltildi.
+- [CI #44107254101](https://github.com/Taylan789/MobilyaCAD/actions/runs/44107254101) başarılı.
+- [QA #44107254191](https://github.com/Taylan789/MobilyaCAD/actions/runs/44107254191) başarılı: **101/101 frontend + 214/214 domain testi, 0 başarısız**. Shared-domain strict TypeScript, lint, production build ve production dependency audit yüksek önem eşiğini geçti.
+- [Pages #44107254198](https://github.com/Taylan789/MobilyaCAD/actions/runs/44107254198) başarılı.
+- Kalite notları: lint 32 uyarı / 0 hata; production audit'te 4 orta seviye dependency bulgusu ve build'de mevcut büyük chunk uyarısı sürüyor. Kırıcı dependency güncellemesi yapılmadı.
+- AI Developer [#44076389923](https://github.com/Taylan789/MobilyaCAD/actions/runs/44076389923) başarısız kaldı: entegrasyon agent'ı OpenRouter free-model günlük 429 kotasına, ürün agent'ı OpenCode latest-release metadata adımındaki başarısızlığa takıldı. Loglar incelendi. Rerun başlatılmadı; 429 yanıtındaki kota sıfırlama zamanı 18 Kasım 2026 00:00 UTC olduğundan aynı job'ları bu saatten önce yinelemek aynı bilinen blokajı tekrarlar.
+- Bilinen sınırlar: bu modül ayrı revizyon zarfı üretir; mevcut proje JSON v1 ve frontend adapter'ı değiştirmez. Kalıcı geçmiş, tüm revizyonlarda ID tekilliği ve kullanıcı arayüzü entegrasyonu ayrı adapter/depolama işidir. Kaynak fiyat doğruluğu, vergi, kur, iskonto, CNC veya fiziksel üretim onayı yoktur.
+- Sonraki görev: DOM-012 — fire/kârı yalnızca açık kullanıcı maliyet satırlarıyla ekle; ardından INT-001/INT-002 adapter round-trip entegrasyonunu QA ile denetle.
