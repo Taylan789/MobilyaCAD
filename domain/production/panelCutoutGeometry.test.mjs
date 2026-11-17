@@ -176,10 +176,10 @@ test("panel ölçüleri ve açıklık ölçüleri sonlu ve pozitif olmalıdır",
 });
 
 test("dış ve iç kenar bantlama bayraklarının tamamı açıkça boolean olmalıdır", () => {
+  const missingOuterEdge = createRequest();
+  missingOuterEdge.outerEdgeBanding = { top: true, bottom: false, left: false };
   assert.throws(
-    () => calculatePanelCutoutGeometry(createRequest({
-      outerEdgeBanding: { top: true, bottom: false, left: false }
-    })),
+    () => calculatePanelCutoutGeometry(missingOuterEdge),
     /right kenarı açıkça boolean/
   );
   assert.throws(
