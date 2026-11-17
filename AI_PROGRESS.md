@@ -838,3 +838,16 @@
 - Bilinen sınırlar: katalog/fiyat kaynağının gerçekliği doğrulanmaz; yalnızca kullanıcı tarafından sağlanan metadata saklanır. JSON v1/CSV ve frontend entegrasyonu ayrı sahibindedir. Vergi, kur, fiyat tahmini ve CNC/atölye onayı yoktur.
 - Aynı HEAD'deki AI Developer workflow #44076389923, OpenCode kurulmadan önce latest release API yanıtından sürüm etiketi çıkarılamadığı için iki job'da da başarısız oldu; bu kod değişikliğinden bağımsız bir başlatma hatasıdır. Loglar incelendi; güvenli failed-job rerun commit sonrası değerlendirilecek.
 - Sonraki görev: DOM-011 — teklif revizyonları için salt okunur maliyet snapshot'ı ve geriye uyumlu revizyon zarfı.
+
+
+## 17 Kasım 2026 15:43 TRT — DOM-010 doğrulandı
+
+- Başlangıç HEAD: 25e3264c1a04d5cafb4279863e33b3ee83059542.
+- Özellik commit: [215bfbeae1583505936d0f8f2549fe247a36efa9](https://github.com/Taylan789/MobilyaCAD/commit/215bfbeae1583505936d0f8f2549fe247a36efa9).
+- Dosyalar: domain/production/projectQuotePricingSnapshot.ts; domain/production/projectQuotePricingSnapshot.test.mjs; .github/workflows/qa-test.yml; docs/production-domain-contract.md; AI_COORDINATION.md; PRODUCT_ROADMAP.md; AI_PROGRESS.md.
+- [CI #44086836332](https://github.com/Taylan789/MobilyaCAD/actions/runs/44086836332) başarılı.
+- [QA #44086836369](https://github.com/Taylan789/MobilyaCAD/actions/runs/44086836369) başarılı: **101/101 frontend + 203/203 domain testi, 0 başarısız**. Strict TypeScript, lint, frontend production build ve production dependency audit yüksek önem eşiği başarılı.
+- [Pages #44086836270](https://github.com/Taylan789/MobilyaCAD/actions/runs/44086836270) başarılı. Lint 32 uyarı / 0 hata; audit'te 4 orta seviye bulgu sürüyor.
+- AI Developer #44076389923 ve entegrasyon/performans job'u OpenCode kurulmadan önce latest release API yanıtından tag_name çıkarılamadığı için başarısız oldu. Kod/test adımı çalışmadı; failed-job rerun bir sonraki güvenli adım olarak bekliyor.
+- Kısıtlar: katalog kimliği/sürümü/tarih kullanıcı girdisidir; kaynağın gerçekliği doğrulanmaz. JSON v1/CSV ve UI entegrasyonu ayrı sahibindedir. Vergi, kur ve CNC/atölye onayı yoktur.
+- Sonraki görev: DOM-011 — teklif revizyon zarfı ve salt okunur maliyet snapshot'ları.

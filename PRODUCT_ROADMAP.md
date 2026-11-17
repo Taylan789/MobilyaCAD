@@ -783,3 +783,13 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 - Kaynak katalogların gerçekliği, fiyatların doğruluğu ve geçmişte gerçekten yürürlükte olduğu dışarıdan doğrulanmaz; domain yalnızca kullanıcının verdiği sürüm ve tarih iddiasını saklar.
 - Bu domain snapshot henüz proje JSON v1/CSV adapter'ına veya arayüze bağlanmadı. Frontend sahibinin entegrasyonu için snapshot schemaVersion, quotedOn, consumptionPriceList, laborOperationTariffList ve quoteSummary alanları kullanılabilir.
 - Sonraki görevler: DOM-011 salt okunur teklif revizyon geçmişi; DOM-012 açık tutar satırlarıyla fire/kâr kapsamı; ayrı adapter sahibinin JSON/CSV round-trip sözleşmesi.
+
+
+### DOM-010 doğrulama sonucu — 17 Kasım 2026 15:43 TRT
+
+- [Özellik commit'i 215bfbeae1583505936d0f8f2549fe247a36efa9](https://github.com/Taylan789/MobilyaCAD/commit/215bfbeae1583505936d0f8f2549fe247a36efa9).
+- [CI #44086836332](https://github.com/Taylan789/MobilyaCAD/actions/runs/44086836332) başarılı.
+- [QA #44086836369](https://github.com/Taylan789/MobilyaCAD/actions/runs/44086836369) başarılı: 101/101 frontend + 203/203 domain testi, 0 başarısız; yeni snapshot modülü strict TypeScript kontrolünden geçti.
+- [Pages #44086836270](https://github.com/Taylan789/MobilyaCAD/actions/runs/44086836270) başarılı.
+- Lint 32 uyarı / 0 hata; production audit yüksek önem eşiğini geçti, 4 orta seviye bulgu sürüyor.
+- DOM-010 DONE. Sonraki görev DOM-011: salt okunur teklif revizyon zarfı ve maliyet snapshot'ı.
