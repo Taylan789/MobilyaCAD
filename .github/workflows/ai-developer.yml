@@ -147,7 +147,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          git push --set-upstream origin "${GITHUB_REF_NAME:+agent/integration-performance-${GITHUB_RUN_ID}}"
+          if [ "$(git rev-list --count "origin/dev/github-work..HEAD")" -eq 0 ]; then
+            echo "Güvenli ve test edilmiş değişiklik yok; boş PR açılmadı."
+            exit 0
+          fi
+          git push --set-upstream origin "agent/integration-performance-${GITHUB_RUN_ID}"
           gh pr create --repo "$REPOSITORY" --base dev/github-work \
             --head "agent/integration-performance-${GITHUB_RUN_ID}" \
             --title "Entegrasyon ve performans iyileştirmeleri" \
