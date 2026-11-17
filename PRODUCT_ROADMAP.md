@@ -884,3 +884,20 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 3. INT-001: kesit geometrisi, malzeme ve quantity kaybını JSON/CSV adapter sözleşmesinde önle veya desteklenmeyen export'u engelle; adapter dosyalarını değiştirme.
 4. INT-002: entegrasyon/performans ajanının round-trip ve geometri/miktar testlerini kendi dalında tamamlamasını bekle; PR'ını sahiplenme/merge etme.
 5. QA-003: INT-001 ve INT-002 kanıtları geldikten sonra uçtan uca export ve veri sadakati denetimi.
+
+
+## 18 Kasım 2026 — DOM-017 teklif revizyon geçmişi JSON zarfı
+
+- Teklif revizyon geçmişi için bağımsız mobilyacad-quote-revision-history dosya türü ve v1 JSON zarfı eklendi.
+- Serializer önce tüm geçmişi doğrular; yalnızca ready/empty sonucu JSON'a dönüştürür. Parser dosya türü, sürüm ve kapalı zarf şemasını denetler, ardından tüm revizyon zincirini ve maliyet snapshot'larını yeniden doğrular.
+- Eski iç geçmiş kayıtlarında schemaVersion alanının bulunmaması geriye uyumlu kalır; yeni export kanonik schemaVersion 1 yazar. Empty geçmiş empty olarak korunur; bozuk JSON/şema/geçmişte kısmi sonuç yoktur.
+- Bu ayrı bir teklif geçmişi dosyasıdır; mevcut proje JSON v1'e otomatik eklenmez. Frontend, disk yazımı, otomatik kayıt ve eşzamanlılık/backup altyapısı ayrı entegrasyon işidir.
+- Test kabul kriterleri: iki revizyonun round-trip ile ID/sıra/önceki bağlantı ve toplamları koruması; empty geçmiş; legacy nested v1; bozuk zincir; bozuk JSON; yanlış fileType; bilinmeyen alan; desteklenmeyen sürüm; immutable parse sonucu.
+
+### Güncel sıradaki 3-5 küçük görev
+
+1. SEC-001: frontend sahibinin picomatch production audit bulgularını Vite 8'i kırmadan çözmesini bekle; frontend/**, manifest ve lockfile sahipliğine dokunma.
+2. DOM-014/015/016: SEC-001 sonrası aynı kod SHA'larında tam QA audit sonucunu kontrol et; aynı SHA için başarılı testleri yeniden çalıştırma.
+3. DOM-018: teklif geçmişi JSON zarfını gelecekteki proje dosyası sürümüne opsiyonel ve geriye uyumlu bağlamak için domain migration/compatibility sözleşmesini tanımla; frontend dosyalarına dokunma.
+4. INT-001: kesit geometrisi, malzeme ve quantity kaybını JSON/CSV adapter sözleşmesinde önle veya desteklenmeyen export'u engelle; adapter dosyalarını değiştirme.
+5. INT-002 / QA-003: entegrasyon-performans ajanının kendi dalındaki round-trip kanıtı geldikten sonra uçtan uca export/veri sadakati denetimini yürüt.

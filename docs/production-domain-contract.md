@@ -515,3 +515,15 @@ API: `compareProjectQuoteRevisions(history, fromRevisionId, toRevisionId)`.
 - İki snapshot aynı para birimini kullanmalıdır. Sonuç minor currency unit cinsinden `fromGrandTotalMinor`, `toGrandTotalMinor`, `grandTotalDeltaMinor` ve altı maliyet kategorisi için `categoryDeltasMinor` döndürür. Pozitif fark artışı, negatif fark azalışı belirtir.
 - Çıktı immutable'dır. Kısmi/blocked geçmişte, para birimi farklılığında veya eksik toplamda karşılaştırma yoktur; kur, vergi, iskonto, fiyat veya kategori eşlemesi tahmin edilmez.
 - Bu ilk dilim yalnızca kategori ve genel toplam farkı verir; satır bazlı değişim, açıklama/ürün kapsamı farkı, PDF/teklif görünümü veya kalıcı depolama sağlamaz. UI entegrasyonu ayrı frontend sahibinin sorumluluğundadır.
+
+
+## Teklif revizyon geçmişi JSON dosyası — domain v1
+
+Kaynak: domain/production/projectQuoteRevisionFile.ts.
+
+- serializeProjectQuoteRevisionHistoryFile(history) önce mevcut aggregate doğrulayıcısını çalıştırır. Yalnızca ready veya empty geçmiş için fileType "mobilyacad-quote-revision-history", schemaVersion 1 zarfı üretir; blocked geçmişte JSON metni ve kısmi kayıt döndürmez.
+- parseProjectQuoteRevisionHistoryFile(json) yalnızca JSON metni kabul eder. Dosya türü, dosya sürümü ve zarf alanları kapalı şemayla doğrulanır; bilinmeyen alan veya desteklenmeyen sürüm reddedilir.
+- Zarf içindeki geçmiş yeniden validateProjectQuoteRevisionHistory üzerinden doğrulanır. Proje kimliği, revizyon ID tekilliği, kesintisiz sıra, previousRevisionId zinciri, kronoloji ve her maliyet snapshot'ının satır/kategori/genel toplam tutarlılığı korunur.
+- Eski v1 geçmişlerinde iç history.schemaVersion alanının bulunmaması mevcut doğrulayıcıyla geriye uyumludur; serializer yeniden dışa aktarırken sürüm 1 alanını kanonik biçimde yazar. Boş geçmiş empty durumuyla round-trip eder.
+- Bu, mevcut proje JSON v1 dosyasına gömülü bir alan değildir; teklif geçmişi için ayrı ve taşınabilir bir JSON zarfıdır. Frontend, mevcut proje dosyası entegrasyonu, otomatik kayıt, atomik disk yazımı, eşzamanlılık kilidi ve yedekleme bu dilimin kapsamı dışındadır.
+- CNC, fiziksel üretim, fiyat kaynağının gerçekliği, kur dönüşümü veya ticari varsayım üretmez.

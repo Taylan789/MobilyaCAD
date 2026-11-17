@@ -965,3 +965,14 @@
 - Yerel runtime testi bu entegrasyonda çalıştırılmadı; 101/101 + 241/241 test kanıtı Actions logundan alındı.
 - Bilinen kısıtlar: satır bazlı fark, FX, vergi/iskonto, PDF/UI ve kalıcı depo yok; fiziksel üretim/CNC onayı değildir.
 - Durum: domain API, regresyon testleri, strict TypeScript ve build doğrulandı; tam QA shared production audit nedeniyle BLOCKED. Sonraki adım: SEC-001 çözümünden sonra DOM-014/015/016 için tam QA sonucunu kontrol etmek; ardından INT-001 domain/export sözleşmesini ilerletmek.
+
+
+## 18 Kasım 2026 00:20 TRT — DOM-017 teklif revizyon geçmişi JSON zarfı (Actions bekleniyor)
+
+- Başlangıç branch HEAD: 23d620a3f0153ce938d40d611ed7b9cb18b2e24b.
+- Geliştirme: domain/production/projectQuoteRevisionFile.ts ile teklif revizyon geçmişi için ayrı mobilyacad-quote-revision-history v1 JSON envelope serializer/parser eklendi. Her iki yön de mevcut aggregate doğrulayıcısını kullanır; bozuk geçmişte kısmi JSON/history döndürülmez.
+- Regresyon kapsamı: iki revizyon round-trip, ID/sıra/önceki bağlantı ve maliyet toplamı korunumu, empty geçmiş, legacy iç geçmiş sürümü, malformed JSON, yanlış fileType, bilinmeyen alan, desteklenmeyen dosya sürümü ve bozuk zincir.
+- Değişen dosyalar: domain/production/projectQuoteRevisionFile.ts, domain/production/projectQuoteRevision.test.mjs, .github/workflows/qa-test.yml, docs/production-domain-contract.md, AI_COORDINATION.md, PRODUCT_ROADMAP.md, AI_PROGRESS.md. Hiçbir frontend/**, adapter, package manifest, lockfile veya secret değiştirilmedi.
+- Kod commit SHA'sı ve gerçek CI/QA run bağlantıları, branch commit'i oluşturulduktan ve Actions sonuçları görüldükten sonraki doğrulama kaydında eklenecek.
+- Bilinen sınırlar: bu envelope mevcut proje JSON v1'e gömülmez; disk yazımı, otomatik kayıt, atomik transaction, eşzamanlı yazma kilidi ve yedekleme sağlamaz. Tam QA'nın önceki blokajı production dependency audit içindeki picomatch yüksek bulgularıdır; frontend sahibinin SEC-001 kapsamındadır.
+- Sonraki adım: Actions'ta yeni domain testleri ve strict TypeScript sonucunu doğrula; ardından proje dosyasıyla geriye uyumlu entegrasyon sözleşmesini küçük bir domain dilimine ayır.

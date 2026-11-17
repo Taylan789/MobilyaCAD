@@ -5,7 +5,17 @@ import { BODY_PANEL_GROUPS } from "./bodyPanelMaterials.ts";
 import { calculateCabinetProjectProductionWithDiagnostics } from "./projectProduction.ts";
 import { createProjectQuotePricingSnapshot } from "./projectQuotePricingSnapshot.ts";
 import { calculateProjectCostLineTotalMinor } from "./projectCostSummary.ts";
-import { appendProjectQuoteRevision, compareProjectQuoteRevisions, createProjectQuoteRevision, validateProjectQuoteRevisionHistory } from "./projectQuoteRevision.ts";
+import {
+  appendProjectQuoteRevision,
+  compareProjectQuoteRevisions,
+  createProjectQuoteRevision,
+  validateProjectQuoteRevisionHistory
+} from "./projectQuoteRevision.ts";
+import {
+  parseProjectQuoteRevisionHistoryFile,
+  PROJECT_QUOTE_REVISION_FILE_TYPE,
+  serializeProjectQuoteRevisionHistoryFile
+} from "./projectQuoteRevisionFile.ts";
 
 const noBanding = { top: false, bottom: false, left: false, right: false };
 const edgeBandingByGroup = Object.fromEntries(
@@ -701,4 +711,73 @@ test("bozuk veya boş revizyon geçmişi karşılaştırma üretmez", () => {
   assert.equal(empty.status, "blocked");
   assert.equal(empty.comparison, null);
   assert.match(empty.diagnostics[0], /Boş teklif geçmişinde/);
+});
+
+
+test("teklif revizyon geçmişi v1 JSON dosyası legacy geçmişi kayıpsız biçimde round-trip eder", () => {
+  const history = createTwoRevisionHistory();
+  const original = JSON.stringify(history);
+  const serialized = serializeProjectQuoteRevisionHistoryFile(history);
+  assert.equal(serialized.status, "ready");
+  assert.ok(serialized.json);
+  assert.equal(JSON.stringify(history), original);
+  const envelope = JSON.parse(serialized.json);
+  assert.equal(envelope.fileType, PROJECT_QUOTE_REVISION_FILE_TYPE);
+  assert.equal(envelope.schemaVersion, 1);
+  assert.equal(envelope.history.schemaVersion, 1);
+  const parsed = parseProjectQuoteRevisionHistoryFile(serialized.json);
+  assert.equal(parsed.status, "ready");
+  assert.deepEqual(parsed.history?.revisions.map((revision) => ({
+    revisionId: revision.revisionId,
+    revisionNumber: revision.revisionNumber,
+    previousRevisionId: revision.previousRevisionId,
+    grandTotalMinor: revision.pricingSnapshot.quoteSummary.costSummary?.grandTotalMinor
+  })), [
+    { revisionId: "quote-r1", revisionNumber: 1, previousRevisionId: null, grandTotalMinor: history.revisions[0].pricingSnapshot.quoteSummary.costSummary.grandTotalMinor },
+    { revisionId: "quote-r2", revisionNumber: 2, previousRevisionId: "quote-r1", grandTotalMinor: history.revisions[1].pricingSnapshot.quoteSummary.costSummary.grandTotalMinor }
+  ]);
+  assert.equal(Object.isFrozen(parsed.history), true);
+  assert.equal(Object.isFrozen(parsed.history?.revisions[0].pricingSnapshot), true);
+});
+
+test("boş teklif revizyon geçmişi JSON dosyasında empty durumunu korur", () => {
+  const serialized = serializeProjectQuoteRevisionHistoryFile({ projectId: "project-42", revisions: [] });
+  assert.equal(serialized.status, "empty");
+  assert.ok(serialized.json);
+  const parsed = parseProjectQuoteRevisionHistoryFile(serialized.json);
+  assert.equal(parsed.status, "empty");
+  assert.deepEqual(parsed.history?.revisions, []);
+});
+
+test("geçersiz revizyon geçmişi serializer ve parser tarafından kısmi dosya üretmeden reddedilir", () => {
+  const brokenHistory = createTwoRevisionHistory({ previousRevisionId: "missing-link" });
+  const serialized = serializeProjectQuoteRevisionHistoryFile(brokenHistory);
+  assert.equal(serialized.status, "blocked");
+  assert.equal(serialized.json, null);
+  const parsed = parseProjectQuoteRevisionHistoryFile(JSON.stringify({
+    fileType: PROJECT_QUOTE_REVISION_FILE_TYPE, schemaVersion: 1, history: brokenHistory
+  }));
+  assert.equal(parsed.status, "blocked");
+  assert.equal(parsed.history, null);
+});
+
+test("bozuk JSON, yanlış dosya türü, bilinmeyen alan ve desteklenmeyen sürüm reddedilir", () => {
+  const validEnvelope = {
+    fileType: PROJECT_QUOTE_REVISION_FILE_TYPE,
+    schemaVersion: 1,
+    history: { projectId: "project-42", revisions: [] }
+  };
+  const malformed = parseProjectQuoteRevisionHistoryFile("{");
+  const wrongType = parseProjectQuoteRevisionHistoryFile(JSON.stringify({ ...validEnvelope, fileType: "other-file" }));
+  const unknownField = parseProjectQuoteRevisionHistoryFile(JSON.stringify({ ...validEnvelope, extra: true }));
+  const unsupportedVersion = parseProjectQuoteRevisionHistoryFile(JSON.stringify({ ...validEnvelope, schemaVersion: 2 }));
+  const nonText = parseProjectQuoteRevisionHistoryFile({});
+  assert.equal(malformed.status, "blocked");
+  assert.match(malformed.diagnostics[0], /geçerli JSON/);
+  assert.equal(wrongType.status, "blocked");
+  assert.equal(unknownField.status, "blocked");
+  assert.match(unknownField.diagnostics[0], /desteklenmeyen alan/);
+  assert.equal(unsupportedVersion.status, "blocked");
+  assert.match(unsupportedVersion.diagnostics[0], /sürümü/);
+  assert.equal(nonText.status, "blocked");
 });
