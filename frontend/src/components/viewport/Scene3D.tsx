@@ -1,6 +1,7 @@
 
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { useCallback, useEffect, useRef, useState } from "react";
+import type { KeyboardEvent } from "react";
 import { Vector3 } from "three";
 import { Box, Focus, Maximize2, PanelTop, Square } from "lucide-react";
 import {
@@ -17,6 +18,7 @@ import PlacedFurniture3D from "../furniture/PlacedFurniture3D";
 import type { PlacedFurniture } from "../../types/placedFurniture";
 import { calculatePlacementIssues } from "../../engine/placementValidation";
 import "./ViewportCameraControls.css";
+import { getNextToolbarIndex } from "./cameraToolbarNavigation";
 
 interface Scene3DProps {
   width: number;
@@ -416,6 +418,7 @@ export default function Scene3D({
     height / 1000
   );
   const [activeView, setActiveView] = useState<CameraOrientation>("perspective");
+  const [cameraToolbarFocusIndex, setCameraToolbarFocusIndex] = useState(0);
   const [cameraCommand, setCameraCommand] = useState<CameraCommand | null>(null);
   const [reducedMotion, setReducedMotion] = useState(
     () =>
@@ -432,6 +435,10 @@ export default function Scene3D({
     mediaQuery.addEventListener("change", syncPreference);
     return () => mediaQuery.removeEventListener("change", syncPreference);
   }, []);
+
+  useEffect(() => {
+    if (!selectedFurnitureId) setCameraToolbarFocusIndex(0);
+  }, [selectedFurnitureId]);
 
   const requestCamera = useCallback((
     orientation: CameraOrientation,
@@ -503,6 +510,32 @@ export default function Scene3D({
     handledFocusRequestId.current = focusRequestId;
     focusSelectedObject();
   }, [focusRequestId, focusSelectedObject]);
+
+  function handleCameraToolbarKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+    if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+    if (!(event.target instanceof HTMLButtonElement)) return;
+
+    const buttons = Array.from(
+      event.currentTarget.querySelectorAll<HTMLButtonElement>("button:not(:disabled)")
+    );
+    const currentIndex = Number(event.target.dataset.toolbarIndex);
+    if (!Number.isInteger(currentIndex)) return;
+
+    const enabledIndices = buttons.map((button) => Number(button.dataset.toolbarIndex));
+    const nextIndex = getNextToolbarIndex(
+      currentIndex,
+      enabledIndices,
+      event.key === "ArrowRight" ? "next" : "previous"
+    );
+    const nextButton = buttons.find(
+      (button) => Number(button.dataset.toolbarIndex) === nextIndex
+    );
+
+    if (!nextButton) return;
+    event.preventDefault();
+    setCameraToolbarFocusIndex(nextIndex);
+    nextButton.focus();
+  }
 
   return (
     <>
@@ -626,10 +659,19 @@ export default function Scene3D({
         />
       </GizmoHelper>
     </Canvas>
-      <div className="cad-viewport-camera-tools" role="toolbar" aria-label="Kamera görünüşleri">
+      <div
+        className="cad-viewport-camera-tools"
+        role="toolbar"
+        aria-label="Kamera görünüşleri"
+        aria-orientation="horizontal"
+        onKeyDown={handleCameraToolbarKeyDown}
+      >
         <span className="cad-viewport-camera-tools__label">GÖRÜNÜŞ</span>
         <button
           type="button"
+          data-toolbar-index={0}
+          tabIndex={cameraToolbarFocusIndex === 0 ? 0 : -1}
+          onFocus={() => setCameraToolbarFocusIndex(0)}
           className={activeView === "perspective" ? "is-active" : ""}
           aria-label="Perspektif görünüş"
           aria-pressed={activeView === "perspective"}
@@ -641,6 +683,9 @@ export default function Scene3D({
         </button>
         <button
           type="button"
+          data-toolbar-index={1}
+          tabIndex={cameraToolbarFocusIndex === 1 ? 0 : -1}
+          onFocus={() => setCameraToolbarFocusIndex(1)}
           className={activeView === "top" ? "is-active" : ""}
           aria-label="Üst görünüş"
           aria-pressed={activeView === "top"}
@@ -652,6 +697,9 @@ export default function Scene3D({
         </button>
         <button
           type="button"
+          data-toolbar-index={2}
+          tabIndex={cameraToolbarFocusIndex === 2 ? 0 : -1}
+          onFocus={() => setCameraToolbarFocusIndex(2)}
           className={activeView === "front" ? "is-active" : ""}
           aria-label="Ön görünüş"
           aria-pressed={activeView === "front"}
@@ -663,6 +711,9 @@ export default function Scene3D({
         </button>
         <button
           type="button"
+          data-toolbar-index={3}
+          tabIndex={cameraToolbarFocusIndex === 3 ? 0 : -1}
+          onFocus={() => setCameraToolbarFocusIndex(3)}
           className={activeView === "back" ? "is-active" : ""}
           aria-label="Arka görünüş"
           aria-pressed={activeView === "back"}
@@ -674,6 +725,9 @@ export default function Scene3D({
         </button>
         <button
           type="button"
+          data-toolbar-index={4}
+          tabIndex={cameraToolbarFocusIndex === 4 ? 0 : -1}
+          onFocus={() => setCameraToolbarFocusIndex(4)}
           className={activeView === "left" ? "is-active" : ""}
           aria-label="Sol görünüş"
           aria-pressed={activeView === "left"}
@@ -685,6 +739,9 @@ export default function Scene3D({
         </button>
         <button
           type="button"
+          data-toolbar-index={5}
+          tabIndex={cameraToolbarFocusIndex === 5 ? 0 : -1}
+          onFocus={() => setCameraToolbarFocusIndex(5)}
           className={activeView === "right" ? "is-active" : ""}
           aria-label="Sağ görünüş"
           aria-pressed={activeView === "right"}
@@ -697,6 +754,9 @@ export default function Scene3D({
         <span className="cad-viewport-camera-tools__divider" />
         <button
           type="button"
+          data-toolbar-index={6}
+          tabIndex={cameraToolbarFocusIndex === 6 ? 0 : -1}
+          onFocus={() => setCameraToolbarFocusIndex(6)}
           aria-label="Odayı görünüme sığdır"
           title="Odayı görünüme sığdır"
           onClick={fitRoomToView}
@@ -706,6 +766,9 @@ export default function Scene3D({
         </button>
         <button
           type="button"
+          data-toolbar-index={7}
+          tabIndex={cameraToolbarFocusIndex === 7 ? 0 : -1}
+          onFocus={() => setCameraToolbarFocusIndex(7)}
           aria-label={selectedPartId ? "Seçili parçaya odaklan" : "Seçili mobilyaya odaklan"}
           title={selectedPartId ? "Seçili parçaya odaklan" : "Seçili mobilyaya odaklan"}
           disabled={!selectedFurnitureId}
