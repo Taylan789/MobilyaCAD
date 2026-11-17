@@ -27,7 +27,7 @@ test("brand component loads its industrial studio theme and keeps an accessible 
 
 test("studio entry uses graphite surfaces and steel-blue accents", () => {
   assert.match(theme, /\.atelier-home\s*\{/);
-  assert.match(theme, /background:\s*#101820/);
+  assert.match(theme, /--paper:\s*#101820/);
   assert.match(theme, /\.atelier-start-card\s*\{/);
   assert.match(theme, /#8fb6d1/i);
   assert.match(theme, /\.atelier-feature-art\s*\{/);
