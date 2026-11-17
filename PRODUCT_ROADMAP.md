@@ -841,23 +841,18 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 
 ### Güncel sıradaki 3-5 küçük görev
 
-1. DOM-014: doğrulanmış teklif revizyon geçmişine immutable append API ekle; bozuk geçmişte veya zincir uyuşmazlığında yeni geçmiş üretme.
-2. INT-001: domain üretim raporundaki kesit geometrisi, malzeme ve quantity kaybını JSON/CSV adapter sözleşmesinde önle veya desteklenmeyen export'u engelle.
-3. INT-002: adapter sahibinin JSON/CSV round-trip ve geometri/miktar sadakati testlerini ayrı PR ile teslim etmesini bekle; aynı dosyalara dokunma.
-4. Frontend sahibinin DOM-009/010/011/012 ready/blocked teklif, snapshot ve revizyon sözleşmelerini bağlayan PR'larını denetle; frontend dosyalarına dokunma.
-5. INT-001 ve INT-002 tamamlandığında QA-003 uçtan uca export ve teklif veri akışı denetimini yürüt.
-### DOM-012 ilk QA sonucu ve düzeltme — 17 Kasım 2026
+1. SEC-001: frontend sahibinin production audit içindeki picomatch yüksek bulgularını Vite 8'i kırmadan çözmesini veya build-only paket sınıflandırmasını doğrulamasını bekle; `frontend/**` dosyalarına dokunma.
+2. DOM-014: append API ve schemaVersion round-trip düzeltmesi tamamlandı; SEC-001 sonrasında tam QA yeniden yeşil olduğunda DONE kanıtını kaydet.
+3. INT-001: domain üretim raporundaki kesit geometrisi, malzeme ve quantity kaybını JSON/CSV adapter sözleşmesinde önle veya desteklenmeyen export'u engelle; yalnız domain sözleşmesi/devir kapsamı.
+4. INT-002: entegrasyon/performans ajanının ayrı dalındaki JSON/CSV round-trip ve geometri/miktar testlerini incele; aynı adapter/test dosyalarına müdahale etme.
+5. QA-003: INT-001 ve INT-002 kanıtları tamamlandığında uçtan uca export ve teklif veri akışı denetimini yürüt.
 
-- İlk özellik commit'i `288baf10dfff33a393561b5c35a0fb9be79265ef` için CI #44113379490 ve Pages #44113379465 başarılıdır.
-- QA #44113379485: 214/220 domain testi geçti. Altı yeni teklif/snapshot/revizyon testi, `projectQuoteSummary.ts` içindeki kayıt doğrulama yardımcısının eksik tanımlanması nedeniyle başarısız oldu.
-- Düzeltme, `isRecord` koruyucusunu domain modülüne ekler. Testler silinmedi veya gevşetilmedi; DOM-012 yalnızca yeni CI/QA sonucu alındığında tamamlanmış sayılacaktır.
+## 17 Kasım 2026 — DOM-014 immutable teklif revizyon append ve doğrulama durumu
 
-## 17 Kasım 2026 19:24 TRT — DOM-013 revizyon geçmişi aggregate doğrulaması
-
-- Akış: çağıran katman tek proje kimliği ve sıralı revizyon kayıtları verir; sistem kayıtları sessizce sıralamaz veya onarmaz.
-- Kabul: boş geçmiş empty; geçerli zincir ready; yinelenen revisionId, sıra boşluğu, kopuk/fork previousRevisionId, farklı proje veya geriye giden tarih blocked. Blocked durumda kısmi geçmiş sunulmaz.
-- Mevcut createProjectQuoteRevision ve ProjectQuotePricingSnapshot doğrulaması yeniden kullanılır; frontend, JSON v1 ve kalıcı depolama katmanı eklenmez.
-- validateProjectQuoteRevisionHistory her snapshot'ı tekrar doğrular, kimlik/sıra/zincir/kronolojiyi kontrol eder ve başarılı sonucu derin dondurur.
-- Sınır: kalıcı depolama, eşzamanlı append kilidi ve cihazlar arası ID üretimi bu domain diliminin dışında kalır.
-- GitHub Actions domain testleri, strict TypeScript, lint ve production build doğrulaması tamamlanmadan DOM-013 DONE sayılmaz.
-- Frontend sözleşmesi: status, history.projectId, history.revisions[] ve diagnostics; empty listesi boş, blocked sonucu kısmi geçmiş içermez.
+- Kod commit'i: [90139782f8185c0fb399d1d88174d8d46472f572](https://github.com/Taylan789/MobilyaCAD/commit/90139782f8185c0fb399d1d88174d8d46472f572). Follow-up uyumluluk düzeltmesi: [34d9ee813f0f96eafec12568059d25850d2318cd](https://github.com/Taylan789/MobilyaCAD/commit/34d9ee813f0f96eafec12568059d25850d2318cd).
+- `appendProjectQuoteRevision` önce tüm geçmişi doğrular; yeni ID, tarih ve ready snapshot dışında proje kimliği/sıra/önceki bağlantı kabul etmez. Sıra ve previousRevisionId mevcut zincirden türetilir. Duplicate ID, bozuk geçmiş, kopuk zincir, geriye giden tarih, invalid snapshot veya bilinmeyen alan kısmi sonuç üretmeden blocked döner.
+- Follow-up düzeltmesi, `schemaVersion: 1` taşıyan fonksiyon çıktısının yeniden doğrulanmasını ve sonraki append çağrısına girdi olmasını sağlar. SchemaVersion bulunmayan eski girdiler geriye uyumlu kalır; sağlanırsa yalnızca 1 kabul edilir.
+- Otomatik testler: boş geçmişten ilk append, ardışık append, geçmiş genelinde duplicate ID, bozuk zincir, kronoloji, invalid snapshot, kapalı girdi şeması ve schemaVersion round-trip.
+- [CI #44142328774](https://github.com/Taylan789/MobilyaCAD/actions/runs/44142328774) başarılı. [QA #44142328778](https://github.com/Taylan789/MobilyaCAD/actions/runs/44142328778): **101/101 frontend + 234/234 domain testi geçti**, strict shared-domain TypeScript, lint ve production build başarılı; ancak production dependency audit adımı başarısız. [Pages #44142328629](https://github.com/Taylan789/MobilyaCAD/actions/runs/44142328629) başarılı.
+- Audit engeli: 12 bulgu (2 moderate, 10 high), yüksek bulgular picomatch/ReDoS zincirinde; log `npm audit fix --force` için Vite 6.2.7 kırıcı downgrade öneriyor. Frontend bağımlılık manifesti ve lockfile arayüz ajanının sahipliğindedir; domain agent'ı bu dosyalara dokunmadı ve zorlayıcı bağımlılık değişikliği yapmadı. SEC-001 frontend sahibine devredildi.
+- Bilinen sınırlar: append saf/in-memory domain işlemidir; kalıcı depolama, atomik transaction, eşzamanlı yazma kilidi ve ID üretimi sağlamaz. JSON v1/CSV ve UI entegrasyonu ayrı sahiplik alanındadır. CNC/atölye üretim onayı değildir.
