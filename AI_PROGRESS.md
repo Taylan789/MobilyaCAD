@@ -795,3 +795,15 @@
 - AI Developer workflow: son ilgili workflow_dispatch çalışması [#43559164561](https://github.com/Taylan789/MobilyaCAD/actions/runs/43559164561) 14 Kasım'da başarılı; aktif/başarısız AI Developer run bulunmadığından yeni run başlatılmadı.
 - Bilinen sınırlar: v1'de tek Part için tek kenar bandı kaynağı vardır; farklı kenar türleri için per-edge atama sonraki genişletmedir. Katalog doğrulaması, renk/kalınlık/yapışkan, rulo payı/fire, işçilik, CNC ve fiziksel üretim onayı yoktur.
 - Sonraki görev DOM-008: kullanıcı girdili işçilik/operasyon tarifesi ve açık süre/birim maliyet sözleşmesi.
+
+
+## 17 Kasım 2026 13:49 TRT — DOM-008 uygulaması (Actions doğrulaması bekleniyor)
+
+- Başlangıç HEAD: \`32af784ee86271e33654a6f4cc0a9197d8d0013f\`.
+- İlk uygulama commit SHA: doğrulama sonrası eklenecek.
+- Değişiklikler: \`domain/production/projectLaborOperationPricing.ts\` ve \`domain/production/projectLaborOperationPricing.test.mjs\` ile kullanıcı girdili işçilik/operasyon kullanım satırları, açık tarife tablosu, kategori ve birim eşleştirmesi, kaynak referansı ve eksik girdi durumları eklendi.
+- QA kapsamı: yeni domain testi \`domain/production/*.test.mjs\` desenine girer; strict TypeScript listesine yeni modül eklendi.
+- Otomatik kabul kapsamı: hazır işçilik + operasyon toplamı, boş proje, eksik tarife, birim uyuşmazlığı, kategori uyuşmazlığı, para birimi karışımı, yinelenen kimlikler, bilinmeyen alan, geçersiz süre/fiyat/kaynak referansı ve açık sıfır tarife.
+- Actions sonucu: push sonrasında CI/QA/Pages run bağlantıları ve gerçek durum eklenecek; bu kayıt yazılırken henüz doğrulama yok.
+- Bilinen sınırlar: dakika/saat otomatik dönüştürülmez; tarife kaynağı kullanıcı tarafından sağlanır ve gerçekliği/etkinlik tarihi doğrulanmaz. Üretim malzeme/donanım maliyetleriyle birleşik teklif toplamı, vergi, kur ve revizyon sonraki görevlerdir. \`frontend/**\` değiştirilmedi; başka ajan PR'larına dokunulmadı.
+- Sonraki görev: DOM-009 — üretim tüketimi ve işçilik/operasyon özetlerini tek, eksik-girdi güvenli teklif toplamında birleştir.

@@ -393,3 +393,18 @@ Proje isteği, opsiyonel `edgeBandingAssignments` listesinde her üretim Part'ı
 - Atama bulunan Part'lar `edgeBandingMaterialId` ve `edgeBandingUnit` alanlarını taşır. Mevcut JSON v1/CSV adapter'ı bu alanları kayıpsız taşımadığı için proje `canExport: false` ve açık `exportBlockers` üretir; adapter desteği gelmeden dışa aktarım onayı verilmez.
 - Kenar bandı fiyatı maliyet özetinde malzeme kategorisine eklenir. Eksik fiyat veya aynı ID için farklı fiyat birimi `incomplete` olur; farklı para birimleri `blocked` kalır. Sıfır fiyat yalnızca açık fiyat satırıyla geçerlidir.
 - Rulo payı, fire, bant kalınlığı, yapıştırıcı, işçilik, tedarik ve CNC işlemi hesaplanmaz. Fiziksel üretim öncesi gerçek katalog ve atölye koşulları ayrıca doğrulanmalıdır.
+
+
+## Kullanıcı girdili işçilik ve operasyon tarifesi — domain v1
+
+Kaynak: \`domain/production/projectLaborOperationPricing.ts\`, \`calculateProjectLaborOperationPricingSummary\`.
+
+- İş kullanım satırı \`id\`, \`category: "labor" | "operation"\`, açıklama, pozitif \`duration\`, açık süre birimi (\`min\` veya \`h\`) ve \`tariffId\` taşır.
+- Tarife tablosu \`tariffId\`, aynı kategori, açık birim, negatif olmayan güvenli tam sayı \`unitPriceMinor\`, üç büyük harfli \`currencyCode\` ve zorunlu \`sourceReference\` taşır. Sıfır fiyat yalnızca açık tarife satırıyla geçerlidir.
+- Kullanım ve tarife birimleri birebir eşleşmelidir. Dakika-saat dönüşümü, varsayılan süre, varsayılan tarife veya katalog fiyatı üretilmez. Dönüşüm gerekiyorsa çağıran taraf doğrulanmış süreyi tarife biriminde açıkça sağlamalıdır.
+- Tarife kimliği benzersiz olmalıdır; aynı tarife birden fazla iş satırında kullanılabilir. İş satırı kimlikleri de benzersiz olmalıdır. Tarife kategorisi iş satırı kategorisiyle eşleşmelidir.
+- Eksik tarife veya birim uyuşmazlığı \`status: "incomplete"\` ve \`missingTariffs\` üretir; \`costSummary: null\` kalır. Kategori/para birimi/şema uyuşmazlığı veya geçersiz satır \`blocked\` döndürür. Kısmi parasal toplam gösterilmez.
+- Hazır maliyet satırında \`lines[].tariffId\` ve \`lines[].sourceReference\` korunur. Kaynak referansı kullanıcının sağladığı tarife belgesine işaret eder; domain kaynağın gerçekliğini veya güncelliğini doğruladığını iddia etmez.
+- Süreler mevcut maliyet motoruyla tutarlı olarak en fazla altı ondalık basamakta işlenir ve her satır küçük para birimine yarım-yukarı yuvarlanır. Farklı para birimleri birleştirilmez.
+- Bu dilim yalnızca işçilik/operasyon maliyet özetidir; üretim tüketim fiyatlarıyla tek teklif toplamında birleştirme, tarife geçerlilik tarihi, vergi, kur, indirim ve teklif revizyonu sonraki ayrı görevlerdir.
+- Frontend entegrasyon sözleşmesi: \`ready\` durumunda tarife kimliği, kaynak referansı, süre, birim ve satır toplamı gösterilebilir; \`incomplete\` durumunda \`missingTariffs\`, \`blocked\` durumunda \`diagnostics\` açıklanmalıdır. \`costSummary\` yalnızca \`ready\` durumunda gösterilir. Bu dilimde \`frontend/**\` değiştirilmez.

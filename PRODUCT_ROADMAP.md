@@ -708,11 +708,11 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 
 ### Sonraki küçük domain görevleri
 
-1. DOM-008: kullanıcı girdili işçilik/operasyon kalemleri için süre, birim ve tarife kaynak referansını koruyan teklif satırı sözleşmesini genişlet; süre/tarife varsayma.
-2. Fiyat listesi için kaynak sürümü ve geçerlilik tarihi taşıyan snapshot zarfı tasarla; eski proje JSON v1 alanlarını değiştirme.
-3. Teklif revizyonu ve fiyat snapshot'ı arasındaki ilişkiyi geriye uyumlu domain modelinde tanımla; vergi/kur/iskonto gibi ticari kuralları varsayma.
-4. Frontend sahibinin JSON v1/CSV round-trip ve maliyet eksik/ready durumlarını ayrı PR üzerinden bağlamasını doğrula; frontend dosyalarına dokunma.
-5. Kenar bandı atama alanlarının frontend JSON v1/CSV adapter'ına kayıpsız eklenmesini ayrı frontend PR'ında doğrula.
+1. DOM-009: üretim tüketimi ve işçilik/operasyon maliyet özetlerini tek teklif toplamında birleştir; herhangi bir alt kapsam incomplete/blocked ise genel toplamı hazır gösterme.
+2. DOM-010: kullanıcı fiyat listesi ve tarife kaynağı için sürüm/etkinlik tarihi snapshot'ı ekle; tarih veya katalog sürümü varsayma.
+3. DOM-011: teklif revizyon zarfını geriye uyumlu ve salt okunur maliyet snapshot'larıyla tanımla; vergi/kur/iskonto kurallarını uydurma.
+4. Frontend sahibinin maliyet/tarife ready, incomplete ve blocked durumlarını JSON v1/CSV sözleşmesiyle bağlamasını PR üzerinden doğrula; frontend dosyalarına dokunma.
+5. INT-002 adapter round-trip testleri tamamlandığında QA-003 uçtan uca export denetimini yürüt.
 
 
 ### DOM-006 kabul sonucu
@@ -734,3 +734,12 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 - [Pages #44056080332](https://github.com/Taylan789/MobilyaCAD/actions/runs/44056080332) başarılı. PR açılmadı; yalnızca `dev/github-work` güncellendi. `frontend/**` ve `main` değiştirilmedi.
 - Bilinen sınırlar: bir Part için tek band kaynağı v1; gerçek katalog kaydı, renk/kalınlık/yapışkan, rulo payı/fire, işçilik ve CNC standardı doğrulanmaz. Fiziksel üretim onayı değildir.
 - Sonraki domain adımı DOM-008: kullanıcı girdili işçilik/operasyon tarifesi, süre ve özgün birim sözleşmesi.
+
+
+## 17 Kasım 2026 13:49 TRT — DOM-008 işçilik/operasyon tarifesi (Actions doğrulaması bekleniyor)
+
+- Domain dilimi, kullanıcı girdili iş kullanım satırlarını ayrı tarife tablosuyla eşleştirir. Her kullanım satırı açık kategori, süre, süre birimi ve tarife kimliği taşır; tarife açık birim fiyatı, para birimi ve zorunlu kaynak referansı taşır.
+- Kabul kriterleri: tarife ve kullanım kimlikleri benzersiz; kategori eşleşmesi zorunlu; dakika/saat birimleri birebir eşleşir; otomatik dönüşüm ve varsayılan fiyat yoktur; eksik tarife/birim uyuşmazlığında kısmi parasal toplam yoktur; farklı para birimleri blocked olur.
+- Sıfır fiyat yalnızca açık tarife girdisiyle kabul edilir. Süre en fazla altı ondalık basamak; mevcut maliyet motorunun satır yuvarlaması kullanılır.
+- İlk uygulama commit SHA'sı ve Actions run bağlantıları doğrulama sonrasında AI_PROGRESS.md / AI_COORDINATION.md içine yazılacaktır.
+- Bilinen sınırlar: tarife kaynağının gerçekliği ve güncelliği doğrulanmaz; geçerlilik tarihi, vergi, kur, teklif revizyonu ve üretim tüketimiyle tek toplam sonraki görevlerdir. Fiziksel üretim onayı değildir.
