@@ -851,3 +851,16 @@
 - AI Developer #44076389923 ve entegrasyon/performans job'u OpenCode kurulmadan önce latest release API yanıtından tag_name çıkarılamadığı için başarısız oldu. Kod/test adımı çalışmadı; failed-job rerun bir sonraki güvenli adım olarak bekliyor.
 - Kısıtlar: katalog kimliği/sürümü/tarih kullanıcı girdisidir; kaynağın gerçekliği doğrulanmaz. JSON v1/CSV ve UI entegrasyonu ayrı sahibindedir. Vergi, kur ve CNC/atölye onayı yoktur.
 - Sonraki görev: DOM-011 — teklif revizyon zarfı ve salt okunur maliyet snapshot'ları.
+
+
+## 17 Kasım 2026 17:42 TRT — DOM-011 teklif revizyon zarfı (Actions doğrulaması bekleniyor)
+
+- Başlangıç HEAD: e5156f0680fc51b506b79b9a22f831268f2089d9.
+- Geliştirme: domain/production/projectQuoteRevision.ts, yalnızca hazır ve tutarlı ProjectQuotePricingSnapshot girdisinden ayrı bir revizyon zarfı oluşturur. İlk revizyon 1 numarasıyla başlar; sonraki revizyon aynı proje kimliğine, önceki revizyon kimliğine, ardışık sıra numarasına ve daha yeni saat dilimli ISO 8601 tarihine bağlanır.
+- Veri güvenliği: maliyet satırları, kategori toplamları, genel toplam, para birimi ve lineSources eşlemesi doğrulanır. Snapshot JSON uyumlu derin kopyaya alınır ve zarf runtime'da derin dondurulur. Hazır olmayan/boş teklif revizyon üretmez.
+- Geriye uyumluluk: mevcut proje JSON v1 serializer/parser ve frontend/** dosyaları değiştirilmedi; revizyon zarfı ayrı kayıt sözleşmesidir.
+- Yeni test: domain/production/projectQuoteRevision.test.mjs; ilk/sonraki revizyon, proje ve sıra uyuşmazlığı, tarih sırası/geçerliliği, immutable snapshot, tutarsız toplam, boş teklif ve bilinmeyen alan senaryoları.
+- Strict TypeScript kapsamına projectQuoteRevision.ts eklendi; domain test glob'u yeni test dosyasını otomatik kapsar.
+- Kod/test commit SHA'sı ve CI/QA run bağlantıları, gerçek Actions sonuçları alındıktan sonra bu kayda eklenecek.
+- Bilinen sınırlar: tüm revizyon geçmişi boyunca kimlik tekilliği ve kalıcı saklama henüz bu domain diliminin dışında; frontend/JSON v1/CSV entegrasyonu ayrı sahibindedir. Vergi, kur, iskonto, otomatik yüzde, CNC ve fiziksel üretim onayı yoktur.
+- Sonraki görev: DOM-012 — fire/kâr için yalnızca açık kullanıcı maliyet satırları ve kaynak referansı; ardından INT-001/INT-002 adapter round-trip entegrasyonu.

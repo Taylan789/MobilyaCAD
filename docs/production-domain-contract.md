@@ -437,3 +437,18 @@ Kaynak: domain/production/projectQuotePricingSnapshot.ts, createProjectQuotePric
 - Incomplete, blocked veya empty teklif için snapshot oluşturulmaz. Eksik metadata, geçersiz tarih, teklif gününün geçerlilik aralığı dışında kalması veya bilinmeyen alan blocked döndürür; kısmi snapshot sunulmaz.
 - Katalog kimliği/sürümü/geçerlilik tarihi kullanıcı girdisidir. Domain kaynağın gerçekliğini, fiyatın geçmişte gerçekten yürürlükte olduğunu veya üretici fiyatını doğruladığını iddia etmez.
 - Frontend entegrasyon sözleşmesi: ready snapshot için schemaVersion, quotedOn, consumptionPriceList, laborOperationTariffList ve quoteSummary alanları; boş/eksik/blok durumları için status ve diagnostics kullanılır. Bu dilimde frontend, JSON v1 ve CSV adapter dosyaları değiştirilmemiştir.
+
+
+## Teklif revizyon zarfı — domain v1
+
+Kaynak: domain/production/projectQuoteRevision.ts, createProjectQuoteRevision.
+
+- Girdi, proje kimliği, revizyon kimliği, pozitif sıra numarası, saat dilimi içeren ISO 8601 oluşturulma tarihi, önceki revizyon referansı ve hazır ProjectQuotePricingSnapshot taşır.
+- İlk revizyon için previousRevision açıkça null ve revisionNumber tam olarak 1 olmalıdır. Sonraki revizyon aynı projectId değerini korur; önceki revisionId değerine bağlanır, sıra numarasını tam bir artırır ve daha yeni bir createdAt zamanı taşır.
+- Revizyon kimlikleri, proje kimlikleri, tarih-saat, katalog sürümü ve teklif snapshot yapısı runtime'da doğrulanır. Saat dilimsiz veya takvimde bulunmayan tarih kabul edilmez.
+- Yalnızca status ready olan ve satır toplamı, kategori toplamı, para birimi, lineSources eşlemesi tutarlı bir maliyet snapshot'ı revizyona alınır. Eksik, boş, blocked veya incomplete teklif için kısmi revizyon üretilmez.
+- Pricing snapshot, JSON uyumlu derin kopyaya alınır ve zarfla birlikte runtime'da derin dondurulur. Sonradan fiyat tablosu veya çağıran nesne değişse bile geçmiş revizyonun maliyet satırları değişmez.
+- Bu domain zarfı ayrı bir revizyon kaydıdır; mevcut proje JSON v1 şeması, serializer ve parser değiştirilmez. Kalıcı revizyon geçmişi için çağıran depolama katmanı bu zarfı ayrı kayıt olarak saklamalıdır.
+- Bu dilim yalnızca önceki revizyon referansını, proje kimliğini, ardışık sıra numarasını ve kronolojiyi doğrular. Tüm geçmiş boyunca revisionId tekilliği ve kalıcı sıralama, ilerideki depolama/adapter katmanında ayrıca garanti edilmelidir.
+- Frontend entegrasyon sözleşmesi: ready sonucunda schemaVersion, projectId, revisionId, revisionNumber, createdAt, previousRevisionId ve pricingSnapshot alanları salt okunur geçmiş girdisi olarak gösterilebilir. blocked sonucunda diagnostics açıklanır; ready olmayan maliyet snapshot'ı revizyon geçmişine eklenmez.
+- Bu modül teklif fiyatının, katalog kaynağının veya üretici standardının gerçekliğini doğrulamaz; vergi, kur dönüşümü, iskonto, fiyat tahmini veya CNC/atölye üretim onayı eklemez.

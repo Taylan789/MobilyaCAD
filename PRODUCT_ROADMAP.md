@@ -22,7 +22,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 | Kenar bantlama / malzeme tüketimi | Domain malzeme özeti gövde, çekmece, kitaplık, masa, gardırop, TV bölücü/raf ve kesitli panellerin ortak Part listesinden quantity ağırlıklı net alan/hacim ve dış/iç kenar bantlamasını hesaplayabilir | Domain özeti henüz UI/JSON/CSV'ye bağlı değil; fire, levha verimi, kerf, bant kalınlığı ve rulo payı yok |
 | Malzeme kataloğu | UI CRUD; mobilya varsayılan materialId ve çekmece grubunda varsayılan + dört panel grubu override; domain gövde/kitaplık motorları altı gövde panel grubu için malzeme override'ını doğrular | Gövde panel override'ları henüz frontend JSON v1/CSV ve UI akışına bağlanmadı; fiyat, tedarikçi ve fire henüz yok |
 | Proje dosyası | Yerel JSON v1 indirme/yükleme; saf serializer/parser; round-trip ve eski v1 uyumluluk; mm, mobilya ve çekmece grubu katalog referansları ile dört çekmece panel kalınlığının doğrulanması | Şema migrasyonu, otomatik kayıt ve kurtarma yok |
-| Teklif/maliyet | Kullanıcı fiyat tablosu malzeme tüketimini `materialId + m2`, donanımı `hardwareId + özgün BOM birimi`, kenar bandını `edgeBandingId + açık mm/m birimi` ile fiyatlandırır; yalnızca tam kapsam ve tek para biriminde toplam üretir | İşçilik/operasyon tarifesi, fiyat geçerlilik tarihi ve teklif revizyonu henüz yok; frontend fiyat kataloğu/UI entegrasyonu ayrı sahibinde |
+| Teklif/maliyet | Kullanıcı fiyat tablosu malzeme tüketimini materialId + m2, donanımı hardwareId + özgün BOM birimi, kenar bandını edgeBandingId + açık mm/m birimi ile fiyatlandırır; kullanıcı girdili işçilik/operasyon tarifesi, tek para birimli birleşik teklif ve tarihli fiyat/tarife katalog snapshot'ı vardır; DOM-011 immutable revizyon zarfını ekler | Frontend/UI ve JSON v1/CSV kalıcı revizyon geçmişi entegrasyonu ayrı sahibindedir; tüm geçmişte ID tekilliği depolama katmanında doğrulanmalıdır; vergi, kur, iskonto, otomatik fire/kâr yüzdesi ve üretim onayı yok |
 | Test/CI | Son doğrulanmış domain/test HEAD `ea78777b1f2852f0b81b44eb0fe6bb68a84f5157`: [CI #44056080300](https://github.com/Taylan789/MobilyaCAD/actions/runs/44056080300), [QA #44056080414](https://github.com/Taylan789/MobilyaCAD/actions/runs/44056080414) (101/101 frontend + 178/178 domain) ve [Pages #44056080332](https://github.com/Taylan789/MobilyaCAD/actions/runs/44056080332) başarılı | Shared-domain strict TypeScript, lint (32 uyarı/0 hata), frontend production build ve yüksek önem eşiğinde production dependency audit geçti; 4 orta önem audit bulgusu ve Actions Node 20/punycode uyarıları sürüyor |
 
 ### Bilinen mimari ve veri boşlukları
@@ -760,12 +760,11 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 
 ### Sıradaki 3-5 küçük görev
 
-1. DOM-010: fiyat listesi ve tarife kaynağı için açık katalog sürümü/etkinlik tarihi snapshot'ı; tarih veya katalog sürümü varsayma.
-2. DOM-011: salt okunur maliyet snapshot'larıyla teklif revizyon zarfı; eski proje JSON v1 dosyalarını değiştirme.
-3. DOM-012: fire ve kârı yalnızca açık miktar/birim/fiyat satırlarıyla ekle; yüzde, vergi veya marj uydurma.
-4. Frontend sahibinin birleşik teklif ready/incomplete/blocked durumlarını kendi JSON/UI akışına bağlamasını PR üzerinden doğrula; `frontend/**` dosyalarına dokunma.
-5. INT-001/INT-002 tamamlandığında JSON/CSV round-trip ve export engellerini uçtan uca denetle; CNC/üretim onayı için fiziksel atölye doğrulaması ayrı kal.
-
+1. DOM-012: fire ve kârı yalnızca kullanıcı tarafından girilen açık miktar/birim/fiyat satırlarıyla ekle; yüzde, vergi veya marj uydurma.
+2. INT-001: domain üretim raporundaki kesit geometrisi, malzeme ve miktarı JSON/CSV adapter'ında kayıpsız taşı veya desteklenmeyen çıktıyı engelle.
+3. Frontend sahibinin DOM-009/010/011 ready, incomplete ve blocked sözleşmelerini proje akışına bağlamasını PR üzerinden doğrula; frontend dosyalarına dokunma.
+4. INT-002: sahiplenilmemiş adapter testlerinde JSON/CSV round-trip ve geometri/miktar sadakatini doğrula; entegrasyon ajanının dosyalarına müdahale etme.
+5. QA-003: INT-001/INT-002 tamamlandığında birleşik teklif ve export akışını uçtan uca denetle.
 
 ## 17 Kasım 2026 15:43 TRT — DOM-010 fiyat/tarife sürüm snapshot'ı (doğrulama bekleniyor)
 
@@ -793,3 +792,12 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 - [Pages #44086836270](https://github.com/Taylan789/MobilyaCAD/actions/runs/44086836270) başarılı.
 - Lint 32 uyarı / 0 hata; production audit yüksek önem eşiğini geçti, 4 orta seviye bulgu sürüyor.
 - DOM-010 DONE. Sonraki görev DOM-011: salt okunur teklif revizyon zarfı ve maliyet snapshot'ı.
+
+
+## 17 Kasım 2026 17:42 TRT — DOM-011 teklif revizyon zarfı (Actions doğrulaması bekleniyor)
+
+- Kullanıcı akışı: hazır birleşik teklifin fiyat/tarife snapshot'ı, proje kimliği ve açık revizyon kimliği/sırası/tarihiyle ayrı bir revizyon kaydına alınır; sonraki kayıt önceki revizyona bağlanır.
+- Kabul ölçütleri: ilk revizyon 1 numarasıyla başlar; sonraki revizyon aynı projeye ait olur, sıra numarasını bir artırır ve daha yeni saat dilimli ISO 8601 tarihi taşır. Kimlik, tarih, snapshot para birimi, maliyet satırı/kategori toplamı ve kaynak eşlemesi doğrulanır.
+- Maliyet snapshot'ı JSON uyumlu derin kopyaya alınır ve runtime'da dondurulur. Eksik/boş/incomplete/blocked teklif revizyon oluşturmaz.
+- Mevcut proje JSON v1 şeması ve frontend/adapter dosyaları değiştirilmedi; revizyon zarfı ayrı domain kaydıdır. Kalıcı geçmiş ve tüm geçmişte kimlik tekilliği sonraki depolama/adapter entegrasyonunda sağlanmalıdır.
+- Kod ve test commit'i oluşturuldu; gerçek CI/QA sonucu bu kayıt tamamlanmadan DONE ilan edilmeyecektir.
