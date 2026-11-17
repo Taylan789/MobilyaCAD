@@ -752,6 +752,9 @@
 - Kâr ve fire yalnızca açık tutar satırlarıdır; yüzde, levha fire oranı, vergi, kur dönüşümü, katalog fiyatı veya tedarik bedeli tahmin edilmez.
 - Değişen dosyalar: domain/production/projectCostSummary.ts, domain/production/projectCostSummary.test.mjs, .github/workflows/qa-test.yml, docs/production-domain-contract.md, PRODUCT_ROADMAP.md, AI_COORDINATION.md, AI_PROGRESS.md.
 - Kabul kontrolleri: boş proje, altı maliyet kategorisi, 0.1/0.2 miktar, satır bazında yarım-yukarı yuvarlama, sıfır fiyatın açık korunması, para birimi uyuşmazlığı, hatalı miktar/fiyat, yinelenen kimlik, bilinmeyen alan ve toplam taşması.
-- Otomatik doğrulama: bu kayıt hazırlanırken yeni commit henüz oluşturulmadı; GitHub Actions sonuçları bekleniyor ve başarılı ilan edilmiyor.
+- Teslimat commit: [6d1d820d6469777f24cb0c7d5e251dfe7ec39c61](https://github.com/Taylan789/MobilyaCAD/commit/6d1d820d6469777f24cb0c7d5e251dfe7ec39c61).
+- [MobilyaCAD CI #44042058150](https://github.com/Taylan789/MobilyaCAD/actions/runs/44042058150) başarılı; [QA & Test #44042058139](https://github.com/Taylan789/MobilyaCAD/actions/runs/44042058139) başarılı: **101/101 frontend + 164/164 domain testi, 0 başarısız**. Yeni proje maliyet modülü shared-domain strict TypeScript kontrolüne eklendi; lint, frontend TypeScript/production build ve production dependency audit adımları geçti.
+- [Pages build/deploy #44042058240](https://github.com/Taylan789/MobilyaCAD/actions/runs/44042058240) başarılı.
+- PR açılmadı; kullanıcı yetkisi kapsamında yalnızca dev/github-work dalına doğrudan commit edildi. AI Developer workflow için yeni run görünmedi; workflow_dispatch çalışması bu turda başlatılmadı.
 - Bilinen sınırlar: maliyet satırları henüz üretim malzeme/donanım özetlerine otomatik eşlenmez; fiyat kataloğu, geçerlilik tarihi, teklif revizyonu, vergi ve frontend entegrasyonu sonraki ayrı dilimlerdir. Fiziksel üretim/CNC onayı değildir.
-- Sonraki görev: kullanıcı fiyat tablosunu açık materialId/hardwareId + birim anahtarlarıyla üretim özetlerine bağlayan domain adapter'ı; fiyat eksikse maliyeti hazır göstermeyen engel durumu.
+- Sonraki görev DOM-006: kullanıcı fiyat tablosunu açık materialId/hardwareId + özgün birim anahtarlarıyla üretim özetlerine bağlayan domain adapter'ı; fiyat eksikse maliyeti hazır göstermeyen eksik-girdi durumu.

@@ -686,3 +686,11 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 3. Teklif revizyonu, para birimi ve fiyat geçerlilik tarihi için sürümlenebilir domain zarfını tasarla; eski proje JSON v1 alanlarını değiştirmeden tut.
 4. Vergi, indirim ve kâr yüzdesini yalnızca açık ülke/işletme ayarları ve kullanıcı girdisi tanımlandığında ayrı hesap kuralları olarak ele al.
 5. Fiyatlı malzeme/donanım/işçilik satırlarının JSON/CSV round-trip ve UI entegrasyonunu ilgili frontend sahibiyle sözleşme üzerinden tamamla; frontend dosyalarına dokunma.
+
+
+### DOM-005 teslimat ve Actions doğrulaması
+
+- Commit: [6d1d820d6469777f24cb0c7d5e251dfe7ec39c61](https://github.com/Taylan789/MobilyaCAD/commit/6d1d820d6469777f24cb0c7d5e251dfe7ec39c61).
+- [CI #44042058150](https://github.com/Taylan789/MobilyaCAD/actions/runs/44042058150), [QA #44042058139](https://github.com/Taylan789/MobilyaCAD/actions/runs/44042058139) ve [Pages #44042058240](https://github.com/Taylan789/MobilyaCAD/actions/runs/44042058240) başarılı.
+- QA kanıtı: 101/101 frontend + 164/164 domain testi; 0 başarısız. Strict shared-domain TypeScript, lint, production build ve production dependency audit adımları geçti.
+- Sonraki domain dilimi: açık fiyat tablosunu materialId/hardwareId ve özgün birim ile tüketim özetlerine eşlemek; eksik fiyat veya para birimi uyuşmazlığında toplamı hazır göstermemek.
