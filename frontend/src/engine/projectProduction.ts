@@ -352,11 +352,10 @@ export function calculateProjectProduction(
 
   for (const placed of furniture) {
     const furnitureId = typeof placed?.id === "string" ? placed.id : "";
-    const furnitureName = typeof placed?.name === "string" && placed.name.trim() !== ""
-      ? placed.name.trim()
-      : "İsimsiz mobilya";
+    const hasFurnitureName = typeof placed?.name === "string" && placed.name.trim() !== "";
+    const furnitureName = hasFurnitureName ? placed.name.trim() : "İsimsiz mobilya";
     if (furnitureId !== "") furnitureNames.set(furnitureId, furnitureName);
-    if (furnitureName === "İsimsiz mobilya") {
+    if (!hasFurnitureName) {
       adapterIssues.push({
         furnitureId,
         furnitureName,
