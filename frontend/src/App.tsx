@@ -72,6 +72,7 @@ import {
 } from "./components/ui/tooltip";
 import { ScrollArea } from "./components/ui/scroll-area";
 import { MobilyaCadLogo } from "./components/brand/MobilyaCadLogo";
+import { openWorkspaceImmediately } from "./components/workspace/workspaceStartup";
 import "./components/workspace/KeyboardShortcuts.css";
 import "./styles/workbench.css";
 
@@ -161,11 +162,8 @@ function matchesSceneMaterialSearch(
 
 function App() {
   const [workspaceOpen, setWorkspaceOpen] = useState(false);
-  const [workspaceLoading, setWorkspaceLoading] = useState(false);
   function startWorkspace() {
-    if (workspaceLoading || workspaceOpen) return;
-    setWorkspaceLoading(true);
-    window.setTimeout(() => { setWorkspaceOpen(true); setWorkspaceLoading(false); }, 1450);
+    openWorkspaceImmediately(workspaceOpen, () => setWorkspaceOpen(true));
   }
   const [roomWidth, setRoomWidth] = useState(4000);
   const [roomLength, setRoomLength] = useState(5000);
@@ -255,7 +253,6 @@ function App() {
     initialPanel: "catalog" | "scene" = "catalog",
     initialInspector: "room" | "furniture" | "production" | "materials" = "room"
   ) {
-    if (workspaceLoading) return;
     if (
       hasUnsavedChanges &&
       !window.confirm("Kaydedilmemiş değişiklikler var. Yeni projeye geçmek istiyor musun?")
@@ -2341,13 +2338,6 @@ function App() {
         </nav>
         )}
 
-        {workspaceLoading && <div className="cad-loading-screen" role="status" aria-live="polite">
-          <MobilyaCadLogo className="cad-loading-brand" tone="inverse" descriptor="STUDIO" />
-          <div className="cad-loading-model" aria-hidden="true"><i className="cad-loading-panel cad-loading-panel-a" /><i className="cad-loading-panel cad-loading-panel-b" /><i className="cad-loading-panel cad-loading-panel-c" /><i className="cad-loading-shelf" /><i className="cad-loading-dimension">1200 mm</i></div>
-          <p className="cad-loading-kicker">PARAMETRİK TASARIM ORTAMI</p><h2>Çalışma alanın hazırlanıyor</h2>
-          <span className="cad-loading-caption">Geometri motoru · Malzeme kataloğu · Üretim araçları</span>
-          <div className="cad-loading-track"><span /></div><span className="cad-loading-percent">MOBİLYACAD STUDIO / INITIALIZING</span>
-        </div>}
         <footer className="cad-statusbar">
           <div className="cad-status-item">
             <span className="cad-status-light" />
