@@ -95,3 +95,109 @@
 .cad-viewport--drop-ready{outline:2px solid rgba(145,180,202,.4);outline-offset:-3px}
 @keyframes mc-drop-pulse{from{background:rgba(18,31,40,.42);border-color:rgba(145,180,202,.48)}to{background:rgba(38,62,77,.62);border-color:rgba(177,207,225,.9)}}
 @media(prefers-reduced-motion:reduce){.cad-viewport--drop-ready::after{animation:none}}
+
+/* Sahne görünürlüğü ve yalıtılmış nesne kontrolleri */
+.studio-tree-isolate,
+.studio-tree-restore-visibility,
+.studio-tree-visibility-toggle {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  color: #9eb1bc;
+  background: #1d2b34;
+  border: 1px solid #3a505c;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: color 140ms ease, background-color 140ms ease, border-color 140ms ease, opacity 140ms ease;
+}
+
+.studio-tree-isolate,
+.studio-tree-restore-visibility {
+  width: 25px;
+  height: 25px;
+}
+
+.studio-tree-isolate svg,
+.studio-tree-restore-visibility svg {
+  width: 13px;
+  height: 13px;
+}
+
+.studio-tree-isolate:hover:not(:disabled),
+.studio-tree-restore-visibility:hover,
+.studio-tree-visibility-toggle:hover {
+  color: #f0f5f7;
+  background: #2b414c;
+  border-color: #6a8797;
+}
+
+.studio-tree-isolate.is-active {
+  color: #e2bd9e;
+  background: rgba(195, 148, 112, .14);
+  border-color: rgba(195, 148, 112, .62);
+  box-shadow: inset 0 0 0 1px rgba(195, 148, 112, .08);
+}
+
+.studio-tree-isolate:disabled {
+  opacity: .38;
+  cursor: not-allowed;
+}
+
+.studio-tree-visibility-toggle {
+  width: 27px;
+  height: 35px;
+  color: #8095a1;
+  background: transparent;
+  border-color: transparent;
+}
+
+.studio-tree-visibility-toggle svg {
+  width: 14px;
+  height: 14px;
+}
+
+.studio-tree-visibility-toggle.is-hidden {
+  color: #c39470;
+  background: rgba(195, 148, 112, .07);
+}
+
+.studio-tree-object.is-hidden .studio-tree-object-select {
+  opacity: .56;
+  border-style: dashed;
+}
+
+.studio-tree-object.is-isolated-out .studio-tree-object-select {
+  opacity: .42;
+}
+
+.studio-tree-object.is-hidden .studio-tree-object-select > span > small {
+  color: #c39470;
+}
+
+.studio-tree-part-type-icon {
+  display: inline-flex;
+  width: 13px;
+  height: 13px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  color: #8198a5;
+}
+
+.studio-tree-part-type-icon svg {
+  width: 12px;
+  height: 12px;
+}
+
+.studio-tree-part.selected .studio-tree-part-type-icon {
+  color: #d8a982;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .studio-tree-isolate,
+  .studio-tree-restore-visibility,
+  .studio-tree-visibility-toggle {
+    transition: none !important;
+  }
+}
+
