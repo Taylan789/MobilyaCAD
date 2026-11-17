@@ -201,3 +201,143 @@
   }
 }
 
+
+
+/* Sahne ağacında malzeme kaynağı ve atama durumları */
+.studio-tree-object-select {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+}
+
+.studio-tree-object-select > span {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.studio-tree-object-select > span > strong,
+.studio-tree-part-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.studio-tree-material-line {
+  display: flex;
+  min-width: 0;
+  max-width: 100%;
+  align-items: center;
+  gap: 5px;
+  overflow: hidden;
+  color: #8fa3ae;
+  font-size: 7px;
+  line-height: 1.25;
+}
+
+.studio-tree-material-name {
+  min-width: 0;
+  overflow: hidden;
+  color: #aebdc6;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.studio-tree-material-source {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  padding: 2px 4px;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  font-size: 6px;
+  font-weight: 800;
+  letter-spacing: .07em;
+  line-height: 1.15;
+}
+
+.studio-tree-material-source.is-catalog {
+  color: #b9d1df;
+  background: rgba(145, 180, 202, .12);
+  border-color: rgba(145, 180, 202, .24);
+}
+
+.studio-tree-material-source.is-custom {
+  color: #e0b694;
+  background: rgba(195, 148, 112, .11);
+  border-color: rgba(195, 148, 112, .24);
+}
+
+.studio-tree-material-source.is-missing {
+  color: #e0a09a;
+  background: rgba(199, 127, 123, .12);
+  border-color: rgba(199, 127, 123, .28);
+}
+
+.studio-tree-material-source.is-unassigned {
+  color: #a2afb6;
+  background: rgba(145, 162, 172, .09);
+  border-color: rgba(145, 162, 172, .18);
+}
+
+.studio-tree-part {
+  display: flex;
+  min-height: 43px;
+  align-items: center;
+  gap: 7px;
+}
+
+.studio-tree-part-copy {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.studio-tree-part-name {
+  color: inherit;
+  font-size: 9px;
+  line-height: 1.25;
+}
+
+.studio-tree-part-material {
+  margin-top: 0;
+  font-size: 6px;
+}
+
+.studio-tree-material-inheritance {
+  flex: 0 0 auto;
+  color: #9eb2bd;
+  font-size: 6px;
+  font-weight: 750;
+  letter-spacing: .05em;
+}
+
+.studio-tree-object.is-hidden .studio-tree-material-name {
+  color: #9babb4;
+}
+
+.studio-tree-object.is-hidden .studio-tree-material-source {
+  opacity: .78;
+}
+
+@media (max-width: 820px) {
+  .studio-tree-material-line {
+    gap: 4px;
+    font-size: 7px;
+  }
+
+  .studio-tree-material-source {
+    font-size: 6px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .studio-tree-material-source {
+    transition: none !important;
+  }
+}
