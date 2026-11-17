@@ -95,6 +95,69 @@ import { createProjectCutListCsv } from "./engine/cutListCsv";
 import { calculateProjectProduction, isSupportedCabinetCatalogItem } from "./engine/projectProduction";
 import type { CabinetConstructionRules } from "./types/construction/cabinetRules";
 
+type SceneMaterialSource = "catalog" | "custom" | "missing" | "unassigned";
+
+interface SceneMaterialResolution {
+  name: string;
+  source: SceneMaterialSource;
+  searchTerms: string[];
+}
+
+const sceneMaterialSourceLabels: Record<SceneMaterialSource, string> = {
+  catalog: "KATALOG",
+  custom: "SERBEST",
+  missing: "KAYIT EKSİK",
+  unassigned: "ATANMAMIŞ",
+};
+
+function resolveSceneMaterial(
+  materialName: string | undefined,
+  materials: MaterialCatalogEntry[],
+  materialId?: string
+): SceneMaterialResolution {
+  const name = materialName?.trim() ?? "";
+  const normalizedName = name.toLocaleLowerCase("tr-TR");
+  const catalogEntry = materialId
+    ? materials.find((entry) => entry.id === materialId)
+    : normalizedName
+      ? materials.find(
+          (entry) => entry.name.toLocaleLowerCase("tr-TR") === normalizedName
+        )
+      : undefined;
+
+  if (catalogEntry) {
+    return {
+      name: catalogEntry.name,
+      source: "catalog",
+      searchTerms: [
+        name,
+        catalogEntry.name,
+        catalogEntry.id,
+        catalogEntry.decor ?? "",
+      ],
+    };
+  }
+
+  return {
+    name,
+    source: materialId ? "missing" : name ? "custom" : "unassigned",
+    searchTerms: [name, materialId ?? ""],
+  };
+}
+
+function matchesSceneMaterialSearch(
+  materialName: string | undefined,
+  materials: MaterialCatalogEntry[],
+  query: string,
+  materialId?: string
+): boolean {
+  if (!query) return false;
+
+  return resolveSceneMaterial(materialName, materials, materialId).searchTerms.some(
+    (term) => term.toLocaleLowerCase("tr-TR").includes(query)
+  );
+}
+
 function App() {
   const [workspaceOpen, setWorkspaceOpen] = useState(false);
   const [workspaceLoading, setWorkspaceLoading] = useState(false);
@@ -293,11 +356,24 @@ function App() {
     (item) => item.id === selectedFurniture?.catalogId
   );
 
-  const normalizedSceneSearch = sceneSearch.trim().toLocaleLowerCase("tr");
-  const filteredSceneFurniture = furniture.filter((item) =>
-    item.name.toLocaleLowerCase("tr").includes(normalizedSceneSearch) ||
-    item.parts.some((part) => part.name.toLocaleLowerCase("tr").includes(normalizedSceneSearch))
-  );
+  const normalizedSceneSearch = sceneSearch.trim().toLocaleLowerCase("tr-TR");
+  const filteredSceneFurniture = furniture.filter((item) => {
+    const furnitureNameMatches = item.name
+      .toLocaleLowerCase("tr-TR")
+      .includes(normalizedSceneSearch);
+    const furnitureMaterialMatches = matchesSceneMaterialSearch(
+      item.material,
+      materials,
+      normalizedSceneSearch,
+      item.materialId
+    );
+    const partMatches = item.parts.some((part) =>
+      part.name.toLocaleLowerCase("tr-TR").includes(normalizedSceneSearch) ||
+      matchesSceneMaterialSearch(part.material, materials, normalizedSceneSearch)
+    );
+
+    return furnitureNameMatches || furnitureMaterialMatches || partMatches;
+  });
   const allSceneFurnitureCollapsed = furniture.length > 0 &&
     furniture.every((item) => collapsedSceneFurnitureIds.includes(item.id));
   const hiddenFurnitureCount = furniture.filter((item) => hiddenFurnitureIds.includes(item.id)).length;
@@ -1428,8 +1504,8 @@ function App() {
                     id="cad-scene-search"
                     value={sceneSearch}
                     onChange={(event) => setSceneSearch(event.target.value)}
-                    placeholder="Mobilya veya parça ara..."
-                    aria-label="Sahne ağacında mobilya veya parça ara"
+                    placeholder="Mobilya, parça veya malzeme ara..."
+                    aria-label="Sahne ağacında mobilya, parça, malzeme veya dekor ara"
                   />
                   {sceneSearch && (
                     <button
@@ -1474,17 +1550,29 @@ function App() {
                     <div className="studio-tree-empty studio-tree-empty-search" role="status">
                       <Search />
                       <strong>Eşleşen nesne bulunamadı</strong>
-                      <span>Mobilya veya parça adını değiştirerek tekrar ara.</span>
+                      <span>Mobilya, parça adı, malzeme veya dekor etiketiyle tekrar ara.</span>
                       <button type="button" onClick={() => setSceneSearch("")}>Aramayı temizle</button>
                     </div>
                   ) : (
                     filteredSceneFurniture.map((item) => {
+                      const itemMaterial = resolveSceneMaterial(
+                        item.material,
+                        materials,
+                        item.materialId
+                      );
                       const itemMatches = normalizedSceneSearch.length === 0 ||
-                        item.name.toLocaleLowerCase("tr").includes(normalizedSceneSearch);
+                        item.name.toLocaleLowerCase("tr-TR").includes(normalizedSceneSearch) ||
+                        matchesSceneMaterialSearch(
+                          item.material,
+                          materials,
+                          normalizedSceneSearch,
+                          item.materialId
+                        );
                       const visibleParts = normalizedSceneSearch.length === 0 || itemMatches
                         ? item.parts
                         : item.parts.filter((part) =>
-                            part.name.toLocaleLowerCase("tr").includes(normalizedSceneSearch)
+                            part.name.toLocaleLowerCase("tr-TR").includes(normalizedSceneSearch) ||
+                            matchesSceneMaterialSearch(part.material, materials, normalizedSceneSearch)
                           );
                       const isExpanded = normalizedSceneSearch.length > 0 ||
                         !collapsedSceneFurnitureIds.includes(item.id);
@@ -1510,6 +1598,14 @@ function App() {
                               <span>
                                 <strong>{item.name}</strong>
                                 <small>{item.width} × {item.height} × {item.depth} mm</small>
+                                <small className="studio-tree-material-line" title={itemMaterial.name || "Malzeme atanmadı"}>
+                                  <span className={`studio-tree-material-source is-${itemMaterial.source}`}>
+                                    {sceneMaterialSourceLabels[itemMaterial.source]}
+                                  </span>
+                                  <span className="studio-tree-material-name">
+                                    {itemMaterial.name || "Malzeme atanmadı"}
+                                  </span>
+                                </small>
                               </span>
                               <em>{item.parts.length}</em>
                             </button>
@@ -1541,22 +1637,42 @@ function App() {
                           </div>
                           {isExpanded && visibleParts.length > 0 && (
                             <div className="studio-tree-object-parts">
-                              {visibleParts.map((part) => (
-                                <button
-                                  type="button"
-                                  className={selectedFurnitureId === item.id && selectedPartId === part.id ? "studio-tree-part selected" : "studio-tree-part"}
-                                  key={part.id}
-                                  aria-label={item.name + " içindeki " + part.name + " parçasını seç ve sahnede odakla"}
-                                  title="Parçayı seç ve 3D sahnede odakla"
-                                  onClick={() => focusSceneFurniture(item.id, part.id)}
-                                >
-                                  <span className="studio-tree-part-line" />
-                                  <span className="studio-tree-part-type-icon" aria-hidden="true">
-                                    {part.type === "door" ? <DoorOpen /> : part.type === "drawer" ? <Package /> : part.type === "shelf" ? <Layers3 /> : <PanelLeft />}
-                                  </span>
-                                  <span>{part.name}</span>
-                                </button>
-                              ))}
+                              {visibleParts.map((part) => {
+                                const partMaterial = resolveSceneMaterial(part.material, materials);
+                                const inheritsFurnitureMaterial =
+                                  part.material.trim().toLocaleLowerCase("tr-TR") ===
+                                  item.material.trim().toLocaleLowerCase("tr-TR");
+
+                                return (
+                                  <button
+                                    type="button"
+                                    className={selectedFurnitureId === item.id && selectedPartId === part.id ? "studio-tree-part selected" : "studio-tree-part"}
+                                    key={part.id}
+                                    aria-label={item.name + " içindeki " + part.name + " parçasını seç ve sahnede odakla. Malzeme: " + (partMaterial.name || "atanmamış") + ". " + sceneMaterialSourceLabels[partMaterial.source]}
+                                    title={part.name + " · " + (partMaterial.name || "Malzeme atanmadı") + " · " + sceneMaterialSourceLabels[partMaterial.source]}
+                                    onClick={() => focusSceneFurniture(item.id, part.id)}
+                                  >
+                                    <span className="studio-tree-part-line" />
+                                    <span className="studio-tree-part-type-icon" aria-hidden="true">
+                                      {part.type === "door" ? <DoorOpen /> : part.type === "drawer" ? <Package /> : part.type === "shelf" ? <Layers3 /> : <PanelLeft />}
+                                    </span>
+                                    <span className="studio-tree-part-copy">
+                                      <span className="studio-tree-part-name">{part.name}</span>
+                                      <small className="studio-tree-material-line studio-tree-part-material">
+                                        <span className={`studio-tree-material-source is-${partMaterial.source}`}>
+                                          {sceneMaterialSourceLabels[partMaterial.source]}
+                                        </span>
+                                        <span className="studio-tree-material-name">
+                                          {partMaterial.name || "Malzeme atanmadı"}
+                                        </span>
+                                        {inheritsFurnitureMaterial && (
+                                          <span className="studio-tree-material-inheritance">VARSAYILAN</span>
+                                        )}
+                                      </small>
+                                    </span>
+                                  </button>
+                                );
+                              })}
                             </div>
                           )}
                         </div>
