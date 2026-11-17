@@ -291,3 +291,18 @@ Kaynak: `domain/production/panelCutoutGeometry.ts`, `domain/production/projectPr
 - Geçerli kesit geometrisi domain sonucu içinde `status: "ready"` kalır; ancak mevcut JSON v1/CSV adapter'ı `panelGeometry` alanını kayıpsız taşımadığı için `canExport: false` ve açık bir `exportBlockers` mesajı döner. Adapter destek eklediğinde bu blokaj kaldırılmalıdır.
 - Herhangi bir kesit kaydı geçersizse proje raporu `blocked`, `canExport: false` ve `result: null` olur; kısmi Part listesi verilmez. Eski isteklerde `panelCutouts` alanının bulunmaması geçerlidir.
 - Bu domain sonucu henüz frontend JSON v1/CSV adapter'ına bağlanmamıştır. Bu dilim CNC operasyonu, lavabo ölçüsü/armatür standardı, köşe yarıçapı, pah, fire, levha verimi veya makine postprocessor'ı üretmez; fiziksel üretim öncesi atölye doğrulaması gerekir.
+
+
+## 2.14 Açık ölçülü banyo dolabı üst panel açıklığı v1
+
+Kaynak: `domain/production/projectProduction.ts` ve `domain/production/panelCutoutGeometry.ts`.
+
+Proje isteğinde `family: "bathroom-vanity"` kullanılır. Diğer gövde ölçüleri, panel kalınlıkları, arkalık, kapak, raf, malzeme kataloğu ve kenar bantlama alanları mevcut `CabinetConstructionRequest` sözleşmesiyle açıkça sağlanır.
+
+- Banyo dolabı ailesi mevcut doğrulanmış cabinet carcass motorunu kullanır; sonuç `innerDimensionsMm` ve ortak Part listesini korur.
+- Üst panel Part kimliği `<furniture.id>-top` olmalıdır. `panelCutouts` içinde bu Part'a bağlanan geometri ve en az bir açıklık zorunludur. Geometri panelin gerçek genişlik/uzunluk/kalınlık ve dış kenar bant bayraklarıyla eşleşmelidir.
+- Bir üst panel geometrisinde birden fazla, birbirine temas etmeyen dikdörtgen geçiş açıklığı tanımlanabilir. Her açıklığın konumu (sol/üst kenardan X/Y), ölçüsü ve dört iç kenar bant bayrağı açıkça girilir. Net alan/hacim ve iç kenar bantlama aynı Part satırından quantity ağırlıklı malzeme özetine taşınır.
+- Açıklık eksikse veya yalnızca yan panel gibi başka bir Part'a bağlanmışsa proje `blocked`, `result: null` olur; kısmi parça listesi verilmez.
+- Kesitli Part için mevcut JSON v1/CSV adapter desteği henüz bulunmadığından geçerli geometri `ready` hesap sonucu üretse bile `canExport: false` kalır.
+- Bu ilk aile dilimi yalnızca eksenlere paralel dikdörtgen geçiş açıklıklarını kapsar. Oval/özel lavabo şablonu, musluk/drenaj deliği, sifon/tesisat boşluğu, köşe yarıçapı, pah, tezgâh bindirmesi, ayak/baza, duvar montajı, ankraj, yük, bağlantı, donanım veya CNC koordinatı üretmez. Gerçek lavabo/armatür ölçüsü ve fiziksel uygunluk üretici/atölye tarafından ayrıca doğrulanmalıdır.
+- Frontend JSON v1/CSV adapter'ı ayrı frontend sahibinin kapsamındadır; bu domain değişikliği hiçbir `frontend/**` dosyasını değiştirmez.

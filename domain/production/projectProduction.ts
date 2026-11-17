@@ -28,7 +28,7 @@ export type CabinetProjectFurnitureResult =
   | {
       furnitureId: string;
       /** Present for explicit cabinet/bookshelf requests; legacy cabinet results omit it. */
-      family?: "cabinet" | "bookshelf" | "wardrobe" | "tv-unit";
+      family?: "cabinet" | "bookshelf" | "wardrobe" | "tv-unit" | "bathroom-vanity";
       innerDimensionsMm: CabinetInnerDimensionsMm;
     }
   | {
@@ -60,7 +60,7 @@ export interface CabinetProjectProductionResult {
 }
 
 
-export type SupportedProjectFurnitureFamily = "cabinet" | "bookshelf" | "table" | "wardrobe" | "tv-unit";
+export type SupportedProjectFurnitureFamily = "cabinet" | "bookshelf" | "table" | "wardrobe" | "tv-unit" | "bathroom-vanity";
 
 export interface ProjectProductionFurnitureDiagnostic {
   furnitureId: string | null;
@@ -119,6 +119,7 @@ function readFurnitureFamily(value: unknown, index: number): SupportedProjectFur
   if (value.family === "table") return "table";
   if (value.family === "wardrobe") return "wardrobe";
   if (value.family === "tv-unit") return "tv-unit";
+  if (value.family === "bathroom-vanity") return "bathroom-vanity";
   throw new Error("Projenin " + (index + 1) + ". mobilya ailesi desteklenmiyor: " + String(value.family) + ".");
 }
 
@@ -421,6 +422,29 @@ export function calculateCabinetProjectProductionWithDiagnostics(
     }
   }
 
+  // A bathroom vanity is currently a cabinet carcass with one or more explicitly
+  // measured rectangular through-openings in its top panel. No sink template,
+  // plumbing clearance, mounting, feet or plinth geometry is inferred.
+  for (const furniture of furnitureResults) {
+    if (furniture.family !== "bathroom-vanity") continue;
+
+    const topPartId = furniture.furnitureId + "-top";
+    const topGeometry = panelGeometryByPartId.get(topPartId);
+    if (topGeometry && topGeometry.cutouts.length > 0) continue;
+
+    const alreadyBlocked = blockedFurniture.some((item) =>
+      item.furnitureId === furniture.furnitureId && item.code === "invalid-panel-geometry"
+    );
+    if (!alreadyBlocked) {
+      addBlocked(
+        furniture.furnitureId,
+        "bathroom-vanity",
+        "invalid-panel-geometry",
+        furniture.furnitureId + " banyo dolabı üst paneli için en az bir açık dikdörtgen geçiş açıklığı geometrisi gereklidir."
+      );
+    }
+  }
+
   const productionParts = parts.map((part) => {
     const panelGeometry = panelGeometryByPartId.get(part.id);
     return panelGeometry === undefined ? part : { ...part, panelGeometry };
@@ -469,7 +493,7 @@ function readDrawerGroupId(value: unknown, index: number): string {
 }
 
 /**
- * Calculates and combines explicit cabinet, bookshelf, table, wardrobe, floor-standing TV-unit and optional drawer-box requests.
+ * Calculates and combines explicit cabinet, bookshelf, table, wardrobe, floor-standing TV-unit, bathroom-vanity and optional drawer-box requests.
  *
  * Each cabinet is calculated independently using its own profile and material
  * catalogue. Drawer groups must reference one of those furniture IDs. The

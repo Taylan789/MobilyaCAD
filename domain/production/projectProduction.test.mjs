@@ -22,6 +22,13 @@ function createTvUnitRequest(id, overrides = {}) {
   };
 }
 
+function createBathroomVanityRequest(id, overrides = {}) {
+  return {
+    ...createRequest(id, overrides),
+    family: "bathroom-vanity"
+  };
+}
+
 function createRequest(id, overrides = {}) {
   const edgeBandingByGroup = Object.fromEntries(
     BODY_PANEL_GROUPS.map((group) => [group, { ...noBanding }])
@@ -1063,4 +1070,129 @@ test("bilinmeyen, yinelenen veya ölçüsü/dış bantlaması uyuşmayan kesit p
     assert.equal(report.result, null);
     assert.equal(report.blockedFurniture[0].code, "invalid-panel-geometry");
   }
+});
+
+
+test("banyo dolabı üst panelindeki çoklu dikdörtgen açıklıklar Part ve net malzeme tüketimine bağlanır", () => {
+  const furnitureId = "bathroom-vanity-cutouts";
+  const baseline = calculateCabinetProjectProduction({
+    schemaVersion: 1,
+    furniture: [createRequest(furnitureId)]
+  });
+  const top = baseline.parts.find((part) => part.id === furnitureId + "-top");
+  assert.ok(top);
+
+  const request = createBathroomVanityRequest(furnitureId);
+  request.panelMaterialOverrides = { top: "mdf-18" };
+  const geometry = {
+    schemaVersion: 1,
+    widthMm: top.width,
+    lengthMm: top.length,
+    thicknessMm: top.thickness,
+    outerEdgeBanding: top.edgeBanding,
+    cutouts: [
+      {
+        id: "basin-left",
+        xMm: 100,
+        yMm: 100,
+        widthMm: 300,
+        lengthMm: 200,
+        edgeBanding: { top: false, bottom: false, left: true, right: true }
+      },
+      {
+        id: "basin-right",
+        xMm: 500,
+        yMm: 100,
+        widthMm: 100,
+        lengthMm: 200,
+        edgeBanding: { top: true, bottom: true, left: false, right: false }
+      }
+    ]
+  };
+
+  const report = calculateCabinetProjectProductionWithDiagnostics({
+    schemaVersion: 1,
+    furniture: [request],
+    panelCutouts: [{ partId: top.id, geometry }]
+  });
+
+  assert.equal(report.status, "ready");
+  assert.equal(report.supportedFurniture[0].family, "bathroom-vanity");
+  assert.equal(report.result.furniture[0].family, "bathroom-vanity");
+  assert.equal(report.canExport, false);
+  assert.match(report.exportBlockers[0], /JSON v1\/CSV/);
+
+  const topPart = report.result.parts.find((part) => part.id === top.id);
+  assert.equal(topPart.panelGeometry.cutouts.length, 2);
+  assert.equal(topPart.panelGeometry.netFaceAreaMm2, 347840);
+
+  const summary = calculateProjectMaterialConsumptionSummary(report.result);
+  const topMaterial = summary.find((entry) => entry.materialId === "mdf-18");
+  assert.ok(topMaterial);
+  assert.deepEqual(
+    [
+      topMaterial.partLineCount,
+      topMaterial.totalQuantity,
+      topMaterial.panelAreaM2,
+      topMaterial.volumeM3,
+      topMaterial.edgeBanding.widthEdgesLengthMm,
+      topMaterial.edgeBanding.lengthEdgesLengthMm,
+      topMaterial.edgeBanding.totalLengthMm,
+      topMaterial.edgeBanding.edgeCount
+    ],
+    [1, 1, 0.34784, 0.00626112, 200, 400, 600, 4]
+  );
+});
+
+test("banyo dolabı üst panelinde açıklık tanımlanmamışsa proje kısmi parça listesi vermeden bloklanır", () => {
+  const furnitureId = "bathroom-vanity-no-opening";
+  const report = calculateCabinetProjectProductionWithDiagnostics({
+    schemaVersion: 1,
+    furniture: [createBathroomVanityRequest(furnitureId)]
+  });
+
+  assert.equal(report.status, "blocked");
+  assert.equal(report.canExport, false);
+  assert.equal(report.result, null);
+  assert.equal(report.blockedFurniture[0].furnitureId, furnitureId);
+  assert.equal(report.blockedFurniture[0].code, "invalid-panel-geometry");
+  assert.match(report.blockedFurniture[0].message, /üst paneli için en az bir açık dikdörtgen/);
+});
+
+test("banyo dolabında yan panel açıklığı üst panel gereksinimini karşılamaz", () => {
+  const furnitureId = "bathroom-vanity-side-opening";
+  const baseline = calculateCabinetProjectProduction({
+    schemaVersion: 1,
+    furniture: [createRequest(furnitureId)]
+  });
+  const side = baseline.parts.find((part) => part.id === furnitureId + "-left-side");
+  assert.ok(side);
+
+  const report = calculateCabinetProjectProductionWithDiagnostics({
+    schemaVersion: 1,
+    furniture: [createBathroomVanityRequest(furnitureId)],
+    panelCutouts: [{
+      partId: side.id,
+      geometry: {
+        schemaVersion: 1,
+        widthMm: side.width,
+        lengthMm: side.length,
+        thicknessMm: side.thickness,
+        outerEdgeBanding: side.edgeBanding,
+        cutouts: [{
+          id: "service-opening",
+          xMm: 100,
+          yMm: 100,
+          widthMm: 100,
+          lengthMm: 100,
+          edgeBanding: { ...noBanding }
+        }]
+      }
+    }]
+  });
+
+  assert.equal(report.status, "blocked");
+  assert.equal(report.canExport, false);
+  assert.equal(report.result, null);
+  assert.match(report.blockedFurniture[0].message, /üst paneli için en az bir açık dikdörtgen/);
 });

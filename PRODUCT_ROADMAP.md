@@ -16,13 +16,13 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 | Oda ve 3D sahne | Ölçülü oda ve perspektif sahne | Tam 2D teknik çizim, kesit ve görünüş araçları yok |
 | Yerleşim | Katalogdan ekleme, seçme, taşıma, döndürme ve boyutlandırma; SAT tabanlı yatay ayak izi çakışma ve oda sınırı uyarıları 3D sahnede gösterilir | Gelişmiş snap, çoklu seçim, duvar montajı/kapak açılımı boşlukları ve tam undo/redo akışı doğrulanmış değil |
 | Katalog | Mutfak, gardırop, banyo, masa, kitaplık ve diğer ailelerden 100 varyasyon | Şablonlar tam parametrik konstrüksiyon aileleri değil |
-| Parçalar | Görsel kapak/çekmece/raf parçaları; domain gövde, çekmece kutusu, kitaplık, masa, gardırop ve TV ünitesi Part listesi; dikdörtgen iç açıklıklar opsiyonel `ProjectProductionPart.panelGeometry` alanıyla taşınır | Kesitli Part JSON v1/CSV adapter entegrasyonu henüz ayrı frontend sahibince yapılmadı; diğer aileler, donanım ve CNC operasyonları eksik |
-| Hesap motoru | `cabinetConstruction`, `drawerBoxConstruction`, `bookshelfConstruction`, `tableConstruction`, `wardrobeConstruction`, `tvUnitConstruction` (floor-standing gövde, açık ölçülü raf ve dikey bölücü) ve aile ayrımlı sürüm 1 proje agregatörü; ortak Part listesi quantity, malzeme, damar yönü ve kenar bantlamayı korur | Frontend adapter henüz domain agregatörünü çağırmıyor; duvar montajlı TV ünitesi/ayak-baza modelleri ve diğer aileler, üreticiye özel konstrüksiyonlar eksik |
+| Parçalar | Görsel kapak/çekmece/raf parçaları; domain gövde, çekmece kutusu, kitaplık, masa, gardırop ve TV ünitesi Part listesi; dikdörtgen iç açıklıklar opsiyonel `ProjectProductionPart.panelGeometry` alanıyla taşınır; banyo dolabı v1 üst panelinde açık ölçülü çoklu dikdörtgen açıklıklar zorunludur | Kesitli Part JSON v1/CSV adapter entegrasyonu henüz ayrı frontend sahibince yapılmadı; diğer aileler, donanım ve CNC operasyonları eksik |
+| Hesap motoru | `cabinetConstruction`, `drawerBoxConstruction`, `bookshelfConstruction`, `tableConstruction`, `wardrobeConstruction`, `tvUnitConstruction` (floor-standing gövde, açık ölçülü raf ve dikey bölücü) ve `bathroom-vanity` (cabinet gövdesi + zorunlu açık ölçülü üst panel açıklığı) aile ayrımlı sürüm 1 proje agregatörü; ortak Part listesi quantity, malzeme, damar yönü ve kenar bantlamayı korur | Frontend adapter henüz domain agregatörünü çağırmıyor; duvar montajlı TV ünitesi/ayak-baza modelleri ve diğer aileler, üreticiye özel konstrüksiyonlar eksik |
 | Kesim listesi | Projedeki desteklenen düz mutfak gövdeleri ve tam tanımlı çekmece parçaları için tek Türkçe Excel uyumlu CSV; her satır kaynak mobilya adı/ID'si ve varsa katalog Malzeme ID değeriyle izlenir | Köşe/cihaz/evye konstrüksiyonları, diğer aileler, nesting ve CNC çıktısı yok |
 | Kenar bantlama / malzeme tüketimi | Domain malzeme özeti gövde, çekmece, kitaplık, masa, gardırop, TV bölücü/raf ve kesitli panellerin ortak Part listesinden quantity ağırlıklı net alan/hacim ve dış/iç kenar bantlamasını hesaplayabilir | Domain özeti henüz UI/JSON/CSV'ye bağlı değil; fire, levha verimi, kerf, bant kalınlığı ve rulo payı yok |
 | Malzeme kataloğu | UI CRUD; mobilya varsayılan materialId ve çekmece grubunda varsayılan + dört panel grubu override; domain gövde/kitaplık motorları altı gövde panel grubu için malzeme override'ını doğrular | Gövde panel override'ları henüz frontend JSON v1/CSV ve UI akışına bağlanmadı; fiyat, tedarikçi ve fire henüz yok |
 | Proje dosyası | Yerel JSON v1 indirme/yükleme; saf serializer/parser; round-trip ve eski v1 uyumluluk; mm, mobilya ve çekmece grubu katalog referansları ile dört çekmece panel kalınlığının doğrulanması | Şema migrasyonu, otomatik kayıt ve kurtarma yok |
-| Test/CI | Doğrulanmış kod/test HEAD `1c09bf639ddb84b2d31277a7ce5e5adc6104a2df`: CI `43991437104`, QA `43991437194` (101/101 frontend + 137/137 domain testi, 0 başarısız) ve Pages `43991437103` başarılı | Shared-domain strict TypeScript, lint, frontend production build ve yüksek önem eşiğinde production dependency audit geçti; Oxlint 32 uyarı/0 hata, audit 4 orta önem bulgusu, büyük bundle ve Actions Node 20/punycode uyarıları sürüyor |
+| Test/CI | Son doğrulanmış başlangıç HEAD `b22c390ea51420d5518480bab1b540290c5cfdcb`: CI `43998495579`, QA `43998495522` ve Pages `43998495656` başarılı; bu turdaki banyo dolabı değişikliği için yeni Actions doğrulaması commit sonrasında bekleniyor | Shared-domain strict TypeScript, lint, frontend production build ve yüksek önem eşiğinde production dependency audit geçti; Oxlint 32 uyarı/0 hata, audit 4 orta önem bulgusu, büyük bundle ve Actions Node 20/punycode uyarıları sürüyor |
 
 ### Bilinen mimari ve veri boşlukları
 
@@ -610,3 +610,20 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 3. Banyo dolabı lavabo açıklığı, arkalık ve baza/ayak girdilerini yalnızca kullanıcı/üretici ölçüleriyle sürümlü konstrüksiyon isteğine ayırmak.
 4. Kesitli panelde birden çok açıklık, farklı quantity ve farklı malzeme/kalınlık kombinasyonlarını karışık aile projelerinde test etmek.
 5. Donanım/delik ve CNC operasyon modelini gerçek üretici/atölye standardı sağlanana kadar yalnızca veri sözleşmesi araştırması olarak tutmak.
+
+
+## 17 Kasım 2026 — banyo dolabı üst panel açıklığı domain dilimi
+
+- Proje agregatörüne `bathroom-vanity` ailesi eklendi. Mevcut cabinet konstrüksiyon motoru kullanılır; böylece ölçü, panel kalınlığı, arkalık, kapak, raf, malzeme ve kenar bantlama kuralları kopyalanmaz.
+- Bu ailede üst panel Part'ına en az bir açık ölçülü dikdörtgen geçiş açıklığı bağlanması zorunludur. Bir panelde birden fazla ayrık açıklık desteklenir; eksik açıklık veya yalnızca başka bir paneldeki açıklık projeyi bloklar ve kısmi Part listesi döndürmez.
+- Net alan/hacim ve iç kenar bantlama mevcut `calculateProjectMaterialConsumptionSummary` üzerinden aynı quantity semantiğiyle hesaplanır.
+- Kesitli panel JSON v1/CSV adapter'ı ayrı frontend sahibinin kapsamındadır; bu nedenle `canExport: false` kapısı korunur.
+- Bu dilim lavabo/armatür şablonu, musluk/drenaj deliği, tesisat boşluğu, oval/köşeli kesit, baza/ayak, ankraj, yük, bağlantı, CNC veya fiziksel üretim onayı sağlamaz.
+
+### Güncel sıradaki 3-5 küçük görev
+
+1. Ayrı frontend sahibinin `panelGeometry` alanını JSON v1'e kayıpsız bağlamasını ve kesitli Part eski CSV şemasında temsil edilemiyorsa export'u kapalı tutmasını takip et; frontend dosyalarına dokunma.
+2. Banyo üst paneli için oval/çokgen lavabo şablonlarını ancak üretici tarafından verilen gerçek kesit koordinatları veya kullanıcı tarafından açıkça tanımlanan geometri sözleşmesi sağlandığında ayrı sürüm olarak ele al.
+3. Banyo dolabı baza/ayak, arkalık ve montaj seçeneklerini yalnızca kullanıcı/üretici ölçüleriyle parametrik aile dilimlerine ayır; duvar/zemin ankrajı veya yük kapasitesi varsayma.
+4. Kesitli panellerin karışık cabinet/bookshelf/table/wardrobe/tv-unit/bathroom-vanity projelerinde farklı malzeme, kalınlık, quantity ve çoklu açıklık kombinasyonlarını otomatik testlerle genişlet.
+5. Donanım/delik/CNC veri modelini gerçek üretici/atölye standardı bulunana kadar koordinat üretmeyen, kaynak ve birimi izlenebilir sözleşme olarak tasarla.
