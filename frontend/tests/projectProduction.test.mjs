@@ -466,9 +466,9 @@ test("çekmece panel override değerleri proje JSON v1 içinde korunur ve doğru
 });
 
 
-test("domain export blocker is reflected in the workspace while complete parts remain inspectable", () => {
+test("domain cutout and hardware blockers disable CSV while preserving validated panel geometry", () => {
   const noBanding = () => ({ top: false, bottom: false, left: false, right: false });
-  const report = calculateCabinetProjectProductionWithDiagnostics({
+  const request = {
     schemaVersion: 1,
     furniture: [{
       schemaVersion: 1,
@@ -505,18 +505,47 @@ test("domain export blocker is reflected in the workspace while complete parts r
       quantity: 2,
       unit: "adet"
     }]
+  };
+  const initial = calculateCabinetProjectProductionWithDiagnostics(request);
+  assert.ok(initial.result);
+  const top = initial.result.parts.find((part) => part.id === "base-1-top");
+  assert.ok(top);
+
+  const report = calculateCabinetProjectProductionWithDiagnostics({
+    ...request,
+    panelCutouts: [{
+      partId: top.id,
+      geometry: {
+        schemaVersion: 1,
+        widthMm: top.width,
+        lengthMm: top.length,
+        thicknessMm: top.thickness,
+        outerEdgeBanding: top.edgeBanding,
+        cutouts: [{
+          id: "service-opening",
+          xMm: 10,
+          yMm: 10,
+          widthMm: 100,
+          lengthMm: 100,
+          edgeBanding: noBanding()
+        }]
+      }
+    }]
   });
 
   const mapped = mapDomainProductionReport(
     report,
     new Map([["base-1", "Alt Mutfak Dolabı"]])
   );
+  const mappedTop = mapped.parts.find((part) => part.id === top.id);
 
   assert.equal(report.canExport, false);
   assert.equal(mapped.canExport, false);
   assert.ok(mapped.parts.length > 0, "tam hesaplanmış parçalar incelenebilir kalmalı");
+  assert.ok(mappedTop?.panelGeometry, "kesit geometrisi UI modeline kayıpsız taşınmalı");
+  assert.equal(mapped.exportBlockers.length, 2);
+  assert.match(mapped.exportBlockReason, /Kesitli panel geometrisi/i);
   assert.ok(mapped.exportBlockers.some((reason) => /hardwareItems/i.test(reason)));
-  assert.match(mapped.exportBlockReason, /donanım BOM/i);
 });
 
 test("JSON v1 proje round-trip sonrasında üretim raporu aynı mobilya girdilerinden yeniden hesaplanır", () => {
