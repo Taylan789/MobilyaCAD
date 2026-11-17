@@ -634,7 +634,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 - Banyo dolabı üst panelindeki iki açıklık ve kitaplık rafındaki tek açıklık aynı proje üretim raporunda doğrulanır.
 - Kitaplık rafı 8 mm \`mdf-8\`, quantity 3; banyo üst paneli 18 mm \`mdf-18\`, quantity 1 olarak korunur. Kesit öncesi/sonrası malzeme özeti farkları net alan, hacim ve iç kenar bant uzunluklarında otomatik test edilir.
 - Part satırı ve adet toplamları değişmez; kesitli her proje için JSON v1/CSV adapter desteği gelene kadar \`canExport: false\` korunur.
-- İlk commit sonrası CI/QA doğrulaması bekleniyor; gerçek run bağlantıları ve commit SHA doğrulama tamamlanınca AI_PROGRESS.md ve AI_COORDINATION.md içinde işlenecek.
+- Teslimat commit: `23385aaf14cac1550a37558cdadb6df3b60d3b1a`; CI #`44016704571` ve QA #`44016704658` başarılı (**101/101 frontend + 145/145 domain testi, 0 başarısız**); Pages build/deploy #`44016704645` başarılı.
 - Değişen dosyalar: \`domain/production/projectProduction.test.mjs\`, \`docs/production-domain-contract.md\`, \`PRODUCT_ROADMAP.md\`, \`AI_PROGRESS.md\`, \`AI_COORDINATION.md\`. \`frontend/**\` değişmedi.
 - Bilinen sınırlar: CNC/üretici standardı, lavabo şablonu, bağlantı, delik, fire, nesting ve fiyat hesabı yok; fiziksel üretim onayı değildir.
 

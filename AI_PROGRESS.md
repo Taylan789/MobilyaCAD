@@ -688,11 +688,24 @@
 - Sonraki görev: frontend sahibinin `panelGeometry` JSON v1/CSV adapter entegrasyonunu takip et; domain tarafında ardından karışık mobilya aileleri + farklı malzeme/kalınlık/quantity + çoklu açıklık kombinasyonlarını test et. Banyo baza/ayak ve özel lavabo şablonlarını yalnızca açık üretici/kullanıcı ölçüleriyle genişlet.
 
 
-## 17 Kasım 2026 07:18 TRT — DOM-002 doğrulama bekliyor
+
+## 17 Kasım 2026 07:18 TRT — DOM-002 tamamlandı (GitHub Actions doğrulandı)
 
 - Başlangıç HEAD: \`a13cc122d46dec071debe1773811a8bc69995d0c\`.
-- Bu turdaki dikey dilim: aynı projede banyo dolabı üst panelinin iki açıklığı ile kitaplık rafının bir açıklığını birleştiren domain regresyon testi; 18 mm/8 mm katalog malzemeleri ve quantity 1/3 için net alan, hacim ve iç kenar bant farkları.
-- Değişen dosyalar: \`domain/production/projectProduction.test.mjs\`, \`docs/production-domain-contract.md\`, \`PRODUCT_ROADMAP.md\`, \`AI_PROGRESS.md\`, \`AI_COORDINATION.md\`.
-- Kabul kriteri: Part satır/adet sayıları korunmalı; iki ailedeki kesit geometrisi doğru Part'a bağlanmalı; malzeme özet farkları 18 mm için 0.08 m² / 0.00144 m³ / 600 mm, 8 mm için 0.06 m² / 0.00048 m³ / 900 mm olmalı; export \`canExport: false\` kalmalı.
-- CI/QA: commit sonrası gerçek GitHub Actions sonuçları beklenecek; henüz başarılı ilan edilmedi.
-- Sonraki görev: frontend sahibinin kesitli Part ve TV raf/bölücü verilerini JSON v1/CSV'ye kayıpsız bağlama PR'ını salt okunur entegrasyon kriterleriyle doğrulamak.
+- Teslimat commit SHA: \`23385aaf14cac1550a37558cdadb6df3b60d3b1a\` — [commit bağlantısı](https://github.com/Taylan789/MobilyaCAD/commit/23385aaf14cac1550a37558cdadb6df3b60d3b1a).
+- Değişen dosyalar:
+  - \`domain/production/projectProduction.test.mjs\` — aynı projede banyo dolabı üst panelindeki iki açıklık ile kitaplık rafındaki bir açıklığın birlikte hesaplanması; 18 mm \`mdf-18\` ve quantity 1; 8 mm \`mdf-8\` ve quantity 3.
+  - \`docs/production-domain-contract.md\` — çoklu aile kesit geometri/tüketim sözleşmesi.
+  - \`PRODUCT_ROADMAP.md\` — DOM-002 kabul kapsamı ve sonraki domain adımları.
+  - \`AI_COORDINATION.md\` — DOM-002 DONE ve doğrulama bağlantıları.
+  - \`AI_PROGRESS.md\` — bu teslimat ve kanıt kaydı.
+- Kabul sonucu: Part satır sayıları ve quantity değişmedi. 18 mm grupta net alan farkı 0.08 m², hacim 0.00144 m³, iç bant 600 mm; 8 mm grupta quantity 3 ile net alan farkı 0.06 m², hacim 0.00048 m³, iç bant 900 mm. Kesitli projede \`status: ready\` hesap raporu korunurken JSON v1/CSV adapter'ı geometriyi kayıpsız taşımadığı için \`canExport: false\` kaldı.
+- GitHub Actions:
+  - [MobilyaCAD CI #44016704571](https://github.com/Taylan789/MobilyaCAD/actions/runs/44016704571) — başarılı.
+  - [MobilyaCAD QA & Test #44016704658](https://github.com/Taylan789/MobilyaCAD/actions/runs/44016704658) — başarılı: **101/101 frontend + 145/145 domain testi, 0 başarısız**. Shared-domain strict TypeScript, lint, frontend TypeScript/production build ve \`npm audit --omit=dev --audit-level=high\` geçti. Oxlint 32 uyarı / 0 hata.
+  - [Pages build/deploy #44016704645](https://github.com/Taylan789/MobilyaCAD/actions/runs/44016704645) — build ve deploy başarılı.
+- PR: açılmadı; kullanıcı yetkisi kapsamında doğrudan yalnızca \`dev/github-work\` dalına commit edildi. Başka ajan PR'ı birleştirilmedi.
+- AI Developer workflow: bu dal için yeni run yok; workflow_dispatch ile çalıştığından bu turda tetiklenmedi.
+- Bilinen sınırlar: frontend JSON v1/CSV adapter'ı \`panelGeometry\` alanını henüz kayıpsız taşımıyor; bu nedenle export kapısı açıkça kapalı. CNC, gerçek lavabo/armatür standardı, delik/donanım, nesting, fire ve maliyet/teklif hesabı yoktur. Fiziksel üretim onayı değildir.
+- Frontend sahipliği korundu: hiçbir \`frontend/**\` dosyası değiştirilmedi; PR #8 yalnızca frontend sahibinin \`frontend/src/App.css\` dosyasına dokunduğu için ayrı bırakıldı. \`main\` dalına dokunulmadı.
+- Sonraki görev: frontend sahibinin \`panelGeometry\`, TV \`verticalDividers/shelves\` ve \`blocked/canExport\` alanlarını JSON v1/CSV akışına kayıpsız bağlama PR'ını doğrulamak; domain tarafında banyo dolabı arkalık/baza/ayak seçeneklerini yalnızca kullanıcı/üretici ölçüleriyle ele almak.
