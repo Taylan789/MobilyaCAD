@@ -1638,10 +1638,14 @@ function App() {
                           {isExpanded && visibleParts.length > 0 && (
                             <div className="studio-tree-object-parts">
                               {visibleParts.map((part) => {
-                                const partMaterial = resolveSceneMaterial(part.material, materials);
                                 const inheritsFurnitureMaterial =
                                   part.material.trim().toLocaleLowerCase("tr-TR") ===
                                   item.material.trim().toLocaleLowerCase("tr-TR");
+                                const partMaterial = resolveSceneMaterial(
+                                  part.material,
+                                  materials,
+                                  inheritsFurnitureMaterial ? item.materialId : undefined
+                                );
 
                                 return (
                                   <button
