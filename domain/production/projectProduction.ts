@@ -15,6 +15,9 @@ import type { DrawerBoxConstructionPart } from "./drawerBoxConstruction.ts";
 import type { TableConstructionPart, TableConstructionResult } from "./tableConstruction.ts";
 import type { WardrobeConstructionPart } from "./wardrobeConstruction.ts";
 
+const edgeBandingIdPattern = /^[a-z0-9][a-z0-9._-]{0,63}$/;
+const EDGE_KEYS = ["top", "bottom", "left", "right"] as const;
+
 export interface CabinetProjectProductionRequest {
   schemaVersion: 1;
   furniture: readonly unknown[];
@@ -24,6 +27,8 @@ export interface CabinetProjectProductionRequest {
   panelCutouts?: readonly unknown[];
   /** Optional user-supplied hardware BOM rows; no specifications are inferred. */
   hardwareItems?: readonly unknown[];
+  /** Optional one-resource-per-Part edge-band assignment; all banded edges on that Part share it. */
+  edgeBandingAssignments?: readonly unknown[];
 }
 
 export type CabinetProjectFurnitureResult =
@@ -57,11 +62,22 @@ export interface ProjectHardwareItem {
   sourceReference?: string;
 }
 
+/** Explicit catalogue identity and price unit for every banded edge on one Part. */
+export interface ProjectEdgeBandingAssignment {
+  partId: string;
+  edgeBandingId: string;
+  unit: "mm" | "m";
+}
+
 export type ProjectProductionPart = (
   CabinetConstructionPart | DrawerBoxConstructionPart | TableConstructionPart | WardrobeConstructionPart | TvUnitConstructionPart
 ) & {
   /** Optional, explicitly validated panel profile; absent on legacy rectangular parts. */
   panelGeometry?: PanelCutoutGeometryResult;
+  /** One explicit edge-band catalogue identity for all banded edges on this Part. */
+  edgeBandingMaterialId?: string;
+  /** User-selected price unit; measured geometry is converted only from mm to m when explicitly requested. */
+  edgeBandingUnit?: "mm" | "m";
 };
 
 export interface CabinetProjectProductionResult {
@@ -80,7 +96,7 @@ export type SupportedProjectFurnitureFamily = "cabinet" | "bookshelf" | "table" 
 export interface ProjectProductionFurnitureDiagnostic {
   furnitureId: string | null;
   family: string | null;
-  code: "unsupported-family" | "invalid-request" | "invalid-construction" | "invalid-drawer" | "invalid-panel-geometry" | "invalid-hardware";
+  code: "unsupported-family" | "invalid-request" | "invalid-construction" | "invalid-drawer" | "invalid-panel-geometry" | "invalid-hardware" | "invalid-edge-banding";
   message: string;
 }
 
@@ -168,6 +184,38 @@ function readProjectHardwareItem(value: unknown, index: number): ProjectHardware
 }
 
 
+
+function readProjectEdgeBandingAssignment(value: unknown, index: number): ProjectEdgeBandingAssignment {
+  const entry = requireRecord(value, "Projenin " + (index + 1) + ". kenar bandı ataması");
+  const allowed = ["partId", "edgeBandingId", "unit"];
+  const unknownKey = Object.keys(entry).find((key) => !allowed.includes(key));
+  if (unknownKey !== undefined) {
+    throw new Error("Kenar bandı atamasında desteklenmeyen alan: " + unknownKey + ".");
+  }
+  const readText = (raw: unknown, label: string): string => {
+    if (typeof raw !== "string" || raw.trim() === "" || raw.trim() !== raw) {
+      throw new Error(label + " boş olmayan ve kenar boşluğu içermeyen bir metin olmalıdır.");
+    }
+    return raw;
+  };
+  const partId = readText(entry.partId, "Kenar bandı parça kimliği");
+  const edgeBandingId = readText(entry.edgeBandingId, partId + " kenar bandı katalog kimliği");
+  if (!edgeBandingIdPattern.test(edgeBandingId)) {
+    throw new Error(partId + " kenar bandı katalog kimliği geçersiz.");
+  }
+  if (entry.unit !== "mm" && entry.unit !== "m") {
+    throw new Error(partId + " kenar bandı birimi yalnızca mm veya m olabilir.");
+  }
+  return { partId, edgeBandingId, unit: entry.unit };
+}
+
+function partHasBandedEdges(part: ProjectProductionPart): boolean {
+  const hasOuterEdges = EDGE_KEYS.some((edge) => part.edgeBanding[edge]);
+  const hasOpeningEdges = part.panelGeometry?.cutouts.some((opening) =>
+    EDGE_KEYS.some((edge) => opening.edgeBanding[edge])
+  ) ?? false;
+  return hasOuterEdges || hasOpeningEdges;
+}
 
 function calculateFurnitureRequest(
   request: unknown,
@@ -289,6 +337,8 @@ export function calculateCabinetProjectProductionWithDiagnostics(
     addProjectError("Proje panel açıklığı istekleri bir liste olmalıdır.");
   } else if (value.hardwareItems !== undefined && !Array.isArray(value.hardwareItems)) {
     addProjectError("Proje donanım kalemleri bir liste olmalıdır.");
+  } else if (value.edgeBandingAssignments !== undefined && !Array.isArray(value.edgeBandingAssignments)) {
+    addProjectError("Proje kenar bandı atamaları bir liste olmalıdır.");
   }
 
   if (projectErrors.length > 0 || !isRecord(value) || !Array.isArray(value.furniture)) {
@@ -526,8 +576,58 @@ export function calculateCabinetProjectProductionWithDiagnostics(
     const panelGeometry = panelGeometryByPartId.get(part.id);
     return panelGeometry === undefined ? part : { ...part, panelGeometry };
   });
+  const productionPartById = new Map(productionParts.map((part) => [part.id, part] as const));
+  const edgeBandingRequests = (value.edgeBandingAssignments ?? []) as readonly unknown[];
+  const edgeBandingAssignments: ProjectEdgeBandingAssignment[] = [];
+  const seenEdgeBandingPartIds = new Set<string>();
 
-  const isEmpty = value.furniture.length === 0 && drawerRequests.length === 0 && hardwareRequests.length === 0;
+  for (const [index, rawAssignment] of edgeBandingRequests.entries()) {
+    let assignment: ProjectEdgeBandingAssignment;
+    try {
+      assignment = readProjectEdgeBandingAssignment(rawAssignment, index);
+    } catch (error) {
+      addBlocked(null, null, "invalid-edge-banding", diagnosticMessage(error));
+      continue;
+    }
+    const part = productionPartById.get(assignment.partId);
+    if (!part) {
+      addBlocked(null, null, "invalid-edge-banding",
+        assignment.partId + " kenar bandı ataması için proje üretim parçasında bulunamadı.");
+      continue;
+    }
+    const family = familyByFurnitureId.get(part.furnitureId) ?? null;
+    if (!partHasBandedEdges(part)) {
+      addBlocked(part.furnitureId, family, "invalid-edge-banding",
+        part.id + " parçasında kenar bandı atanabilecek bantlı kenar bulunmuyor.");
+      continue;
+    }
+    if (seenEdgeBandingPartIds.has(part.id)) {
+      addBlocked(part.furnitureId, family, "invalid-edge-banding",
+        part.id + " parçası için yinelenen kenar bandı ataması.");
+      continue;
+    }
+    seenEdgeBandingPartIds.add(part.id);
+    edgeBandingAssignments.push(assignment);
+  }
+
+  const assignmentByPartId = new Map(edgeBandingAssignments.map((assignment) =>
+    [assignment.partId, assignment] as const
+  ));
+  const productionPartsWithAssignments = productionParts.map((part) => {
+    const assignment = assignmentByPartId.get(part.id);
+    return assignment === undefined
+      ? part
+      : {
+          ...part,
+          edgeBandingMaterialId: assignment.edgeBandingId,
+          edgeBandingUnit: assignment.unit
+        };
+  });
+
+  const isEmpty = value.furniture.length === 0 &&
+    drawerRequests.length === 0 &&
+    hardwareRequests.length === 0 &&
+    edgeBandingRequests.length === 0;
   const canCalculate = unsupportedFurniture.length === 0 &&
     blockedFurniture.length === 0 &&
     projectErrors.length === 0;
@@ -538,13 +638,16 @@ export function calculateCabinetProjectProductionWithDiagnostics(
   if (canCalculate && hardwareItems.length > 0) {
     exportBlockers.push("Açık donanım BOM satırları mevcut; JSON v1/CSV dışa aktarıcısı hardwareItems alanını kayıpsız destekleyene kadar dışa aktarım kapalıdır.");
   }
+  if (canCalculate && edgeBandingAssignments.length > 0) {
+    exportBlockers.push("Kenar bandı katalog atamaları mevcut; JSON v1/CSV dışa aktarıcısı edgeBandingMaterialId ve edgeBandingUnit alanlarını kayıpsız destekleyene kadar dışa aktarım kapalıdır.");
+  }
   const result: CabinetProjectProductionResult | null = canCalculate
     ? {
         schemaVersion: 1,
         furniture: furnitureResults,
         ...(drawerGroups.length === 0 ? {} : { drawerGroups }),
         ...(hardwareItems.length === 0 ? {} : { hardwareItems }),
-        parts: productionParts
+        parts: productionPartsWithAssignments
       }
     : null;
 

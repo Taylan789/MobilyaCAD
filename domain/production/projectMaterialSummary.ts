@@ -34,6 +34,27 @@ export interface ProjectMaterialConsumptionSummary {
   edgeBanding: ProjectEdgeBandingSummaryMm;
 }
 
+export interface ProjectEdgeBandingConsumptionSummary {
+  edgeBandingId: string | null;
+  unit: "mm" | "m";
+  partLineCount: number;
+  totalQuantity: number;
+  totalLengthMm: number;
+  edgeCount: number;
+  partIds: string[];
+  furnitureIds: string[];
+}
+
+interface EdgeBandingAccumulator {
+  edgeBandingId: string | null;
+  unit: "mm" | "m";
+  partLineCount: number;
+  totalLengthMm: number;
+  edgeCount: number;
+  partIds: Set<string>;
+  furnitureIds: Set<string>;
+}
+
 interface MaterialAccumulator {
   material: string;
   materialId?: string;
@@ -56,6 +77,8 @@ interface ValidatedPart {
   quantity: number;
   material: string;
   materialId?: string;
+  edgeBandingMaterialId?: string;
+  edgeBandingUnit?: "mm" | "m";
   edgeBanding: Record<EdgeKey, boolean>;
   panelAreaMm2: number;
   volumeMm3: number;
@@ -179,6 +202,26 @@ function validatePart(value: unknown, index: number): ValidatedPart {
     }
   }
 
+  const edgeBandingMaterialId = part.edgeBandingMaterialId;
+  const edgeBandingUnit = part.edgeBandingUnit;
+  if ((edgeBandingMaterialId === undefined) !== (edgeBandingUnit === undefined)) {
+    throw new Error(name + " kenar bandı katalog kimliği ve birimi birlikte verilmelidir.");
+  }
+  if (
+    edgeBandingMaterialId !== undefined &&
+    (typeof edgeBandingMaterialId !== "string" ||
+      edgeBandingMaterialId.trim() !== edgeBandingMaterialId ||
+      !materialIdPattern.test(edgeBandingMaterialId))
+  ) {
+    throw new Error(name + " kenar bandı katalog kimliği geçersiz.");
+  }
+  if (edgeBandingUnit !== undefined && edgeBandingUnit !== "mm" && edgeBandingUnit !== "m") {
+    throw new Error(name + " kenar bandı birimi yalnızca mm veya m olabilir.");
+  }
+  if (edgeBandingMaterialId !== undefined && edgeCount === 0) {
+    throw new Error(name + " bantlanmış kenarı olmadığı halde kenar bandı katalog kimliği taşıyor.");
+  }
+
   return {
     id,
     furnitureId,
@@ -188,6 +231,8 @@ function validatePart(value: unknown, index: number): ValidatedPart {
     quantity: part.quantity as number,
     material: (part.material as string).trim(),
     ...(materialId === undefined ? {} : { materialId: materialId as string }),
+    ...(edgeBandingMaterialId === undefined ? {} : { edgeBandingMaterialId }),
+    ...(edgeBandingUnit === undefined ? {} : { edgeBandingUnit }),
     edgeBanding,
     panelAreaMm2,
     volumeMm3,
@@ -333,6 +378,104 @@ export function calculateProjectMaterialConsumptionSummary(
     });
 }
 
+
+/**
+ * Groups measured edge-band demand by the explicitly assigned catalogue ID and
+ * unit. Unassigned legacy banded Parts remain visible as a null-ID mm row so
+ * pricing cannot silently treat them as covered.
+ *
+ * Geometry is measured in mm. A Part explicitly assigned unit "m" receives the
+ * exact mm-to-m conversion; no roll, waste, thickness or price is inferred.
+ */
+export function calculateProjectEdgeBandingConsumptionSummary(
+  value: CabinetProjectProductionResult
+): ProjectEdgeBandingConsumptionSummary[] {
+  const project = requireRecord(value, "Proje üretim sonucu");
+  if (project.schemaVersion !== 1) {
+    throw new Error("Desteklenmeyen proje üretim sonucu şema sürümü.");
+  }
+  if (!Array.isArray(project.furniture)) {
+    throw new Error("Proje mobilya sonuçları bir liste olmalıdır.");
+  }
+  if (!Array.isArray(project.parts)) {
+    throw new Error("Proje üretim parçaları bir liste olmalıdır.");
+  }
+
+  const furnitureIds = new Set<string>();
+  for (const [index, entry] of project.furniture.entries()) {
+    const furniture = requireRecord(entry, "Projenin " + (index + 1) + ". mobilya sonucu");
+    const furnitureId = requireIdentifier(furniture.furnitureId, "Proje mobilya kimliği");
+    if (furnitureIds.has(furnitureId)) {
+      throw new Error("Proje üretim sonucunda yinelenen mobilya kimliği: " + furnitureId + ".");
+    }
+    furnitureIds.add(furnitureId);
+  }
+
+  const groups = new Map<string, EdgeBandingAccumulator>();
+  const seenPartIds = new Set<string>();
+  for (const [index, rawPart] of project.parts.entries()) {
+    const part = validatePart(rawPart, index);
+    if (!furnitureIds.has(part.furnitureId)) {
+      throw new Error(part.id + " parçasının mobilya kimliği proje sonuçlarında bulunamadı.");
+    }
+    if (seenPartIds.has(part.id)) {
+      throw new Error("Proje üretim sonucunda yinelenen parça kimliği: " + part.id + ".");
+    }
+    seenPartIds.add(part.id);
+    if (part.edgeCount === 0) continue;
+
+    const edgeBandingId = part.edgeBandingMaterialId ?? null;
+    const unit = part.edgeBandingUnit ?? "mm";
+    const key = JSON.stringify([edgeBandingId, unit]);
+    let group = groups.get(key);
+    if (!group) {
+      group = {
+        edgeBandingId,
+        unit,
+        partLineCount: 0,
+        totalLengthMm: 0,
+        edgeCount: 0,
+        partIds: new Set<string>(),
+        furnitureIds: new Set<string>()
+      };
+      groups.set(key, group);
+    }
+
+    const lengthContribution = (part.widthEdgesLengthMm + part.lengthEdgesLengthMm) * part.quantity;
+    const edgeCountContribution = part.edgeCount * part.quantity;
+    group.partLineCount += 1;
+    group.totalLengthMm += lengthContribution;
+    group.edgeCount += edgeCountContribution;
+    group.partIds.add(part.id);
+    group.furnitureIds.add(part.furnitureId);
+
+    if (
+      !Number.isSafeInteger(group.partLineCount) ||
+      !Number.isFinite(group.totalLengthMm) ||
+      !Number.isSafeInteger(group.edgeCount)
+    ) {
+      throw new Error("Proje kenar bandı tüketimi toplamı güvenli aralıkta hesaplanamadı.");
+    }
+  }
+
+  return [...groups.values()]
+    .sort((first, second) =>
+      (first.edgeBandingId ?? "").localeCompare(second.edgeBandingId ?? "") ||
+      first.unit.localeCompare(second.unit)
+    )
+    .map((group) => ({
+      edgeBandingId: group.edgeBandingId,
+      unit: group.unit,
+      partLineCount: group.partLineCount,
+      totalQuantity: group.unit === "mm"
+        ? roundTo(group.totalLengthMm, 1)
+        : roundTo(group.totalLengthMm / 1000, 4),
+      totalLengthMm: roundTo(group.totalLengthMm, 1),
+      edgeCount: group.edgeCount,
+      partIds: [...group.partIds].sort((first, second) => first.localeCompare(second)),
+      furnitureIds: [...group.furnitureIds].sort((first, second) => first.localeCompare(second))
+    }));
+}
 
 /** Quantity-only summary for explicit hardware BOM rows; no price or unit conversion is inferred. */
 export interface ProjectHardwareConsumptionSummary {

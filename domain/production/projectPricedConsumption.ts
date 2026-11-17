@@ -1,7 +1,9 @@
 import type { CabinetProjectProductionResult } from "./projectProduction.ts";
 import {
+  calculateProjectEdgeBandingConsumptionSummary,
   calculateProjectHardwareConsumptionSummary,
   calculateProjectMaterialConsumptionSummary,
+  type ProjectEdgeBandingConsumptionSummary,
   type ProjectHardwareConsumptionSummary,
   type ProjectMaterialConsumptionSummary
 } from "./projectMaterialSummary.ts";
@@ -12,7 +14,7 @@ import {
 } from "./projectCostSummary.ts";
 
 export interface ProjectConsumptionPriceInput {
-  resourceType: "material" | "hardware";
+  resourceType: "material" | "hardware" | "edge-banding";
   resourceId: string;
   unit: string;
   /** Price in the smallest unit of currencyCode; zero is allowed only when explicit. */
@@ -93,8 +95,10 @@ function validatePriceTable(value: unknown): Map<string, ProjectConsumptionPrice
       }
     }
 
-    if (rawPrice.resourceType !== "material" && rawPrice.resourceType !== "hardware") {
-      throw new Error(label + " kaynak türü material veya hardware olmalıdır.");
+    if (rawPrice.resourceType !== "material" &&
+        rawPrice.resourceType !== "hardware" &&
+        rawPrice.resourceType !== "edge-banding") {
+      throw new Error(label + " kaynak türü material, hardware veya edge-banding olmalıdır.");
     }
     const resourceType = rawPrice.resourceType;
     const resourceId = requireText(rawPrice.resourceId, label + " kaynak kimliği", 128);
@@ -161,7 +165,7 @@ function blockedSummary(
 }
 
 function findMissingPrice(
-  resourceType: "material" | "hardware",
+  resourceType: "material" | "hardware" | "edge-banding",
   resourceId: string,
   description: string,
   requiredUnit: string,
@@ -218,12 +222,12 @@ function addPriceLine(
 }
 
 /**
- * Prices the validated project material and hardware consumption summaries.
+ * Prices validated material, hardware and edge-band consumption summaries.
  *
  * Material consumption is priced only in the summary's explicit m2 unit.
- * Hardware must match its original BOM unit exactly. Edge-band lengths remain
- * unpriced until the production model supplies a stable edge-band catalogue ID.
- * No unit conversion, fallback price, waste rate, tax or currency conversion is
+ * Hardware and edge-band resources must match their exact declared units.
+ * Edge-band mm-to-m conversion occurs only when the Part assignment explicitly
+ * selects m. No fallback price, waste rate, tax or currency conversion is
  * inferred. A monetary summary is returned only when every required input is
  * covered by one consistent currency.
  */
@@ -264,16 +268,18 @@ export function calculateProjectPricedConsumptionSummary(
 
   let materialSummaries: ProjectMaterialConsumptionSummary[];
   let hardwareSummaries: ProjectHardwareConsumptionSummary[];
+  let edgeBandingSummaries: ProjectEdgeBandingConsumptionSummary[];
   try {
     const result = rawResult as unknown as CabinetProjectProductionResult;
     materialSummaries = calculateProjectMaterialConsumptionSummary(result);
     hardwareSummaries = calculateProjectHardwareConsumptionSummary(result);
+    edgeBandingSummaries = calculateProjectEdgeBandingConsumptionSummary(result);
   } catch (error) {
     return blockedSummary([diagnosticMessage(error)]);
   }
 
   if (productionReport.status === "empty") {
-    if (materialSummaries.length !== 0 || hardwareSummaries.length !== 0) {
+    if (materialSummaries.length !== 0 || hardwareSummaries.length !== 0 || edgeBandingSummaries.length !== 0) {
       return blockedSummary(["Empty üretim raporu tüketim satırı içeremez."]);
     }
     return emptySummary();
@@ -283,7 +289,7 @@ export function calculateProjectPricedConsumptionSummary(
   const missingPrices: ProjectCostCoverageIssue[] = [];
   let materialLineNumber = 0;
   let hardwareLineNumber = 0;
-  let edgeBandingRequirementCount = 0;
+  let edgeBandingLineNumber = 0;
 
   for (const material of materialSummaries) {
     const description = material.material + " (" + material.thicknessMm + " mm)";
@@ -321,17 +327,6 @@ export function calculateProjectPricedConsumptionSummary(
       }
     }
 
-    if (material.edgeBanding.totalLengthMm > 0) {
-      edgeBandingRequirementCount += 1;
-      missingPrices.push({
-        code: "unpriced-edge-banding",
-        resourceType: "edge-banding",
-        resourceId: null,
-        description: material.material + " (" + material.thicknessMm + " mm) kenar bandı",
-        requiredUnit: "mm",
-        quantity: material.edgeBanding.totalLengthMm
-      });
-    }
   }
 
   for (const hardware of hardwareSummaries) {
@@ -359,7 +354,47 @@ export function calculateProjectPricedConsumptionSummary(
     }
   }
 
-  const requiredLineCount = materialSummaries.length + hardwareSummaries.length + edgeBandingRequirementCount;
+  for (const edgeBanding of edgeBandingSummaries) {
+    const description = edgeBanding.edgeBandingId === null
+      ? "Katalog kimliği atanmamış kenar bandı (" + edgeBanding.partLineCount + " parça)"
+      : "Kenar bandı " + edgeBanding.edgeBandingId;
+    if (edgeBanding.edgeBandingId === null) {
+      missingPrices.push({
+        code: "unpriced-edge-banding",
+        resourceType: "edge-banding",
+        resourceId: null,
+        description,
+        requiredUnit: edgeBanding.unit,
+        quantity: edgeBanding.totalQuantity
+      });
+      continue;
+    }
+
+    const price = prices.get(priceKey("edge-banding", edgeBanding.edgeBandingId, edgeBanding.unit));
+    if (price === undefined) {
+      missingPrices.push(findMissingPrice(
+        "edge-banding",
+        edgeBanding.edgeBandingId,
+        description,
+        edgeBanding.unit,
+        edgeBanding.totalQuantity,
+        prices
+      ));
+    } else {
+      edgeBandingLineNumber += 1;
+      addPriceLine(
+        costLines,
+        "edge-banding-" + String(edgeBandingLineNumber).padStart(4, "0"),
+        "material",
+        description,
+        edgeBanding.totalQuantity,
+        edgeBanding.unit,
+        price
+      );
+    }
+  }
+
+  const requiredLineCount = materialSummaries.length + hardwareSummaries.length + edgeBandingSummaries.length;
   const pricedLineCount = costLines.length;
   const currencies = [...new Set(costLines.map((line) => line.currencyCode))];
   if (currencies.length > 1) {

@@ -3,7 +3,10 @@ import test from "node:test";
 
 import { BODY_PANEL_GROUPS } from "./bodyPanelMaterials.ts";
 import { calculateCabinetProjectProductionWithDiagnostics } from "./projectProduction.ts";
-import { calculateProjectMaterialConsumptionSummary } from "./projectMaterialSummary.ts";
+import {
+  calculateProjectEdgeBandingConsumptionSummary,
+  calculateProjectMaterialConsumptionSummary
+} from "./projectMaterialSummary.ts";
 import { calculateProjectPricedConsumptionSummary } from "./projectPricedConsumption.ts";
 
 const noBanding = { top: false, bottom: false, left: false, right: false };
@@ -42,7 +45,10 @@ function createReport(options = {}) {
   return calculateCabinetProjectProductionWithDiagnostics({
     schemaVersion: 1,
     furniture: options.empty === true ? [] : [request],
-    ...(options.hardwareItems === undefined ? {} : { hardwareItems: options.hardwareItems })
+    ...(options.hardwareItems === undefined ? {} : { hardwareItems: options.hardwareItems }),
+    ...(options.edgeBandingAssignments === undefined
+      ? {}
+      : { edgeBandingAssignments: options.edgeBandingAssignments })
   });
 }
 
@@ -165,6 +171,99 @@ test("kenar bantlama kimliği bulunmadığı için panel fiyatı olsa da toplam 
     issue.requiredUnit === "mm" &&
     issue.quantity > 0
   ));
+});
+
+test("kenar bandı katalog kimliği ve açık metre birimi fiyatlı tüketim toplamına katılır", () => {
+  const report = createReport({
+    banded: true,
+    edgeBandingAssignments: [{
+      partId: "cab-cost-1-left-side",
+      edgeBandingId: "pvc-white-1",
+      unit: "m"
+    }]
+  });
+  assert.equal(report.status, "ready");
+  assert.equal(report.canExport, false);
+  assert.ok(report.exportBlockers.some((message) => /edgeBandingMaterialId/.test(message)));
+
+  const edgeBanding = calculateProjectEdgeBandingConsumptionSummary(report.result);
+  assert.equal(edgeBanding.length, 1);
+  assert.equal(edgeBanding[0].edgeBandingId, "pvc-white-1");
+  assert.equal(edgeBanding[0].unit, "m");
+  assert.equal(edgeBanding[0].totalQuantity, edgeBanding[0].totalLengthMm / 1000);
+  assert.ok(edgeBanding[0].totalQuantity > 0);
+
+  const summary = calculateProjectPricedConsumptionSummary(report, [
+    price("material", "mdf-18", "m2", 1250, "TRY"),
+    price("edge-banding", "pvc-white-1", "m", 18, "TRY", "edge-band-catalog:v1")
+  ]);
+  assert.equal(summary.status, "ready");
+  assert.equal(summary.requiredLineCount, 2);
+  assert.equal(summary.pricedLineCount, 2);
+  const bandLine = summary.costSummary.lines.find((line) => line.category === "material" &&
+    line.description === "Kenar bandı pvc-white-1");
+  assert.ok(bandLine);
+  assert.equal(bandLine.unit, "m");
+  assert.equal(bandLine.quantity, edgeBanding[0].totalQuantity);
+  assert.equal(bandLine.unitPriceMinor, 18);
+  assert.equal(bandLine.sourceReference, "edge-band-catalog:v1");
+});
+
+test("atanmış kenar bandı fiyatında birim uyuşmazlığı ve eksik fiyat toplamı engeller", () => {
+  const report = createReport({
+    banded: true,
+    edgeBandingAssignments: [{
+      partId: "cab-cost-1-left-side",
+      edgeBandingId: "pvc-white-1",
+      unit: "m"
+    }]
+  });
+  const summary = calculateProjectPricedConsumptionSummary(report, [
+    price("material", "mdf-18", "m2", 1250),
+    price("edge-banding", "pvc-white-1", "mm", 1)
+  ]);
+
+  assert.equal(summary.status, "incomplete");
+  assert.equal(summary.costSummary, null);
+  assert.equal(summary.missingPrices.length, 1);
+  assert.equal(summary.missingPrices[0].code, "unit-mismatch");
+  assert.equal(summary.missingPrices[0].resourceType, "edge-banding");
+  assert.equal(summary.missingPrices[0].resourceId, "pvc-white-1");
+  assert.equal(summary.missingPrices[0].requiredUnit, "m");
+  assert.deepEqual(summary.missingPrices[0].availableUnits, ["mm"]);
+});
+
+test("olmayan parça, bantlanmamış parça ve yinelenen kenar bandı ataması projeyi bloklar", () => {
+  const validAssignment = {
+    partId: "cab-cost-1-left-side",
+    edgeBandingId: "pvc-white-1",
+    unit: "m"
+  };
+  const invalidReports = [
+    createReport({
+      banded: true,
+      edgeBandingAssignments: [{ ...validAssignment, partId: "missing-part" }]
+    }),
+    createReport({
+      banded: true,
+      edgeBandingAssignments: [{ ...validAssignment, partId: "cab-cost-1-top" }]
+    }),
+    createReport({
+      banded: true,
+      edgeBandingAssignments: [validAssignment, validAssignment]
+    }),
+    createReport({
+      banded: true,
+      edgeBandingAssignments: [{ ...validAssignment, edgeBandingId: "PVC WHITE" }]
+    })
+  ];
+
+  for (const report of invalidReports) {
+    assert.equal(report.status, "blocked");
+    assert.equal(report.result, null);
+    assert.equal(report.canExport, false);
+    assert.ok(report.blockedFurniture.some((entry) => entry.code === "invalid-edge-banding"));
+  }
 });
 
 test("fiyatı bulunan satırlarda farklı para birimleri tek toplamı bloklar", () => {

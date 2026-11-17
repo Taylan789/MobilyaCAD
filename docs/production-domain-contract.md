@@ -368,3 +368,28 @@ Kaynak: `domain/production/projectPricedConsumption.ts`, `calculateProjectPriced
 - Üretim raporunun `canExport: false` olması (ör. mevcut JSON v1/CSV adapter'ının `hardwareItems` veya `panelGeometry` alanını taşımaması) domain içi fiyat hesabını tek başına engellemez; bu sonuç CNC/atölye dışa aktarım onayı değildir.
 - Vergi, kur, iskonto, fire yüzdesi, rulo payı, levha verimi, stok ve tedarik varsayılmaz. Fiyat kaynağı/versiyonu kullanıcı girdisidir; bu dilim fiyat geçerlilik tarihi veya teklif revizyonu üretmez.
 - Frontend entegrasyon sözleşmesi: UI `ready` dışında `grandTotalMinor` göstermemeli; `incomplete` durumunda `missingPrices` satırlarını, `blocked` durumunda `diagnostics` alanını açıklamalıdır. Bu domain diliminde `frontend/**` değiştirilmez.
+
+
+## 2.16 Kenar bandı katalog kimliği ve fiyat birimi v1
+
+Kaynak: `domain/production/projectProduction.ts`, `domain/production/projectMaterialSummary.ts` ve `domain/production/projectPricedConsumption.ts`.
+
+Proje isteği, opsiyonel `edgeBandingAssignments` listesinde her üretim Part'ı için açık bir atama alır:
+
+```ts
+{
+  partId: "cabinet-1-left-side",
+  edgeBandingId: "pvc-white-1",
+  unit: "m" // veya "mm"
+}
+```
+
+- Bir Part için en fazla bir atama bulunabilir. Atama, Part üzerindeki bütün bantlı dış kenarları ve varsa bantlanmış dikdörtgen açıklık iç kenarlarını aynı katalog kaynağına bağlar. Farklı kenarlarda farklı bant türleri v1 kapsamı dışındadır.
+- `edgeBandingId`, boş olmayan ve küçük harf/rakam/nokta/alt çizgi/tire biçimindeki kararlı kullanıcı/katalog kimliğidir. Domain harici katalogda kimliğin gerçekten var olduğunu iddia etmez; ad, renk, kalınlık, yapışkan ve tedarikçi bilgisi uydurulmaz.
+- `unit` açıkça `mm` veya `m` seçilir. Geometri mm olarak hesaplanır; yalnızca atama `m` seçtiğinde tam metrik dönüşümle 1000'e bölünür. Fiyat tablosu `resourceType: "edge-banding"`, aynı `edgeBandingId` ve aynı birimle eşleşmelidir. Birim otomatik tahmin edilmez.
+- Atama bilinmeyen Part'a, bantlanmamış Part'a, yinelenen Part'a veya geçersiz kimlik/birime bağlanırsa proje `blocked`, `result: null` olur. Kısmi parça listesi döndürülmez.
+- Bantlı bir Part için atama bulunmuyorsa tüketim özeti `edgeBandingId: null` ve `unit: "mm"` döndürür; fiyatlı maliyet `incomplete` kalır ve parasal toplam üretmez.
+- `calculateProjectEdgeBandingConsumptionSummary`, Part quantity değerini her dış/iç bant uzunluğuna uygular ve tüketimi `edgeBandingId + unit` anahtarıyla toplar. Aynı ID'nin mm ve m satırları ayrı kalır; farklı kaynaklar birleştirilmez.
+- Atama bulunan Part'lar `edgeBandingMaterialId` ve `edgeBandingUnit` alanlarını taşır. Mevcut JSON v1/CSV adapter'ı bu alanları kayıpsız taşımadığı için proje `canExport: false` ve açık `exportBlockers` üretir; adapter desteği gelmeden dışa aktarım onayı verilmez.
+- Kenar bandı fiyatı maliyet özetinde malzeme kategorisine eklenir. Eksik fiyat veya aynı ID için farklı fiyat birimi `incomplete` olur; farklı para birimleri `blocked` kalır. Sıfır fiyat yalnızca açık fiyat satırıyla geçerlidir.
+- Rulo payı, fire, bant kalınlığı, yapıştırıcı, işçilik, tedarik ve CNC işlemi hesaplanmaz. Fiziksel üretim öncesi gerçek katalog ve atölye koşulları ayrıca doğrulanmalıdır.
