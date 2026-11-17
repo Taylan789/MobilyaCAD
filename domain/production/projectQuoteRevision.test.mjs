@@ -4,7 +4,7 @@ import test from "node:test";
 import { BODY_PANEL_GROUPS } from "./bodyPanelMaterials.ts";
 import { calculateCabinetProjectProductionWithDiagnostics } from "./projectProduction.ts";
 import { createProjectQuotePricingSnapshot } from "./projectQuotePricingSnapshot.ts";
-import { createProjectQuoteRevision, validateProjectQuoteRevisionHistory } from "./projectQuoteRevision.ts";
+import { appendProjectQuoteRevision, createProjectQuoteRevision, validateProjectQuoteRevisionHistory } from "./projectQuoteRevision.ts";
 
 const noBanding = { top: false, bottom: false, left: false, right: false };
 const edgeBandingByGroup = Object.fromEntries(
@@ -440,4 +440,95 @@ test("bilinmeyen alan, şema sürümü ve bozuk geçmiş girdisi reddedilir", ()
   assert.match(version.diagnostics[0], /şemasını kullanmalıdır/);
   assert.equal(invalidInput.status, "blocked");
   assert.match(invalidInput.diagnostics[0], /revisions dizisi/);
+});
+
+
+test("boş teklif geçmişine ilk revizyon açık kimlik ve tarih ile eklenir", () => {
+  const emptyHistory = { projectId: "project-42", revisions: [] };
+  const result = appendProjectQuoteRevision(emptyHistory, {
+    revisionId: "quote-r1",
+    createdAt: "2026-11-17T10:00:00Z",
+    pricingSnapshot: createSnapshot()
+  });
+
+  assert.equal(result.status, "ready");
+  assert.equal(result.history?.revisions.length, 1);
+  assert.equal(result.history?.revisions[0].revisionNumber, 1);
+  assert.equal(result.history?.revisions[0].previousRevisionId, null);
+  assert.equal(result.history?.revisions[0].revisionId, "quote-r1");
+  assert.deepEqual(emptyHistory.revisions, []);
+  assert.equal(Object.isFrozen(result.history?.revisions[0].pricingSnapshot), true);
+});
+
+test("geçerli geçmişe ekleme sıra numarasını ve önceki kimliği doğrulanmış zincirden türetir", () => {
+  const history = createTwoRevisionHistory();
+  const original = structuredClone(history);
+  const result = appendProjectQuoteRevision(history, {
+    revisionId: "quote-r3",
+    createdAt: "2026-11-17T12:00:00Z",
+    pricingSnapshot: createSnapshot()
+  });
+
+  assert.equal(result.status, "ready");
+  assert.equal(result.history?.revisions.length, 3);
+  assert.equal(result.history?.revisions[2].revisionNumber, 3);
+  assert.equal(result.history?.revisions[2].previousRevisionId, "quote-r2");
+  assert.equal(result.history?.revisions[2].revisionId, "quote-r3");
+  assert.deepEqual(history, original);
+  assert.equal(Object.isFrozen(result.history?.revisions), true);
+  assert.equal(Object.isFrozen(result.history?.revisions[2]), true);
+});
+
+test("append geçmişte daha önce kullanılmış herhangi bir revisionId değerini reddeder", () => {
+  const result = appendProjectQuoteRevision(createTwoRevisionHistory(), {
+    revisionId: "quote-r1",
+    createdAt: "2026-11-17T12:00:00Z",
+    pricingSnapshot: createSnapshot()
+  });
+
+  assert.equal(result.status, "blocked");
+  assert.equal(result.history, null);
+  assert.match(result.diagnostics[0], /revisionId benzersiz/);
+});
+
+test("append bozuk mevcut geçmişi onarmaz ve kısmi sonuç üretmez", () => {
+  const history = createTwoRevisionHistory({ previousRevisionId: "broken-link" });
+  const original = structuredClone(history);
+  const result = appendProjectQuoteRevision(history, {
+    revisionId: "quote-r3",
+    createdAt: "2026-11-17T12:00:00Z",
+    pricingSnapshot: createSnapshot()
+  });
+
+  assert.equal(result.status, "blocked");
+  assert.equal(result.history, null);
+  assert.match(result.diagnostics[0], /previousRevisionId/);
+  assert.deepEqual(history, original);
+});
+
+test("append kronolojiyi, hazır snapshot'ı ve kapalı girdi şemasını zorunlu tutar", () => {
+  const history = createTwoRevisionHistory();
+  const earlierDate = appendProjectQuoteRevision(history, {
+    revisionId: "quote-r3",
+    createdAt: "2026-11-17T10:59:59Z",
+    pricingSnapshot: createSnapshot()
+  });
+  const invalidSnapshot = appendProjectQuoteRevision(history, {
+    revisionId: "quote-r3",
+    createdAt: "2026-11-17T12:00:00Z",
+    pricingSnapshot: null
+  });
+  const overriddenSequence = appendProjectQuoteRevision(history, {
+    revisionId: "quote-r3",
+    revisionNumber: 3,
+    createdAt: "2026-11-17T12:00:00Z",
+    pricingSnapshot: createSnapshot()
+  });
+
+  assert.equal(earlierDate.status, "blocked");
+  assert.match(earlierDate.diagnostics[0], /önceki revizyon tarihinden sonra/);
+  assert.equal(invalidSnapshot.status, "blocked");
+  assert.match(invalidSnapshot.diagnostics[0], /snapshot/);
+  assert.equal(overriddenSequence.status, "blocked");
+  assert.match(overriddenSequence.diagnostics[0], /desteklenmeyen alan/);
 });

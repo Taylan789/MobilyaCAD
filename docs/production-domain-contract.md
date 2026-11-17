@@ -478,3 +478,17 @@ Kaynak: domain/production/projectQuoteRevision.ts, validateProjectQuoteRevisionH
 - Her revizyonun oluşturulma zamanı önceki revizyondan kesin olarak sonra olmalıdır. Önceki snapshot doğrulaması createProjectQuoteRevision ile yeniden yapılır; yalnızca hazır ve tutarlı maliyet snapshot'ları kabul edilir.
 - Başarılı geçmiş ve içindeki snapshot'lar runtime'da derin dondurulur. Kalıcı depolama, eşzamanlı yazma kilidi veya cihazlar arası ID üretimi bu fonksiyonun kapsamı dışındadır.
 - Frontend sözleşmesi: status, history.projectId, history.revisions[] ve diagnostics; empty boş liste, blocked ise kısmi kayıt içermez.
+
+
+## Doğrulanmış teklif revizyon geçmişine immutable append — domain v1
+
+Kaynak: `domain/production/projectQuoteRevision.ts`, `appendProjectQuoteRevision(history, revisionInput)`.
+
+- Önce mevcut geçmiş `validateProjectQuoteRevisionHistory` ile doğrulanır. Bozuk geçmişe ekleme yapılmaz; blocked sonucu `history: null` döndürür, hiçbir kayıt onarılmaz veya sıralanmaz.
+- Yeni girdi yalnızca `revisionId`, saat dilimli ISO 8601 `createdAt` ve hazır `pricingSnapshot` alanlarını kabul eder. `projectId`, sıra numarası ve önceki revizyon bağlantısı çağıran tarafından override edilemez.
+- Proje kimliği doğrulanmış geçmişten alınır; yeni sıra numarası mevcut kayıt adedi + 1, `previousRevisionId` ise son doğrulanmış kaydın kimliğidir. Boş geçmişe ekleme ilk revizyonu 1 numarasıyla oluşturur.
+- `revisionId` tüm mevcut geçmiş boyunca benzersiz olmalıdır. Tarih son revizyondan kesin olarak sonra gelmeli; snapshot hazır, tutarlı ve desteklenen şemada olmalıdır.
+- Bilinmeyen alan, duplicate ID, kopuk/bozuk geçmiş, geriye giden tarih veya geçersiz snapshot blocked döndürür. Kısmi geçmiş sunulmaz; girdi geçmişi değiştirilmez.
+- Başarılı append sonucu tüm geçmişi yeniden doğrular ve revizyon/snapshot nesnelerini runtime'da derin dondurur.
+- Bu saf domain işlemi kalıcı depolama, transaction, eşzamanlı yazma kilidi veya cihazlar arası ID üretimi sağlamaz. Çağıran depolama katmanı append işlemini atomik biçimde kaydetmeli ve eşzamanlı güncellemeleri ayrıca koordine etmelidir.
+- Frontend, JSON v1 ve CSV adapter entegrasyonu bu dilimin dışındadır. Frontend sözleşmesi: `ready` durumunda yeni immutable history; `empty` yalnızca append öncesi boş geçmiş doğrulamasında; `blocked` durumunda `history: null` ve `diagnostics`.

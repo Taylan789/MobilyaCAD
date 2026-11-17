@@ -50,6 +50,7 @@ const inputKeys = new Set([
   "pricingSnapshot"
 ]);
 const historyInputKeys = new Set(["projectId", "revisions"]);
+const appendInputKeys = new Set(["revisionId", "createdAt", "pricingSnapshot"]);
 const revisionEnvelopeKeys = new Set([
   "schemaVersion",
   "projectId",
@@ -573,6 +574,64 @@ export function validateProjectQuoteRevisionHistory(value: unknown): ProjectQuot
       status: "ready" as const,
       history: { schemaVersion: 1 as const, projectId, revisions },
       diagnostics: []
+    });
+  } catch (error) {
+    return blockedHistory(error instanceof Error ? error.message : String(error));
+  }
+}
+
+
+/**
+ * Appends one explicitly identified revision to a validated project history.
+ * The next sequence number and previous link come from the verified history;
+ * the caller must supply the revision ID, timestamp and ready pricing snapshot.
+ */
+export function appendProjectQuoteRevision(
+  historyValue: unknown,
+  revisionValue: unknown
+): ProjectQuoteRevisionHistoryResult {
+  const validatedHistory = validateProjectQuoteRevisionHistory(historyValue);
+  if (validatedHistory.status === "blocked" || validatedHistory.history === null) {
+    return blockedHistory(validatedHistory.diagnostics[0] ?? "Teklif revizyon geçmişi doğrulanamadı.");
+  }
+  if (!isRecord(revisionValue)) {
+    return blockedHistory("Yeni teklif revizyon girdisi geçerli bir nesne olmalıdır.");
+  }
+
+  try {
+    requireOnlyKeys(revisionValue, appendInputKeys, "Yeni teklif revizyon girdisi");
+    const currentHistory = validatedHistory.history;
+    const revisionId = requireIdentifier(revisionValue.revisionId, "Yeni revizyon kimliği");
+    const createdAt = requireDateTime(revisionValue.createdAt, "Yeni revizyon oluşturulma tarihi");
+
+    if (currentHistory.revisions.some((revision) => revision.revisionId === revisionId)) {
+      throw new Error("Yeni revizyon kimliği mevcut geçmişte zaten kullanılmış olmalıdır; revisionId benzersiz olmalıdır.");
+    }
+
+    const previous = currentHistory.revisions.length === 0
+      ? null
+      : currentHistory.revisions[currentHistory.revisions.length - 1];
+    const created = createProjectQuoteRevision({
+      projectId: currentHistory.projectId,
+      revisionId,
+      revisionNumber: currentHistory.revisions.length + 1,
+      createdAt,
+      previousRevision: previous === null ? null : {
+        projectId: previous.projectId,
+        revisionId: previous.revisionId,
+        revisionNumber: previous.revisionNumber,
+        createdAt: previous.createdAt
+      },
+      pricingSnapshot: revisionValue.pricingSnapshot
+    });
+
+    if (created.status !== "ready" || created.revision === null) {
+      throw new Error(created.diagnostics[0] ?? "Yeni teklif revizyonu doğrulanamadı.");
+    }
+
+    return validateProjectQuoteRevisionHistory({
+      projectId: currentHistory.projectId,
+      revisions: [...currentHistory.revisions, created.revision]
     });
   } catch (error) {
     return blockedHistory(error instanceof Error ? error.message : String(error));
