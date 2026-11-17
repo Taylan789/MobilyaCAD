@@ -1,21 +1,18 @@
 /*
- * Preserve project save-state announcements when compact layouts hide the
- * visible document-status chip. Keep it in the accessibility tree without
- * taking up toolbar space.
+ * A single visually-hidden live region announces save-state changes.
+ * It lives outside the document-name wrapper because compact/mobile
+ * breakpoints intentionally hide that visual header group.
  */
-@media (min-width: 1101px) and (max-width: 1360px), (max-width: 820px) {
-  .cad-topbar .cad-document-name .cad-document-status {
-    display: block !important;
-    position: absolute !important;
-    width: 1px !important;
-    height: 1px !important;
-    padding: 0 !important;
-    margin: -1px !important;
-    overflow: hidden !important;
-    clip: rect(0, 0, 0, 0) !important;
-    clip-path: inset(50%) !important;
-    white-space: nowrap !important;
-    border: 0 !important;
-    pointer-events: none !important;
-  }
+.cad-topbar .cad-document-status-announcement {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  clip-path: inset(50%) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+  pointer-events: none !important;
 }
