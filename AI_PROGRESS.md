@@ -967,12 +967,13 @@
 - Durum: domain API, regresyon testleri, strict TypeScript ve build doğrulandı; tam QA shared production audit nedeniyle BLOCKED. Sonraki adım: SEC-001 çözümünden sonra DOM-014/015/016 için tam QA sonucunu kontrol etmek; ardından INT-001 domain/export sözleşmesini ilerletmek.
 
 
-## 18 Kasım 2026 00:20 TRT — DOM-017 teklif revizyon geçmişi JSON zarfı (Actions bekleniyor)
+## 18 Kasım 2026 00:20 TRT — DOM-017 teklif revizyon geçmişi JSON zarfı doğrulandı; tam QA audit nedeniyle bloklu
 
 - Başlangıç branch HEAD: 23d620a3f0153ce938d40d611ed7b9cb18b2e24b.
-- Geliştirme: domain/production/projectQuoteRevisionFile.ts ile teklif revizyon geçmişi için ayrı mobilyacad-quote-revision-history v1 JSON envelope serializer/parser eklendi. Her iki yön de mevcut aggregate doğrulayıcısını kullanır; bozuk geçmişte kısmi JSON/history döndürülmez.
-- Regresyon kapsamı: iki revizyon round-trip, ID/sıra/önceki bağlantı ve maliyet toplamı korunumu, empty geçmiş, legacy iç geçmiş sürümü, malformed JSON, yanlış fileType, bilinmeyen alan, desteklenmeyen dosya sürümü ve bozuk zincir.
-- Değişen dosyalar: domain/production/projectQuoteRevisionFile.ts, domain/production/projectQuoteRevision.test.mjs, .github/workflows/qa-test.yml, docs/production-domain-contract.md, AI_COORDINATION.md, PRODUCT_ROADMAP.md, AI_PROGRESS.md. Hiçbir frontend/**, adapter, package manifest, lockfile veya secret değiştirilmedi.
-- Kod commit SHA'sı ve gerçek CI/QA run bağlantıları, branch commit'i oluşturulduktan ve Actions sonuçları görüldükten sonraki doğrulama kaydında eklenecek.
-- Bilinen sınırlar: bu envelope mevcut proje JSON v1'e gömülmez; disk yazımı, otomatik kayıt, atomik transaction, eşzamanlı yazma kilidi ve yedekleme sağlamaz. Tam QA'nın önceki blokajı production dependency audit içindeki picomatch yüksek bulgularıdır; frontend sahibinin SEC-001 kapsamındadır.
-- Sonraki adım: Actions'ta yeni domain testleri ve strict TypeScript sonucunu doğrula; ardından proje dosyasıyla geriye uyumlu entegrasyon sözleşmesini küçük bir domain dilimine ayır.
+- Kod commit'i: [3b187ca9ff597fb0fc24eabb918e4ae4f5b4c44b](https://github.com/Taylan789/MobilyaCAD/commit/3b187ca9ff597fb0fc24eabb918e4ae4f5b4c44b).
+- Ürün davranışı: ayrı mobilyacad-quote-revision-history v1 JSON zarfı doğrulanmış ready/empty revizyon geçmişini dışa aktarır; import dosya türü/sürüm/kapalı zarf şemasını ve tüm geçmiş zincirini yeniden doğrular. Legacy iç geçmiş schemaVersion eksikliği korunur; yeni export sürüm 1'i kanonik yazar. Bozuk JSON/geçmişte kısmi sonuç yoktur.
+- Değişen dosyalar: domain/production/projectQuoteRevisionFile.ts, domain/production/projectQuoteRevision.test.mjs, .github/workflows/qa-test.yml, docs/production-domain-contract.md, AI_COORDINATION.md, PRODUCT_ROADMAP.md, AI_PROGRESS.md. frontend/**, adapter, package manifest, lockfile veya secret değiştirilmedi.
+- [CI #44179904406](https://github.com/Taylan789/MobilyaCAD/actions/runs/44179904406) başarılı. [QA #44179904377](https://github.com/Taylan789/MobilyaCAD/actions/runs/44179904377): **101/101 frontend + 245/245 domain testi, 0 başarısız**; shared-domain strict TypeScript, lint ve production build başarılı. QA yalnızca production dependency audit adımında başarısız: 12 bulgu (2 moderate, 10 high), picomatch ReDoS zinciri; npm audit --force Vite 6.2.7 kırıcı downgrade öneriyor. [Pages #44179904575](https://github.com/Taylan789/MobilyaCAD/actions/runs/44179904575) build/deploy başarılı.
+- AI Developer [#44164712000](https://github.com/Taylan789/MobilyaCAD/actions/runs/44164712000) ürün ve entegrasyon job'larında OpenRouter free-models-per-day 429 kotasına takıldı; reset 18 Kasım 2026 00:00 UTC / 03:00 TRT. Kota resetlenmeden rerun yapılmadı. Bu workflow hatası kod commit'inden bağımsızdır.
+- Bilinen sınırlar: JSON zarfı mevcut proje JSON v1'e gömülmez; disk yazımı, otomatik kayıt, atomik transaction, eşzamanlı yazma kilidi ve yedekleme sağlamaz. Tam QA SEC-001 frontend sahipliği kapsamındaki audit düzeltmesine bağlıdır.
+- Sonraki görev: SEC-001 sonrası DOM-014/015/016/017 için yeni SHA'da tam QA'yı doğrula; ardından proje dosyasıyla geriye uyumlu entegrasyon sözleşmesini ilerlet.

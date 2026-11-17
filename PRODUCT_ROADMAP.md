@@ -893,6 +893,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 - Eski iç geçmiş kayıtlarında schemaVersion alanının bulunmaması geriye uyumlu kalır; yeni export kanonik schemaVersion 1 yazar. Empty geçmiş empty olarak korunur; bozuk JSON/şema/geçmişte kısmi sonuç yoktur.
 - Bu ayrı bir teklif geçmişi dosyasıdır; mevcut proje JSON v1'e otomatik eklenmez. Frontend, disk yazımı, otomatik kayıt ve eşzamanlılık/backup altyapısı ayrı entegrasyon işidir.
 - Test kabul kriterleri: iki revizyonun round-trip ile ID/sıra/önceki bağlantı ve toplamları koruması; empty geçmiş; legacy nested v1; bozuk zincir; bozuk JSON; yanlış fileType; bilinmeyen alan; desteklenmeyen sürüm; immutable parse sonucu.
+- Doğrulama: [CI #44179904406](https://github.com/Taylan789/MobilyaCAD/actions/runs/44179904406) ve [Pages #44179904575](https://github.com/Taylan789/MobilyaCAD/actions/runs/44179904575) başarılı; [QA #44179904377](https://github.com/Taylan789/MobilyaCAD/actions/runs/44179904377) 101/101 frontend + 245/245 domain testi, strict TypeScript, lint ve build aşamalarını geçti; yalnızca 12 production audit bulgusu (2 moderate, 10 high; picomatch ReDoS) nedeniyle job başarısız. Domain davranışı doğrulandı, tam QA SEC-001'e bağlı.
 
 ### Güncel sıradaki 3-5 küçük görev
 
