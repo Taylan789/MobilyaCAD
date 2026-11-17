@@ -190,6 +190,8 @@ function App() {
   const [workspaceMode, setWorkspaceMode] = useState<"design" | "production">("design");
   const [productionSection, setProductionSection] = useState<"report" | "materials">("report");
   const [bottomPanelTab, setBottomPanelTab] = useState<"parts" | "materials" | "issues">("parts");
+  const [gridSnapEnabled, setGridSnapEnabled] = useState(true);
+  const [gridSnapStep, setGridSnapStep] = useState(10);
 
   const [constructionRules] = useState<CabinetConstructionRules>({
     panelThickness: 18,
@@ -785,14 +787,17 @@ function App() {
         const odaYariGenislik = roomWidth / 2000;
         const odaYariUzunluk = roomLength / 2000;
 
+        const adim = gridSnapEnabled ? gridSnapStep / 1000 : 0;
+        const hedefX = adim > 0 ? Math.round(position[0] / adim) * adim : position[0];
+        const hedefZ = adim > 0 ? Math.round(position[2] / adim) * adim : position[2];
         const sinirliX = Math.max(
           -odaYariGenislik + yariGenislik,
-          Math.min(odaYariGenislik - yariGenislik, position[0])
+          Math.min(odaYariGenislik - yariGenislik, hedefX)
         );
 
         const sinirliZ = Math.max(
           -odaYariUzunluk + yariDerinlik,
-          Math.min(odaYariUzunluk - yariDerinlik, position[2])
+          Math.min(odaYariUzunluk - yariDerinlik, hedefZ)
         );
 
         return {
@@ -1861,6 +1866,11 @@ function App() {
                 <button type="button" className={transformMode === "scale" ? "active" : ""} onClick={() => setTransformMode("scale")}><Maximize2 /> Ölçekle</button>
                 <button type="button" className={transformMode === "rotate" ? "active" : ""} onClick={() => setTransformMode("rotate")}><RotateCw /> Döndür</button>
                 <span className="studio-heading-divider" />
+                <button type="button" className={gridSnapEnabled ? "active studio-snap-toggle" : "studio-snap-toggle"} aria-pressed={gridSnapEnabled} onClick={() => setGridSnapEnabled((enabled) => !enabled)} title={gridSnapEnabled ? "Izgaraya yakalamayı kapat" : "Izgaraya yakalamayı aç"}><Ruler /> {gridSnapEnabled ? "Yakalama açık" : "Yakalama kapalı"}</button>
+                <select className="studio-snap-step" aria-label="Izgara yakalama aralığı" value={gridSnapStep} onChange={(event) => setGridSnapStep(Number(event.target.value))} disabled={!gridSnapEnabled}>
+                  <option value={5}>5 mm</option><option value={10}>10 mm</option><option value={25}>25 mm</option><option value={50}>50 mm</option><option value={100}>100 mm</option>
+                </select>
+                <span className="studio-heading-divider" />
                 <button type="button" className="studio-panel-toggle" aria-label={leftDockCollapsed ? "Sol paneli göster" : "Sol paneli gizle"} title={leftDockCollapsed ? "Sol paneli göster" : "Sol paneli gizle"} aria-pressed={!leftDockCollapsed} onClick={() => setLeftDockCollapsed((current) => !current)}><PanelLeft /></button>
                 <button type="button" className="studio-panel-toggle" aria-label={inspectorCollapsed ? "Özellik panelini göster" : "Özellik panelini gizle"} title={inspectorCollapsed ? "Özellik panelini göster" : "Özellik panelini gizle"} aria-pressed={!inspectorCollapsed} onClick={() => setInspectorCollapsed((current) => !current)}><PanelRight /></button>
                 <span className="studio-unit-pill">MM</span>
@@ -1919,7 +1929,7 @@ function App() {
                   <MousePointer2 />
                   <span>{furniture.length === 0 ? "Sol panelden bir modül seçerek tasarıma başla" : "Nesneyi seç · Taşı, ölçekle veya döndür"}</span>
                 </div>
-                <div className="studio-canvas-footer"><span><i /> SAHNE GÖRÜNÜMÜ</span><span>GRID · SNAP 10 MM</span><span>{furniture.length} / {furnitureCatalog.length} MODÜL</span></div>
+                <div className="studio-canvas-footer"><span><i /> SAHNE GÖRÜNÜMÜ</span><span>GRID · SNAP {gridSnapEnabled ? `${gridSnapStep} MM` : "KAPALI"}</span><span>{furniture.length} / {furnitureCatalog.length} MODÜL</span></div>
               </main>
 
               <aside className="cad-inspector">
