@@ -1157,10 +1157,10 @@ function App() {
                   <input id="atelier-open-project" type="file" accept=".json,application/json" hidden onChange={(event) => { void loadProject(event).then((loaded) => { if (loaded) startWorkspace(); }); }} />
                 </div>
               </div>
-              <div className="atelier-feature-art" aria-label="Ölçülü mobilya modülü önizlemesi">
-                <div className="atelier-art-grid"></div><div className="atelier-art-index">FIG. 001 — MODÜL ÖNİZLEMESİ</div>
+              <div className="atelier-feature-art" aria-label="Temsili mobilya modülü illüstrasyonu">
+                <div className="atelier-art-grid"></div><div className="atelier-art-index">ŞEMATİK GÖRSEL — ÖLÇÜLER TEMSİLİ</div>
                 <div className="atelier-art-cube"><div className="atelier-cube-top"></div><div className="atelier-cube-front"></div><div className="atelier-cube-side"></div><span className="atelier-dim atelier-dim-x">1200</span><span className="atelier-dim atelier-dim-y">740</span><span className="atelier-dim atelier-dim-z">18</span></div>
-                <div className="atelier-art-caption"><b>01 / ÖLÇÜLÜ MODÜL</b><span>ÖLÇÜ · MALZEME · YERLEŞİM</span></div>
+                <div className="atelier-art-caption"><b>01 / ŞEMATİK MODÜL</b><span>ÖLÇÜ · MALZEME · YERLEŞİM</span></div>
               </div>
             </section>
             <section className="atelier-section atelier-start-section" id="templates">
