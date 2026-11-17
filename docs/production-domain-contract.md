@@ -340,3 +340,16 @@ Kaynak: `calculateProjectHardwareConsumptionSummary` in `domain/production/proje
 - Donanım özeti panel Part listesine, panel alan/hacim hesabına veya kenar bantlama özetine karıştırılmaz. Donanım olmayan eski v1 proje sonuçları boş özet döndürür.
 - Bu çıktı yalnızca miktar/BOM özetidir; fiyat, stok, tedarik, montaj reçetesi, donanım ölçüsü, delik koordinatı veya CNC operasyonu üretmez. Teklif katmanı fiyatları ancak kullanıcı/katalog girdisi sağlandığında ekleyebilir.
 - Donanım satırı bulunan sonuçlarda JSON v1/CSV adapter desteği doğrulanana kadar proje agregatörünün `canExport: false` ve `exportBlockers` davranışı değişmez.
+
+
+## Proje maliyet özeti — domain v1
+
+Kaynak: domain/production/projectCostSummary.ts, calculateProjectCostSummary.
+
+- Girdi, açıkça sağlanan maliyet satırlarının listesidir. Her satırda benzersiz id, category, description, quantity, unit, unitPriceMinor ve currencyCode bulunur; sourceReference isteğe bağlıdır.
+- Desteklenen kategoriler: material, hardware, labor, operation, waste ve profit. Fire ve kâr yalnızca açık tutarlı satır olarak girilir; yüzde veya oran otomatik uygulanmaz.
+- unitPriceMinor, verilen para biriminin en küçük birimindeki negatif olmayan güvenli tam sayıdır. Para birimi kodu üç büyük harfli etikettir; ISO kataloğundan doğrulama veya kur dönüşümü yapılmaz. Aynı özet içindeki bütün satırlar aynı kodu kullanmalıdır.
+- quantity pozitif, sonlu ve güvenli aralıkta olmalı; en fazla altı anlamlı ondalık basamak desteklenir. Her satır ayrı ayrı en yakın küçük para birimine yarım-yukarı yuvarlanır. BigInt ara hesapları kullanılır; satır, kategori veya proje toplamı Number.MAX_SAFE_INTEGER sınırını aşarsa sonuç reddedilir.
+- Boş liste status=empty ve sıfır toplamlar üretir; bu, ücretsiz teklif veya fiyatı doğrulanmış proje anlamına gelmez. Geçerli satırlar status=ready döndürür. Herhangi bir geçersiz satır veya para birimi uyuşmazlığı tüm hesabı reddeder; kısmi toplam sunulmaz.
+- Bu ilk dilim maliyet satırlarını henüz ProjectMaterialConsumptionSummary veya ProjectHardwareConsumptionSummary ile otomatik eşlemez. Kullanıcı/katalog fiyatı eksikse varsayılan fiyat üretmez.
+- Vergi, kur, iskonto, işçilik süresi, operasyon tarifi, levha fire oranı, kâr yüzdesi, teklif revizyonu ve geçerlilik tarihi bu sürümde yoktur. Bunlar ayrı kullanıcı/ticari sözleşme girdileri gerektirir.

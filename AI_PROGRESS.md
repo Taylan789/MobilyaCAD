@@ -741,3 +741,17 @@
 - PR açılmadı; doğrudan yalnızca `dev/github-work` dalına commit edildi. AI Developer workflow'u için listelenen son 100 run içinde çalıştırma yok; bu workflow `workflow_dispatch` gerektiriyor ve bu turda dispatch edilmedi.
 - Bilinen sınırlar: `hardwareItems` JSON v1/CSV adapter'ına henüz bağlanmadığı için `canExport: false` / `exportBlockers` kapısı korunuyor. Fiyat, stok, donanım standardı, delik/CNC veya fiziksel üretim onayı yok. `frontend/**` değişmedi; başka ajan PR'ı birleştirilmedi; `main` dalına dokunulmadı.
 - Sonraki görev: arayüz sahibinin `hardwareItems` JSON v1 round-trip ve CSV export engeli entegrasyonunu PR üzerinden denetle; ardından kullanıcı/katalog girdili donanım kimliği sürüm/kaynak sözleşmesini tasarla.
+
+
+## 17 Kasım 2026 10:42 TRT — DOM-005 kullanıcı girdili proje maliyet motoru (Actions bekleniyor)
+
+- Başlangıç HEAD: 8a3d4129150947602898564979b31c950bbc38ad.
+- Teslimat: domain katmanına açık kullanıcı/katalog fiyat girdilerinden satır ve kategori maliyeti hesaplayan calculateProjectCostSummary eklendi.
+- Kategoriler malzeme, donanım, işçilik, operasyon, fire ve kâr ile sınırlıdır. Her satır miktar, özgün birim, para birimi kodu, küçük para birimi cinsinden tam sayı birim fiyat ve isteğe bağlı kaynak referansı taşır.
+- Miktarlar en fazla altı anlamlı ondalık basamakla BigInt ölçekli aritmetik kullanır; her satır en yakın küçük para birimine yarım-yukarı yuvarlanır. Satır/kategori/proje toplamı güvenli tam sayı aralığını aşarsa hesap reddedilir. Farklı para birimleri, bilinmeyen alanlar ve geçersiz satırlar kısmi sonuç üretmeden reddedilir.
+- Kâr ve fire yalnızca açık tutar satırlarıdır; yüzde, levha fire oranı, vergi, kur dönüşümü, katalog fiyatı veya tedarik bedeli tahmin edilmez.
+- Değişen dosyalar: domain/production/projectCostSummary.ts, domain/production/projectCostSummary.test.mjs, .github/workflows/qa-test.yml, docs/production-domain-contract.md, PRODUCT_ROADMAP.md, AI_COORDINATION.md, AI_PROGRESS.md.
+- Kabul kontrolleri: boş proje, altı maliyet kategorisi, 0.1/0.2 miktar, satır bazında yarım-yukarı yuvarlama, sıfır fiyatın açık korunması, para birimi uyuşmazlığı, hatalı miktar/fiyat, yinelenen kimlik, bilinmeyen alan ve toplam taşması.
+- Otomatik doğrulama: bu kayıt hazırlanırken yeni commit henüz oluşturulmadı; GitHub Actions sonuçları bekleniyor ve başarılı ilan edilmiyor.
+- Bilinen sınırlar: maliyet satırları henüz üretim malzeme/donanım özetlerine otomatik eşlenmez; fiyat kataloğu, geçerlilik tarihi, teklif revizyonu, vergi ve frontend entegrasyonu sonraki ayrı dilimlerdir. Fiziksel üretim/CNC onayı değildir.
+- Sonraki görev: kullanıcı fiyat tablosunu açık materialId/hardwareId + birim anahtarlarıyla üretim özetlerine bağlayan domain adapter'ı; fiyat eksikse maliyeti hazır göstermeyen engel durumu.

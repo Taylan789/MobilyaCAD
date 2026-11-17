@@ -669,3 +669,20 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 3. Fiyat/teklif motorunu yalnızca kullanıcı tarafından sağlanan para birimi, birim fiyat ve geçerlilik tarihi girdileriyle ayrı bir domain dilimine ayır.
 4. Banyo dolabı arkalık, baza ve ayak seçeneklerini yalnızca açık kullanıcı/üretici ölçüleri ve bağlantı girdileriyle parametrik hale getir.
 5. Delik/CNC operasyon modelini gerçek makine profili ve doğrulanmış koordinat standardı sağlandığında genişlet; standart yokken koordinat üretme.
+
+
+## 17 Kasım 2026 — kullanıcı girdili proje maliyet motoru (domain v1)
+
+- calculateProjectCostSummary, kullanıcı/katalog tarafından açıkça sağlanan maliyet satırlarını malzeme, donanım, işçilik, operasyon, fire ve kâr kategorilerinde toplar.
+- Her satır özgün birim ve aynı proje para birimini taşır; fiyat, para biriminin en küçük biriminde tam sayı olarak sağlanır. Miktar en fazla altı anlamlı ondalık basamakla işlenir ve satır bazında yarım-yukarı yuvarlanır.
+- Kısmi hesap yoktur: farklı para birimi, geçersiz satır, yinelenen kimlik veya güvenli tam sayı taşması bütün hesabı reddeder.
+- Boş liste sıfır tutarlı empty durumudur; fiyatı doğrulanmış veya ücretsiz proje anlamına gelmez. Kâr/fire yüzdesi, vergi, döviz dönüşümü, fiyat kataloğu ve teklif revizyonu üretilmez.
+- Bu dilim maliyet satırlarını mevcut panel/donanım tüketim özetlerine otomatik eşlemez; bu entegrasyon ayrı domain görevidir.
+
+### Sıradaki 3-5 küçük görev
+
+1. Kullanıcı fiyat tablosunu materialId/hardwareId + özgün birim anahtarıyla mevcut malzeme ve donanım özetlerine bağlayan domain adapter'ı ekle; fiyatı bulunmayan satırları açıkça eksik göster ve toplamı hazır sayma.
+2. İşçilik ve operasyon satırları için kullanıcı tarafından girilen süre/birim ve tarife referansını koruyan teklif girdisi sözleşmesini ekle; süre veya tarife varsayma.
+3. Teklif revizyonu, para birimi ve fiyat geçerlilik tarihi için sürümlenebilir domain zarfını tasarla; eski proje JSON v1 alanlarını değiştirmeden tut.
+4. Vergi, indirim ve kâr yüzdesini yalnızca açık ülke/işletme ayarları ve kullanıcı girdisi tanımlandığında ayrı hesap kuralları olarak ele al.
+5. Fiyatlı malzeme/donanım/işçilik satırlarının JSON/CSV round-trip ve UI entegrasyonunu ilgili frontend sahibiyle sözleşme üzerinden tamamla; frontend dosyalarına dokunma.
