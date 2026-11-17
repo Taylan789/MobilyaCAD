@@ -4,6 +4,7 @@ import './index.css'
 import './App.css'
 import './styles/workspace-layout.css'
 import App from './App.tsx'
+import './styles/document-status-accessibility.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
