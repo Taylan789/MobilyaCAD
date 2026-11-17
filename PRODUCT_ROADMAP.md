@@ -22,7 +22,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 | Kenar bantlama / malzeme tüketimi | Domain malzeme özeti gövde, çekmece, kitaplık, masa, gardırop ve TV ünitesi bölücü/raf parçalarının ortak Part listesinden quantity ağırlıklı alan/hacim ve kenar bantlamasını hesaplayabilir | Domain özeti henüz UI/JSON/CSV'ye bağlı değil; fire, levha verimi, kerf, bant kalınlığı ve rulo payı yok |
 | Malzeme kataloğu | UI CRUD; mobilya varsayılan materialId ve çekmece grubunda varsayılan + dört panel grubu override; domain gövde/kitaplık motorları altı gövde panel grubu için malzeme override'ını doğrular | Gövde panel override'ları henüz frontend JSON v1/CSV ve UI akışına bağlanmadı; fiyat, tedarikçi ve fire henüz yok |
 | Proje dosyası | Yerel JSON v1 indirme/yükleme; saf serializer/parser; round-trip ve eski v1 uyumluluk; mm, mobilya ve çekmece grubu katalog referansları ile dört çekmece panel kalınlığının doğrulanması | Şema migrasyonu, otomatik kayıt ve kurtarma yok |
-| Test/CI | Son doğrulanmış önceki HEAD `30fc3af663cbd28ebe7a62ecc141c7f9cdc16d6c`: CI `43987264367`, QA `43987264386` (101/101 frontend + 124/124 domain testi) ve Pages `43987264425` başarılı; bu kesit diliminin Actions doğrulaması commit sonrasında bekleniyor | Fiziksel üretim doğrulaması otomatik testle yapılamaz; Oxlint 32 uyarı/0 hata, production audit 4 orta önem bulgusu, büyük bundle ve Actions Node 20/punycode deprecation uyarıları sürüyor |
+| Test/CI | Doğrulanmış kod/test HEAD `1c09bf639ddb84b2d31277a7ce5e5adc6104a2df`: CI `43991437104`, QA `43991437194` (101/101 frontend + 137/137 domain testi, 0 başarısız) ve Pages `43991437103` başarılı | Shared-domain strict TypeScript, lint, frontend production build ve yüksek önem eşiğinde production dependency audit geçti; Oxlint 32 uyarı/0 hata, audit 4 orta önem bulgusu, büyük bundle ve Actions Node 20/punycode uyarıları sürüyor |
 
 ### Bilinen mimari ve veri boşlukları
 
@@ -588,3 +588,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 4. Köşe yarıçapı, pah, çokgen/oval açıklık ve iç yüzey işlemlerini ancak gerçek geometri ve makine standardı tanımlandığında ayrı sürümlü genişletme olarak ele al.
 5. Kesitli panel tüketimi doğrulandıktan sonra banyo dolabı lavabo açıklığı, baza/ayak ve arkalık kurallarını yalnızca açık kullanıcı/üretici girdileriyle küçük bir konstrüksiyon dilimine ayır.
 
+### Kesit geometri dilimi Actions doğrulaması
+
+- İlk QA run `43991327655` test fikstürü kaynaklı 136/137 sonuç verdi; test yardımcısının eksik kenar bayrağını varsayılan `false` ile doldurması düzeltildi (`1c09bf639ddb84b2d31277a7ce5e5adc6104a2df`). Geometri doğrulama kodu değiştirilmedi.
+- Son doğrulama: CI `43991437104`, QA `43991437194` (**101/101 frontend + 137/137 domain**) ve Pages `43991437103` başarılı.

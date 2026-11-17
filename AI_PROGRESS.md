@@ -643,3 +643,15 @@
 - Bilinen sınırlar: çekmece ray boşluğu, reveal, bağlantı, delik, donanım, CNC, nesting, fire ve fiyat hesabı yoktur; bu test bunları üretime hazır ilan etmez. Fiziksel üretim öncesi atölye doğrulaması gerekir.
 - AI Developer workflow'u yalnızca `workflow_dispatch` ile tetikleniyor; bu dalın son run listesinde AI Developer çalışması yoktu. Otomatik bir run başlatıldığı iddia edilmedi. Açık CSS PR'ı ayrı sahiplikte bırakıldı; hiçbir `frontend/**` dosyası değiştirilmedi veya PR merge edilmedi.
 - Sonraki görev: banyo dolabı ailesinden önce kesit destekli panel geometri sözleşmesini (açık lavabo açıklığı, net alan/hacim ve iç kenar işlemleri) tanımlamak; mevcut dikdörtgen Part/CSV/JSON tüketicileri kesiti kayıpsız taşıyamıyorsa export'u engellemek.
+## 17 Kasım 2026 — dikdörtgen iç açıklıklı panel geometri öncülü (Actions doğrulandı)
+
+- Başlangıç HEAD: `30fc3af663cbd28ebe7a62ecc141c7f9cdc16d6c`.
+- Geometri/test/dokümantasyon commit'i: `ae7d00c88ca4f34979e4e92f6d2d05dbc21b5a36`.
+- QA'nın ilk çalıştırması `43991327655` 136/137 domain testinde kaldı. Tek hata, eksik dış kenar bayrağını sınayan test yardımcısının eksik alanı otomatik `false` ile doldurmasıydı; üretim doğrulama kodunda hata yoktu.
+- Test fikstürü düzeltme commit'i: `1c09bf639ddb84b2d31277a7ce5e5adc6104a2df`; yalnızca `domain/production/panelCutoutGeometry.test.mjs` değişti. Eksik kenar nesnesi artık yardımcı varsayılanını atlayarak doğrudan veriliyor.
+- Değişen dosyalar: `domain/production/panelCutoutGeometry.ts`, `domain/production/panelCutoutGeometry.test.mjs`, `docs/production-domain-contract.md`, `PRODUCT_ROADMAP.md`, `.github/workflows/qa-test.yml`; düzeltme commit'inde yalnız test dosyası.
+- Son GitHub Actions: CI # (`43991437104`) başarılı; QA # (`43991437194`) başarılı (**101/101 frontend + 137/137 domain testi, 0 başarısız**); Pages build/deploy # (`43991437103`) başarılı. Shared-domain strict TypeScript, frontend production build, lint ve `npm audit --omit=dev --audit-level=high` kontrolleri geçti.
+- Kalite notları: Oxlint 32 uyarı / 0 hata; production audit 4 orta önem bulgusu raporladı, yüksek önem eşiği geçildi. Büyük bundle ve Actions Node 20/punycode deprecation uyarıları mevcut.
+- Bilinen sınırlar: yalnız eksenlere paralel dikdörtgen geçiş açıklıkları; köşe yarıçapı, oval/çokgen kesit, pah, iç yüzey işlemi, quantity ağırlıklı proje Part, malzeme özeti, JSON/CSV ve CNC entegrasyonu yok. Bu modül üretim onayı değildir; gerçek lavabo/armatür ve makine ölçüsü uydurulmaz.
+- Frontend sahipliği korundu: hiçbir `frontend/**` dosyası değiştirilmedi; JSON v1/CSV adapter ayrı frontend sahibinin kapsamındadır.
+- Sonraki görev: kesit geometri alanını sürümlü ve geriye uyumlu `ProjectProductionPart` sözleşmesine taşımak; ardından quantity ağırlıklı net alan/hacim/iç kenar bantlama özetini doğrulamak ve export uyumluluğunu açıkça kapılamak.
