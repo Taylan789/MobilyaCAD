@@ -830,14 +830,22 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 - JSON v1 proje serializer/parser, CSV adapter ve `frontend/**` bu dilimde değiştirilmez. Frontend entegrasyonu ayrı sahiplik alanındadır.
 - Fiziksel fire oranı, levha verimi, kerf, vergi ve ticari marj kararı kullanıcı/işletme girdisi olmadan hesaplanmaz.
 
-### Sıradaki 3-5 küçük görev
+### DOM-012 teslimat ve Actions doğrulaması — 17 Kasım 2026
 
-1. DOM-012 Actions doğrulamasını tamamla; birleşik teklif, snapshot ve revizyon testlerinde gerçek CI/QA kanıtını kaydet.
-2. INT-001 domain üretim raporu için kesit geometrisi, malzeme ve quantity kaybını önleyen JSON/CSV round-trip veya güvenli export blocker sözleşmesini tamamla.
-3. INT-002 adapter sahibinin JSON/CSV round-trip testleri ve geometri/miktar sadakatini ayrı PR ile teslim etmesini bekle; aynı dosyalara dokunma.
-4. Frontend sahibinin DOM-009/010/011/012 ready/blocked teklif, snapshot ve revizyon sözleşmelerini bağlayan PR'larını dosya sahipliği sınırında denetle.
+- Özellik commit'i: [288baf10dfff33a393561b5c35a0fb9be79265ef](https://github.com/Taylan789/MobilyaCAD/commit/288baf10dfff33a393561b5c35a0fb9be79265ef); doğrulama düzeltmesi: [c1257200890cd477dbbec3063defd379f55b9b64](https://github.com/Taylan789/MobilyaCAD/commit/c1257200890cd477dbbec3063defd379f55b9b64).
+- [CI #44113620081](https://github.com/Taylan789/MobilyaCAD/actions/runs/44113620081), [QA #44113620028](https://github.com/Taylan789/MobilyaCAD/actions/runs/44113620028) ve [Pages #44113619995](https://github.com/Taylan789/MobilyaCAD/actions/runs/44113619995) başarılı.
+- QA: **101/101 frontend + 220/220 domain testi, 0 başarısız**; strict shared-domain TypeScript, lint, production build ve yüksek önem eşiğinde dependency audit başarılı.
+- İlk QA'da 6 yeni test eksik `isRecord` koruyucusu nedeniyle blocked kaldı; düzeltme test kapsamını değiştirmeden yapıldı.
+- Lint 32 uyarı / 0 hata; production audit'te 4 orta önem minimatch zinciri bulgusu sürüyor. Yalnızca kırıcı `npm audit fix --force` önerildiği için bağımlılık yükseltilmedi.
+- DOM-012 DONE; JSON v1/CSV adapter ve frontend entegrasyonu ayrı sahiplik alanında kalır.
+
+### Güncel sıradaki 3-5 küçük görev
+
+1. DOM-013: teklif revizyon geçmişi aggregate'ında projectId, benzersiz revisionId, ardışık sıra, previousRevisionId zinciri ve tarih sırasını doğrula; fork/boşluk/çapraz proje kayıtlarını reddet.
+2. INT-001: domain üretim raporundaki kesit geometrisi, malzeme ve quantity kaybını JSON/CSV adapter sözleşmesinde önle veya desteklenmeyen export'u engelle.
+3. INT-002: adapter sahibinin JSON/CSV round-trip ve geometri/miktar sadakati testlerini ayrı PR ile teslim etmesini bekle; aynı dosyalara dokunma.
+4. Frontend sahibinin DOM-009/010/011/012 ready/blocked teklif, snapshot ve revizyon sözleşmelerini bağlayan PR'larını denetle; frontend dosyalarına dokunma.
 5. INT-001 ve INT-002 tamamlandığında QA-003 uçtan uca export ve teklif veri akışı denetimini yürüt.
-
 
 ### DOM-012 ilk QA sonucu ve düzeltme — 17 Kasım 2026
 
