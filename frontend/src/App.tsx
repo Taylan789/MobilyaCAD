@@ -1192,7 +1192,9 @@ function App() {
             <span className="cad-document-title" title={projectName}>{projectName}</span>
             <span
               className={`cad-document-status cad-document-status--${hasUnsavedChanges ? "dirty" : documentSource}`}
+              role="status"
               aria-live="polite"
+              aria-atomic="true"
               title={documentStatusTitle}
             >
               {documentStatusLabel}
