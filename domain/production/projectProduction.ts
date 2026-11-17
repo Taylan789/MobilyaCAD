@@ -27,7 +27,7 @@ export interface CabinetProjectProductionRequest {
 export type CabinetProjectFurnitureResult =
   | {
       furnitureId: string;
-      /** Present for explicit cabinet/bookshelf requests; legacy cabinet results omit it. */
+      /** Present for explicit non-table family requests; legacy family-less cabinet results omit it. */
       family?: "cabinet" | "bookshelf" | "wardrobe" | "tv-unit" | "bathroom-vanity";
       innerDimensionsMm: CabinetInnerDimensionsMm;
     }

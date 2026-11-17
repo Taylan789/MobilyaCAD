@@ -1124,7 +1124,8 @@ test("banyo dolabı üst panelindeki çoklu dikdörtgen açıklıklar Part ve ne
 
   const topPart = report.result.parts.find((part) => part.id === top.id);
   assert.equal(topPart.panelGeometry.cutouts.length, 2);
-  assert.equal(topPart.panelGeometry.netFaceAreaMm2, 347840);
+  const expectedNetAreaMm2 = top.width * top.length - 80000;
+  assert.equal(topPart.panelGeometry.netFaceAreaMm2, expectedNetAreaMm2);
 
   const summary = calculateProjectMaterialConsumptionSummary(report.result);
   const topMaterial = summary.find((entry) => entry.materialId === "mdf-18");
@@ -1140,7 +1141,16 @@ test("banyo dolabı üst panelindeki çoklu dikdörtgen açıklıklar Part ve ne
       topMaterial.edgeBanding.totalLengthMm,
       topMaterial.edgeBanding.edgeCount
     ],
-    [1, 1, 0.34784, 0.00626112, 200, 400, 600, 4]
+    [
+      1,
+      1,
+      Number((expectedNetAreaMm2 / 1_000_000).toFixed(6)),
+      Number((expectedNetAreaMm2 * top.thickness / 1_000_000_000).toFixed(9)),
+      200,
+      400,
+      600,
+      4
+    ]
   );
 });
 
