@@ -837,3 +837,10 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 3. INT-002 adapter sahibinin JSON/CSV round-trip testleri ve geometri/miktar sadakatini ayrı PR ile teslim etmesini bekle; aynı dosyalara dokunma.
 4. Frontend sahibinin DOM-009/010/011/012 ready/blocked teklif, snapshot ve revizyon sözleşmelerini bağlayan PR'larını dosya sahipliği sınırında denetle.
 5. INT-001 ve INT-002 tamamlandığında QA-003 uçtan uca export ve teklif veri akışı denetimini yürüt.
+
+
+### DOM-012 ilk QA sonucu ve düzeltme — 17 Kasım 2026
+
+- İlk özellik commit'i `288baf10dfff33a393561b5c35a0fb9be79265ef` için CI #44113379490 ve Pages #44113379465 başarılıdır.
+- QA #44113379485: 214/220 domain testi geçti. Altı yeni teklif/snapshot/revizyon testi, `projectQuoteSummary.ts` içindeki kayıt doğrulama yardımcısının eksik tanımlanması nedeniyle başarısız oldu.
+- Düzeltme, `isRecord` koruyucusunu domain modülüne ekler. Testler silinmedi veya gevşetilmedi; DOM-012 yalnızca yeni CI/QA sonucu alındığında tamamlanmış sayılacaktır.
