@@ -776,3 +776,22 @@
 - Bilinen sınırlar: kenar bandı için ayrı katalog kimliği yok; bu nedenle bant tüketimi maliyet toplamını tamamlamayı engeller. Vergi, kur, fire, levha verimi, teklif revizyonu ve fiyat geçerlilik tarihi yoktur. Fiziksel üretim/CNC onayı değildir.
 - Frontend sahipliği: hiçbir `frontend/**` dosyası değiştirilmedi. Açık PR #41 ve #8 yalnızca frontend sahibinin ayrı akışında bırakıldı. main dalına dokunulmadı.
 - Sonraki görev: DOM-007 — kenar bandı için açık katalog kimliği ve özgün birim sözleşmesi.
+
+
+## 17 Kasım 2026 12:22 TRT — DOM-007 kenar bandı katalog kimliği ve fiyatlandırması
+
+- Başlangıç HEAD: `9f3eb32aa8b0d1bc66ade7be7361576cfa5c79ff`.
+- Özellik commit: [ea78777b1f2852f0b81b44eb0fe6bb68a84f5157](https://github.com/Taylan789/MobilyaCAD/commit/ea78777b1f2852f0b81b44eb0fe6bb68a84f5157).
+- Proje üretim isteğine Part bazlı `edgeBandingAssignments` eklendi. Atama `partId + edgeBandingId + unit` taşır; bir Part'ın tüm bantlı dış ve dikdörtgen açıklık iç kenarları v1'de aynı band kaynağını kullanır.
+- `edgeBandingId` kararlı kullanıcı/katalog kimliğidir; domain katalog kaydının gerçekten var olduğunu varsaymaz. `unit` açıkça `mm` veya `m` seçilir; m seçildiğinde mm geometrisi deterministik 1000'e bölünür.
+- Bilinmeyen Part, bantlanmamış Part, yinelenen Part ataması, bozuk kimlik veya birim projeyi blocked yapar; kısmi sonuç döndürülmez. Atama Part üzerinde `edgeBandingMaterialId` ve `edgeBandingUnit` alanlarıyla korunur.
+- `calculateProjectEdgeBandingConsumptionSummary` quantity ağırlıklı dış/iç bant uzunluğunu edgeBandingId + unit ile gruplar. Atanmamış legacy bant tüketimi null ID olarak kalır ve maliyet toplamını incomplete tutar.
+- Fiyat tablosu `resourceType: "edge-banding"` destekler; aynı ID ve birim eşleşmesi zorunludur. Eksik fiyat/birim uyuşmazlığında `costSummary: null`; farklı para birimi blocked kalır. Atama bulunan Part'larda JSON v1/CSV adapter desteği gelene kadar `canExport: false` korunur.
+- Değişen dosyalar: `domain/production/projectProduction.ts`, `domain/production/projectMaterialSummary.ts`, `domain/production/projectPricedConsumption.ts`, `domain/production/projectPricedConsumption.test.mjs`, `docs/production-domain-contract.md`, `PRODUCT_ROADMAP.md`, `AI_COORDINATION.md`.
+- [MobilyaCAD CI #44056080300](https://github.com/Taylan789/MobilyaCAD/actions/runs/44056080300) başarılı.
+- [MobilyaCAD QA & Test #44056080414](https://github.com/Taylan789/MobilyaCAD/actions/runs/44056080414) başarılı: **101/101 frontend + 178/178 domain testi, 0 başarısız**. Shared-domain strict TypeScript, lint, frontend TypeScript/production build ve production dependency audit adımları geçti. Oxlint 32 uyarı / 0 hata; production audit yüksek önem eşiğinde geçti ancak 4 orta önem bulgusu sürüyor.
+- [Pages build/deploy #44056080332](https://github.com/Taylan789/MobilyaCAD/actions/runs/44056080332) başarılı.
+- PR açılmadı; kullanıcı yetkisi kapsamında yalnızca `dev/github-work` dalına doğrudan commit edildi. Hiçbir `frontend/**` dosyası değiştirilmedi; açık frontend PR'ları #41, #42 ve #8 sahiplerinde bırakıldı. `main` dalına dokunulmadı.
+- AI Developer workflow: son ilgili workflow_dispatch çalışması [#43559164561](https://github.com/Taylan789/MobilyaCAD/actions/runs/43559164561) 14 Kasım'da başarılı; aktif/başarısız AI Developer run bulunmadığından yeni run başlatılmadı.
+- Bilinen sınırlar: v1'de tek Part için tek kenar bandı kaynağı vardır; farklı kenar türleri için per-edge atama sonraki genişletmedir. Katalog doğrulaması, renk/kalınlık/yapışkan, rulo payı/fire, işçilik, CNC ve fiziksel üretim onayı yoktur.
+- Sonraki görev DOM-008: kullanıcı girdili işçilik/operasyon tarifesi ve açık süre/birim maliyet sözleşmesi.

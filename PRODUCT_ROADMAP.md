@@ -23,7 +23,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 | Malzeme kataloğu | UI CRUD; mobilya varsayılan materialId ve çekmece grubunda varsayılan + dört panel grubu override; domain gövde/kitaplık motorları altı gövde panel grubu için malzeme override'ını doğrular | Gövde panel override'ları henüz frontend JSON v1/CSV ve UI akışına bağlanmadı; fiyat, tedarikçi ve fire henüz yok |
 | Proje dosyası | Yerel JSON v1 indirme/yükleme; saf serializer/parser; round-trip ve eski v1 uyumluluk; mm, mobilya ve çekmece grubu katalog referansları ile dört çekmece panel kalınlığının doğrulanması | Şema migrasyonu, otomatik kayıt ve kurtarma yok |
 | Teklif/maliyet | Kullanıcı fiyat tablosu malzeme tüketimini `materialId + m2`, donanımı `hardwareId + özgün BOM birimi`, kenar bandını `edgeBandingId + açık mm/m birimi` ile fiyatlandırır; yalnızca tam kapsam ve tek para biriminde toplam üretir | İşçilik/operasyon tarifesi, fiyat geçerlilik tarihi ve teklif revizyonu henüz yok; frontend fiyat kataloğu/UI entegrasyonu ayrı sahibinde |
-| Test/CI | Son doğrulanmış HEAD `106bb4d6da1cb1316f5386080e6b34d491a09016`: [CI #44048122112](https://github.com/Taylan789/MobilyaCAD/actions/runs/44048122112), [QA #44048122147](https://github.com/Taylan789/MobilyaCAD/actions/runs/44048122147, 101/101 frontend + 175/175 domain) ve [Pages #44048122140](https://github.com/Taylan789/MobilyaCAD/actions/runs/44048122140) başarılı | Shared-domain strict TypeScript, lint (32 uyarı/0 hata), frontend production build ve production dependency audit geçti; mevcut Actions Node 20/punycode uyarıları sürüyor |
+| Test/CI | Son doğrulanmış domain/test HEAD `ea78777b1f2852f0b81b44eb0fe6bb68a84f5157`: [CI #44056080300](https://github.com/Taylan789/MobilyaCAD/actions/runs/44056080300), [QA #44056080414](https://github.com/Taylan789/MobilyaCAD/actions/runs/44056080414) (101/101 frontend + 178/178 domain) ve [Pages #44056080332](https://github.com/Taylan789/MobilyaCAD/actions/runs/44056080332) başarılı | Shared-domain strict TypeScript, lint (32 uyarı/0 hata), frontend production build ve yüksek önem eşiğinde production dependency audit geçti; 4 orta önem audit bulgusu ve Actions Node 20/punycode uyarıları sürüyor |
 
 ### Bilinen mimari ve veri boşlukları
 
@@ -723,10 +723,14 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 - DOM-006 tamamlandı; sonraki domain görevi DOM-007 kenar bandı katalog kimliği ve özgün birim sözleşmesidir.
 
 
-### DOM-007 uygulama kaydı — doğrulama bekliyor
+### DOM-007 kabul sonucu — tamamlandı
 
-- Proje üretim isteğine Part bazlı `edgeBandingAssignments` eklendi. Bir Part'ın bütün bantlı dış/iç kenarları tek açık katalog kimliğiyle eşleşir; birim kullanıcı tarafından `mm` veya `m` seçilir.
-- Proje agregatörü bilinmeyen/bantlanmamış/tekrar Part atamasını ve geçersiz kimlik/birimi reddeder; atama Part sonucunda `edgeBandingMaterialId` + `edgeBandingUnit` olarak korunur.
-- Yeni `calculateProjectEdgeBandingConsumptionSummary` quantity ağırlıklı uzunluğu kaynak ID + birim bazında toplar. Atamasız legacy bant tüketimi eksik kimlik olarak kalır.
-- Fiyat adapter'ı `resourceType: "edge-banding"` satırlarını aynı ID ve açık birimle eşleştirir. Fiyat yoksa veya birim uyuşmuyorsa `costSummary: null`; atama bulunan Part'larda mevcut JSON v1/CSV adapter desteği gelene kadar `canExport: false`.
-- Bu kayıt, kod/test commit'i ve GitHub Actions sonuçları sonradan eklenecek şekilde doğrulama bekliyor olarak bırakılmıştır.
+- Part bazlı `edgeBandingAssignments`, açık `edgeBandingId` ve kullanıcı tarafından seçilen `mm` / `m` birimiyle üretim sonucuna bağlandı. Bir Part'ın bütün bantlı dış ve dikdörtgen açıklık iç kenarları v1'de aynı kaynağı kullanır.
+- `calculateProjectEdgeBandingConsumptionSummary` Part quantity değerini dış/iç kenar uzunluğuna uygular; tüketimi kaynak kimliği + birim ile gruplar. Atanmamış legacy Part, null kaynak kimliği olarak kalır ve fiyatlı toplamı incomplete tutar.
+- Fiyat adapter'ı `resourceType: "edge-banding"` satırlarını aynı kimlik/birim anahtarıyla eşleştirir. Eksik fiyat/birim uyuşmazlığı `costSummary: null` bırakır. Yeni Part alanları JSON v1/CSV adapter'ı tarafından henüz taşınmadığı için `canExport: false` korunur.
+- Kabul testleri: açık metre fiyatı ve toplam; mm/m birim uyuşmazlığı; bilinmeyen, bantlanmamış, yinelenen Part ve geçersiz katalog kimliği; legacy atamasız tüketim.
+- Özellik commit: [ea78777b1f2852f0b81b44eb0fe6bb68a84f5157](https://github.com/Taylan789/MobilyaCAD/commit/ea78777b1f2852f0b81b44eb0fe6bb68a84f5157).
+- [CI #44056080300](https://github.com/Taylan789/MobilyaCAD/actions/runs/44056080300) başarılı; [QA #44056080414](https://github.com/Taylan789/MobilyaCAD/actions/runs/44056080414) başarılı: **101/101 frontend + 178/178 domain testi, 0 başarısız**. Shared-domain strict TypeScript, lint, frontend production build ve production dependency audit yüksek önem eşiği geçti. Oxlint 32 uyarı / 0 hata; audit'te 4 orta önem bulgusu sürüyor.
+- [Pages #44056080332](https://github.com/Taylan789/MobilyaCAD/actions/runs/44056080332) başarılı. PR açılmadı; yalnızca `dev/github-work` güncellendi. `frontend/**` ve `main` değiştirilmedi.
+- Bilinen sınırlar: bir Part için tek band kaynağı v1; gerçek katalog kaydı, renk/kalınlık/yapışkan, rulo payı/fire, işçilik ve CNC standardı doğrulanmaz. Fiziksel üretim onayı değildir.
+- Sonraki domain adımı DOM-008: kullanıcı girdili işçilik/operasyon tarifesi, süre ve özgün birim sözleşmesi.
