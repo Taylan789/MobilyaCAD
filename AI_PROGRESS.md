@@ -953,13 +953,15 @@
 - Sonraki görev: SEC-001 düzeldikten sonra aynı HEAD'in tam QA sonucunu yeniden doğrula; ardından INT-001 domain/export sözleşmesi ve adapter entegrasyonunu sahiplik sınırları içinde ilerlet.
 
 
-## 17 Kasım 2026 22:44 TRT — DOM-016 teklif revizyon karşılaştırması (Actions bekleniyor)
+## 17 Kasım 2026 22:44 TRT — DOM-016 teklif revizyon karşılaştırması doğrulandı
 
 - Başlangıç HEAD: `1d8ef991feee836398b149d1b783e1ef2a8d240a`.
-- Commit SHA: GitHub commit oluşturulduktan sonra bu kayda eklenecek; bu kayıt aynı özellik diliminin ilerleme notudur.
-- Değişen dosyalar: `domain/production/projectQuoteRevision.ts`, `domain/production/projectQuoteRevision.test.mjs`, `docs/production-domain-contract.md`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`. Hiçbir `frontend/**`, adapter, package manifest, lockfile veya secret değiştirilmedi.
-- Yeni API: `compareProjectQuoteRevisions` doğrulanmış aynı proje geçmişinden iki revizyonu karşılaştırır; hedef revizyon daha yeni olmalı ve para birimleri aynı olmalıdır. Genel toplam ile altı maliyet kategorisinin minor-unit farkları döner; pozitif artış, negatif azalıştır.
-- Regresyon testleri: kategori/genel toplam farkı, eski/same/missing revision, bozuk/boş geçmiş ve farklı para biriminde kur uydurmadan bloklama. Sonuç immutable'dır.
-- Yerel runtime testi bu entegrasyonda çalıştırılmadı; otomatik doğrulama GitHub Actions üzerinden bekleniyor. Gerçek Actions sonucu görülmeden başarılı sayılmayacak.
-- Bilinen kısıtlar: satır bazlı fark, FX, vergi/iskonto, PDF/UI ve kalıcı depo yok; fiziksel üretim/CNC onayıyla ilişkili değil.
-- Sıradaki adım: CI/QA sonucunu incele; SEC-001 audit engeli sürerse frontend dosyalarına dokunmadan domain teslimatını ve audit blokajını ayrı raporla.
+- Özellik commit'i: [dc032abe3e60523eadbe9dbba618c83ae65fa9ec](https://github.com/Taylan789/MobilyaCAD/commit/dc032abe3e60523eadbe9dbba618c83ae65fa9ec).
+- Değişen dosyalar: `domain/production/projectQuoteRevision.ts`, `domain/production/projectQuoteRevision.test.mjs`, `docs/production-domain-contract.md`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`. Hiçbir `frontend/**`, adapter, package manifest, lockfile veya secret değiştirilmedi.
+- Yeni API: `compareProjectQuoteRevisions` tüm revizyon geçmişini doğrular; aynı projedeki daha yeni hedef revizyonu ve aynı para birimini zorunlu tutar. Genel toplam ile malzeme/donanım/işçilik/operasyon/fire/kâr kategori farklarını minor unit cinsinden döndürür; pozitif artış, negatif azalıştır. Sonuç immutable'dır.
+- Regresyon testleri: aynı para biriminde kategori/genel toplam farkı, aynı/eski/bulunmayan revizyon, bozuk/boş geçmiş ve kur bilgisi olmadan farklı para birimini bloklama.
+- [CI #44162404907](https://github.com/Taylan789/MobilyaCAD/actions/runs/44162404907) başarılı. [QA #44162404959](https://github.com/Taylan789/MobilyaCAD/actions/runs/44162404959): **101/101 frontend + 241/241 domain testi, 0 başarısız**; shared-domain strict TypeScript, lint ve production build başarılı. QA job'u yalnızca production dependency audit adımında başarısız: 12 production bulgusu (2 moderate, 10 high; picomatch ReDoS zinciri). [Pages #44162405010](https://github.com/Taylan789/MobilyaCAD/actions/runs/44162405010) başarılı.
+- Güvenlik sınırı: audit'in kırıcı Vite downgrade önerisi uygulanmadı; frontend sahipliği, package/lockfile ve secrets değiştirilmedi. SEC-001 arayüz ajanının sorumluluğunda.
+- Yerel runtime testi bu entegrasyonda çalıştırılmadı; 101/101 + 241/241 test kanıtı Actions logundan alındı.
+- Bilinen kısıtlar: satır bazlı fark, FX, vergi/iskonto, PDF/UI ve kalıcı depo yok; fiziksel üretim/CNC onayı değildir.
+- Durum: domain API, regresyon testleri, strict TypeScript ve build doğrulandı; tam QA shared production audit nedeniyle BLOCKED. Sonraki adım: SEC-001 çözümünden sonra DOM-014/015/016 için tam QA sonucunu kontrol etmek; ardından INT-001 domain/export sözleşmesini ilerletmek.

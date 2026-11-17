@@ -868,20 +868,19 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 - Sonraki adım: frontend sahibinin SEC-001 audit düzeltmesini bekle; ardından DOM-014/015 için tam QA doğrulaması ve INT-001 domain/export sözleşmesi entegrasyonu.
 
 
-## 17 Kasım 2026 22:44 TRT — DOM-016 teklif revizyon farkı
+## 17 Kasım 2026 22:44 TRT — DOM-016 teklif revizyon farkı (domain doğrulandı)
 
-- Kullanıcı akışı: teklif hazırlayan kişi doğrulanmış geçmişten eski ve daha yeni iki revizyon seçer; aynı para birimindeki toplam ve maliyet kategorisi farklarını görmeye hazır domain verisi alır.
-- Üretim davranışı: `compareProjectQuoteRevisions` tüm geçmişi yeniden doğrular; aynı proje, mevcut iki kimlik ve artan revizyon sırası zorunludur. Hedef revizyon daha yeni değilse veya geçmişte zincir/snapshot hatası varsa blocked döner.
-- Sonuç: `fromGrandTotalMinor`, `toGrandTotalMinor`, `grandTotalDeltaMinor` ve malzeme/donanım/işçilik/operasyon/fire/kâr kategori farkları; pozitif değer artış, negatif değer azalış anlamına gelir. Tüm değerler aynı para biriminin minor unit'idir.
-- Güvenlik: farklı para birimleri kur olmadan karşılaştırılmaz. Kur, vergi, iskonto, satır eşlemesi veya ticari varsayım üretilmez. Çıktı deep-freeze edilir.
-- Kapsam dışı: satır bazlı fark, teklif PDF/arayüzü, kalıcı revizyon deposu ve frontend entegrasyonu. UI entegrasyonu için sözleşme `docs/production-domain-contract.md` içine eklendi; `frontend/**` değiştirilmedi.
-- Kabul kriterleri: doğrulanmış aynı para birimli revizyonlarda kategori ve genel fark; aynı/eski/bulunmayan revizyon, boş/bozuk geçmiş ve para birimi uyuşmazlığında kısmi sonuç olmaması.
-- Otomatik testler eklendi; GitHub Actions sonucu bekleniyor.
+- Özellik commit'i: [dc032abe3e60523eadbe9dbba618c83ae65fa9ec](https://github.com/Taylan789/MobilyaCAD/commit/dc032abe3e60523eadbe9dbba618c83ae65fa9ec).
+- `compareProjectQuoteRevisions` doğrulanmış geçmişten aynı proje içindeki daha yeni iki revizyonu karşılaştırır; para birimi aynı değilse kur uydurmadan blocked döner.
+- Sonuç: genel toplam ve altı maliyet kategorisi için minor-unit farkları; artı artış, eksi azalıştır. Sonuç immutable; satır eşlemesi, FX, vergi/iskonto ve fiyat tahmini yoktur.
+- Test kanıtı: [CI #44162404907](https://github.com/Taylan789/MobilyaCAD/actions/runs/44162404907) başarılı; [QA #44162404959](https://github.com/Taylan789/MobilyaCAD/actions/runs/44162404959) **101/101 frontend + 241/241 domain testi, 0 başarısız**; shared-domain strict TypeScript, lint ve production build başarılı. [Pages #44162405010](https://github.com/Taylan789/MobilyaCAD/actions/runs/44162405010) başarılı.
+- QA genel sonucu yalnızca 12 production audit bulgusu (2 moderate, 10 high; picomatch ReDoS zinciri) nedeniyle başarısızdır. SEC-001 frontend sahibinin kapsamındadır; bu otomasyon frontend, manifest, lockfile veya secrets değiştirmedi.
+- Durum: domain teslimatı test/build açısından doğrulandı; tam QA audit çözülene kadar BLOCKED.
 
 ### Güncel sıradaki 3-5 küçük görev
 
-1. SEC-001: frontend sahibinin production dependency audit içindeki picomatch yüksek bulgularını Vite 8'i kırmadan çözmesini bekle; `frontend/**` dosyalarına dokunma.
-2. DOM-014 ve DOM-015: domain testleri/strict TypeScript/build geçiyor; tam QA'nın tek audit engeli SEC-001. Audit düzeldikten sonra aynı SHA için tekrar test etmeden yeni QA sonucunu doğrula.
-3. DOM-016: aynı para birimli teklif revizyon karşılaştırmasını Actions kanıtıyla DONE yap; ardından UI entegrasyon sözleşmesini frontend sahibine devret.
-4. INT-001: kesit geometrisi, malzeme ve quantity kaybını JSON/CSV adapter sözleşmesinde önle veya desteklenmeyen export'u engelle; adapter dosyalarını değiştirme.
-5. INT-002 / QA-003: entegrasyon-performans ajanının sahipliğindeki round-trip kanıtını ve ardından QA'nın uçtan uca denetimini bekle.
+1. SEC-001: frontend sahibinin picomatch production audit bulgularını Vite 8'i kırmadan çözmesini bekle; `frontend/**`, manifest ve lockfile sahipliğine dokunma.
+2. DOM-014/015/016: audit düzeltmesi sonrası aynı kod SHA'ları için tam QA sonucu ve görev durumlarını güncelle.
+3. INT-001: kesit geometrisi, malzeme ve quantity kaybını JSON/CSV adapter sözleşmesinde önle veya desteklenmeyen export'u engelle; adapter dosyalarını değiştirme.
+4. INT-002: entegrasyon/performans ajanının round-trip ve geometri/miktar testlerini kendi dalında tamamlamasını bekle; PR'ını sahiplenme/merge etme.
+5. QA-003: INT-001 ve INT-002 kanıtları geldikten sonra uçtan uca export ve veri sadakati denetimi.
