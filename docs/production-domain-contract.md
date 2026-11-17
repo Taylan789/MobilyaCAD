@@ -502,3 +502,16 @@ Kaynak: `domain/production/projectCostSummary.ts`, `calculateProjectCostLineTota
 - Miktar/fiyat çarpımı güvenli tam sayı aralığını aşarsa, miktar altı basamak kuralını ihlal ederse veya saklanan satır toplamı hesaplanan değerle uyuşmazsa teklif snapshot'ı revizyona alınmaz. Kategori ve genel toplamlar birlikte değiştirilmiş olsa bile satır aritmetiği ayrıca denetlenir.
 - Teklif maliyet hesaplayıcısı ve revizyon doğrulayıcısı aynı `calculateProjectCostLineTotalMinor` fonksiyonunu kullanır; yuvarlama mantığı iki yerde kopyalanmaz. Geçerli mevcut snapshot'ların sayısal sonucu değişmez; yalnızca aritmetik olarak tutarsız girdiler artık blocked olur.
 - Bu doğrulama JSON v1 proje şemasını veya frontend'i değiştirmez. Para birimi dönüşümü, vergi, iskonto, otomatik fire/kâr oranı ve fiziksel üretim onayı eklemez.
+
+
+## DOM-016 — Teklif revizyon karşılaştırma sözleşmesi
+
+Kaynak: `domain/production/projectQuoteRevision.ts`.
+
+API: `compareProjectQuoteRevisions(history, fromRevisionId, toRevisionId)`.
+
+- Girdi geçmişi önce `validateProjectQuoteRevisionHistory` ile bütünüyle doğrulanır. Bozuk/boş geçmiş, bulunmayan kimlik, aynı veya daha eski hedef revizyon karşılaştırma üretmez.
+- Başlangıç ve hedef revizyon aynı proje geçmişinde olmalıdır; hedefin sıra numarası başlangıçtan büyük olmalıdır. Aradaki revizyonlar atlanabilir, fakat geçmişin tamamı yine de zincir ve snapshot doğrulamasından geçer.
+- İki snapshot aynı para birimini kullanmalıdır. Sonuç minor currency unit cinsinden `fromGrandTotalMinor`, `toGrandTotalMinor`, `grandTotalDeltaMinor` ve altı maliyet kategorisi için `categoryDeltasMinor` döndürür. Pozitif fark artışı, negatif fark azalışı belirtir.
+- Çıktı immutable'dır. Kısmi/blocked geçmişte, para birimi farklılığında veya eksik toplamda karşılaştırma yoktur; kur, vergi, iskonto, fiyat veya kategori eşlemesi tahmin edilmez.
+- Bu ilk dilim yalnızca kategori ve genel toplam farkı verir; satır bazlı değişim, açıklama/ürün kapsamı farkı, PDF/teklif görünümü veya kalıcı depolama sağlamaz. UI entegrasyonu ayrı frontend sahibinin sorumluluğundadır.

@@ -5,7 +5,7 @@ import { BODY_PANEL_GROUPS } from "./bodyPanelMaterials.ts";
 import { calculateCabinetProjectProductionWithDiagnostics } from "./projectProduction.ts";
 import { createProjectQuotePricingSnapshot } from "./projectQuotePricingSnapshot.ts";
 import { calculateProjectCostLineTotalMinor } from "./projectCostSummary.ts";
-import { appendProjectQuoteRevision, createProjectQuoteRevision, validateProjectQuoteRevisionHistory } from "./projectQuoteRevision.ts";
+import { appendProjectQuoteRevision, compareProjectQuoteRevisions, createProjectQuoteRevision, validateProjectQuoteRevisionHistory } from "./projectQuoteRevision.ts";
 
 const noBanding = { top: false, bottom: false, left: false, right: false };
 const edgeBandingByGroup = Object.fromEntries(
@@ -602,4 +602,103 @@ test("revizyon snapshot altı basamaktan fazla anlamlı miktar hassasiyetini kab
   assert.equal(result.status, "blocked");
   assert.equal(result.revision, null);
   assert.match(result.diagnostics[0], /en fazla 6 anlamlı ondalık basamak/);
+});
+
+
+function createSnapshotWithMaterialPriceDelta(deltaMinor, currencyCode = "TRY") {
+  const snapshot = createSnapshot();
+  const quoteSummary = snapshot.quoteSummary;
+  const costSummary = quoteSummary.costSummary;
+  const materialLine = costSummary.lines.find((line) => line.category === "material");
+  assert.ok(materialLine);
+
+  const previousLineTotal = materialLine.lineTotalMinor;
+  materialLine.unitPriceMinor += deltaMinor;
+  materialLine.lineTotalMinor = calculateProjectCostLineTotalMinor(
+    materialLine.quantity,
+    materialLine.unitPriceMinor
+  );
+  const lineDelta = materialLine.lineTotalMinor - previousLineTotal;
+  costSummary.categoryTotalsMinor.material += lineDelta;
+  costSummary.grandTotalMinor += lineDelta;
+
+  if (currencyCode !== quoteSummary.currencyCode) {
+    quoteSummary.currencyCode = currencyCode;
+    costSummary.currencyCode = currencyCode;
+    for (const line of costSummary.lines) line.currencyCode = currencyCode;
+  }
+  return snapshot;
+}
+
+test("teklif revizyonları aynı para biriminde kategori ve genel toplam farkını verir", () => {
+  const history = createTwoRevisionHistory({
+    pricingSnapshot: createSnapshotWithMaterialPriceDelta(250)
+  });
+  const before = history.revisions[0].pricingSnapshot.quoteSummary.costSummary;
+  const after = history.revisions[1].pricingSnapshot.quoteSummary.costSummary;
+  const expectedMaterialDelta =
+    after.categoryTotalsMinor.material - before.categoryTotalsMinor.material;
+
+  const result = compareProjectQuoteRevisions(history, "quote-r1", "quote-r2");
+
+  assert.equal(result.status, "ready");
+  assert.equal(result.comparison?.projectId, "project-42");
+  assert.equal(result.comparison?.currencyCode, "TRY");
+  assert.equal(result.comparison?.fromRevisionNumber, 1);
+  assert.equal(result.comparison?.toRevisionNumber, 2);
+  assert.equal(result.comparison?.grandTotalDeltaMinor, expectedMaterialDelta);
+  assert.equal(result.comparison?.categoryDeltasMinor.material, expectedMaterialDelta);
+  assert.deepEqual(result.comparison?.categoryDeltasMinor, {
+    material: expectedMaterialDelta,
+    hardware: 0,
+    labor: 0,
+    operation: 0,
+    waste: 0,
+    profit: 0
+  });
+  assert.equal(Object.isFrozen(result.comparison), true);
+  assert.equal(Object.isFrozen(result.comparison?.categoryDeltasMinor), true);
+});
+
+test("daha eski, aynı veya geçmişte bulunmayan revizyon hedefi karşılaştırılamaz", () => {
+  const history = createTwoRevisionHistory();
+  const reversed = compareProjectQuoteRevisions(history, "quote-r2", "quote-r1");
+  const same = compareProjectQuoteRevisions(history, "quote-r1", "quote-r1");
+  const missing = compareProjectQuoteRevisions(history, "quote-r0", "quote-r2");
+
+  assert.equal(reversed.status, "blocked");
+  assert.match(reversed.diagnostics[0], /daha yeni olmalıdır/);
+  assert.equal(same.status, "blocked");
+  assert.match(same.diagnostics[0], /daha yeni olmalıdır/);
+  assert.equal(missing.status, "blocked");
+  assert.match(missing.diagnostics[0], /geçmişte bulunmalıdır/);
+  assert.equal(missing.comparison, null);
+});
+
+test("farklı para birimli revizyonlar kur varsaymadan karşılaştırılmaz", () => {
+  const history = createTwoRevisionHistory({
+    pricingSnapshot: createSnapshotWithMaterialPriceDelta(0, "USD")
+  });
+  const result = compareProjectQuoteRevisions(history, "quote-r1", "quote-r2");
+
+  assert.equal(result.status, "blocked");
+  assert.equal(result.comparison, null);
+  assert.match(result.diagnostics[0], /Farklı para birimlerindeki/);
+});
+
+test("bozuk veya boş revizyon geçmişi karşılaştırma üretmez", () => {
+  const brokenHistory = createTwoRevisionHistory({ previousRevisionId: "missing-link" });
+  const broken = compareProjectQuoteRevisions(brokenHistory, "quote-r1", "quote-r2");
+  const empty = compareProjectQuoteRevisions(
+    { projectId: "project-42", revisions: [] },
+    "quote-r1",
+    "quote-r2"
+  );
+
+  assert.equal(broken.status, "blocked");
+  assert.equal(broken.comparison, null);
+  assert.match(broken.diagnostics[0], /previousRevisionId/);
+  assert.equal(empty.status, "blocked");
+  assert.equal(empty.comparison, null);
+  assert.match(empty.diagnostics[0], /Boş teklif geçmişinde/);
 });

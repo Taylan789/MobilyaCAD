@@ -866,3 +866,22 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 - [CI #44147550422](https://github.com/Taylan789/MobilyaCAD/actions/runs/44147550422) başarılı; [QA #44147550175](https://github.com/Taylan789/MobilyaCAD/actions/runs/44147550175) 101/101 frontend + 237/237 domain testi, strict TypeScript, lint ve production build aşamalarını geçti. QA genel job'u 12 production audit bulgusu (2 moderate, 10 high; picomatch ReDoS zinciri) nedeniyle başarısız; [Pages #44147550068](https://github.com/Taylan789/MobilyaCAD/actions/runs/44147550068) başarılı.
 - Bağımlılık/lockfile/secrets ve `frontend/**` değiştirilmedi. `npm audit fix --force` Vite 6.2.7 kırıcı downgrade önerdiği için uygulanmadı. DOM-015 domain davranışı ve testleri doğrulandı; tam QA, SEC-001 çözülene kadar BLOCKED.
 - Sonraki adım: frontend sahibinin SEC-001 audit düzeltmesini bekle; ardından DOM-014/015 için tam QA doğrulaması ve INT-001 domain/export sözleşmesi entegrasyonu.
+
+
+## 17 Kasım 2026 22:44 TRT — DOM-016 teklif revizyon farkı
+
+- Kullanıcı akışı: teklif hazırlayan kişi doğrulanmış geçmişten eski ve daha yeni iki revizyon seçer; aynı para birimindeki toplam ve maliyet kategorisi farklarını görmeye hazır domain verisi alır.
+- Üretim davranışı: `compareProjectQuoteRevisions` tüm geçmişi yeniden doğrular; aynı proje, mevcut iki kimlik ve artan revizyon sırası zorunludur. Hedef revizyon daha yeni değilse veya geçmişte zincir/snapshot hatası varsa blocked döner.
+- Sonuç: `fromGrandTotalMinor`, `toGrandTotalMinor`, `grandTotalDeltaMinor` ve malzeme/donanım/işçilik/operasyon/fire/kâr kategori farkları; pozitif değer artış, negatif değer azalış anlamına gelir. Tüm değerler aynı para biriminin minor unit'idir.
+- Güvenlik: farklı para birimleri kur olmadan karşılaştırılmaz. Kur, vergi, iskonto, satır eşlemesi veya ticari varsayım üretilmez. Çıktı deep-freeze edilir.
+- Kapsam dışı: satır bazlı fark, teklif PDF/arayüzü, kalıcı revizyon deposu ve frontend entegrasyonu. UI entegrasyonu için sözleşme `docs/production-domain-contract.md` içine eklendi; `frontend/**` değiştirilmedi.
+- Kabul kriterleri: doğrulanmış aynı para birimli revizyonlarda kategori ve genel fark; aynı/eski/bulunmayan revizyon, boş/bozuk geçmiş ve para birimi uyuşmazlığında kısmi sonuç olmaması.
+- Otomatik testler eklendi; GitHub Actions sonucu bekleniyor.
+
+### Güncel sıradaki 3-5 küçük görev
+
+1. SEC-001: frontend sahibinin production dependency audit içindeki picomatch yüksek bulgularını Vite 8'i kırmadan çözmesini bekle; `frontend/**` dosyalarına dokunma.
+2. DOM-014 ve DOM-015: domain testleri/strict TypeScript/build geçiyor; tam QA'nın tek audit engeli SEC-001. Audit düzeldikten sonra aynı SHA için tekrar test etmeden yeni QA sonucunu doğrula.
+3. DOM-016: aynı para birimli teklif revizyon karşılaştırmasını Actions kanıtıyla DONE yap; ardından UI entegrasyon sözleşmesini frontend sahibine devret.
+4. INT-001: kesit geometrisi, malzeme ve quantity kaybını JSON/CSV adapter sözleşmesinde önle veya desteklenmeyen export'u engelle; adapter dosyalarını değiştirme.
+5. INT-002 / QA-003: entegrasyon-performans ajanının sahipliğindeki round-trip kanıtını ve ardından QA'nın uçtan uca denetimini bekle.

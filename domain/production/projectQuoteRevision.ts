@@ -648,3 +648,138 @@ export function appendProjectQuoteRevision(
     return blockedHistory(error instanceof Error ? error.message : String(error));
   }
 }
+
+
+export type ProjectQuoteCostCategory =
+  | "material"
+  | "hardware"
+  | "labor"
+  | "operation"
+  | "waste"
+  | "profit";
+
+export interface ProjectQuoteRevisionComparison {
+  schemaVersion: 1;
+  projectId: string;
+  fromRevisionId: string;
+  fromRevisionNumber: number;
+  toRevisionId: string;
+  toRevisionNumber: number;
+  currencyCode: string;
+  fromGrandTotalMinor: number;
+  toGrandTotalMinor: number;
+  /** Positive means the later revision increased; negative means it decreased. */
+  grandTotalDeltaMinor: number;
+  /** Category totals are compared in the same currency and minor unit. */
+  categoryDeltasMinor: Record<ProjectQuoteCostCategory, number>;
+}
+
+export interface ProjectQuoteRevisionComparisonResult {
+  status: "ready" | "blocked";
+  comparison: DeepReadonly<ProjectQuoteRevisionComparison> | null;
+  diagnostics: readonly string[];
+}
+
+function blockedComparison(message: string): ProjectQuoteRevisionComparisonResult {
+  return deepFreeze({
+    status: "blocked" as const,
+    comparison: null,
+    diagnostics: [message]
+  });
+}
+
+/**
+ * Compares two revisions from one fully validated history.
+ * The later revision must have a greater sequence number and both snapshots
+ * must use the same currency. No FX rate or line-level identity is inferred.
+ */
+export function compareProjectQuoteRevisions(
+  historyValue: unknown,
+  fromRevisionIdValue: unknown,
+  toRevisionIdValue: unknown
+): ProjectQuoteRevisionComparisonResult {
+  const validatedHistory = validateProjectQuoteRevisionHistory(historyValue);
+  if (validatedHistory.status !== "ready" || validatedHistory.history === null) {
+    return blockedComparison(
+      validatedHistory.status === "empty"
+        ? "Boş teklif geçmişinde karşılaştırılacak revizyon bulunmuyor."
+        : validatedHistory.diagnostics[0] ?? "Teklif revizyon geçmişi doğrulanamadı."
+    );
+  }
+
+  try {
+    const fromRevisionId = requireIdentifier(fromRevisionIdValue, "Başlangıç revizyon kimliği");
+    const toRevisionId = requireIdentifier(toRevisionIdValue, "Hedef revizyon kimliği");
+    const revisions = validatedHistory.history.revisions;
+    const fromRevision = revisions.find((revision) => revision.revisionId === fromRevisionId);
+    const toRevision = revisions.find((revision) => revision.revisionId === toRevisionId);
+
+    if (fromRevision === undefined || toRevision === undefined) {
+      throw new Error("Karşılaştırılacak revizyon kimlikleri doğrulanmış geçmişte bulunmalıdır.");
+    }
+    if (toRevision.revisionNumber <= fromRevision.revisionNumber) {
+      throw new Error("Hedef revizyon başlangıç revizyonundan daha yeni olmalıdır.");
+    }
+
+    const fromQuote = fromRevision.pricingSnapshot.quoteSummary;
+    const toQuote = toRevision.pricingSnapshot.quoteSummary;
+    const fromCost = fromQuote.costSummary;
+    const toCost = toQuote.costSummary;
+    const currencyCode = fromQuote.currencyCode;
+
+    if (
+      currencyCode === null ||
+      toQuote.currencyCode !== currencyCode ||
+      fromCost === null ||
+      toCost === null ||
+      fromCost.currencyCode !== currencyCode ||
+      toCost.currencyCode !== currencyCode
+    ) {
+      throw new Error("Farklı para birimlerindeki teklif revizyonları kur bilgisi olmadan karşılaştırılamaz.");
+    }
+
+    const fromGrandTotalMinor = requireSafeInteger(
+      fromCost.grandTotalMinor,
+      "Başlangıç revizyon genel toplamı",
+      0
+    );
+    const toGrandTotalMinor = requireSafeInteger(
+      toCost.grandTotalMinor,
+      "Hedef revizyon genel toplamı",
+      0
+    );
+    const grandTotalDeltaMinor = toGrandTotalMinor - fromGrandTotalMinor;
+    if (!Number.isSafeInteger(grandTotalDeltaMinor)) {
+      throw new Error("Teklif revizyon toplam farkı güvenli tam sayı aralığını aşıyor.");
+    }
+
+    const categoryDeltasMinor: Record<ProjectQuoteCostCategory, number> = {
+      material: toCost.categoryTotalsMinor.material - fromCost.categoryTotalsMinor.material,
+      hardware: toCost.categoryTotalsMinor.hardware - fromCost.categoryTotalsMinor.hardware,
+      labor: toCost.categoryTotalsMinor.labor - fromCost.categoryTotalsMinor.labor,
+      operation: toCost.categoryTotalsMinor.operation - fromCost.categoryTotalsMinor.operation,
+      waste: toCost.categoryTotalsMinor.waste - fromCost.categoryTotalsMinor.waste,
+      profit: toCost.categoryTotalsMinor.profit - fromCost.categoryTotalsMinor.profit
+    };
+
+    return deepFreeze({
+      status: "ready" as const,
+      comparison: {
+        schemaVersion: 1 as const,
+        projectId: validatedHistory.history.projectId,
+        fromRevisionId,
+        fromRevisionNumber: fromRevision.revisionNumber,
+        toRevisionId,
+        toRevisionNumber: toRevision.revisionNumber,
+        currencyCode,
+        fromGrandTotalMinor,
+        toGrandTotalMinor,
+        grandTotalDeltaMinor,
+        categoryDeltasMinor
+      },
+      diagnostics: []
+    });
+  } catch (error) {
+    return blockedComparison(error instanceof Error ? error.message : String(error));
+  }
+}

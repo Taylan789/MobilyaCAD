@@ -951,3 +951,15 @@
 - Güvenlik sınırı: audit'in önerdiği `npm audit fix --force` Vite 6.2.7 kırıcı downgrade içeriyor. Frontend bağımlılık dosyaları başka ajanın sahipliğinde olduğundan değiştirilmedi; secrets/ücretli servis ayarı da değiştirilmedi. DOM-015 domain kodu ve testleri doğrulandı; tam QA SEC-001 çözülene kadar BLOCKED.
 - AI Developer workflow: [#44076389923](https://github.com/Taylan789/MobilyaCAD/actions/runs/44076389923) başarısız job logları yeniden incelendi. Ürün job'u OpenCode latest-release metadata adımında tag_name alamadı; entegrasyon/performans job'u OpenRouter free-models-per-day 429 kotasına takıldı (reset: 18 Kasım 2026 00:00 UTC). Eski SHA üzerinde yeniden çalıştırma yapılmadı; kota/metadata blokajı ve eski checkout nedeniyle güvenli rerun değildi.
 - Sonraki görev: SEC-001 düzeldikten sonra aynı HEAD'in tam QA sonucunu yeniden doğrula; ardından INT-001 domain/export sözleşmesi ve adapter entegrasyonunu sahiplik sınırları içinde ilerlet.
+
+
+## 17 Kasım 2026 22:44 TRT — DOM-016 teklif revizyon karşılaştırması (Actions bekleniyor)
+
+- Başlangıç HEAD: `1d8ef991feee836398b149d1b783e1ef2a8d240a`.
+- Commit SHA: GitHub commit oluşturulduktan sonra bu kayda eklenecek; bu kayıt aynı özellik diliminin ilerleme notudur.
+- Değişen dosyalar: `domain/production/projectQuoteRevision.ts`, `domain/production/projectQuoteRevision.test.mjs`, `docs/production-domain-contract.md`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`. Hiçbir `frontend/**`, adapter, package manifest, lockfile veya secret değiştirilmedi.
+- Yeni API: `compareProjectQuoteRevisions` doğrulanmış aynı proje geçmişinden iki revizyonu karşılaştırır; hedef revizyon daha yeni olmalı ve para birimleri aynı olmalıdır. Genel toplam ile altı maliyet kategorisinin minor-unit farkları döner; pozitif artış, negatif azalıştır.
+- Regresyon testleri: kategori/genel toplam farkı, eski/same/missing revision, bozuk/boş geçmiş ve farklı para biriminde kur uydurmadan bloklama. Sonuç immutable'dır.
+- Yerel runtime testi bu entegrasyonda çalıştırılmadı; otomatik doğrulama GitHub Actions üzerinden bekleniyor. Gerçek Actions sonucu görülmeden başarılı sayılmayacak.
+- Bilinen kısıtlar: satır bazlı fark, FX, vergi/iskonto, PDF/UI ve kalıcı depo yok; fiziksel üretim/CNC onayıyla ilişkili değil.
+- Sıradaki adım: CI/QA sonucunu incele; SEC-001 audit engeli sürerse frontend dosyalarına dokunmadan domain teslimatını ve audit blokajını ayrı raporla.
