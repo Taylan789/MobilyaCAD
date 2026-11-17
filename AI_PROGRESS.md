@@ -797,7 +797,7 @@
 - Sonraki görev DOM-008: kullanıcı girdili işçilik/operasyon tarifesi ve açık süre/birim maliyet sözleşmesi.
 
 
-## 17 Kasım 2026 13:49 TRT — DOM-008 uygulaması (Actions doğrulaması bekleniyor)
+## 17 Kasım 2026 13:49 TRT — DOM-008 uygulaması (Actions doğrulandı)
 
 - Başlangıç HEAD: `32af784ee86271e33654a6f4cc0a9197d8d0013f`.
 - Uygulama commit: [b42fe770c2045739c12366108489e28bec25591b](https://github.com/Taylan789/MobilyaCAD/commit/b42fe770c2045739c12366108489e28bec25591b).

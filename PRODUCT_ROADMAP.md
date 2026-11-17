@@ -733,7 +733,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 - [CI #44056080300](https://github.com/Taylan789/MobilyaCAD/actions/runs/44056080300) başarılı; [QA #44056080414](https://github.com/Taylan789/MobilyaCAD/actions/runs/44056080414) başarılı: **101/101 frontend + 178/178 domain testi, 0 başarısız**. Shared-domain strict TypeScript, lint, frontend production build ve production dependency audit yüksek önem eşiği geçti. Oxlint 32 uyarı / 0 hata; audit'te 4 orta önem bulgusu sürüyor.
 - [Pages #44056080332](https://github.com/Taylan789/MobilyaCAD/actions/runs/44056080332) başarılı. PR açılmadı; yalnızca `dev/github-work` güncellendi. `frontend/**` ve `main` değiştirilmedi.
 - Bilinen sınırlar: bir Part için tek band kaynağı v1; gerçek katalog kaydı, renk/kalınlık/yapışkan, rulo payı/fire, işçilik ve CNC standardı doğrulanmaz. Fiziksel üretim onayı değildir.
-- Sonraki domain adımı DOM-008: kullanıcı girdili işçilik/operasyon tarifesi, süre ve özgün birim sözleşmesi.
+- Sonraki domain adımı DOM-009: üretim tüketimi ve işçilik/operasyon maliyetlerini eksik-girdi güvenli tek teklif toplamında birleştirmek.
 
 
 ## 17 Kasım 2026 13:49 TRT — DOM-008 işçilik/operasyon tarifesi (Actions doğrulandı)
@@ -741,7 +741,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 - Domain dilimi, kullanıcı girdili iş kullanım satırlarını ayrı tarife tablosuyla eşleştirir. Her kullanım satırı açık kategori, süre, süre birimi ve tarife kimliği taşır; tarife açık birim fiyatı, para birimi ve zorunlu kaynak referansı taşır.
 - Kabul kriterleri: tarife ve kullanım kimlikleri benzersiz; kategori eşleşmesi zorunlu; dakika/saat birimleri birebir eşleşir; otomatik dönüşüm ve varsayılan fiyat yoktur; eksik tarife/birim uyuşmazlığında kısmi parasal toplam yoktur; farklı para birimleri blocked olur.
 - Sıfır fiyat yalnızca açık tarife girdisiyle kabul edilir. Süre en fazla altı ondalık basamak; mevcut maliyet motorunun satır yuvarlaması kullanılır.
-- İlk uygulama commit SHA'sı ve Actions run bağlantıları doğrulama sonrasında AI_PROGRESS.md / AI_COORDINATION.md içine yazılacaktır.
+- Uygulama commit ve Actions kanıtları aşağıdaki kayıtta ve AI_PROGRESS.md / AI_COORDINATION.md içinde yer alır.
 - Bilinen sınırlar: tarife kaynağının gerçekliği ve güncelliği doğrulanmaz; geçerlilik tarihi, vergi, kur, teklif revizyonu ve üretim tüketimiyle tek toplam sonraki görevlerdir. Fiziksel üretim onayı değildir.
 
 - Uygulama commit: [b42fe770c2045739c12366108489e28bec25591b](https://github.com/Taylan789/MobilyaCAD/commit/b42fe770c2045739c12366108489e28bec25591b).
