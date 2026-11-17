@@ -667,3 +667,22 @@
 - Son doğrulama commit `7d943e66bc391a582810f1164689adcfd135b5aa`: CI #`43994555869` başarılı; QA #`43994555692` başarılı (**101/101 frontend + 141/141 domain testi, 0 başarısız**); Pages build/deploy #`43994555762` başarılı. QA içindeki shared-domain strict TypeScript, lint, production build ve `npm audit --omit=dev --audit-level=high` adımları da geçti.
 - Bilinen sınırlar: frontend JSON v1/CSV adapter entegrasyonu ayrı frontend sahibinde; CNC, gerçek lavabo/armatür ölçüsü, köşe yarıçapı/pah, fire, levha verimi ve makine postprocessor'ı yok. Fiziksel üretim öncesi atölye doğrulaması gerekir. Hiçbir `frontend/**` dosyası değiştirilmedi; başka ajanın PR'ı merge edilmedi.
 - Sonraki görev: frontend sahibinin `panelGeometry` alanını JSON v1'e kayıpsız bağlamasını ve eski CSV'de destek yoksa export'u kapatmasını takip et; ardından kesitli panellerde çoklu açıklık/quantity/malzeme kombinasyonlarını karışık aile projelerinde genişlet ve banyo dolabı için yalnız açık üretici girdileriyle konstrüksiyon sözleşmesi tasarla.
+
+
+## 17 Kasım 2026 05:32 TRT — banyo dolabı üst panel açıklığı domain ailesi
+
+- Başlangıç HEAD: `b22c390ea51420d5518480bab1b540290c5cfdcb`.
+- Özellik commit'i: `7acdd3c7d4c5625d6d244ea97278c881f04751ed`.
+- Otomatik test beklentisi düzeltme commit'i: `085d0d208b6efdefcf68147c8714a1ba163e46cb`.
+- Değişen dosyalar:
+  - `domain/production/projectProduction.ts` — `bathroom-vanity` aile tanımı; üst panel Part'ında en az bir geçerli dikdörtgen açıklık şartı; eksik/yanlış panel geometrisinde `blocked` ve `result: null`.
+  - `domain/production/projectProduction.test.mjs` — çoklu açıklık, net alan/hacim, iç kenar bantlama, zorunlu üst panel açıklığı ve yan panelin bu şartı karşılamaması için otomatik testler.
+  - `docs/production-domain-contract.md` — banyo dolabı v1 domain sözleşmesi ve açık üretim sınırları.
+  - `PRODUCT_ROADMAP.md` — aile kabiliyeti, kabul kriterleri ve sonraki 5 görev.
+- Ürün ilerlemesi: mevcut cabinet konstrüksiyon motoru yeniden kullanılıyor; yeni, kopyalanmış ölçü/kalınlık/arkalık/kapak varsayımları eklenmedi. Üst panelde birden çok ayrık, kullanıcı ölçülü dikdörtgen geçiş açıklığı destekleniyor. Net alan/hacim ve iç kenar bantlama aynı Part listesinden malzeme özetine taşınıyor.
+- İlk QA #201 (`44003375704`) tek testte başarısız oldu: test, üst panel derinliğini 560 mm varsaymıştı; gerçek konstrüksiyon Part derinliği 542 mm idi. Üretim hesabı doğruydu. Beklenti sabit ölçü yerine gerçek Part genişliği/uzunluğundan türetildi; test zayıflatılmadı.
+- Son doğrulama HEAD `085d0d208b6efdefcf68147c8714a1ba163e46cb`: CI #323 (`44003546155`) başarılı; QA #202 (`44003545938`) başarılı (**101/101 frontend + 144/144 domain testi, 0 başarısız**); Pages build/deploy #158 (`44003545949`) başarılı. Shared-domain strict TypeScript, lint, production build ve `npm audit --omit=dev --audit-level=high` adımları geçti.
+- Kalite notları: Oxlint 32 uyarı / 0 hata; production audit 4 orta önem bulgusu raporladı, yüksek önem eşiği geçildi. Kırıcı `npm audit fix --force` çalıştırılmadı.
+- Bilinen sınırlar: yalnız eksenlere paralel dikdörtgen geçiş açıklıkları; lavabo/armatür şablonu, musluk/drenaj deliği, tesisat boşluğu, oval/çokgen kesit, köşe yarıçapı/pah, baza/ayak, ankraj, yük, bağlantı, CNC ve fiziksel üretim onayı yok. Kesitli Part JSON v1/CSV adapter'ı ayrı frontend sahibinde olduğu için `canExport: false` korunuyor.
+- AI Developer workflow'u için bu dalda yeni run görünmedi; workflow `workflow_dispatch` ile çalışıyor ve bu turda başlatılmadı. Açık frontend tasarım PR'ı ayrı sahiplikte bırakıldı; hiçbir `frontend/**` dosyası değiştirilmedi veya merge edilmedi. `main` dalına dokunulmadı.
+- Sonraki görev: frontend sahibinin `panelGeometry` JSON v1/CSV adapter entegrasyonunu takip et; domain tarafında ardından karışık mobilya aileleri + farklı malzeme/kalınlık/quantity + çoklu açıklık kombinasyonlarını test et. Banyo baza/ayak ve özel lavabo şablonlarını yalnızca açık üretici/kullanıcı ölçüleriyle genişlet.
