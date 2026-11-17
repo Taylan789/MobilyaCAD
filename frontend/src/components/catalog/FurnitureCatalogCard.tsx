@@ -91,7 +91,7 @@ function FurniturePreview({ item }: { item: FurnitureCatalogItem }) {
   );
 }
 
-export function FurnitureCatalogCard({ item, index, onAdd, onDragStart, onDragEnd }: FurnitureCatalogCardProps) {
+export function FurnitureCatalogCard({ item, onAdd, onDragStart, onDragEnd }: FurnitureCatalogCardProps) {
   const details = getFurnitureCatalogCardDetails(item);
 
   const dimensions = [item.width, item.height, item.depth]
