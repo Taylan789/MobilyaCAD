@@ -353,3 +353,18 @@ Kaynak: domain/production/projectCostSummary.ts, calculateProjectCostSummary.
 - Boş liste status=empty ve sıfır toplamlar üretir; bu, ücretsiz teklif veya fiyatı doğrulanmış proje anlamına gelmez. Geçerli satırlar status=ready döndürür. Herhangi bir geçersiz satır veya para birimi uyuşmazlığı tüm hesabı reddeder; kısmi toplam sunulmaz.
 - Bu ilk dilim maliyet satırlarını henüz ProjectMaterialConsumptionSummary veya ProjectHardwareConsumptionSummary ile otomatik eşlemez. Kullanıcı/katalog fiyatı eksikse varsayılan fiyat üretmez.
 - Vergi, kur, iskonto, işçilik süresi, operasyon tarifi, levha fire oranı, kâr yüzdesi, teklif revizyonu ve geçerlilik tarihi bu sürümde yoktur. Bunlar ayrı kullanıcı/ticari sözleşme girdileri gerektirir.
+
+
+## Üretim tüketiminden fiyatlı maliyet özeti — domain v1
+
+Kaynak: `domain/production/projectPricedConsumption.ts`, `calculateProjectPricedConsumptionSummary`.
+
+- Girdi, `calculateCabinetProjectProductionWithDiagnostics` tarafından üretilen v1 proje raporu ve kullanıcı/katalog tarafından sağlanan fiyat satırlarıdır. `blocked` üretim raporu veya bozuk Part/BOM sonucu fiyatlandırılmaz; kısmi üretim verisinden toplam çıkarılmaz.
+- Fiyat anahtarı `resourceType + resourceId + unit` bileşimidir. Malzeme için `materialId + m2` kullanılır; `panelAreaM2` net tüketimidir. Donanım için `hardwareId + BOM satırındaki özgün unit` kullanılır. Adet/takım/metre/m² arasında dönüşüm yapılmaz.
+- Her fiyat satırı negatif olmayan güvenli tam sayı `unitPriceMinor` ve üç büyük harfli `currencyCode` taşır. Sıfır fiyat yalnızca açık satırla geçerlidir. Yinelenen anahtar, geçersiz alan/fiyat veya farklı para birimiyle karışık toplam reddedilir.
+- Fiyatı olmayan kaynak, malzeme katalog kimliği olmayan legacy Part veya birim uyuşmazlığı `missingPrices` içinde gösterilir. Bu durumda `status: "incomplete"`, `costSummary: null`; kısmi parasal toplam verilmez.
+- Kenar bantlama uzunluğu mevcut Part özetinde mm cinsinden bulunur ancak ayrı kenar bandı katalog kimliği henüz taşınmadığı için `unpriced-edge-banding` kapsam engeli üretir. Panel fiyatı kenar bandı fiyatı yerine kullanılamaz.
+- `status: "ready"` ve `costSummary` yalnızca tüm panel/donanım/kenar bandı tüketim gereksinimleri fiyatla karşılandığında ve tek para birimi kullanıldığında döner. `requiredLineCount` / `pricedLineCount` kapsama durumunu verir.
+- Üretim raporunun `canExport: false` olması (ör. mevcut JSON v1/CSV adapter'ının `hardwareItems` veya `panelGeometry` alanını taşımaması) domain içi fiyat hesabını tek başına engellemez; bu sonuç CNC/atölye dışa aktarım onayı değildir.
+- Vergi, kur, iskonto, fire yüzdesi, rulo payı, levha verimi, stok ve tedarik varsayılmaz. Fiyat kaynağı/versiyonu kullanıcı girdisidir; bu dilim fiyat geçerlilik tarihi veya teklif revizyonu üretmez.
+- Frontend entegrasyon sözleşmesi: UI `ready` dışında `grandTotalMinor` göstermemeli; `incomplete` durumunda `missingPrices` satırlarını, `blocked` durumunda `diagnostics` alanını açıklamalıdır. Bu domain diliminde `frontend/**` değiştirilmez.

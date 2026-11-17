@@ -694,3 +694,21 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 - [CI #44042058150](https://github.com/Taylan789/MobilyaCAD/actions/runs/44042058150), [QA #44042058139](https://github.com/Taylan789/MobilyaCAD/actions/runs/44042058139) ve [Pages #44042058240](https://github.com/Taylan789/MobilyaCAD/actions/runs/44042058240) başarılı.
 - QA kanıtı: 101/101 frontend + 164/164 domain testi; 0 başarısız. Strict shared-domain TypeScript, lint, production build ve production dependency audit adımları geçti.
 - Sonraki domain dilimi: açık fiyat tablosunu materialId/hardwareId ve özgün birim ile tüketim özetlerine eşlemek; eksik fiyat veya para birimi uyuşmazlığında toplamı hazır göstermemek.
+
+
+## 17 Kasım 2026 11:32 TRT — üretim tüketiminden fiyatlı maliyet kapsamı (DOM-006)
+
+- Yeni domain adapter'ı, doğrulanmış proje üretim raporundaki malzeme ve donanım tüketimini kullanıcı fiyat tablosuyla eşleştirir.
+- Malzeme eşleşmesi `materialId + m2`; donanım eşleşmesi `hardwareId + özgün BOM unit` anahtarıyla yapılır. Birim dönüşümü veya varsayılan fiyat yoktur.
+- Eksik fiyat, eksik legacy malzeme kimliği ve birim uyuşmazlığı `incomplete` döndürür; `costSummary` null kalır. Üretim raporu bozuksa, fiyat tablosu geçersizse veya para birimleri karışıyorsa `blocked` döner.
+- Kenar bantlama uzunluğu domain özetinde bulunsa da henüz ayrı katalog kimliği taşımadığından toplamı tamamlamayı engeller; panel m² fiyatı kenar bandı fiyatı olarak kullanılamaz.
+- Açık sıfır fiyat geçerlidir; sıfır fiyat varsayılmaz. Tek toplam yalnızca tüm tüketim satırları açık fiyatlı ve aynı para birimindeyse üretilir.
+- Doğrulama: CI/QA sonuçları bu commit sonrasında bekleniyor; gerçek Actions kanıtı AI_PROGRESS.md içine eklenecektir.
+
+### Sonraki küçük domain görevleri
+
+1. DOM-007: kenar bandı için açık katalog kimliği ve özgün birim sözleşmesi ekle; legacy Part verisinde kimlik yoksa toplamı incomplete tut.
+2. Kullanıcı girdili işçilik/operasyon kalemleri için süre, birim ve tarife kaynak referansını koruyan teklif satırı sözleşmesini genişlet; süre/tarife varsayma.
+3. Fiyat listesi için kaynak sürümü ve geçerlilik tarihi taşıyan snapshot zarfı tasarla; eski proje JSON v1 alanlarını değiştirme.
+4. Teklif revizyonu ve fiyat snapshot'ı arasındaki ilişkiyi geriye uyumlu domain modelinde tanımla; vergi/kur/iskonto gibi ticari kuralları varsayma.
+5. Frontend sahibinin JSON v1/CSV round-trip ve maliyet eksik/ready durumlarını ayrı PR üzerinden bağlamasını doğrula; frontend dosyalarına dokunma.

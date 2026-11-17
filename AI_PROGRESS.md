@@ -758,3 +758,16 @@
 - PR açılmadı; kullanıcı yetkisi kapsamında yalnızca dev/github-work dalına doğrudan commit edildi. AI Developer workflow için yeni run görünmedi; workflow_dispatch çalışması bu turda başlatılmadı.
 - Bilinen sınırlar: maliyet satırları henüz üretim malzeme/donanım özetlerine otomatik eşlenmez; fiyat kataloğu, geçerlilik tarihi, teklif revizyonu, vergi ve frontend entegrasyonu sonraki ayrı dilimlerdir. Fiziksel üretim/CNC onayı değildir.
 - Sonraki görev DOM-006: kullanıcı fiyat tablosunu açık materialId/hardwareId + özgün birim anahtarlarıyla üretim özetlerine bağlayan domain adapter'ı; fiyat eksikse maliyeti hazır göstermeyen eksik-girdi durumu.
+
+
+## 17 Kasım 2026 11:32 TRT — DOM-006 üretim tüketimi / fiyat tablosu eşleştirmesi
+
+- Başlangıç HEAD: `5c0a54e9ebfaea4e4696ee06549cd58c19be382f`.
+- Geliştirme: `calculateProjectPricedConsumptionSummary`, doğrulanmış proje üretim raporunu kullanıcı fiyat tablosuyla eşleştirir. Malzeme anahtarı `materialId + m2`; donanım anahtarı `hardwareId + özgün BOM birimi`.
+- Güvenlik/doğruluk: eksik fiyat veya legacy malzeme kimliği, birim uyuşmazlığı ve kenar bandı katalog kimliği eksikliği parasal toplamı incomplete tutar; `costSummary` null olur. Farklı para birimleri, bozuk üretim raporu, yinelenen fiyat anahtarı ve fiyat şeması hatası blocked döndürür. Açık sıfır fiyat kabul edilir; varsayılan fiyat, birim dönüşümü, kur veya fire oranı üretilmez.
+- Kabul testleri: hazır malzeme + iki özgün donanım birimi, eksik fiyat, birim uyuşmazlığı, malzeme kimliği olmayan legacy Part, kenar bandı fiyat kapsamı, para birimi karışımı, yinelenen/geçersiz fiyat, blocked/empty proje, açık sıfır fiyat ve altı ondalık maliyet hassasiyeti sınırı.
+- Değişen dosyalar: `domain/production/projectPricedConsumption.ts`, `domain/production/projectPricedConsumption.test.mjs`, `.github/workflows/qa-test.yml`, `docs/production-domain-contract.md`, `PRODUCT_ROADMAP.md`, `AI_COORDINATION.md`, `AI_PROGRESS.md`.
+- Kod commit SHA ve Actions sonuçları: bu kayıt ilk committe doğrulama bekliyor olarak işaretlenmiştir; başarılı/başarısız gerçek CI/QA/Pages run kimlikleri doğrulama sonrasında eklenecektir.
+- Bilinen sınırlar: kenar bandı için ayrı katalog kimliği yok; bu nedenle bant tüketimi maliyet toplamını tamamlamayı engeller. Vergi, kur, fire, levha verimi, teklif revizyonu ve fiyat geçerlilik tarihi yoktur. Fiziksel üretim/CNC onayı değildir.
+- Frontend sahipliği: hiçbir `frontend/**` dosyası değiştirilmedi. Açık PR #41 ve #8 yalnızca frontend sahibinin ayrı akışında bırakıldı. main dalına dokunulmadı.
+- Sonraki görev: DOM-007 — kenar bandı için açık katalog kimliği ve özgün birim sözleşmesi.
