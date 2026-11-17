@@ -807,3 +807,22 @@
 - [MobilyaCAD CI #44069400982](https://github.com/Taylan789/MobilyaCAD/actions/runs/44069400982) başarılı; [QA & Test #44069401154](https://github.com/Taylan789/MobilyaCAD/actions/runs/44069401154) başarılı: 101/101 frontend + 187/187 domain testi, 0 başarısız. Strict TypeScript, lint, frontend production build ve production dependency audit geçti. [Pages #44069400970](https://github.com/Taylan789/MobilyaCAD/actions/runs/44069400970) build/deploy başarılı.
 - Bilinen sınırlar: dakika/saat otomatik dönüştürülmez; tarife kaynağı kullanıcı tarafından sağlanır ve gerçekliği/etkinlik tarihi doğrulanmaz. Üretim malzeme/donanım maliyetleriyle birleşik teklif toplamı, vergi, kur ve revizyon sonraki görevlerdir. `frontend/**` değiştirilmedi; başka ajan PR'larına dokunulmadı.
 - Sonraki görev: DOM-009 — üretim tüketimi ve işçilik/operasyon özetlerini tek, eksik-girdi güvenli teklif toplamında birleştir.
+
+
+## 17 Kasım 2026 14:06 TRT — DOM-009 birleşik teklif toplamı (doğrulandı)
+
+- Başlangıç HEAD: `2f16250743129ccce3cef72f4997df58500ea827`.
+- Özellik commit'i: [e78152351f679547f064048cceff33063555b9cc](https://github.com/Taylan789/MobilyaCAD/commit/e78152351f679547f064048cceff33063555b9cc).
+- Değişen dosyalar:
+  - `domain/production/projectQuoteSummary.ts` — üretim tüketimi ve işçilik/operasyon alt hesaplarını tek maliyet toplamında birleştirir; tek para birimi, eksik kapsam güvenliği ve kaynak eşlemesi.
+  - `domain/production/projectQuoteSummary.test.mjs` — 7 yeni kabul/regresyon testi.
+  - `.github/workflows/qa-test.yml` — yeni domain modülü strict TypeScript kontrolüne eklendi.
+  - `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`, `docs/production-domain-contract.md` — görev ve sözleşme kayıtları.
+- Otomatik doğrulama:
+  - [CI #44072219005](https://github.com/Taylan789/MobilyaCAD/actions/runs/44072219005) başarılı.
+  - [QA #44072219133](https://github.com/Taylan789/MobilyaCAD/actions/runs/44072219133) başarılı: **101/101 frontend + 194/194 domain testi, 0 başarısız**.
+  - Shared-domain strict TypeScript, lint, frontend production build ve `npm audit --omit=dev --audit-level=high` adımı başarılı.
+  - [Pages #44072218712](https://github.com/Taylan789/MobilyaCAD/actions/runs/44072218712) build/deploy başarılı.
+- Kalite/risk notları: lint 32 uyarı / 0 hata; audit raporunda 4 orta seviye bulgu sürüyor. Force/breaking dependency güncellemesi yapılmadı.
+- Bilinen sınırlar: JSON v1/CSV/UI entegrasyonu yok; vergi, kur, iskonto, fire/kâr yüzdesi, fiyat geçerlilik tarihi ve teklif revizyonu yoktur. CNC veya fiziksel üretim onayı değildir.
+- Sonraki görev: DOM-010 — kullanıcı tarafından sağlanan fiyat/tarife katalog sürümü ve etkinlik tarihi snapshot'ı.

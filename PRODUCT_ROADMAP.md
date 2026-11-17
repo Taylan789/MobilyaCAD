@@ -746,3 +746,22 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 
 - Uygulama commit: [b42fe770c2045739c12366108489e28bec25591b](https://github.com/Taylan789/MobilyaCAD/commit/b42fe770c2045739c12366108489e28bec25591b).
 - [CI #44069400982](https://github.com/Taylan789/MobilyaCAD/actions/runs/44069400982), [QA #44069401154](https://github.com/Taylan789/MobilyaCAD/actions/runs/44069401154) ve [Pages #44069400970](https://github.com/Taylan789/MobilyaCAD/actions/runs/44069400970) başarılı. QA: 101/101 frontend + 187/187 domain testi, 0 başarısız; strict TypeScript, lint, production build ve production dependency audit geçti.
+
+
+## 17 Kasım 2026 14:06 TRT — DOM-009 birleşik teklif toplamı (Actions doğrulandı)
+
+- Özellik commit'i: [e78152351f679547f064048cceff33063555b9cc](https://github.com/Taylan789/MobilyaCAD/commit/e78152351f679547f064048cceff33063555b9cc).
+- `calculateProjectQuoteSummary`, malzeme/donanım/kenar bandı tüketim fiyatlarını ve kullanıcı girdili işçilik/operasyon tarifelerini aynı maliyet motorunda toplar. Kaynak kimlikleri `lineSources` ile korunur.
+- Herhangi bir alt kapsam incomplete/blocked ise `costSummary: null`; iki alt kapsam ready ise aynı para birimi zorunludur. İki boş kapsam empty; yalnızca biri dolu ve ready ise o kapsamın toplamı hesaplanabilir.
+- [CI #44072219005](https://github.com/Taylan789/MobilyaCAD/actions/runs/44072219005) başarılı; [QA #44072219133](https://github.com/Taylan789/MobilyaCAD/actions/runs/44072219133) başarılı: **101/101 frontend + 194/194 domain testi, 0 başarısız**. Shared-domain strict TypeScript, lint, production build ve production dependency audit eşiği geçti. [Pages #44072218712](https://github.com/Taylan789/MobilyaCAD/actions/runs/44072218712) build/deploy başarılı.
+- Kalite notları: lint 32 uyarı / 0 hata; production audit eşiği geçti ancak 4 orta seviye dependency bulgusu sürüyor. Force/breaking dependency güncellemesi yapılmadı.
+- Bilinen sınırlar: teklifin JSON/CSV ve frontend UI entegrasyonu ayrı sahiplik alanındadır. Vergi, döviz dönüşümü, iskonto, fiyat geçerlilik tarihi, teklif revizyonu, fire/kâr yüzdesi veya CNC standardı üretilmez. Fiziksel üretim onayı değildir.
+- Hiçbir `frontend/**` dosyası değiştirilmedi; açık UI PR #46 yalnızca `frontend/src/App.css` değiştiriyor ve ayrı sahibinde bırakıldı. `main` dalına dokunulmadı.
+
+### Sıradaki 3-5 küçük görev
+
+1. DOM-010: fiyat listesi ve tarife kaynağı için açık katalog sürümü/etkinlik tarihi snapshot'ı; tarih veya katalog sürümü varsayma.
+2. DOM-011: salt okunur maliyet snapshot'larıyla teklif revizyon zarfı; eski proje JSON v1 dosyalarını değiştirme.
+3. DOM-012: fire ve kârı yalnızca açık miktar/birim/fiyat satırlarıyla ekle; yüzde, vergi veya marj uydurma.
+4. Frontend sahibinin birleşik teklif ready/incomplete/blocked durumlarını kendi JSON/UI akışına bağlamasını PR üzerinden doğrula; `frontend/**` dosyalarına dokunma.
+5. INT-001/INT-002 tamamlandığında JSON/CSV round-trip ve export engellerini uçtan uca denetle; CNC/üretim onayı için fiziksel atölye doğrulaması ayrı kal.

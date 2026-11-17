@@ -408,3 +408,19 @@ Kaynak: `domain/production/projectLaborOperationPricing.ts`, `calculateProjectLa
 - Süreler mevcut maliyet motoruyla tutarlı olarak en fazla altı ondalık basamakta işlenir ve her satır küçük para birimine yarım-yukarı yuvarlanır. Farklı para birimleri birleştirilmez.
 - Bu dilim yalnızca işçilik/operasyon maliyet özetidir; üretim tüketim fiyatlarıyla tek teklif toplamında birleştirme, tarife geçerlilik tarihi, vergi, kur, indirim ve teklif revizyonu sonraki ayrı görevlerdir.
 - Frontend entegrasyon sözleşmesi: `ready` durumunda tarife kimliği, kaynak referansı, süre, birim ve satır toplamı gösterilebilir; `incomplete` durumunda `missingTariffs`, `blocked` durumunda `diagnostics` açıklanmalıdır. `costSummary` yalnızca `ready` durumunda gösterilir. Bu dilimde `frontend/**` değiştirilmez.
+
+
+## Birleşik teklif toplamı — domain v1
+
+Kaynak: `domain/production/projectQuoteSummary.ts`.
+
+Çağrı: `calculateProjectQuoteSummary(productionReport, consumptionPriceTable, workItems, tariffTable)`.
+
+- Fonksiyon mevcut `calculateProjectPricedConsumptionSummary` ve `calculateProjectLaborOperationPricingSummary` hesaplarını çağırır; yeni fiyat, süre, katalog kaydı veya varsayılan tarife üretmez.
+- Malzeme, donanım ve kenar bandı tüketim fiyatları ilk alt kapsamdan; kullanıcı girdili işçilik ve operasyon süreleri ikinci alt kapsamdan gelir. Her iki alt kapsam aynı `calculateProjectCostSummary` motoruna aktarılır.
+- Herhangi bir alt kapsam `blocked` ise birleşik durum `blocked`; herhangi biri `incomplete` ise ve blocked yoksa `incomplete` olur. Her iki durumda `costSummary: null` ve `lineSources: []`; kısmi parasal toplam sunulmaz.
+- Her iki alt kapsam empty ise sonuç empty olur. Bir alt kapsam empty, diğeri ready ise yalnızca ready kapsamın açık satırlarıyla toplam hesaplanabilir.
+- Alt kapsamlar ayrı ayrı ready olsa bile para birimleri farklıysa ortak maliyet motoru hesabı reddeder ve birleşik durum blocked olur. Kur dönüşümü yapılmaz.
+- Birleşik maliyet satırları kaynak tipine göre `consumption-0001` / `work-0001` kimlikleri alır. `lineSources`, her yeni maliyet kimliğini özgün üretim veya işçilik satırı kimliğine bağlar; işçilik/operasyon satırlarında tarife kimliği de korunur.
+- Miktar hassasiyeti ve satır bazlı küçük para birimi yuvarlaması mevcut `projectCostSummary.ts` sözleşmesini izler. Güvenli tam sayı taşması ve yinelenen kimlik kontrolü aynı motor tarafından uygulanır.
+- Bu dilim vergi, kur, indirim, fire/kâr yüzdesi, katalog geçerlilik tarihi, teklif revizyonu veya dışa aktarım sağlamaz. Fiziksel üretim/CNC onayı değildir.
