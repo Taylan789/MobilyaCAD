@@ -655,3 +655,15 @@
 - Bilinen sınırlar: yalnız eksenlere paralel dikdörtgen geçiş açıklıkları; köşe yarıçapı, oval/çokgen kesit, pah, iç yüzey işlemi, quantity ağırlıklı proje Part, malzeme özeti, JSON/CSV ve CNC entegrasyonu yok. Bu modül üretim onayı değildir; gerçek lavabo/armatür ve makine ölçüsü uydurulmaz.
 - Frontend sahipliği korundu: hiçbir `frontend/**` dosyası değiştirilmedi; JSON v1/CSV adapter ayrı frontend sahibinin kapsamındadır.
 - Sonraki görev: kesit geometri alanını sürümlü ve geriye uyumlu `ProjectProductionPart` sözleşmesine taşımak; ardından quantity ağırlıklı net alan/hacim/iç kenar bantlama özetini doğrulamak ve export uyumluluğunu açıkça kapılamak.
+
+
+## 17 Kasım 2026 04:19 TRT — kesitli paneli proje Part ve malzeme tüketimine bağlama
+
+- Özellik commit'i: `251e3fc1c24af87a79719854f474c2295ff49a2d`; QA'da bulunan entegrasyon hatalarının düzeltme commit'i: `7d943e66bc391a582810f1164689adcfd135b5aa`.
+- Değişen dosyalar: `domain/production/projectProduction.ts`, `domain/production/projectMaterialSummary.ts`, `domain/production/projectProduction.test.mjs`, `domain/production/projectMaterialSummary.test.mjs`, `docs/production-domain-contract.md`, `PRODUCT_ROADMAP.md`.
+- Ürün ilerlemesi: isteğe bağlı `panelCutouts` mevcut Part kimliğine bağlanır; ölçü ve dış kenar bant bayrakları Part ile eşleşmek zorundadır. Geometri `ProjectProductionPart.panelGeometry` alanında taşınır. Malzeme özeti net alan/hacim ve yönlere ayrılmış iç/dış bant uzunluklarını quantity ile çarpar; geometri tüketim sırasında yeniden doğrulanır.
+- Güvenli dışa aktarım: domain sonucu `ready` olsa da JSON v1/CSV adapter'ı henüz `panelGeometry` alanını kayıpsız taşımadığı için `canExport: false` ve `exportBlockers` döner. Geçersiz/tekrarlı/olmayan Part geometrisi `blocked` ve `result: null` üretir.
+- İlk doğrulama QA #`43994403078` üç yeni testte eksik `requireRecord` yardımcı fonksiyonunu yakaladı. Düzeltme commit'i `7d943e6` ile doğrulama helper'ı eklendi ve zenginleştirilmiş `productionParts` sonuç listesine bağlandı; testler zayıflatılmadı.
+- Son doğrulama commit `7d943e66bc391a582810f1164689adcfd135b5aa`: CI #`43994555869` başarılı; QA #`43994555692` başarılı (**101/101 frontend + 141/141 domain testi, 0 başarısız**); Pages build/deploy #`43994555762` başarılı. QA içindeki shared-domain strict TypeScript, lint, production build ve `npm audit --omit=dev --audit-level=high` adımları da geçti.
+- Bilinen sınırlar: frontend JSON v1/CSV adapter entegrasyonu ayrı frontend sahibinde; CNC, gerçek lavabo/armatür ölçüsü, köşe yarıçapı/pah, fire, levha verimi ve makine postprocessor'ı yok. Fiziksel üretim öncesi atölye doğrulaması gerekir. Hiçbir `frontend/**` dosyası değiştirilmedi; başka ajanın PR'ı merge edilmedi.
+- Sonraki görev: frontend sahibinin `panelGeometry` alanını JSON v1'e kayıpsız bağlamasını ve eski CSV'de destek yoksa export'u kapatmasını takip et; ardından kesitli panellerde çoklu açıklık/quantity/malzeme kombinasyonlarını karışık aile projelerinde genişlet ve banyo dolabı için yalnız açık üretici girdileriyle konstrüksiyon sözleşmesi tasarla.
