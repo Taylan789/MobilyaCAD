@@ -306,3 +306,14 @@ Proje isteğinde `family: "bathroom-vanity"` kullanılır. Diğer gövde ölçü
 - Kesitli Part için mevcut JSON v1/CSV adapter desteği henüz bulunmadığından geçerli geometri `ready` hesap sonucu üretse bile `canExport: false` kalır.
 - Bu ilk aile dilimi yalnızca eksenlere paralel dikdörtgen geçiş açıklıklarını kapsar. Oval/özel lavabo şablonu, musluk/drenaj deliği, sifon/tesisat boşluğu, köşe yarıçapı, pah, tezgâh bindirmesi, ayak/baza, duvar montajı, ankraj, yük, bağlantı, donanım veya CNC koordinatı üretmez. Gerçek lavabo/armatür ölçüsü ve fiziksel uygunluk üretici/atölye tarafından ayrıca doğrulanmalıdır.
 - Frontend JSON v1/CSV adapter'ı ayrı frontend sahibinin kapsamındadır; bu domain değişikliği hiçbir `frontend/**` dosyasını değiştirmez.
+
+
+## 2.15 Karışık aile projelerinde kesitli panel tüketimi
+
+\`panelCutouts\` her desteklenen mobilya ailesinin mevcut \`ProjectProductionPart\` kimliğine bağlanabilir; yalnızca banyo dolabı üst paneline özgü değildir. Domain kabul testi, aynı projede \`bathroom-vanity\` üst panelinde iki dikdörtgen açıklığı ve \`bookshelf\` rafında bir açıklığı birlikte doğrular.
+
+- Banyo üst paneli 18 mm \`mdf-18\`; kitaplık rafı 8 mm \`mdf-8\` katalog malzemesi ve üç adet olarak hesaplanır. Diğer kitaplık gövde parçaları kendi malzeme/kalınlık gruplarında kalır.
+- Kesit geometri eklemek Part satır sayısını veya \`quantity\` değerini değiştirmez. Malzeme özeti net alan/hacim ve iç kenar bantlamasını her malzeme + kalınlık grubu için aynı Part listesinden, quantity ile ağırlıklandırarak hesaplar.
+- Test, kesit öncesi ve sonrası özet farkını karşılaştırır: 18 mm grupta 0.08 m² / 0.00144 m³ ve 600 mm iç bant; 8 mm grupta raf adedi üç olduğu için 0.06 m² / 0.00048 m³ ve 900 mm iç bant farkı beklenir.
+- Birden fazla ailede geçerli kesit bulunması yine \`status: "ready"\` üretir; ancak JSON v1/CSV adapter'ı \`panelGeometry\` alanını kayıpsız taşımadığından \`canExport: false\` kalır. Bu test, dışa aktarımın üretime hazır olduğu anlamına gelmez.
+- Bu kapsam geometriyi yalnız dikdörtgen geçiş açıklıklarıyla sınırlar; CNC, lavabo/armatür standardı, yük, bağlantı, fire, levha optimizasyonu veya fiyat hesabı eklemez. Fiziksel üretim öncesi atölye doğrulaması gerekir.

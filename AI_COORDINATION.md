@@ -36,7 +36,7 @@ Bu dosya dört geliştirme/denetim rolünün ortak görev panosu ve entegrasyon 
 | ID | Görev | Sahip | Durum | Kabul / teslim kanıtı |
 |---|---|---|---|---|
 | INT-001 | Domain üretim raporu ile frontend sözleşmesi; JSON/CSV geometri kaybını önleme veya desteklenmeyen export'u engelleme | Arayüz + Ürün | READY | round-trip ve export-block testleri |
-| DOM-002 | Banyo dolabı ve diğer ailelerde çoklu açıklık, adet, malzeme ve kalınlık domain testleri | Ürün Geliştirme | READY | regresyon testleri ve QA |
+| DOM-002 | Banyo dolabı ve diğer ailelerde çoklu açıklık, adet, malzeme ve kalınlık domain testleri | Ürün Geliştirme | IN_PROGRESS | karışık bathroom-vanity + bookshelf kesit/tüketim testi; CI/QA doğrulaması bekleniyor |
 | PERF-001 | 2D/3D veri akışında ölçülebilir performans baseline'ı, profiling ve sahiplenilmemiş darboğazların giderilmesi | Entegrasyon/Performans | READY | tekrarlanabilir ölçüm, test, PR |
 | INT-002 | JSON/CSV adapter round-trip ve geometri/miktar sadakati için eksik entegrasyon testleri | Entegrasyon/Performans (yalnızca sahiplenilmemiş adapter/test dosyaları) | READY | test raporu ve PR |
 | QA-003 | INT-001 ve INT-002 tamamlandığında uçtan uca veri akışı ve export denetimi | Kalite Denetimi | BLOCKED: INT-001/INT-002 | SHA, PR ve gerçek Actions kanıtı |

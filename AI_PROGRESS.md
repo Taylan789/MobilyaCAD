@@ -686,3 +686,13 @@
 - Bilinen sınırlar: yalnız eksenlere paralel dikdörtgen geçiş açıklıkları; lavabo/armatür şablonu, musluk/drenaj deliği, tesisat boşluğu, oval/çokgen kesit, köşe yarıçapı/pah, baza/ayak, ankraj, yük, bağlantı, CNC ve fiziksel üretim onayı yok. Kesitli Part JSON v1/CSV adapter'ı ayrı frontend sahibinde olduğu için `canExport: false` korunuyor.
 - AI Developer workflow'u için bu dalda yeni run görünmedi; workflow `workflow_dispatch` ile çalışıyor ve bu turda başlatılmadı. Açık frontend tasarım PR'ı ayrı sahiplikte bırakıldı; hiçbir `frontend/**` dosyası değiştirilmedi veya merge edilmedi. `main` dalına dokunulmadı.
 - Sonraki görev: frontend sahibinin `panelGeometry` JSON v1/CSV adapter entegrasyonunu takip et; domain tarafında ardından karışık mobilya aileleri + farklı malzeme/kalınlık/quantity + çoklu açıklık kombinasyonlarını test et. Banyo baza/ayak ve özel lavabo şablonlarını yalnızca açık üretici/kullanıcı ölçüleriyle genişlet.
+
+
+## 17 Kasım 2026 07:18 TRT — DOM-002 doğrulama bekliyor
+
+- Başlangıç HEAD: \`a13cc122d46dec071debe1773811a8bc69995d0c\`.
+- Bu turdaki dikey dilim: aynı projede banyo dolabı üst panelinin iki açıklığı ile kitaplık rafının bir açıklığını birleştiren domain regresyon testi; 18 mm/8 mm katalog malzemeleri ve quantity 1/3 için net alan, hacim ve iç kenar bant farkları.
+- Değişen dosyalar: \`domain/production/projectProduction.test.mjs\`, \`docs/production-domain-contract.md\`, \`PRODUCT_ROADMAP.md\`, \`AI_PROGRESS.md\`, \`AI_COORDINATION.md\`.
+- Kabul kriteri: Part satır/adet sayıları korunmalı; iki ailedeki kesit geometrisi doğru Part'a bağlanmalı; malzeme özet farkları 18 mm için 0.08 m² / 0.00144 m³ / 600 mm, 8 mm için 0.06 m² / 0.00048 m³ / 900 mm olmalı; export \`canExport: false\` kalmalı.
+- CI/QA: commit sonrası gerçek GitHub Actions sonuçları beklenecek; henüz başarılı ilan edilmedi.
+- Sonraki görev: frontend sahibinin kesitli Part ve TV raf/bölücü verilerini JSON v1/CSV'ye kayıpsız bağlama PR'ını salt okunur entegrasyon kriterleriyle doğrulamak.

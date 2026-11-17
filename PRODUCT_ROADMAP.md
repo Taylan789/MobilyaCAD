@@ -627,3 +627,21 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 3. Banyo dolabı baza/ayak, arkalık ve montaj seçeneklerini yalnızca kullanıcı/üretici ölçüleriyle parametrik aile dilimlerine ayır; duvar/zemin ankrajı veya yük kapasitesi varsayma.
 4. Kesitli panellerin karışık cabinet/bookshelf/table/wardrobe/tv-unit/bathroom-vanity projelerinde farklı malzeme, kalınlık, quantity ve çoklu açıklık kombinasyonlarını otomatik testlerle genişlet.
 5. Donanım/delik/CNC veri modelini gerçek üretici/atölye standardı bulunana kadar koordinat üretmeyen, kaynak ve birimi izlenebilir sözleşme olarak tasarla.
+
+
+## 17 Kasım 2026 07:18 TRT — DOM-002 karışık aile kesit/tüketim kabulü
+
+- Banyo dolabı üst panelindeki iki açıklık ve kitaplık rafındaki tek açıklık aynı proje üretim raporunda doğrulanır.
+- Kitaplık rafı 8 mm \`mdf-8\`, quantity 3; banyo üst paneli 18 mm \`mdf-18\`, quantity 1 olarak korunur. Kesit öncesi/sonrası malzeme özeti farkları net alan, hacim ve iç kenar bant uzunluklarında otomatik test edilir.
+- Part satırı ve adet toplamları değişmez; kesitli her proje için JSON v1/CSV adapter desteği gelene kadar \`canExport: false\` korunur.
+- İlk commit sonrası CI/QA doğrulaması bekleniyor; gerçek run bağlantıları ve commit SHA doğrulama tamamlanınca AI_PROGRESS.md ve AI_COORDINATION.md içinde işlenecek.
+- Değişen dosyalar: \`domain/production/projectProduction.test.mjs\`, \`docs/production-domain-contract.md\`, \`PRODUCT_ROADMAP.md\`, \`AI_PROGRESS.md\`, \`AI_COORDINATION.md\`. \`frontend/**\` değişmedi.
+- Bilinen sınırlar: CNC/üretici standardı, lavabo şablonu, bağlantı, delik, fire, nesting ve fiyat hesabı yok; fiziksel üretim onayı değildir.
+
+### Sıradaki küçük görevler
+
+1. Frontend sahibinin \`panelGeometry\`, \`verticalDividers\`, \`shelves\` ve \`blocked/canExport\` durumlarını JSON v1/CSV akışına kayıpsız bağlamasını ayrı PR üzerinden doğrula; frontend dosyalarına dokunma.
+2. Banyo dolabı arkalık, baza ve ayak seçeneklerini yalnızca kullanıcı/üretici tarafından sağlanan ölçü ve bağlantı girdileriyle ayrı parametrik dilimlere ayır.
+3. Karışık mobilya ailelerinde çoklu kesit, farklı kenar bayrakları ve 0.1 mm normalizasyon sınırları için domain regresyon testlerini genişlet.
+4. Donanım/delik operasyonları için kaynak ve birimi izlenebilir, koordinat üretmeyen veri sözleşmesi tasarla; gerçek üretici standardı olmadan CNC çıktısı üretme.
+5. Levha optimizasyonu, fire ve maliyet hesaplarını ancak kullanıcı kataloğu, makine profili ve fiyat girdileri tanımlandığında başlat.

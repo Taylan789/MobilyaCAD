@@ -1206,3 +1206,131 @@ test("banyo dolabında yan panel açıklığı üst panel gereksinimini karşıl
   assert.equal(report.result, null);
   assert.match(report.blockedFurniture[0].message, /üst paneli için en az bir açık dikdörtgen/);
 });
+
+
+test("karışık banyo dolabı ve kitaplık projesinde kesitler malzeme, kalınlık ve adet uzlaşmasını korur", () => {
+  const vanityId = "vanity-mixed-cutouts";
+  const bookshelfId = "book-mixed-cutouts";
+  const bookshelf = createBookshelfRequest(bookshelfId);
+  bookshelf.profile.panelThicknessMmByGroup = { shelf: 8 };
+  bookshelf.profile.edgeBandingByGroup.shelf = { ...noBanding, left: true };
+  bookshelf.panelMaterialOverrides = { shelf: "mdf-8" };
+
+  const baselineVanity = createRequest(vanityId);
+  baselineVanity.panelMaterialOverrides = { top: "mdf-18" };
+  const baseline = calculateCabinetProjectProduction({
+    schemaVersion: 1,
+    furniture: [baselineVanity, bookshelf]
+  });
+  const vanityTop = baseline.parts.find((part) => part.id === vanityId + "-top");
+  const bookshelfShelf = baseline.parts.find((part) => part.id === bookshelfId + "-shelf");
+  assert.ok(vanityTop);
+  assert.ok(bookshelfShelf);
+  assert.equal(bookshelfShelf.quantity, 3);
+  assert.equal(bookshelfShelf.thickness, 8);
+  assert.equal(bookshelfShelf.materialId, "mdf-8");
+
+  const vanityRequest = createBathroomVanityRequest(vanityId);
+  vanityRequest.panelMaterialOverrides = { top: "mdf-18" };
+  const vanityGeometry = {
+    schemaVersion: 1,
+    widthMm: vanityTop.width,
+    lengthMm: vanityTop.length,
+    thicknessMm: vanityTop.thickness,
+    outerEdgeBanding: vanityTop.edgeBanding,
+    cutouts: [
+      {
+        id: "basin-left",
+        xMm: 100,
+        yMm: 100,
+        widthMm: 300,
+        lengthMm: 200,
+        edgeBanding: { top: false, bottom: false, left: true, right: true }
+      },
+      {
+        id: "basin-right",
+        xMm: 500,
+        yMm: 100,
+        widthMm: 100,
+        lengthMm: 200,
+        edgeBanding: { top: true, bottom: true, left: false, right: false }
+      }
+    ]
+  };
+  const bookshelfGeometry = {
+    schemaVersion: 1,
+    widthMm: bookshelfShelf.width,
+    lengthMm: bookshelfShelf.length,
+    thicknessMm: bookshelfShelf.thickness,
+    outerEdgeBanding: bookshelfShelf.edgeBanding,
+    cutouts: [{
+      id: "cable-pass",
+      xMm: 100,
+      yMm: 50,
+      widthMm: 200,
+      lengthMm: 100,
+      edgeBanding: { top: true, bottom: false, left: false, right: true }
+    }]
+  };
+
+  const report = calculateCabinetProjectProductionWithDiagnostics({
+    schemaVersion: 1,
+    furniture: [vanityRequest, bookshelf],
+    panelCutouts: [
+      { partId: vanityTop.id, geometry: vanityGeometry },
+      { partId: bookshelfShelf.id, geometry: bookshelfGeometry }
+    ]
+  });
+
+  assert.equal(report.status, "ready");
+  assert.equal(report.canExport, false);
+  assert.equal(report.result.furniture[0].family, "bathroom-vanity");
+  assert.equal(report.result.furniture[1].family, "bookshelf");
+  assert.equal(report.result.parts.find((part) => part.id === vanityTop.id).panelGeometry.cutouts.length, 2);
+  const profiledShelf = report.result.parts.find((part) => part.id === bookshelfShelf.id);
+  assert.equal(profiledShelf.panelGeometry.cutouts.length, 1);
+  assert.deepEqual(
+    [profiledShelf.materialId, profiledShelf.thickness, profiledShelf.quantity],
+    ["mdf-8", 8, 3]
+  );
+
+  const before = calculateProjectMaterialConsumptionSummary(baseline);
+  const after = calculateProjectMaterialConsumptionSummary(report.result);
+  const summaryFor = (entries, materialId) => entries.find((entry) => entry.materialId === materialId);
+  const beforeMdf18 = summaryFor(before, "mdf-18");
+  const afterMdf18 = summaryFor(after, "mdf-18");
+  const beforeMdf8 = summaryFor(before, "mdf-8");
+  const afterMdf8 = summaryFor(after, "mdf-8");
+  assert.ok(beforeMdf18 && afterMdf18 && beforeMdf8 && afterMdf8);
+
+  assert.deepEqual(
+    [afterMdf18.partLineCount, afterMdf18.totalQuantity],
+    [beforeMdf18.partLineCount, beforeMdf18.totalQuantity]
+  );
+  assert.deepEqual(
+    [afterMdf8.partLineCount, afterMdf8.totalQuantity],
+    [beforeMdf8.partLineCount, beforeMdf8.totalQuantity]
+  );
+  assert.equal(Number((beforeMdf18.panelAreaM2 - afterMdf18.panelAreaM2).toFixed(6)), 0.08);
+  assert.equal(Number((beforeMdf18.volumeM3 - afterMdf18.volumeM3).toFixed(9)), 0.00144);
+  assert.deepEqual(
+    [
+      afterMdf18.edgeBanding.widthEdgesLengthMm - beforeMdf18.edgeBanding.widthEdgesLengthMm,
+      afterMdf18.edgeBanding.lengthEdgesLengthMm - beforeMdf18.edgeBanding.lengthEdgesLengthMm,
+      afterMdf18.edgeBanding.totalLengthMm - beforeMdf18.edgeBanding.totalLengthMm,
+      afterMdf18.edgeBanding.edgeCount - beforeMdf18.edgeBanding.edgeCount
+    ],
+    [200, 400, 600, 4]
+  );
+  assert.equal(Number((beforeMdf8.panelAreaM2 - afterMdf8.panelAreaM2).toFixed(6)), 0.06);
+  assert.equal(Number((beforeMdf8.volumeM3 - afterMdf8.volumeM3).toFixed(9)), 0.00048);
+  assert.deepEqual(
+    [
+      afterMdf8.edgeBanding.widthEdgesLengthMm - beforeMdf8.edgeBanding.widthEdgesLengthMm,
+      afterMdf8.edgeBanding.lengthEdgesLengthMm - beforeMdf8.edgeBanding.lengthEdgesLengthMm,
+      afterMdf8.edgeBanding.totalLengthMm - beforeMdf8.edgeBanding.totalLengthMm,
+      afterMdf8.edgeBanding.edgeCount - beforeMdf8.edgeBanding.edgeCount
+    ],
+    [600, 300, 900, 6]
+  );
+});
