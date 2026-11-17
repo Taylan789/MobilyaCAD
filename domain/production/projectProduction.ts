@@ -22,6 +22,8 @@ export interface CabinetProjectProductionRequest {
   drawerBoxes?: readonly unknown[];
   /** Optional explicit through-cutout geometry, attached to existing Part IDs. */
   panelCutouts?: readonly unknown[];
+  /** Optional user-supplied hardware BOM rows; no specifications are inferred. */
+  hardwareItems?: readonly unknown[];
 }
 
 export type CabinetProjectFurnitureResult =
@@ -44,6 +46,17 @@ export interface DrawerGroupProductionResult {
   bottomLengthMm: number;
 }
 
+/** Explicit hardware BOM row; quantity and unit are preserved without inference. */
+export interface ProjectHardwareItem {
+  id: string;
+  furnitureId: string;
+  hardwareId: string;
+  name: string;
+  quantity: number;
+  unit: string;
+  sourceReference?: string;
+}
+
 export type ProjectProductionPart = (
   CabinetConstructionPart | DrawerBoxConstructionPart | TableConstructionPart | WardrobeConstructionPart | TvUnitConstructionPart
 ) & {
@@ -56,6 +69,8 @@ export interface CabinetProjectProductionResult {
   furniture: CabinetProjectFurnitureResult[];
   /** Present only when at least one drawer-box request was calculated. */
   drawerGroups?: DrawerGroupProductionResult[];
+  /** Present only when explicit user-supplied hardware BOM rows were validated. */
+  hardwareItems?: ProjectHardwareItem[];
   parts: ProjectProductionPart[];
 }
 
@@ -65,7 +80,7 @@ export type SupportedProjectFurnitureFamily = "cabinet" | "bookshelf" | "table" 
 export interface ProjectProductionFurnitureDiagnostic {
   furnitureId: string | null;
   family: string | null;
-  code: "unsupported-family" | "invalid-request" | "invalid-construction" | "invalid-drawer" | "invalid-panel-geometry";
+  code: "unsupported-family" | "invalid-request" | "invalid-construction" | "invalid-drawer" | "invalid-panel-geometry" | "invalid-hardware";
   message: string;
 }
 
@@ -121,6 +136,35 @@ function readFurnitureFamily(value: unknown, index: number): SupportedProjectFur
   if (value.family === "tv-unit") return "tv-unit";
   if (value.family === "bathroom-vanity") return "bathroom-vanity";
   throw new Error("Projenin " + (index + 1) + ". mobilya ailesi desteklenmiyor: " + String(value.family) + ".");
+}
+
+function readProjectHardwareItem(value: unknown, index: number): ProjectHardwareItem {
+  const entry = requireRecord(value, "Projenin " + (index + 1) + ". donanım kalemi");
+  const allowed = ["id", "furnitureId", "hardwareId", "name", "quantity", "unit", "sourceReference"];
+  const unknownKey = Object.keys(entry).find((key) => !allowed.includes(key));
+  if (unknownKey !== undefined) throw new Error("Donanım kaleminde desteklenmeyen alan: " + unknownKey + ".");
+  const readText = (raw: unknown, label: string): string => {
+    if (typeof raw !== "string" || raw.trim() === "" || raw.trim() !== raw) {
+      throw new Error(label + " boş olmayan ve kenar boşluğu içermeyen bir metin olmalıdır.");
+    }
+    return raw;
+  };
+  const id = readText(entry.id, "Donanım kalemi kimliği");
+  const furnitureId = readText(entry.furnitureId, id + " mobilya kimliği");
+  const hardwareId = readText(entry.hardwareId, id + " donanım kimliği");
+  const name = readText(entry.name, id + " donanım adı");
+  const unit = readText(entry.unit, id + " donanım birimi");
+  if (typeof entry.quantity !== "number" || !Number.isFinite(entry.quantity) ||
+      entry.quantity <= 0 || entry.quantity > Number.MAX_SAFE_INTEGER) {
+    throw new Error(id + " donanım adedi pozitif, sonlu ve güvenli sayısal aralıkta olmalıdır.");
+  }
+  const sourceReference = entry.sourceReference === undefined
+    ? undefined
+    : readText(entry.sourceReference, id + " kaynak referansı");
+  return {
+    id, furnitureId, hardwareId, name, quantity: entry.quantity, unit,
+    ...(sourceReference === undefined ? {} : { sourceReference })
+  };
 }
 
 
@@ -196,11 +240,13 @@ export function calculateCabinetProjectProductionWithDiagnostics(
   const projectErrors: string[] = [];
   const furnitureResults: CabinetProjectFurnitureResult[] = [];
   const drawerGroups: DrawerGroupProductionResult[] = [];
+  const hardwareItems: ProjectHardwareItem[] = [];
   const parts: ProjectProductionPart[] = [];
   const seenFurnitureIds = new Set<string>();
   const calculatedFurnitureIds = new Set<string>();
   const familyByFurnitureId = new Map<string, SupportedProjectFurnitureFamily>();
   const seenDrawerGroupIds = new Set<string>();
+  const seenHardwareItemIds = new Set<string>();
   const seenPartIds = new Set<string>();
   let firstError: string | null = null;
 
@@ -241,6 +287,8 @@ export function calculateCabinetProjectProductionWithDiagnostics(
     addProjectError("Proje çekmece kutusu konstrüksiyon istekleri bir liste olmalıdır.");
   } else if (value.panelCutouts !== undefined && !Array.isArray(value.panelCutouts)) {
     addProjectError("Proje panel açıklığı istekleri bir liste olmalıdır.");
+  } else if (value.hardwareItems !== undefined && !Array.isArray(value.hardwareItems)) {
+    addProjectError("Proje donanım kalemleri bir liste olmalıdır.");
   }
 
   if (projectErrors.length > 0 || !isRecord(value) || !Array.isArray(value.furniture)) {
@@ -378,6 +426,35 @@ export function calculateCabinetProjectProductionWithDiagnostics(
     }
   }
 
+  const hardwareRequests = (value.hardwareItems ?? []) as readonly unknown[];
+  for (const [index, request] of hardwareRequests.entries()) {
+    let item: ProjectHardwareItem;
+    try {
+      item = readProjectHardwareItem(request, index);
+    } catch (error) {
+      addBlocked(null, null, "invalid-hardware", diagnosticMessage(error));
+      continue;
+    }
+    const family = familyByFurnitureId.get(item.furnitureId) ?? null;
+    if (!seenFurnitureIds.has(item.furnitureId)) {
+      addBlocked(item.furnitureId, family, "invalid-hardware",
+        item.furnitureId + " donanım kalemi için proje mobilya listesinde bulunamadı.");
+      continue;
+    }
+    if (!calculatedFurnitureIds.has(item.furnitureId)) {
+      addBlocked(item.furnitureId, family, "invalid-hardware",
+        item.furnitureId + " mobilyasının konstrüksiyonu doğrulanmadığı için donanım kalemi eklenemedi.");
+      continue;
+    }
+    if (seenHardwareItemIds.has(item.id)) {
+      addBlocked(item.furnitureId, family, "invalid-hardware",
+        "Yinelenen donanım kalemi kimliği: " + item.id + ".");
+      continue;
+    }
+    seenHardwareItemIds.add(item.id);
+    hardwareItems.push(item);
+  }
+
   const panelCutoutRequests = (value.panelCutouts ?? []) as readonly unknown[];
   const partById = new Map<string, ProjectProductionPart>(parts.map((part) => [part.id, part] as const));
   const panelGeometryByPartId = new Map<string, PanelCutoutGeometryResult>();
@@ -450,18 +527,23 @@ export function calculateCabinetProjectProductionWithDiagnostics(
     return panelGeometry === undefined ? part : { ...part, panelGeometry };
   });
 
-  const isEmpty = value.furniture.length === 0 && drawerRequests.length === 0;
+  const isEmpty = value.furniture.length === 0 && drawerRequests.length === 0 && hardwareRequests.length === 0;
   const canCalculate = unsupportedFurniture.length === 0 &&
     blockedFurniture.length === 0 &&
     projectErrors.length === 0;
-  const exportBlockers = canCalculate && panelGeometryByPartId.size > 0
-    ? ["Kesitli panel geometrisi mevcut; JSON v1/CSV dışa aktarıcısı panelGeometry alanını kayıpsız destekleyene kadar dışa aktarım kapalıdır."]
-    : [];
+  const exportBlockers: string[] = [];
+  if (canCalculate && panelGeometryByPartId.size > 0) {
+    exportBlockers.push("Kesitli panel geometrisi mevcut; JSON v1/CSV dışa aktarıcısı panelGeometry alanını kayıpsız destekleyene kadar dışa aktarım kapalıdır.");
+  }
+  if (canCalculate && hardwareItems.length > 0) {
+    exportBlockers.push("Açık donanım BOM satırları mevcut; JSON v1/CSV dışa aktarıcısı hardwareItems alanını kayıpsız destekleyene kadar dışa aktarım kapalıdır.");
+  }
   const result: CabinetProjectProductionResult | null = canCalculate
     ? {
         schemaVersion: 1,
         furniture: furnitureResults,
         ...(drawerGroups.length === 0 ? {} : { drawerGroups }),
+        ...(hardwareItems.length === 0 ? {} : { hardwareItems }),
         parts: productionParts
       }
     : null;

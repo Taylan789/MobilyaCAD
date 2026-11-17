@@ -1334,3 +1334,88 @@ test("karışık banyo dolabı ve kitaplık projesinde kesitler malzeme, kalınl
     [600, 300, 900, 6]
   );
 });
+
+
+test("açık donanım BOM satırları kimlik, mobilya, miktar, birim ve kaynak referansını korur", () => {
+  const request = createRequest("cab-hardware-bom");
+  const hardwareItems = [
+    { id: "bom-row-hinge", furnitureId: "cab-hardware-bom", hardwareId: "test-hinge-a", name: "Örnek menteşe", quantity: 2, unit: "adet", sourceReference: "test-catalog:hinge-a" },
+    { id: "bom-row-rail", furnitureId: "cab-hardware-bom", hardwareId: "test-rail-b", name: "Örnek ray", quantity: 1, unit: "takım" },
+    { id: "bom-row-seal", furnitureId: "cab-hardware-bom", hardwareId: "test-seal-c", name: "Örnek fitil", quantity: 1.25, unit: "m" }
+  ];
+  const report = calculateCabinetProjectProductionWithDiagnostics({
+    schemaVersion: 1, furniture: [request], hardwareItems
+  });
+  assert.equal(report.status, "ready");
+  assert.equal(report.canExport, false);
+  assert.deepEqual(report.exportBlockers, [
+    "Açık donanım BOM satırları mevcut; JSON v1/CSV dışa aktarıcısı hardwareItems alanını kayıpsız destekleyene kadar dışa aktarım kapalıdır."
+  ]);
+  assert.deepEqual(report.result.hardwareItems, hardwareItems);
+  assert.equal(report.result.parts.length, calculateCabinetProjectProduction({
+    schemaVersion: 1, furniture: [request]
+  }).parts.length);
+  assert.equal(report.result.parts.some((part) => "hardwareId" in part), false);
+  const panelSummary = calculateProjectMaterialConsumptionSummary(report.result);
+  assert.equal(panelSummary.reduce((total, row) => total + row.totalQuantity, 0),
+    report.result.parts.reduce((total, part) => total + part.quantity, 0));
+  const legacy = calculateCabinetProjectProduction({
+    schemaVersion: 1, furniture: [createRequest("cab-hardware-legacy")]
+  });
+  assert.equal("hardwareItems" in legacy, false);
+});
+
+test("geçersiz donanım BOM satırları projeyi bloklar ve kısmi sonuç döndürmez", () => {
+  const base = {
+    id: "bom-row-invalid", furnitureId: "cab-hardware-invalid",
+    hardwareId: "test-hardware", name: "Örnek donanım", quantity: 1, unit: "adet"
+  };
+  const invalidItems = [
+    { ...base, furnitureId: "cab-missing" }, { ...base, quantity: 0 },
+    { ...base, quantity: Number.POSITIVE_INFINITY },
+    { ...base, quantity: Number.MAX_SAFE_INTEGER + 1 }, { ...base, unit: " " },
+    { ...base, id: " " }, { ...base, sourceReference: " " }, { ...base, unexpected: true }
+  ];
+  for (const item of invalidItems) {
+    const report = calculateCabinetProjectProductionWithDiagnostics({
+      schemaVersion: 1, furniture: [createRequest("cab-hardware-invalid")], hardwareItems: [item]
+    });
+    assert.equal(report.status, "blocked");
+    assert.equal(report.canExport, false);
+    assert.equal(report.result, null);
+    assert.equal(report.blockedFurniture[0].code, "invalid-hardware");
+  }
+});
+
+test("yinelenen donanım satırı kimlikleri ve hesaplanmamış mobilyaya bağlanan satırlar reddedilir", () => {
+  const duplicate = {
+    id: "bom-row-duplicate", furnitureId: "cab-hardware-duplicate",
+    hardwareId: "test-hardware", name: "Örnek donanım", quantity: 1, unit: "adet"
+  };
+  const duplicateReport = calculateCabinetProjectProductionWithDiagnostics({
+    schemaVersion: 1, furniture: [createRequest("cab-hardware-duplicate")],
+    hardwareItems: [duplicate, { ...duplicate, hardwareId: "test-other" }]
+  });
+  assert.equal(duplicateReport.status, "blocked");
+  assert.equal(duplicateReport.result, null);
+  assert.match(duplicateReport.blockedFurniture[0].message, /Yinelenen donanım kalemi kimliği/);
+  const invalidFurniture = createRequest("cab-hardware-blocked", { furniture: { widthMm: 0 } });
+  const blockedReport = calculateCabinetProjectProductionWithDiagnostics({
+    schemaVersion: 1, furniture: [invalidFurniture],
+    hardwareItems: [{ ...duplicate, furnitureId: "cab-hardware-blocked" }]
+  });
+  assert.equal(blockedReport.status, "blocked");
+  assert.equal(blockedReport.result, null);
+  assert.ok(blockedReport.blockedFurniture.some((item) =>
+    item.code === "invalid-hardware" && /konstrüksiyonu doğrulanmadığı/.test(item.message)
+  ));
+});
+
+test("hardwareItems alanı liste değilse proje zarfı geçersiz sayılır", () => {
+  const report = calculateCabinetProjectProductionWithDiagnostics({
+    schemaVersion: 1, furniture: [], hardwareItems: {}
+  });
+  assert.equal(report.status, "blocked");
+  assert.equal(report.result, null);
+  assert.match(report.projectErrors[0], /donanım kalemleri bir liste olmalıdır/);
+});

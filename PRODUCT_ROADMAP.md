@@ -645,3 +645,19 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 3. Karışık mobilya ailelerinde çoklu kesit, farklı kenar bayrakları ve 0.1 mm normalizasyon sınırları için domain regresyon testlerini genişlet.
 4. Donanım/delik operasyonları için kaynak ve birimi izlenebilir, koordinat üretmeyen veri sözleşmesi tasarla; gerçek üretici standardı olmadan CNC çıktısı üretme.
 5. Levha optimizasyonu, fire ve maliyet hesaplarını ancak kullanıcı kataloğu, makine profili ve fiyat girdileri tanımlandığında başlat.
+
+
+## 17 Kasım 2026 — açık donanım BOM satırları (domain v1)
+
+- Proje agregatörü, kullanıcı/katalog girdili `hardwareItems` satırlarını panel Part listesinden ayrı taşır; satır kimliği, mobilya ilişkisi, donanım kimliği, ad, miktar, birim ve opsiyonel kaynak referansı korunur.
+- Geçersiz miktar/birim, yinelenen satır kimliği veya olmayan/hesaplanmamış mobilya ilişkisi projeyi `blocked` yapar; kısmi sonuç verilmez.
+- Donanım satırları panel alanı/hacmi ve kenar bantlama özetine karıştırılmaz. Fiyat, üretici standardı, montaj, delik koordinatı ve CNC operasyonu tahmin edilmez.
+- Geçerli donanım satırı içeren domain raporu `ready` olabilir; JSON v1/CSV adapter desteği olmadığı için `canExport: false` ve `exportBlockers` korunur.
+
+### Sıradaki küçük görevler
+
+1. Ayrı frontend sahibinin `hardwareItems` alanını JSON v1'e kayıpsız bağlamasını ve adapter desteği gelene kadar export'u kapalı tutmasını takip et; `frontend/**` dosyalarına dokunma.
+2. Donanım BOM satırları için kullanıcı birimi ve donanım kimliğine göre ayrı tüketim/teklif özeti tasarla; miktarları dönüştürme veya fiyat uydurma.
+3. Kullanıcı/katalog tarafından sağlanan donanım kimliklerini kaynak referansı ve sürümle izlemek için ayrı katalog sözleşmesi belirle.
+4. Banyo dolabı arkalık/baza/ayak seçeneklerini yalnızca açık kullanıcı/üretici ölç ve bağlantı girdileriyle parametrik dilimlere ayır.
+5. Delik/CNC operasyon modelini gerçek makine profili ve doğrulanmış koordinat standardı sağlandığında genişlet.

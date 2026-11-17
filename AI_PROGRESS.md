@@ -709,3 +709,14 @@
 - Bilinen sınırlar: frontend JSON v1/CSV adapter'ı `panelGeometry` alanını henüz kayıpsız taşımıyor; bu nedenle export kapısı açıkça kapalı. CNC, gerçek lavabo/armatür standardı, delik/donanım, nesting, fire ve maliyet/teklif hesabı yoktur. Fiziksel üretim onayı değildir.
 - Frontend sahipliği korundu: hiçbir `frontend/**` dosyası değiştirilmedi; PR #8 yalnızca frontend sahibinin `frontend/src/App.css` dosyasına dokunduğu için ayrı bırakıldı. `main` dalına dokunulmadı.
 - Sonraki görev: frontend sahibinin `panelGeometry`, TV `verticalDividers/shelves` ve `blocked/canExport` alanlarını JSON v1/CSV akışına kayıpsız bağlama PR'ını doğrulamak; domain tarafında banyo dolabı arkalık/baza/ayak seçeneklerini yalnızca kullanıcı/üretici ölçüleriyle ele almak.
+
+
+## 17 Kasım 2026 08:28 TRT — açık donanım BOM satırları (Actions doğrulaması bekleniyor)
+
+- Başlangıç HEAD: `aa32716c2344a0a8bb0ef1deb68105a223c17ae7`.
+- Proje agregatörüne kullanıcı/katalog girdili `hardwareItems` eklendi. Satır kimliği, mobilya ilişkisi, donanım kimliği, ad, pozitif sonlu miktar, açık birim ve opsiyonel kaynak referansı doğrulanıp korunur.
+- Olmayan/hesaplanmamış mobilya, yinelenen satır kimliği ve bozuk alan projeyi `blocked` yapar; kısmi sonuç verilmez. Donanım panel Part listesi ve malzeme tüketiminden ayrı tutulur.
+- JSON v1/CSV adapter'ı donanım satırlarını taşımadığı için hazır BOM sonucunda `canExport: false` ve `exportBlockers` döner.
+- Değişen dosyalar: `domain/production/projectProduction.ts`, `domain/production/projectProduction.test.mjs`, `docs/production-domain-contract.md`, `PRODUCT_ROADMAP.md`, `AI_COORDINATION.md`, `AI_PROGRESS.md`.
+- Commit SHA ve Actions sonucu push sonrası doğrulama kaydında tamamlanacaktır. Fiyat, üretici standardı, montaj/delik koordinatı, CNC ve fiziksel üretim onayı yoktur. `frontend/**` değişmedi.
+- Sonraki görev: frontend sahibinin JSON v1/CSV adapter'ına `hardwareItems` desteği eklemesi; ardından birim bazlı donanım tüketim özeti.

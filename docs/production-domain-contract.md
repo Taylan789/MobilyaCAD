@@ -317,3 +317,14 @@ Proje isteğinde `family: "bathroom-vanity"` kullanılır. Diğer gövde ölçü
 - Test, kesit öncesi ve sonrası özet farkını karşılaştırır: 18 mm grupta 0.08 m² / 0.00144 m³ ve 600 mm iç bant; 8 mm grupta raf adedi üç olduğu için 0.06 m² / 0.00048 m³ ve 900 mm iç bant farkı beklenir.
 - Birden fazla ailede geçerli kesit bulunması yine \`status: "ready"\` üretir; ancak JSON v1/CSV adapter'ı \`panelGeometry\` alanını kayıpsız taşımadığından \`canExport: false\` kalır. Bu test, dışa aktarımın üretime hazır olduğu anlamına gelmez.
 - Bu kapsam geometriyi yalnız dikdörtgen geçiş açıklıklarıyla sınırlar; CNC, lavabo/armatür standardı, yük, bağlantı, fire, levha optimizasyonu veya fiyat hesabı eklemez. Fiziksel üretim öncesi atölye doğrulaması gerekir.
+
+
+## Açık donanım BOM satırları — domain sözleşmesi v1
+
+Proje agregatörü, `hardwareItems` alanında kullanıcı/katalog tarafından açıkça sağlanan donanım kalemlerini panel `Part[]` listesinden ayrı taşır. Her satır `id`, `furnitureId`, `hardwareId`, `name`, `quantity`, `unit` ve isteğe bağlı `sourceReference` alanlarını içerir. Donanım kimliği harici katalogda doğrulanmaz; kaynak referansı yalnızca izlenebilir kullanıcı metnidir.
+
+Miktar pozitif, sonlu ve güvenli sayısal aralıkta olmalıdır. Birim kullanıcı tarafından açıkça verilir; adet/takım/metre arasında dönüşüm yapılmaz ve kesirli miktar korunur. Satır kimliği proje içindeki donanım satırları arasında benzersizdir. Yinelenen kimlik, bozuk alan veya proje dışında/hesaplanmamış mobilya ilişkisi projeyi `blocked` yapar; kısmi sonuç döndürülmez.
+
+Geçerli satırlar `result.hardwareItems` içinde kaynak sırası ve miktarı korunarak taşınır; panel `Part[]`, alan/hacim ve kenar bantlama özetine karıştırılmaz. Mevcut JSON v1/CSV adapter'ı bu alanı kayıpsız taşımadığı için donanım satırı bulunan hazır sonuçta `canExport: false` ve açık `exportBlockers` döner. Frontend entegrasyonu tüm alanları kayıpsız saklamalı ve adapter desteği gelene kadar dışa aktarımı engellemelidir.
+
+Bu sözleşme üretici/model standardı, montaj reçetesi, vida/menteşe ölçüsü, delik koordinatı, bağlantı, fiyat, stok, CNC operasyonu veya güvenlik payı üretmez.
