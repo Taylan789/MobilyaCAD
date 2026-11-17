@@ -347,8 +347,9 @@
 @media (min-width: 1101px) and (max-width: 1360px) {
   .cad-topbar {
     gap: 9px !important;
+    min-width: 0;
     padding-inline: 12px !important;
-    overflow: hidden;
+    overflow: visible;
   }
 
   .cad-brand {
