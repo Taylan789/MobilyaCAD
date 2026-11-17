@@ -93,6 +93,11 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
+function requireRecord(value: unknown, label: string): Record<string, unknown> {
+  if (!isRecord(value)) throw new Error(label + " geçerli bir nesne olmalıdır.");
+  return value;
+}
+
 function readFurnitureId(value: unknown, index: number): string {
   if (!isRecord(value) || !isRecord(value.furniture)) {
     throw new Error(`Projenin ${index + 1}. mobilya konstrüksiyon isteği geçersiz.`);
@@ -433,7 +438,7 @@ export function calculateCabinetProjectProductionWithDiagnostics(
         schemaVersion: 1,
         furniture: furnitureResults,
         ...(drawerGroups.length === 0 ? {} : { drawerGroups }),
-        parts
+        parts: productionParts
       }
     : null;
 
