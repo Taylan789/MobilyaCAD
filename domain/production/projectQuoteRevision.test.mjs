@@ -4,6 +4,7 @@ import test from "node:test";
 import { BODY_PANEL_GROUPS } from "./bodyPanelMaterials.ts";
 import { calculateCabinetProjectProductionWithDiagnostics } from "./projectProduction.ts";
 import { createProjectQuotePricingSnapshot } from "./projectQuotePricingSnapshot.ts";
+import { calculateProjectCostLineTotalMinor } from "./projectCostSummary.ts";
 import { appendProjectQuoteRevision, createProjectQuoteRevision, validateProjectQuoteRevisionHistory } from "./projectQuoteRevision.ts";
 
 const noBanding = { top: false, bottom: false, left: false, right: false };
@@ -565,4 +566,40 @@ test("append çıktısı schemaVersion alanıyla yeniden doğrulanır ve sonraki
   });
   assert.equal(unsupportedVersion.status, "blocked");
   assert.match(unsupportedVersion.diagnostics[0], /desteklenen şema sürümünü/);
+});
+
+
+test("maliyet satırı tutarı altı basamaklı miktarı ve yarım-yukarı yuvarlamayı tek kaynaktan hesaplar", () => {
+  assert.equal(calculateProjectCostLineTotalMinor(0.000001, 500000), 1);
+  assert.equal(calculateProjectCostLineTotalMinor(0.000001, 499999), 0);
+  assert.throws(
+    () => calculateProjectCostLineTotalMinor(1.0000001, 100),
+    /en fazla 6 anlamlı ondalık basamak/
+  );
+});
+
+test("revizyon snapshot satır toplamı miktar ve birim fiyatla uyuşmuyorsa aggregate toplamlar eşleşse bile reddedilir", () => {
+  const pricingSnapshot = createSnapshot();
+  const costSummary = pricingSnapshot.quoteSummary.costSummary;
+  const line = costSummary.lines[0];
+  line.lineTotalMinor += 1;
+  costSummary.categoryTotalsMinor[line.category] += 1;
+  costSummary.grandTotalMinor += 1;
+
+  const result = createProjectQuoteRevision(createFirstRevision({ pricingSnapshot }));
+
+  assert.equal(result.status, "blocked");
+  assert.equal(result.revision, null);
+  assert.match(result.diagnostics[0], /miktar ve birim fiyat/);
+});
+
+test("revizyon snapshot altı basamaktan fazla anlamlı miktar hassasiyetini kabul etmez", () => {
+  const pricingSnapshot = createSnapshot();
+  pricingSnapshot.quoteSummary.costSummary.lines[0].quantity = 1.0000001;
+
+  const result = createProjectQuoteRevision(createFirstRevision({ pricingSnapshot }));
+
+  assert.equal(result.status, "blocked");
+  assert.equal(result.revision, null);
+  assert.match(result.diagnostics[0], /en fazla 6 anlamlı ondalık basamak/);
 });

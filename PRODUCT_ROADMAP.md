@@ -22,7 +22,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 | Kenar bantlama / malzeme tüketimi | Domain malzeme özeti gövde, çekmece, kitaplık, masa, gardırop, TV bölücü/raf ve kesitli panellerin ortak Part listesinden quantity ağırlıklı net alan/hacim ve dış/iç kenar bantlamasını hesaplayabilir | Domain özeti henüz UI/JSON/CSV'ye bağlı değil; fire, levha verimi, kerf, bant kalınlığı ve rulo payı yok |
 | Malzeme kataloğu | UI CRUD; mobilya varsayılan materialId ve çekmece grubunda varsayılan + dört panel grubu override; domain gövde/kitaplık motorları altı gövde panel grubu için malzeme override'ını doğrular | Gövde panel override'ları henüz frontend JSON v1/CSV ve UI akışına bağlanmadı; fiyat, tedarikçi ve fire henüz yok |
 | Proje dosyası | Yerel JSON v1 indirme/yükleme; saf serializer/parser; round-trip ve eski v1 uyumluluk; mm, mobilya ve çekmece grubu katalog referansları ile dört çekmece panel kalınlığının doğrulanması | Şema migrasyonu, otomatik kayıt ve kurtarma yok |
-| Teklif/maliyet | Kullanıcı fiyat tablosu malzeme tüketimini materialId + m2, donanımı hardwareId + özgün BOM birimi, kenar bandını edgeBandingId + açık mm/m birimi ile fiyatlandırır; kullanıcı girdili işçilik/operasyon tarifesi, tek para birimli birleşik teklif ve tarihli fiyat/tarife katalog snapshot'ı vardır; DOM-011 immutable revizyon zarfını ekler | Frontend/UI ve JSON v1/CSV kalıcı revizyon geçmişi entegrasyonu ayrı sahibindedir; tüm geçmişte ID tekilliği depolama katmanında doğrulanmalıdır; vergi, kur, iskonto, otomatik fire/kâr yüzdesi ve üretim onayı yok |
+| Teklif/maliyet | Kullanıcı fiyat tablosu malzeme tüketimini materialId + m2, donanımı hardwareId + özgün BOM birimi, kenar bandını edgeBandingId + açık mm/m birimi ile fiyatlandırır; kullanıcı girdili işçilik/operasyon tarifesi, tek para birimli birleşik teklif ve tarihli fiyat/tarife katalog snapshot'ı, DOM-014 doğrulanmış immutable append ve DOM-015 ortak satır aritmetiği doğrulaması vardır | Frontend/UI ve JSON v1/CSV kalıcı revizyon geçmişi entegrasyonu ayrı sahibindedir; tüm geçmişte ID tekilliği depolama katmanında doğrulanmalıdır; vergi, kur, iskonto, otomatik fire/kâr yüzdesi ve üretim onayı yok |
 | Test/CI | Son doğrulanmış domain/test HEAD `ea78777b1f2852f0b81b44eb0fe6bb68a84f5157`: [CI #44056080300](https://github.com/Taylan789/MobilyaCAD/actions/runs/44056080300), [QA #44056080414](https://github.com/Taylan789/MobilyaCAD/actions/runs/44056080414) (101/101 frontend + 178/178 domain) ve [Pages #44056080332](https://github.com/Taylan789/MobilyaCAD/actions/runs/44056080332) başarılı | Shared-domain strict TypeScript, lint (32 uyarı/0 hata), frontend production build ve yüksek önem eşiğinde production dependency audit geçti; 4 orta önem audit bulgusu ve Actions Node 20/punycode uyarıları sürüyor |
 
 ### Bilinen mimari ve veri boşlukları
@@ -842,10 +842,10 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 ### Güncel sıradaki 3-5 küçük görev
 
 1. SEC-001: frontend sahibinin production audit içindeki picomatch yüksek bulgularını Vite 8'i kırmadan çözmesini veya build-only paket sınıflandırmasını doğrulamasını bekle; `frontend/**` dosyalarına dokunma.
-2. DOM-014: append API ve schemaVersion round-trip düzeltmesi tamamlandı; SEC-001 sonrasında tam QA yeniden yeşil olduğunda DONE kanıtını kaydet.
-3. INT-001: domain üretim raporundaki kesit geometrisi, malzeme ve quantity kaybını JSON/CSV adapter sözleşmesinde önle veya desteklenmeyen export'u engelle; yalnız domain sözleşmesi/devir kapsamı.
-4. INT-002: entegrasyon/performans ajanının ayrı dalındaki JSON/CSV round-trip ve geometri/miktar testlerini incele; aynı adapter/test dosyalarına müdahale etme.
-5. QA-003: INT-001 ve INT-002 kanıtları tamamlandığında uçtan uca export ve teklif veri akışı denetimini yürüt.
+2. DOM-014: append API ve schemaVersion round-trip kodu hazır; SEC-001 sonrasında tam QA yeniden yeşil olduğunda DONE kanıtını kaydet.
+3. DOM-015: teklif revizyon snapshot satır toplamını ortak maliyet motoruyla doğrulayan regresyon diliminin Actions sonucunu incele; tam QA olmadan DONE yapma.
+4. INT-001: domain üretim raporundaki kesit geometrisi, malzeme ve quantity kaybını JSON/CSV adapter sözleşmesinde önle veya desteklenmeyen export'u engelle; yalnız domain sözleşmesi/devir kapsamı.
+5. INT-002: entegrasyon/performans ajanının ayrı dalındaki JSON/CSV round-trip ve geometri/miktar testlerini incele; aynı adapter/test dosyalarına müdahale etme.
 
 ## 17 Kasım 2026 — DOM-014 immutable teklif revizyon append ve doğrulama durumu
 

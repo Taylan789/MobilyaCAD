@@ -119,6 +119,30 @@ function toSafeMinorUnits(value: bigint, label: string): number {
   return Number(value);
 }
 
+/**
+ * Calculates a single line using the same six-decimal quantity and half-up
+ * minor-unit rounding rule used by the project cost summary.
+ */
+export function calculateProjectCostLineTotalMinor(
+  quantity: unknown,
+  unitPriceMinor: unknown,
+  label = "Maliyet satırı"
+): number {
+  if (
+    typeof unitPriceMinor !== "number" ||
+    !Number.isSafeInteger(unitPriceMinor) ||
+    unitPriceMinor < 0
+  ) {
+    throw new Error(label + " birim fiyatı negatif olmayan güvenli bir tam sayı olmalıdır.");
+  }
+
+  const quantityMicros = quantityToMicros(quantity, label + " miktarı");
+  const lineTotal = (
+    quantityMicros * BigInt(unitPriceMinor) + quantityScale / 2n
+  ) / quantityScale;
+  return toSafeMinorUnits(lineTotal, label + " satır tutarı");
+}
+
 function emptyCategoryTotals(): ProjectCostCategoryTotals {
   return {
     material: 0,
@@ -197,15 +221,16 @@ export function calculateProjectCostSummary(value: unknown): ProjectCostSummary 
       throw new Error(id + " birim fiyatı negatif olmayan güvenli bir tam sayı olmalıdır.");
     }
 
-    const quantityMicros = quantityToMicros(rawLine.quantity, id + " miktarı");
     const sourceReference = rawLine.sourceReference === undefined
       ? undefined
       : requireTrimmedText(rawLine.sourceReference, id + " kaynak referansı", 256);
 
-    const lineTotal = (
-      quantityMicros * BigInt(rawLine.unitPriceMinor) + quantityScale / 2n
-    ) / quantityScale;
-    const lineTotalMinor = toSafeMinorUnits(lineTotal, id + " satır tutarı");
+    const lineTotalMinor = calculateProjectCostLineTotalMinor(
+      rawLine.quantity,
+      rawLine.unitPriceMinor,
+      id
+    );
+    const lineTotal = BigInt(lineTotalMinor);
 
     categoryTotals[category] += lineTotal;
     grandTotal += lineTotal;

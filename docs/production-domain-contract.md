@@ -492,3 +492,13 @@ Kaynak: `domain/production/projectQuoteRevision.ts`, `appendProjectQuoteRevision
 - Başarılı append sonucu tüm geçmişi yeniden doğrular ve revizyon/snapshot nesnelerini runtime'da derin dondurur.
 - Bu saf domain işlemi kalıcı depolama, transaction, eşzamanlı yazma kilidi veya cihazlar arası ID üretimi sağlamaz. Çağıran depolama katmanı append işlemini atomik biçimde kaydetmeli ve eşzamanlı güncellemeleri ayrıca koordine etmelidir.
 - Frontend, JSON v1 ve CSV adapter entegrasyonu bu dilimin dışındadır. Frontend sözleşmesi: `ready` durumunda yeni immutable history; `empty` yalnızca append öncesi boş geçmiş doğrulamasında; `blocked` durumunda `history: null` ve `diagnostics`.
+
+
+## Teklif revizyon snapshot satır aritmetiği — domain v1
+
+Kaynak: `domain/production/projectCostSummary.ts`, `calculateProjectCostLineTotalMinor` ve `domain/production/projectQuoteRevision.ts`.
+
+- Her teklif satırının `lineTotalMinor` değeri, aynı domain yardımcı fonksiyonuyla `quantity × unitPriceMinor` üzerinden doğrulanır. Miktar en fazla altı anlamlı ondalık basamakla mikro-birim tam sayısına çevrilir; sonuç küçük para birimine satır bazında yarım-yukarı yuvarlanır.
+- Miktar/fiyat çarpımı güvenli tam sayı aralığını aşarsa, miktar altı basamak kuralını ihlal ederse veya saklanan satır toplamı hesaplanan değerle uyuşmazsa teklif snapshot'ı revizyona alınmaz. Kategori ve genel toplamlar birlikte değiştirilmiş olsa bile satır aritmetiği ayrıca denetlenir.
+- Teklif maliyet hesaplayıcısı ve revizyon doğrulayıcısı aynı `calculateProjectCostLineTotalMinor` fonksiyonunu kullanır; yuvarlama mantığı iki yerde kopyalanmaz. Geçerli mevcut snapshot'ların sayısal sonucu değişmez; yalnızca aritmetik olarak tutarsız girdiler artık blocked olur.
+- Bu doğrulama JSON v1 proje şemasını veya frontend'i değiştirmez. Para birimi dönüşümü, vergi, iskonto, otomatik fire/kâr oranı ve fiziksel üretim onayı eklemez.

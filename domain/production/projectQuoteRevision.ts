@@ -1,3 +1,4 @@
+import { calculateProjectCostLineTotalMinor } from "./projectCostSummary.ts";
 import type { ProjectQuotePricingSnapshot } from "./projectQuotePricingSnapshot.ts";
 
 type DeepReadonly<T> =
@@ -297,7 +298,14 @@ function validateQuoteSummary(value: unknown): asserts value is Record<string, u
 
     const unitPriceMinor = requireSafeInteger(line.unitPriceMinor, "Birim fiyat", 0);
     const lineTotalMinor = requireSafeInteger(line.lineTotalMinor, "Satır toplamı", 0);
-    void unitPriceMinor;
+    const expectedLineTotalMinor = calculateProjectCostLineTotalMinor(
+      line.quantity,
+      unitPriceMinor,
+      "Teklif snapshot satırı " + lineId
+    );
+    if (lineTotalMinor !== expectedLineTotalMinor) {
+      throw new Error("Teklif snapshot satır toplamı miktar ve birim fiyatın yarım-yukarı yuvarlanmış sonucuyla uyuşmuyor.");
+    }
     lineTotalSum += BigInt(lineTotalMinor);
     categorySums.set(line.category, (categorySums.get(line.category) ?? 0n) + BigInt(lineTotalMinor));
 
