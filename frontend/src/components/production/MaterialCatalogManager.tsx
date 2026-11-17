@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
-import { Check, Layers3, Palette, Pencil, Plus, Ruler, Search, Trash2, X } from "lucide-react";
+import { Check, Layers3, MapPin, Palette, Pencil, Plus, Ruler, Search, Trash2, X } from "lucide-react";
 
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
@@ -11,11 +11,14 @@ import {
   updateMaterialCatalogEntry,
   type MaterialCatalogEntry
 } from "../../engine/materialCatalog";
+import type { MaterialUsageLocation } from "../../types/materialUsage";
 import "./MaterialCatalogManager.css";
 
 interface MaterialCatalogManagerProps {
   materials: MaterialCatalogEntry[];
   referencedMaterialIds: ReadonlySet<string>;
+  usageByMaterialId: ReadonlyMap<string, MaterialUsageLocation[]>;
+  onSelectUsage: (furnitureId: string, partId: string | null) => void;
   onChange: (materials: MaterialCatalogEntry[]) => void;
 }
 
@@ -148,6 +151,8 @@ function parseThicknessDraft(value: string): number[] {
 export function MaterialCatalogManager({
   materials,
   referencedMaterialIds,
+  usageByMaterialId,
+  onSelectUsage,
   onChange
 }: MaterialCatalogManagerProps) {
   const [draft, setDraft] = useState<MaterialDraft>(emptyDraft);
@@ -390,6 +395,8 @@ export function MaterialCatalogManager({
             <div className="mc-material-library__grid">
               {filteredMaterials.map((material) => {
                 const isReferenced = referencedMaterialIds.has(material.id);
+                const usages = usageByMaterialId.get(material.id) ?? [];
+                const furnitureCount = new Set(usages.map((usage) => usage.furnitureId)).size;
                 return (
                   <article
                     key={material.id}
@@ -447,11 +454,39 @@ export function MaterialCatalogManager({
                           <span className="mc-material-card__decor mc-material-card__decor--empty">Dekor etiketi yok</span>
                         )}
                         {isReferenced ? (
-                          <span className="mc-material-card__usage"><Check /> Kullanımda</span>
+                          <span className="mc-material-card__usage"><Check /> {usages.length > 0 ? usages.length + " kullanım" : "Kullanımda"}</span>
                         ) : (
                           <span className="mc-material-card__usage mc-material-card__usage--idle">Atanmamış</span>
                         )}
                       </div>
+
+                      {usages.length > 0 && (
+                        <details className="mc-material-card__locations">
+                          <summary>
+                            <MapPin aria-hidden="true" />
+                            <span>Kullanım yerlerini göster</span>
+                            <small>{furnitureCount} mobilya</small>
+                          </summary>
+                          <ul>
+                            {usages.slice(0, 8).map((usage, index) => (
+                              <li key={usage.furnitureId + "-" + (usage.partId ?? usage.partName) + "-" + index}>
+                                <button
+                                  type="button"
+                                  onClick={() => onSelectUsage(usage.furnitureId, usage.partId ?? null)}
+                                  title={usage.furnitureName + " / " + usage.partName + " seç"}
+                                >
+                                  <span>{usage.furnitureName}</span>
+                                  <strong>{usage.partName}</strong>
+                                  <small>{usage.sourceLabel}</small>
+                                </button>
+                              </li>
+                            ))}
+                          </ul>
+                          {usages.length > 8 && (
+                            <p>+ {usages.length - 8} ek kullanım noktası</p>
+                          )}
+                        </details>
+                      )}
                     </div>
                   </article>
                 );

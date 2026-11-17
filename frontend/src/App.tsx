@@ -85,6 +85,7 @@ import { FurniturePartInspector } from "./components/workspace/FurniturePartInsp
 import { FurnitureCatalogCard } from "./components/catalog/FurnitureCatalogCard";
 import "./components/catalog/FurnitureCatalogCard.css";
 import type { MaterialCatalogEntry } from "./engine/materialCatalog";
+import type { MaterialUsageLocation } from "./types/materialUsage";
 import { furnitureCatalog } from "./data/furnitureCatalog";
 import { createPlacedFurniture } from "./types/placedFurniture";
 import type { PlacedFurniture } from "./types/placedFurniture";
@@ -94,6 +95,69 @@ import { calculateMaterialConsumptionSummary } from "./engine/materialConsumptio
 import { createProjectCutListCsv } from "./engine/cutListCsv";
 import { calculateProjectProduction, isSupportedCabinetCatalogItem } from "./engine/projectProduction";
 import type { CabinetConstructionRules } from "./types/construction/cabinetRules";
+
+type SceneMaterialSource = "catalog" | "custom" | "missing" | "unassigned";
+
+interface SceneMaterialResolution {
+  name: string;
+  source: SceneMaterialSource;
+  searchTerms: string[];
+}
+
+const sceneMaterialSourceLabels: Record<SceneMaterialSource, string> = {
+  catalog: "KATALOG",
+  custom: "SERBEST",
+  missing: "KAYIT EKSİK",
+  unassigned: "ATANMAMIŞ",
+};
+
+function resolveSceneMaterial(
+  materialName: string | undefined,
+  materials: MaterialCatalogEntry[],
+  materialId?: string
+): SceneMaterialResolution {
+  const name = materialName?.trim() ?? "";
+  const normalizedName = name.toLocaleLowerCase("tr-TR");
+  const catalogEntry = materialId
+    ? materials.find((entry) => entry.id === materialId)
+    : normalizedName
+      ? materials.find(
+          (entry) => entry.name.toLocaleLowerCase("tr-TR") === normalizedName
+        )
+      : undefined;
+
+  if (catalogEntry) {
+    return {
+      name: catalogEntry.name,
+      source: "catalog",
+      searchTerms: [
+        name,
+        catalogEntry.name,
+        catalogEntry.id,
+        catalogEntry.decor ?? "",
+      ],
+    };
+  }
+
+  return {
+    name,
+    source: materialId ? "missing" : name ? "custom" : "unassigned",
+    searchTerms: [name, materialId ?? ""],
+  };
+}
+
+function matchesSceneMaterialSearch(
+  materialName: string | undefined,
+  materials: MaterialCatalogEntry[],
+  query: string,
+  materialId?: string
+): boolean {
+  if (!query) return false;
+
+  return resolveSceneMaterial(materialName, materials, materialId).searchTerms.some(
+    (term) => term.toLocaleLowerCase("tr-TR").includes(query)
+  );
+}
 
 function App() {
   const [workspaceOpen, setWorkspaceOpen] = useState(false);
@@ -293,11 +357,24 @@ function App() {
     (item) => item.id === selectedFurniture?.catalogId
   );
 
-  const normalizedSceneSearch = sceneSearch.trim().toLocaleLowerCase("tr");
-  const filteredSceneFurniture = furniture.filter((item) =>
-    item.name.toLocaleLowerCase("tr").includes(normalizedSceneSearch) ||
-    item.parts.some((part) => part.name.toLocaleLowerCase("tr").includes(normalizedSceneSearch))
-  );
+  const normalizedSceneSearch = sceneSearch.trim().toLocaleLowerCase("tr-TR");
+  const filteredSceneFurniture = furniture.filter((item) => {
+    const furnitureNameMatches = item.name
+      .toLocaleLowerCase("tr-TR")
+      .includes(normalizedSceneSearch);
+    const furnitureMaterialMatches = matchesSceneMaterialSearch(
+      item.material,
+      materials,
+      normalizedSceneSearch,
+      item.materialId
+    );
+    const partMatches = item.parts.some((part) =>
+      part.name.toLocaleLowerCase("tr-TR").includes(normalizedSceneSearch) ||
+      matchesSceneMaterialSearch(part.material, materials, normalizedSceneSearch)
+    );
+
+    return furnitureNameMatches || furnitureMaterialMatches || partMatches;
+  });
   const allSceneFurnitureCollapsed = furniture.length > 0 &&
     furniture.every((item) => collapsedSceneFurnitureIds.includes(item.id));
   const hiddenFurnitureCount = furniture.filter((item) => hiddenFurnitureIds.includes(item.id)).length;
@@ -316,6 +393,106 @@ function App() {
       ])
     ])
   );
+
+  const materialUsageById = useMemo(() => {
+    const usageById = new Map<string, MaterialUsageLocation[]>();
+
+    const addUsage = (
+      materialId: string | undefined,
+      location: MaterialUsageLocation
+    ) => {
+      if (!materialId) return;
+      const locations = usageById.get(materialId) ?? [];
+      locations.push(location);
+      usageById.set(materialId, locations);
+    };
+
+    for (const item of furniture) {
+      const defaultMaterial = item.materialId
+        ? materials.find((entry) => entry.id === item.materialId)
+        : materials.find((entry) => entry.name === item.material);
+
+      if (defaultMaterial) {
+        addUsage(defaultMaterial.id, {
+          furnitureId: item.id,
+          furnitureName: item.name,
+          partName: "Mobilya varsayılanı",
+          sourceLabel: "Varsayılan atama"
+        });
+      }
+
+      for (const part of item.parts) {
+        const inheritsDefault =
+          item.material.trim() !== "" &&
+          part.material.trim() === item.material.trim();
+
+        if (inheritsDefault) {
+          if (defaultMaterial) {
+            addUsage(defaultMaterial.id, {
+              furnitureId: item.id,
+              furnitureName: item.name,
+              partId: part.id,
+              partName: part.name,
+              sourceLabel: "Mobilya varsayılanı"
+            });
+          }
+          continue;
+        }
+
+        const partMaterial = materials.find((entry) => entry.name === part.material);
+        if (partMaterial) {
+          addUsage(partMaterial.id, {
+            furnitureId: item.id,
+            furnitureName: item.name,
+            partId: part.id,
+            partName: part.name,
+            sourceLabel: "Parça ataması"
+          });
+        }
+      }
+
+      for (const config of item.drawerBoxSpecs ?? []) {
+        const drawerMaterial = config.spec.materialId
+          ? materials.find((entry) => entry.id === config.spec.materialId)
+          : materials.find((entry) => entry.name === config.spec.material);
+
+        if (drawerMaterial) {
+          addUsage(drawerMaterial.id, {
+            furnitureId: item.id,
+            furnitureName: item.name,
+            partName: "Çekmece kutusu",
+            sourceLabel: "Çekmece yapılandırması"
+          });
+        }
+
+        for (const [panelName, materialId] of Object.entries(config.spec.panelMaterialIds ?? {})) {
+          if (typeof materialId !== "string" || materialId.trim() === "") continue;
+          const panelMaterial = materials.find((entry) => entry.id === materialId);
+          if (panelMaterial) {
+            addUsage(panelMaterial.id, {
+              furnitureId: item.id,
+              furnitureName: item.name,
+              partName: "Çekmece paneli · " + panelName,
+              sourceLabel: "Panel ataması"
+            });
+          }
+        }
+      }
+    }
+
+    return usageById;
+  }, [furniture, materials]);
+
+  const selectedPartMaterialId = selectedPart && selectedFurniture
+    ? selectedPart.material.trim() !== "" &&
+      selectedPart.material.trim() === selectedFurniture.material.trim() &&
+      selectedFurniture.materialId
+      ? selectedFurniture.materialId
+      : materials.find((entry) => entry.name === selectedPart.material)?.id
+    : undefined;
+  const selectedPartMaterialUsage = selectedPartMaterialId
+    ? materialUsageById.get(selectedPartMaterialId) ?? []
+    : [];
   const projectProduction = calculateProjectProduction(
     furniture,
     furnitureCatalog,
@@ -1246,6 +1423,8 @@ function App() {
               <MaterialCatalogManager
                 materials={materials}
                 referencedMaterialIds={referencedMaterialIds}
+                usageByMaterialId={materialUsageById}
+                onSelectUsage={focusSceneFurniture}
                 onChange={updateMaterials}
               />
             )}
@@ -1428,8 +1607,8 @@ function App() {
                     id="cad-scene-search"
                     value={sceneSearch}
                     onChange={(event) => setSceneSearch(event.target.value)}
-                    placeholder="Mobilya veya parça ara..."
-                    aria-label="Sahne ağacında mobilya veya parça ara"
+                    placeholder="Mobilya, parça veya malzeme ara..."
+                    aria-label="Sahne ağacında mobilya, parça, malzeme veya dekor ara"
                   />
                   {sceneSearch && (
                     <button
@@ -1474,17 +1653,29 @@ function App() {
                     <div className="studio-tree-empty studio-tree-empty-search" role="status">
                       <Search />
                       <strong>Eşleşen nesne bulunamadı</strong>
-                      <span>Mobilya veya parça adını değiştirerek tekrar ara.</span>
+                      <span>Mobilya, parça adı, malzeme veya dekor etiketiyle tekrar ara.</span>
                       <button type="button" onClick={() => setSceneSearch("")}>Aramayı temizle</button>
                     </div>
                   ) : (
                     filteredSceneFurniture.map((item) => {
+                      const itemMaterial = resolveSceneMaterial(
+                        item.material,
+                        materials,
+                        item.materialId
+                      );
                       const itemMatches = normalizedSceneSearch.length === 0 ||
-                        item.name.toLocaleLowerCase("tr").includes(normalizedSceneSearch);
+                        item.name.toLocaleLowerCase("tr-TR").includes(normalizedSceneSearch) ||
+                        matchesSceneMaterialSearch(
+                          item.material,
+                          materials,
+                          normalizedSceneSearch,
+                          item.materialId
+                        );
                       const visibleParts = normalizedSceneSearch.length === 0 || itemMatches
                         ? item.parts
                         : item.parts.filter((part) =>
-                            part.name.toLocaleLowerCase("tr").includes(normalizedSceneSearch)
+                            part.name.toLocaleLowerCase("tr-TR").includes(normalizedSceneSearch) ||
+                            matchesSceneMaterialSearch(part.material, materials, normalizedSceneSearch)
                           );
                       const isExpanded = normalizedSceneSearch.length > 0 ||
                         !collapsedSceneFurnitureIds.includes(item.id);
@@ -1510,6 +1701,14 @@ function App() {
                               <span>
                                 <strong>{item.name}</strong>
                                 <small>{item.width} × {item.height} × {item.depth} mm</small>
+                                <small className="studio-tree-material-line" title={itemMaterial.name || "Malzeme atanmadı"}>
+                                  <span className={`studio-tree-material-source is-${itemMaterial.source}`}>
+                                    {sceneMaterialSourceLabels[itemMaterial.source]}
+                                  </span>
+                                  <span className="studio-tree-material-name">
+                                    {itemMaterial.name || "Malzeme atanmadı"}
+                                  </span>
+                                </small>
                               </span>
                               <em>{item.parts.length}</em>
                             </button>
@@ -1541,22 +1740,46 @@ function App() {
                           </div>
                           {isExpanded && visibleParts.length > 0 && (
                             <div className="studio-tree-object-parts">
-                              {visibleParts.map((part) => (
-                                <button
-                                  type="button"
-                                  className={selectedFurnitureId === item.id && selectedPartId === part.id ? "studio-tree-part selected" : "studio-tree-part"}
-                                  key={part.id}
-                                  aria-label={item.name + " içindeki " + part.name + " parçasını seç ve sahnede odakla"}
-                                  title="Parçayı seç ve 3D sahnede odakla"
-                                  onClick={() => focusSceneFurniture(item.id, part.id)}
-                                >
-                                  <span className="studio-tree-part-line" />
-                                  <span className="studio-tree-part-type-icon" aria-hidden="true">
-                                    {part.type === "door" ? <DoorOpen /> : part.type === "drawer" ? <Package /> : part.type === "shelf" ? <Layers3 /> : <PanelLeft />}
-                                  </span>
-                                  <span>{part.name}</span>
-                                </button>
-                              ))}
+                              {visibleParts.map((part) => {
+                                const inheritsFurnitureMaterial =
+                                  part.material.trim().toLocaleLowerCase("tr-TR") ===
+                                  item.material.trim().toLocaleLowerCase("tr-TR");
+                                const partMaterial = resolveSceneMaterial(
+                                  part.material,
+                                  materials,
+                                  inheritsFurnitureMaterial ? item.materialId : undefined
+                                );
+
+                                return (
+                                  <button
+                                    type="button"
+                                    className={selectedFurnitureId === item.id && selectedPartId === part.id ? "studio-tree-part selected" : "studio-tree-part"}
+                                    key={part.id}
+                                    aria-label={item.name + " içindeki " + part.name + " parçasını seç ve sahnede odakla. Malzeme: " + (partMaterial.name || "atanmamış") + ". " + sceneMaterialSourceLabels[partMaterial.source]}
+                                    title={part.name + " · " + (partMaterial.name || "Malzeme atanmadı") + " · " + sceneMaterialSourceLabels[partMaterial.source]}
+                                    onClick={() => focusSceneFurniture(item.id, part.id)}
+                                  >
+                                    <span className="studio-tree-part-line" />
+                                    <span className="studio-tree-part-type-icon" aria-hidden="true">
+                                      {part.type === "door" ? <DoorOpen /> : part.type === "drawer" ? <Package /> : part.type === "shelf" ? <Layers3 /> : <PanelLeft />}
+                                    </span>
+                                    <span className="studio-tree-part-copy">
+                                      <span className="studio-tree-part-name">{part.name}</span>
+                                      <small className="studio-tree-material-line studio-tree-part-material">
+                                        <span className={`studio-tree-material-source is-${partMaterial.source}`}>
+                                          {sceneMaterialSourceLabels[partMaterial.source]}
+                                        </span>
+                                        <span className="studio-tree-material-name">
+                                          {partMaterial.name || "Malzeme atanmadı"}
+                                        </span>
+                                        {inheritsFurnitureMaterial && (
+                                          <span className="studio-tree-material-inheritance">VARSAYILAN</span>
+                                        )}
+                                      </small>
+                                    </span>
+                                  </button>
+                                );
+                              })}
                             </div>
                           )}
                         </div>
@@ -1960,6 +2183,9 @@ function App() {
                                 part={selectedPart}
                                 materials={materials}
                                 defaultMaterial={selectedFurniture?.material ?? selectedPart.material}
+                                defaultMaterialId={selectedFurniture?.materialId}
+                                materialUsage={selectedPartMaterialUsage}
+                                onSelectUsage={focusSceneFurniture}
                                 onFieldChange={updateSelectedPart}
                                 onPositionChange={updateSelectedPartPosition}
                                 onOpenMaterialLibrary={() => setInspectorTab("materials")}
@@ -2030,6 +2256,8 @@ function App() {
                       <MaterialCatalogManager
                         materials={materials}
                         referencedMaterialIds={referencedMaterialIds}
+                        usageByMaterialId={materialUsageById}
+                        onSelectUsage={focusSceneFurniture}
                         onChange={updateMaterials}
                       />
                     </TabsContent>

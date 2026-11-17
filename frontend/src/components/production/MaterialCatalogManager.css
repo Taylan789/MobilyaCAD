@@ -637,3 +637,89 @@
     padding-inline: 8px;
   }
 }
+
+
+/* Material catalog usage locations */
+.mc-material-card__locations {
+  display: grid;
+  gap: 6px;
+  padding-top: 7px;
+  border-top: 1px solid rgba(151, 177, 193, .12);
+}
+
+.mc-material-card__locations > summary {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 6px;
+  color: #b8cbd5;
+  font-size: 8px;
+  font-weight: 680;
+  cursor: pointer;
+  list-style: none;
+}
+
+.mc-material-card__locations > summary::-webkit-details-marker {
+  display: none;
+}
+
+.mc-material-card__locations > summary svg {
+  width: 11px;
+  height: 11px;
+  color: #9bbbd0;
+}
+
+.mc-material-card__locations > summary small {
+  margin-left: auto;
+  color: #91a3ad;
+  font-size: 7px;
+  font-weight: 550;
+}
+
+.mc-material-card__locations ul {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mc-material-card__locations li button {
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  gap: 2px;
+  padding: 6px 7px;
+  color: #dce6eb;
+  border: 1px solid rgba(145, 180, 202, .12);
+  border-radius: 4px;
+  background: rgba(12, 21, 27, .32);
+  text-align: left;
+}
+
+.mc-material-card__locations li button:hover {
+  border-color: rgba(145, 180, 202, .38);
+  background: rgba(41, 62, 73, .56);
+}
+
+.mc-material-card__locations li button > span {
+  color: #9eb4c0;
+  font-size: 7px;
+}
+
+.mc-material-card__locations li button > strong {
+  color: #e1e9ed;
+  font-size: 8px;
+  font-weight: 650;
+}
+
+.mc-material-card__locations li button > small {
+  color: #c3a184;
+  font-size: 7px;
+}
+
+.mc-material-card__locations > p {
+  margin: 0;
+  color: #8295a0;
+  font-size: 7px;
+}

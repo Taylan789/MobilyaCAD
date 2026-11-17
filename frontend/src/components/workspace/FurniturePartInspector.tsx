@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import { Layers3, Move3D, Palette, Ruler } from "lucide-react";
+import { Layers3, MapPin, Move3D, Palette, Ruler } from "lucide-react";
 
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import type { FurniturePart } from "../../types/placedFurniture";
+import type { MaterialUsageLocation } from "../../types/materialUsage";
 import "./FurniturePartInspector.css";
 
 interface PartMaterialOption {
@@ -23,6 +24,9 @@ interface FurniturePartInspectorProps {
   part: FurniturePart;
   materials: PartMaterialOption[];
   defaultMaterial: string;
+  defaultMaterialId?: string;
+  materialUsage: MaterialUsageLocation[];
+  onSelectUsage: (furnitureId: string, partId: string | null) => void;
   onFieldChange: (field: "name" | DimensionField | "material", value: string | number) => void;
   onPositionChange: (position: [number, number, number]) => void;
   onOpenMaterialLibrary: () => void;
@@ -72,6 +76,9 @@ export function FurniturePartInspector({
   part,
   materials,
   defaultMaterial,
+  defaultMaterialId,
+  materialUsage,
+  onSelectUsage,
   onFieldChange,
   onPositionChange,
   onOpenMaterialLibrary,
@@ -93,8 +100,40 @@ export function FurniturePartInspector({
     part.position[2],
   ]);
 
-  const inheritsFurnitureMaterial = part.material === defaultMaterial;
-  const assignedMaterial = materials.find((material) => material.name === part.material);
+  const normalizedDefaultMaterial = defaultMaterial.trim();
+  const normalizedPartMaterial = part.material.trim();
+  const inheritsFurnitureMaterial =
+    normalizedDefaultMaterial !== "" &&
+    normalizedPartMaterial === normalizedDefaultMaterial;
+  const defaultCatalogMaterial = defaultMaterialId
+    ? materials.find((material) => material.id === defaultMaterialId)
+    : materials.find((material) => material.name === defaultMaterial);
+  const assignedMaterial = inheritsFurnitureMaterial
+    ? defaultCatalogMaterial
+    : materials.find((material) => material.name === part.material);
+  const materialSource = !normalizedPartMaterial
+    ? "unassigned"
+    : inheritsFurnitureMaterial && defaultMaterialId && !defaultCatalogMaterial
+      ? "missing"
+      : assignedMaterial
+        ? "catalog"
+        : "custom";
+  const materialSourceLabels = {
+    catalog: "KATALOG",
+    custom: "SERBEST",
+    missing: "KAYIT EKSİK",
+    unassigned: "ATANMAMIŞ"
+  } as const;
+  const materialSourceDescriptions = {
+    catalog: inheritsFurnitureMaterial
+      ? "Mobilya varsayılanından gelen katalog kaydı"
+      : "Katalog kimliğiyle eşleşen malzeme",
+    custom: inheritsFurnitureMaterial
+      ? "Mobilya varsayılanından gelen serbest metin"
+      : "Katalog dışında serbest metin",
+    missing: "Mobilya varsayılanının katalog kimliği çözümlenemedi",
+    unassigned: "Bu parçaya henüz malzeme atanmadı"
+  } as const;
   const materialSelectValue = inheritsFurnitureMaterial
     ? "__default__"
     : assignedMaterial?.id ?? "__current__";
@@ -254,14 +293,14 @@ export function FurniturePartInspector({
             <Layers3 />
           </div>
           <div className="cad-part-material-summary__copy">
-            <strong>{part.material || "Malzeme atanmadı"}</strong>
-            <small>
-              {inheritsFurnitureMaterial
-                ? "Mobilya varsayılanını kullanıyor"
-                : assignedMaterial
-                  ? "Malzeme kataloğundan atandı"
-                  : "Katalog dışı mevcut değer"}
-            </small>
+            <div className="cad-part-material-summary__title">
+              <strong>{part.material || "Malzeme atanmadı"}</strong>
+              <span className={`cad-part-material-source is-${materialSource}`}>
+                {materialSourceLabels[materialSource]}
+              </span>
+            </div>
+            <small>{materialSourceDescriptions[materialSource]}</small>
+            {assignedMaterial && <code>{assignedMaterial.id}</code>}
           </div>
           {assignedMaterial && (
             <span className="cad-part-material-thickness">
@@ -287,11 +326,13 @@ export function FurniturePartInspector({
               if (nextMaterial) onFieldChange("material", nextMaterial.name);
             }}
           >
-            <option value="__default__">
-              Mobilya varsayılanı · {defaultMaterial}
+            <option value="__default__" disabled={!normalizedDefaultMaterial}>
+              Mobilya varsayılanı · {defaultMaterial || "Tanımlı değil"}
             </option>
             {!inheritsFurnitureMaterial && !assignedMaterial && (
-              <option value="__current__">Mevcut değer · {part.material}</option>
+              <option value="__current__">
+                Mevcut değer · {part.material || "Atanmamış"}
+              </option>
             )}
             {materials.map((material) => (
               <option key={material.id} value={material.id}>
@@ -308,6 +349,48 @@ export function FurniturePartInspector({
             <span>DEKOR</span>
             <strong>{assignedMaterial.decor}</strong>
           </div>
+        )}
+
+        {assignedMaterial && (
+          <details className="cad-part-material-usage">
+            <summary>
+              <MapPin aria-hidden="true" />
+              <span>Proje kullanım yerleri</span>
+              <strong>{materialUsage.length}</strong>
+            </summary>
+            <div className="cad-part-material-usage__list">
+              {materialUsage.length > 0 ? (
+                materialUsage.slice(0, 8).map((usage, index) => (
+                  <button
+                    type="button"
+                    key={usage.furnitureId + "-" + (usage.partId ?? usage.partName) + "-" + index}
+                    onClick={() => onSelectUsage(usage.furnitureId, usage.partId ?? null)}
+                    title={usage.furnitureName + " / " + usage.partName + " seç"}
+                  >
+                    <span>{usage.furnitureName}</span>
+                    <strong>{usage.partName}</strong>
+                    <small>{usage.sourceLabel}</small>
+                  </button>
+                ))
+              ) : (
+                <p>Bu malzeme henüz başka bir mobilya veya parçada kullanılmıyor.</p>
+              )}
+              {materialUsage.length > 8 && (
+                <p>+ {materialUsage.length - 8} ek kullanım noktası malzeme kütüphanesinde gösteriliyor.</p>
+              )}
+            </div>
+          </details>
+        )}
+
+        {materialSource === "custom" && (
+          <p className="cad-field-note">
+            Bu değer katalog dışı serbest metin. Kullanım yerleri katalog kimliği üzerinden izlenemiyor.
+          </p>
+        )}
+        {materialSource === "missing" && (
+          <p className="cad-field-note">
+            Projede kayıtlı malzeme kimliği katalogda bulunamadı. Katalog kaydını yeniden eşleştir.
+          </p>
         )}
 
         {materials.length === 0 && (

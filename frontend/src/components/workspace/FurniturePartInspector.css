@@ -191,3 +191,141 @@
     transition: none;
   }
 }
+
+
+/* Material source and project usage context */
+.cad-part-material-summary__title {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 7px;
+}
+
+.cad-part-material-summary__title > strong {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.cad-part-material-summary__copy > code {
+  color: #91a8b5;
+  font: 8px/1.3 ui-monospace, SFMono-Regular, Menlo, monospace;
+  overflow-wrap: anywhere;
+}
+
+.cad-part-material-source {
+  flex: 0 0 auto;
+  padding: 3px 5px;
+  color: #b9d1df;
+  border: 1px solid rgba(145, 180, 202, .24);
+  border-radius: 4px;
+  background: rgba(145, 180, 202, .1);
+  font-size: 7px;
+  font-weight: 800;
+  letter-spacing: .08em;
+}
+
+.cad-part-material-source.is-custom {
+  color: #e0b694;
+  border-color: rgba(195, 148, 112, .28);
+  background: rgba(195, 148, 112, .1);
+}
+
+.cad-part-material-source.is-missing {
+  color: #e0a09a;
+  border-color: rgba(199, 127, 123, .3);
+  background: rgba(156, 79, 70, .12);
+}
+
+.cad-part-material-source.is-unassigned {
+  color: #a0adb4;
+  border-color: rgba(145, 160, 170, .22);
+  background: rgba(145, 160, 170, .08);
+}
+
+.cad-part-material-usage {
+  border: 1px solid rgba(145, 180, 202, .17);
+  border-radius: 6px;
+  background: rgba(11, 20, 27, .24);
+}
+
+.cad-part-material-usage > summary {
+  display: flex;
+  min-height: 34px;
+  align-items: center;
+  gap: 7px;
+  padding: 0 9px;
+  color: #b9cbd5;
+  font-size: 9px;
+  font-weight: 650;
+  cursor: pointer;
+  list-style: none;
+}
+
+.cad-part-material-usage > summary::-webkit-details-marker {
+  display: none;
+}
+
+.cad-part-material-usage > summary svg {
+  width: 13px;
+  height: 13px;
+  color: #9bbbd0;
+}
+
+.cad-part-material-usage > summary strong {
+  margin-left: auto;
+  color: #d6e3e9;
+  font-variant-numeric: tabular-nums;
+}
+
+.cad-part-material-usage__list {
+  display: grid;
+  gap: 4px;
+  padding: 0 7px 7px;
+}
+
+.cad-part-material-usage__list button {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+  padding: 7px 8px;
+  color: #dce6eb;
+  border: 1px solid rgba(145, 180, 202, .12);
+  border-radius: 4px;
+  background: rgba(37, 55, 66, .44);
+  text-align: left;
+}
+
+.cad-part-material-usage__list button:hover {
+  border-color: rgba(145, 180, 202, .38);
+  background: rgba(55, 79, 93, .5);
+}
+
+.cad-part-material-usage__list button > span {
+  color: #9eb4c0;
+  font-size: 8px;
+}
+
+.cad-part-material-usage__list button > strong {
+  color: #e1e9ed;
+  font-size: 9px;
+  font-weight: 650;
+}
+
+.cad-part-material-usage__list button > small {
+  color: #c3a184;
+  font-size: 7px;
+}
+
+.cad-part-material-usage__list > p {
+  margin: 0;
+  padding: 5px 3px;
+  color: #8fa0aa;
+  font-size: 8px;
+  line-height: 1.45;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cad-part-material-usage__list button {
+    transition: none;
+  }
+}
