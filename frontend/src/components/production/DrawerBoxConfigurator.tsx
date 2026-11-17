@@ -11,6 +11,7 @@ import {
 } from "../../engine/drawerBoxProject";
 import type { DrawerBoxProjectConfig } from "../../engine/drawerBoxProject";
 import type { MaterialCatalogEntry } from "../../engine/materialCatalog";
+import "./DrawerBoxConfigurator.css";
 
 const panelGroups = [
   { key: "sidePanels", label: "Yan paneller" },
