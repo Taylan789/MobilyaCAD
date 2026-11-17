@@ -711,12 +711,15 @@
 - Sonraki görev: frontend sahibinin `panelGeometry`, TV `verticalDividers/shelves` ve `blocked/canExport` alanlarını JSON v1/CSV akışına kayıpsız bağlama PR'ını doğrulamak; domain tarafında banyo dolabı arkalık/baza/ayak seçeneklerini yalnızca kullanıcı/üretici ölçüleriyle ele almak.
 
 
-## 17 Kasım 2026 08:28 TRT — açık donanım BOM satırları (Actions doğrulaması bekleniyor)
+## 17 Kasım 2026 08:28 TRT — açık donanım BOM satırları (CI/QA doğrulandı)
 
 - Başlangıç HEAD: `aa32716c2344a0a8bb0ef1deb68105a223c17ae7`.
 - Proje agregatörüne kullanıcı/katalog girdili `hardwareItems` eklendi. Satır kimliği, mobilya ilişkisi, donanım kimliği, ad, pozitif sonlu miktar, açık birim ve opsiyonel kaynak referansı doğrulanıp korunur.
 - Olmayan/hesaplanmamış mobilya, yinelenen satır kimliği ve bozuk alan projeyi `blocked` yapar; kısmi sonuç verilmez. Donanım panel Part listesi ve malzeme tüketiminden ayrı tutulur.
 - JSON v1/CSV adapter'ı donanım satırlarını taşımadığı için hazır BOM sonucunda `canExport: false` ve `exportBlockers` döner.
 - Değişen dosyalar: `domain/production/projectProduction.ts`, `domain/production/projectProduction.test.mjs`, `docs/production-domain-contract.md`, `PRODUCT_ROADMAP.md`, `AI_COORDINATION.md`, `AI_PROGRESS.md`.
-- Commit SHA ve Actions sonucu push sonrası doğrulama kaydında tamamlanacaktır. Fiyat, üretici standardı, montaj/delik koordinatı, CNC ve fiziksel üretim onayı yoktur. `frontend/**` değişmedi.
+- Teslimat commit: `6acf8f58fe3476f17e280cb3c6d580279ae49556` — [commit bağlantısı](https://github.com/Taylan789/MobilyaCAD/commit/6acf8f58fe3476f17e280cb3c6d580279ae49556).
+- [MobilyaCAD CI #44024961800](https://github.com/Taylan789/MobilyaCAD/actions/runs/44024961800) başarılı; [QA & Test #44024961750](https://github.com/Taylan789/MobilyaCAD/actions/runs/44024961750) başarılı (**101/101 frontend + 149/149 domain testi, 0 başarısız**). Shared-domain strict TypeScript, lint, frontend production build ve production dependency audit adımları geçti.
+- [Pages build/deploy #44024961772](https://github.com/Taylan789/MobilyaCAD/actions/runs/44024961772) bu kayıt hazırlanırken hâlâ çalışıyordu; tamamlandı olarak işaretlenmedi.
+- PR açılmadı; doğrudan yalnızca `dev/github-work` dalına commit edildi. Fiyat, üretici standardı, montaj/delik koordinatı, CNC ve fiziksel üretim onayı yoktur. `frontend/**` değişmedi.
 - Sonraki görev: frontend sahibinin JSON v1/CSV adapter'ına `hardwareItems` desteği eklemesi; ardından birim bazlı donanım tüketim özeti.

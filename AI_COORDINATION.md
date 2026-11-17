@@ -37,7 +37,7 @@ Bu dosya dört geliştirme/denetim rolünün ortak görev panosu ve entegrasyon 
 |---|---|---|---|---|
 | INT-001 | Domain üretim raporu ile frontend sözleşmesi; JSON/CSV geometri kaybını önleme veya desteklenmeyen export'u engelleme | Arayüz + Ürün | READY | round-trip ve export-block testleri |
 | DOM-002 | Banyo dolabı ve diğer ailelerde çoklu açıklık, adet, malzeme ve kalınlık domain testleri | Ürün Geliştirme | DONE | [commit 23385aaf](https://github.com/Taylan789/MobilyaCAD/commit/23385aaf14cac1550a37558cdadb6df3b60d3b1a); [CI](https://github.com/Taylan789/MobilyaCAD/actions/runs/44016704571); [QA: 101/101 frontend + 145/145 domain](https://github.com/Taylan789/MobilyaCAD/actions/runs/44016704658); [Pages](https://github.com/Taylan789/MobilyaCAD/actions/runs/44016704645) — PR yok, doğrudan yetkili dal commit'i |
-| DOM-003 | Açık kullanıcı girdili donanım BOM satırları; kimlik/mobilya/miktar/birim doğrulaması ve kayıpsız export kapısı | Ürün Geliştirme | IN PROGRESS | Domain sözleşmesi, invalid-input testleri ve JSON v1/CSV için açık export blocker |
+| DOM-003 | Açık kullanıcı girdili donanım BOM satırları; kimlik/mobilya/miktar/birim doğrulaması ve kayıpsız export kapısı | Ürün Geliştirme | DONE | [commit 6acf8f58](https://github.com/Taylan789/MobilyaCAD/commit/6acf8f58fe3476f17e280cb3c6d580279ae49556); [CI #44024961800](https://github.com/Taylan789/MobilyaCAD/actions/runs/44024961800); [QA #44024961750](https://github.com/Taylan789/MobilyaCAD/actions/runs/44024961750) — 101/101 frontend + 149/149 domain testi, 0 başarısız; Pages #44024961772 kontrol sırasında devam ediyordu |
 | PERF-001 | 2D/3D veri akışında ölçülebilir performans baseline'ı, profiling ve sahiplenilmemiş darboğazların giderilmesi | Entegrasyon/Performans | READY | tekrarlanabilir ölçüm, test, PR |
 | INT-002 | JSON/CSV adapter round-trip ve geometri/miktar sadakati için eksik entegrasyon testleri | Entegrasyon/Performans (yalnızca sahiplenilmemiş adapter/test dosyaları) | READY | test raporu ve PR |
 | QA-003 | INT-001 ve INT-002 tamamlandığında uçtan uca veri akışı ve export denetimi | Kalite Denetimi | BLOCKED: INT-001/INT-002 | SHA, PR ve gerçek Actions kanıtı |
@@ -49,3 +49,6 @@ Bu dosya dört geliştirme/denetim rolünün ortak görev panosu ve entegrasyon 
 - DOM-002 tamamlandı: commit `23385aaf14cac1550a37558cdadb6df3b60d3b1a`; CI #`44016704571`, QA #`44016704658` (101/101 frontend + 145/145 domain), Pages #`44016704645` başarılı. Doğrudan `dev/github-work` commit'i; PR açılmadı.
 - Eski PR #8 yalnızca `frontend/src/App.css` değiştiriyor; arayüz ajanının sahipliğinde bırakıldı ve birleştirilmedi.
 - Her raporda güncel HEAD ve gerçek teslimat kanıtları esas alınır.
+
+
+- DOM-003 tamamlandı: [commit 6acf8f58](https://github.com/Taylan789/MobilyaCAD/commit/6acf8f58fe3476f17e280cb3c6d580279ae49556); [CI](https://github.com/Taylan789/MobilyaCAD/actions/runs/44024961800) ve [QA](https://github.com/Taylan789/MobilyaCAD/actions/runs/44024961750) başarılı (101 frontend + 149 domain testi, 0 başarısız). Pages run #44024961772 kayıt sırasında devam ediyordu.
