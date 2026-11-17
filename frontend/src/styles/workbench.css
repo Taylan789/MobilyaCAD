@@ -506,3 +506,12 @@
     transition-duration: .01ms !important;
   }
 }
+
+
+/* UI-DENSITY-001 — Keep the scene tree as the single object-navigation surface.
+   The catalog and scene views already provide the two clear left-dock modes;
+   the persistent footer duplicated the same furniture list in both modes. */
+.cad-sidebar .cad-project-footer,
+.cad-sidebar [data-slot="sidebar-separator"]:has(+ .cad-project-footer) {
+  display: none !important;
+}
