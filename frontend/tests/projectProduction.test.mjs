@@ -300,7 +300,7 @@ test("katalogda olmayan malzeme veya kullanılmayan kalınlık üretim dışa ak
     createPlacedFurniture("base-cabinet", "missing-1", { materialId: "missing-material" })
   ], catalog, rules, materials);
   assert.equal(missingMaterial.parts.length, 0);
-  assert.match(missingMaterial.exportBlockReason, /Malzeme kataloğunda/);
+  assert.match(missingMaterial.exportBlockReason, /malzeme kimliği katalogda bulunamadı/i);
 
   const missingBackThickness = calculateProjectProduction([
     createPlacedFurniture("base-cabinet", "thin-1", { materialId: "mdf-white" })
