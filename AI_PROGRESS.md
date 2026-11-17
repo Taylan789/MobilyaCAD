@@ -977,3 +977,15 @@
 - AI Developer [#44164712000](https://github.com/Taylan789/MobilyaCAD/actions/runs/44164712000) ürün ve entegrasyon job'larında OpenRouter free-models-per-day 429 kotasına takıldı; reset 18 Kasım 2026 00:00 UTC / 03:00 TRT. Kota resetlenmeden rerun yapılmadı. Bu workflow hatası kod commit'inden bağımsızdır.
 - Bilinen sınırlar: JSON zarfı mevcut proje JSON v1'e gömülmez; disk yazımı, otomatik kayıt, atomik transaction, eşzamanlı yazma kilidi ve yedekleme sağlamaz. Tam QA SEC-001 frontend sahipliği kapsamındaki audit düzeltmesine bağlıdır.
 - Sonraki görev: SEC-001 sonrası DOM-014/015/016/017 için yeni SHA'da tam QA'yı doğrula; ardından proje dosyasıyla geriye uyumlu entegrasyon sözleşmesini ilerlet.
+
+
+## 18 Kasım 2026 01:05 TRT — DOM-018 proje JSON v2 teklif geçmişi uzantısı
+
+- Başlangıç branch HEAD: `705d395163c7cf4753002055dc9b196bdb14fc6c`.
+- Ürün dilimi: gelecekteki MobilyaCAD JSON v2 zarfına opsiyonel `quoteRevisionHistory` alanı eklemek için frontend dışı domain adapter'ı ve regresyon testleri hazırlandı.
+- JSON v1 geçmiş alanı yoksa legacy olarak korunur; v1 üzerinde geçmiş alanı varsa veri kaybı riskine karşı blocked döner. V2 kararlı `projectId` gerektirir; eksik geçmiş boş kabul edilir, mevcut zincir proje kimliğiyle birlikte doğrulanır.
+- Append yalnızca v2 üzerinde çalışır; ilk ve ardışık revizyonları zincire ekler, girdiyi değiştirmez ve bozuk durumda kısmi proje üretmez.
+- Değişen dosyalar: `domain/production/projectQuoteRevisionProjectFile.ts`, `domain/production/projectQuoteRevisionProjectFile.test.mjs`, `docs/production-domain-contract.md`, `PRODUCT_ROADMAP.md`, `AI_COORDINATION.md`, `.github/workflows/qa-test.yml`, `AI_PROGRESS.md`.
+- Commit SHA ve GitHub Actions sonuçları bu ilk kayıt anında bekleniyor; test/CI başarılı ilan edilmedi.
+- Bilinen sınırlar: mevcut frontend JSON v1 serializer/parser ve tüm `frontend/**` dosyaları değişmedi. Bu adapter tam v2 proje şema doğrulaması, kalıcı yazma, atomik transaction, otomatik kayıt veya UI entegrasyonu sağlamaz.
+- Sonraki adım: CI ve QA job'larının domain test/strict TypeScript/build/audit sonuçlarını incele; audit blokajı sürerse DOM-018 durumunu buna göre kaydet. Sonraki bağımsız domain işi DOM-019 levha/kerf/geometri girdi doğrulamasıdır.

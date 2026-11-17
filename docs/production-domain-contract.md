@@ -527,3 +527,19 @@ Kaynak: domain/production/projectQuoteRevisionFile.ts.
 - Eski v1 geçmişlerinde iç history.schemaVersion alanının bulunmaması mevcut doğrulayıcıyla geriye uyumludur; serializer yeniden dışa aktarırken sürüm 1 alanını kanonik biçimde yazar. Boş geçmiş empty durumuyla round-trip eder.
 - Bu, mevcut proje JSON v1 dosyasına gömülü bir alan değildir; teklif geçmişi için ayrı ve taşınabilir bir JSON zarfıdır. Frontend, mevcut proje dosyası entegrasyonu, otomatik kayıt, atomik disk yazımı, eşzamanlılık kilidi ve yedekleme bu dilimin kapsamı dışındadır.
 - CNC, fiziksel üretim, fiyat kaynağının gerçekliği, kur dönüşümü veya ticari varsayım üretmez.
+
+
+## 7. Gelecekteki proje JSON v2 teklif geçmişi uzantısı
+
+Kaynak: `domain/production/projectQuoteRevisionProjectFile.ts`.
+
+Mevcut frontend proje dosyası `format: "MobilyaCAD", formatVersion: 1` biçimindedir ve kararlı bir `projectId` taşımaz. Bu nedenle teklif revizyon geçmişi mevcut v1 dosyasına eklenmemelidir. V1 parser'ı bilmediği alanları normalize edilmiş dönüş nesnesine taşımaz; uzantıyı v1 içine yazmak sessiz veri kaybına yol açabilir.
+
+V2 için domain uzantı sözleşmesi:
+
+- Host proje zarfı `format: "MobilyaCAD"`, `formatVersion: 2` ve kullanıcı/uygulama tarafından kalıcı biçimde sağlanan `projectId` içermelidir. Domain adapter kimlik üretmez.
+- Opsiyonel `quoteRevisionHistory` alanı, `ProjectQuoteRevisionHistory` v1 nesnesidir: `schemaVersion`, `projectId`, `revisions`. Uzantı yoksa boş geçmiş kabul edilir; varsa bütün revizyon zinciri doğrulanır ve `history.projectId === project.projectId` olmalıdır.
+- V1 uzantı alanı olmadan `legacy` olarak okunur. V1 üzerinde `quoteRevisionHistory` alanı varsa adapter işlemi blocked döndürür; bu, v1 parser'ının alanı atması nedeniyle oluşabilecek sessiz veri kaybını önler.
+- `appendProjectQuoteRevisionToProjectFile` yalnızca v2 zarfında çalışır. Sıra ve önceki revizyon bağlantısı doğrulanmış geçmişten türetilir; yalnızca hazır snapshot kabul edilir. Başarılı sonuç yeni bir üst seviye proje nesnesi döndürür, girdiyi değiştirmez. Hata durumunda proje/history kısmi olarak döndürülmez.
+- Bu helper yalnızca proje zarfı kimliğini ve teklif uzantısını doğrular; oda, mobilya, malzeme ve diğer v2 alanlarının tam şema doğrulaması çağıran proje parser'ının sorumluluğundadır. Disk yazımı, atomik transaction, eşzamanlı yazma kilidi, otomatik kayıt veya backup sağlamaz.
+- Bu bir v2 entegrasyon sözleşmesidir; mevcut v1 serializer/parser veya UI entegrasyonunun tamamlandığı anlamına gelmez. Frontend sahibi v2 dosya migrasyonu ve kalıcı `projectId` atamasını ayrı akışta ele almalıdır.

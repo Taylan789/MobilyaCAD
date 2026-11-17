@@ -895,10 +895,20 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 - Test kabul kriterleri: iki revizyonun round-trip ile ID/sıra/önceki bağlantı ve toplamları koruması; empty geçmiş; legacy nested v1; bozuk zincir; bozuk JSON; yanlış fileType; bilinmeyen alan; desteklenmeyen sürüm; immutable parse sonucu.
 - Doğrulama: [CI #44179904406](https://github.com/Taylan789/MobilyaCAD/actions/runs/44179904406) ve [Pages #44179904575](https://github.com/Taylan789/MobilyaCAD/actions/runs/44179904575) başarılı; [QA #44179904377](https://github.com/Taylan789/MobilyaCAD/actions/runs/44179904377) 101/101 frontend + 245/245 domain testi, strict TypeScript, lint ve build aşamalarını geçti; yalnızca 12 production audit bulgusu (2 moderate, 10 high; picomatch ReDoS) nedeniyle job başarısız. Domain davranışı doğrulandı, tam QA SEC-001'e bağlı.
 
+## 18 Kasım 2026 — DOM-018 proje JSON v2 teklif geçmişi uzantısı
+
+- Yeni domain adapter'ı, mevcut MobilyaCAD proje dosyasının sürüm sınırını koruyarak teklif revizyon geçmişini yalnızca gelecekteki JSON v2 zarfında opsiyonel `quoteRevisionHistory` alanı olarak taşır.
+- JSON v1'de alan bulunmuyorsa kayıt legacy olarak okunur; v1'e bu alan eklenmişse sessiz veri kaybı riskine karşı işlem bloklanır. V1 dosyasında kararlı `projectId` bulunmadığından otomatik kimlik türetilmez.
+- JSON v2 için açık ve kararlı `projectId` zorunludur. Uzantı yoksa boş geçmiş kabul edilir; varsa geçmişin tüm revizyon zinciri doğrulanır ve host proje kimliğiyle eşleşmesi aranır.
+- Append işlemi yalnızca v2 üzerinde çalışır; yeni proje nesnesi üretir, girdiyi mutate etmez ve geçersiz geçmiş/snapshot durumunda kısmi proje döndürmez.
+- Bu modül tam v2 proje şema doğrulaması, disk yazımı, atomik transaction, otomatik kayıt veya UI entegrasyonu değildir. Mevcut frontend JSON v1 serializer/parser değiştirilmemiştir; v2 serializer çağırmadan önce kendi tam proje şemasını doğrulamalıdır.
+- Kabul testleri: v1 legacy davranışı, v1 uzantı reddi, v2 boş geçmiş, ilk/ardışık append, kimlik uyuşmazlığı, bozuk geçmiş, eksik projectId, desteklenmeyen sürüm ve kısmi sonuçsuz hata.
+- İlk committe Actions doğrulaması bekleniyor; tam QA ayrıca production dependency audit kapısından geçmelidir.
+
 ### Güncel sıradaki 3-5 küçük görev
 
 1. SEC-001: frontend sahibinin picomatch production audit bulgularını Vite 8'i kırmadan çözmesini bekle; frontend/**, manifest ve lockfile sahipliğine dokunma.
-2. DOM-014/015/016: SEC-001 sonrası aynı kod SHA'larında tam QA audit sonucunu kontrol et; aynı SHA için başarılı testleri yeniden çalıştırma.
-3. DOM-018: teklif geçmişi JSON zarfını gelecekteki proje dosyası sürümüne opsiyonel ve geriye uyumlu bağlamak için domain migration/compatibility sözleşmesini tanımla; frontend dosyalarına dokunma.
-4. INT-001: kesit geometrisi, malzeme ve quantity kaybını JSON/CSV adapter sözleşmesinde önle veya desteklenmeyen export'u engelle; adapter dosyalarını değiştirme.
-5. INT-002 / QA-003: entegrasyon-performans ajanının kendi dalındaki round-trip kanıtı geldikten sonra uçtan uca export/veri sadakati denetimini yürüt.
+2. DOM-014/015/016/017: SEC-001 sonrası yeni HEAD'de tam QA audit sonucunu kontrol et; aynı SHA için başarılı testleri yeniden çalıştırma.
+3. INT-001: domain üretim raporu ile JSON/CSV adapter sözleşmesinde kesit geometrisi, malzeme kimliği ve quantity kaybını önle veya desteklenmeyen export'u engelle; adapter dosyalarına dokunma.
+4. INT-002 / QA-003: entegrasyon-performans ajanının kendi dalındaki round-trip kanıtı geldikten sonra uçtan uca export/veri sadakati denetimini tamamla.
+5. DOM-019: kullanıcı tanımlı levha ölçüsü, kerf ve damar yönü girdileri için nesting öncesi geometri/birim doğrulama modelini oluştur; makine standardı veya optimizasyon sonucu varsayma.
