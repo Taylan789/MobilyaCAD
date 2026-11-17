@@ -356,6 +356,13 @@ export function calculateProjectProduction(
       ? placed.name.trim()
       : "İsimsiz mobilya";
     if (furnitureId !== "") furnitureNames.set(furnitureId, furnitureName);
+    if (furnitureName === "İsimsiz mobilya") {
+      adapterIssues.push({
+        furnitureId,
+        furnitureName,
+        reason: "Mobilya adı eksik."
+      });
+    }
 
     const catalogItem = catalogById.get(placed.catalogId);
     if (!isSupportedCabinetCatalogItem(catalogItem)) {
