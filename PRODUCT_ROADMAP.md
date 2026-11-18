@@ -1119,3 +1119,25 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 **Doğrulama:** ilk kod commit'i [10cc11a](https://github.com/Taylan789/MobilyaCAD/commit/10cc11aad3e4307bbff1129c82a6effb06b3c1fd) için CI ve Pages başarılı, QA 354/355 testte bir assertion tanı sırası farkıyla başarısız oldu. [76a9e24](https://github.com/Taylan789/MobilyaCAD/commit/76a9e241c2c63b5f99c259cbddabeaac26a9d62b) düzeltmesinde test korunarak global duplicate-ID kontrolü grup-sırası kontrolünden önceye alındı. Son SHA için [CI #44287015033](https://github.com/Taylan789/MobilyaCAD/actions/runs/44287015033), [QA #44287015199](https://github.com/Taylan789/MobilyaCAD/actions/runs/44287015199) ve [Pages #44287015031](https://github.com/Taylan789/MobilyaCAD/actions/runs/44287015031) başarılı; QA 102/102 frontend + 355/355 domain, strict shared-domain TypeScript, lint, production build ve production audit 0 bulgu.
 
 **Sınırlar:** nesting halen deterministic shelf heuristic'tir; optimal levha verimi, kesim sırası/testere yolu, CNC/postprocessor veya fiziksel üretim onayı değildir. Frontend ve adapter/performance ajanı dosyaları değiştirilmedi.
+
+
+## 18 Kasım 2026 14:00 TRT — DOM-030 kayıtlı kesim planı snapshot doğrulaması
+
+**Kullanıcı akışı:** kullanıcı daha önce kaydettiği çoklu grup kesim planını açtığında, güncel domain üretim Part listesiyle karşılaştırır. Parça ölçüsü, adet, malzeme, kalınlık, damar yönü veya kaynak kimliği değişmişse eski yerleşim hazır kabul edilmez.
+
+**Teslimat:** `validateProjectSheetCutPlanFreshness` kayıtlı JSON v1'i strict parse eder, her malzeme/kalınlık grubu için güncel Part listesinden aynı kullanıcı levhası/kerf girdisiyle batch'i yeniden doğrular ve kayıtlı kaynak snapshot'ıyla karşılaştırır. `fresh` sonucu JSON'u korur; `stale`/`blocked` sonucu `result:null` ve `json:null` döndürür.
+
+**Kabul kriterleri:**
+- Genişlik, uzunluk, adet, materialId, kalınlık ve damar yönü değişiklikleri stale üretir; silinen Part ve seçili Part sırası değişimi de stale olur.
+- Bozuk kayıtlı JSON, blocked/bozuk güncel rapor ve legacy Part için tekrar sağlanmayan grain override blocked olur.
+- Boş plan yalnızca boş güncel üretim snapshot'ında fresh kalır.
+- Domain testleri ve shared-domain strict TypeScript QA listesine eklenir; frontend ve adapter/performance sahiplik alanlarına dokunulmaz.
+
+**Bilinen sınırlar:** v1 dosyası yalnızca seçili `sourcePartIds` listesini taşır; seçilmemiş Part eklenmesi/değişmesi bu doğrulamanın kapsamı değildir. Bu API yerleşimi yeniden üretmez ve CNC/makine standardı veya fiziksel üretim onayı sağlamaz. Legacy grain override'ları freshness çağrısına yeniden verilmelidir.
+
+### DOM-030 sonrası sıradaki küçük görevler
+1. DOM-031: proje kesim planı için tam proje Part snapshot kimliğini/özetini sürümlü dosya zarfında sakla; seçilmemiş Part ekleme/silme ve seçim kapsamı değişikliklerini de yakala, v1 geriye uyumluluğunu koru.
+2. UI entegrasyon sözleşmesi: `fresh` / `stale` / `blocked` durumlarını, grain override tekrar girdisini ve export kapısını frontend sahibine aktar; `frontend/**` dosyalarına dokunma.
+3. INT-001 / PR #61: frontend sahibinin güncel base üzerinde domain üretim raporu ve JSON/CSV entegrasyonunu tamamlamasını salt okunur izle; PR'ı sahiplenme veya merge etme.
+4. INT-002 / QA-003: entegrasyon/performance agent'ın adapter round-trip ve geometri/adet sadakati testlerini ayrı PR'da tamamlamasından sonra denetle; adapter/test dosyalarına dokunma.
+5. CNC operasyon modeli: makine bağımsız operasyon semantiği, operatör onayı ve gerçek üretici standardı gereksinimlerini tanımla; doğrulanmamış G-code/postprocessor üretme.

@@ -1151,3 +1151,15 @@
 - DOM-029 koordinasyon panosu DONE olarak güncellendi; DOM-030 READY: JSON kesim planını güncel üretim Part snapshot'ına karşı doğrula ve stale planı engelle.
 - AI Developer [#44282900800](https://github.com/Taylan789/MobilyaCAD/actions/runs/44282900800) OpenRouter free-models-per-day 429 kota hatasıyla başarısız; eski SHA rerun edilmedi, yeni dispatch aracı yok. Secret, ücretli kredi veya workflow ayarı değiştirilmedi.
 - INT-001 PR [#61](https://github.com/Taylan789/MobilyaCAD/pull/61) açık; yalnızca frontend/** değişiklikleri var, 13 ahead / 7 behind ve güncel base'e senkronizasyon gerektiriyor. Bu ajan PR'a veya frontend dosyalarına müdahale etmedi. INT-002/PERF-001 sahipliği korunuyor.
+
+
+## 18 Kasım 2026 14:00 TRT — DOM-030 kod/test dilimi (Actions doğrulaması bekleniyor)
+
+- Başlangıç `dev/github-work` HEAD: `be512f285e3074815dd18559e2cd54655b91d13d`; önceki DOM-029 CI/QA/Pages run'ları tamamlanmış ve başarılıydı; bu çalışmada aktif CI/QA/AI Developer run yoktu.
+- Bu committe `domain/production/projectSheetCutPlanFreshness.ts` ve `domain/production/projectSheetCutPlanFreshness.test.mjs` eklendi; QA shared-domain strict TypeScript listesine yeni modül eklendi; domain sözleşmesi, PRODUCT_ROADMAP ve AI_COORDINATION güncellendi. `frontend/**`, adapter/performance agent dosyaları, package/lockfile, secrets ve `main` değiştirilmedi.
+- API `validateProjectSheetCutPlanFreshness` kayıtlı proje kesim planı JSON v1'ini strict parse eder ve her grup için güncel Part snapshot'ından batch'i yeniden doğrular. Genişlik/uzunluk, adet, malzeme, kalınlık, damar yönü, kaynak ID/sıra ve rectangular geometri kontrol edilir.
+- Değişen/silinen/uyumsuz kaynak için `stale`; bozuk veya doğrulanamayan snapshot için `blocked`; yalnızca tüm seçili kaynaklar eşleşirse `fresh` döner. `stale`/`blocked` durumlarında result/json null'dır. Legacy Part grain override'ı yeniden verilmeden freshness iddia edilmez.
+- Otomatik kabul testleri: değişmeden fresh, altı değişiklik türü, silinen ve sırası değişen Part, legacy grain override, blocked rapor/bozuk JSON, boş plan ve unknown override.
+- Kod/test/strict TypeScript doğrulaması GitHub Actions sonucu geldikten sonra commit SHA ve gerçek run bağlantılarıyla tamamlanacak; bu aşamada testlerin başarılı olduğu iddia edilmez.
+- AI Developer [#44282900800](https://github.com/Taylan789/MobilyaCAD/actions/runs/44282900800) iki job'da OpenRouter free-models-per-day 429 (50/50, kalan 0) nedeniyle başarısız. Eski checkout üzerinde rerun yapılmadı; secrets/ayar değiştirilmedi, yeni dispatch aracı yok.
+- Sonraki görev: DOM-031 — v1'de seçilmemiş Part kapsamını da yakalayacak sürümlü tam proje snapshot kimliği; ardından frontend sahibine fresh/stale/blocked entegrasyon sözleşmesi.

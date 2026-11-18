@@ -691,3 +691,21 @@ API: createProjectSheetCutPlan({ schemaVersion: 1, batchReport, layoutReports })
 - Ready sonuç, mevcut MobilyaCADProjectSheetCutPlan formatVersion 1 serializer/parser'ından geçirilir. Grup sırası, kaynak kimlikleri, her grubun yerel 1 tabanlı levha indeksleri ve opsiyonel trim/kerf round-trip içinde korunur. Seçim dışında kalan excludedPartIds rapor metadata'sında tutulur; JSON dosyasına seçilmemiş parça eklenmez.
 - Bu rapor makine bağımsız dikdörtgen yerleşimidir. Kesim sırası/testere yolu, fire/yield, CNC/postprocessor, makine standardı veya fiziksel üretim onayı üretmez; atölye doğrulaması gerekir.
 - Frontend entegrasyon sözleşmesi: status, result, json, sourcePartIds, excludedPartIds ve diagnostics alanları; ready/blocked durumları atomik tüketilmelidir. Frontend dosyaları bu teslimatta değiştirilmemiştir.
+
+
+### DOM-030 — Kaydedilmiş proje kesim planı güncellik doğrulaması
+
+Kaynak: `domain/production/projectSheetCutPlanFreshness.ts`.
+
+Çağrı: `validateProjectSheetCutPlanFreshness({ schemaVersion: 1, savedPlanJson, productionReport, grainDirectionsByPartId? })`.
+
+- Kaydedilmiş çoklu grup JSON v1 önce mevcut strict parser ile doğrulanır; güncel `CabinetProjectProductionReport` her grup için kayıtlı stock sheet ve kerf kullanılarak yeniden batch doğrulamasından geçirilir.
+- Seçili kaynak Part ID, proje sırası, mm genişlik/uzunluk, quantity, materialId, 0.1 mm normalize kalınlık, etkin damar yönü ve rectangular geometri karşılaştırılır.
+- Değişen, silinen veya artık aynı batch'e sığmayan kaynak Part varsa `stale`; bozuk/blocked üretim raporu veya karşılaştırılamayan eksik damar yönü varsa `blocked` döner. Her iki durumda da `result` ve `json` null'dır; kısmi plan dışarı verilmez.
+- `fresh` yalnızca bütün seçili Part snapshot'ı eşleştiğinde kayıtlı JSON'u ve doğrulanmış sonucu döndürür. Yerleşim koordinatları yeniden hesaplanmaz.
+- Legacy Part satırında `grainDirection` yoksa veya kayıtlı etkin yön güncel Part yönünden farklı bir override ile belirlenmişse aynı `grainDirectionsByPartId` girdisi tekrar verilmelidir; varsayılan damar yönü üretilmez.
+- v1 plan dosyası yalnızca seçili `sourcePartIds` listesini saklar. Bu API seçilmemiş Part'ların eklenmesini/değişmesini planın kapsamı dışında tutar; tüm proje snapshot kapsamı gelecekteki zarf sürümünde ayrıca saklanmalıdır.
+
+UI sözleşmesi: `fresh` dışa aktarılabilir plan durumu; `stale` ve `blocked` durumlarında JSON/CSV/CNC dışa aktarımı kapalı kalmalı, tanılar kullanıcıya gösterilmelidir. Bu domain commit'i hiçbir `frontend/**` dosyasını değiştirmez.
+
+Bu doğrulama makine bağımsız dikdörtgen kesim planı tazeliğidir; CNC, testere yolu/sırası, fire/yield, makine standardı veya fiziksel üretim onayı değildir.
