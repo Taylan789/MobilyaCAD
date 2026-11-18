@@ -543,3 +543,16 @@ V2 için domain uzantı sözleşmesi:
 - `appendProjectQuoteRevisionToProjectFile` yalnızca v2 zarfında çalışır. Sıra ve önceki revizyon bağlantısı doğrulanmış geçmişten türetilir; yalnızca hazır snapshot kabul edilir. Başarılı sonuç yeni bir üst seviye proje nesnesi döndürür, girdiyi değiştirmez. Hata durumunda proje/history kısmi olarak döndürülmez.
 - Bu helper yalnızca proje zarfı kimliğini ve teklif uzantısını doğrular; oda, mobilya, malzeme ve diğer v2 alanlarının tam şema doğrulaması çağıran proje parser'ının sorumluluğundadır. Disk yazımı, atomik transaction, eşzamanlı yazma kilidi, otomatik kayıt veya backup sağlamaz.
 - Bu bir v2 entegrasyon sözleşmesidir; mevcut v1 serializer/parser veya UI entegrasyonunun tamamlandığı anlamına gelmez. Frontend sahibi v2 dosya migrasyonu ve kalıcı `projectId` atamasını ayrı akışta ele almalıdır.
+
+
+## DOM-019 — Levha nesting girdisi ön doğrulaması v1
+
+Kaynak: domain/production/sheetNestingInput.ts, validateSheetNestingInput.
+
+- Girdi schemaVersion 1, kullanıcı tarafından sağlanan tek bir levha (materialId, widthMm, lengthMm, thicknessMm, grainDirection), açık kerfMm ve parça listesidir. Malzeme kimliği, ölçüler, kalınlık, quantity ve damar yönü her parça için açıkça verilmelidir; varsayılan levha ölçüsü, kerf veya damar yönü üretilmez.
+- Tüm mm ölçüleri 0.1 mm hassasiyetinde normalize edilir. Kerf sıfır veya pozitif, sonlu mm değeri olabilir. Parça quantity değeri pozitif güvenli tam sayı olmalı; batch toplamı da güvenli tam sayı sınırını aşmamalıdır.
+- Tek batch yalnızca aynı materialId ve normalize edilmiş kalınlıktaki parçaları kabul eder. Parça kimlikleri benzersiz olmalıdır. İlk dilimde yalnızca geometry: rectangular desteklenir; kesit/açıklık geometrisi açıkça blocked olur.
+- Damar yönü length, width veya none değeridir. Levha ve parça yönleri birlikte değerlendirilerek yalnızca damar hizasını bozmayan 0/90 derece dönüşler listelenir; listede yalnızca levha zarfına sığan yönler kalır. Hiçbir izinli yön sığmıyorsa tüm batch blocked olur.
+- Sonuç ready, empty veya blocked durumudur. Blocked durumda result null'dır; geçerli görünen önceki parçalar kısmi liste olarak sunulmaz. Çıktı yalnızca doğrulanmış batch girdisi ve izinli dönüş adaylarını taşır.
+- Kerf bu aşamada yalnızca doğrulanıp saklanır; levha kenar payı, kesim sırası, parça yerleşimi, nesting optimizasyonu, fire/yield veya CNC koordinatı hesaplanmaz. 0/90 adayları fiziksel kesim ya da üretim güvenliği onayı değildir.
+- Frontend entegrasyonu levha ölçüsü, kerf, levha damar yönü ve her parçanın malzeme/kalınlık/quantity/parça damar yönü girdilerini açıkça sağlamalı; ready/empty/blocked durumunu ve diagnostics alanını göstermelidir. Bu modül mevcut JSON v1/CSV adapter'ını veya frontend dosyalarını değiştirmez.

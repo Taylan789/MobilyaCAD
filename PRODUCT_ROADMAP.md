@@ -912,3 +912,20 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 3. INT-001: domain üretim raporu ile JSON/CSV adapter sözleşmesinde kesit geometrisi, malzeme kimliği ve quantity kaybını önle veya desteklenmeyen export'u engelle; adapter dosyalarına dokunma.
 4. INT-002 / QA-003: entegrasyon-performans ajanının kendi dalındaki round-trip kanıtı geldikten sonra uçtan uca export/veri sadakati denetimini tamamla.
 5. DOM-019: kullanıcı tanımlı levha ölçüsü, kerf ve damar yönü girdileri için nesting öncesi geometri/birim doğrulama modelini oluştur; makine standardı veya optimizasyon sonucu varsayma.
+
+
+## 18 Kasım 2026 02:58 TRT — DOM-019 levha nesting girdisi ön doğrulaması
+
+- Kullanıcı akışı: üretim sorumlusu tek bir malzeme/kalınlık batch'i için levha en-boy/kalınlık, levha damar yönü ve kerf değerini; her dikdörtgen parçanın ölçü, quantity ve damar yönüyle birlikte açıkça girer.
+- Kabul kriterleri: 0.1 mm normalizasyon; aynı katalog malzeme kimliği ve kalınlık; pozitif güvenli integer quantity ve güvenli batch toplamı; benzersiz parça kimliği; grain uyumlu 0/90 derece dönüş adayları; levha zarfına sığmayan parçada blocked; herhangi bir hata halinde kısmi parça listesi yok.
+- İlk dikey dilim yalnızca doğrulanmış batch girdisini üretir. Kesit/açıklık geometrisi desteklenmez ve blocked olur. Kerf doğrulanıp saklanır ancak henüz yerleşim hesabına uygulanmaz.
+- Sınırlar: nesting algoritması/yerleşim koordinatı, levha verimi/fire, kenar payı, kesim sırası, CNC/postprocessor, makine standardı ve fiziksel üretim onayı yoktur. Mevcut frontend JSON v1/CSV adapter'ı ve tüm frontend/** dosyaları değişmez.
+- Kod/test ve QA strict TypeScript kapsamı aynı teslimatta eklendi; gerçek GitHub Actions sonucu ayrıca kaydedilmeden genel QA başarılı ilan edilmeyecektir.
+
+### DOM-019 sonrasındaki küçük görevler
+
+1. SEC-001: frontend sahibinin production dependency audit içindeki picomatch yüksek bulgularını Vite sürümünü kırmadan çözmesini bekle; frontend, manifest ve lockfile sahipliğine dokunma.
+2. INT-001: açık PR #61'in domain üretim raporu ile frontend workspace sözleşmesini ve kesit/malzeme/quantity kayıpsız akışını ayrı sahiplik sınırlarında doğrula; PR'ı sahiplenme veya birleştirme.
+3. INT-002 / QA-003: entegrasyon-performans ajanının kendi dalındaki adapter round-trip kanıtı geldikten sonra uçtan uca export denetimini yap.
+4. DOM-020: doğrulanmış rectangular batch'i proje Part listesiyle eşleyen, kaynak Part kimliğini ve quantity'yi koruyan domain bağlayıcısını tasarla; kesitli/uyumsuz parçaları export edilebilir gösterme.
+5. Nesting yerleşim algoritmasını ancak kerf uygulaması, grain kısıtları, malzeme/kalınlık batch sınırı ve otomatik geometri testleri tanımlandıktan sonra ayrı bir dikey dilim olarak ele al; üretici/makine standardı uydurma.
