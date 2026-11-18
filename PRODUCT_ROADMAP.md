@@ -940,7 +940,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 - Kabul kriterleri: source Part ID, quantity, genişlik/uzunluk/kalınlık mm ve katalog materialId korunur; seçilmeyen Part ID'leri `excludedPartIds` ile görünür; grain yönü yalnızca Part'ta açıkça kayıtlıysa veya kullanıcı eşlemesiyle kullanılır.
 - Kesitli panel geometri, eksik materialId/grain, hatalı ölçü/adet, seçilmeyen kimliğe ait grain override ve tek levha malzemesi/kalınlığıyla uyuşmayan batch blocked olur; kısmi sonuç üretilmez.
 - `createProjectSheetNestingInput` yalnızca mevcut `validateSheetNestingInput` doğrulayıcısını çağırır. Kerf doğrulanır ve saklanır; bu aşamada yerleşim koordinatı, kerf tüketimi, fire/yield, kesim sırası veya CNC komutu yoktur.
-- Durum: kod/test/Actions doğrulaması bu commit sonrası bekleniyor; tam QA production dependency audit engeli SEC-001 çözülene kadar ayrıca izlenir.
+- İlk kod commit'i [184e4e75](https://github.com/Taylan789/MobilyaCAD/commit/184e4e75e3a0f96e5f7d39b21b5ed2db36e3639f) için CI #44215960455 ve Pages #44215960498 başarılı; QA #44215960442 içinde 101/101 frontend + 277/277 domain testi, strict TypeScript, lint ve build başarılı. Genel QA yalnızca SEC-001 kapsamındaki 12 production dependency audit bulgusu nedeniyle başarısız. Seçim dışındaki kesitli Part'ların batch'i engellememesi için follow-up regresyon düzeltmesi eklendi; onun Actions sonucu bekleniyor.
 
 ### DOM-020 sonrası sıradaki küçük işler
 

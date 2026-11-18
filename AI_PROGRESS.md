@@ -1010,5 +1010,8 @@
 - Kaynak Part ID, quantity, mm ölçüleri ve katalog materialId korunur. Kullanıcının açık seçimi dışındaki Part ID'leri `excludedPartIds` ile bildirilir; otomatik malzeme/kalınlık gruplaması yapılmaz.
 - Part üzerinde kayıtlı grainDirection yoksa kullanıcı eşlemesi zorunludur. Kesitli panel geometry, uyuşmayan malzeme/kalınlık, eksik katalog kimliği ve geçersiz adet tüm batch'i blocked yapar.
 - Değişen dosyalar: `domain/production/projectSheetNestingInput.ts`, `domain/production/projectSheetNestingInput.test.mjs`, `docs/production-domain-contract.md`, `.github/workflows/qa-test.yml`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`.
-- Commit SHA ve gerçek CI/QA sonuçları, ilgili GitHub Actions tamamlandıktan sonra doğrulama kaydıyla eklenecek.
+- İlk kod commit'i: [184e4e75e3a0f96e5f7d39b21b5ed2db36e3639f](https://github.com/Taylan789/MobilyaCAD/commit/184e4e75e3a0f96e5f7d39b21b5ed2db36e3639f). [CI #44215960455](https://github.com/Taylan789/MobilyaCAD/actions/runs/44215960455) ve [Pages #44215960498](https://github.com/Taylan789/MobilyaCAD/actions/runs/44215960498) başarılı. [QA #44215960442](https://github.com/Taylan789/MobilyaCAD/actions/runs/44215960442): 101/101 frontend + 277/277 domain testi, 0 başarısız; shared-domain strict TypeScript, lint ve production build başarılı. Genel QA yalnızca 12 production dependency audit bulgusu (2 moderate, 10 high; picomatch ReDoS/minimatch) nedeniyle başarısız.
 - Bilinen sınır: kerf yalnızca doğrulanıp taşınır; parça yerleşimi/koordinatı, fire/verim, kesim sırası veya CNC çıktısı üretilmez. Donanım ve kenar bandı BOM'u bu nesting girdisinin kapsamı dışındadır.
+
+
+- İlk Actions sonuçlarının kod incelemesi sırasında seçim sınırı düzeltildi: artık kesit geometrisi yalnızca batch'e seçilen Part satırlarında kontrol edilir; seçilmeyen kesitli Part'lar `excludedPartIds` içinde kalır ve dikdörtgen batch'i gereksiz yere bloke etmez. Yeni regresyon testi eklendi. Bu düzeltmenin commit/Actions kanıtı bekleniyor.

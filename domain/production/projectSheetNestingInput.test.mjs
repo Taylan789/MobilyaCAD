@@ -139,6 +139,25 @@ test("kesitli panel geometry nesting batch'ine alınmaz", () => {
   );
 });
 
+test("dışarıda bırakılan kesitli Part seçili rectangular batch'i engellemez", () => {
+  const productionReport = report([
+    part({ id: "rectangular-part" }),
+    part({
+      id: "cutout-part",
+      panelGeometry: { schemaVersion: 1, cutouts: [] }
+    })
+  ]);
+
+  const result = createProjectSheetNestingInput(request(productionReport, {
+    partIds: ["rectangular-part"]
+  }));
+
+  assert.equal(result.status, "ready");
+  assert.deepEqual(result.sourcePartIds, ["rectangular-part"]);
+  assert.deepEqual(result.excludedPartIds, ["cutout-part"]);
+  assert.equal(result.result?.parts.length, 1);
+});
+
 test("blocked veya empty proje üretim raporundan nesting girdisi üretilmez", () => {
   assertBlocked(
     request(report([part()], { status: "blocked", firstError: "Proje ölçüsü geçersiz." })),

@@ -1,6 +1,5 @@
 import type {
-  CabinetProjectProductionReport,
-  ProjectProductionPart
+  CabinetProjectProductionReport
 } from "./projectProduction.ts";
 import { validateSheetNestingInput } from "./sheetNestingInput.ts";
 import type {
@@ -146,14 +145,6 @@ export function createProjectSheetNestingInput(
         "Proje üretim listesinin " + (index + 1) + ". parçası"
       );
       const id = requireIdentifier(part.id, "Proje üretim parçası kimliği");
-      if (part.panelGeometry !== undefined) {
-        throw new Error(
-          id + " parçası panel kesit geometrisi içeriyor; bu aşamada yalnızca rectangular parça kabul edilir."
-        );
-      }
-      if (part.geometry !== undefined && part.geometry !== "rectangular") {
-        throw new Error(id + " parçasının geometrisi rectangular değil.");
-      }
       return { id, part };
     });
 
@@ -212,6 +203,15 @@ export function createProjectSheetNestingInput(
     }
 
     const nestingParts = selectedParts.map(({ id, part }) => {
+      if (part.panelGeometry !== undefined) {
+        throw new Error(
+          id + " parçası panel kesit geometrisi içeriyor; bu aşamada yalnızca rectangular parça kabul edilir."
+        );
+      }
+      if (part.geometry !== undefined && part.geometry !== "rectangular") {
+        throw new Error(id + " parçasının geometrisi rectangular değil.");
+      }
+
       const grainDirection = Object.prototype.hasOwnProperty.call(grainOverrides, id)
         ? grainOverrides[id]
         : part.grainDirection;
