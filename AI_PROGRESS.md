@@ -1278,3 +1278,17 @@
 - Değişen kapsam: yalnızca domain freshness testi, üretim sözleşmesi, görev panosu ve yol haritası. Üretim hesap motoru değiştirilmedi; kesitli banyo paneli nesting blocker'ı korundu.
 - Düzeltme: freshness doğrulamasına seçili legacy Part ID'leri için aynı açık `none` grain override haritası ekleniyor. Eksik override'ın blocked olması gevşetilmiyor.
 - Sonraki adım: yeni CI/QA sonucunu incele; başarılıysa DOM-038'i DONE yap. AI Developer [#44374039856](https://github.com/Taylan789/MobilyaCAD/actions/runs/44374039856) OpenRouter günlük 429 kotası nedeniyle başarısız; rerun yapılmadı ve secrets/ayar değiştirilmedi.
+
+
+## DOM-038 — Nihai doğrulama ve kapanış (18 Kasım 2026 22:54 TRT)
+
+- Başlangıç HEAD: `fa4fce26ca9cc084cceed053034c85e6c4f39569`.
+- Commit zinciri: ilk test `b040393404c19d2591a16832b8436ee4f965545b`; banyo panelGeometry fixture düzeltmesi `48e2d940d8f5d9a8ec1302e147c79db580f2953e`; grain override/freshness düzeltmesi `d956205d87d46e9173b2b1dbcf4b13fe4952b46f`.
+- Değişen dosyalar: `domain/production/bodyPanelMaterialsFreshness.test.mjs`, `docs/production-domain-contract.md`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`.
+- CI [#44384952328](https://github.com/Taylan789/MobilyaCAD/actions/runs/44384952328): başarılı; frontend TypeScript/production build ve lint.
+- QA [#44384952562](https://github.com/Taylan789/MobilyaCAD/actions/runs/44384952562): başarılı; frontend **124/124**, domain **387/387**, shared-domain type-check, lint, frontend TypeScript/build ve production dependency audit **0 vulnerability**.
+- Pages [#44384952512](https://github.com/Taylan789/MobilyaCAD/actions/runs/44384952512): başarılı.
+- İlk iki QA denemesi yalnızca fixture/çağrı sözleşmesi eksiklerinden başarısız oldu; loglara göre üretim motoru regresyonu yoktu. Üçüncü committe testler geçti.
+- AI Developer ve Integration/Performance agent workflow'ları [#44374039856](https://github.com/Taylan789/MobilyaCAD/actions/runs/44374039856) OpenRouter `free-models-per-day` 429 nedeniyle başarısız: limit 50, remaining 0. Rerun yapılmadı; secrets, kredi veya servis ayarı değiştirilmedi.
+- Bilinen sınırlar: kesitli banyo paneli hole-aware nesting kanıtlanana kadar dikdörtgen nesting dışında kalır; legacy Part için grain yönü açıkça verilmelidir; makine/CNC standardı iddiası yoktur.
+- Sonraki görev: DOM-039 — materialId + mm kalınlık bazlı fiyat satırlarını teklif/maliyet özetine bağla; eksik katalog fiyatında toplam üretme.

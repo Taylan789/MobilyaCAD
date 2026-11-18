@@ -1314,9 +1314,12 @@ DOM-032 doğrulaması: [commit fe720ce](https://github.com/Taylan789/MobilyaCAD/
 **DOM-037 kapanış:** `dev/github-work` commit `3c2180a8b7743a75bb18c59d63ae7dd5c4c93748`; CI/QA/Pages doğrulamaları yukarıdaki run'larla başarılı. DOM-038 bir sonraki READY domain dilimidir.
 
 
-### DOM-038 — gövde panel override değişiminde kesim planı freshness (fixture düzeltmesi; Actions bekleniyor)
+### DOM-038 — gövde panel override değişiminde kesim planı freshness (Tamamlandı)
 
 - Beş ailede (cabinet, bookshelf, wardrobe, tv-unit, bathroom-vanity) gerçek üretim agregatörüyle kesim planı JSON v2 oluşturulur; üst panel Part ID'leri ve kullanıcı seçim kapsamı sabit tutulur.
 - materialId değişimi ve katalogda geçerli yeni mm kalınlığına geçiş ayrı regresyon senaryolarıyla test edilir. Her iki değişiklikte tam proje snapshot karşılaştırması `stale` döndürmeli ve kısmi JSON vermemelidir.
 - Test dosyası: `domain/production/bodyPanelMaterialsFreshness.test.mjs`.
-- Kesitli banyo üst paneli dikdörtgen nesting seçimine alınmaz, fakat tam proje snapshot'ında kalır. İlk QA denemesi 385/387 ile başarısız oldu: banyo dolabı fixture'ında zorunlu açık geçiş geometrisi eksikti. İkinci QA da 385/387: freshness çağrısı legacy Part için aynı açık grainDirectionsByPartId eşlemesini tekrarlamadı. Her iki hata fixture/istek sözleşmesindedir; üretim kodu ve panelGeometry blocker'ı değiştirilmedi. Aynı grain override şimdi freshness çağrısına da veriliyor; yeni Actions sonucu bekleniyor.
+- Kesitli banyo üst paneli dikdörtgen nesting seçimine alınmaz, fakat tam proje snapshot'ında kalır. İlk iki QA denemesinde fixture sözleşmesi eksikti (banyo dolabı için açık geçiş geometrisi ve legacy Part için explicit grainDirectionsByPartId). Her iki fixture düzeltildi; üretim kodu ve panelGeometry blocker'ı değiştirilmedi. Nihai CI #44384952328, QA #44384952562 ve Pages #44384952512 başarılı; 124/124 frontend + 387/387 domain, audit 0.
+
+
+**DOM-038 nihai kanıt:** [commit d956205](https://github.com/Taylan789/MobilyaCAD/commit/d956205d87d46e9173b2b1dbcf4b13fe4952b46f); [CI #44384952328](https://github.com/Taylan789/MobilyaCAD/actions/runs/44384952328), [QA #44384952562](https://github.com/Taylan789/MobilyaCAD/actions/runs/44384952562), [Pages #44384952512](https://github.com/Taylan789/MobilyaCAD/actions/runs/44384952512) başarılı. QA 124/124 frontend + 387/387 domain; strict type-check/lint/build/audit başarılı.
