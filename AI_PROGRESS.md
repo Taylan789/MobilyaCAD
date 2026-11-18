@@ -1235,3 +1235,14 @@
 - Otomatik doğrulama: [CI #44358009815](https://github.com/Taylan789/MobilyaCAD/actions/runs/44358009815), [QA #44358009840](https://github.com/Taylan789/MobilyaCAD/actions/runs/44358009840) ve [Pages #44358009870](https://github.com/Taylan789/MobilyaCAD/actions/runs/44358009870) başarılı. QA 102/102 frontend + 383/383 domain testi, 0 başarısız; shared-domain strict TypeScript, frontend TypeScript/Vite production build, lint (32 uyarı / 0 hata) ve production audit (0 vulnerability) geçti. CI build/lint başarılı.
 - Bilinen sınırlar: `createProjectSheetNestingInput` `panelGeometry` girdisini blocked/`result: null` tutar. Hole-aware placement, kerf clearance, kesim sırası, CNC ve fiziksel üretim doğrulaması yoktur.
 - Sonraki adım: DOM-037 — desteklenen dolap türevi ailelerde gövde panel malzeme/kalınlık override'larının Part snapshot ve malzeme tüketimi boyunca kimlik/ölçü/adet sadakatini test et. Hole-aware nesting için mevcut blocker korunur; INT-001 PR #61 ve UI PR #73 ayrı sahipliklerinde kalır.
+
+
+## 18 Kasım 2026 21:30 TRT — DOM-037 gövde panel override aile matrisi (Actions bekleniyor)
+
+- Başlangıç `dev/github-work` HEAD: `f5f39271170aafe9fe46e5f9282827e2b99ff80f`.
+- Kod/test: `domain/production/bodyPanelMaterialsFamilies.test.mjs` eklendi. Beş ailede grup bazlı malzeme ID + gerçek mm kalınlığı, raf quantity, override edilmeyen varsayılan grup, legacy materialId yokluğu, proje malzeme tüketimi ve Part snapshot JSON round-trip kapsandı.
+- Negatif regresyon: katalogda bulunmayan gerçek kalınlığa sahip tek override tüm proje sonucunu `blocked` / `result: null` yapmalı; kısmi Part listesi verilmemeli.
+- Değişen dosyalar: `domain/production/bodyPanelMaterialsFamilies.test.mjs`, `docs/production-domain-contract.md`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`.
+- İlk commit SHA ve CI/QA bağlantıları GitHub sonucu geldikten sonra bu kaydın doğrulama satırına eklenecek; şu an doğrulama bekleniyor, başarılı ilan edilmedi.
+- Bilinen sınırlar: özel wardrobe/TV shelf/divider parçaları kendi açık malzeme/kalınlık girdilerini kullanır; bathroom vanity panelGeometry export blocker'ı korunur. Frontend ve integration-performance dosyaları değiştirilmedi.
+- Sonraki görev: DOM-038 — group override materialId/kalınlık değişiminin kayıtlı proje kesim planı freshness kontrolünde stale olarak yakalandığını aile matrisiyle doğrula.

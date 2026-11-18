@@ -1279,3 +1279,31 @@ DOM-032 doğrulaması: [commit fe720ce](https://github.com/Taylan789/MobilyaCAD/
 
 
 **Actions doğrulaması — tamamlandı:** [commit 64c11776](https://github.com/Taylan789/MobilyaCAD/commit/64c1177651d9137bb4e17e4076ad2fef1320602e); [CI #44345824527](https://github.com/Taylan789/MobilyaCAD/actions/runs/44345824527), [QA #44345823923](https://github.com/Taylan789/MobilyaCAD/actions/runs/44345823923) ve [Pages #44345823859](https://github.com/Taylan789/MobilyaCAD/actions/runs/44345823859) başarılı. QA: 102/102 frontend + 382/382 domain testi; strict shared-domain TypeScript, lint (32 uyarı / 0 hata), production build ve production dependency audit (0 bulgu).
+
+## DOM-037 — Gövde panel malzeme override aile matrisi (Actions bekleniyor)
+
+**Kullanıcı akışı:** kullanıcı aynı panel malzeme kataloğunu ve grup bazlı override girdilerini dolap, kitaplık, gardırop, TV ünitesi ve banyo dolabı gövdesinde kullanır. Hesaplanan Part listesi, malzeme tüketimi ve proje kesim planı snapshot'ı aynı katalog kimliği, gerçek mm kalınlığı ve quantity değerini korur.
+
+**Dikey dilim:** mevcut `resolveCabinetBodyPanelParts` zincirinin beş desteklenen ailedeki ortak gövde parça kimliklerine uygulanmasını proje düzeyi regresyon testiyle doğrula. Her ailede üst panel ve mevcutsa raf grubu için açık `panelMaterialOverrides` + `panelThicknessMmByGroup` kullanılır; yan panel varsayılan katalog malzemesini korur. Legacy materialId içermeyen kayıt serbest metin malzemeyle kalır.
+
+**Kabul kriterleri:**
+- Beş ailenin üst paneli aynı katalog ID/adı, 8 mm gerçek kalınlık ve quantity 1 taşır.
+- Cabinet/bookshelf/wardrobe/TV-unit rafları grup override'ı, gerçek 8 mm kalınlık ve kaynak quantity değerini korur.
+- Override edilmeyen yan panel kendi mevcut materialId/kalınlık değerini korur; legacy ID'siz malzeme için yeni ID/varsayılan üretilmez.
+- Proje malzeme özeti materialId + malzeme adı + gerçek kalınlık ile gruplar ve quantity ağırlıklı toplamı verir.
+- `createProjectPartSnapshot` canonical JSON round-trip'te materialId, thickness ve quantity alanlarını kaybetmez.
+- Katalogda bulunmayan kalınlığa sahip tek override proje sonucunu blocked ve `result: null` yapar; kısmi Part listesi verilmez.
+- Banyo dolabı üst panel açıklığı geçerli domain geometrisiyle sağlanır; mevcut panelGeometry export blocker'ı kaldırılmaz.
+
+**Değişen dosyalar:** `domain/production/bodyPanelMaterialsFamilies.test.mjs`, `docs/production-domain-contract.md`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`.
+
+**Doğrulama:** yeni commit için CI/QA Actions sonuçları bekleniyor; gerçek run görülmeden başarılı sayılmayacak.
+
+**Sınırlar:** grup override'ları yalnızca sabit kimlikli ana gövde gruplarına uygulanır. Gardırop/TV ünitesi özel rafları ve dikey bölücüleri kendi açık spec materialId/kalınlık girdilerini kullanır; bu alanlardan varsayılan veya grup override'ı türetilmez. Banyo dolabı kesitli üst paneli JSON/CSV adapter'ı panelGeometry alanını kayıpsız taşıyana kadar export dışı kalır. CNC ve fiziksel üretim onayı değildir.
+
+### DOM-037 sonrası sıradaki 5 küçük görev
+1. DOM-038 — gövde panel materialId/kalınlık değişiminin kayıtlı proje kesim planı freshness kontrolünde stale sonucu verdiğini aile matrisiyle doğrula.
+2. DOM-039 — teklif/maliyet hesaplarında aynı malzeme adı fakat farklı materialId veya kalınlıktaki override gruplarının ayrı fiyat satırlarına bağlandığını test et; eksik fiyatlarda toplam üretme.
+3. DOM-040 — gardırop ve TV ünitesi özel raf/bölücü Part snapshot'larının açık materialId, thickness, quantity ve yerleşim alanlarını round-trip boyunca korumasını genişlet.
+4. INT-001/INT-002 — açık frontend/adapter entegrasyon PR'larını yalnızca kendi sahipliklerinde izlemeyi sürdür; domain dalı frontend veya adapter dosyalarına dokunmaz.
+5. Hole-aware nesting, kesit geometri ve CNC/postprocessor desteği için geometri/kerf/üretici standardı doğrulanana kadar mevcut export blocker'larını koru.

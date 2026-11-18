@@ -776,3 +776,16 @@ Kaynak: `domain/production/projectSheetCutPlanExport.ts`.
 - Desteklenmeyen aile, geçersiz panel açıklığı geometrisi veya adapter'ın henüz taşıyamadığı geçerli kesitli panel geometrisi varsa export `blocked`; `result` ve `json` kesinlikle `null` kalır. Kısmi kesim planı üretilmez.
 - `ready` raporunda bile herhangi bir domain tanısı veya export blocker bulunması JSON dışa aktarımını engeller. Eski consumer'lar yeni `productionDiagnostics` alanını yok sayabilir; mevcut alanlar ve JSON v1/v2/v3 dosya biçimleri değişmez.
 - Bu kapı panel açıklığını nesting algoritmasına dönüştürmez, CNC/işleme koordinatı üretmez ve fiziksel üretim onayı değildir. Dikdörtgen nesting, gerçek kesit geometrisini destekleyene kadar bu parçalar export dışında kalır.
+
+
+## DOM-037 — Gövde panel override'larının aileler arası veri sözleşmesi
+
+`panelMaterialOverrides` ve `panelThicknessMmByGroup`, mevcut ortak cabinet carcass motorundan geçen beş ailede aynı ana gövde parça kimliklerine uygulanır: `cabinet`, `bookshelf`, `wardrobe`, `tv-unit` (yalnızca `floor-standing`) ve `bathroom-vanity`.
+
+Her override yalnızca katalog `materialId` seçer. Parçanın gerçek `thickness` değeri konstrüksiyon profilinden gelir ve seçilen katalog kaydının `thicknessesMm` listesinde aynen bulunmalıdır. Bir grup için override verilmemişse mevcut parça materialId'si korunur; legacy ID'siz serbest metin malzeme için katalog kimliği veya varsayılan değer üretilmez. Bilinmeyen grup/kimlik veya kalınlık uyuşmazlığı proje raporunu blocked yapar ve kısmi `result` döndürmez.
+
+Ana gövde parça ID son ekleri `left-side`, `right-side`, `top`, `bottom`, `shelf`, `back`, `door` olarak kalır. Özel gardırop/TV rafları (`shelf-<id>`) ve dikey bölücüler (`vertical-divider-<id>`) bu grup eşlemesine dahil değildir; bunların `materialId`, kalınlık ve yerleşimi açık spec alanlarından gelir. Grup override'ı bu özel parçalara uygulanmaz.
+
+`createProjectPartSnapshot` her Part kaydının tüm JSON alanlarını canonical olarak saklar. Çözülmüş `materialId`, malzeme adı, `thickness` (mm), `quantity`, ölçüler ve aileye özgü yerleşim alanları snapshot karşılaştırmasına dahildir. `calculateProjectMaterialConsumptionSummary` gruplamayı `materialId + material + thickness` anahtarıyla yapar ve alan/hacim/kenar bantlama toplamlarını Part quantity değeriyle ağırlıklandırır.
+
+Otomatik kabul testi: `domain/production/bodyPanelMaterialsFamilies.test.mjs`. Banyo dolabı geçerli kesit geometrisi taşısa da mevcut JSON/CSV adapter'ı `panelGeometry` alanını kayıpsız taşımadığından `canExport: false` kalır; bu blocker bu görevde kaldırılmaz. CNC, kesim yolu veya fiziksel üretim uygunluğu iddiası yoktur.
