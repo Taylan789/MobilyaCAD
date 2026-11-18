@@ -1127,14 +1127,14 @@
 - Bilinen sınırlar: makine bağımsız JSON dosyasıdır; kesim sırası/testere yolu, fire/yield, CNC/postprocessor, makine standardı veya fiziksel üretim onayı üretmez. Atölye doğrulaması gerekir.
 - Sonraki görev: DOM-029 — doğrulanmış batch grupları ve layout raporlarını atomik proje kesim planı raporuna bağla; eksik/çift/blocked grup tüm sonucu engellesin.
 
-## 18 Kasım 2026 13:30 TRT — DOM-029 atomik proje kesim planı (Actions bekleniyor)
+## 18 Kasım 2026 13:30 TRT — DOM-029 atomik proje kesim planı (Actions doğrulandı)
 
 - Başlangıç HEAD: 11e2454d41015869a1a6ba4587588e2ff91832e6.
-- Commit SHA: bu kayıt ilk kod commit'ine eklendi; tam SHA ve Actions bağlantıları doğrulama tamamlandığında bu kayda eklenecek.
+- Kod commit'i: [10cc11aad3e4307bbff1129c82a6effb06b3c1fd](https://github.com/Taylan789/MobilyaCAD/commit/10cc11aad3e4307bbff1129c82a6effb06b3c1fd); duplicate-ID tanı sırası düzeltmesi ve doğrulanmış son kod SHA: [76a9e241c2c63b5f99c259cbddabeaac26a9d62b](https://github.com/Taylan789/MobilyaCAD/commit/76a9e241c2c63b5f99c259cbddabeaac26a9d62b).
 - Geliştirme: createProjectSheetCutPlan, createProjectSheetNestingBatches çıktısını groupId ile layout raporlarına bağlar. Layout giriş sırası değişse bile çıktı batch grup sırasını ve kaynak Part ID sırasını korur; her grup createSheetCutPlan ile yeniden doğrulanır; proje JSON v1 serialize/parse round-trip uygulanır.
 - Atomiklik: eksik/çift/fazla/blocked layout, yanlış groupId, batch parça/levha malzeme-kalınlık uyuşmazlığı, duplicate/missing source ID veya excluded/selected ID çakışması tüm sonucu blocked + result:null + json:null yapar.
 - Değişen dosyalar: domain/production/projectSheetCutPlan.ts (yeni), domain/production/projectSheetCutPlan.test.mjs (yeni), .github/workflows/qa-test.yml, docs/production-domain-contract.md, AI_COORDINATION.md, PRODUCT_ROADMAP.md, AI_PROGRESS.md.
-- Otomatik kontroller: commit sonrası CI, QA ve Pages sonuçları bekleniyor; henüz başarılı ilan edilmedi.
+- Otomatik kontroller: son kod SHA için [CI #44287015033](https://github.com/Taylan789/MobilyaCAD/actions/runs/44287015033), [QA #44287015199](https://github.com/Taylan789/MobilyaCAD/actions/runs/44287015199) ve [Pages #44287015031](https://github.com/Taylan789/MobilyaCAD/actions/runs/44287015031) başarılı. QA 102/102 frontend + 355/355 domain testi; strict shared-domain TypeScript, lint, production build ve production dependency audit (0 bulgu) başarılı.
 - Bilinen sınırlar: deterministic shelf heuristic optimal nesting değildir; fire/yield, CNC, kesim sırası/yolu ve makine standardı üretmez. Fiziksel üretim öncesi atölye doğrulaması gerekir.
 - Sonraki görev: DOM-030 — kaydedilmiş proje kesim planını güncel üretim Part snapshot'ına karşı doğrula; stale planı export edilebilir göstermeden engelle.
 
@@ -1145,4 +1145,9 @@
 - [CI #44286822455](https://github.com/Taylan789/MobilyaCAD/actions/runs/44286822455) başarılı; [Pages build #44286822620](https://github.com/Taylan789/MobilyaCAD/actions/runs/44286822620) başarılı.
 - [QA #44286822565](https://github.com/Taylan789/MobilyaCAD/actions/runs/44286822565) başarısız: 354/355 domain testi geçti. Tek hata, duplicate Part ID testinin beklediği duplicate tanısı yerine daha önce çalışan grup sırası tanısını almasıydı; üretim davranışı yine güvenli biçimde blocked idi.
 - Düzeltme: grup sırası denetiminden önce global Part ID tekilliği doğrulanacak şekilde doğrulama sırası değiştirildi. Test kapsamı veya assertion gevşetilmedi; duplicate kimlik testi aynı kaldı.
-- Yeni commit sonrası CI/QA/Pages sonuçları bekleniyor; henüz başarılı ilan edilmedi.
+- Düzeltme commit'i [76a9e24](https://github.com/Taylan789/MobilyaCAD/commit/76a9e241c2c63b5f99c259cbddabeaac26a9d62b) için [CI #44287015033](https://github.com/Taylan789/MobilyaCAD/actions/runs/44287015033), [QA #44287015199](https://github.com/Taylan789/MobilyaCAD/actions/runs/44287015199) ve [Pages #44287015031](https://github.com/Taylan789/MobilyaCAD/actions/runs/44287015031) tamamlandı ve başarılı. QA 102/102 frontend + 355/355 domain; tüm otomatik kalite kapıları geçti.
+
+
+- DOM-029 koordinasyon panosu DONE olarak güncellendi; DOM-030 READY: JSON kesim planını güncel üretim Part snapshot'ına karşı doğrula ve stale planı engelle.
+- AI Developer [#44282900800](https://github.com/Taylan789/MobilyaCAD/actions/runs/44282900800) OpenRouter free-models-per-day 429 kota hatasıyla başarısız; eski SHA rerun edilmedi, yeni dispatch aracı yok. Secret, ücretli kredi veya workflow ayarı değiştirilmedi.
+- INT-001 PR [#61](https://github.com/Taylan789/MobilyaCAD/pull/61) açık; yalnızca frontend/** değişiklikleri var, 13 ahead / 7 behind ve güncel base'e senkronizasyon gerektiriyor. Bu ajan PR'a veya frontend dosyalarına müdahale etmedi. INT-002/PERF-001 sahipliği korunuyor.

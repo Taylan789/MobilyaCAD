@@ -19,7 +19,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 | Parçalar | Görsel kapak/çekmece/raf parçaları; domain gövde, çekmece kutusu, kitaplık, masa, gardırop ve TV ünitesi Part listesi; dikdörtgen iç açıklıklar opsiyonel `ProjectProductionPart.panelGeometry` alanıyla taşınır; banyo dolabı v1 üst panelinde açık ölçülü çoklu dikdörtgen açıklıklar zorunludur | Kesitli Part JSON v1/CSV adapter entegrasyonu henüz ayrı frontend sahibince yapılmadı; diğer aileler, donanım ve CNC operasyonları eksik |
 | Hesap motoru | `cabinetConstruction`, `drawerBoxConstruction`, `bookshelfConstruction`, `tableConstruction`, `wardrobeConstruction`, `tvUnitConstruction` (floor-standing gövde, açık ölçülü raf ve dikey bölücü) ve `bathroom-vanity` (cabinet gövdesi + zorunlu açık ölçülü üst panel açıklığı) aile ayrımlı sürüm 1 proje agregatörü; ortak Part listesi quantity, malzeme, damar yönü ve kenar bantlamayı korur | Frontend adapter henüz domain agregatörünü çağırmıyor; duvar montajlı TV ünitesi/ayak-baza modelleri ve diğer aileler, üreticiye özel konstrüksiyonlar eksik |
 | Kesim listesi | Projedeki desteklenen düz mutfak gövdeleri ve tam tanımlı çekmece parçaları için tek Türkçe Excel uyumlu CSV; her satır kaynak mobilya adı/ID'si ve varsa katalog Malzeme ID değeriyle izlenir | Köşe/cihaz/evye konstrüksiyonları ve diğer aileler eksik |
-| Levha yerleşimi / kesim planı | Deterministik shelf yerleşimi, makine bağımsız kesim planı, kerf/çakışma doğrulaması, opsiyonel kullanıcı trim payı, JSON v1 round-trip ve DOM-026 geometrik brüt/net levha + yerleşen parça alanı özeti | Fire/yield yüzdesi, kesim sırası/yolu ve CNC çıktısı yok |
+| Levha yerleşimi / kesim planı | Deterministik shelf yerleşimi, tek ve çoklu grup makine bağımsız kesim planı, batch→layout→atomik proje planı, kerf/çakışma doğrulaması, opsiyonel trim, JSON v1 round-trip ve DOM-026/027 geometrik alan özetleri | Fire/yield yüzdesi, kesim sırası/yolu ve CNC çıktısı yok |
 | Kenar bantlama / malzeme tüketimi | Domain malzeme özeti gövde, çekmece, kitaplık, masa, gardırop, TV bölücü/raf ve kesitli panellerin ortak Part listesinden quantity ağırlıklı net alan/hacim ve dış/iç kenar bantlamasını hesaplayabilir | Domain özeti henüz UI/JSON/CSV'ye bağlı değil; fire, levha verimi, kerf, bant kalınlığı ve rulo payı yok |
 | Malzeme kataloğu | UI CRUD; mobilya varsayılan materialId ve çekmece grubunda varsayılan + dört panel grubu override; domain gövde/kitaplık motorları altı gövde panel grubu için malzeme override'ını doğrular | Gövde panel override'ları henüz frontend JSON v1/CSV ve UI akışına bağlanmadı; fiyat, tedarikçi ve fire henüz yok |
 | Proje dosyası | Yerel JSON v1 indirme/yükleme; saf serializer/parser; round-trip ve eski v1 uyumluluk; mm, mobilya ve çekmece grubu katalog referansları ile dört çekmece panel kalınlığının doğrulanması | Şema migrasyonu, otomatik kayıt ve kurtarma yok |
@@ -1100,7 +1100,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 
 **Değişen dosyalar:** `domain/production/projectSheetCutPlanFile.ts`, yeni domain testi, `.github/workflows/qa-test.yml`, `docs/production-domain-contract.md`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`. Doğrulama: [son SHA b51c293](https://github.com/Taylan789/MobilyaCAD/commit/b51c293815a11d38215740fa2e17f648271bdafb), [CI #44277876041](https://github.com/Taylan789/MobilyaCAD/actions/runs/44277876041), [QA #44277876003](https://github.com/Taylan789/MobilyaCAD/actions/runs/44277876003) ve [Pages #44277876046](https://github.com/Taylan789/MobilyaCAD/actions/runs/44277876046) başarılı; QA 102/102 frontend + 347/347 domain testi, strict TypeScript/lint/build ve production audit 0 bulgu.
 
-### DOM-029 sonrası sıradaki 3-5 küçük görev
+### DOM-030 sonrası sıradaki 3-5 küçük görev
 1. DOM-030: kaydedilmiş proje kesim planını güncel üretim Part snapshot'ına karşı doğrula; ölçü, adet, malzeme, kalınlık veya damar yönü değişmişse eski planı stale/blocked yap.
 2. INT-001 / PR #61: frontend sahibinin domain raporu ve adapter entegrasyonunu güncel base/Actions kanıtıyla tamamlamasını bekle; bu ajan frontend PR'ını sahiplenmez veya merge etmez.
 3. INT-002 / QA-003: entegrasyon/performance ajanının ayrı adapter PR'ındaki JSON/CSV round-trip ve geometri/adet sadakatini salt okunur doğrula; adapter/test dosya sahipliğine dokunma.
@@ -1108,12 +1108,14 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 5. CNC/postprocessor: gerçek makine/üretici standardı ve fiziksel güvenlik gereksinimleri doğrulanmadan kod üretme.
 
 
-## 18 Kasım 2026 13:30 TRT — DOM-029 atomik proje kesim planı (Actions bekleniyor)
+## 18 Kasım 2026 13:30 TRT — DOM-029 atomik proje kesim planı (Actions doğrulandı)
 
 **Kullanıcı akışı:** seçilmiş proje Part'ları malzeme/kalınlık gruplarına ayrılır; her grubun doğrulanmış batch ve layout raporu tek bir makine bağımsız proje kesim planına bağlanır. Layout eşlemeleri geliş sırasından bağımsızdır; çıktı grup sırasını batch raporundan alır.
 
 **Kabul kriterleri:** her batch grubuna tam bir layout raporu; grup kimliği, kaynak Part sırası, malzeme/kalınlık ve adet tamlığı eşleşmeli; bir blocked/eksik/çift/unknown grup tüm sonucu blocked + result:null + json:null yapmalı; ready sonuç mevcut proje JSON v1 serializer/parser round-trip'inden geçmeli.
 
 **İlk teslimat:** domain API ve regresyon testleri eklendi; QA shared-domain TypeScript listesi ve domain entegrasyon sözleşmesi güncellendi. Actions doğrulaması bu commit için bekleniyor.
+
+**Doğrulama:** ilk kod commit'i [10cc11a](https://github.com/Taylan789/MobilyaCAD/commit/10cc11aad3e4307bbff1129c82a6effb06b3c1fd) için CI ve Pages başarılı, QA 354/355 testte bir assertion tanı sırası farkıyla başarısız oldu. [76a9e24](https://github.com/Taylan789/MobilyaCAD/commit/76a9e241c2c63b5f99c259cbddabeaac26a9d62b) düzeltmesinde test korunarak global duplicate-ID kontrolü grup-sırası kontrolünden önceye alındı. Son SHA için [CI #44287015033](https://github.com/Taylan789/MobilyaCAD/actions/runs/44287015033), [QA #44287015199](https://github.com/Taylan789/MobilyaCAD/actions/runs/44287015199) ve [Pages #44287015031](https://github.com/Taylan789/MobilyaCAD/actions/runs/44287015031) başarılı; QA 102/102 frontend + 355/355 domain, strict shared-domain TypeScript, lint, production build ve production audit 0 bulgu.
 
 **Sınırlar:** nesting halen deterministic shelf heuristic'tir; optimal levha verimi, kesim sırası/testere yolu, CNC/postprocessor veya fiziksel üretim onayı değildir. Frontend ve adapter/performance ajanı dosyaları değiştirilmedi.
