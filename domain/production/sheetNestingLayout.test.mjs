@@ -33,7 +33,8 @@ test("aynı sıradaki parçalar arasında kerf kadar boşluk bırakır", () => {
   assert.equal(r.status, "ready");
   assert.equal(r.result?.sheets.length, 1);
   assert.deepEqual(r.result?.sheets[0].placements.map((p) => p.xMm), [0, 503]);
-  assert.equal(r.result?.sheets[0].placements[1].xMm - r.result?.sheets[0].placements[0].widthMm, 503);
+  const placements = r.result?.sheets[0].placements ?? [];
+  assert.equal(placements[1].xMm - placements[0].xMm - placements[0].widthMm, 3);
 });
 
 test("kerf dahil yatay aralık sığmazsa ikinci levhayı açar", () => {
