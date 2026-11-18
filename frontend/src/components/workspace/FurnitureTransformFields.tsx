@@ -90,7 +90,7 @@ export function FurnitureTransformFields({
         <Move3D />
       </div>
 
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-3 gap-2" role="group" aria-label="Mobilya konumu, milimetre">
         {axes.map((axis) => {
           const inputId = `furniture-position-${axis.key}`;
 
@@ -110,6 +110,7 @@ export function FurnitureTransformFields({
                   inputMode="decimal"
                   step="0.1"
                   value={positionDraft[axis.key]}
+                  aria-describedby="furniture-position-help"
                   aria-label={`${axis.label} ekseni konumu, milimetre`}
                   className="min-w-0 text-right font-mono tabular-nums"
                   onChange={(event) =>
@@ -146,6 +147,8 @@ export function FurnitureTransformFields({
             max="359"
             step="1"
             value={rotationDraft}
+            aria-label="Dönüş açısı, derece"
+            aria-describedby="furniture-rotation-help"
             className="font-mono tabular-nums"
             onChange={(event) => setRotationDraft(event.target.value)}
             onBlur={commitRotation}
@@ -157,9 +160,12 @@ export function FurnitureTransformFields({
         </div>
       </div>
 
-      <p className="cad-field-note">
+      <p className="cad-field-note" id="furniture-position-help">
         X ve Z oda merkezine, Y zeminden nesne merkezine göre ölçülür.
         X ve Z konumları oda sınırlarına göre otomatik sınırlandırılır.
+      </p>
+      <p className="cad-field-note" id="furniture-rotation-help">
+        Dönüş açısı 0–359° aralığında derece olarak uygulanır.
       </p>
     </section>
   );
