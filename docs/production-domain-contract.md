@@ -838,3 +838,14 @@ Kaynak test: `domain/production/projectSpecialPartPricing.test.mjs`.
 - 8 mm özel rafın fiyatı kaldırıldığında tüketim fiyatlandırması ve birleşik teklif `incomplete` döner; eksik `mdf-8 / 8 mm` satırı görünür, `costSummary: null` kalır ve kısmi toplam sunulmaz.
 - Özel raf/bölücü kenar bantları yalnızca test fixture'ında açık `edgeBandingAssignments` ve `pvc-white-1 / m` fiyatıyla karşılanır. Bu fiyatlar gerçek piyasa/tedarikçi fiyatı değildir; ürün varsayılanı veya kullanıcı kataloğu olarak kullanılmaz.
 - Testteki fiyat/ölçü girdileri deterministik kabul fixture'larıdır. Fire, vergi, kur, levha verimi, CNC, makine standardı veya fiziksel üretim uygunluğu iddiası yoktur. Runtime üretim hesap motoru değiştirilmez.
+
+
+## DOM-042 — Gardırop/TV özel Part kesim planı freshness doğrulaması
+
+Kaynak test: domain/production/projectSpecialPartFreshness.test.mjs. Kullanıcı akışı: gardırop ve floor-standing TV ünitesi üretiminden seçili özel raflarla JSON v2 kesim planı oluştur; kaydedilmiş planı aynı proje üretim raporuna karşı yeniden doğrula.
+
+- Test, doğrudan Part fixture'ı yerine calculateCabinetProjectProductionWithDiagnostics gerçek proje agregatörünü kullanır. İki özel raf nesting için seçilir; gardırop ve TV dikey bölücüleri seçilmemiş olsa da JSON v2 tam projectPartSnapshot kapsamındadır.
+- Değişmeyen proje/Part verisi fresh kalır. Dört özel Part türünün (gardırop rafı, gardırop dikey bölücüsü, TV rafı, TV dikey bölücüsü) her biri için materialId, gerçek thicknessMm veya aileye özgü yerleşim alanı değiştirildiğinde freshness stale olmalıdır.
+- Her stale sonuç result ve json alanlarını null tutar; tanı değişen özel Part kimliğini içerir. Böylece seçilmemiş bölücü değişikliği de eski kesim planının sessizce kullanılmasını engeller.
+- Runtime üretim/freshness kodu değiştirilmez; mevcut canonical tam proje snapshot sözleşmesi doğrulanır. Snapshot kriptografik imza değildir.
+- Frontend entegrasyon sözleşmesi değişmez: yalnızca fresh sonucu export edilebilir; stale/blocked durumda kısmi JSON veya CSV indirme açılmamalı ve tanılar gösterilmelidir. CNC, kesim sırası, makine standardı veya fiziksel üretim onayı sağlanmaz.

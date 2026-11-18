@@ -1331,3 +1331,15 @@
 - Bilinen sınırlar: fiyat girdileri yalnızca deterministik test fixture'larıdır; gerçek tedarikçi fiyatı, fire, vergi, kur, levha verimi, CNC/makine standardı veya fiziksel üretim uygunluğu sağlamaz. Kesitli banyo paneli fiyatlaması ve özel Part freshness bu dilimin dışındadır.
 - AI Developer workflow'u yalnızca `workflow_dispatch` ile çalışır; güncel HEAD için aktif AI Developer run yoktur. Eski run [#44374039856](https://github.com/Taylan789/MobilyaCAD/actions/runs/44374039856) OpenRouter günlük 429 kotasıyla başarısızdı; eski SHA üzerinde rerun yapılmadı, workflow dispatch aracı kullanılmadı, secrets/kredi/ayar değiştirilmedi.
 - DOM-041 DONE. Sonraki görev: DOM-042 — özel raf/bölücü materialId, kalınlık veya yerleşim değişikliğinin kayıtlı kesim planı freshness sonucunu stale yapmasını gerçek aile agregatörüyle doğrula.
+
+
+## 19 Kasım 2026 02:12 TRT — DOM-042 özel Part freshness regresyon testi (Actions bekleniyor)
+
+- Başlangıç HEAD: b831ae202175a7ddc6d5ba012797b2386c4f3b08.
+- Kabul: gardırop ve floor-standing TV ünitesinin gerçek proje üretim agregatöründen oluşturulan JSON v2 planı değişmeyen Part snapshot'ında fresh kalmalı; özel raf ve dikey bölücülerde materialId, gerçek mm kalınlık ve aileye özgü yerleşim değişikliklerinin 12 ayrı senaryosunun her biri stale üretmeli.
+- Her stale senaryoda result/json null ve tanı değişen Part ID'sini içermeli. Seçilmemiş bölücüler tam proje snapshot'ı üzerinden kapsanır.
+- Değişen dosyalar: domain/production/projectSpecialPartFreshness.test.mjs (yeni), docs/production-domain-contract.md, AI_COORDINATION.md, PRODUCT_ROADMAP.md, AI_PROGRESS.md.
+- Kod/freshness runtime davranışı, frontend/**, adapter/benchmark, workflow, package/lockfile ve secrets değiştirilmedi. CNC veya fiziksel üretim uygunluğu iddiası yoktur.
+- Commit SHA ve CI/QA/Pages run bağlantıları GitHub push sonucu görüldükten sonra doğrulama kaydına eklenecek; şu an başarılı ilan edilmedi.
+- Bilinen sınır: JSON v2 snapshot canonical veri karşılaştırmasıdır, kriptografik imza değildir. Gerçek makine standardı ve atölye doğrulaması kapsam dışıdır.
+- Sonraki adım: Actions başarılıysa DOM-042'yi DONE olarak kapat ve DOM-043 teklif fiyat snapshot/revizyon kaynak izi testine geç.
