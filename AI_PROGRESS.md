@@ -1321,14 +1321,13 @@
 - Sonraki görev: DOM-041 — özel raf/bölücü Part satırlarını malzeme tüketimi ve kalınlık duyarlı teklif özetine gerçek aile agregatörü üzerinden bağlayarak doğrula.
 
 
-## 19 Kasım 2026 01:43 TRT — DOM-041 özel Part tüketimi ve teklif testi (Actions bekleniyor)
+## 19 Kasım 2026 01:43 TRT — DOM-041 özel Part tüketimi ve teklif testi (Actions doğrulandı)
 
-- Başlangıç HEAD: `831d65e28007ad810a86f25efac7068d3ad50a82`.
-- Bu committe yeni kabul testi `domain/production/projectSpecialPartPricing.test.mjs` eklendi; üretim domain runtime dosyaları değiştirilmedi.
-- Gerçek `calculateCabinetProjectProductionWithDiagnostics` gardırop + floor-standing TV ünitesi istekleriyle çalıştırılır. Dört özel raf/bölücü Part satırının materialId, gerçek mm kalınlık ve quantity değerleri korunur; tüm Part listesi için bağımsız malzeme grubu/net alan hesabı domain özetiyle karşılaştırılır.
-- Kalınlık duyarlı fiyatlandırma ve birleşik teklif katmanı, 18 mm ve 8 mm malzeme fixture fiyatlarıyla doğrulanır. 8 mm özel raf fiyatı eksik bırakıldığında `incomplete`, eksik `mdf-8 / 8 mm` tanısı ve `costSummary: null` beklenir.
+- Başlangıç HEAD: `831d65e28007ad810a86f25efac7068d3ad50a82`; kod/test commit'i: [983e1368a1dde9d70dcf37b58baecd1569269803](https://github.com/Taylan789/MobilyaCAD/commit/983e1368a1dde9d70dcf37b58baecd1569269803).
 - Değişen dosyalar: `domain/production/projectSpecialPartPricing.test.mjs` (yeni), `docs/production-domain-contract.md`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`. Frontend, adapter, production runtime, workflow YAML, package/lockfile ve secrets değiştirilmedi.
-- Kabul: özel Part satırları üretim agregatöründen gelir; malzeme tüketimi tüm Part satırlarını quantity ile toplar; fiyatlar materialId + m2 + thicknessMm ile eşleşir; birleşik teklif kaynak satırları hazır durumda korunur; eksik kalınlık fiyatı kısmi parasal toplamı engeller.
-- GitHub Actions doğrulaması bu committen sonra incelenecek. CI/QA sonucu görülmeden başarılı sayılmayacak; DOM-041 yalnızca gerçek sonuçlar tamamlandıktan sonra DONE yapılacak.
-- Bilinen sınırlar: fiyatlar yalnızca test fixture'ıdır; gerçek tedarikçi fiyatı, fire, vergi, kur, CNC/makine standardı veya fiziksel üretim onayı değildir. Özel raf/bölücü export ve kesim planı freshness akışı bu testin kapsamı değildir.
-- Sıradaki görev: DOM-042 — özel raf/bölücü malzeme, kalınlık veya yerleşim değişikliğinin kayıtlı kesim planını stale yapmasını doğrula.
+- Gerçek `calculateCabinetProjectProductionWithDiagnostics` gardırop + floor-standing TV ünitesi istekleriyle çalıştırıldı. Dört özel raf/bölücü Part satırının materialId, gerçek mm kalınlık ve quantity değerleri korundu; tüm Part listesi için bağımsız malzeme grubu/net alan hesabı domain özetiyle karşılaştırıldı.
+- Kalınlık duyarlı fiyatlandırma ve birleşik teklif katmanı 18 mm/8 mm test fiyatlarıyla doğrulandı. 8 mm özel raf fiyatı eksik bırakıldığında iki katman da `incomplete`, eksik `mdf-8 / 8 mm` tanısı ve `costSummary: null` üretti; kısmi toplam verilmedi.
+- CI [#44414697417](https://github.com/Taylan789/MobilyaCAD/actions/runs/44414697417): **başarılı**. QA [#44414697280](https://github.com/Taylan789/MobilyaCAD/actions/runs/44414697280): **başarılı**, 124/124 frontend + 394/394 domain testi, strict shared-domain TypeScript, lint, frontend TypeScript/production build ve production dependency audit 0 vulnerability. Pages [#44414697288](https://github.com/Taylan789/MobilyaCAD/actions/runs/44414697288): **başarılı**.
+- Bilinen sınırlar: fiyat girdileri yalnızca deterministik test fixture'larıdır; gerçek tedarikçi fiyatı, fire, vergi, kur, levha verimi, CNC/makine standardı veya fiziksel üretim uygunluğu sağlamaz. Kesitli banyo paneli fiyatlaması ve özel Part freshness bu dilimin dışındadır.
+- AI Developer workflow'u yalnızca `workflow_dispatch` ile çalışır; güncel HEAD için aktif AI Developer run yoktur. Eski run [#44374039856](https://github.com/Taylan789/MobilyaCAD/actions/runs/44374039856) OpenRouter günlük 429 kotasıyla başarısızdı; eski SHA üzerinde rerun yapılmadı, workflow dispatch aracı kullanılmadı, secrets/kredi/ayar değiştirilmedi.
+- DOM-041 DONE. Sonraki görev: DOM-042 — özel raf/bölücü materialId, kalınlık veya yerleşim değişikliğinin kayıtlı kesim planı freshness sonucunu stale yapmasını gerçek aile agregatörüyle doğrula.

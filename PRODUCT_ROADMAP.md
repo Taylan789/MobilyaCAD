@@ -388,14 +388,16 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 
 ### Sıradaki 3-5 küçük görev
 
-1. DOM-041: özel raf/bölücü malzeme tüketimi ve kalınlık duyarlı teklif testi — IN PROGRESS, CI/QA bekleniyor.
-2. DOM-042: kayıtlı kesim planında özel raf/bölücü malzeme, kalınlık veya yerleşim değişikliğinin freshness sonucunu stale yaptığını test et.
-3. DOM-043: diğer aileye özgü özel Part alanlarının snapshot kapsamını incele; yalnızca ölçülebilir veri kaybı riski varsa yeni dilim aç.
+1. DOM-042: kayıtlı kesim planında gardırop/TV özel raf ve bölücü materialId, kalınlık veya yerleşim değişiminde freshness sonucunu stale yap.
+2. DOM-043: özel Part tüketim satırlarının teklif fiyat snapshot ve revizyon round-trip kaynak izini korumasını doğrula.
+3. DOM-044: açıklıklı banyo üst panelinin net alan/hacim tüketimi ve kalınlık duyarlı fiyatlandırmasını doğrula.
 
 
-## 19 Kasım 2026 01:43 TRT — DOM-041 özel Part tüketimi ve teklif testi (Actions bekleniyor)
+## 19 Kasım 2026 01:43 TRT — DOM-041 özel Part tüketimi ve teklif testi (Actions doğrulandı)
 
-- Yeni domain regresyon testi: `domain/production/projectSpecialPartPricing.test.mjs`. Gardırop ve TV ünitesi özel raf/bölücü Part satırlarını gerçek proje agregatöründen üretir; tüm üretim Part satırlarının malzeme/kalınlık/quantity/net alan toplamını bağımsız fixture hesabıyla karşılaştırır.
-- Test, 18 mm ve 8 mm katalog malzemelerini ayrı fiyatlandırır; hazır tüketim özeti yanında birleşik teklif satır kaynaklarını da doğrular. 8 mm özel raf fiyatı eksikse her iki katman `incomplete` ve `costSummary: null` döndürür.
-- Runtime üretim kodu değiştirilmedi; frontend/adapter, fiyat kataloğu, gerçek fiyat, CNC veya fiziksel üretim varsayımı eklenmedi.
-- İlk kod/test commit SHA ve Actions sonuçları AI_PROGRESS.md içinde kapanışta kaydedilecek.
+- Başlangıç HEAD: `983e1368a1dde9d70dcf37b58baecd1569269803`; kod/test commit'i: [983e1368a1dde9d70dcf37b58baecd1569269803](https://github.com/Taylan789/MobilyaCAD/commit/983e1368a1dde9d70dcf37b58baecd1569269803).
+- Yeni test `domain/production/projectSpecialPartPricing.test.mjs`, gardırop ve TV ünitesi özel raf/bölücü Part satırlarını gerçek proje agregatöründen üretir; tüm Part listesi için materialId + malzeme + gerçek mm kalınlık + quantity ağırlıklı net alanı bağımsız hesapla karşılaştırır.
+- 18 mm ve 8 mm malzemeler ayrı fiyatlanır; birleşik teklif satır kaynakları doğrulanır. 8 mm özel raf fiyatı kaldırıldığında priced consumption ve quote `incomplete` / `costSummary: null` döndürür.
+- CI [#44414697417](https://github.com/Taylan789/MobilyaCAD/actions/runs/44414697417): başarılı. QA [#44414697280](https://github.com/Taylan789/MobilyaCAD/actions/runs/44414697280): başarılı — **124/124 frontend + 394/394 domain**, shared-domain strict TypeScript, lint, frontend production build ve `npm audit --omit=dev --audit-level=high` başarılı; **0 vulnerability**. Pages [#44414697288](https://github.com/Taylan789/MobilyaCAD/actions/runs/44414697288): başarılı.
+- Runtime üretim kodu, frontend/adapter, workflow, package/lockfile veya secrets değiştirilmedi. Fiyatlar yalnızca test fixture'ıdır; gerçek piyasa fiyatı, CNC/makine standardı veya fiziksel üretim onayı değildir.
+- Sonraki görevler: DOM-042 özel Part freshness; DOM-043 teklif fiyat snapshot/revizyon izi; DOM-044 kesitli banyo paneli tüketim/fiyat doğrulaması.
