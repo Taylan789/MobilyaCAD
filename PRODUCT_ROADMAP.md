@@ -1042,5 +1042,5 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 
 **Sınırlar:** trim yalnızca kullanıcı tarafından verilen kenar payıdır; gerçek kesim fire/yield, kesim yolu, CNC veya makine standardı üretmez. Fiziksel üretim güvenliği operatör doğrulaması gerektirir.
 
-**Değişen dosyalar:** domain/production/sheetNestingLayout.ts, domain/production/sheetNestingLayout.test.mjs, domain/production/sheetCutPlan.ts, domain/production/sheetCutPlan.test.mjs, docs/production-domain-contract.md, AI_COORDINATION.md, PRODUCT_ROADMAP.md. frontend/** ve adapter/performans ajanı dosyaları değiştirilmedi.
-**Doğrulama:** feature commit'i oluşturulduğunda CI/QA sonucu bekleniyor; Actions sonucu görülmeden başarılı sayılmayacaktır.
+**Değişen dosyalar:** domain/production/sheetNestingLayout.ts, domain/production/sheetNestingLayout.test.mjs, domain/production/sheetCutPlan.ts, domain/production/sheetCutPlan.test.mjs, docs/production-domain-contract.md, AI_COORDINATION.md, PRODUCT_ROADMAP.md ve AI_PROGRESS.md. frontend/** ve adapter/performans ajanı dosyaları değiştirilmedi.
+**Doğrulama:** İlk QA #44253336502 yalnızca 0.05 mm test tanısı beklentisi nedeniyle başarısız oldu; kapsam korunarak 48f6be6d ile düzeltildi. Son kod SHA için CI #44253469719, QA #44253469656 ve Pages #44253469658 başarılı. QA 102/102 frontend + 329/329 domain testi, strict shared-domain TypeScript, lint, production build ve production dependency audit 0 bulgu.
