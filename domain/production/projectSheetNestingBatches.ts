@@ -5,6 +5,7 @@ import type {
   SheetNestingBatchResult,
   SheetNestingSheet
 } from "./sheetNestingInput.ts";
+import { createProjectPartSnapshot, type ProjectPartSnapshot } from "./projectPartSnapshot.ts";
 
 export interface ProjectSheetNestingStockDefinition {
   sheet: SheetNestingSheet;
@@ -43,6 +44,8 @@ export interface ProjectSheetNestingBatchesReport {
   sourcePartIds: string[];
   /** Project Part IDs not selected by the caller. */
   excludedPartIds: string[];
+  /** Complete project Part snapshot, including Parts excluded from this nesting selection. */
+  projectPartSnapshot?: ProjectPartSnapshot;
   diagnostics: string[];
 }
 
@@ -204,6 +207,8 @@ export function createProjectSheetNestingBatches(
       }
       sourceIdSet.add(sourcePart.id);
     }
+
+    const projectPartSnapshot = createProjectPartSnapshot(sourceParts.map((sourcePart) => sourcePart.part));
 
     if (request.partIds === undefined) {
       selectedPartIds = sourceParts.map((sourcePart) => sourcePart.id);
@@ -386,6 +391,7 @@ export function createProjectSheetNestingBatches(
       },
       sourcePartIds: selectedPartIds,
       excludedPartIds,
+      projectPartSnapshot,
       diagnostics: []
     };
   } catch (error) {

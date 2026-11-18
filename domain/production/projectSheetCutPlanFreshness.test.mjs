@@ -39,11 +39,12 @@ function productionReport(parts) {
   };
 }
 
-function savedPlan(parts, grainDirectionsByPartId) {
+function buildSavedPlan(parts, grainDirectionsByPartId, partIds) {
   const report = productionReport(parts);
   const batches = createProjectSheetNestingBatches({
     schemaVersion: 1,
     productionReport: report,
+    ...(partIds === undefined ? {} : { partIds }),
     stockSheets: [{
       sheet: {
         materialId: "mdf-18",
@@ -58,19 +59,25 @@ function savedPlan(parts, grainDirectionsByPartId) {
   });
   assert.equal(batches.status, "ready", batches.diagnostics.join(" "));
   assert.ok(batches.result);
-
   const layoutReports = batches.result.batches.map((group) => ({
     groupId: JSON.stringify([group.materialId, Math.round(group.thicknessMm * 10)]),
     layoutReport: calculateSheetNestingLayout(group.batch)
   }));
-  const plan = createProjectSheetCutPlan({
-    schemaVersion: 1,
-    batchReport: batches,
-    layoutReports
-  });
+  const plan = createProjectSheetCutPlan({ schemaVersion: 1, batchReport: batches, layoutReports });
   assert.equal(plan.status, "ready", plan.diagnostics.join(" "));
   assert.ok(plan.json);
   return plan.json;
+}
+
+function savedPlan(parts, grainDirectionsByPartId) {
+  const envelope = JSON.parse(buildSavedPlan(parts, grainDirectionsByPartId));
+  delete envelope.result.projectPartSnapshot;
+  envelope.formatVersion = 1;
+  return JSON.stringify(envelope);
+}
+
+function savedPlanV2(parts, grainDirectionsByPartId, partIds) {
+  return buildSavedPlan(parts, grainDirectionsByPartId, partIds);
 }
 
 function assertNotFresh(result, status) {
@@ -79,6 +86,62 @@ function assertNotFresh(result, status) {
   assert.equal(result.json, null);
   assert.ok(result.diagnostics.length > 0);
 }
+
+test("JSON v2 seçilmemiş Part ekleme/silme/değişim ve seçim kapsamı değişikliğinde stale olur", () => {
+  const selectedPart = part();
+  const excludedPart = part({
+    id: "excluded-part", name: "Hariç parça", material: "Kontrplak",
+    materialId: "plywood-8", thickness: 8, grainDirection: "width"
+  });
+  const parts = [selectedPart, excludedPart];
+  const json = savedPlanV2(parts, undefined, ["part-1"]);
+  const selectedIds = ["part-1"];
+  const fresh = validateProjectSheetCutPlanFreshness({
+    schemaVersion: 1, savedPlanJson: json, productionReport: productionReport(parts),
+    currentSelectedPartIds: selectedIds
+  });
+  assert.equal(fresh.status, "fresh");
+  const added = validateProjectSheetCutPlanFreshness({
+    schemaVersion: 1, savedPlanJson: json,
+    productionReport: productionReport([...parts, part({ id: "new-part" })]),
+    currentSelectedPartIds: selectedIds
+  });
+  assertNotFresh(added, "stale");
+  assert.match(added.diagnostics.join(" "), /yeni Part eklendi/);
+  const removed = validateProjectSheetCutPlanFreshness({
+    schemaVersion: 1, savedPlanJson: json, productionReport: productionReport([selectedPart]),
+    currentSelectedPartIds: selectedIds
+  });
+  assertNotFresh(removed, "stale");
+  assert.match(removed.diagnostics.join(" "), /Part silindi/);
+  const changedExcluded = validateProjectSheetCutPlanFreshness({
+    schemaVersion: 1, savedPlanJson: json,
+    productionReport: productionReport([selectedPart, part({
+      id: "excluded-part", name: "Hariç parça", material: "Kontrplak",
+      materialId: "plywood-8", thickness: 8, grainDirection: "width", quantity: 4
+    })]),
+    currentSelectedPartIds: selectedIds
+  });
+  assertNotFresh(changedExcluded, "stale");
+  assert.match(changedExcluded.diagnostics.join(" "), /excluded-part üretim Part snapshot'ı değişmiş/);
+  const reordered = validateProjectSheetCutPlanFreshness({
+    schemaVersion: 1, savedPlanJson: json, productionReport: productionReport([excludedPart, selectedPart]),
+    currentSelectedPartIds: selectedIds
+  });
+  assertNotFresh(reordered, "stale");
+  assert.match(reordered.diagnostics.join(" "), /sırası değişmiş/);
+  const selectionChanged = validateProjectSheetCutPlanFreshness({
+    schemaVersion: 1, savedPlanJson: json, productionReport: productionReport(parts),
+    currentSelectedPartIds: ["part-1", "excluded-part"]
+  });
+  assertNotFresh(selectionChanged, "stale");
+  assert.match(selectionChanged.diagnostics.join(" "), /seçim kapsamı/);
+  const missingSelection = validateProjectSheetCutPlanFreshness({
+    schemaVersion: 1, savedPlanJson: json, productionReport: productionReport(parts)
+  });
+  assertNotFresh(missingSelection, "blocked");
+  assert.match(missingSelection.diagnostics.join(" "), /currentSelectedPartIds/);
+});
 
 test("değişmeyen seçili Part snapshot'ı kaydedilmiş proje kesim planını fresh tutar", () => {
   const report = productionReport([part()]);

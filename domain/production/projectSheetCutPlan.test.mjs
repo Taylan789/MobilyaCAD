@@ -109,6 +109,9 @@ test("çoklu batch ve layout raporu tek proje planında grup sırasını, kaynak
   assert.equal(result.status, "ready");
   assert.deepEqual(result.sourcePartIds, ["mdf-part", "plywood-part"]);
   assert.deepEqual(result.excludedPartIds, ["excluded-part"]);
+  assert.deepEqual(result.result.projectPartSnapshot?.parts.map((entry) => entry.id), [
+    "mdf-part", "plywood-part", "excluded-part"
+  ]);
   assert.deepEqual(result.result.groups.map((group) => group.groupId), [
     JSON.stringify(["mdf-18", 180]),
     JSON.stringify(["plywood-8", 80])

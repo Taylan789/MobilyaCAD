@@ -5,6 +5,7 @@ import {
   type ProjectSheetCutPlanFileResult
 } from "./projectSheetCutPlanFile.ts";
 import type { SheetGrainDirection } from "./sheetNestingInput.ts";
+import { compareProjectPartSnapshots, createProjectPartSnapshot } from "./projectPartSnapshot.ts";
 
 export interface ProjectSheetCutPlanFreshnessRequest {
   schemaVersion: 1;
@@ -18,6 +19,8 @@ export interface ProjectSheetCutPlanFreshnessRequest {
    * Part whose saved effective direction differs from its current stored value.
    */
   grainDirectionsByPartId?: Readonly<Record<string, SheetGrainDirection>>;
+  /** Required for v2 plans: the current user selection in project Part order. */
+  currentSelectedPartIds?: readonly string[];
 }
 
 export type ProjectSheetCutPlanFreshnessReport =
@@ -122,7 +125,7 @@ export function validateProjectSheetCutPlanFreshness(
     const request = record(value, "Proje kesim planı güncellik isteği");
     closed(
       request,
-      ["schemaVersion", "savedPlanJson", "productionReport", "grainDirectionsByPartId"],
+      ["schemaVersion", "savedPlanJson", "productionReport", "grainDirectionsByPartId", "currentSelectedPartIds"],
       "Proje kesim planı güncellik isteği"
     );
     if (request.schemaVersion !== 1) {
@@ -166,6 +169,35 @@ export function validateProjectSheetCutPlanFreshness(
     const productionResult = record(productionReport.result, "Güncel proje üretim sonucu");
     if (productionResult.schemaVersion !== 1 || !Array.isArray(productionResult.parts)) {
       throw new Error("Güncel proje üretim sonucu geçerli bir v1 Part listesi taşımalıdır.");
+    }
+
+    if (parsedPlan.result.projectPartSnapshot !== undefined) {
+      if (!Array.isArray(request.currentSelectedPartIds)) {
+        return notFresh(
+          "blocked",
+          ["Proje kesim planı JSON v2 freshness doğrulaması için güncel currentSelectedPartIds listesi gereklidir."],
+          sourcePartIds
+        );
+      }
+      const currentSelectedPartIds = request.currentSelectedPartIds.map((rawId, index) =>
+        identifier(rawId, "Güncel seçili Part ID " + (index + 1))
+      );
+      if (new Set(currentSelectedPartIds).size !== currentSelectedPartIds.length) {
+        throw new Error("Güncel seçili Part ID listesinde yinelenen kimlik var.");
+      }
+      if (
+        currentSelectedPartIds.length !== sourcePartIds.length ||
+        currentSelectedPartIds.some((id, index) => id !== sourcePartIds[index])
+      ) {
+        return notFresh(
+          "stale",
+          ["Güncel kullanıcı Part seçim kapsamı kaydedilmiş kesim planıyla eşleşmiyor."],
+          sourcePartIds
+        );
+      }
+      const currentProjectSnapshot = createProjectPartSnapshot(productionResult.parts);
+      const comparison = compareProjectPartSnapshots(parsedPlan.result.projectPartSnapshot, currentProjectSnapshot);
+      if (comparison.changed) return notFresh("stale", comparison.diagnostics, sourcePartIds);
     }
 
     if (productionReport.status === "empty") {

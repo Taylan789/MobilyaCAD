@@ -101,6 +101,9 @@ test("malzeme ve kalınlık grupları ayrı kullanıcı levha/kerf tanımlarıyl
     "mdf-8-back"
   ]);
   assert.deepEqual(result.excludedPartIds, []);
+  assert.deepEqual(result.projectPartSnapshot?.parts.map((entry) => entry.id), [
+    "mdf-18-side", "plywood-18-shelf", "mdf-8-back"
+  ]);
   assert.deepEqual(
     result.result?.batches.map((batch) => [batch.materialId, batch.thicknessMm]),
     [["mdf-18", 18], ["plywood-18", 18], ["mdf-18", 8]]
@@ -157,6 +160,10 @@ test("açık Part seçimi dışarıdaki kesitli ve farklı malzemeli parçaları
   assert.equal(result.status, "ready");
   assert.deepEqual(result.sourcePartIds, ["selected-part"]);
   assert.deepEqual(result.excludedPartIds, ["excluded-cutout", "excluded-other"]);
+  assert.deepEqual(result.projectPartSnapshot?.parts.map((entry) => entry.id), [
+    "selected-part", "excluded-cutout", "excluded-other"
+  ]);
+  assert.match(result.projectPartSnapshot?.parts[1]?.snapshot ?? "", /panelGeometry/);
   assert.equal(result.result?.batches.length, 1);
 });
 

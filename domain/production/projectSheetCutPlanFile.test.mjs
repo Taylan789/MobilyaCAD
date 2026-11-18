@@ -236,6 +236,38 @@ test("parser nested plan içindeki değiştirilmiş placement ve grup kimliğini
   assert.equal(parseProjectSheetCutPlanJson(JSON.stringify(wrongGroup)).status, "blocked");
 });
 
+test("JSON v2 tam proje Part snapshot'ını round-trip korur ve eksik snapshot'ı reddeder", () => {
+  const first = makeCutPlan({ id: "part-mdf", materialId: "mdf-18" });
+  const second = makeCutPlan({ id: "part-plywood", materialId: "plywood-8" });
+  const projectPartSnapshot = {
+    schemaVersion: 1,
+    parts: [
+      { id: "part-mdf", snapshot: '{"id":"part-mdf","width":200}' },
+      { id: "part-plywood", snapshot: '{"id":"part-plywood","width":200}' },
+      { id: "excluded-part", snapshot: '{"id":"excluded-part","width":400}' }
+    ]
+  };
+  const serialized = serializeProjectSheetCutPlanJson(report({
+    schemaVersion: 1,
+    sourcePartIds: ["part-mdf", "part-plywood"],
+    groups: [group(first), group(second)],
+    projectPartSnapshot
+  }));
+  assert.equal(serialized.status, "ready");
+  assert.ok(serialized.json);
+  const envelope = JSON.parse(serialized.json);
+  assert.equal(envelope.formatVersion, 2);
+  const parsed = parseProjectSheetCutPlanJson(serialized.json);
+  assert.equal(parsed.status, "ready");
+  assert.deepEqual(parsed.result?.projectPartSnapshot, projectPartSnapshot);
+  const missingSnapshot = structuredClone(envelope);
+  delete missingSnapshot.result.projectPartSnapshot;
+  assert.equal(parseProjectSheetCutPlanJson(JSON.stringify(missingSnapshot)).status, "blocked");
+  const legacyWithV2Field = structuredClone(envelope);
+  legacyWithV2Field.formatVersion = 1;
+  assert.equal(parseProjectSheetCutPlanJson(JSON.stringify(legacyWithV2Field)).status, "blocked");
+});
+
 test("blocked rapor JSON üretmez ve serializer bilinmeyen rapor alanlarını reddeder", () => {
   const blockedReport = {
     schemaVersion: 1,

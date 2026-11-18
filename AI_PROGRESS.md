@@ -1164,3 +1164,15 @@
 - AI Developer [#44282900800](https://github.com/Taylan789/MobilyaCAD/actions/runs/44282900800) OpenRouter free-models-per-day 429 (50/50) nedeniyle başarısız. Eski checkout üzerinde rerun yapılmadı; güncel SHA için dispatch aracı yok, secrets/ayar/ücretli kredi değiştirilmedi.
 - Bilinen sınırlar: JSON v1 yalnızca seçili `sourcePartIds` listesini saklar; seçilmemiş Part ekleme/silme bu API'nin kapsamı değildir. Legacy Part damar yönü kayıtta yoksa aynı açık grain override tekrar verilmelidir. Bu doğrulama CNC, kesim sırası/yolu veya fiziksel üretim onayı değildir.
 - Sonraki görev: DOM-031 — sürümlü plan zarfında tam proje Part snapshot kimliği/özeti saklayarak seçilmemiş Part kapsamı değişikliklerini de yakala; ardından frontend sahibine fresh/stale/blocked entegrasyon sözleşmesini aktar.
+
+
+## 18 Kasım 2026 15:22 TRT — DOM-031 tam proje Part snapshot'ı (Actions doğrulaması bekleniyor)
+
+- Başlangıç `dev/github-work` HEAD: `1c63c5fba7815cc2a52284ae592e8a8810dbf16f`.
+- Bütün üretim Part kayıtları (seçili ve hariç) kanonik JSON snapshot'ında saklanır; yeni proje kesim planları formatVersion 2 üretir. v1 parser/serializer davranışı korunur.
+- Freshness v2 çağrısı `currentSelectedPartIds` alanını zorunlu alır. Seçim kapsamı uyuşmazlığı stale; bu girdi yoksa blocked; tam proje snapshot'ında ekleme/silme/sıra/alan değişimi stale ve sonuçsuz olur.
+- Değişen dosyalar: `domain/production/projectPartSnapshot.ts` (+ test), `projectSheetNestingBatches.ts` (+ test), `projectSheetCutPlanFile.ts` (+ test), `projectSheetCutPlan.ts` (+ test), `projectSheetCutPlanFreshness.ts` (+ test), `.github/workflows/qa-test.yml`, `docs/production-domain-contract.md`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`.
+- Commit SHA ve gerçek CI/QA/Pages sonuçları Actions tamamlandığında eklenecek; bu aşamada testler başarılı ilan edilmedi.
+- AI Developer [#44282900800](https://github.com/Taylan789/MobilyaCAD/actions/runs/44282900800) iki job'da OpenRouter free-models-per-day 429 (50/50, kalan 0) nedeniyle başarısız. Loglar incelendi; kota sıfırken rerun aynı hatayı tekrarlayacağından yapılmadı. Reset 19 Kasım 2026 03:00 TRT; secrets/ayar/ücretli kredi değiştirilmedi.
+- Bilinen sınırlar: snapshot kriptografik imza değildir; v1 planlar yalnızca seçili Part freshness davranışını korur; fiziksel CNC/atölye doğrulaması bu modelin kapsamı değildir.
+- Sonraki görev: DOM-032 — proje kesim planı dışa aktarımını freshness doğrulaması olmadan ready kabul etmeyen tek domain kapısı.

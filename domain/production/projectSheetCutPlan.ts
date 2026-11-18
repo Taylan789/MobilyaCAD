@@ -5,6 +5,7 @@ import {
 } from "./projectSheetCutPlanFile.ts";
 import { createSheetCutPlan } from "./sheetCutPlan.ts";
 import type { ProjectSheetNestingBatchesReport } from "./projectSheetNestingBatches.ts";
+import { validateProjectPartSnapshot } from "./projectPartSnapshot.ts";
 import type { SheetNestingLayoutReport } from "./sheetNestingLayout.ts";
 
 export interface ProjectSheetCutPlanLayoutInput {
@@ -292,7 +293,7 @@ export function createProjectSheetCutPlan(value: unknown): ProjectSheetCutPlanRe
     const batchReport = record(request.batchReport, "Proje nesting batch raporu");
     closed(
       batchReport,
-      ["schemaVersion", "status", "result", "sourcePartIds", "excludedPartIds", "diagnostics"],
+      ["schemaVersion", "status", "result", "sourcePartIds", "excludedPartIds", "projectPartSnapshot", "diagnostics"],
       "Proje nesting batch raporu"
     );
     if (batchReport.schemaVersion !== 1) {
@@ -313,6 +314,14 @@ export function createProjectSheetCutPlan(value: unknown): ProjectSheetCutPlanRe
     }
 
     const groups = validateBatchGroups(batchReport, sourcePartIds, excludedPartIds);
+    const projectPartSnapshot = validateProjectPartSnapshot(batchReport.projectPartSnapshot);
+    const representedPartIds = new Set([...sourcePartIds, ...excludedPartIds]);
+    if (
+      projectPartSnapshot.parts.length !== representedPartIds.size ||
+      projectPartSnapshot.parts.some((part) => !representedPartIds.has(part.id))
+    ) {
+      throw new Error("Proje Part snapshot seçili ve hariç tutulan kaynak Part kimliklerinin tam kümesiyle eşleşmiyor.");
+    }
     if (request.layoutReports.length !== groups.length) {
       throw new Error("Her nesting batch grubu için tam bir layout raporu sağlanmalıdır.");
     }
@@ -364,7 +373,8 @@ export function createProjectSheetCutPlan(value: unknown): ProjectSheetCutPlanRe
     const fileResult: ProjectSheetCutPlanFileResult = {
       schemaVersion: 1,
       sourcePartIds,
-      groups: fileGroups
+      groups: fileGroups,
+      projectPartSnapshot
     };
     const serialized = serializeProjectSheetCutPlanJson({
       schemaVersion: 1,

@@ -1,4 +1,5 @@
 import { calculateProjectSheetCutPlanAreaSummary } from "./projectSheetCutPlanAreaSummary.ts";
+import { validateProjectPartSnapshot, type ProjectPartSnapshot } from "./projectPartSnapshot.ts";
 import {
   parseSheetCutPlanJson,
   type SheetCutPlanResult,
@@ -20,6 +21,8 @@ export interface ProjectSheetCutPlanFileResult {
   /** Selected project Part IDs in their original project order. */
   sourcePartIds: string[];
   groups: ProjectSheetCutPlanFileGroup[];
+  /** Present in JSON formatVersion 2; absent in legacy v1 files. */
+  projectPartSnapshot?: ProjectPartSnapshot;
 }
 
 export type ProjectSheetCutPlanFileReport =
@@ -69,7 +72,7 @@ function errorMessage(error: unknown): string {
 function validateProjectSheetCutPlanFileResult(value: unknown): ProjectSheetCutPlanFileReport {
   try {
     const result = record(value, "Proje kesim planı JSON sonucu");
-    closed(result, ["schemaVersion", "sourcePartIds", "groups"], "Proje kesim planı JSON sonucu");
+    closed(result, ["schemaVersion", "sourcePartIds", "groups", "projectPartSnapshot"], "Proje kesim planı JSON sonucu");
     if (result.schemaVersion !== 1) {
       throw new Error("Desteklenmeyen proje kesim planı sonuç şema sürümü.");
     }
@@ -128,6 +131,17 @@ function validateProjectSheetCutPlanFileResult(value: unknown): ProjectSheetCutP
       });
     }
 
+    const projectPartSnapshot = result.projectPartSnapshot === undefined
+      ? undefined
+      : validateProjectPartSnapshot(result.projectPartSnapshot);
+    if (projectPartSnapshot) {
+      const snapshotIds = new Set(projectPartSnapshot.parts.map((part) => part.id));
+      const missingPartIds = sourcePartIds.filter((id) => !snapshotIds.has(id));
+      if (missingPartIds.length > 0) {
+        throw new Error("Proje Part snapshot seçili kaynak Part ID'lerini içermiyor: " + missingPartIds.join(", ") + ".");
+      }
+    }
+
     const summary = calculateProjectSheetCutPlanAreaSummary({
       schemaVersion: 1,
       sourcePartIds,
@@ -138,10 +152,18 @@ function validateProjectSheetCutPlanFileResult(value: unknown): ProjectSheetCutP
     }
 
     if (summary.status === "empty") {
+      if (projectPartSnapshot && projectPartSnapshot.parts.length > 0) {
+        throw new Error("Empty proje kesim planı boş olmayan proje Part snapshot'ı taşıyamaz.");
+      }
       return {
         schemaVersion: 1,
         status: "empty",
-        result: { schemaVersion: 1, sourcePartIds: [], groups: [] },
+        result: {
+          schemaVersion: 1,
+          sourcePartIds: [],
+          groups: [],
+          ...(projectPartSnapshot === undefined ? {} : { projectPartSnapshot })
+        },
         diagnostics: []
       };
     }
@@ -170,7 +192,8 @@ function validateProjectSheetCutPlanFileResult(value: unknown): ProjectSheetCutP
       result: {
         schemaVersion: 1,
         sourcePartIds: summary.result.sourcePartIds,
-        groups: normalizedGroups
+        groups: normalizedGroups,
+        ...(projectPartSnapshot === undefined ? {} : { projectPartSnapshot })
       },
       diagnostics: []
     };
@@ -187,10 +210,21 @@ export function parseProjectSheetCutPlanJson(value: unknown): ProjectSheetCutPla
     }
     const envelope = record(JSON.parse(value) as unknown, "Proje kesim planı JSON zarfı");
     closed(envelope, ["format", "formatVersion", "result"], "Proje kesim planı JSON zarfı");
-    if (envelope.format !== "MobilyaCADProjectSheetCutPlan" || envelope.formatVersion !== 1) {
+    if (
+      envelope.format !== "MobilyaCADProjectSheetCutPlan" ||
+      (envelope.formatVersion !== 1 && envelope.formatVersion !== 2)
+    ) {
       throw new Error("Desteklenmeyen proje kesim planı JSON formatı veya sürümü.");
     }
-    return validateProjectSheetCutPlanFileResult(envelope.result);
+    const validated = validateProjectSheetCutPlanFileResult(envelope.result);
+    if (validated.status === "blocked" || validated.result === null) return validated;
+    if (envelope.formatVersion === 2 && validated.result.projectPartSnapshot === undefined) {
+      throw new Error("Proje kesim planı JSON v2 tam proje Part snapshot'ı taşımalıdır.");
+    }
+    if (envelope.formatVersion === 1 && validated.result.projectPartSnapshot !== undefined) {
+      throw new Error("Proje kesim planı JSON v1 yeni snapshot alanını taşıyamaz.");
+    }
+    return validated;
   } catch (error) {
     return blocked(errorMessage(error));
   }
@@ -233,7 +267,7 @@ export function serializeProjectSheetCutPlanJson(value: unknown): ProjectSheetCu
 
     const json = JSON.stringify({
       format: "MobilyaCADProjectSheetCutPlan",
-      formatVersion: 1,
+      formatVersion: validated.result.projectPartSnapshot === undefined ? 1 : 2,
       result: validated.result
     });
     const roundTrip = parseProjectSheetCutPlanJson(json);

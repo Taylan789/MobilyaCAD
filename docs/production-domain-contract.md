@@ -709,3 +709,14 @@ Kaynak: `domain/production/projectSheetCutPlanFreshness.ts`.
 UI sözleşmesi: `fresh` dışa aktarılabilir plan durumu; `stale` ve `blocked` durumlarında JSON/CSV/CNC dışa aktarımı kapalı kalmalı, tanılar kullanıcıya gösterilmelidir. Bu domain commit'i hiçbir `frontend/**` dosyasını değiştirmez.
 
 Bu doğrulama makine bağımsız dikdörtgen kesim planı tazeliğidir; CNC, testere yolu/sırası, fire/yield, makine standardı veya fiziksel üretim onayı değildir.
+
+## DOM-031 — Tam proje Part snapshot'ı ve kesim planı JSON v2
+
+Kaynaklar: `domain/production/projectPartSnapshot.ts`, `projectSheetNestingBatches.ts`, `projectSheetCutPlanFile.ts` ve `projectSheetCutPlanFreshness.ts`.
+
+- `createProjectSheetNestingBatches` seçilen parçaların yanında üretim raporundaki bütün Part kayıtlarını proje sırasıyla kanonik JSON snapshot'ında taşır. Snapshot seçilmemiş, kesitli veya farklı malzemeli Part kayıtlarını da kapsar; her Part kimliği benzersiz olmalıdır.
+- `createProjectSheetCutPlan` seçili + hariç tutulan Part ID kümelerinin tam snapshot kapsamıyla eşleşmesini doğrular. Yeni planlar `MobilyaCADProjectSheetCutPlan` formatVersion 2 üretir; v2 tam proje Part snapshot'ını içerir.
+- Parser/serializer legacy formatVersion 1 dosyalarını okumaya devam eder. v1 snapshot alanı taşıyamaz; v2 dosyalarında snapshot zorunludur. İç kesim planı geometrisi ve grup/Part doğrulamaları korunur.
+- `validateProjectSheetCutPlanFreshness` v2 için güncel `currentSelectedPartIds` listesini proje sırasıyla zorunlu ister. Seçim kapsamı farklıysa `stale`; liste verilmezse `blocked`; tam proje snapshot'ında Part ekleme, silme, sıra veya herhangi bir Part alanı değişikliği varsa `stale` ve `result/json: null` döner.
+- Snapshot kriptografik imza değildir; canonical JSON eşitliğiyle veri değişimini tespit eder. Kaydedilmiş v1 planlar geriye uyumlu biçimde parse edilir ve eski seçili-Part freshness davranışını korur.
+- Bu model kesim sırası, testere yolu, fire/yield, CNC/postprocessor, makine standardı veya fiziksel üretim onayı üretmez; fiziksel kesim öncesi operatör/atölye doğrulaması gerekir.
