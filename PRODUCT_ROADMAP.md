@@ -949,3 +949,21 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 3. INT-002 / QA-003: entegrasyon-performans ajanının kendi dalındaki adapter round-trip ve veri sadakati kanıtını bekle; aynı test/adapter dosyalarına dokunma.
 4. DOM-021: açık Part seçimi ve excluded ID listesini koruyarak malzeme + kalınlık bazında batch gruplama; her grup için kullanıcı tarafından sağlanan ayrı levha/kerf/grain tanımı iste.
 5. DOM-022: DOM-021 sonrasında, kerf uygulama kuralı ve 0/90 grain kısıtları test edilmiş deterministik 2D yerleşim motoru; üretici/makine standardı veya fire oranı varsayma.
+
+
+## 18 Kasım 2026 05:38 TRT — DOM-021 çoklu malzeme/kalınlık levha batch grupları
+
+- Kullanıcı akışı: üretim sorumlusu projedeki bütün Part satırlarını veya açık bir alt kümeyi seçer; sistem seçili parçaları katalog materialId ve 0.1 mm'ye normalize edilmiş kalınlığa göre deterministik gruplar. Her grup için ayrı levha ölçüsü, kerf ve levha damar yönü kullanıcı tarafından sağlanır.
+- Kabul kriterleri: Part ID ve quantity kayıpsız korunur; seçilmeyen ID'ler tek bir excludedPartIds listesinde görünür; her grup için tam bir levha tanımı gerekir; eksik, yinelenen veya kullanılmayan tanım reddedilir; grain override yalnızca kendi grubundaki Part ID'lerine uygulanır.
+- Herhangi bir grup blocked ise aggregate result null olur; diğer grupların geçerli görünümlü kısmi girdileri dışarı verilmez. Tek-grup doğrulaması mevcut createProjectSheetNestingInput / validateSheetNestingInput üzerinden yapılır.
+- Yeni domain modülü: domain/production/projectSheetNestingBatches.ts. Otomatik test: domain/production/projectSheetNestingBatches.test.mjs. QA shared-domain strict TypeScript listesine modül eklenir.
+- Sınırlar: kerf doğrulanıp batch içinde saklanır ancak henüz yerleşimde tüketilmez; koordinat, optimizasyon, fire/yield, kesim sırası veya CNC/postprocessor üretilmez. Fiziksel üretim güvenliği ve makine standardı iddia edilmez.
+- Kod commit'i oluşturulduğunda Actions doğrulaması bekleniyor; CI/QA sonucu görülmeden DONE sayılmayacaktır.
+
+### DOM-021 sonrası sıradaki küçük işler
+
+1. DOM-022: her malzeme/kalınlık batch'inde kullanıcı levha ölçüsü, kerf ve grain kısıtlarını tüketen deterministik 2D dikdörtgen yerleşim motoru; adetleri güvenli biçimde ele al, kesitli geometriyi blocked tut, koordinat ve fire/yield hesabını ayrı kabul kriterlerine bağla.
+2. DOM-023: yerleşim çıktısı için makine bağımsız kesim planı veri modeli; operasyon ve CNC formatı üretmeden parça/levha koordinatlarını, dönüşleri ve kaynak ID'lerini doğrula.
+3. INT-001 / PR #61: frontend sahibinin dal senkronizasyonu ve güncel Actions doğrulamasını bekle; bu domain ajanı frontend PR'ını değiştirmez veya merge etmez.
+4. INT-002 / QA-003: entegrasyon-performans ajanının ayrı dalındaki adapter round-trip kanıtı geldikten sonra salt okunur QA entegrasyon denetimi; adapter/test dosyalarına dokunma.
+5. AI Developer: OpenRouter free-models-per-day kotası 429 ile dolu; reset 19 Kasım 2026 03:00 TRT olduğundan reset öncesi rerun yapılmayacak.

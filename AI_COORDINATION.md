@@ -1,4 +1,5 @@
-# MobilyaCAD — AI Coordination Board
+| DOM-020 | Proje Part listesini açık seçim, kaynak kimliği ve quantity koruyarak tek levha nesting girdisine bağla | Ürün Geliştirme | DONE | [özellik 184e4e75](https://github.com/Taylan789/MobilyaCAD/commit/184e4e75e3a0f96e5f7d39b21b5ed2db36e3639f), [düzeltme c67c328](https://github.com/Taylan789/MobilyaCAD/commit/c67c328610ee3e48d0387b2911418a12ec98790b); [CI #44217510325](https://github.com/Taylan789/MobilyaCAD/actions/runs/44217510325), [QA #44217510203](https://github.com/Taylan789/MobilyaCAD/actions/runs/44217510203) başarılı — 102/102 frontend + 278/278 domain, audit 0 bulgu |
+| DOM-021 | Proje Part seçimini materialId + normalize kalınlık gruplarına ayır; her grup için ayrı kullanıcı levha/kerf/damar tanımı doğrula | Ürün Geliştirme | IN_PROGRESS — commit sonrası CI/QA bekleniyor | Kaynak Part ID/adet korunumu; eksik/çift/boş levha tanımı ve tek grup hatasında tüm sonuç blocked; Actions kanıtı bekleniyor |
 
 Bu dosya dört geliştirme/denetim rolünün ortak görev panosu ve entegrasyon sözleşmesidir.
 Çalışma hedefi `dev/github-work`. `main` üzerinde ürün kodu veya ajan geliştirme dosyası değiştirilmez.

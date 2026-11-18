@@ -571,3 +571,18 @@ Kaynak: `domain/production/projectSheetNestingInput.ts`
 - Seçili Part satırında `panelGeometry` veya rectangular dışı açık geometri bulunursa batch blocked olur; açık seçim dışında kalan Part satırları (kesitli olanlar dahil) `excludedPartIds` ile korunur ve seçili batch'i etkilemez.
 - Batch, mevcut `validateSheetNestingInput` üzerinden 0.1 mm normalizasyonu, pozitif güvenli integer quantity, tek malzeme/kalınlık ve grain uyumlu 0/90 derece zarf sığması denetiminden geçer. Bir hata tüm sonucu blocked ve `result: null` yapar.
 - Bu API yerleşim algoritması değildir: kerf doğrulanıp saklanır ama yerleşimde tüketilmez; koordinat, levha verimi/fire, kesim sırası, CNC/postprocessor veya makine standardı üretmez. Donanım ve kenar bandı BOM'u bu batch sözleşmesinin dışındadır.
+
+
+## DOM-021 — Proje Part listesini malzeme/kalınlık levha batch gruplarına ayırma
+
+Kaynak: domain/production/projectSheetNestingBatches.ts, createProjectSheetNestingBatches.
+
+İstek sözleşmesi v1:
+- productionReport, hazır v1 proje üretim raporudur.
+- partIds verilmezse bütün Part satırları seçilir; verilirse boş olmayan, benzersiz ve raporda bulunan ID listesi gerekir. Çıktı seçili ve hariç tutulan ID'leri proje kaynak sırasıyla korur.
+- stockSheets, her seçili materialId + 0.1 mm'ye normalize edilmiş thicknessMm grubu için tam bir kullanıcı tanımlı kayıt içermelidir. Her kayıt kendi sheet ve kerfMm değerini taşır; opsiyonel grainDirectionsByPartId yalnızca o grubun Part kimliklerine uygulanabilir.
+- Parçalar otomatik olarak katalog materialId ve aynı 0.1 mm kalınlık anahtarına göre gruplanır. Malzeme metninden katalog kimliği türetilmez; fiyat, levha ölçüsü, kerf veya damar yönü varsayılmaz.
+- Eksik, yinelenen veya seçili gruba karşılık gelmeyen levha tanımı; başka gruba ait grain override; geçersiz geometri, ölçü, adet veya tek levha doğrulama hatası aggregate sonucu blocked yapar. Herhangi bir hata varsa result null'dır; geçerli görünen diğer gruplar kısmi sonuç olarak döndürülmez.
+- Grup sırası, seçili Part listesindeki ilk kaynak görünümüne göre deterministiktir. Her grup mevcut createProjectSheetNestingInput ve validateSheetNestingInput doğrulayıcılarından geçer; ID, quantity, mm ölçüleri, malzeme ve kalınlık doğrulaması tekrar yazılmaz.
+- Bu dilim yalnızca çoklu levha batch girdisini doğrular. Kerf doğrulanıp her batch içinde saklanır ancak yerleşimde tüketilmez; koordinat, nesting optimizasyonu, fire/yield, kesim sırası, CNC/postprocessor veya makine standardı üretmez.
+- Frontend entegrasyonu her malzeme/kalınlık grubu için kullanıcıdan ayrı levha en-boy/kalınlık, kerf ve levha damar yönü istemeli; eksik grup tanımında tüm nesting hazırlığını blocked göstermeli ve seçili/hariç tutulan Part ID'lerini korumalıdır. UI, tek bir grubun ready olmasını tüm projenin hazır olduğu şeklinde sunmamalıdır.
