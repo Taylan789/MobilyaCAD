@@ -3,8 +3,12 @@ import assert from "node:assert/strict";
 
 import { calculateMaterialConsumptionSummary } from "../src/engine/materialConsumption.ts";
 import {
-  calculateProjectProduction
+  calculateProjectProduction,
+  mapDomainProductionReport
 } from "../src/engine/projectProduction.ts";
+import {
+  calculateCabinetProjectProductionWithDiagnostics
+} from "../../domain/production/projectProduction.ts";
 import { createProjectCutListCsv } from "../src/engine/cutListCsv.ts";
 import { parseProjectFile, serializeProjectFile } from "../src/engine/projectFile.ts";
 
@@ -211,11 +215,12 @@ test("özel köşe, cihaz ve diğer mobilya aileleri tahmin edilmeden kapsam dı
 
   assert.equal(result.supportedFurnitureCount, 1);
   assert.equal(result.unsupportedFurniture.length, 3);
-  assert.equal(result.exportBlockReason, null);
+  assert.equal(result.canExport, false);
+  assert.notEqual(result.exportBlockReason, null);
+  assert.equal(result.parts.length, 0);
   assert.ok(result.unsupportedFurniture.some((item) => item.furnitureId === "corner-1"));
   assert.ok(result.unsupportedFurniture.some((item) => item.furnitureId === "oven-1"));
   assert.ok(result.unsupportedFurniture.some((item) => item.furnitureId === "wardrobe-1"));
-  assert.ok(result.parts.every((part) => part.furnitureId === "base-1"));
 });
 
 test("çekmeceli modülde eksik kutu ölçüleri proje CSV dışa aktarımını engeller", () => {
@@ -223,17 +228,27 @@ test("çekmeceli modülde eksik kutu ölçüleri proje CSV dışa aktarımını 
     createPlacedFurniture("parametric-1-1", "drawer-1")
   ], catalog, rules);
 
-  assert.equal(result.parts.length > 0, true);
+  assert.equal(result.parts.length, 0);
+  assert.equal(result.canExport, false);
   assert.equal(result.blockedFurniture.length, 1);
   assert.match(result.exportBlockReason, /çekmece/i);
+});
+
+test("mobilya adı eksikse domain parça listesi export için açılmaz", () => {
+  const furniture = createPlacedFurniture("base-cabinet", "missing-name-1", { name: " " });
+  const result = calculateProjectProduction([furniture], catalog, rules);
+
+  assert.equal(result.canExport, false);
+  assert.equal(result.parts.length, 0);
+  assert.match(result.exportBlockReason, /Mobilya adı eksik/);
 });
 
 test("geçersiz geometri ve yinelenen mobilya kimliği güvenli dışa aktarımı engeller", () => {
   const invalidGeometry = calculateProjectProduction([
     createPlacedFurniture("base-cabinet", "invalid-1", { width: 20 })
   ], catalog, rules);
-  assert.equal(invalidGeometry.errors.length, 1);
-  assert.match(invalidGeometry.exportBlockReason, /iç ölçü/i);
+  assert.equal(invalidGeometry.blockedFurniture.length, 1);
+  assert.notEqual(invalidGeometry.exportBlockReason, null);
 
   const duplicateIds = calculateProjectProduction([
     createPlacedFurniture("base-cabinet", "same-id"),
@@ -294,7 +309,7 @@ test("katalogda olmayan malzeme veya kullanılmayan kalınlık üretim dışa ak
     createPlacedFurniture("base-cabinet", "missing-1", { materialId: "missing-material" })
   ], catalog, rules, materials);
   assert.equal(missingMaterial.parts.length, 0);
-  assert.match(missingMaterial.exportBlockReason, /Malzeme kataloğunda/);
+  assert.match(missingMaterial.exportBlockReason, /malzeme kimliği katalogda bulunamadı/i);
 
   const missingBackThickness = calculateProjectProduction([
     createPlacedFurniture("base-cabinet", "thin-1", { materialId: "mdf-white" })
@@ -457,4 +472,107 @@ test("çekmece panel override değerleri proje JSON v1 içinde korunur ve doğru
     () => parseProjectFile(JSON.stringify(invalidGroup)),
     /MobilyaCAD proje formatıyla uyumlu değil/
   );
+});
+
+
+test("domain cutout and hardware blockers disable CSV while preserving validated panel geometry", () => {
+  const noBanding = () => ({ top: false, bottom: false, left: false, right: false });
+  const request = {
+    schemaVersion: 1,
+    furniture: [{
+      schemaVersion: 1,
+      furniture: {
+        id: "base-1",
+        widthMm: 600,
+        heightMm: 850,
+        depthMm: 560,
+        material: "MDF"
+      },
+      profile: {
+        panelThicknessMm: 18,
+        carcassStyle: "between-sides",
+        backPanel: { enabled: true, thicknessMm: 8, installation: "overlay" },
+        shelfCount: 1,
+        doors: { enabled: true, count: 2, style: "full-overlay", gapMm: 2 },
+        edgeBandingByGroup: {
+          leftSide: noBanding(),
+          rightSide: noBanding(),
+          top: noBanding(),
+          bottom: noBanding(),
+          shelf: { top: true, bottom: false, left: false, right: false },
+          back: noBanding(),
+          door: { top: true, bottom: true, left: true, right: true }
+        }
+      },
+      materials: []
+    }],
+    hardwareItems: [{
+      id: "hinge-row-1",
+      furnitureId: "base-1",
+      hardwareId: "hinge",
+      name: "Menteşe",
+      quantity: 2,
+      unit: "adet"
+    }]
+  };
+  const initial = calculateCabinetProjectProductionWithDiagnostics(request);
+  assert.ok(initial.result);
+  const top = initial.result.parts.find((part) => part.id === "base-1-top");
+  assert.ok(top);
+
+  const report = calculateCabinetProjectProductionWithDiagnostics({
+    ...request,
+    panelCutouts: [{
+      partId: top.id,
+      geometry: {
+        schemaVersion: 1,
+        widthMm: top.width,
+        lengthMm: top.length,
+        thicknessMm: top.thickness,
+        outerEdgeBanding: top.edgeBanding,
+        cutouts: [{
+          id: "service-opening",
+          xMm: 10,
+          yMm: 10,
+          widthMm: 100,
+          lengthMm: 100,
+          edgeBanding: noBanding()
+        }]
+      }
+    }]
+  });
+
+  const mapped = mapDomainProductionReport(
+    report,
+    new Map([["base-1", "Alt Mutfak Dolabı"]])
+  );
+  const mappedTop = mapped.parts.find((part) => part.id === top.id);
+
+  assert.equal(report.canExport, false);
+  assert.equal(mapped.canExport, false);
+  assert.ok(mapped.parts.length > 0, "tam hesaplanmış parçalar incelenebilir kalmalı");
+  assert.ok(mappedTop?.panelGeometry, "kesit geometrisi UI modeline kayıpsız taşınmalı");
+  assert.equal(mapped.exportBlockers.length, 2);
+  assert.match(mapped.exportBlockReason, /Kesitli panel geometrisi/i);
+  assert.ok(mapped.exportBlockers.some((reason) => /hardwareItems/i.test(reason)));
+});
+
+test("JSON v1 proje round-trip sonrasında üretim raporu aynı mobilya girdilerinden yeniden hesaplanır", () => {
+  const furniture = createPlacedFurniture("base-cabinet", "json-roundtrip-1");
+  const room = { width: 4000, length: 5000, height: 2800 };
+  const savedAt = "2026-11-18T00:00:00.000Z";
+  const saved = serializeProjectFile(room, [furniture], savedAt, []);
+  const parsed = parseProjectFile(saved);
+  const result = calculateProjectProduction(
+    parsed.furniture,
+    catalog,
+    rules,
+    parsed.materials ?? []
+  );
+
+  assert.equal(parsed.formatVersion, 1);
+  assert.equal(parsed.room.unit, "mm");
+  assert.equal(result.status, "ready");
+  assert.equal(result.canExport, true);
+  assert.ok(result.parts.some((part) => part.furnitureId === "json-roundtrip-1"));
 });

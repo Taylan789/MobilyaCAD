@@ -18,6 +18,7 @@ const csvHeaders = [
   "Bant Sağ"
 ];
 
+const drawerMetadataHeaders = ["Çekmece Grubu ID", "Damar Yönü"];
 const edgeKeys = ["top", "bottom", "left", "right"] as const;
 
 function escapeCsvCell(value: CsvCell): string {
@@ -25,6 +26,12 @@ function escapeCsvCell(value: CsvCell): string {
   return /[;"\n\r]/.test(text)
     ? "\"" + text.replace(/"/g, "\"\"") + "\""
     : text;
+}
+
+function formatGrainDirection(direction: Part["grainDirection"]): string {
+  if (direction === "length") return "Boy";
+  if (direction === "width") return "En";
+  return "Belirtilmedi";
 }
 
 function validateCutListPart(part: Part): void {
@@ -57,6 +64,17 @@ function validateCutListPart(part: Part): void {
   ) {
     throw new Error(part.name + " kenar bantlama bilgisi geçersiz.");
   }
+
+  if (
+    part.drawerGroupId !== undefined &&
+    (typeof part.drawerGroupId !== "string" || part.drawerGroupId.trim() === "")
+  ) {
+    throw new Error(part.name + " çekmece grubu kimliği geçersiz.");
+  }
+
+  if (!["length", "width", "none"].includes(part.grainDirection)) {
+    throw new Error(part.name + " damar yönü geçersiz.");
+  }
 }
 
 function serializeCutListRows(rows: readonly CsvRow[], includeFurnitureId = false): string {
@@ -67,9 +85,18 @@ function serializeCutListRows(rows: readonly CsvRow[], includeFurnitureId = fals
     validateCutListPart(row.part);
   }
 
-  const headers = includeFurnitureId
-    ? [csvHeaders[0], "Mobilya ID", ...csvHeaders.slice(1)]
-    : csvHeaders;
+  // Keep the established CSV header unchanged for ordinary rectangular parts.
+  // Drawer metadata columns are appended only when a source group or explicit
+  // grain direction exists, so those values are no longer silently discarded.
+  const includeDrawerMetadata = rows.some(({ part }) =>
+    part.drawerGroupId !== undefined || part.grainDirection !== "none"
+  );
+  const headers = [
+    ...(includeFurnitureId
+      ? [csvHeaders[0], "Mobilya ID", ...csvHeaders.slice(1)]
+      : csvHeaders),
+    ...(includeDrawerMetadata ? drawerMetadataHeaders : [])
+  ];
   const csvRows: CsvCell[][] = [
     headers,
     ...rows.map(({ furnitureName, furnitureId, part }) => {
@@ -87,9 +114,14 @@ function serializeCutListRows(rows: readonly CsvRow[], includeFurnitureId = fals
         part.edgeBanding.left ? "Evet" : "Hayır",
         part.edgeBanding.right ? "Evet" : "Hayır"
       ];
-      return includeFurnitureId
+      const row = includeFurnitureId
         ? [cells[0], furnitureId ?? "", ...cells.slice(1)]
         : cells;
+
+      if (includeDrawerMetadata) {
+        row.push(part.drawerGroupId ?? "", formatGrainDirection(part.grainDirection));
+      }
+      return row;
     })
   ];
 
