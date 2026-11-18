@@ -650,3 +650,16 @@ Kaynak: `domain/production/sheetCutPlan.ts`; API: `calculateSheetCutPlanAreaSumm
 - `unoccupiedUsableAreaMm2`, kerf aralıklarını, kullanılmayan levha bölgelerini ve olası offcut alanlarını birlikte içerir. Bu değer fire, malzeme verimi, kesim kaybı veya optimizasyon sonucu değildir. Kesim yolu ve CNC operasyonu hesaplanmaz.
 - Empty plan hiç levha kullanmadığı için tüm toplam alanlar sıfır, geometrik doluluk yüzdesi `null` olur. Trim verilmemişse sıfır trim davranışı korunur; varsayılan pay veya verim yüzdesi üretilmez.
 - Frontend entegrasyonu ready/empty raporunu toplam ve levha bazında gösterebilir; empty durumda yüzde göstermemeli, blocked tanısını korumalı ve kalan geometrik alanı fire/yield etiketiyle sunmamalıdır.
+
+
+## DOM-027 — proje geneli malzeme/kalınlık bazlı kesim planı alan özeti
+
+Kaynak: domain/production/projectSheetCutPlanAreaSummary.ts; API: calculateProjectSheetCutPlanAreaSummary({ schemaVersion: 1, sourcePartIds, groups }).
+
+- Girdi, createProjectSheetNestingBatches tarafından seçilen proje Part ID listesi ile her malzeme/0.1 mm kalınlık grubu için ayrı SheetCutPlanReport içerir. Her grup kendi kullanıcı levha ölçüsü, kerf ve trim girdileriyle hazırlanmış olmalıdır.
+- Grup kimliği, katalog materialId ve normalize edilmiş 0.1 mm kalınlık tick'inden deterministik bir JSON tuple anahtarı olarak türetilir. Aynı malzeme/kalınlık grubu iki kez verilemez.
+- Her kesim planı calculateSheetCutPlanAreaSummary üzerinden yeniden doğrulanır. Levha malzemesi/kalınlığı, tüm kaynak Part kimlikleri ve sırası grup tanımıyla eşleşmelidir. Seçili her Part ID tam bir kez bulunmalı; farklı gruplar aynı Part ID'yi paylaşamaz.
+- Çıktı grup sırasını, grup kimliğini, malzeme/kalınlığı, kaynak Part ID'lerini ve grup içindeki levha bazlı alan toplamlarını korur. Proje toplamları mm² cinsinden BigInt tabanlı 0.01 mm² alt birimlerinde birleştirilir; güvenli Number sınırı aşılırsa sonuç blocked olur.
+- Proje geometrik doluluk yüzdesi toplam yerleşen dikdörtgen parça alanının toplam net kullanılabilir levha alanına ağırlıklı oranıdır. Grup yüzdeleri ayrıca korunur. Bu değer fire/yield, malzeme verimi, kesim kaybı veya optimal nesting değildir.
+- Herhangi bir blocked/empty grup, eksik/çift Part ID, grup/plan uyuşmazlığı veya geçersiz alan toplamı tüm proje raporunu blocked ve result: null yapar; kısmi proje toplamı sunulmaz. Boş seçili proje listesi yalnızca boş grup listesiyle empty döner.
+- Frontend entegrasyonu her grup için kendi alan özetini ve yerel levha indekslerini göstermeli; proje toplamının farklı malzeme/kalınlık gruplarının ağırlıklı geometrik özeti olduğunu açıkça ayırmalıdır. Kalan alan fire/yield etiketiyle sunulmamalıdır.

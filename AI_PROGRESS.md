@@ -1098,3 +1098,14 @@
 - Bilinen sınırlar: kullanılmayan alan kerf boşlukları/offcut/boş bölgeleri içerir; fire/yield, gerçek kesim kaybı, nesting optimumu, kesim sırası/yolu, CNC veya makine standardı değildir. Fiziksel üretim doğrulaması yapılmadı.
 - AI Developer [#44221779571](https://github.com/Taylan789/MobilyaCAD/actions/runs/44221779571) eski `a22c771` checkout SHA'sında OpenRouter free-models-per-day 429 (limit 50, kalan 0) nedeniyle başarısız; eski SHA rerun edilmedi. Güncel SHA için workflow dispatch aracı yok; secret/ayar değiştirilmedi.
 - Sonraki görev: DOM-027 — proje genelinde malzeme/kalınlık bazlı kesim planı alan özetlerini güvenli biçimde birleştir; grup kimliğini ve ayrı levha toplamlarını koru, blocked batch'te kısmi sonuç verme.
+
+
+## 18 Kasım 2026 11:13 TRT — DOM-027 proje geneli alan özeti (Actions bekleniyor)
+
+- Başlangıç HEAD: 251322135f5410781d86d474d48bf76345fa06d4.
+- Kod/test/dokümantasyon dilimi: domain/production/projectSheetCutPlanAreaSummary.ts ve yeni otomatik test; QA strict shared-domain TypeScript listesi; docs/production-domain-contract.md, AI_COORDINATION.md ve PRODUCT_ROADMAP.md.
+- Commit SHA: GitHub commit kimliği oluşturulduktan sonra doğrulama kaydında sabitlenecek; şu an Actions sonucu bekleniyor.
+- Kabul kriterleri: seçili Part ID'leri gruplarda tam bir kez temsil edilmeli; malzeme/kalınlık/levha planı uyuşmalı; her grup kendi sheet alan özetini korumalı; proje alan toplamı 0.01 mm² BigInt alt birimlerinde güvenli toplanmalı; tek blocked grup tüm sonucu blocked yapmalı.
+- Otomatik kontroller: yeni domain testleri node --experimental-strip-types --test domain/production/*.test.mjs kapsamına girer; strict TypeScript listesine modül eklendi. CI/QA/Pages sonuçları henüz görülmedi.
+- Bilinen sınırlar: her grup için doğrulanmış makine bağımsız kesim planı gerekir. Bu modül JSON zarfı, CSV adapter, CNC kesim sırası/yolu veya makine postprocessor üretmez; geometrik doluluk fire/yield değildir. Fiziksel üretim öncesi operatör/atölye doğrulaması gerekir.
+- Sonraki görev: DOM-028 — çoklu grup kesim planı JSON zarfı ve strict round-trip.

@@ -1067,3 +1067,27 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 3. INT-002 / QA-003: entegrasyon-performans ajanının izole PR'ındaki adapter round-trip kanıtını salt okunur doğrula; adapter/test sahipliğine dokunma.
 4. UI entegrasyonu: alan özeti ready/empty/blocked durumlarını mevcut frontend domain raporu sözleşmesiyle tüketmeli; sahte fire/yield etiketi üretmemeli.
 5. CNC/postprocessor: operatörün gerçek makine/üretici standardı ve fiziksel güvenlik gereksinimleri olmadan uygulama başlatma.
+
+
+## 18 Kasım 2026 11:13 TRT — DOM-027 proje geneli kesim planı alan özeti
+
+**Kullanıcı akışı:** proje Part seçimi, malzeme/kalınlık gruplarına ayrılmış kesim planlarıyla tamamlanır. Her grubun kendi levha/kerf/trim girdisi ve levha bazlı alan özeti korunur; proje toplamı yalnızca tüm seçili parçalar doğrulandığında gösterilir.
+
+**Kabul kriterleri:**
+- Her grup kimliği katalog materialId + normalize 0.1 mm kalınlıktan deterministik türetilir; grup ve kaynak Part ID tekrarları reddedilir.
+- Kesim planı her grup için yeniden doğrulanır; stock sheet, kaynak parça malzemesi/kalınlığı ve Part ID sırası grup tanımıyla eşleşir.
+- Üst düzey seçili Part ID listesi, gruplarda tam bir kez temsil edilir; eksik veya başka gruba taşınmış parça tüm raporu blocked yapar.
+- Her grup kendi levha indeksleri ve alan özetini taşır; proje alan toplamları BigInt tabanlı 0.01 mm² birimlerinde güvenli biçimde toplanır.
+- Herhangi bir blocked grup veya güvenli aralık ihlali result: null üretir; kısmi proje toplamı yoktur. Boş proje yalnızca boş grup listesiyle empty döner.
+- Proje doluluk oranı, toplam net kullanılabilir alan üzerinden ağırlıklı geometrik orandır; fire/yield veya optimizasyon iddiası değildir.
+
+**Sınırlar:** Her grubun makine bağımsız kesim planı önceden oluşturulmuş olmalıdır. JSON zarfı/adapter, CNC kesim sırası/yolu, makine postprocessor ve fiziksel üretim doğrulaması bu dilimde yoktur.
+
+**Değişen dosyalar:** domain/production/projectSheetCutPlanAreaSummary.ts, yeni domain testi, QA strict TypeScript listesi, üretim sözleşmesi, görev panosu, yol haritası ve ilerleme kaydı. frontend/**, adapter/performance agent dosyaları, package manifest/lockfile ve secrets değiştirilmedi.
+
+### DOM-027 sonrası sıradaki 3-5 küçük görev
+1. DOM-028: çoklu grup kesim planları için sürümlü, makine bağımsız JSON zarfı ve strict round-trip; grup kimliği, levha indeksleri, trim/kerf ve kaynak Part ID'lerini koru.
+2. INT-001 / PR #61: frontend sahibinin domain raporu ve adapter entegrasyonunu güncel base/Actions kanıtıyla tamamlamasını bekle; PR'ı sahiplenme veya merge etme.
+3. INT-002 / QA-003: entegrasyon-performans ajanının ayrı adapter PR'ındaki JSON/CSV round-trip kanıtını salt okunur doğrula; test sahipliğine dokunma.
+4. UI sözleşmesi: proje özeti ready/empty/blocked durumları, grup kimliği ve levha bazlı metrikleri frontend domain raporu sözleşmesine aktar; frontend dosyalarına dokunma.
+5. CNC/postprocessor: gerçek makine/üretici standardı ve fiziksel güvenlik gereksinimleri doğrulanmadan kod üretme.
