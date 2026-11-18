@@ -33,7 +33,6 @@ const secondCabinet = {
 function createReadout(overrides = {}) {
   const furniture = [cabinet, secondCabinet];
   return createViewportSceneReadout({
-    room: { width: 4012.5, length: 5000, height: 2800 },
     furniture,
     visibleFurniture: [cabinet],
     selectedFurnitureId: null,
@@ -42,10 +41,9 @@ function createReadout(overrides = {}) {
   });
 }
 
-test("sahne ölçüleri milimetre sırasını ve gerçek görünür/toplam adetleri korur", () => {
+test("readout görünür ve toplam mobilya adetlerini gerçek sahne listesinden alır", () => {
   const readout = createReadout();
 
-  assert.deepEqual(readout.roomDimensions, [4012.5, 5000, 2800]);
   assert.equal(readout.visibleFurnitureCount, 1);
   assert.equal(readout.totalFurnitureCount, 2);
   assert.equal(readout.selection, null);
@@ -91,7 +89,7 @@ test("milimetre readout Türkçe ondalık ve binlik biçimini kullanır", () => 
   assert.equal(formatMillimeterReadout(18), "18");
 });
 
-test("viewport readout erişilebilir, etkileşimsiz ve dar görünümde kompakt kalır", async () => {
+test("viewport readout mevcut oda ölçüsü overlay'iyle çakışmaz ve etkileşimleri engellemez", async () => {
   const component = await readFile(
     new URL("../src/components/viewport/ViewportSceneReadout.tsx", import.meta.url),
     "utf8"
@@ -103,7 +101,8 @@ test("viewport readout erişilebilir, etkileşimsiz ve dar görünümde kompakt 
 
   assert.match(component, /role="status"/);
   assert.match(component, /aria-live="polite"/);
-  assert.match(component, /Sahne ölçü ve seçim bilgisi/);
+  assert.match(component, /Seçili sahne öğesi ölçüleri/);
+  assert.match(styles, /top: 58px/);
   assert.match(styles, /pointer-events: none/);
   assert.match(styles, /@media (max-width: 560px)/);
 });

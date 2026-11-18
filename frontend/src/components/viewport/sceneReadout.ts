@@ -1,11 +1,6 @@
 import type { PlacedFurniture } from "../../types/placedFurniture";
 
 export interface ViewportSceneReadoutInput {
-  room: {
-    width: number;
-    length: number;
-    height: number;
-  };
   furniture: readonly PlacedFurniture[];
   visibleFurniture: readonly PlacedFurniture[];
   selectedFurnitureId: string | null;
@@ -19,14 +14,12 @@ export interface ViewportSceneReadoutSelection {
 }
 
 export interface ViewportSceneReadoutModel {
-  roomDimensions: [number, number, number];
   visibleFurnitureCount: number;
   totalFurnitureCount: number;
   selection: ViewportSceneReadoutSelection | null;
 }
 
 export function createViewportSceneReadout({
-  room,
   furniture,
   visibleFurniture,
   selectedFurnitureId,
@@ -58,7 +51,6 @@ export function createViewportSceneReadout({
       : null;
 
   return {
-    roomDimensions: [room.width, room.length, room.height],
     visibleFurnitureCount: visibleFurniture.length,
     totalFurnitureCount: furniture.length,
     selection
