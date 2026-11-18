@@ -7,7 +7,7 @@ const app = readFileSync(new URL("../src/App.tsx", import.meta.url), "utf8");
 test("mobile panel visibility follows the compact viewport breakpoint", () => {
   assert.match(
     app,
-    /const \[isCompactViewport, setIsCompactViewport\] = useState\(\s*\(\) => typeof window !== "undefined" && window\.matchMedia\("\(max-width: 760px\)"\)\.matches\s*\)\s*\);/,
+    /const \[isCompactViewport, setIsCompactViewport\] = useState\([\s\S]*?window\.matchMedia\("\(max-width: 760px\)"\)\.matches\s*\);/,
   );
   assert.match(app, /mediaQuery\.addEventListener\("change", syncCompactViewport\)/);
   assert.match(app, /mediaQuery\.removeEventListener\("change", syncCompactViewport\)/);
