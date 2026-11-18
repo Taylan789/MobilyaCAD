@@ -104,5 +104,5 @@ test("viewport readout mevcut oda ölçüsü overlay'iyle çakışmaz ve etkile�
   assert.match(component, /Seçili sahne öğesi ölçüleri/);
   assert.match(styles, /top: 58px/);
   assert.match(styles, /pointer-events: none/);
-  assert.match(styles, /@media (max-width: 560px)/);
+  assert.match(styles, /@media \(max-width: 560px\)/);
 });
