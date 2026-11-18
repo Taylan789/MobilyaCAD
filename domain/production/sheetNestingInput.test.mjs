@@ -78,7 +78,7 @@ test("damar yönü none olduğunda sığan iki yönü de korur", () => {
 test("damar kısıtı olmayan parça yalnızca sığdığı 90 derece yönüyle kabul edilir", () => {
   const report = validateSheetNestingInput(createInput({
     sheet: { widthMm: 2800, lengthMm: 2070, grainDirection: "none" },
-    part: { widthMm: 2100, lengthMm: 500, grainDirection: "none" }
+    part: { widthMm: 500, lengthMm: 2100, grainDirection: "none" }
   }));
 
   assert.equal(report.status, "ready");
@@ -127,7 +127,7 @@ test("yinelenen parça kimliği ve güvenli olmayan quantity reddedilir", () => 
       { ...basePart, id: "same" }
     ]
   });
-  assertBlocked(duplicate, /yinelenen/);
+  assertBlocked(duplicate, /yinelenen/i);
   assertBlocked(createInput({ part: { quantity: 1.5 } }), /güvenli bir tam sayı/);
 });
 
