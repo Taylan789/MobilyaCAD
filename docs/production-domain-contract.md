@@ -814,3 +814,14 @@ Fiyat girdisi: `ProjectConsumptionPriceInput.thicknessMm` (opsiyonel, yalnızca 
 - Otomatik kabul testleri: `projectPricedConsumption.test.mjs` aynı adı taşıyan farklı kimlikleri, aynı kimliğin farklı kalınlıklarını, legacy fiyat belirsizliğini ve fiyat anahtarı doğrulamasını; `projectQuoteSummary.test.mjs` birleşik teklif satırları ile eksik kalınlık fiyatında toplamın gizlenmesini doğrular.
 
 Bu değişiklik fiyat girdisinin şemasını geriye uyumlu genişletir; fiyatlar hâlâ kullanıcı/atölye tarafından sağlanmalıdır. Üretici fiyatı, stok, fire/yield veya fiziksel üretim onayı değildir.
+
+
+## DOM-040 — Gardırop ve TV ünitesi özel raf/bölücü snapshot sadakati
+
+Kaynaklar: `domain/production/wardrobeConstruction.ts`, `domain/production/tvUnitConstruction.ts`, `domain/production/projectPartSnapshot.ts`, `domain/production/projectSheetCutPlanFile.ts`.
+
+- Gardırop özel rafları `leftOffsetMm`, `rightOffsetMm`, `heightFromInnerBottomMm`, `frontOffsetMm`, `grainDirection`; dikey bölücüler `offsetFromInnerLeftMm` ve damar yönünü Part kaydında taşır. TV ünitesi rafları aynı açık raf ofsetlerini; dikey bölücüler `leftOffsetMm`, `bottomOffsetMm`, `heightMm`, `frontOffsetMm` ve `depthMm` alanlarını taşır.
+- Özel raf/bölücü Part satırlarının ortak üretim alanları `materialId`, katalogdan çözülen `material`, gerçek `thickness` (mm), `quantity`, ölçüler ve `edgeBanding` alanlarıdır. Bu aileye özgü alanlar ana gövde panel override eşlemesine dahil değildir; kendi açık konstrüksiyon spec'lerinden gelir.
+- `createProjectPartSnapshot` tüm Part nesnesini canonical JSON olarak saklar. Proje kesim planı JSON v2/v3 `projectPartSnapshot` tam proje listesini içerir; nesting seçiminden hariç tutulan özel bölücüler de snapshot kapsamındadır.
+- `domain/production/projectSpecialPartSnapshot.test.mjs` gerçek proje üretim agregatöründen iki aileyi hesaplar, yalnızca özel rafları nesting'e seçer, JSON v2 planını serialize/parse eder ve hem seçili rafların hem hariç bölücülerin malzeme, kalınlık, adet, damar, kenar bantlama ve yerleşim alanlarını karşılaştırır.
+- Bu dilim generic snapshot runtime kodunu değiştirmez; test, mevcut veri sözleşmesinin aileye özgü alanları kaybetmemesini güvence altına alır. Snapshot kriptografik imza değildir ve CNC/atölye fiziksel doğrulaması sağlamaz.

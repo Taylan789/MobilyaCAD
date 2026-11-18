@@ -1325,7 +1325,7 @@ DOM-032 doğrulaması: [commit fe720ce](https://github.com/Taylan789/MobilyaCAD/
 **DOM-038 nihai kanıt:** [commit d956205](https://github.com/Taylan789/MobilyaCAD/commit/d956205d87d46e9173b2b1dbcf4b13fe4952b46f); [CI #44384952328](https://github.com/Taylan789/MobilyaCAD/actions/runs/44384952328), [QA #44384952562](https://github.com/Taylan789/MobilyaCAD/actions/runs/44384952562), [Pages #44384952512](https://github.com/Taylan789/MobilyaCAD/actions/runs/44384952512) başarılı. QA 124/124 frontend + 387/387 domain; strict type-check/lint/build/audit başarılı.
 
 
-## DOM-039 — Gövde panel malzeme fiyatını katalog kimliği ve gerçek kalınlıkla eşleştirme (Actions bekleniyor)
+## DOM-039 — Gövde panel malzeme fiyatını katalog kimliği ve gerçek kalınlıkla eşleştirme (Tamamlandı; Actions doğrulandı)
 
 **Kullanıcı akışı:** aynı görünen malzeme adını paylaşan farklı katalog kimlikleri ve aynı katalog kimliğinin farklı mm kalınlıkları teklif hesabında ayrı tüketim/fiyat satırları olarak görünür. Kullanıcı her malzeme/kalınlık için açık fiyat girer; eksik fiyat olduğunda birleşik teklif toplamı hazır gösterilmez.
 
@@ -1350,6 +1350,26 @@ DOM-032 doğrulaması: [commit fe720ce](https://github.com/Taylan789/MobilyaCAD/
 
 **Commit zinciri:** [domain dd7c6c5](https://github.com/Taylan789/MobilyaCAD/commit/dd7c6c5fbadf23e883632feecea929d1c57100b3), [tüketim testleri 9b09b67](https://github.com/Taylan789/MobilyaCAD/commit/9b09b67b383f03b98346f81530e5d1a66b220dd0), [birleşik teklif testleri 6a76d66](https://github.com/Taylan789/MobilyaCAD/commit/6a76d6656ab3418e6d44d6e9c00b5c5afcca853e). Domain sözleşmesi, koordinasyon ve ilerleme kaydı aynı çalışma içinde güncelleniyor.
 
-**Actions durumu:** CI/QA push workflow'larının otomatik tetiklenmesi bekleniyor. Bu oturumdaki GitHub Actions okuma aracı commit bazında yalnızca PR-triggered run'ları listeliyor; bu push commitleri için run ID veya check sonucu döndürmedi. Combined status da boş. Bu nedenle test/Actions başarılı ilan edilmedi; doğrulama bekliyor.
+**Actions doğrulaması:** ortak HEAD `e1661778569b82101471c8b7756149ebfc189bdf` üzerinde [CI #44393775355](https://github.com/Taylan789/MobilyaCAD/actions/runs/44393775355) ve [QA #44393775803](https://github.com/Taylan789/MobilyaCAD/actions/runs/44393775803) başarılı. QA workflow'unda domain testleri, shared-domain strict TypeScript, lint, frontend TypeScript/production build ve production dependency audit adımlarının tamamı geçti; production audit 0 vulnerability. DOM-039 DONE.
 
 **Sınırlar:** fiyat, vergi, kur, levha verimi, fire yüzdesi, katalog doğruluğu veya CNC/gerçek üretim standardı varsayılmaz. `frontend/**` ve adapter dosyaları değiştirilmedi; `main` dalına dokunulmadı.
+
+
+## DOM-040 — Özel gardırop/TV raf ve bölücü Part snapshot JSON round-trip (Doğrulama bekleniyor)
+
+**Kullanıcı akışı:** kullanıcı gardırop veya TV ünitesinde açık ölçülü raf ve dikey bölücü tanımlar. Proje üretim raporu bu parçaları ortak Part listesine ekler; kesim planı JSON v2 snapshot'ı, nesting seçimine alınmayan özel parçaları da dâhil ederek tüm üretim Part alanlarını saklar. Proje yeniden açıldığında özel malzeme ve yerleşim bilgisi kaybolmamalıdır.
+
+**Dikey dilim:** gerçek `calculateCabinetProjectProductionWithDiagnostics` çıktısından gardırop ve TV ünitesi özel raf/bölücü parçaları üretilir. Yalnızca iki özel raf nesting seçimine alınırken özel dikey bölücüler hariç bırakılır; buna rağmen tam proje snapshot'ında tutulmaları doğrulanır. JSON v2 serializer/parser round-trip sonrasında `materialId`, gerçek `thickness` (mm), `quantity`, `edgeBanding`, `grainDirection` ve aileye özgü ofset/yerleşim alanları karşılaştırılır.
+
+**Kabul kriterleri:** dört özel Part ID'si (iki aile × raf/bölücü) snapshot içinde bulunmalı; seçilen raflar kesim planı kaynak listesinde yer almalı; seçilmeyen bölücüler tam proje snapshot'ında korunmalı; mm ölçüler, adet, katalog kimliği, damar ve kenar bayrakları birebir eşleşmeli; JSON parse sonrası hiçbir alan kaybolmamalı. Kısmi snapshot veya sahte CNC koordinatı üretilmemeli.
+
+**Otomatik test:** `domain/production/projectSpecialPartSnapshot.test.mjs`. Üretim kodu değişikliği gerektirmeyen bu dilim, mevcut generic canonical Part snapshot sözleşmesindeki aileye özgü alan sadakatini gerçek üretim agregatörüyle kilitler. CI/QA sonucu görülmeden DONE yapılmayacak.
+
+**Bilinen sınırlar:** snapshot canonical JSON karşılaştırmasıdır, kriptografik imza değildir. Bu test nesting yerleşiminden fiziksel üretim doğruluğu veya CNC/makine standardı iddiası çıkarmaz.
+
+### Sıradaki 3-5 küçük görev
+
+1. DOM-040 Actions doğrulamasını tamamla.
+2. DOM-041: özel raf/bölücü Part satırlarının malzeme tüketimi ve kalınlık duyarlı fiyat özetine katkısını gerçek aile agregatörü üzerinden doğrula.
+3. DOM-042: kayıtlı kesim planında özel raf/bölücü malzeme, kalınlık veya yerleşim değişikliğinin freshness sonucunu stale yaptığını test et.
+4. DOM-043: diğer aileye özgü özel Part alanlarının snapshot kapsamını incele; yalnızca ölçülebilir veri kaybı riski varsa yeni dilim aç.
