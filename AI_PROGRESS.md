@@ -1178,11 +1178,12 @@
 - Sonraki görev: DOM-032 — proje kesim planı dışa aktarımını freshness doğrulaması olmadan ready kabul etmeyen tek domain kapısı.
 
 
-## 18 Kasım 2026 16:08 TRT — DOM-032 uygulandı; Actions doğrulaması bekleniyor
+## 18 Kasım 2026 16:08 TRT — DOM-032 tamamlandı; Actions doğrulandı
 
 - Tek domain export kapısı: createFreshProjectSheetCutPlanExport, yalnızca canExport=true ve boş exportBlockers taşıyan güncel ready üretim raporunu kabul eder; kayıtlı JSON v2 planını tam proje Part snapshot'ı ve güncel currentSelectedPartIds ile freshness kontrolünden geçirir.
 - Freshness stale/blocked, eksik seçim girdisi, v1 zarfı veya export blocker durumunda result/json null kalır; kısmi JSON üretilmez. Legacy v1 parser davranışı değişmedi.
 - Değişen dosyalar: domain/production/projectSheetCutPlanExport.ts (yeni), domain/production/projectSheetCutPlanExport.test.mjs (yeni), .github/workflows/qa-test.yml, AI_COORDINATION.md, AI_PROGRESS.md, PRODUCT_ROADMAP.md, docs/production-domain-contract.md.
-- Commit SHA ve CI/QA/Pages sonuçları Actions tamamlandıktan sonra doğrulama kaydına eklenecek.
+- Kod commit'i: [fe720ce](https://github.com/Taylan789/MobilyaCAD/commit/fe720ce65b3d1710dfc0eab050a5ed01989c2217). [CI #44311591605](https://github.com/Taylan789/MobilyaCAD/actions/runs/44311591605) başarılı; [QA #44311591631](https://github.com/Taylan789/MobilyaCAD/actions/runs/44311591631) başarılı: 102/102 frontend + 373/373 domain testi, 0 başarısız; shared-domain strict TypeScript, lint (32 uyarı / 0 hata), production build ve production dependency audit (0 bulgu) geçti. [Pages #44311591602](https://github.com/Taylan789/MobilyaCAD/actions/runs/44311591602) başarılı.
 - Bilinen sınırlar: JSON v2 snapshot canonical JSON karşılaştırmasıdır, kriptografik imza değildir. Makine bağımsız dikdörtgen plan; kesim sırası/yolu, fire/yield, CNC/postprocessor veya fiziksel üretim onayı değildir.
-- Sonraki adım: frontend sahibinin export kapısını INT-001 akışına bağlaması; domain tarafında kullanıcı/atölye standardı gerektirmeyen üretim veri doğruluğu görevlerini sürdürmek.
+- AI Developer [#44282900800](https://github.com/Taylan789/MobilyaCAD/actions/runs/44282900800) eski 11e2454 SHA üzerinde OpenRouter free-models-per-day 429 ile başarısızdı; loglar incelendi. Eski checkout rerun edilmedi; yeni dispatch aracı yok, kota/secret/ayar değiştirilmedi.
+- Sonraki adım: frontend sahibinin export kapısını INT-001 akışına bağlamasını salt okunur izlemek; ardından DOM-033 levha kaynağı/revizyon provenance metadata'sını kullanıcı girdili ve geriye uyumlu modellemek.

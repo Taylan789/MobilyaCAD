@@ -1186,3 +1186,6 @@ Sınırlar: bu API JSON'u güncel tutarlılık bakımından doğrular; kesim yer
 3. DOM-033: proje kesim planı için kullanıcı/atölye tarafından sağlanan levha kaynağı kimliği ve revizyon bilgisini opsiyonel, geriye uyumlu provenance metadata olarak modelle; fiyat/standart uydurma.
 4. Proje üretim raporunun desteklenmeyen aile ve kesitli geometri blocker'larının export gate'e kayıpsız taşındığını genişletilmiş domain testleriyle doğrula.
 5. CNC operasyon/postprocessor tasarımını yalnızca gerçek üretici/makine standardı ve operatör güvenliği girdileri mevcut olduğunda başlat.
+
+
+DOM-032 doğrulaması: [commit fe720ce](https://github.com/Taylan789/MobilyaCAD/commit/fe720ce65b3d1710dfc0eab050a5ed01989c2217); [CI #44311591605](https://github.com/Taylan789/MobilyaCAD/actions/runs/44311591605), [QA #44311591631](https://github.com/Taylan789/MobilyaCAD/actions/runs/44311591631) — 102/102 frontend + 373/373 domain testi, strict TypeScript, lint, production build ve production audit başarılı; [Pages #44311591602](https://github.com/Taylan789/MobilyaCAD/actions/runs/44311591602) başarılı.
