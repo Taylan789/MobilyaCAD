@@ -19,7 +19,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 | Parçalar | Görsel kapak/çekmece/raf parçaları; domain gövde, çekmece kutusu, kitaplık, masa, gardırop ve TV ünitesi Part listesi; dikdörtgen iç açıklıklar opsiyonel `ProjectProductionPart.panelGeometry` alanıyla taşınır; banyo dolabı v1 üst panelinde açık ölçülü çoklu dikdörtgen açıklıklar zorunludur | Kesitli Part JSON v1/CSV adapter entegrasyonu henüz ayrı frontend sahibince yapılmadı; diğer aileler, donanım ve CNC operasyonları eksik |
 | Hesap motoru | `cabinetConstruction`, `drawerBoxConstruction`, `bookshelfConstruction`, `tableConstruction`, `wardrobeConstruction`, `tvUnitConstruction` (floor-standing gövde, açık ölçülü raf ve dikey bölücü) ve `bathroom-vanity` (cabinet gövdesi + zorunlu açık ölçülü üst panel açıklığı) aile ayrımlı sürüm 1 proje agregatörü; ortak Part listesi quantity, malzeme, damar yönü ve kenar bantlamayı korur | Frontend adapter henüz domain agregatörünü çağırmıyor; duvar montajlı TV ünitesi/ayak-baza modelleri ve diğer aileler, üreticiye özel konstrüksiyonlar eksik |
 | Kesim listesi | Projedeki desteklenen düz mutfak gövdeleri ve tam tanımlı çekmece parçaları için tek Türkçe Excel uyumlu CSV; her satır kaynak mobilya adı/ID'si ve varsa katalog Malzeme ID değeriyle izlenir | Köşe/cihaz/evye konstrüksiyonları ve diğer aileler eksik |
-| Levha yerleşimi / kesim planı | Deterministik shelf yerleşimi, makine bağımsız kesim planı, kerf/çakışma doğrulaması, opsiyonel kullanıcı trim payı ve JSON v1 round-trip | Fire/yield yüzdesi, kesim sırası/yolu ve CNC çıktısı yok |
+| Levha yerleşimi / kesim planı | Deterministik shelf yerleşimi, makine bağımsız kesim planı, kerf/çakışma doğrulaması, opsiyonel kullanıcı trim payı, JSON v1 round-trip ve DOM-026 geometrik brüt/net levha + yerleşen parça alanı özeti | Fire/yield yüzdesi, kesim sırası/yolu ve CNC çıktısı yok |
 | Kenar bantlama / malzeme tüketimi | Domain malzeme özeti gövde, çekmece, kitaplık, masa, gardırop, TV bölücü/raf ve kesitli panellerin ortak Part listesinden quantity ağırlıklı net alan/hacim ve dış/iç kenar bantlamasını hesaplayabilir | Domain özeti henüz UI/JSON/CSV'ye bağlı değil; fire, levha verimi, kerf, bant kalınlığı ve rulo payı yok |
 | Malzeme kataloğu | UI CRUD; mobilya varsayılan materialId ve çekmece grubunda varsayılan + dört panel grubu override; domain gövde/kitaplık motorları altı gövde panel grubu için malzeme override'ını doğrular | Gövde panel override'ları henüz frontend JSON v1/CSV ve UI akışına bağlanmadı; fiyat, tedarikçi ve fire henüz yok |
 | Proje dosyası | Yerel JSON v1 indirme/yükleme; saf serializer/parser; round-trip ve eski v1 uyumluluk; mm, mobilya ve çekmece grubu katalog referansları ile dört çekmece panel kalınlığının doğrulanması | Şema migrasyonu, otomatik kayıt ve kurtarma yok |
@@ -1044,3 +1044,29 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 
 **Değişen dosyalar:** domain/production/sheetNestingLayout.ts, domain/production/sheetNestingLayout.test.mjs, domain/production/sheetCutPlan.ts, domain/production/sheetCutPlan.test.mjs, docs/production-domain-contract.md, AI_COORDINATION.md, PRODUCT_ROADMAP.md ve AI_PROGRESS.md. frontend/** ve adapter/performans ajanı dosyaları değiştirilmedi.
 **Doğrulama:** İlk QA #44253336502 yalnızca 0.05 mm test tanısı beklentisi nedeniyle başarısız oldu; kapsam korunarak 48f6be6d ile düzeltildi. Son kod SHA için CI #44253469719, QA #44253469656 ve Pages #44253469658 başarılı. QA 102/102 frontend + 329/329 domain testi, strict shared-domain TypeScript, lint, production build ve production dependency audit 0 bulgu.
+
+
+## 18 Kasım 2026 10:36 TRT — DOM-026 geometrik levha alanı ve doluluk özeti
+
+**Kullanıcı akışı:** kullanıcı tarafından tanımlanan levha ölçüsü ve dört kenar trim payı ile doğrulanmış kesim planı; brüt levha alanı, net kullanılabilir alan ve yerleşen gerçek dikdörtgen parça alanını hem levha hem toplam düzeyinde raporlar.
+
+**Kabul kriterleri:**
+- Her kullanılan levha için brüt alan, trim ile ayrılan alan, net kullanılabilir alan, yerleşen net parça alanı ve kullanılmayan geometrik alan ayrı raporlanır; proje toplamları per-sheet değerlerle aynı aritmetiği kullanır.
+- Kaynak plan alan hesabından önce tekrar doğrulanır; değiştirilmiş geometri, ölçü, adet, trim veya blocked upstream raporu kısmi sonuç vermez.
+- 0.1 mm ölçü tick'leri BigInt ile çarpılıp toplanır; alan çözünürlüğü 0.01 mm², güvenli sayı aralığı aşımı blocked olur.
+- Geometrik doluluk yüzdesi yalnızca yerleşen net parça alanı / net kullanılabilir levha alanıdır ve iki ondalığa yuvarlanır. Empty planda yüzdelik null, alan toplamları sıfırdır.
+- Kullanılmayan geometrik alan kerf aralıkları/offcut/boş bölgeleri içerebilir; fire, yield, kesim kaybı veya CNC verisi olarak adlandırılmaz.
+
+**Sınırlar:** Bu rapor deterministik shelf yerleşiminin geometrik alan muhasebesidir; optimal nesting veya malzeme verimi tahmini değildir. Kesim sırası/yolu, makine standardı, CNC/postprocessor ve fiziksel üretim onayı yoktur.
+
+**Değişen dosyalar:** `domain/production/sheetCutPlan.ts`, `domain/production/sheetCutPlan.test.mjs`, `docs/production-domain-contract.md`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`. Hiçbir `frontend/**` veya entegrasyon/performance agent dosyası değiştirilmedi.
+
+**İlk doğrulama durumu:** Kod ve regresyon testleri eklendi; bu commit sonrası CI/QA/Pages Actions sonuçları bekleniyor.
+
+### DOM-026 sonrası sıradaki 3-5 küçük görev
+
+1. DOM-027: makine bağımsız kesim operasyonu/kesim sırası veri sözleşmesini tasarla; gerçek makine standardı olmadan takım yolu veya CNC kodu üretme.
+2. INT-001 / PR #61: frontend sahibinin domain üretim raporu/JSON-CSV adapter entegrasyonunu güncel base ve Actions kanıtıyla tamamlamasını bekle; frontend PR'ını sahiplenme veya merge etme.
+3. INT-002 / QA-003: entegrasyon-performans ajanının izole PR'ındaki adapter round-trip kanıtını salt okunur doğrula; adapter/test sahipliğine dokunma.
+4. QA: yeni alan özeti sözleşmesinin UI entegrasyonunda ready/empty/blocked durumlarının kayıpsız tüketildiğini kontrol et.
+5. CNC/postprocessor: operatörün gerçek makine/üretici standardı ve fiziksel güvenlik gereksinimleri olmadan uygulama başlatma.

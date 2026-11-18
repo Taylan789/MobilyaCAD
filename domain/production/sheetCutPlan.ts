@@ -497,6 +497,31 @@ export type SheetCutPlanJsonReport =
   | { schemaVersion: 1; status: "ready" | "empty"; json: string; diagnostics: [] }
   | { schemaVersion: 1; status: "blocked"; json: null; diagnostics: string[] };
 
+export interface SheetCutPlanAreaSummarySheet {
+  sheetIndex: number;
+  grossSheetAreaMm2: number;
+  trimExcludedAreaMm2: number;
+  usableSheetAreaMm2: number;
+  placedPartAreaMm2: number;
+  unoccupiedUsableAreaMm2: number;
+  geometricOccupancyPercent: number;
+}
+export interface SheetCutPlanAreaSummary {
+  schemaVersion: 1;
+  sheetCount: number;
+  grossSheetAreaMm2: number;
+  trimExcludedAreaMm2: number;
+  usableSheetAreaMm2: number;
+  placedPartAreaMm2: number;
+  unoccupiedUsableAreaMm2: number;
+  geometricOccupancyPercent: number | null;
+  sheets: SheetCutPlanAreaSummarySheet[];
+}
+export type SheetCutPlanAreaSummaryReport =
+  | { schemaVersion: 1; status: "ready" | "empty"; result: SheetCutPlanAreaSummary; diagnostics: [] }
+  | { schemaVersion: 1; status: "blocked"; result: null; diagnostics: string[] };
+
+
 function validateSheetCutPlanResult(value: unknown): SheetCutPlanReport {
   const plan = record(value, "Kesim planı JSON içeriği");
   closed(
@@ -591,6 +616,137 @@ function validateSheetCutPlanResult(value: unknown): SheetCutPlanReport {
       }
     }
   });
+}
+
+const MAX_SAFE_AREA_TICKS = BigInt(Number.MAX_SAFE_INTEGER);
+
+function rectangleAreaTicks(widthMm: number, lengthMm: number, label: string): bigint {
+  return BigInt(mmTicks(widthMm, label + " genişliği")) *
+    BigInt(mmTicks(lengthMm, label + " uzunluğu"));
+}
+function areaTicksToMm2(value: bigint, label: string): number {
+  if (value < 0n || value > MAX_SAFE_AREA_TICKS) {
+    throw new Error(label + " güvenli 0.01 mm² hassasiyet aralığını aşıyor.");
+  }
+  return Number(value) / 100;
+}
+function calculateGeometricOccupancyPercent(placedArea: bigint, usableArea: bigint): number | null {
+  if (usableArea === 0n) return null;
+  const roundedHundredths = (placedArea * 10_000n + usableArea / 2n) / usableArea;
+  return Number(roundedHundredths) / 100;
+}
+
+/**
+ * Summarizes verified rectangular area only. The remaining area includes kerf gaps
+ * and unoccupied/offcut regions; it is not a material-yield or waste estimate.
+ */
+export function calculateSheetCutPlanAreaSummary(value: unknown): SheetCutPlanAreaSummaryReport {
+  try {
+    const report = record(value, "Kesim planı alan özeti girdisi");
+    closed(report, ["schemaVersion", "status", "result", "diagnostics"], "Kesim planı alan özeti girdisi");
+    if (report.schemaVersion !== 1) {
+      throw new Error("Desteklenmeyen kesim planı alan özeti şema sürümü.");
+    }
+    if (report.status === "blocked") {
+      if (report.result !== null || !Array.isArray(report.diagnostics)) {
+        throw new Error("Blocked kesim planı raporu null sonuç ve tanı listesi taşımalıdır.");
+      }
+      const diagnostics = report.diagnostics.filter(
+        (item): item is string => typeof item === "string" && item.trim() !== ""
+      );
+      if (diagnostics.length !== report.diagnostics.length || diagnostics.length === 0) {
+        throw new Error("Blocked kesim planı raporu boş olmayan metin tanıları taşımalıdır.");
+      }
+      return { schemaVersion: 1, status: "blocked", result: null, diagnostics };
+    }
+    if (report.status !== "ready" && report.status !== "empty") {
+      throw new Error("Kesim planı alan özeti ready, empty veya blocked durumunda olmalıdır.");
+    }
+    if (!Array.isArray(report.diagnostics) || report.diagnostics.length !== 0) {
+      throw new Error("Ready/empty kesim planı raporu tanı içermemelidir.");
+    }
+
+    const validated = validateSheetCutPlanResult(report.result);
+    if (validated.status === "blocked" || validated.result === null) {
+      throw new Error(validated.diagnostics.join(" "));
+    }
+    if (validated.status !== report.status) {
+      throw new Error("Kesim planı ready/empty durumu alan özeti girdisiyle eşleşmiyor.");
+    }
+
+    const plan = validated.result;
+    const trim = plan.edgeTrimMm ?? { left: 0, right: 0, top: 0, bottom: 0 };
+    const stockWidthTicks = BigInt(mmTicks(plan.stockSheet.widthMm, "Levha genişliği"));
+    const stockLengthTicks = BigInt(mmTicks(plan.stockSheet.lengthMm, "Levha uzunluğu"));
+    const usableWidthTicks = stockWidthTicks -
+      BigInt(mmTicks(trim.left, "Sol trim payı")) -
+      BigInt(mmTicks(trim.right, "Sağ trim payı"));
+    const usableLengthTicks = stockLengthTicks -
+      BigInt(mmTicks(trim.top, "Üst trim payı")) -
+      BigInt(mmTicks(trim.bottom, "Alt trim payı"));
+    if (usableWidthTicks <= 0n || usableLengthTicks <= 0n) {
+      throw new Error("Trim payları pozitif kullanılabilir levha alanı bırakmalıdır.");
+    }
+
+    const grossPerSheet = stockWidthTicks * stockLengthTicks;
+    const usablePerSheet = usableWidthTicks * usableLengthTicks;
+    const trimPerSheet = grossPerSheet - usablePerSheet;
+    let grossTotal = 0n;
+    let trimTotal = 0n;
+    let usableTotal = 0n;
+    let placedTotal = 0n;
+
+    const sheets = plan.sheets.map((sheet) => {
+      const placedArea = sheet.placements.reduce(
+        (sum, placement) => sum + rectangleAreaTicks(
+          placement.widthMm, placement.lengthMm,
+          "Levha " + sheet.index + " yerleşen parça alanı"
+        ),
+        0n
+      );
+      if (placedArea > usablePerSheet) {
+        throw new Error("Levha " + sheet.index + " yerleşen parça alanı kullanılabilir levha alanını aşıyor.");
+      }
+      const unoccupiedArea = usablePerSheet - placedArea;
+      grossTotal += grossPerSheet;
+      trimTotal += trimPerSheet;
+      usableTotal += usablePerSheet;
+      placedTotal += placedArea;
+      const occupancy = calculateGeometricOccupancyPercent(placedArea, usablePerSheet);
+      if (occupancy === null) {
+        throw new Error("Kullanılan levha için geometrik doluluk oranı hesaplanamadı.");
+      }
+      return {
+        sheetIndex: sheet.index,
+        grossSheetAreaMm2: areaTicksToMm2(grossPerSheet, "Brüt levha alanı"),
+        trimExcludedAreaMm2: areaTicksToMm2(trimPerSheet, "Trim ile ayrılan alan"),
+        usableSheetAreaMm2: areaTicksToMm2(usablePerSheet, "Net kullanılabilir levha alanı"),
+        placedPartAreaMm2: areaTicksToMm2(placedArea, "Yerleşen net parça alanı"),
+        unoccupiedUsableAreaMm2: areaTicksToMm2(unoccupiedArea, "Kullanılmayan kullanılabilir alan"),
+        geometricOccupancyPercent: occupancy
+      };
+    });
+
+    const summary: SheetCutPlanAreaSummary = {
+      schemaVersion: 1,
+      sheetCount: sheets.length,
+      grossSheetAreaMm2: areaTicksToMm2(grossTotal, "Toplam brüt levha alanı"),
+      trimExcludedAreaMm2: areaTicksToMm2(trimTotal, "Toplam trim alanı"),
+      usableSheetAreaMm2: areaTicksToMm2(usableTotal, "Toplam net kullanılabilir levha alanı"),
+      placedPartAreaMm2: areaTicksToMm2(placedTotal, "Toplam yerleşen net parça alanı"),
+      unoccupiedUsableAreaMm2: areaTicksToMm2(usableTotal - placedTotal, "Toplam kullanılmayan kullanılabilir alan"),
+      geometricOccupancyPercent: calculateGeometricOccupancyPercent(placedTotal, usableTotal),
+      sheets
+    };
+    return { schemaVersion: 1, status: validated.status, result: summary, diagnostics: [] };
+  } catch (error) {
+    return {
+      schemaVersion: 1,
+      status: "blocked",
+      result: null,
+      diagnostics: [error instanceof Error ? error.message : String(error)]
+    };
+  }
 }
 
 /** Parses and fully revalidates the versioned machine-independent cut-plan JSON envelope. */

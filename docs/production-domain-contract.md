@@ -638,3 +638,15 @@ Kaynak: domain/production/sheetNestingLayout.ts ve domain/production/sheetCutPla
 - SheetNestingLayoutResult.edgeTrimMm ve SheetCutPlanResult.edgeTrimMm opsiyoneldir. Kesim planı JSON formatVersion 1'e eklenen alan geriye dönük uyumlu ve opsiyoneldir; parser trim geometrisini tekrar doğrular. Yerleşim trim sınırını ihlal ederse kesim planı blocked olur.
 - Bu model fire/yield yüzdesi, gerçek kesim kaybı, optimizasyon verimi veya CNC/makine standardı üretmez. Kullanıcı girdisi olmayan trim payı uydurulmaz; fiziksel kesim öncesi operatör/atölye doğrulaması gerekir.
 - Frontend entegrasyonu dört kenarı ayrı mm alanlarıyla isteğe bağlı toplamalı; net kullanılabilir dikdörtgeni ve fiziksel levha sınırını ayrı göstermeli, JSON round-trip'te alanı korumalı ve blocked tanısını görünür kılmalıdır.
+
+
+## DOM-026 — geometrik levha ve yerleşen parça alanı özeti
+
+Kaynak: `domain/production/sheetCutPlan.ts`; API: `calculateSheetCutPlanAreaSummary(sheetCutPlanReport)`.
+
+- API, ready/empty `SheetCutPlanReport` girdisini yeniden doğrular; blocked raporun tanılarını korur. Değiştirilmiş kaynak ölçüsü, adet, trim, levha sınırı veya geometri alan özeti üretmez.
+- Her kullanılan levha için brüt levha alanı, kullanıcı trim paylarıyla ayrılan alan, net kullanılabilir levha alanı, dikdörtgen placement ölçülerinin toplamı olan yerleşen net parça alanı ve kullanılabilir alanda kalan geometrik alan ayrı hesaplanır. Aynı değerler proje/plan toplamında da verilir.
+- Alanlar mm² cinsindedir. 0.1 mm ölçüler integer tick'e çevrilerek 0.01 mm² çözünürlükte BigInt aritmetiğiyle toplanır; güvenli Number aralığını aşan sonuç blocked olur. Doluluk yüzdesi `placedPartAreaMm2 / usableSheetAreaMm2 × 100` olarak iki ondalık basamağa yuvarlanır.
+- `unoccupiedUsableAreaMm2`, kerf aralıklarını, kullanılmayan levha bölgelerini ve olası offcut alanlarını birlikte içerir. Bu değer fire, malzeme verimi, kesim kaybı veya optimizasyon sonucu değildir. Kesim yolu ve CNC operasyonu hesaplanmaz.
+- Empty plan hiç levha kullanmadığı için tüm toplam alanlar sıfır, geometrik doluluk yüzdesi `null` olur. Trim verilmemişse sıfır trim davranışı korunur; varsayılan pay veya verim yüzdesi üretilmez.
+- Frontend entegrasyonu ready/empty raporunu toplam ve levha bazında gösterebilir; empty durumda yüzde göstermemeli, blocked tanısını korumalı ve kalan geometrik alanı fire/yield etiketiyle sunmamalıdır.

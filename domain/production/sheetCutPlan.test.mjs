@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  calculateSheetCutPlanAreaSummary,
   createSheetCutPlan,
   parseSheetCutPlanJson,
   serializeSheetCutPlanJson
@@ -321,4 +322,93 @@ test("blocked plan JSON olarak dışa aktarılamaz ve empty plan round-trip koru
   assert.equal(serialized.status, "empty");
   assert.ok(serialized.json);
   assert.deepEqual(parseSheetCutPlanJson(serialized.json), empty);
+});
+
+
+test("trim sonrası net levha alanı ile yerleşen net parça alanını toplam ve levha bazında ayırır", () => {
+  const input = batch({
+    sheet: { widthMm: 1000, lengthMm: 1000 },
+    kerfMm: 0,
+    part: { widthMm: 900, lengthMm: 900, quantity: 2 }
+  });
+  const edgeTrimMm = { left: 10, right: 20, top: 30, bottom: 40 };
+  const plan = makePlan(input, calculateSheetNestingLayout({ ...input, edgeTrimMm }));
+  const summary = calculateSheetCutPlanAreaSummary(plan);
+
+  assert.equal(summary.status, "ready");
+  assert.equal(summary.result?.sheetCount, 2);
+  assert.equal(summary.result?.grossSheetAreaMm2, 2_000_000);
+  assert.equal(summary.result?.trimExcludedAreaMm2, 195_800);
+  assert.equal(summary.result?.usableSheetAreaMm2, 1_804_200);
+  assert.equal(summary.result?.placedPartAreaMm2, 1_620_000);
+  assert.equal(summary.result?.unoccupiedUsableAreaMm2, 184_200);
+  assert.equal(summary.result?.geometricOccupancyPercent, 89.79);
+  assert.deepEqual(summary.result?.sheets.map((sheet) => [
+    sheet.sheetIndex, sheet.usableSheetAreaMm2, sheet.placedPartAreaMm2,
+    sheet.unoccupiedUsableAreaMm2, sheet.geometricOccupancyPercent
+  ]), [
+    [1, 902_100, 810_000, 92_100, 89.79],
+    [2, 902_100, 810_000, 92_100, 89.79]
+  ]);
+});
+
+test("0.1 mm ölçülerden gelen alanı 0.01 mm² hassasiyetinde hesaplar", () => {
+  const input = batch({
+    sheet: { widthMm: 1000.1, lengthMm: 1000.1 },
+    kerfMm: 0,
+    part: { widthMm: 500.1, lengthMm: 500.1, quantity: 1 }
+  });
+  const edgeTrimMm = { left: 0.1, right: 0.2, top: 0.3, bottom: 0.4 };
+  const summary = calculateSheetCutPlanAreaSummary(
+    makePlan(input, calculateSheetNestingLayout({ ...input, edgeTrimMm }))
+  );
+
+  assert.equal(summary.status, "ready");
+  assert.equal(summary.result?.grossSheetAreaMm2, 1_000_200.01);
+  assert.equal(summary.result?.trimExcludedAreaMm2, 999.89);
+  assert.equal(summary.result?.usableSheetAreaMm2, 999_200.12);
+  assert.equal(summary.result?.placedPartAreaMm2, 250_100.01);
+  assert.equal(summary.result?.unoccupiedUsableAreaMm2, 749_100.11);
+  assert.equal(summary.result?.geometricOccupancyPercent, 25.03);
+});
+
+test("boş ve blocked kesim planlarında alan özeti güvenli durum döndürür", () => {
+  const empty = calculateSheetCutPlanAreaSummary(makePlan(batch({ parts: [] })));
+  assert.equal(empty.status, "empty");
+  assert.deepEqual(empty.result?.sheets, []);
+  assert.equal(empty.result?.sheetCount, 0);
+  assert.equal(empty.result?.grossSheetAreaMm2, 0);
+  assert.equal(empty.result?.usableSheetAreaMm2, 0);
+  assert.equal(empty.result?.placedPartAreaMm2, 0);
+  assert.equal(empty.result?.geometricOccupancyPercent, null);
+
+  const blockedPlan = makePlan(batch(), {
+    schemaVersion: 1, status: "blocked", result: null, diagnostics: ["Yerleşim engellendi."]
+  });
+  const blockedSummary = calculateSheetCutPlanAreaSummary(blockedPlan);
+  assert.equal(blockedSummary.status, "blocked");
+  assert.equal(blockedSummary.result, null);
+  assert.match(blockedSummary.diagnostics.join(" "), /Yerleşim engellendi/);
+});
+
+test("değiştirilmiş kesim planı alan özeti üretmeden önce yeniden doğrulanır", () => {
+  const plan = structuredClone(makePlan(batch({ part: { quantity: 1 } })));
+  plan.result.sheets[0].placements[0].widthMm = 1;
+  const summary = calculateSheetCutPlanAreaSummary(plan);
+  assert.equal(summary.status, "blocked");
+  assert.equal(summary.result, null);
+  assert.match(summary.diagnostics.join(" "), /ölçüleri kaynak Part/);
+});
+
+test("alan hesabı güvenli 0.01 mm² integer aralığını aşarsa blocked olur", () => {
+  const input = batch({
+    sheet: { widthMm: 90_000_000, lengthMm: 90_000_000 },
+    kerfMm: 0,
+    part: { widthMm: 1, lengthMm: 1, quantity: 1 }
+  });
+  const plan = makePlan(input, calculateSheetNestingLayout(input));
+  const summary = calculateSheetCutPlanAreaSummary(plan);
+  assert.equal(summary.status, "blocked");
+  assert.equal(summary.result, null);
+  assert.match(summary.diagnostics.join(" "), /güvenli 0.01 mm²/);
 });

@@ -1083,4 +1083,17 @@
 - Son kod SHA [48f6be6d559c6445cd720b3414082c947194eaeb](https://github.com/Taylan789/MobilyaCAD/commit/48f6be6d559c6445cd720b3414082c947194eaeb) için [CI #44253469719](https://github.com/Taylan789/MobilyaCAD/actions/runs/44253469719), [QA #44253469656](https://github.com/Taylan789/MobilyaCAD/actions/runs/44253469656) ve [Pages #44253469658](https://github.com/Taylan789/MobilyaCAD/actions/runs/44253469658) tamamı başarılı. QA: 102/102 frontend + 329/329 domain testi, strict shared-domain TypeScript, lint, production build ve production dependency audit 0 bulgu.
 - Bilinen sınırlar: trim yalnızca kullanıcı girdisidir; levha net alanı/fire/yield oranı, kesim kaybı, kesim sırası/testere yolu, CNC/postprocessor veya makine standardı üretmez. Fiziksel üretim öncesi operatör/atölye doğrulaması gerekir.
 - AI Developer [#44221779571](https://github.com/Taylan789/MobilyaCAD/actions/runs/44221779571) loglarında OpenRouter free-models-per-day 429 (limit 50, kalan 0) doğrulandı. Eski SHA checkout'u ve tükenmiş kota nedeniyle rerun yapılmadı; secrets/ayar değiştirilmedi ve yeni dispatch başlatılmadı.
-- Sonraki görev: DOM-026 — kullanıcı trim girdisinden net kullanılabilir levha alanı ve yerleşen net parça alanını ayrı raporla; yalnızca doğrulanabilir geometrik değerleri hesapla, gerçek kesim fire/yield tahmin etme.
+- Sonraki görev: DOM-027 — makine bağımsız kesim operasyonu/kesim sırası sözleşmesi; CNC standardı uydurma.
+
+
+## 18 Kasım 2026 10:36 TRT — DOM-026 geometrik levha alanı özeti (Actions bekleniyor)
+
+- Başlangıç HEAD: `b6bb3570fda47faae1a1d1809c65deb39e43eb6e`; özellik commit SHA'sı bu kayıt doğrulama sonrasında sabitlenecek.
+- Domain API: `calculateSheetCutPlanAreaSummary` doğrulanmış `SheetCutPlanReport` girdisinden levha bazında ve toplam brüt alan, trim alanı, net kullanılabilir alan, yerleşen net dikdörtgen alanı, kullanılmayan geometrik alan ve iki ondalıklı doluluk yüzdesi üretir.
+- Veri doğruluğu: 0.1 mm integer tick değerleri BigInt ile alan tick'lerine çevrilir; 0.01 mm² çözünürlük korunur. Güvenli Number aralığını aşan toplamlar blocked olur. Kaynak kesim planı tekrar doğrulanır.
+- Test kapsamı: çoklu levha toplamı, dört kenar trim, 0.1 mm kesirli ölçüler, empty/blocked, değiştirilmiş plan ve alan taşması.
+- Değişen dosyalar: `domain/production/sheetCutPlan.ts`, `domain/production/sheetCutPlan.test.mjs`, `docs/production-domain-contract.md`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`.
+- Actions: push sonrası CI, QA ve Pages sonuçları bekleniyor; henüz başarılı ilan edilmedi.
+- Sınırlar: kullanılmayan alan kerf boşlukları ve offcut bölgelerini içerebilir; fire/yield, kesim sırası, CNC, makine standardı veya fiziksel üretim onayı değildir.
+- AI Developer #44221779571 eski `a22c771` checkout SHA'sında OpenRouter free-models-per-day 429 (limit 50, kalan 0) nedeniyle başarısız; eski SHA rerun edilmedi. Güncel SHA için workflow dispatch aracı yok; secret/ayar değiştirilmedi.
+- Sonraki görev: DOM-027 — makine bağımsız kesim operasyonu/kesim sırası sözleşmesi; CNC standardı uydurma.
