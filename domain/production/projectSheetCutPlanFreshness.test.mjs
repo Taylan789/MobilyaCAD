@@ -104,7 +104,7 @@ test("ölçü, adet, malzeme, kalınlık ve damar değişikliği eski planı sta
     ["uzunluk", { length: 750 }],
     ["adet", { quantity: 1 }],
     ["malzeme", { materialId: "other-18" }],
-    ["kalınlık", { thickness: 19 }],
+    ["kalın", { thickness: 19 }],
     ["damar yönü", { grainDirection: "width" }]
   ];
 

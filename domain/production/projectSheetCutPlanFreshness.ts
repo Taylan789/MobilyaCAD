@@ -136,7 +136,7 @@ export function validateProjectSheetCutPlanFreshness(
     sourcePartIds = [...parsedPlan.result.sourcePartIds];
 
     const selectedIds = new Set(sourcePartIds);
-    const grainOverrides = request.grainDirectionsByPartId === undefined
+    const grainOverrides: RecordValue = request.grainDirectionsByPartId === undefined
       ? {}
       : record(request.grainDirectionsByPartId, "Parça damar yönü eşlemesi");
     for (const [partId, direction] of Object.entries(grainOverrides)) {
