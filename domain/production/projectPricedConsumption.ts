@@ -21,6 +21,8 @@ export interface ProjectConsumptionPriceInput {
   unitPriceMinor: number;
   currencyCode: string;
   sourceReference?: string;
+  /** Optional exact panel thickness in mm; omitted entries are legacy prices. */
+  thicknessMm?: number;
 }
 
 export interface ProjectCostCoverageIssue {
@@ -31,6 +33,9 @@ export interface ProjectCostCoverageIssue {
   requiredUnit: string;
   quantity: number;
   availableUnits?: string[];
+  thicknessMm?: number;
+  availableThicknessesMm?: number[];
+  legacyPriceAvailable?: boolean;
 }
 
 export interface ProjectPricedConsumptionSummary {
@@ -51,7 +56,8 @@ const allowedPriceKeys = new Set([
   "unit",
   "unitPriceMinor",
   "currencyCode",
-  "sourceReference"
+  "sourceReference",
+  "thicknessMm"
 ]);
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -74,8 +80,24 @@ function requireText(value: unknown, label: string, maxLength: number): string {
   return value;
 }
 
-function priceKey(resourceType: string, resourceId: string, unit: string): string {
-  return JSON.stringify([resourceType, resourceId, unit]);
+function requireMaterialThicknessMm(value: unknown, label: string): number {
+  if (typeof value !== "number" || !Number.isFinite(value) || value <= 0) {
+    throw new Error(label + " sıfırdan büyük ve sonlu bir mm değeri olmalıdır.");
+  }
+  const normalized = Math.round(value * 10) / 10;
+  if (Math.abs(normalized - value) > 1e-9) {
+    throw new Error(label + " en fazla 0.1 mm hassasiyetinde olmalıdır.");
+  }
+  return normalized;
+}
+
+function priceKey(
+  resourceType: string,
+  resourceId: string,
+  unit: string,
+  thicknessMm?: number
+): string {
+  return JSON.stringify([resourceType, resourceId, unit, thicknessMm ?? null]);
 }
 
 function validatePriceTable(value: unknown): Map<string, ProjectConsumptionPriceInput> {
@@ -103,6 +125,12 @@ function validatePriceTable(value: unknown): Map<string, ProjectConsumptionPrice
     const resourceType = rawPrice.resourceType;
     const resourceId = requireText(rawPrice.resourceId, label + " kaynak kimliği", 128);
     const unit = requireText(rawPrice.unit, label + " birimi", 32);
+    const thicknessMm = rawPrice.thicknessMm === undefined
+      ? undefined
+      : requireMaterialThicknessMm(rawPrice.thicknessMm, label + " malzeme kalınlığı");
+    if (thicknessMm !== undefined && resourceType !== "material") {
+      throw new Error(label + " thicknessMm yalnızca material fiyatlarında kullanılabilir.");
+    }
     if (
       typeof rawPrice.unitPriceMinor !== "number" ||
       !Number.isSafeInteger(rawPrice.unitPriceMinor) ||
@@ -118,9 +146,12 @@ function validatePriceTable(value: unknown): Map<string, ProjectConsumptionPrice
       ? undefined
       : requireText(rawPrice.sourceReference, label + " kaynak referansı", 256);
 
-    const key = priceKey(resourceType, resourceId, unit);
+    const key = priceKey(resourceType, resourceId, unit, thicknessMm);
     if (prices.has(key)) {
-      throw new Error("Yinelenen fiyat anahtarı: " + resourceType + "/" + resourceId + "/" + unit + ".");
+      throw new Error(
+        "Yinelenen fiyat anahtarı: " + resourceType + "/" + resourceId + "/" + unit +
+        (thicknessMm === undefined ? "" : "/" + thicknessMm + " mm") + "."
+      );
     }
     prices.set(key, {
       resourceType,
@@ -128,7 +159,8 @@ function validatePriceTable(value: unknown): Map<string, ProjectConsumptionPrice
       unit,
       unitPriceMinor: rawPrice.unitPriceMinor,
       currencyCode,
-      ...(sourceReference === undefined ? {} : { sourceReference })
+      ...(sourceReference === undefined ? {} : { sourceReference }),
+      ...(thicknessMm === undefined ? {} : { thicknessMm })
     });
   }
 
@@ -170,13 +202,38 @@ function findMissingPrice(
   description: string,
   requiredUnit: string,
   quantity: number,
-  prices: Map<string, ProjectConsumptionPriceInput>
+  prices: Map<string, ProjectConsumptionPriceInput>,
+  thicknessMm?: number
 ): ProjectCostCoverageIssue {
-  const availableUnits = [...new Set(
-    [...prices.values()]
-      .filter((price) => price.resourceType === resourceType && price.resourceId === resourceId)
-      .map((price) => price.unit)
-  )].sort((first, second) => first.localeCompare(second, "tr"));
+  const resourcePrices = [...prices.values()].filter(
+    (price) => price.resourceType === resourceType && price.resourceId === resourceId
+  );
+  const availableUnits = [...new Set(resourcePrices.map((price) => price.unit))]
+    .sort((first, second) => first.localeCompare(second, "tr"));
+
+  if (thicknessMm !== undefined) {
+    const sameUnitPrices = resourcePrices.filter((price) => price.unit === requiredUnit);
+    if (sameUnitPrices.length > 0) {
+      const availableThicknessesMm = [...new Set(
+        sameUnitPrices.flatMap((price) =>
+          price.thicknessMm === undefined ? [] : [price.thicknessMm]
+        )
+      )].sort((first, second) => first - second);
+      return {
+        code: "missing-price",
+        resourceType,
+        resourceId,
+        description,
+        requiredUnit,
+        quantity,
+        thicknessMm,
+        ...(availableThicknessesMm.length === 0 ? {} : { availableThicknessesMm }),
+        ...(sameUnitPrices.some((price) => price.thicknessMm === undefined)
+          ? { legacyPriceAvailable: true }
+          : {})
+      };
+    }
+  }
 
   if (availableUnits.length > 0) {
     return {
@@ -196,7 +253,8 @@ function findMissingPrice(
     resourceId,
     description,
     requiredUnit,
-    quantity
+    quantity,
+    ...(thicknessMm === undefined ? {} : { thicknessMm })
   };
 }
 
@@ -224,8 +282,10 @@ function addPriceLine(
 /**
  * Prices validated material, hardware and edge-band consumption summaries.
  *
- * Material consumption is priced only in the summary's explicit m2 unit.
- * Hardware and edge-band resources must match their exact declared units.
+ * Material consumption is priced only in the summary's explicit m2 unit and
+ * can use an exact thicknessMm price. A legacy material price without thickness
+ * is accepted only when that material ID has one distinct thickness in the
+ * project. Hardware and edge-band resources must match their exact declared units.
  * Edge-band mm-to-m conversion occurs only when the Part assignment explicitly
  * selects m. No fallback price, waste rate, tax or currency conversion is
  * inferred. A monetary summary is returned only when every required input is
@@ -285,6 +345,14 @@ export function calculateProjectPricedConsumptionSummary(
     return emptySummary();
   }
 
+  const materialThicknessesById = new Map<string, Set<number>>();
+  for (const material of materialSummaries) {
+    if (material.materialId === undefined) continue;
+    const thicknesses = materialThicknessesById.get(material.materialId) ?? new Set<number>();
+    thicknesses.add(material.thicknessMm);
+    materialThicknessesById.set(material.materialId, thicknesses);
+  }
+
   const costLines: ProjectCostLineInput[] = [];
   const missingPrices: ProjectCostCoverageIssue[] = [];
   let materialLineNumber = 0;
@@ -292,7 +360,8 @@ export function calculateProjectPricedConsumptionSummary(
   let edgeBandingLineNumber = 0;
 
   for (const material of materialSummaries) {
-    const description = material.material + " (" + material.thicknessMm + " mm)";
+    const description = material.material + " (" + material.thicknessMm + " mm" +
+      (material.materialId === undefined ? "" : "; " + material.materialId) + ")";
     if (material.materialId === undefined) {
       missingPrices.push({
         code: "missing-resource-id",
@@ -303,7 +372,10 @@ export function calculateProjectPricedConsumptionSummary(
         quantity: material.panelAreaM2
       });
     } else {
-      const price = prices.get(priceKey("material", material.materialId, "m2"));
+      const exactPrice = prices.get(priceKey("material", material.materialId, "m2", material.thicknessMm));
+      const legacyPrice = prices.get(priceKey("material", material.materialId, "m2"));
+      const hasSingleThickness = (materialThicknessesById.get(material.materialId)?.size ?? 0) === 1;
+      const price = exactPrice ?? (hasSingleThickness ? legacyPrice : undefined);
       if (price === undefined) {
         missingPrices.push(findMissingPrice(
           "material",
@@ -311,7 +383,8 @@ export function calculateProjectPricedConsumptionSummary(
           description,
           "m2",
           material.panelAreaM2,
-          prices
+          prices,
+          material.thicknessMm
         ));
       } else {
         materialLineNumber += 1;
