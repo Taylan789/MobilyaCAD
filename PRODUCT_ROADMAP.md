@@ -1199,7 +1199,11 @@ DOM-032 doğrulaması: [commit fe720ce](https://github.com/Taylan789/MobilyaCAD/
 
 **Kabul kriterleri:** sourceId/revision birlikte ve boş olmayan metin; bilinmeyen alan reddi; v1/v2 geriye uyumluluğu; v3 freshness/export round-trip; stale/blocked durumda JSON null.
 
-**Kod commit'i:** [0fc8bd0](https://github.com/Taylan789/MobilyaCAD/commit/0fc8bd09ebddff1b3c864dff5fa9d775a1759882).\n\n**Doğrulama:** [CI #44328579254](https://github.com/Taylan789/MobilyaCAD/actions/runs/44328579254), [QA #44328579308](https://github.com/Taylan789/MobilyaCAD/actions/runs/44328579308) ve [Pages #44328579621](https://github.com/Taylan789/MobilyaCAD/actions/runs/44328579621) başarılı; QA 102/102 frontend + 375/375 domain testi, strict TypeScript, lint (32 uyarı / 0 hata), production build ve audit 0 bulgu.\n\n**Sınırlar:** provenance fiziksel levha ölçüsünü/kalitesini veya tedarik zincirini kanıtlamaz. CNC, kesim sırası/yolu, fire/yield veya fiziksel üretim onayı değildir; atölye doğrulaması gerekir.
+**Kod commit'i:** [0fc8bd0](https://github.com/Taylan789/MobilyaCAD/commit/0fc8bd09ebddff1b3c864dff5fa9d775a1759882).
+
+**Doğrulama:** [CI #44328579254](https://github.com/Taylan789/MobilyaCAD/actions/runs/44328579254), [QA #44328579308](https://github.com/Taylan789/MobilyaCAD/actions/runs/44328579308) ve [Pages #44328579621](https://github.com/Taylan789/MobilyaCAD/actions/runs/44328579621) başarılı; QA 102/102 frontend + 375/375 domain testi, strict TypeScript, lint (32 uyarı / 0 hata), production build ve audit 0 bulgu.
+
+**Sınırlar:** provenance fiziksel levha ölçüsünü/kalitesini veya tedarik zincirini kanıtlamaz. CNC, kesim sırası/yolu, fire/yield veya fiziksel üretim onayı değildir; atölye doğrulaması gerekir.
 
 ### DOM-033 sonrası sıradaki küçük görevler
 1. INT-001 / PR #61: frontend sahibinin freshness-gated export kapısını ve v3 `stockSheetSource` JSON round-trip'ini güncel base üzerinde tamamlamasını salt okunur izle.

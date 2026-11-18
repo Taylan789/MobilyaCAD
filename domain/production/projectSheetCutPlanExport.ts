@@ -67,7 +67,7 @@ function blocked(
 /**
  * The only ready-export gate for project cut-plan JSON v2/v3.
  * It requires an explicitly exportable current production report, a fresh
- * full-project Part snapshot, the current selected Part IDs, and a v2 envelope.
+ * full-project Part snapshot, the current selected Part IDs, and a v2 or v3 envelope.
  * Legacy v1 files remain readable through the parser but cannot pass this gate.
  */
 export function createFreshProjectSheetCutPlanExport(value: unknown): ProjectSheetCutPlanExportReport {

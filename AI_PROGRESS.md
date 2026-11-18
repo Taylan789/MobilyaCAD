@@ -1193,7 +1193,7 @@
 
 - Başlangıç `dev/github-work` HEAD: `bcab56b2f15b646b6e059bee3ef9b2f6e8c1ee7e`.
 - Kod commit: [0fc8bd0](https://github.com/Taylan789/MobilyaCAD/commit/0fc8bd09ebddff1b3c864dff5fa9d775a1759882).
-- Değişen dosyalar: `domain/production/projectSheetCutPlanFile.ts`, `projectSheetCutPlanFile.test.mjs`, `projectSheetCutPlanExport.ts`, `projectSheetCutPlanExport.test.mjs`, `docs/production-domain-contract.md`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`.
+- Değişen dosyalar: `domain/production/projectSheetCutPlanFile.ts`, `projectSheetCutPlanFile.test.mjs`, `projectSheetCutPlanExport.ts`, `projectSheetCutPlanExport.test.mjs`, `domain/production/projectSheetCutPlanFreshness.ts`, `docs/production-domain-contract.md`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`.
 - Davranış: grup başına opsiyonel `stockSheetSource.sourceId/revision`; metadata varsa tam Part snapshot ile JSON v3; v1/v2 parse uyumluluğu; freshness ve export gate v3'ü destekler. Boş/bozuk/ek alan metadata reddedilir.
 - Otomatik kontroller: [CI #44328579254](https://github.com/Taylan789/MobilyaCAD/actions/runs/44328579254) başarılı; [QA #44328579308](https://github.com/Taylan789/MobilyaCAD/actions/runs/44328579308) başarılı; [Pages #44328579621](https://github.com/Taylan789/MobilyaCAD/actions/runs/44328579621) başarılı. QA: 102/102 frontend + 375/375 domain testi, 0 başarısız; shared-domain strict TypeScript, lint (32 uyarı / 0 hata), production build ve production dependency audit (0 bulgu) geçti.
 - Bilinen sınırlar: sourceId/revision kullanıcı/atölye girdisidir; harici katalog, tedarikçi, fiyat, stok veya sertifika doğrulaması yoktur. CNC/üretim uygunluğu iddiası değildir.

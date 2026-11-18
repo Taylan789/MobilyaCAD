@@ -9,7 +9,7 @@ import { compareProjectPartSnapshots, createProjectPartSnapshot } from "./projec
 
 export interface ProjectSheetCutPlanFreshnessRequest {
   schemaVersion: 1;
-  /** Strict v1 JSON produced by serializeProjectSheetCutPlanJson. */
+  /** Strict, versioned JSON produced by serializeProjectSheetCutPlanJson. */
   savedPlanJson: string;
   /** Newly calculated domain production report for the current project state. */
   productionReport: CabinetProjectProductionReport;
@@ -19,7 +19,7 @@ export interface ProjectSheetCutPlanFreshnessRequest {
    * Part whose saved effective direction differs from its current stored value.
    */
   grainDirectionsByPartId?: Readonly<Record<string, SheetGrainDirection>>;
-  /** Required for v2 plans: the current user selection in project Part order. */
+  /** Required for v2/v3 plans: the current user selection in project Part order. */
   currentSelectedPartIds?: readonly string[];
 }
 
@@ -113,8 +113,8 @@ function changedFields(
 
 /**
  * Checks a saved machine-independent plan against the current production Part
- * snapshot. Only the selected source Part IDs persisted in the v1 plan are in
- * scope; no placement is regenerated and no partial JSON is returned.
+ * snapshot. Legacy v1 files compare selected source Parts; v2/v3 files also
+ * compare the full project snapshot. No placement is regenerated or partial JSON returned.
  */
 export function validateProjectSheetCutPlanFreshness(
   value: unknown
