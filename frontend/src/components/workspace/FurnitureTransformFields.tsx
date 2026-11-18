@@ -4,6 +4,7 @@ import { Move3D, RotateCw } from "lucide-react";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import type { PlacedFurniture } from "../../types/placedFurniture";
+import "./FurnitureTransformFields.css";
 
 type Axis = "x" | "y" | "z";
 type PositionDraft = Record<Axis, string>;
@@ -84,23 +85,32 @@ export function FurnitureTransformFields({
   }
 
   return (
-    <section className="cad-property-section space-y-3">
+    <section
+      className="cad-property-section cad-furniture-transform"
+      aria-label="Mobilya konumu ve dönüşü"
+    >
       <div className="cad-section-heading">
         <span>KONUM VE DÖNÜŞ</span>
         <Move3D />
       </div>
 
-      <div className="grid grid-cols-3 gap-2">
+      <div
+        className="cad-furniture-transform__coordinates"
+        role="group"
+        aria-label="Yerel konum, milimetre"
+      >
         {axes.map((axis) => {
           const inputId = `furniture-position-${axis.key}`;
 
           return (
-            <div className="cad-field min-w-0" key={axis.key}>
+            <div className="cad-field cad-furniture-transform__axis" key={axis.key}>
               <Label
                 htmlFor={inputId}
-                className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground"
+                className="cad-furniture-transform__axis-label"
               >
-                <span className={`font-bold ${axis.color}`}>{axis.label}</span>
+                <span className={`cad-furniture-transform__axis-tag ${axis.color}`}>
+                  {axis.label}
+                </span>
                 Konum
               </Label>
               <div className="cad-input-with-unit">
@@ -111,7 +121,7 @@ export function FurnitureTransformFields({
                   step="0.1"
                   value={positionDraft[axis.key]}
                   aria-label={`${axis.label} ekseni konumu, milimetre`}
-                  className="min-w-0 text-right font-mono tabular-nums"
+                  className="cad-furniture-transform__input"
                   onChange={(event) =>
                     setPositionDraft((previous) => ({
                       ...previous,
@@ -130,12 +140,12 @@ export function FurnitureTransformFields({
         })}
       </div>
 
-      <div className="cad-field">
+      <div className="cad-field cad-furniture-transform__rotation">
         <Label
           htmlFor="furniture-rotation"
-          className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground"
+          className="cad-furniture-transform__rotation-label"
         >
-          <RotateCw className="size-3.5" />
+          <RotateCw />
           Dönüş açısı
         </Label>
         <div className="cad-input-with-unit">
@@ -146,7 +156,7 @@ export function FurnitureTransformFields({
             max="359"
             step="1"
             value={rotationDraft}
-            className="font-mono tabular-nums"
+            className="cad-furniture-transform__input"
             onChange={(event) => setRotationDraft(event.target.value)}
             onBlur={commitRotation}
             onKeyDown={(event) => {
@@ -157,7 +167,7 @@ export function FurnitureTransformFields({
         </div>
       </div>
 
-      <p className="cad-field-note">
+      <p className="cad-field-note cad-furniture-transform__note">
         X ve Z oda merkezine, Y zeminden nesne merkezine göre ölçülür.
         X ve Z konumları oda sınırlarına göre otomatik sınırlandırılır.
       </p>
