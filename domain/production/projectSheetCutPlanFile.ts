@@ -231,7 +231,10 @@ export function serializeProjectSheetCutPlanJson(value: unknown): ProjectSheetCu
     }
 
     const validated = validateProjectSheetCutPlanFileResult(report.result);
-    if (validated.status !== report.status || validated.result === null) {
+    if (validated.status === "blocked" || validated.result === null) {
+      throw new Error(validated.diagnostics.join(" "));
+    }
+    if (validated.status !== report.status) {
       throw new Error("Proje kesim planı rapor durumu içerikle eşleşmiyor.");
     }
 
