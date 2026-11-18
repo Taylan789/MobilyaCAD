@@ -183,6 +183,7 @@ export function calculateDrawerBoxParts(
     return {
       id: `${furnitureId}-${drawerGroupId}-${suffix}`,
       furnitureId,
+      drawerGroupId,
       name,
       width: roundedPositiveMeasurement(width, `${name} genişliği`),
       length: roundedPositiveMeasurement(length, `${name} uzunluğu`),
