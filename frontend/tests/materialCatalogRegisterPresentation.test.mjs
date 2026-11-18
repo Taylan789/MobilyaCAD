@@ -22,7 +22,7 @@ test("material usage summary is a compact semantic register, not KPI cards", () 
 test("material register counts remain derived from current project references", () => {
   assert.match(
     component,
-    /const usedMaterialCount = materials\.filter\(\(material\) =>\s*referencedMaterialIds\.has\(material\.id\)\)\.length;/,
+    /const usedMaterialCount = materials\.filter\(\(material\) =>[\s\S]*?referencedMaterialIds\.has\(material\.id\)\s*\)\.length;/,
   );
   assert.match(component, /const unusedMaterialCount = materials\.length - usedMaterialCount;/);
   assert.match(component, /aria-label="Malzeme kullanım özeti"/);
