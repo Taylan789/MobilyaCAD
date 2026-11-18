@@ -1234,7 +1234,7 @@ DOM-032 doğrulaması: [commit fe720ce](https://github.com/Taylan789/MobilyaCAD/
 
 
 
-## DOM-035 — Kesim planı export kapısında kaynak bağlamlı tanılar
+## DOM-035 — Kesim planı export kapısında kaynak bağlamlı tanılar (tamamlandı)
 
 **Kullanıcı akışı:** kullanıcı güncel proje kesim planını dışa aktarmak istediğinde desteklenmeyen mobilya ailesi, hatalı panel açıklığı veya adapter'ın henüz taşıyamadığı kesitli geometri nedeniyle engellendiyse, nedenin hangi mobilya/aile/koddan geldiğini görebilir. Sistem hiçbir durumda kısmi JSON indirmez.
 
@@ -1256,3 +1256,6 @@ DOM-032 doğrulaması: [commit fe720ce](https://github.com/Taylan789/MobilyaCAD/
 3. DOM-037: desteklenen mobilya aileleri için gövde panel malzeme/kalınlık override'larının ortak proje Part snapshot ve malzeme tüketim özetinde aynı kimlik/ölçüyle korunmasını genişlet.
 4. INT-002 / PERF-001: adapter round-trip ve benchmark çalışmalarını yalnızca entegrasyon/performance ajanının sahiplik sınırında denetle.
 5. CNC operasyon/postprocessor tasarımını gerçek makine üretici standardı ve operatör güvenliği girdileri olmadan üretim çıktısına dönüştürme.
+
+
+**Actions doğrulaması — tamamlandı:** [commit 64c11776](https://github.com/Taylan789/MobilyaCAD/commit/64c1177651d9137bb4e17e4076ad2fef1320602e); [CI #44345824527](https://github.com/Taylan789/MobilyaCAD/actions/runs/44345824527), [QA #44345823923](https://github.com/Taylan789/MobilyaCAD/actions/runs/44345823923) ve [Pages #44345823859](https://github.com/Taylan789/MobilyaCAD/actions/runs/44345823859) başarılı. QA: 102/102 frontend + 382/382 domain testi; strict shared-domain TypeScript, lint (32 uyarı / 0 hata), production build ve production dependency audit (0 bulgu).
