@@ -984,3 +984,20 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 3. INT-001 / PR #61: frontend sahibinin domain üretim raporu / JSON-CSV adapter entegrasyonunu ve Actions kanıtını bekle; PR'ı sahiplenme veya merge etme.
 4. INT-002 / QA-003: entegrasyon-performans ajanının ayrı dalındaki adapter round-trip kanıtından sonra salt okunur uçtan uca denetim yap.
 5. AI Developer: önceki workflow 429 kotası nedeniyle eski SHA üzerinde kaldı; güncel checkout ile güvenli tetikleme ayrıca değerlendirilir.
+
+
+## 18 Kasım 2026 07:36 TRT — DOM-023 makine bağımsız kesim planı
+
+- Kullanıcı akışı: doğrulanmış tek malzeme/kalınlık nesting batch'i ve deterministik yerleşim raporu, kaynak Part izini kaybetmeden levha bazlı kesim planı veri modeline dönüştürülür.
+- Kabul kriterleri: kaynak Part ID + quantity, her fiziksel parça numarası, levha indeksi, X/Y mm koordinatları, döndürülmüş ölçüler, 0/90 grain uyumlu dönüş ve kullanıcı kerf değeri korunur. Batch/yerleşim stoğu ve kerf eşleşmelidir; her kaynak adet bir kez yer almalı; ölçü ve sınır ihlali kısmi sonuç vermeden blocked olmalıdır.
+- Domain API ve otomatik test eklendi; doğrulama durumu bu kayıt sırasında GitHub Actions bekliyor. Frontend, adapter, CNC ve makine postprocessor alanlarına dokunulmadı.
+- Bilinen sınırlar: bu plan bir kesim sırası veya testere yolu değildir. Çiftler arası çakışma/kerf doğrulaması DOM-024'e; trim/fire/yield, makine standardı, CNC ve fiziksel üretim onayı sonraki ayrı aşamalara aittir.
+
+### DOM-023 sonrası sıradaki 3-5 küçük görev
+
+1. DOM-024: kesim planı için bağımsız geometri denetimi; levha sınırı, çakışma, kerf aralığı, kaynak adet tamlığı ve plan JSON round-trip testleri. Büyük listelerde O(n²) kontrolü kullanmadan deterministik ve güvenli doğrulama tasarla.
+2. DOM-025: kesim planı için kullanıcı girdili trim payı/fire modeli; varsayılan pay veya verim yüzdesi üretme, levha ölçüsüyle açıkça ilişkilendir.
+3. INT-001 / PR #61: frontend domain üretim raporu adaptörünün güncel base senkronizasyonu ve Actions kanıtı sonrası entegrasyon sözleşmesini salt okunur doğrula; frontend PR'ını sahiplenme/merge etme.
+4. INT-002 / QA-003: entegrasyon-performans ajanının izole PR'ındaki JSON/CSV round-trip kanıtı geldikten sonra uçtan uca denetim; adapter/test sahipliğine dokunma.
+5. CNC/postprocessor: ancak operatörün gerçek makine/üretici standardı ve fiziksel güvenlik gereksinimleri belirlendiğinde ayrı bir tasarım kararı olarak ele al.
+

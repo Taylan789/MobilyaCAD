@@ -599,3 +599,17 @@ Kaynak: `domain/production/sheetNestingLayout.ts`; API: `calculateSheetNestingLa
 - Quantity fiziksel placement kayıtlarına açılır. Tek batch en fazla 50.000 fiziksel parçadır; üstü blocked olur. Hata veya tutarsızlıkta `result: null`; boş batch `empty` döner.
 - Bu algoritma deterministik raf (shelf) sezgisidir; küresel optimum, fire/yield, kesim sırası/yolu, CNC koordinatı veya makineye özel çıktı iddia etmez. Fiziksel kesim güvenliği operatör/atölye doğrulaması gerektirir.
 - Frontend: `ready` durumunda levha/placement koordinatlarını mm göster; `empty` boş durum, `blocked` ise tüm yerleşimi engelleyen tanılama olarak sunulmalıdır. `strategy` optimizasyon garantisi değildir.
+
+
+## DOM-023 — Makine bağımsız levha kesim planı v1
+
+Kaynak: domain/production/sheetCutPlan.ts  
+API: createSheetCutPlan({ schemaVersion: 1, batch, layout })
+
+- Girdi, doğrulanmış tek malzeme/kalınlık batch'i ve calculateSheetNestingLayout tarafından üretilen ready/empty yerleşim raporudur. Batch, mevcut validateSheetNestingInput üzerinden yeniden doğrulanır; türetilmiş 0/90 dönüş izinleri güvenilir kabul edilmez, tekrar hesaplanır.
+- Çıktı; kullanıcı levha stoğunu, açık kerf değerini, kaynak Part kimliği/ölçüsü/malzeme/kalınlık/quantity/damar yönünü ve her fiziksel placement için kaynak ID, parça numarası, 1 tabanlı levha indeksi, X/Y koordinatı, döndürülmüş ölçüler ve dönüş açısını korur.
+- Her placement kaynak Part ve quantity ile eşleşmeli; her fiziksel adet tam bir kez bulunmalı; ölçü/dönüş grain kısıtıyla uyumlu ve levha sınırları içinde olmalıdır. Sheet index kesintisiz, pieceCount placement adediyle eşit olmalıdır. Batch ile yerleşim raporunun stock sheet ve kerf değerleri aynı olmalıdır.
+- Herhangi bir hata, upstream blocked rapor veya eksik/çift adet tüm kesim planını blocked ve result=null yapar. Boş batch yalnızca boş levha/placement listesiyle empty döner.
+- Bu sözleşme makine bağımsız veri modelidir; kesim sırası, testere yolu, trim payı, fire/yield, ortak kesim hattı, CNC operasyonu, postprocessor, makine kodu veya üretim güvenliği iddiası taşımaz.
+- Bu dilimde kerf değeri batch'ten aynen korunur ve eşitliği doğrulanır; placement çiftleri arasındaki geometrik çakışma ve kerf mesafesinin bağımsız doğrulaması DOM-024 kapsamındadır. Fiziksel kesim güvenliği atölye doğrulaması gerektirir.
+- Frontend JSON v1/CSV adapter'ı ve tüm frontend/** dosyaları değişmemiştir. Gelecekteki entegrasyon, blocked tanıları göstermeli ve doğrulanmamış planı üretim emri/CNC çıktısı olarak sunmamalıdır.
