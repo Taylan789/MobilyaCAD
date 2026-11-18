@@ -174,6 +174,22 @@ test("geçersiz veya kullanılabilir alan bırakmayan trim payları yerleşimi e
   blocked({ ...input, edgeTrimMm: { left: 0, right: 0, top: 500, bottom: 500 } }, /pozitif kullanılabilir uzunluk/);
 });
 
+test("kesirli kenar payları 0.1 mm integer tick toplamıyla kabul edilir", () => {
+  const input = batch({
+    sheet: { widthMm: 1000, lengthMm: 1000 },
+    kerfMm: 0,
+    part: { widthMm: 500, lengthMm: 500 }
+  });
+  const edgeTrimMm = { left: 0.1, right: 0.2, top: 0.3, bottom: 0.4 };
+  const report = calculateSheetNestingLayout({ ...input, edgeTrimMm });
+  assert.equal(report.status, "ready");
+  assert.deepEqual(report.result?.edgeTrimMm, edgeTrimMm);
+  assert.deepEqual(
+    report.result?.sheets[0].placements.map(({ xMm, yMm }) => [xMm, yMm]),
+    [[0.1, 0.3]]
+  );
+});
+
 test("boş batch empty döner ve levha oluşturmaz", () => {
   const r = calculateSheetNestingLayout(batch({ parts: [] }));
   assert.equal(r.status, "empty");

@@ -78,8 +78,11 @@ function normalizeEdgeTrimMm(
       throw new Error(label + " sıfır veya pozitif ve sonlu bir mm değeri olmalıdır.");
     }
     const scaled = candidate * 10;
-    if (!Number.isSafeInteger(scaled)) {
+    if (!Number.isFinite(scaled) || Math.abs(scaled) > Number.MAX_SAFE_INTEGER) {
       throw new Error(label + " güvenli 0.1 mm hassasiyet aralığını aşıyor.");
+    }
+    if (!Number.isInteger(scaled)) {
+      throw new Error(label + " 0.1 mm hassasiyetinde normalize edilmiş olmalıdır.");
     }
     const normalized = Math.round(scaled + Number.EPSILON * 10) / 10;
     if (normalized !== candidate) {
@@ -91,8 +94,8 @@ function normalizeEdgeTrimMm(
   const right = read(trim.right, "Sağ trim payı");
   const top = read(trim.top, "Üst trim payı");
   const bottom = read(trim.bottom, "Alt trim payı");
-  const horizontalTicks = (left + right) * 10;
-  const verticalTicks = (top + bottom) * 10;
+  const horizontalTicks = left * 10 + right * 10;
+  const verticalTicks = top * 10 + bottom * 10;
   if (!Number.isSafeInteger(horizontalTicks) || horizontalTicks >= sheet.widthMm * 10) {
     throw new Error("Sol/sağ trim payları levhada pozitif kullanılabilir genişlik bırakmalıdır.");
   }
