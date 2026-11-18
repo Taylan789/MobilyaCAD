@@ -125,10 +125,12 @@ function safeDoubleInteger(value: number, label: string): number {
 
 /** Range-add / range-maximum tree over compressed Y intervals. */
 class IntervalCoverageTree {
+  private readonly segmentCount: number;
   private readonly maximum: Int32Array;
   private readonly lazy: Int32Array;
 
-  constructor(private readonly segmentCount: number) {
+  constructor(segmentCount: number) {
+    this.segmentCount = segmentCount;
     const capacity = Math.max(4, segmentCount * 4 + 4);
     this.maximum = new Int32Array(capacity);
     this.lazy = new Int32Array(capacity);
