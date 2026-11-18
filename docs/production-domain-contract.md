@@ -556,3 +556,18 @@ Kaynak: domain/production/sheetNestingInput.ts, validateSheetNestingInput.
 - Sonuç ready, empty veya blocked durumudur. Blocked durumda result null'dır; geçerli görünen önceki parçalar kısmi liste olarak sunulmaz. Çıktı yalnızca doğrulanmış batch girdisi ve izinli dönüş adaylarını taşır.
 - Kerf bu aşamada yalnızca doğrulanıp saklanır; levha kenar payı, kesim sırası, parça yerleşimi, nesting optimizasyonu, fire/yield veya CNC koordinatı hesaplanmaz. 0/90 adayları fiziksel kesim ya da üretim güvenliği onayı değildir.
 - Frontend entegrasyonu levha ölçüsü, kerf, levha damar yönü ve her parçanın malzeme/kalınlık/quantity/parça damar yönü girdilerini açıkça sağlamalı; ready/empty/blocked durumunu ve diagnostics alanını göstermelidir. Bu modül mevcut JSON v1/CSV adapter'ını veya frontend dosyalarını değiştirmez.
+
+
+## 5. Proje Part listesinden levha nesting girdisi
+
+Kaynak: `domain/production/projectSheetNestingInput.ts`
+
+Çağrı: `createProjectSheetNestingInput({ schemaVersion: 1, productionReport, sheet, kerfMm, partIds?, grainDirectionsByPartId? })`.
+
+- Yalnızca `status: "ready"` ve v1 `result.parts` içeren proje üretim raporu kabul edilir. `partIds` verilmezse bütün Part satırları tek batch'e adaydır; verilirse yalnızca benzersiz ve projede bulunan seçili ID'ler alınır.
+- Sonuç `sourcePartIds` ile batch'e alınan Part kimliklerini, `excludedPartIds` ile açıkça seçilmeyenleri bildirir. Malzeme/kalınlık otomatik gruplandırılmaz; seçilen Part'lardan biri levha materialId veya thicknessMm ile uyuşmazsa tüm batch blocked olur.
+- Part `id`, `quantity`, `width`, `length`, `thickness` ve `materialId` alanları sırasıyla nesting ID, adet, genişlik/uzunluk/kalınlık mm ve katalog kimliği olarak taşınır. Serbest metin `material` alanından katalog kimliği türetilmez.
+- Açık Part `grainDirection` değeri varsa kullanılır. Bu alanı taşımayan legacy gövde parçaları için `grainDirectionsByPartId` üzerinden kullanıcı girdisi zorunludur; varsayılan damar yönü oluşturulmaz. Override yalnızca seçili Part ID'lerine uygulanabilir.
+- `panelGeometry` veya rectangular dışı açık geometri nesting input'unda desteklenmez ve batch'i bloklar. Kullanıcı bir alt küme seçerse excluded ID'ler kaybolmaz; çağıran taraf diğer batch'leri ayrıca ele almalıdır.
+- Batch, mevcut `validateSheetNestingInput` üzerinden 0.1 mm normalizasyonu, pozitif güvenli integer quantity, tek malzeme/kalınlık ve grain uyumlu 0/90 derece zarf sığması denetiminden geçer. Bir hata tüm sonucu blocked ve `result: null` yapar.
+- Bu API yerleşim algoritması değildir: kerf doğrulanıp saklanır ama yerleşimde tüketilmez; koordinat, levha verimi/fire, kesim sırası, CNC/postprocessor veya makine standardı üretmez. Donanım ve kenar bandı BOM'u bu batch sözleşmesinin dışındadır.

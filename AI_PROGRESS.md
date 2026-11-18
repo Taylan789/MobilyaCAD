@@ -1002,3 +1002,13 @@
 - Bilinen sınırlar: yalnızca rectangular panel batch; kerf doğrulanır/saklanır ama henüz yerleşimde tüketilmez. Parça yerleşimi/koordinatı, nesting optimizasyonu, fire/yield, kesim sırası, CNC/postprocessor, makine standardı veya fiziksel üretim onayı yoktur. Kesitli parçalar blocked olur.
 - QA blokajı: production audit 12 bulgu (2 moderate, 10 high; picomatch ReDoS). npm audit fix --force Vite 6.2.7 kırıcı downgrade önerdi; SEC-001 frontend sahibinin kapsamındadır. Bu otomasyon frontend, manifest veya lockfile'a dokunmadı.
 - Sonraki görev: DOM-020 — proje Part listesini doğrulanmış rectangular batch girdisine kayıpsız bağla; kaynak Part ID ve quantity'yi koru, kesitli/uyumsuz parçaları blocked tut. INT-001 PR #61 ve INT-002 ayrı sahiplik alanlarında kalır.
+
+
+## 18 Kasım 2026 04:24 TRT — DOM-020 proje Part listesini nesting batch girdisine bağlama
+
+- Domain dilimi eklendi: `createProjectSheetNestingInput`, doğrulanmış proje üretim raporundan açık Part seçimiyle tek malzeme/kalınlık batch'i kurar.
+- Kaynak Part ID, quantity, mm ölçüleri ve katalog materialId korunur. Kullanıcının açık seçimi dışındaki Part ID'leri `excludedPartIds` ile bildirilir; otomatik malzeme/kalınlık gruplaması yapılmaz.
+- Part üzerinde kayıtlı grainDirection yoksa kullanıcı eşlemesi zorunludur. Kesitli panel geometry, uyuşmayan malzeme/kalınlık, eksik katalog kimliği ve geçersiz adet tüm batch'i blocked yapar.
+- Değişen dosyalar: `domain/production/projectSheetNestingInput.ts`, `domain/production/projectSheetNestingInput.test.mjs`, `docs/production-domain-contract.md`, `.github/workflows/qa-test.yml`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`.
+- Commit SHA ve gerçek CI/QA sonuçları, ilgili GitHub Actions tamamlandıktan sonra doğrulama kaydıyla eklenecek.
+- Bilinen sınır: kerf yalnızca doğrulanıp taşınır; parça yerleşimi/koordinatı, fire/verim, kesim sırası veya CNC çıktısı üretilmez. Donanım ve kenar bandı BOM'u bu nesting girdisinin kapsamı dışındadır.
