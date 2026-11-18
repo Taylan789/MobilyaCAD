@@ -1307,3 +1307,6 @@ DOM-032 doğrulaması: [commit fe720ce](https://github.com/Taylan789/MobilyaCAD/
 3. DOM-040 — gardırop ve TV ünitesi özel raf/bölücü Part snapshot'larının açık materialId, thickness, quantity ve yerleşim alanlarını round-trip boyunca korumasını genişlet.
 4. INT-001/INT-002 — açık frontend/adapter entegrasyon PR'larını yalnızca kendi sahipliklerinde izlemeyi sürdür; domain dalı frontend veya adapter dosyalarına dokunmaz.
 5. Hole-aware nesting, kesit geometri ve CNC/postprocessor desteği için geometri/kerf/üretici standardı doğrulanana kadar mevcut export blocker'larını koru.
+
+
+**QA düzeltme kaydı:** İlk doğrulamada CI #44371472424 başarılı, QA #44371472416 başarısız (384/385 domain testi). Yeni testin aile raporu blocked çıktısı ayrıştırılacak; açıkça kaldırılan legacy override alanlarının helper tarafından tekrar eklenmesi önlenecek. DOM-037, yeni Actions doğrulaması yeşil olmadan tamamlanmış sayılmayacak.

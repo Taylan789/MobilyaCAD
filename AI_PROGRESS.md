@@ -1246,3 +1246,12 @@
 - İlk commit SHA ve CI/QA bağlantıları GitHub sonucu geldikten sonra bu kaydın doğrulama satırına eklenecek; şu an doğrulama bekleniyor, başarılı ilan edilmedi.
 - Bilinen sınırlar: özel wardrobe/TV shelf/divider parçaları kendi açık malzeme/kalınlık girdilerini kullanır; bathroom vanity panelGeometry export blocker'ı korunur. Frontend ve integration-performance dosyaları değiştirilmedi.
 - Sonraki görev: DOM-038 — group override materialId/kalınlık değişiminin kayıtlı proje kesim planı freshness kontrolünde stale olarak yakalandığını aile matrisiyle doğrula.
+
+
+## DOM-037 ilk Actions sonucu ve düzeltme — 18 Kasım 2026 21:30 TRT
+
+- Commit: `b06898657c1f853ac8c37af3f84b7eb9ec9a8aec`.
+- CI [#44371472424](https://github.com/Taylan789/MobilyaCAD/actions/runs/44371472424): **başarılı** (TypeScript/production build ve lint adımları yeşil).
+- QA [#44371472416](https://github.com/Taylan789/MobilyaCAD/actions/runs/44371472416): **başarısız**; shared domain testleri 384/385. Tek başarısızlık yeni aile matrisi testinde `report.status` değerinin `blocked` gelmesi. Mevcut üretim kodunda hata kanıtlanmadı; test fixture/rapor tanısı ayrıştırılıyor.
+- Bu düzeltme, opsiyonel helper alanında açıkça `undefined` verilmesini gerçek alan yokluğu olarak korur ve başarısız proje tanılarını assertion çıktısına ekler.
+- DOM-037 henüz DONE değil; yeni CI/QA sonucu bekleniyor. Bilinen üretim sınırları ve frontend sahiplik ayrımı korunuyor.

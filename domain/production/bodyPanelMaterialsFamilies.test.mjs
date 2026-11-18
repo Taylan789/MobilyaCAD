@@ -13,14 +13,18 @@ const materials = [
 const noBanding = { top: false, bottom: false, left: false, right: false };
 
 function createCarcassRequest(id, options = {}) {
-  const {
-    family = "cabinet",
-    shelfCount = 2,
-    panelMaterialOverrides = { top: "mdf-8", shelf: "mdf-8" },
-    panelThicknessMmByGroup = { top: 8, shelf: 8 },
-    materialId = "mdf-18",
-    material = materialId === null ? "Legacy MDF" : "MDF Lam 18"
-  } = options;
+  const family = options.family ?? "cabinet";
+  const shelfCount = options.shelfCount ?? 2;
+  const panelMaterialOverrides = Object.prototype.hasOwnProperty.call(options, "panelMaterialOverrides")
+    ? options.panelMaterialOverrides
+    : { top: "mdf-8", shelf: "mdf-8" };
+  const panelThicknessMmByGroup = Object.prototype.hasOwnProperty.call(options, "panelThicknessMmByGroup")
+    ? options.panelThicknessMmByGroup
+    : { top: 8, shelf: 8 };
+  const materialId = Object.prototype.hasOwnProperty.call(options, "materialId")
+    ? options.materialId
+    : "mdf-18";
+  const material = options.material ?? (materialId === null ? "Legacy MDF" : "MDF Lam 18");
   const groups = family === "bookshelf" ? BOOKSHELF_PANEL_GROUPS : BODY_PANEL_GROUPS;
   const request = {
     schemaVersion: 1,
@@ -86,7 +90,7 @@ test("gövde panel malzeme/kalınlık override'ları beş dolap ailesinde Part, 
     }]
   });
 
-  assert.equal(report.status, "ready");
+  assert.equal(report.status, "ready", JSON.stringify({ blockedFurniture: report.blockedFurniture, unsupportedFurniture: report.unsupportedFurniture, projectErrors: report.projectErrors }));
   assert.ok(report.result);
   assert.equal(report.canExport, false);
   assert.ok(report.exportBlockers.some(message => message.includes("panelGeometry")));

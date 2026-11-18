@@ -188,3 +188,9 @@ Bu dosya dört geliştirme/denetim rolünün ortak görev panosu ve entegrasyon 
 - Kapsam: cabinet, bookshelf, wardrobe, floor-standing TV unit ve bathroom vanity gövde panellerinde ortak grup override zincirinin proje Part, malzeme tüketimi ve canonical snapshot katmanlarında doğrulanması.
 - Yeni otomatik test: `domain/production/bodyPanelMaterialsFamilies.test.mjs`. CI/QA sonucu görülene kadar DOM-037 IN_PROGRESS kalır.
 - Sahiplik: yalnızca `domain/production/**`, `docs/**` ve koordinasyon/yol haritası/ilerleme belgeleri; `frontend/**` ve integration-performance adapter/benchmark dosyaları değiştirilmedi.
+
+
+## DOM-037 QA düzeltme notu — 18 Kasım 2026 21:30 TRT
+- İlk commit `b06898657c1f853ac8c37af3f84b7eb9ec9a8aec`: CI başarılı; QA #44371472416 başarısız, domain testleri 384/385.
+- Tek hata yeni aile matrisi testinde proje raporunun `blocked` dönmesi. Başarısızlık nedeni tanı çıktısıyla görünür yapılacak; fixture helper'ında açıkça `undefined` verilen opsiyonel alanların varsayılan değere dönmesini engelle.
+- DOM-037 DONE yapılmadı. Sonraki committen sonra CI/QA tekrar doğrulanacak.
