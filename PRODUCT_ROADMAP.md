@@ -1250,18 +1250,21 @@ DOM-032 doğrulaması: [commit fe720ce](https://github.com/Taylan789/MobilyaCAD/
 
 **Sınırlar:** bu teslimat cutout-aware nesting veya CNC işlemesi sağlamaz. Kesitli geometri, gerçek geometri yerleşim doğrulaması ve adapter round-trip desteği gelene kadar export dışında kalır. Fiziksel üretim onayı değildir.
 
-## DOM-036 — Kesitli panel geometri için nesting önkoşulları (devam ediyor)
+## DOM-036 — Kesitli panel geometri için nesting önkoşulları (tamamlandı; nesting blocker korunuyor)
 
 **Kullanıcı akışı:** kullanıcı bir panelde birden fazla dikdörtgen geçiş açıklığı tanımladığında geometri doğrulaması ölçeklenebilir olmalı; aynı zamanda kesitli parça, gerçek hole-aware yerleşim kanıtlanana kadar dikdörtgen dış zarf gibi davranıp nesting'e sızmamalıdır.
 
-**Tamamlanan ilk dilim:**
+**Tamamlanan dilim:**
 - `calculatePanelCutoutGeometry` içindeki tüm açıklık çiftlerini karşılaştıran O(n²) döngü, X sweep-line ve koordinat sıkıştırmalı Y aralık maksimum ağacıyla O(n log n) doğrulamaya taşındı.
 - X veya Y kenar/köşe teması hâlâ çakışma sayılır; başlangıç olayları aynı X'teki bitiş olaylarından önce işlenir. Mevcut 0.1 mm normalizasyonu, alan/hacim/bant hesabı ve hata sözleşmesi korunur.
 - 50.000 ayrık açıklık testi, geometri adedini ve net yüzey alanını doğrular.
 
+**Actions doğrulaması:** [commit b00589f](https://github.com/Taylan789/MobilyaCAD/commit/b00589f26f5c86df7bb85887deb561ae0984e4e3); [CI #44358009815](https://github.com/Taylan789/MobilyaCAD/actions/runs/44358009815), [QA #44358009840](https://github.com/Taylan789/MobilyaCAD/actions/runs/44358009840) ve [Pages #44358009870](https://github.com/Taylan789/MobilyaCAD/actions/runs/44358009870) başarılı. QA 102/102 frontend + 383/383 domain testi; strict shared-domain TypeScript, lint (32 uyarı / 0 hata), production build ve production dependency audit (0 bulgu) geçti.
+
+
 **Güvenlik sınırı:** `createProjectSheetNestingInput` `panelGeometry` içeren Part kayıtlarını hâlâ blocked ve `result: null` döndürerek reddeder. Bu dilim hole-aware placement, kerf açıklığı, kesim sırası, toolpath veya CNC üretmez; panelin dış dikdörtgen zarfı üzerinden nesting yapılmaz.
 
-**Kalan kabul kriterleri:**
+**Sonraki ayrı aşama — hole-aware nesting:**
 - Açıklık içindeki ikinci parçanın fiziksel kesim sırası ve kerf mesafesi için doğrulanabilir hole-aware yerleşim modeli tanımlanmalı.
 - Dönüş/damar kısıtları, açıklık kenarları ve levha trim sınırları aynı geometri sözleşmesinde tekrar doğrulanmalı.
 - Herhangi bir belirsizlikte tüm grup/proje blocked ve kısmi sonuçsuz kalmalı; blocker ancak geometri, kerf ve yerleşim regresyonları tamamlandığında kaldırılmalı.
@@ -1269,9 +1272,9 @@ DOM-032 doğrulaması: [commit fe720ce](https://github.com/Taylan789/MobilyaCAD/
 
 ### DOM-036 sonrası sıradaki 5 küçük görev
 1. INT-001 / PR #61: frontend sahibinin güncel base üzerinde domain raporu, `productionDiagnostics`, freshness-gated JSON export ve v3 metadata round-trip entegrasyonunu tamamlamasını salt okunur izle; PR'ı sahiplenme veya merge etme.
-2. DOM-036 devamı: hole-aware yerleşim ve kerf/işlem sırası için doğrulanabilir model kanıtlanana kadar kesitli Part nesting/export blocker'ını koru.
-3. DOM-037: desteklenen mobilya aileleri için gövde panel malzeme/kalınlık override'larının ortak proje Part snapshot ve malzeme tüketim özetinde aynı kimlik/ölçüyle korunmasını genişlet.
-4. INT-002 / PERF-001: adapter round-trip ve benchmark çalışmalarını yalnızca entegrasyon/performance ajanının sahiplik sınırında denetle.
+2. DOM-037: dolap/kitaplık/gardırop/TV ünitesi/banyo dolabı gövde panel malzeme ve kalınlık override'larını ortak Part snapshot/tüketim zincirinde doğrula.
+3. INT-002 / PERF-001: adapter round-trip ve benchmark çalışmalarını yalnızca entegrasyon/performance ajanının sahiplik sınırında denetle.
+4. Hole-aware nesting için ayrı bir domain dilimi tasarla; geometri/kerf/kesim sırası kanıtlanana kadar mevcut blocker'ı koru.
 5. CNC operasyon/postprocessor tasarımını gerçek makine üretici standardı ve operatör güvenliği girdileri olmadan üretim çıktısına dönüştürme.
 
 

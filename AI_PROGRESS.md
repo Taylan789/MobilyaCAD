@@ -1225,13 +1225,13 @@
 - Sonraki adım: DOM-035 doğrulandı ve DONE; INT-001 PR #61'in güncel domain export sözleşmesine entegrasyonunu salt okunur izle. PR #61 hâlâ eski base üzerinde; frontend sahibinin kendi dalında senkronizasyon ve yeni QA kanıtı gerekir.
 
 
-## 18 Kasım 2026 20:17 TRT — DOM-036 kesitli panel açıklığı doğrulamasını ölçekle
+## 18 Kasım 2026 20:22 TRT — DOM-036 kesitli panel açıklığı doğrulamasını ölçekle
 
 - Başlangıç `dev/github-work` HEAD: `d324d9d4c8eff8ae7a64b7d218c8232d7b14cf99`; önceki HEAD için CI #44346109707, QA #44346109778 ve Pages #44346109635 başarılıydı.
 - Dikey dilim: `calculatePanelCutoutGeometry` içindeki O(n²) çiftli açıklık taraması X sweep-line + sıkıştırılmış Y aralık maksimum ağacına dönüştürüldü. Kenar/köşe teması reddi ve mevcut hata mesajı korunur.
 - Regresyon: 50.000 ayrık açıklık fixture'ı geometri sayısını ve net alanı doğrular; mevcut çakışma, temas, sınır, 0.1 mm normalizasyon ve tüketim testleri korunur.
 - Değişen dosyalar: `domain/production/panelCutoutGeometry.ts`, `domain/production/panelCutoutGeometry.test.mjs`, `docs/production-domain-contract.md`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`. `frontend/**`, adapter/performance agent dosyaları ve bağımlılıklar değiştirilmedi.
-- Commit SHA: GitHub commit nesnesi oluşturulup `dev/github-work` ref'i güncellendikten sonra sonraki doğrulama kaydında kesinleştirilecek.
-- Otomatik doğrulama: yeni commit için CI/QA/Pages Actions sonuçları bekleniyor; henüz başarılı ilan edilmedi.
+- Kod commit: [b00589f26f5c86df7bb85887deb561ae0984e4e3](https://github.com/Taylan789/MobilyaCAD/commit/b00589f26f5c86df7bb85887deb561ae0984e4e3).
+- Otomatik doğrulama: [CI #44358009815](https://github.com/Taylan789/MobilyaCAD/actions/runs/44358009815), [QA #44358009840](https://github.com/Taylan789/MobilyaCAD/actions/runs/44358009840) ve [Pages #44358009870](https://github.com/Taylan789/MobilyaCAD/actions/runs/44358009870) başarılı. QA 102/102 frontend + 383/383 domain testi, 0 başarısız; shared-domain strict TypeScript, frontend TypeScript/Vite production build, lint (32 uyarı / 0 hata) ve production audit (0 vulnerability) geçti. CI build/lint başarılı.
 - Bilinen sınırlar: `createProjectSheetNestingInput` `panelGeometry` girdisini blocked/`result: null` tutar. Hole-aware placement, kerf clearance, kesim sırası, CNC ve fiziksel üretim doğrulaması yoktur.
-- Sonraki adım: Actions sonucunu incele; ardından DOM-036 için hole-aware yerleşim/kerf kabul kriterlerini ve güvenli algoritma önkoşullarını sürdür. INT-001 PR #61 ve UI PR #73 ayrı sahipliklerinde kalır; bu ajan onları değiştirmez veya merge etmez.
+- Sonraki adım: DOM-037 — desteklenen dolap türevi ailelerde gövde panel malzeme/kalınlık override'larının Part snapshot ve malzeme tüketimi boyunca kimlik/ölçü/adet sadakatini test et. Hole-aware nesting için mevcut blocker korunur; INT-001 PR #61 ve UI PR #73 ayrı sahipliklerinde kalır.
