@@ -41,3 +41,13 @@ test("desktop panel layout loads before the studio visual refinement layer", () 
   assert.ok(layoutImport < refinementImport);
   assert.match(layout, /@media\s*\(prefers-reduced-motion:\s*reduce\)/);
 });
+
+test("panel disclosure controls identify their regions and make a collapsed inspector inert", () => {
+  assert.match(app, /id="cad-left-dock" role="region" aria-label="Kütüphane ve sahne paneli"/);
+  assert.match(app, /aria-expanded=\{!leftDockCollapsed\} aria-controls="cad-left-dock"/);
+  assert.match(app, /aria-expanded=\{!inspectorCollapsed\} aria-controls="cad-inspector"/);
+  assert.match(
+    app,
+    /<aside id="cad-inspector" className="cad-inspector" aria-hidden=\{inspectorCollapsed\} inert=\{inspectorCollapsed\}>/,
+  );
+});

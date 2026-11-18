@@ -1431,6 +1431,9 @@ function App() {
           className={`cad-workspace${mobilePanel === "catalog" ? " mobile-catalog-open" : mobilePanel === "inspector" ? " mobile-inspector-open" : ""}${leftDockCollapsed ? " cad-workspace--left-collapsed" : ""}`}
         >
           <Sidebar
+            id="cad-left-dock"
+            role="region"
+            aria-label="Kütüphane ve sahne paneli"
             collapsible="none"
             className="cad-sidebar"
           >
@@ -1818,8 +1821,8 @@ function App() {
                 <button type="button" className={transformMode === "scale" ? "active" : ""} onClick={() => setTransformMode("scale")}><Maximize2 /> Ölçekle</button>
                 <button type="button" className={transformMode === "rotate" ? "active" : ""} onClick={() => setTransformMode("rotate")}><RotateCw /> Döndür</button>
                 <span className="studio-heading-divider" />
-                <button type="button" className="studio-panel-toggle" aria-label={leftDockCollapsed ? "Sol paneli göster" : "Sol paneli gizle"} title={leftDockCollapsed ? "Sol paneli göster" : "Sol paneli gizle"} aria-pressed={!leftDockCollapsed} onClick={() => setLeftDockCollapsed((current) => !current)}><PanelLeft /></button>
-                <button type="button" className="studio-panel-toggle" aria-label={inspectorCollapsed ? "Özellik panelini göster" : "Özellik panelini gizle"} title={inspectorCollapsed ? "Özellik panelini göster" : "Özellik panelini gizle"} aria-pressed={!inspectorCollapsed} onClick={() => setInspectorCollapsed((current) => !current)}><PanelRight /></button>
+                <button type="button" className="studio-panel-toggle" aria-label={leftDockCollapsed ? "Sol paneli göster" : "Sol paneli gizle"} title={leftDockCollapsed ? "Sol paneli göster" : "Sol paneli gizle"} aria-pressed={!leftDockCollapsed} aria-expanded={!leftDockCollapsed} aria-controls="cad-left-dock" onClick={() => setLeftDockCollapsed((current) => !current)}><PanelLeft /></button>
+                <button type="button" className="studio-panel-toggle" aria-label={inspectorCollapsed ? "Özellik panelini göster" : "Özellik panelini gizle"} title={inspectorCollapsed ? "Özellik panelini göster" : "Özellik panelini gizle"} aria-pressed={!inspectorCollapsed} aria-expanded={!inspectorCollapsed} aria-controls="cad-inspector" onClick={() => setInspectorCollapsed((current) => !current)}><PanelRight /></button>
                 <span className="studio-unit-pill">MM</span>
               </div>
             </div>
@@ -1879,7 +1882,7 @@ function App() {
                 <div className="studio-canvas-footer"><span><i /> SAHNE GÖRÜNÜMÜ</span><span>GRID · SNAP 10 MM</span><span>{furniture.length} / {furnitureCatalog.length} MODÜL</span></div>
               </main>
 
-              <aside className="cad-inspector">
+              <aside id="cad-inspector" className="cad-inspector" aria-hidden={inspectorCollapsed} inert={inspectorCollapsed}>
                 <div className="cad-inspector-header">
                   <div>
                     <strong>Özellikler</strong>

@@ -932,3 +932,20 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 3. INT-002 / QA-003: entegrasyon-performans ajanının kendi dalındaki adapter round-trip kanıtı geldikten sonra uçtan uca export denetimini yap.
 4. DOM-020: doğrulanmış rectangular batch'i proje Part listesiyle eşleyen, kaynak Part kimliğini ve quantity'yi koruyan domain bağlayıcısını tasarla; kesitli/uyumsuz parçaları export edilebilir gösterme.
 5. Nesting yerleşim algoritmasını ancak kerf uygulaması, grain kısıtları, malzeme/kalınlık batch sınırı ve otomatik geometri testleri tanımlandıktan sonra ayrı bir dikey dilim olarak ele al; üretici/makine standardı uydurma.
+
+
+## 18 Kasım 2026 — DOM-020: proje Part listesinden levha batch girdisi
+
+- Kullanıcı akışı: üretim raporundaki bütün Part satırlarını veya açıkça seçilmiş bir Part alt kümesini tek bir levha batch'ine dönüştür; farklı malzeme/kalınlık batch'lerini sessizce birleştirme.
+- Kabul kriterleri: source Part ID, quantity, genişlik/uzunluk/kalınlık mm ve katalog materialId korunur; seçilmeyen Part ID'leri `excludedPartIds` ile görünür; grain yönü yalnızca Part'ta açıkça kayıtlıysa veya kullanıcı eşlemesiyle kullanılır.
+- Kesitli panel geometri, eksik materialId/grain, hatalı ölçü/adet, seçilmeyen kimliğe ait grain override ve tek levha malzemesi/kalınlığıyla uyuşmayan batch blocked olur; kısmi sonuç üretilmez.
+- `createProjectSheetNestingInput` yalnızca mevcut `validateSheetNestingInput` doğrulayıcısını çağırır. Kerf doğrulanır ve saklanır; bu aşamada yerleşim koordinatı, kerf tüketimi, fire/yield, kesim sırası veya CNC komutu yoktur.
+- Kod commit'i [184e4e75](https://github.com/Taylan789/MobilyaCAD/commit/184e4e75e3a0f96e5f7d39b21b5ed2db36e3639f) ve seçim kapsamı düzeltmesi [c67c328](https://github.com/Taylan789/MobilyaCAD/commit/c67c328610ee3e48d0387b2911418a12ec98790b) tamamlandı. [CI #44216125480](https://github.com/Taylan789/MobilyaCAD/actions/runs/44216125480) ve [Pages #44216125319](https://github.com/Taylan789/MobilyaCAD/actions/runs/44216125319) başarılı. [QA #44216125310](https://github.com/Taylan789/MobilyaCAD/actions/runs/44216125310): 101/101 frontend + 278/278 domain testi, strict TypeScript, lint ve production build başarılı; genel QA yalnızca 12 production audit bulgusu (2 moderate, 10 high) nedeniyle başarısız. SEC-001 PR #59 frontend sahibinin kapsamındadır; domain agent'ı bağımlılık/lockfile/frontend dosyalarına dokunmadı.
+
+### DOM-020 sonrası sıradaki küçük işler
+
+1. SEC-001: frontend sahibinin Vite 8'i düşürmeden production dependency audit high bulgularını gidermesini bekle; manifest/lockfile/frontend dosyalarına dokunma.
+2. INT-001 / PR #61: domain production report'un frontend view-model ve CSV akışına gerçek entegrasyonunu ayrı frontend sahipliği içinde doğrula; PR'ı sahiplenme veya merge etme.
+3. INT-002 / QA-003: entegrasyon-performans ajanının kendi dalındaki adapter round-trip ve veri sadakati kanıtını bekle; aynı test/adapter dosyalarına dokunma.
+4. DOM-021: açık Part seçimi ve excluded ID listesini koruyarak malzeme + kalınlık bazında batch gruplama; her grup için kullanıcı tarafından sağlanan ayrı levha/kerf/grain tanımı iste.
+5. DOM-022: DOM-021 sonrasında, kerf uygulama kuralı ve 0/90 grain kısıtları test edilmiş deterministik 2D yerleşim motoru; üretici/makine standardı veya fire oranı varsayma.
