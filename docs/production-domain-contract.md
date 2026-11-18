@@ -586,3 +586,16 @@ Kaynak: domain/production/projectSheetNestingBatches.ts, createProjectSheetNesti
 - Grup sırası, seçili Part listesindeki ilk kaynak görünümüne göre deterministiktir. Her grup mevcut createProjectSheetNestingInput ve validateSheetNestingInput doğrulayıcılarından geçer; ID, quantity, mm ölçüleri, malzeme ve kalınlık doğrulaması tekrar yazılmaz.
 - Bu dilim yalnızca çoklu levha batch girdisini doğrular. Kerf doğrulanıp her batch içinde saklanır ancak yerleşimde tüketilmez; koordinat, nesting optimizasyonu, fire/yield, kesim sırası, CNC/postprocessor veya makine standardı üretmez.
 - Frontend entegrasyonu her malzeme/kalınlık grubu için kullanıcıdan ayrı levha en-boy/kalınlık, kerf ve levha damar yönü istemeli; eksik grup tanımında tüm nesting hazırlığını blocked göstermeli ve seçili/hariç tutulan Part ID'lerini korumalıdır. UI, tek bir grubun ready olmasını tüm projenin hazır olduğu şeklinde sunmamalıdır.
+
+
+## 7. DOM-022 — deterministik 2D levha yerleşimi
+
+Kaynak: `domain/production/sheetNestingLayout.ts`; API: `calculateSheetNestingLayout(validatedBatch)`.
+
+- Girdi, `validateSheetNestingInput` veya `createProjectSheetNestingBatches` tarafından üretilmiş v1 batch sonucudur. Layout motoru girdiyi tekrar doğrular; `allowedRotationsDeg` güvenilir kabul edilmez, yeniden hesaplanır.
+- Çıktı `strategy: "deterministic-shelf-v1"` taşır. Parçalar en uzun kenar, kısa kenar, kaynak ID ve parça sıra numarasına göre kararlı sıralanır; mevcut sıralar, yeni sıra ve yeni levha sırasıyla değerlendirilir.
+- Koordinat başlangıcı levhanın sol üst köşesidir: X levha genişliği, Y levha uzunluğu yönünde mm cinsindedir. Placement kaynak Part ID, 1 tabanlı fiziksel parça numarası, yerleşmiş genişlik/uzunluk ve 0/90 derece dönüşü taşır.
+- Kerf yalnızca aynı sıradaki komşu parçalar ve ardışık sıralar arasında tüketilir. Trim/kenar payı girdisi olmadığı için levha kenarında ilave pay varsayılmaz. Dönüşler yalnızca doğrulanmış damar uyumlu yönlerden seçilir.
+- Quantity fiziksel placement kayıtlarına açılır. Tek batch en fazla 50.000 fiziksel parçadır; üstü blocked olur. Hata veya tutarsızlıkta `result: null`; boş batch `empty` döner.
+- Bu algoritma deterministik raf (shelf) sezgisidir; küresel optimum, fire/yield, kesim sırası/yolu, CNC koordinatı veya makineye özel çıktı iddia etmez. Fiziksel kesim güvenliği operatör/atölye doğrulaması gerektirir.
+- Frontend: `ready` durumunda levha/placement koordinatlarını mm göster; `empty` boş durum, `blocked` ise tüm yerleşimi engelleyen tanılama olarak sunulmalıdır. `strategy` optimizasyon garantisi değildir.

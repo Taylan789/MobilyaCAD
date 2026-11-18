@@ -967,3 +967,20 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 3. INT-001 / PR #61: frontend sahibinin dal senkronizasyonu ve güncel Actions doğrulamasını bekle; bu domain ajanı frontend PR'ını değiştirmez veya merge etmez.
 4. INT-002 / QA-003: entegrasyon-performans ajanının ayrı dalındaki adapter round-trip kanıtı geldikten sonra salt okunur QA entegrasyon denetimi; adapter/test dosyalarına dokunma.
 5. AI Developer: OpenRouter free-models-per-day kotası 429 ile dolu; reset 19 Kasım 2026 03:00 TRT olduğundan reset öncesi rerun yapılmayacak.
+
+
+## 18 Kasım 2026 06:20 TRT — DOM-022 deterministik 2D levha yerleşimi
+
+- Kullanıcı akışı: doğrulanmış malzeme/kalınlık batch'i, kullanıcı levha ölçüsü, kerf ve damar yönü girdileriyle fiziksel parça koordinatlarına dönüştürülür.
+- Kabul kriterleri: her quantity bir fiziksel placement olur; her placement levha sınırları içinde kalır; 0/90 dönüşler doğrulanmış grain izinlerini kullanır; aynı sıra ve ardışık sıralar arasında kerf boşluğu korunur; kaynak Part ID ve parça numarası korunur; tutarsızlıkta kısmi sonuç verilmez.
+- Yeni domain modülü: `domain/production/sheetNestingLayout.ts`; testler: `domain/production/sheetNestingLayout.test.mjs`; strict shared-domain TypeScript listesine eklendi.
+- Algoritma `deterministic-shelf-v1` sezgisel raf yerleşimidir; optimal nesting değildir. 50.000 fiziksel parça sınırı vardır. Trim, fire/yield, kesim yolu/sırası, CNC/makine standardı ve fiziksel üretim onayı kapsam dışıdır.
+- Bu kayıt uygulama aşamasındadır; commit ve GitHub Actions doğrulaması beklenmektedir.
+
+### DOM-022 sonrası sıradaki küçük işler
+
+1. DOM-023: yerleşim sonucunu makine bağımsız kesim planı veri modeline dönüştür; kaynak Part ID, levha indeksi, koordinat, dönüş ve kerf ilişkisini doğrula; CNC/postprocessor üretme.
+2. DOM-024: yerleşim planı için çakışma, sınır, kerf aralığı, adet tamlığı ve JSON round-trip denetimi ekle.
+3. INT-001 / PR #61: frontend sahibinin domain üretim raporu / JSON-CSV adapter entegrasyonunu ve Actions kanıtını bekle; PR'ı sahiplenme veya merge etme.
+4. INT-002 / QA-003: entegrasyon-performans ajanının ayrı dalındaki adapter round-trip kanıtından sonra salt okunur uçtan uca denetim yap.
+5. AI Developer: önceki workflow 429 kotası nedeniyle eski SHA üzerinde kaldı; güncel checkout ile güvenli tetikleme ayrıca değerlendirilir.
