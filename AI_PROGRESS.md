@@ -1199,3 +1199,14 @@
 - Bilinen sınırlar: sourceId/revision kullanıcı/atölye girdisidir; harici katalog, tedarikçi, fiyat, stok veya sertifika doğrulaması yoktur. CNC/üretim uygunluğu iddiası değildir.
 - AI Developer [#44282900800](https://github.com/Taylan789/MobilyaCAD/actions/runs/44282900800) iki agent job'unda OpenRouter free-models-per-day 429 verdi (limit 50, kalan 0); loglarda reset zamanı 19 Kasım 2026 03:00 TRT. Eski SHA rerun edilmedi; güncel SHA dispatch aracı yok, secret/ayar/ücretli kredi değiştirilmedi.
 - Sonraki görev: INT-001 v3/JSON export entegrasyonunu salt okunur izlemek; ardından DOM-034 provenance kapsam özeti.
+
+## 18 Kasım 2026 18:20 TRT — DOM-034 provenance kapsam özeti tamamlandı
+
+- Başlangıç `dev/github-work` HEAD: `eb3d5be85d7bf99e2c6c600b83e7b3782fc30634`.
+- Kod commit: [fddbadc](https://github.com/Taylan789/MobilyaCAD/commit/fddbadc9b4fc87f277c09b0f8048fa16aedd246b).
+- Değişen dosyalar: `domain/production/projectSheetCutPlanProvenanceSummary.ts`, `domain/production/projectSheetCutPlanProvenanceSummary.test.mjs`, `.github/workflows/qa-test.yml`, `docs/production-domain-contract.md`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`.
+- Davranış: strict JSON v1/v2/v3 parser'ı üzerinden grup sırası ve kaynak Part ID'leri korunarak `provided/missing` durumları, toplam grup ve provenance sayaçları üretilir. v1/v2 tüm grupları eksik sayar; v3 kısmi provenance kapsamını gösterir. Empty sıfır kapsamla kalır; bozuk JSON blocked ve kısmi sonuçsuz döner.
+- Otomatik doğrulama: [CI #44335223878](https://github.com/Taylan789/MobilyaCAD/actions/runs/44335223878) başarılı; [QA #44335223823](https://github.com/Taylan789/MobilyaCAD/actions/runs/44335223823) başarılı: 102/102 frontend + 379/379 domain testi, 0 başarısız; shared-domain strict TypeScript, lint (32 uyarı / 0 hata), frontend TypeScript + Vite production build ve production dependency audit (0 vulnerability) geçti. [Pages #44335223832](https://github.com/Taylan789/MobilyaCAD/actions/runs/44335223832) başarılı.
+- Bilinen sınırlar: provenance yalnızca kullanıcı/atölye metadata'sının varlığını gösterir; kaynak, revizyon, tedarikçi, fiziksel levha, sertifika veya makine standardı doğrulaması değildir. CNC, kesim sırası/yolu veya fire/yield üretmez.
+- AI Developer [#44282900800](https://github.com/Taylan789/MobilyaCAD/actions/runs/44282900800) en son workflow olarak tamamlandı/başarısız; ürün ve entegrasyon agent job'ları OpenRouter free-models-per-day 429 (50/50, kalan 0) nedeniyle durdu. Log incelendi; eski SHA üzerinde rerun yapılmadı, yeni dispatch aracı bulunmadı; secret/ayar/ücretli kredi değiştirilmedi.
+- Sonraki görev: DOM-035 — desteklenmeyen aile ve kesitli geometri blocker'larının proje export kapısına kayıpsız taşındığını doğrula; kısmi JSON üretimini regresyon testleriyle engelle.

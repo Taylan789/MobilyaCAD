@@ -1221,6 +1221,10 @@ DOM-032 doğrulaması: [commit fe720ce](https://github.com/Taylan789/MobilyaCAD/
 
 **UI sözleşmesi:** grup sırası, `groupId`, `materialId`, `thicknessMm`, `sourcePartIds`, provided/missing durumu ve varsa kullanıcı `sourceId/revision` değerleri korunmalıdır. Blocked durumda kısmi grup özeti gösterilmemelidir. Bu domain teslimatı frontend dosyalarını değiştirmez.
 
+**Teslimat ve doğrulama:** [commit fddbadc](https://github.com/Taylan789/MobilyaCAD/commit/fddbadc9b4fc87f277c09b0f8048fa16aedd246b); [CI #44335223878](https://github.com/Taylan789/MobilyaCAD/actions/runs/44335223878), [QA #44335223823](https://github.com/Taylan789/MobilyaCAD/actions/runs/44335223823) başarılı — 102/102 frontend + 379/379 domain testi; strict TypeScript, lint (32 uyarı / 0 hata), production build ve audit 0 vulnerability. [Pages #44335223832](https://github.com/Taylan789/MobilyaCAD/actions/runs/44335223832) başarılı.
+
+**Sınırlar:** kapsam özeti yalnızca metadata varlığını gösterir; fiziksel levha, tedarikçi veya makine standardı doğrulamaz.
+
 ### DOM-034 sonrası sıradaki 5 küçük görev
 1. INT-001 / PR #61: frontend sahibinin güncel base üzerinde domain raporu, freshness-gated JSON export ve v3 metadata round-trip entegrasyonunu salt okunur izle.
 2. DOM-035: desteklenmeyen aile ve kesitli geometri blocker'larının proje export kapısına kayıpsız taşındığını doğrula; kısmi JSON üretimini regresyon testleriyle engelle.
