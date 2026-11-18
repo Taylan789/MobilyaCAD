@@ -990,7 +990,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 
 - Kullanıcı akışı: doğrulanmış tek malzeme/kalınlık nesting batch'i ve deterministik yerleşim raporu, kaynak Part izini kaybetmeden levha bazlı kesim planı veri modeline dönüştürülür.
 - Kabul kriterleri: kaynak Part ID + quantity, her fiziksel parça numarası, levha indeksi, X/Y mm koordinatları, döndürülmüş ölçüler, 0/90 grain uyumlu dönüş ve kullanıcı kerf değeri korunur. Batch/yerleşim stoğu ve kerf eşleşmelidir; her kaynak adet bir kez yer almalı; ölçü ve sınır ihlali kısmi sonuç vermeden blocked olmalıdır.
-- Domain API ve otomatik test eklendi; doğrulama durumu bu kayıt sırasında GitHub Actions bekliyor. Frontend, adapter, CNC ve makine postprocessor alanlarına dokunulmadı.
+- Domain API ve otomatik test eklendi. [CI #44239126132](https://github.com/Taylan789/MobilyaCAD/actions/runs/44239126132), [QA #44239126206](https://github.com/Taylan789/MobilyaCAD/actions/runs/44239126206) ve [Pages #44239126161](https://github.com/Taylan789/MobilyaCAD/actions/runs/44239126161) başarılı; QA 102/102 frontend + 316/316 domain testi, strict shared-domain TypeScript, lint, production build ve production audit 0 bulgu. Frontend, adapter, CNC ve makine postprocessor alanlarına dokunulmadı.
 - Bilinen sınırlar: bu plan bir kesim sırası veya testere yolu değildir. Çiftler arası çakışma/kerf doğrulaması DOM-024'e; trim/fire/yield, makine standardı, CNC ve fiziksel üretim onayı sonraki ayrı aşamalara aittir.
 
 ### DOM-023 sonrası sıradaki 3-5 küçük görev
