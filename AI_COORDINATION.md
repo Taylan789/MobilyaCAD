@@ -260,4 +260,4 @@ Bu dosya dört geliştirme/denetim rolünün ortak görev panosu ve entegrasyon 
 - QA [#44398433080](https://github.com/Taylan789/MobilyaCAD/actions/runs/44398433080) başarılı: frontend 124/124, domain 392/392; shared-domain strict TypeScript, lint, frontend TypeScript/build ve production dependency audit geçti; audit 0 vulnerability.
 - Pages [#44398433257](https://github.com/Taylan789/MobilyaCAD/actions/runs/44398433257) başarılı.
 - Gerçek proje üretim agregatörüyle gardırop/TV özel raf ve bölücülerinin tam Part snapshot'ında korunması doğrulandı. Yalnızca raflar nesting'e seçildi; bölücüler hariç tutulmasına rağmen JSON v2 snapshot'ında tüm malzeme/kalınlık/adet/kenar/damar/yerleşim alanları korundu. Runtime üretim kodu değişikliği gerekmedi.
-- Sonraki domain görevi DOM-041: özel Part satırlarının malzeme tüketimi ve kalınlık duyarlı fiyatlandırma akışını doğrula.
+- Sonraki domain görevi DOM-042: özel raf/bölücü materialId, kalınlık veya yerleşim değişikliğinin kayıtlı kesim planı freshness sonucunu stale yapmasını gerçek aile agregatörüyle doğrula.
