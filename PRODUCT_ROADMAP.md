@@ -975,7 +975,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 - Kabul kriterleri: her quantity bir fiziksel placement olur; her placement levha sınırları içinde kalır; 0/90 dönüşler doğrulanmış grain izinlerini kullanır; aynı sıra ve ardışık sıralar arasında kerf boşluğu korunur; kaynak Part ID ve parça numarası korunur; tutarsızlıkta kısmi sonuç verilmez.
 - Yeni domain modülü: `domain/production/sheetNestingLayout.ts`; testler: `domain/production/sheetNestingLayout.test.mjs`; strict shared-domain TypeScript listesine eklendi.
 - Algoritma `deterministic-shelf-v1` sezgisel raf yerleşimidir; optimal nesting değildir. 50.000 fiziksel parça sınırı vardır. Trim, fire/yield, kesim yolu/sırası, CNC/makine standardı ve fiziksel üretim onayı kapsam dışıdır.
-- Bu kayıt uygulama aşamasındadır; commit ve GitHub Actions doğrulaması beklenmektedir.
+- Kod: [fb37c5bdf386380a33b7f93f43253b612867a9ac](https://github.com/Taylan789/MobilyaCAD/commit/fb37c5bdf386380a33b7f93f43253b612867a9ac); yatay kerf assertion düzeltmesi: [39639040181ad8036c94babd7fa5b29749865a33](https://github.com/Taylan789/MobilyaCAD/commit/39639040181ad8036c94babd7fa5b29749865a33). [CI #44230651897](https://github.com/Taylan789/MobilyaCAD/actions/runs/44230651897), [QA #44230651902](https://github.com/Taylan789/MobilyaCAD/actions/runs/44230651902) ve [Pages #44230651898](https://github.com/Taylan789/MobilyaCAD/actions/runs/44230651898) başarılı; QA 102/102 frontend + 304/304 domain testi, strict TypeScript, lint, production build ve audit 0 bulgu. DOM-022 DONE.
 
 ### DOM-022 sonrası sıradaki küçük işler
 
