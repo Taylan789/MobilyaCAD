@@ -13,6 +13,8 @@ function createReport(options = {}) {
   const edgeBandingByGroup = Object.fromEntries(
     BODY_PANEL_GROUPS.map((group) => [group, { ...noBanding }])
   );
+  const materialId = options.materialId ?? "mdf-18";
+  const material = options.material ?? "MDF Lam 18";
   const request = {
     schemaVersion: 1,
     furniture: {
@@ -20,20 +22,32 @@ function createReport(options = {}) {
       widthMm: options.widthMm ?? 800,
       heightMm: 720,
       depthMm: 560,
-      material: "MDF Lam 18",
-      materialId: "mdf-18"
+      material,
+      materialId
     },
     profile: {
-      panelThicknessMm: 18,
+      panelThicknessMm: options.panelThicknessMm ?? 18,
+      ...(options.panelThicknessMmByGroup === undefined
+        ? {}
+        : { panelThicknessMmByGroup: options.panelThicknessMmByGroup }),
       carcassStyle: "between-sides",
       backPanel: { enabled: false },
       shelfCount: 0,
       doors: { enabled: false, count: 0 },
       edgeBandingByGroup
     },
-    materials: [
-      { id: "mdf-18", name: "MDF Lam 18", category: "panel", thicknessesMm: [18], unit: "mm" }
-    ]
+    materials: options.materials ?? [
+      {
+        id: materialId,
+        name: material,
+        category: "panel",
+        thicknessesMm: options.materialThicknessesMm ?? [18],
+        unit: "mm"
+      }
+    ],
+    ...(options.panelMaterialOverrides === undefined
+      ? {}
+      : { panelMaterialOverrides: options.panelMaterialOverrides })
   };
 
   return calculateCabinetProjectProductionWithDiagnostics({
@@ -42,8 +56,11 @@ function createReport(options = {}) {
   });
 }
 
-function price(resourceType, resourceId, unit, unitPriceMinor, currencyCode = "TRY") {
-  return { resourceType, resourceId, unit, unitPriceMinor, currencyCode };
+function price(resourceType, resourceId, unit, unitPriceMinor, currencyCode = "TRY", thicknessMm) {
+  return {
+    resourceType, resourceId, unit, unitPriceMinor, currencyCode,
+    ...(thicknessMm === undefined ? {} : { thicknessMm })
+  };
 }
 
 const usage = (overrides = {}) => ({
@@ -133,6 +150,60 @@ test("malzeme tüketimi ile işçilik/operasyon satırlarını tek para birimind
   ]);
   assert.deepEqual(quote.missingPrices, []);
   assert.deepEqual(quote.missingTariffs, []);
+});
+
+test("gövde panel fiyatları aynı katalog kimliğinde gerçek mm kalınlığa göre ayrı teklif satırlarıdır", () => {
+  const report = createReport({
+    materialId: "mdf-shared",
+    material: "MDF Lam",
+    materialThicknessMmByGroup: undefined,
+    materialThicknessesMm: [8, 18],
+    panelMaterialOverrides: { top: "mdf-shared" },
+    panelThicknessMmByGroup: { top: 8 }
+  });
+  const quote = calculateProjectQuoteSummary(report, [
+    price("material", "mdf-shared", "m2", 2000, "TRY", 8),
+    price("material", "mdf-shared", "m2", 1000, "TRY", 18)
+  ], [], []);
+
+  assert.equal(report.status, "ready");
+  assert.equal(quote.status, "ready");
+  assert.equal(quote.requiredLineCount, 2);
+  assert.equal(quote.pricedLineCount, 2);
+  assert.deepEqual(
+    quote.costSummary.lines.map((line) => [line.description, line.unitPriceMinor]),
+    [
+      ["MDF Lam (8 mm; mdf-shared)", 2000],
+      ["MDF Lam (18 mm; mdf-shared)", 1000]
+    ]
+  );
+  assert.deepEqual(
+    quote.lineSources.map((source) => [source.costLineId, source.sourceType]),
+    [
+      ["consumption-0001", "production-consumption"],
+      ["consumption-0002", "production-consumption"]
+    ]
+  );
+});
+
+test("gövde panel kalınlıklarından birinin fiyatı eksikse birleşik teklif toplamı hazır olmaz", () => {
+  const report = createReport({
+    materialId: "mdf-shared",
+    material: "MDF Lam",
+    materialThicknessesMm: [8, 18],
+    panelMaterialOverrides: { top: "mdf-shared" },
+    panelThicknessMmByGroup: { top: 8 }
+  });
+  const quote = calculateProjectQuoteSummary(report, [
+    price("material", "mdf-shared", "m2", 1000, "TRY", 18)
+  ], [], []);
+
+  assert.equal(quote.status, "incomplete");
+  assert.equal(quote.costSummary, null);
+  assert.equal(quote.currencyCode, null);
+  assert.equal(quote.requiredLineCount, 2);
+  assert.equal(quote.pricedLineCount, 1);
+  assert.deepEqual(quote.missingPrices.map((issue) => issue.thicknessMm), [8]);
 });
 
 test("tüketim fiyatı eksikse işçilik fiyatlı olsa bile birleşik toplamı gizler", () => {
