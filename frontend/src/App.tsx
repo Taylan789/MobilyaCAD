@@ -43,7 +43,6 @@ import { Separator } from "./components/ui/separator";
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -161,11 +160,9 @@ function matchesSceneMaterialSearch(
 
 function App() {
   const [workspaceOpen, setWorkspaceOpen] = useState(false);
-  const [workspaceLoading, setWorkspaceLoading] = useState(false);
   function startWorkspace() {
-    if (workspaceLoading || workspaceOpen) return;
-    setWorkspaceLoading(true);
-    window.setTimeout(() => { setWorkspaceOpen(true); setWorkspaceLoading(false); }, 1450);
+    if (workspaceOpen) return;
+    setWorkspaceOpen(true);
   }
   const [roomWidth, setRoomWidth] = useState(4000);
   const [roomLength, setRoomLength] = useState(5000);
@@ -255,7 +252,6 @@ function App() {
     initialPanel: "catalog" | "scene" = "catalog",
     initialInspector: "room" | "furniture" | "production" | "materials" = "room"
   ) {
-    if (workspaceLoading) return;
     if (
       hasUnsavedChanges &&
       !window.confirm("Kaydedilmemiş değişiklikler var. Yeni projeye geçmek istiyor musun?")
@@ -1143,7 +1139,7 @@ function App() {
             </nav>
             <div className="atelier-profile">
               <span className="atelier-profile-indicator" aria-hidden="true" />
-              <div><b>PARAMETRİK STÜDYO</b><small>Mobilya · Bileşen · Üretim</small></div>
+              <div><b>TASARIM STÜDYOSU</b><small>Mobilya · Bileşen · Üretim</small></div>
             </div>
           </header>
           <main className="atelier-home-main" id="studio-home">
@@ -1161,7 +1157,7 @@ function App() {
               <div className="atelier-feature-art" aria-label="Parametrik mobilya tasarım illüstrasyonu">
                 <div className="atelier-art-grid"></div><div className="atelier-art-index">FIG. 001 — MODULAR SYSTEM</div>
                 <div className="atelier-art-cube"><div className="atelier-cube-top"></div><div className="atelier-cube-front"></div><div className="atelier-cube-side"></div><span className="atelier-dim atelier-dim-x">1200</span><span className="atelier-dim atelier-dim-y">740</span><span className="atelier-dim atelier-dim-z">18</span></div>
-                <div className="atelier-art-caption"><b>01 / PARAMETRİK MODÜL</b><span>ÖLÇÜ · MALZEME · MONTAJ</span></div>
+                <div className="atelier-art-caption"><b>01 / MODÜLER TASARIM</b><span>ÖLÇÜ · MALZEME · MONTAJ</span></div>
               </div>
             </section>
             <section className="atelier-section atelier-start-section" id="templates">
@@ -1794,40 +1790,6 @@ function App() {
               </div>
             )}
           </SidebarContent>
-
-            <SidebarSeparator />
-
-            <SidebarFooter className="cad-project-footer">
-              <div className="cad-project-heading">
-                <div>
-                  <strong>Proje Nesneleri</strong>
-                  <span>SAHNEDEKİ MOBİLYALAR</span>
-                </div>
-                <span>{furniture.length}</span>
-              </div>
-
-              <ScrollArea className="cad-project-scroll">
-                <SidebarMenu>
-                  {furniture.length === 0 && (
-                    <p className="cad-empty-state">
-                      Henüz odaya mobilya eklenmedi.
-                    </p>
-                  )}
-
-                  {furniture.map((item) => (
-                    <SidebarMenuItem key={item.id}>
-                      <SidebarMenuButton
-                        isActive={selectedFurnitureId === item.id}
-                        onClick={() => focusSceneFurniture(item.id)}
-                      >
-                        <Box />
-                        <span>{item.name}</span>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  ))}
-                </SidebarMenu>
-              </ScrollArea>
-            </SidebarFooter>
           </Sidebar>
 
           <div className="cad-main-area">
@@ -2341,13 +2303,6 @@ function App() {
         </nav>
         )}
 
-        {workspaceLoading && <div className="cad-loading-screen" role="status" aria-live="polite">
-          <MobilyaCadLogo className="cad-loading-brand" tone="inverse" descriptor="STUDIO" />
-          <div className="cad-loading-model" aria-hidden="true"><i className="cad-loading-panel cad-loading-panel-a" /><i className="cad-loading-panel cad-loading-panel-b" /><i className="cad-loading-panel cad-loading-panel-c" /><i className="cad-loading-shelf" /><i className="cad-loading-dimension">1200 mm</i></div>
-          <p className="cad-loading-kicker">PARAMETRİK TASARIM ORTAMI</p><h2>Çalışma alanın hazırlanıyor</h2>
-          <span className="cad-loading-caption">Geometri motoru · Malzeme kataloğu · Üretim araçları</span>
-          <div className="cad-loading-track"><span /></div><span className="cad-loading-percent">MOBİLYACAD STUDIO / INITIALIZING</span>
-        </div>}
         <footer className="cad-statusbar">
           <div className="cad-status-item">
             <span className="cad-status-light" />
