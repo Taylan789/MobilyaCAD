@@ -1301,12 +1301,12 @@ DOM-032 doğrulaması: [commit fe720ce](https://github.com/Taylan789/MobilyaCAD/
 
 **Sınırlar:** grup override'ları yalnızca sabit kimlikli ana gövde gruplarına uygulanır. Gardırop/TV ünitesi özel rafları ve dikey bölücüleri kendi açık spec materialId/kalınlık girdilerini kullanır; bu alanlardan varsayılan veya grup override'ı türetilmez. Banyo dolabı kesitli üst paneli JSON/CSV adapter'ı panelGeometry alanını kayıpsız taşıyana kadar export dışı kalır. CNC ve fiziksel üretim onayı değildir.
 
-### DOM-038 sonrası sıradaki 5 küçük görev
-1. DOM-039 — teklif/maliyet hesaplarında aynı malzeme adı fakat farklı materialId veya kalınlıktaki gövde override gruplarının ayrı fiyat satırlarına bağlandığını doğrula; eksik fiyatlarda toplam üretme.
-2. DOM-040 — gardırop ve TV ünitesi özel raf/bölücü Part snapshot'larının açık materialId, thickness, quantity ve yerleşim alanlarını round-trip boyunca korumasını genişlet.
-3. DOM-041 — kayıtlı teklif revizyonunun dayandığı üretim Part/malzeme snapshot'ı değiştiğinde teklifin eski maliyetle güncelmiş gibi gösterilmesini engelle.
-4. INT-001/INT-002 — açık frontend/adapter entegrasyon PR'larını yalnızca kendi sahipliklerinde izle; domain dalı frontend veya adapter dosyalarına dokunmaz.
-5. Hole-aware nesting, kesit geometri ve CNC/postprocessor desteği için geometri/kerf/üretici standardı doğrulanana kadar mevcut export blocker'larını koru.
+### DOM-039 sonrası sıradaki 5 küçük görev
+1. DOM-040 — gardırop ve TV ünitesi özel raf/bölücü Part snapshot'larının açık materialId, thickness, quantity ve yerleşim alanlarını round-trip boyunca korumasını genişlet.
+2. DOM-041 — kayıtlı teklif revizyonunun dayandığı üretim Part/malzeme snapshot'ı değiştiğinde teklifin eski maliyetle güncelmiş gibi gösterilmesini engelle.
+3. INT-001 — frontend sahibinin domain/JSON v2/v3 sözleşme entegrasyon PR'ını yalnızca salt okunur doğrula; frontend dosyalarına ve PR sahipliğine dokunma.
+4. INT-002/PERF-001 — adapter round-trip ve benchmark işlerini yalnızca entegrasyon/performance ajanının sahipliğinde denetle.
+5. Hole-aware nesting ve CNC/postprocessor için geometri/kerf/üretici standardı doğrulanana kadar mevcut export blocker'larını koru.
 
 **QA düzeltme kaydı:** İlk doğrulamada CI #44371472424 başarılı, QA #44371472416 başarısız (384/385 domain testi). Yeni testin aile raporu blocked çıktısı ayrıştırılacak; açıkça kaldırılan legacy override alanlarının helper tarafından tekrar eklenmesi önlenecek. DOM-037, yeni Actions doğrulaması yeşil olmadan tamamlanmış sayılmayacak.
 
@@ -1323,3 +1323,33 @@ DOM-032 doğrulaması: [commit fe720ce](https://github.com/Taylan789/MobilyaCAD/
 
 
 **DOM-038 nihai kanıt:** [commit d956205](https://github.com/Taylan789/MobilyaCAD/commit/d956205d87d46e9173b2b1dbcf4b13fe4952b46f); [CI #44384952328](https://github.com/Taylan789/MobilyaCAD/actions/runs/44384952328), [QA #44384952562](https://github.com/Taylan789/MobilyaCAD/actions/runs/44384952562), [Pages #44384952512](https://github.com/Taylan789/MobilyaCAD/actions/runs/44384952512) başarılı. QA 124/124 frontend + 387/387 domain; strict type-check/lint/build/audit başarılı.
+
+
+## DOM-039 — Gövde panel malzeme fiyatını katalog kimliği ve gerçek kalınlıkla eşleştirme (Actions bekleniyor)
+
+**Kullanıcı akışı:** aynı görünen malzeme adını paylaşan farklı katalog kimlikleri ve aynı katalog kimliğinin farklı mm kalınlıkları teklif hesabında ayrı tüketim/fiyat satırları olarak görünür. Kullanıcı her malzeme/kalınlık için açık fiyat girer; eksik fiyat olduğunda birleşik teklif toplamı hazır gösterilmez.
+
+**Dikey dilim:**
+- `ProjectConsumptionPriceInput` için opsiyonel `thicknessMm` alanı eklendi. Malzeme fiyat anahtarı artık `materialId + m2 + thicknessMm`; donanım ve kenar bandı anahtarları özgün birimlerini korur.
+- Aynı malzeme adı farklı `materialId` değerlerinde ayrı kalır. Aynı `materialId` farklı kalınlıklarda kullanılıyorsa her kalınlık için ayrı fiyat gerekir.
+- Geriye uyumluluk: kalınlık alanı olmayan legacy malzeme fiyatı yalnızca o katalog kimliği proje içinde tek bir kalınlıkta tüketiliyorsa kullanılabilir. Birden fazla kalınlıkta belirsiz legacy fiyat hiçbir gruba uygulanmaz.
+- Maliyet satırı açıklaması malzeme adı, mm kalınlığı ve katalog kimliğini taşır; eksik satırlar `missingPrices` içinde kalır ve `costSummary` null olur.
+
+**Kabul kriterleri:**
+- Aynı malzeme adı ve aynı kalınlıkla farklı katalog kimlikleri ayrı fiyat satırları üretir.
+- Aynı katalog kimliğinin 8 mm ve 18 mm gövde panelleri ayrı kullanıcı fiyatlarıyla eşleşir.
+- Kalınlık belirtmeyen legacy fiyat tek kalınlıkta geriye uyumlu çalışır; çoklu kalınlıkta hiçbir gruba uygulanmaz.
+- Aynı ID/birim/kalınlık için yinelenen fiyat, 0.1 mm'den hassas kalınlık veya donanım/kenar bandında thickness alanı reddedilir.
+- Bir kalınlığın fiyatı eksikse tüketim ve birleşik teklif `incomplete` kalır; kısmi parasal toplam sunulmaz.
+- Domain strict TypeScript, tüm domain testleri, frontend QA/build/lint ve production dependency audit GitHub Actions üzerinden doğrulanır; gerçek Actions sonucu görülmeden DONE işaretlenmez.
+
+**Değişen kod/test dosyaları:**
+- `domain/production/projectPricedConsumption.ts`
+- `domain/production/projectPricedConsumption.test.mjs`
+- `domain/production/projectQuoteSummary.test.mjs`
+
+**Commit zinciri:** [domain dd7c6c5](https://github.com/Taylan789/MobilyaCAD/commit/dd7c6c5fbadf23e883632feecea929d1c57100b3), [tüketim testleri 9b09b67](https://github.com/Taylan789/MobilyaCAD/commit/9b09b67b383f03b98346f81530e5d1a66b220dd0), [birleşik teklif testleri 6a76d66](https://github.com/Taylan789/MobilyaCAD/commit/6a76d6656ab3418e6d44d6e9c00b5c5afcca853e). Domain sözleşmesi, koordinasyon ve ilerleme kaydı aynı çalışma içinde güncelleniyor.
+
+**Actions durumu:** CI/QA push workflow'larının otomatik tetiklenmesi bekleniyor. Bu oturumdaki GitHub Actions okuma aracı commit bazında yalnızca PR-triggered run'ları listeliyor; bu push commitleri için run ID veya check sonucu döndürmedi. Combined status da boş. Bu nedenle test/Actions başarılı ilan edilmedi; doğrulama bekliyor.
+
+**Sınırlar:** fiyat, vergi, kur, levha verimi, fire yüzdesi, katalog doğruluğu veya CNC/gerçek üretim standardı varsayılmaz. `frontend/**` ve adapter dosyaları değiştirilmedi; `main` dalına dokunulmadı.
