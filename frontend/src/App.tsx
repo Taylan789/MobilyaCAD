@@ -195,7 +195,7 @@ function App() {
   const [inspectorTab, setInspectorTab] = useState<"room" | "furniture" | "production" | "materials">("room");
   const [workspaceMode, setWorkspaceMode] = useState<"design" | "production">("design");
   const [productionSection, setProductionSection] = useState<"report" | "materials">("report");
-  const [bottomPanelTab, setBottomPanelTab] = useState<"parts" | "materials" | "issues">("parts");
+  const [bottomPanelTab, setBottomPanelTab] = useState<"parts" | "cutlist" | "materials" | "issues">("parts");
 
   const mobileCatalogHidden = isCompactViewport && mobilePanel !== "catalog";
   const mobileInspectorHidden = isCompactViewport
@@ -512,6 +512,7 @@ function App() {
   );
   const productionExportBlockReason = projectProduction.exportBlockReason;
   const productionParts = projectProduction.parts;
+  const scenePartCount = furniture.reduce((count, item) => count + item.parts.length, 0);
 
   const edgeBandingSummary = calculateEdgeBandingSummary(productionParts);
   const materialConsumptionSummary = calculateMaterialConsumptionSummary(productionParts);
@@ -2263,19 +2264,40 @@ function App() {
             <section className="cad-bottom-dock" aria-label="Proje üretim ve parça paneli">
               <div className="cad-bottom-dock-header">
                 <div className="cad-bottom-dock-title"><span className="cad-dock-grip" /><div><strong>Üretim masası</strong><small>PROJE VERİLERİ · CANLI HESAP</small></div></div>
-                <div className="cad-bottom-dock-tabs" role="tablist" aria-label="Alt panel sekmeleri">
-                  <button type="button" role="tab" aria-selected={bottomPanelTab === "parts"} className={bottomPanelTab === "parts" ? "active" : ""} onClick={() => setBottomPanelTab("parts")}>Parça listesi <b>{productionParts.length}</b></button>
-                  <button type="button" role="tab" aria-selected={bottomPanelTab === "materials"} className={bottomPanelTab === "materials" ? "active" : ""} onClick={() => setBottomPanelTab("materials")}>Malzeme özeti <b>{materials.length}</b></button>
-                  <button type="button" role="tab" aria-selected={bottomPanelTab === "issues"} className={bottomPanelTab === "issues" ? "active" : ""} onClick={() => setBottomPanelTab("issues")}>Kontroller <b>{projectProduction.errors.length + projectProduction.blockedFurniture.length + projectProduction.unsupportedFurniture.length}</b></button>
+                <div className="cad-bottom-dock-tabs" role="tablist" aria-label="Üretim masası sekmeleri">
+                  <button type="button" role="tab" aria-selected={bottomPanelTab === "parts"} className={bottomPanelTab === "parts" ? "active" : ""} onClick={() => setBottomPanelTab("parts")}>Parçalar <b>{scenePartCount}</b></button>
+                  <button type="button" role="tab" aria-selected={bottomPanelTab === "cutlist"} className={bottomPanelTab === "cutlist" ? "active" : ""} onClick={() => setBottomPanelTab("cutlist")}>Kesim listesi <b>{productionParts.length}</b></button>
+                  <button type="button" role="tab" aria-selected={bottomPanelTab === "materials"} className={bottomPanelTab === "materials" ? "active" : ""} onClick={() => setBottomPanelTab("materials")}>Malzeme <b>{materials.length}</b></button>
+                  <button type="button" role="tab" aria-selected={bottomPanelTab === "issues"} className={bottomPanelTab === "issues" ? "active" : ""} onClick={() => setBottomPanelTab("issues")}>Uyarılar <b>{projectProduction.errors.length + projectProduction.blockedFurniture.length + projectProduction.unsupportedFurniture.length}</b></button>
                 </div>
                 <div className="cad-bottom-dock-metrics"><span>{furniture.length} mobilya</span><i /> <span>{productionParts.length} parça</span><i /> <span>{materials.length} malzeme</span></div>
               </div>
               <div className="cad-bottom-dock-body">
-                {bottomPanelTab === "parts" && (productionParts.length > 0 ? (
+                {bottomPanelTab === "parts" && (scenePartCount > 0 ? (
+                  <div className="cad-dock-table-wrap">
+                    <table className="cad-dock-table" aria-label="Sahnedeki düzenlenebilir mobilya parçaları">
+                      <thead><tr><th>PARÇA</th><th>MOBİLYA</th><th>TÜR</th><th>EN</th><th>YÜKSEKLİK</th><th>DERİNLİK</th><th>MALZEME</th></tr></thead>
+                      <tbody>
+                        {furniture.flatMap((item) => item.parts.map((part) => (
+                          <tr key={`${item.id}-${part.id}`}>
+                            <td><button type="button" className="cad-dock-part-select" aria-label={`Sahnede ${item.name} / ${part.name} parçasını seç`} onClick={() => focusSceneFurniture(item.id, part.id)}>{part.name}</button></td>
+                            <td>{item.name}</td>
+                            <td>{part.type === "door" ? "Kapak" : part.type === "drawer" ? "Çekmece" : part.type === "shelf" ? "Raf" : "Panel"}</td>
+                            <td>{part.width} mm</td>
+                            <td>{part.height} mm</td>
+                            <td>{part.depth} mm</td>
+                            <td>{part.material || "Atanmamış"}</td>
+                          </tr>
+                        )))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : <div className="cad-dock-empty"><Layers3 /><strong>Sahnede henüz parça yok</strong><span>Kütüphaneden mobilya eklediğinde kapak, çekmece ve raf parçaları burada listelenir.</span></div>)}
+                {bottomPanelTab === "cutlist" && (productionParts.length > 0 ? (
                   <div className="cad-dock-table-wrap"><table className="cad-dock-table"><thead><tr><th>PARÇA</th><th>MOBİLYA</th><th>EN</th><th>BOY</th><th>KALINLIK</th><th>ADET</th><th>MALZEME</th></tr></thead><tbody>
                     {productionParts.slice(0, 80).map((part) => <tr key={part.id}><td><strong>{part.name}</strong></td><td>{projectProduction.furnitureNames.get(part.furnitureId) ?? "—"}</td><td>{part.width} mm</td><td>{part.length} mm</td><td>{part.thickness} mm</td><td>{part.quantity}</td><td>{part.material || "Atanmamış"}</td></tr>)}
                   </tbody></table></div>
-                ) : <div className="cad-dock-empty"><Layers3 /><strong>Henüz üretim parçası yok</strong><span>Üretim hesabını görmek için desteklenen bir mutfak gövdesi ekle.</span></div>)}
+                ) : <div className="cad-dock-empty"><Layers3 /><strong>Henüz kesim listesi yok</strong><span>Kesim listesi, mevcut üretim raporunda hesaplanan parçaları gösterir.</span></div>)}
                 {bottomPanelTab === "materials" && (materials.length > 0 ? (
                   <div className="cad-dock-materials">{materials.slice(0, 12).map((material) => <div key={material.id}><span className="cad-material-swatch" /><strong>{material.name}</strong><small>{material.decor || "Dekor tanımlanmamış"}</small></div>)}</div>
                 ) : <div className="cad-dock-empty"><Package /><strong>Malzeme kataloğu boş</strong><span>Sağdaki Malzeme sekmesinden proje malzemelerini yönetebilirsin.</span></div>)}
