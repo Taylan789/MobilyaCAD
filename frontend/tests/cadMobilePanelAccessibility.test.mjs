@@ -17,7 +17,7 @@ test("mobile panel visibility follows the compact viewport breakpoint", () => {
   );
   assert.match(
     app,
-    /const mobileInspectorHidden =\s*inspectorCollapsed \|\| \(isCompactViewport && mobilePanel !== "inspector"\);/,
+    /const mobileInspectorHidden = isCompactViewport\s*\? mobilePanel !== "inspector"\s*: inspectorCollapsed;/,
   );
 });
 
