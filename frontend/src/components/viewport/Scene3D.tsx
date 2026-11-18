@@ -413,7 +413,6 @@ export default function Scene3D({
     (isolatedFurnitureId === null || isolatedFurnitureId === item.id)
   );
   const sceneReadout = createViewportSceneReadout({
-    room: { width, length, height },
     furniture,
     visibleFurniture,
     selectedFurnitureId,
