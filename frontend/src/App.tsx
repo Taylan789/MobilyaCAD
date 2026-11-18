@@ -175,6 +175,15 @@ function App() {
   const [focusRequestId, setFocusRequestId] = useState(0);
   const [transformMode, setTransformMode] = useState<"translate" | "scale" | "rotate">("translate");
   const [mobilePanel, setMobilePanel] = useState<"catalog" | "inspector" | null>(null);
+  const [isCompactViewport, setIsCompactViewport] = useState(
+    () => typeof window !== "undefined" && window.matchMedia("(max-width: 760px)").matches
+  );
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(max-width: 760px)");
+    const syncCompactViewport = () => setIsCompactViewport(mediaQuery.matches);
+    mediaQuery.addEventListener("change", syncCompactViewport);
+    return () => mediaQuery.removeEventListener("change", syncCompactViewport);
+  }, []);
   const [leftDockCollapsed, setLeftDockCollapsed] = useState(false);
   const [inspectorCollapsed, setInspectorCollapsed] = useState(false);
   const [showShortcuts, setShowShortcuts] = useState(false);
@@ -187,6 +196,10 @@ function App() {
   const [workspaceMode, setWorkspaceMode] = useState<"design" | "production">("design");
   const [productionSection, setProductionSection] = useState<"report" | "materials">("report");
   const [bottomPanelTab, setBottomPanelTab] = useState<"parts" | "materials" | "issues">("parts");
+
+  const mobileCatalogHidden = isCompactViewport && mobilePanel !== "catalog";
+  const mobileInspectorHidden =
+    inspectorCollapsed || (isCompactViewport && mobilePanel !== "inspector");
 
   const [constructionRules] = useState<CabinetConstructionRules>({
     panelThickness: 18,
@@ -1434,6 +1447,8 @@ function App() {
             id="cad-left-dock"
             role="region"
             aria-label="Kütüphane ve sahne paneli"
+            aria-hidden={mobileCatalogHidden}
+            inert={mobileCatalogHidden}
             collapsible="none"
             className="cad-sidebar"
           >
@@ -1882,7 +1897,7 @@ function App() {
                 <div className="studio-canvas-footer"><span><i /> SAHNE GÖRÜNÜMÜ</span><span>GRID · SNAP 10 MM</span><span>{furniture.length} / {furnitureCatalog.length} MODÜL</span></div>
               </main>
 
-              <aside id="cad-inspector" className="cad-inspector" aria-hidden={inspectorCollapsed} inert={inspectorCollapsed}>
+              <aside id="cad-inspector" className="cad-inspector" aria-hidden={mobileInspectorHidden} inert={mobileInspectorHidden}>
                 <div className="cad-inspector-header">
                   <div>
                     <strong>Özellikler</strong>
@@ -2278,7 +2293,7 @@ function App() {
 
         {workspaceMode === "design" && (
         <nav className="cad-mobile-toolbar" aria-label="Mobil çalışma araçları">
-          <button type="button" onClick={() => setMobilePanel(mobilePanel === "catalog" ? null : "catalog")} aria-pressed={mobilePanel === "catalog"}>
+          <button type="button" onClick={() => setMobilePanel(mobilePanel === "catalog" ? null : "catalog")} aria-pressed={mobilePanel === "catalog"} aria-expanded={mobilePanel === "catalog"} aria-controls="cad-left-dock">
             <Package />
             <span>Katalog</span>
           </button>
@@ -2294,7 +2309,7 @@ function App() {
             <RotateCw />
             <span>Döndür</span>
           </button>
-          <button type="button" onClick={() => setMobilePanel(mobilePanel === "inspector" ? null : "inspector")} aria-pressed={mobilePanel === "inspector"}>
+          <button type="button" onClick={() => setMobilePanel(mobilePanel === "inspector" ? null : "inspector")} aria-pressed={mobilePanel === "inspector"} aria-expanded={mobilePanel === "inspector"} aria-controls="cad-inspector">
             <Settings2 />
             <span>Özellik</span>
           </button>
