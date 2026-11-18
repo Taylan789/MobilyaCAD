@@ -1189,13 +1189,13 @@
 - Sonraki adım: frontend sahibinin export kapısını INT-001 akışına bağlamasını salt okunur izlemek; ardından DOM-033 levha kaynağı/revizyon provenance metadata'sını kullanıcı girdili ve geriye uyumlu modellemek.
 
 
-## 18 Kasım 2026 17:43 TRT — DOM-033 levha kaynağı/revizyon provenance (Actions bekleniyor)
+## 18 Kasım 2026 17:50 TRT — DOM-033 levha kaynağı/revizyon provenance (Actions doğrulandı)
 
 - Başlangıç `dev/github-work` HEAD: `bcab56b2f15b646b6e059bee3ef9b2f6e8c1ee7e`.
-- Kod commit SHA: `PENDING_IMPLEMENTATION_SHA` (commit nesnesi oluşturulduktan sonra bu kayda işlenecek).
+- Kod commit: [0fc8bd0](https://github.com/Taylan789/MobilyaCAD/commit/0fc8bd09ebddff1b3c864dff5fa9d775a1759882).
 - Değişen dosyalar: `domain/production/projectSheetCutPlanFile.ts`, `projectSheetCutPlanFile.test.mjs`, `projectSheetCutPlanExport.ts`, `projectSheetCutPlanExport.test.mjs`, `docs/production-domain-contract.md`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`.
 - Davranış: grup başına opsiyonel `stockSheetSource.sourceId/revision`; metadata varsa tam Part snapshot ile JSON v3; v1/v2 parse uyumluluğu; freshness ve export gate v3'ü destekler. Boş/bozuk/ek alan metadata reddedilir.
-- Otomatik kontroller: CI/QA final branch SHA üzerinde tetiklenmesi bekleniyor; sonuç görülmeden başarılı ilan edilmeyecek. Yeni domain testleri v3 round-trip, v1/v2 sürüm sınırı, hatalı metadata ve freshness/export korumasını kapsıyor.
+- Otomatik kontroller: [CI #44328579254](https://github.com/Taylan789/MobilyaCAD/actions/runs/44328579254) başarılı; [QA #44328579308](https://github.com/Taylan789/MobilyaCAD/actions/runs/44328579308) başarılı; [Pages #44328579621](https://github.com/Taylan789/MobilyaCAD/actions/runs/44328579621) başarılı. QA: 102/102 frontend + 375/375 domain testi, 0 başarısız; shared-domain strict TypeScript, lint (32 uyarı / 0 hata), production build ve production dependency audit (0 bulgu) geçti.
 - Bilinen sınırlar: sourceId/revision kullanıcı/atölye girdisidir; harici katalog, tedarikçi, fiyat, stok veya sertifika doğrulaması yoktur. CNC/üretim uygunluğu iddiası değildir.
 - AI Developer [#44282900800](https://github.com/Taylan789/MobilyaCAD/actions/runs/44282900800) iki agent job'unda OpenRouter free-models-per-day 429 verdi (limit 50, kalan 0); loglarda reset zamanı 19 Kasım 2026 03:00 TRT. Eski SHA rerun edilmedi; güncel SHA dispatch aracı yok, secret/ayar/ücretli kredi değiştirilmedi.
 - Sonraki görev: INT-001 v3/JSON export entegrasyonunu salt okunur izlemek; ardından DOM-034 provenance kapsam özeti.

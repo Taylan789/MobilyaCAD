@@ -1191,7 +1191,7 @@ Sınırlar: bu API JSON'u güncel tutarlılık bakımından doğrular; kesim yer
 DOM-032 doğrulaması: [commit fe720ce](https://github.com/Taylan789/MobilyaCAD/commit/fe720ce65b3d1710dfc0eab050a5ed01989c2217); [CI #44311591605](https://github.com/Taylan789/MobilyaCAD/actions/runs/44311591605), [QA #44311591631](https://github.com/Taylan789/MobilyaCAD/actions/runs/44311591631) — 102/102 frontend + 373/373 domain testi, strict TypeScript, lint, production build ve production audit başarılı; [Pages #44311591602](https://github.com/Taylan789/MobilyaCAD/actions/runs/44311591602) başarılı.
 
  
-## 18 Kasım 2026 17:43 TRT — DOM-033 levha kaynağı/revizyon provenance (kod teslimi, Actions bekleniyor)
+## 18 Kasım 2026 17:50 TRT — DOM-033 levha kaynağı/revizyon provenance (tamamlandı; Actions doğrulandı)
 
 **Kullanıcı akışı:** atölye, her malzeme/kalınlık levha grubunun hangi kullanıcı/tedarikçi kaydı ve hangi revizyonla hazırlandığını kesim planına ekleyebilir. Bu bilgi zorunlu değildir; verilmediğinde sistem kimlik veya revizyon tahmin etmez.
 
@@ -1199,7 +1199,7 @@ DOM-032 doğrulaması: [commit fe720ce](https://github.com/Taylan789/MobilyaCAD/
 
 **Kabul kriterleri:** sourceId/revision birlikte ve boş olmayan metin; bilinmeyen alan reddi; v1/v2 geriye uyumluluğu; v3 freshness/export round-trip; stale/blocked durumda JSON null.
 
-**Sınırlar:** provenance fiziksel levha ölçüsünü/kalitesini veya tedarik zincirini kanıtlamaz. CNC, kesim sırası/yolu, fire/yield veya fiziksel üretim onayı değildir; atölye doğrulaması gerekir.
+**Kod commit'i:** [0fc8bd0](https://github.com/Taylan789/MobilyaCAD/commit/0fc8bd09ebddff1b3c864dff5fa9d775a1759882).\n\n**Doğrulama:** [CI #44328579254](https://github.com/Taylan789/MobilyaCAD/actions/runs/44328579254), [QA #44328579308](https://github.com/Taylan789/MobilyaCAD/actions/runs/44328579308) ve [Pages #44328579621](https://github.com/Taylan789/MobilyaCAD/actions/runs/44328579621) başarılı; QA 102/102 frontend + 375/375 domain testi, strict TypeScript, lint (32 uyarı / 0 hata), production build ve audit 0 bulgu.\n\n**Sınırlar:** provenance fiziksel levha ölçüsünü/kalitesini veya tedarik zincirini kanıtlamaz. CNC, kesim sırası/yolu, fire/yield veya fiziksel üretim onayı değildir; atölye doğrulaması gerekir.
 
 ### DOM-033 sonrası sıradaki küçük görevler
 1. INT-001 / PR #61: frontend sahibinin freshness-gated export kapısını ve v3 `stockSheetSource` JSON round-trip'ini güncel base üzerinde tamamlamasını salt okunur izle.
