@@ -288,7 +288,7 @@ test("yinelenen, bilinmeyen ve boş Part seçimleri reddedilir", () => {
 test("boş levha tanımı, boş proje Part listesi ve yinelenen kaynak Part ID engellenir", () => {
   assertBlocked(
     request(report([part()]), []),
-    /Her malzeme/kalınlık grubu/
+    /Her malzeme\/kalınlık grubu/
   );
   assertBlocked(
     request(report([]), [stock(sheet("mdf-18", 18))]),
