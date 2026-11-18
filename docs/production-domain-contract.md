@@ -789,3 +789,12 @@ Ana gövde parça ID son ekleri `left-side`, `right-side`, `top`, `bottom`, `she
 `createProjectPartSnapshot` her Part kaydının tüm JSON alanlarını canonical olarak saklar. Çözülmüş `materialId`, malzeme adı, `thickness` (mm), `quantity`, ölçüler ve aileye özgü yerleşim alanları snapshot karşılaştırmasına dahildir. `calculateProjectMaterialConsumptionSummary` gruplamayı `materialId + material + thickness` anahtarıyla yapar ve alan/hacim/kenar bantlama toplamlarını Part quantity değeriyle ağırlıklandırır.
 
 Otomatik kabul testi: `domain/production/bodyPanelMaterialsFamilies.test.mjs`. Banyo dolabı geçerli kesit geometrisi taşısa da mevcut JSON/CSV adapter'ı `panelGeometry` alanını kayıpsız taşımadığından `canExport: false` kalır; bu blocker bu görevde kaldırılmaz. CNC, kesim yolu veya fiziksel üretim uygunluğu iddiası yoktur.
+
+
+### DOM-038 — gövde panel override değişiminde kesim planı güncelliği
+
+Kesim planı JSON v2, nesting seçiminden bağımsız olarak projedeki tüm üretim Part kayıtlarının canonical snapshot'ını taşır. Bu nedenle seçili olmayan veya farklı malzeme grubundaki bir gövde panelinin `materialId` ya da gerçek `thickness` (mm) değeri değiştiğinde kayıtlı plan güncel kabul edilmez.
+
+`domain/production/bodyPanelMaterialsFreshness.test.mjs` beş desteklenen aileyi (dolap, kitaplık, gardırop, TV ünitesi ve banyo dolabı) gerçek proje üretim agregatörü üzerinden çalıştırır. Sabit üst panel Part kimlikleri ve seçim kapsamı korunurken malzeme kimliği veya kalınlık değişimi `stale` üretmeli; `result` ve `json` null kalmalıdır. Başlangıç snapshot'ı değişmediyse aynı kayıt `fresh` kalır.
+
+Testteki 5000 mm levha, sıfır kerf ve `none` damar girdileri yalnızca deterministik fixture değerleridir; atölye/üretici standardı veya fiziksel kesim onayı değildir. Kesit geometrisi (`panelGeometry`) için mevcut nesting/export blocker'ı kaldırılmaz.

@@ -1301,15 +1301,22 @@ DOM-032 doğrulaması: [commit fe720ce](https://github.com/Taylan789/MobilyaCAD/
 
 **Sınırlar:** grup override'ları yalnızca sabit kimlikli ana gövde gruplarına uygulanır. Gardırop/TV ünitesi özel rafları ve dikey bölücüleri kendi açık spec materialId/kalınlık girdilerini kullanır; bu alanlardan varsayılan veya grup override'ı türetilmez. Banyo dolabı kesitli üst paneli JSON/CSV adapter'ı panelGeometry alanını kayıpsız taşıyana kadar export dışı kalır. CNC ve fiziksel üretim onayı değildir.
 
-### DOM-037 sonrası sıradaki 5 küçük görev
-1. DOM-038 — gövde panel materialId/kalınlık değişiminin kayıtlı proje kesim planı freshness kontrolünde stale sonucu verdiğini aile matrisiyle doğrula.
-2. DOM-039 — teklif/maliyet hesaplarında aynı malzeme adı fakat farklı materialId veya kalınlıktaki override gruplarının ayrı fiyat satırlarına bağlandığını test et; eksik fiyatlarda toplam üretme.
-3. DOM-040 — gardırop ve TV ünitesi özel raf/bölücü Part snapshot'larının açık materialId, thickness, quantity ve yerleşim alanlarını round-trip boyunca korumasını genişlet.
-4. INT-001/INT-002 — açık frontend/adapter entegrasyon PR'larını yalnızca kendi sahipliklerinde izlemeyi sürdür; domain dalı frontend veya adapter dosyalarına dokunmaz.
+### DOM-038 sonrası sıradaki 5 küçük görev
+1. DOM-039 — teklif/maliyet hesaplarında aynı malzeme adı fakat farklı materialId veya kalınlıktaki gövde override gruplarının ayrı fiyat satırlarına bağlandığını doğrula; eksik fiyatlarda toplam üretme.
+2. DOM-040 — gardırop ve TV ünitesi özel raf/bölücü Part snapshot'larının açık materialId, thickness, quantity ve yerleşim alanlarını round-trip boyunca korumasını genişlet.
+3. DOM-041 — kayıtlı teklif revizyonunun dayandığı üretim Part/malzeme snapshot'ı değiştiğinde teklifin eski maliyetle güncelmiş gibi gösterilmesini engelle.
+4. INT-001/INT-002 — açık frontend/adapter entegrasyon PR'larını yalnızca kendi sahipliklerinde izle; domain dalı frontend veya adapter dosyalarına dokunmaz.
 5. Hole-aware nesting, kesit geometri ve CNC/postprocessor desteği için geometri/kerf/üretici standardı doğrulanana kadar mevcut export blocker'larını koru.
-
 
 **QA düzeltme kaydı:** İlk doğrulamada CI #44371472424 başarılı, QA #44371472416 başarısız (384/385 domain testi). Yeni testin aile raporu blocked çıktısı ayrıştırılacak; açıkça kaldırılan legacy override alanlarının helper tarafından tekrar eklenmesi önlenecek. DOM-037, yeni Actions doğrulaması yeşil olmadan tamamlanmış sayılmayacak.
 
 
 **DOM-037 kapanış:** `dev/github-work` commit `3c2180a8b7743a75bb18c59d63ae7dd5c4c93748`; CI/QA/Pages doğrulamaları yukarıdaki run'larla başarılı. DOM-038 bir sonraki READY domain dilimidir.
+
+
+### DOM-038 — gövde panel override değişiminde kesim planı freshness (Actions bekleniyor)
+
+- Beş ailede (cabinet, bookshelf, wardrobe, tv-unit, bathroom-vanity) gerçek üretim agregatörüyle kesim planı JSON v2 oluşturulur; üst panel Part ID'leri ve kullanıcı seçim kapsamı sabit tutulur.
+- materialId değişimi ve katalogda geçerli yeni mm kalınlığına geçiş ayrı regresyon senaryolarıyla test edilir. Her iki değişiklikte tam proje snapshot karşılaştırması `stale` döndürmeli ve kısmi JSON vermemelidir.
+- Test dosyası: `domain/production/bodyPanelMaterialsFreshness.test.mjs`.
+- Kesitli panel blocker'ı ve makine standardı sınırları aynen korunur. Bu kayıt, GitHub Actions sonucu gelene kadar VERIFYING durumundadır.
