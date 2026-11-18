@@ -1113,3 +1113,15 @@
 - AI Developer [#44221779571](https://github.com/Taylan789/MobilyaCAD/actions/runs/44221779571) eski a22c771 checkout SHA'sında OpenRouter free-models-per-day 429 (limit 50, kalan 0) nedeniyle başarısız. Eski SHA rerun edilmedi; güncel SHA dispatch aracı bulunmadığından yeni run başlatılmadı; secrets/ayar değiştirilmedi.
 - INT-001 PR #61 frontend sahibinin alanında açık ve base'e göre 13 commit ahead / 7 behind; değişen dosyaları yalnızca frontend/**. Domain bu turda onun PR'ına müdahale etmedi, merge etmedi. Adapter/performance agent'ın INT-002/PERF-001 dosya sahipliği korundu.
 - Sonraki görev: DOM-028 — çoklu grup kesim planları için sürümlü, makine bağımsız JSON zarfı ve strict round-trip.
+
+
+## 18 Kasım 2026 12:30 TRT — DOM-028 çoklu grup kesim planı JSON zarfı (Actions bekleniyor)
+
+- Başlangıç HEAD: `2f66c56ffe2e1e0158ae1968315672b3cb68561c`. Bu teslimatın kod/test/dokümantasyon commit SHA'sı commit oluşturulduktan sonra Actions doğrulamasıyla birlikte kaydedilecek.
+- Yeni domain API: `serializeProjectSheetCutPlanJson` ve `parseProjectSheetCutPlanJson`. Yeni `MobilyaCADProjectSheetCutPlan` formatVersion 1 zarfı; proje Part sırası, materialId/normalize kalınlık groupId, her grubun kaynak Part ID'leri ve tam doğrulanmış tek-grup kesim planını taşır.
+- İç planlar mevcut tek-grup JSON serializer/parser'ından; proje kapsamı mevcut alan özeti doğrulayıcısından geçer. Eksik/çift grup, duplicate/missing/unknown Part ID, yanlış grup anahtarı, bozuk geometri/trim/kerf/levha indeksi veya blocked grup tüm dosyayı reddeder. Tek-grup JSON v1 değişmez.
+- Değişen dosyalar: `domain/production/projectSheetCutPlanFile.ts` (yeni), `domain/production/projectSheetCutPlanFile.test.mjs` (yeni), `.github/workflows/qa-test.yml`, `docs/production-domain-contract.md`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`.
+- Otomatik kontroller: domain testleri ve strict shared-domain TypeScript listesine yeni modül eklendi; commit sonrası CI/QA/Pages sonuçları bekleniyor. Gerçek Actions sonucu görülmeden başarılı ilan edilmeyecek.
+- Bilinen sınırlar: bu zarf makine bağımsızdır; CNC, kesim sırası/testere yolu, fire/yield veya fiziksel üretim onayı üretmez. Frontend ve adapter/performance ajanı dosyalarına dokunulmadı.
+- AI Developer #44221779571 logları incelendi: iki job OpenRouter free-models-per-day 429 (limit 50, kalan 0) nedeniyle başarısız. Günlük kota/ücretli kredi/secrets ayarına müdahale edilmedi; rerun aynı kotayı tüketip aynı hatayı üreteceğinden yapılmadı.
+- Sonraki görev: DOM-029 — doğrulanmış batch grupları ve layout raporlarını atomik proje kesim planı raporuna bağla; tüm gruplar ready değilse kısmi plan üretme.

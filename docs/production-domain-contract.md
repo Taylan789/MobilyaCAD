@@ -663,3 +663,16 @@ Kaynak: domain/production/projectSheetCutPlanAreaSummary.ts; API: calculateProje
 - Proje geometrik doluluk yüzdesi toplam yerleşen dikdörtgen parça alanının toplam net kullanılabilir levha alanına ağırlıklı oranıdır. Grup yüzdeleri ayrıca korunur. Bu değer fire/yield, malzeme verimi, kesim kaybı veya optimal nesting değildir.
 - Herhangi bir blocked/empty grup, eksik/çift Part ID, grup/plan uyuşmazlığı veya geçersiz alan toplamı tüm proje raporunu blocked ve result: null yapar; kısmi proje toplamı sunulmaz. Boş seçili proje listesi yalnızca boş grup listesiyle empty döner.
 - Frontend entegrasyonu her grup için kendi alan özetini ve yerel levha indekslerini göstermeli; proje toplamının farklı malzeme/kalınlık gruplarının ağırlıklı geometrik özeti olduğunu açıkça ayırmalıdır. Kalan alan fire/yield etiketiyle sunulmamalıdır.
+
+
+## DOM-028 — Çoklu grup kesim planı JSON zarfı v1
+
+Kaynak: `domain/production/projectSheetCutPlanFile.ts`. API'ler: `serializeProjectSheetCutPlanJson(report)` ve `parseProjectSheetCutPlanJson(json)`.
+
+- Zarf biçimi `format: "MobilyaCADProjectSheetCutPlan"`, `formatVersion: 1` ve `result` alanlarından oluşur. Result, proje kaynak sırasındaki `sourcePartIds` listesini ve `groups` listesini taşır.
+- Her grup `groupId`, katalog `materialId`, 0.1 mm'ye normalize edilmiş `thicknessMm`, kaynak `sourcePartIds` ve tek grup `SheetCutPlanResult` nesnesini `cutPlan` alanında taşır. Tek grup planı kendi `stockSheet`, `kerfMm`, opsiyonel dört kenar `edgeTrimMm`, `sourceParts`, levha indeksleri ve placement koordinatlarını korur.
+- Her iç plan mevcut `serializeSheetCutPlanJson` / `parseSheetCutPlanJson` üzerinden tam geometri doğrulamasından geçirilir. Proje kapsamı `calculateProjectSheetCutPlanAreaSummary` ile tekrar doğrulanır; her seçili Part ID tam bir kez bulunmalı, grup malzeme/kalınlık anahtarı ve kaynak sırası planla eşleşmelidir.
+- Parser kapalı zarf/grup şeması kullanır. Bilinmeyen alan, bozuk JSON, farklı format/sürüm, eksik/çift grup, duplicate/missing/unknown Part ID, yanlış groupId, blocked/empty iç grup veya bozuk placement/trim/kerf/levha indeksi tüm dosyayı blocked yapar; kısmi grup listesi dönmez.
+- Empty yalnızca `sourcePartIds: []` ve `groups: []` birlikte verildiğinde kabul edilir. Ready dosyada her grup tam doğrulanmış ready kesim planı taşımalıdır.
+- Mevcut `MobilyaCADSheetCutPlan` / formatVersion 1 tek grup JSON sözleşmesi değişmez. Yeni zarf makine bağımsız veri taşıma biçimidir; kesim sırası, testere yolu, CNC, postprocessor veya makine standardı üretmez.
+- Frontend entegrasyonu bu yeni proje zarfını ayrı dosya türü/iş akışı olarak tüketebilir; tek grup JSON v1 parser'ını değiştirmemeli ve tüm gruplar doğrulanmadan dışa aktarımı hazır göstermemelidir.

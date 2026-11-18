@@ -1081,9 +1081,28 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 
 **Sınırlar:** ağırlıklı geometrik doluluk fire/yield veya optimal nesting değildir. Her grup için doğrulanmış makine bağımsız kesim planı gerekir. JSON zarfı/adapter, CNC kesim sırası/yolu, makine postprocessor ve fiziksel üretim doğrulaması bu dilimde yoktur.
 
+
+
+## 18 Kasım 2026 12:30 TRT — DOM-028 çoklu grup kesim planı JSON zarfı
+
+**Kullanıcı akışı:** proje kesim planı birden fazla malzeme/kalınlık grubuna ayrıldığında, kullanıcı tek bir makine bağımsız proje JSON dosyası kaydedip daha sonra bütün grupları ve levha yerleşimlerini eksiksiz geri yükleyebilir.
+
+**Teslimat:** `serializeProjectSheetCutPlanJson` / `parseProjectSheetCutPlanJson` v1 zarfı; grup kimliği, malzeme/normalize kalınlık, kaynak Part ID sırası ve her grubun tek-grup kesim planını korur. Her iç plan mevcut geometri doğrulamasından, proje kapsamı ise mevcut proje alan özeti doğrulamasından geçer. Tek grup `MobilyaCADSheetCutPlan` v1 biçimi değişmez.
+
+**Kabul kriterleri:**
+- Proje kaynak Part ID'leri tüm gruplarda tam bir kez temsil edilir; sıra, grup kimliği ve her planın kendi 1 tabanlı levha indeksleri korunur.
+- Her grup planı placement, adet, mm koordinatı, dönüş, levha sınırı, kerf ve opsiyonel dört kenar trim doğrulamasından geçer.
+- Bozuk JSON/format/sürüm, bilinmeyen alan, eksik/çift grup, duplicate/missing/unknown Part ID veya grup-plan uyuşmazlığı tüm dosyayı blocked ve sonuçsuz yapar.
+- Empty yalnızca boş Part ve grup listeleriyle kabul edilir; blocked/empty grup ready proje zarfına dahil edilmez.
+- JSON round-trip normalize edilmiş sonucu birebir korur; mevcut tek grup JSON v1 sözleşmesi değişmez.
+
+**Sınırlar:** zarf makine bağımsızdır; kesim sırası, testere yolu, CNC/postprocessor, fire/yield, makine standardı veya fiziksel üretim onayı değildir. Frontend ve adapter/performance agent dosyaları değiştirilmez.
+
+**Değişen dosyalar:** `domain/production/projectSheetCutPlanFile.ts`, yeni domain testi, `.github/workflows/qa-test.yml`, `docs/production-domain-contract.md`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`. Actions doğrulaması bekleniyor.
+
 ### DOM-028 sonrası sıradaki 3-5 küçük görev
-1. DOM-028: çoklu grup kesim planları için sürümlü, makine bağımsız JSON zarfı ve strict round-trip; grup kimliği, levha indeksleri, trim/kerf ve kaynak Part ID'lerini koru.
-2. INT-001 / PR #61: frontend sahibinin domain raporu ve adapter entegrasyonunu güncel base/Actions kanıtıyla tamamlamasını bekle; PR'ı sahiplenme veya merge etme.
-3. INT-002 / QA-003: entegrasyon-performans ajanının ayrı adapter PR'ındaki JSON/CSV round-trip kanıtını salt okunur doğrula; test sahipliğine dokunma.
-4. UI sözleşmesi: proje özeti ready/empty/blocked durumları, grup kimliği ve levha bazlı metrikleri frontend domain raporu sözleşmesine aktar; frontend dosyalarına dokunma.
+1. DOM-029: doğrulanmış `ProjectSheetNestingBatchesResult` + her grup için layout raporundan atomik proje kesim planı raporu oluştur; eksik/çift/blocked grup tüm sonucu engellesin.
+2. INT-001 / PR #61: frontend sahibinin domain raporu ve adapter entegrasyonunu güncel base/Actions kanıtıyla tamamlamasını bekle; bu ajan frontend PR'ını sahiplenmez veya merge etmez.
+3. INT-002 / QA-003: entegrasyon/performance ajanının ayrı adapter PR'ındaki JSON/CSV round-trip ve geometri/adet sadakatini salt okunur doğrula; adapter/test dosya sahipliğine dokunma.
+4. UI sözleşmesi: proje zarfı ready/empty/blocked durumları, groupId, sourcePartIds ve yerel levha indekslerini frontend sahibine açık sözleşme olarak aktar; frontend dosyalarına dokunma.
 5. CNC/postprocessor: gerçek makine/üretici standardı ve fiziksel güvenlik gereksinimleri doğrulanmadan kod üretme.
