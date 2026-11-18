@@ -1314,9 +1314,9 @@ DOM-032 doğrulaması: [commit fe720ce](https://github.com/Taylan789/MobilyaCAD/
 **DOM-037 kapanış:** `dev/github-work` commit `3c2180a8b7743a75bb18c59d63ae7dd5c4c93748`; CI/QA/Pages doğrulamaları yukarıdaki run'larla başarılı. DOM-038 bir sonraki READY domain dilimidir.
 
 
-### DOM-038 — gövde panel override değişiminde kesim planı freshness (Actions bekleniyor)
+### DOM-038 — gövde panel override değişiminde kesim planı freshness (fixture düzeltmesi; Actions bekleniyor)
 
 - Beş ailede (cabinet, bookshelf, wardrobe, tv-unit, bathroom-vanity) gerçek üretim agregatörüyle kesim planı JSON v2 oluşturulur; üst panel Part ID'leri ve kullanıcı seçim kapsamı sabit tutulur.
 - materialId değişimi ve katalogda geçerli yeni mm kalınlığına geçiş ayrı regresyon senaryolarıyla test edilir. Her iki değişiklikte tam proje snapshot karşılaştırması `stale` döndürmeli ve kısmi JSON vermemelidir.
 - Test dosyası: `domain/production/bodyPanelMaterialsFreshness.test.mjs`.
-- Kesitli panel blocker'ı ve makine standardı sınırları aynen korunur. Bu kayıt, GitHub Actions sonucu gelene kadar VERIFYING durumundadır.
+- Kesitli banyo üst paneli dikdörtgen nesting seçimine alınmaz, fakat tam proje snapshot'ında kalır. İlk QA denemesi 385/387 ile başarısız oldu: banyo dolabı fixture'ında zorunlu açık geçiş geometrisi eksikti. Fixture düzeltildi; üretim kodu ve panelGeometry blocker'ı değiştirilmedi. Yeni Actions sonucu bekleniyor.

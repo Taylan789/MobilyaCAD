@@ -50,9 +50,39 @@ function createFamilyRequest(item, materialId, thicknessMm) {
 }
 
 function createReport(materialId, thicknessMm) {
+  const templateReport = calculateCabinetProjectProductionWithDiagnostics({
+    schemaVersion: 1,
+    furniture: [createFamilyRequest(
+      { id: "vanity-geometry-template", family: "cabinet", shelfCount: 0 },
+      materialId,
+      thicknessMm
+    )]
+  });
+  assert.equal(templateReport.status, "ready", JSON.stringify(templateReport.blockedFurniture));
+  const templateTop = templateReport.result.parts.find(part => part.id === "vanity-geometry-template-top");
+  assert.ok(templateTop);
+
   const report = calculateCabinetProjectProductionWithDiagnostics({
     schemaVersion: 1,
-    furniture: families.map(item => createFamilyRequest(item, materialId, thicknessMm))
+    furniture: families.map(item => createFamilyRequest(item, materialId, thicknessMm)),
+    panelCutouts: [{
+      partId: "vanity-freshness-top",
+      geometry: {
+        schemaVersion: 1,
+        widthMm: templateTop.width,
+        lengthMm: templateTop.length,
+        thicknessMm: templateTop.thickness,
+        outerEdgeBanding: templateTop.edgeBanding,
+        cutouts: [{
+          id: "basin-opening",
+          xMm: 100,
+          yMm: 100,
+          widthMm: 200,
+          lengthMm: 150,
+          edgeBanding: { ...noBanding }
+        }]
+      }
+    }]
   });
   assert.equal(report.status, "ready", JSON.stringify({
     blockedFurniture: report.blockedFurniture,
@@ -64,11 +94,13 @@ function createReport(materialId, thicknessMm) {
 }
 
 function selectedTopPartIds(report) {
-  const ids = report.result.parts
-    .filter(part => part.id.endsWith("-top"))
-    .map(part => part.id);
-  assert.equal(ids.length, families.length, "beş ailenin üst paneli bulunmalı");
-  return ids;
+  const allTopParts = report.result.parts.filter(part => part.id.endsWith("-top"));
+  assert.equal(allTopParts.length, families.length, "beş ailenin üst paneli bulunmalı");
+  const vanityTop = allTopParts.find(part => part.id === "vanity-freshness-top");
+  assert.ok(vanityTop?.panelGeometry, "banyo dolabı açıklıklı üst paneli tam snapshot'ta kalmalı");
+  const rectangularTopParts = allTopParts.filter(part => part.panelGeometry === undefined);
+  assert.equal(rectangularTopParts.length, families.length - 1);
+  return rectangularTopParts.map(part => part.id);
 }
 
 function buildSavedPlan(report, selectedPartIds, materialId, thicknessMm) {
@@ -118,7 +150,7 @@ function assertStaleWithoutPartialExport(result) {
   assert.equal(result.result, null);
   assert.equal(result.json, null);
   assert.ok(result.diagnostics.length > 0);
-  assert.ok(result.diagnostics.some(message => /top.*üretim Part snapshot'ı değişmiş/.test(message)));
+  assert.ok(result.diagnostics.some(message => /-top üretim Part snapshot'ı değişmiş/.test(message)));
 }
 
 test("beş ailede gövde panel materialId değişimi kayıtlı kesim planını stale yapar", () => {
