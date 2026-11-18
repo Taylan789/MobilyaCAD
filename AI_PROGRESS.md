@@ -1126,3 +1126,14 @@
 - INT-001 PR [#61](https://github.com/Taylan789/MobilyaCAD/pull/61) hâlâ frontend/** kapsamlı, açık ve 13 ahead / 7 behind; PR açıklaması eski base snapshot'ı ve rebase/sync gereksinimini belirtiyor. Bu ajan PR'ı değiştirmedi veya merge etmedi. INT-002/PERF-001 dosya sahipliği korunuyor.
 - Bilinen sınırlar: makine bağımsız JSON dosyasıdır; kesim sırası/testere yolu, fire/yield, CNC/postprocessor, makine standardı veya fiziksel üretim onayı üretmez. Atölye doğrulaması gerekir.
 - Sonraki görev: DOM-029 — doğrulanmış batch grupları ve layout raporlarını atomik proje kesim planı raporuna bağla; eksik/çift/blocked grup tüm sonucu engellesin.
+
+## 18 Kasım 2026 13:30 TRT — DOM-029 atomik proje kesim planı (Actions bekleniyor)
+
+- Başlangıç HEAD: 11e2454d41015869a1a6ba4587588e2ff91832e6.
+- Commit SHA: bu kayıt ilk kod commit'ine eklendi; tam SHA ve Actions bağlantıları doğrulama tamamlandığında bu kayda eklenecek.
+- Geliştirme: createProjectSheetCutPlan, createProjectSheetNestingBatches çıktısını groupId ile layout raporlarına bağlar. Layout giriş sırası değişse bile çıktı batch grup sırasını ve kaynak Part ID sırasını korur; her grup createSheetCutPlan ile yeniden doğrulanır; proje JSON v1 serialize/parse round-trip uygulanır.
+- Atomiklik: eksik/çift/fazla/blocked layout, yanlış groupId, batch parça/levha malzeme-kalınlık uyuşmazlığı, duplicate/missing source ID veya excluded/selected ID çakışması tüm sonucu blocked + result:null + json:null yapar.
+- Değişen dosyalar: domain/production/projectSheetCutPlan.ts (yeni), domain/production/projectSheetCutPlan.test.mjs (yeni), .github/workflows/qa-test.yml, docs/production-domain-contract.md, AI_COORDINATION.md, PRODUCT_ROADMAP.md, AI_PROGRESS.md.
+- Otomatik kontroller: commit sonrası CI, QA ve Pages sonuçları bekleniyor; henüz başarılı ilan edilmedi.
+- Bilinen sınırlar: deterministic shelf heuristic optimal nesting değildir; fire/yield, CNC, kesim sırası/yolu ve makine standardı üretmez. Fiziksel üretim öncesi atölye doğrulaması gerekir.
+- Sonraki görev: DOM-030 — kaydedilmiş proje kesim planını güncel üretim Part snapshot'ına karşı doğrula; stale planı export edilebilir göstermeden engelle.

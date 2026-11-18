@@ -676,3 +676,18 @@ Kaynak: `domain/production/projectSheetCutPlanFile.ts`. API'ler: `serializeProje
 - Empty yalnızca `sourcePartIds: []` ve `groups: []` birlikte verildiğinde kabul edilir. Ready dosyada her grup tam doğrulanmış ready kesim planı taşımalıdır.
 - Mevcut `MobilyaCADSheetCutPlan` / formatVersion 1 tek grup JSON sözleşmesi değişmez. Yeni zarf makine bağımsız veri taşıma biçimidir; kesim sırası, testere yolu, CNC, postprocessor veya makine standardı üretmez.
 - Frontend entegrasyonu bu yeni proje zarfını ayrı dosya türü/iş akışı olarak tüketebilir; tek grup JSON v1 parser'ını değiştirmemeli ve tüm gruplar doğrulanmadan dışa aktarımı hazır göstermemelidir.
+
+
+## DOM-029 — Proje nesting batch ve layout raporlarının atomik kesim planına bağlanması
+
+Kaynak: domain/production/projectSheetCutPlan.ts
+
+API: createProjectSheetCutPlan({ schemaVersion: 1, batchReport, layoutReports }).
+
+- batchReport, createProjectSheetNestingBatches çıktısıdır. Her layout eşlemesi groupId ve layoutReport taşır; layout eşlemeleri farklı sırada gelse bile çıktı grupları batch raporunun proje kaynak sırasını izler.
+- groupId, katalog materialId ve normalize 0.1 mm kalınlıktan JSON anahtarı olarak türetilir. Her grubun kaynak Part ID listesi, batch parça listesi, levha malzemesi ve kalınlığı ile tekrar karşılaştırılır.
+- Her layout, createSheetCutPlan üzerinden yeniden doğrulanır. Yerleşim koordinatı, dönüş, levha/trim sınırı, kerf aralığı ve quantity tamlığı mevcut tek-grup motorunun kurallarıyla korunur.
+- Proje kaynak Part ID'leri gruplarda tam bir kez bulunmalıdır. Eksik, yinelenen, fazla veya yanlış gruba ait layout; blocked batch/layout; kaynak kimliği, grup sırası, malzeme ya da kalınlık uyuşmazlığı tüm sonucu blocked yapar. Blocked sonuç result:null ve json:null taşır; kısmi grup listesi üretilmez.
+- Ready sonuç, mevcut MobilyaCADProjectSheetCutPlan formatVersion 1 serializer/parser'ından geçirilir. Grup sırası, kaynak kimlikleri, her grubun yerel 1 tabanlı levha indeksleri ve opsiyonel trim/kerf round-trip içinde korunur. Seçim dışında kalan excludedPartIds rapor metadata'sında tutulur; JSON dosyasına seçilmemiş parça eklenmez.
+- Bu rapor makine bağımsız dikdörtgen yerleşimidir. Kesim sırası/testere yolu, fire/yield, CNC/postprocessor, makine standardı veya fiziksel üretim onayı üretmez; atölye doğrulaması gerekir.
+- Frontend entegrasyon sözleşmesi: status, result, json, sourcePartIds, excludedPartIds ve diagnostics alanları; ready/blocked durumları atomik tüketilmelidir. Frontend dosyaları bu teslimatta değiştirilmemiştir.
