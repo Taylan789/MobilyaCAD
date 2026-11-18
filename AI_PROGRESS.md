@@ -1306,3 +1306,16 @@
 - AI Developer/QA kontrolü: AI Developer run [#44374039856](https://github.com/Taylan789/MobilyaCAD/actions/runs/44374039856) ve entegrasyon/performance job'ı tamamlandı/başarısız. Her iki log da OpenRouter `free-models-per-day` 429, `x-ratelimit-remaining: 0`, reset epoch `1795046400000` gösteriyor. Başarısız run'ı rerun etmek aynı günlük kotayı tüketmeyeceği için anlamlı değil; workflow dispatch aracı mevcut değil, yeni run başlatılmadı. Başka ajan branch'lerine/PR'larına dokunulmadı.
 - Bilinen sınırlar: fiyatlar kullanıcı/atölye girdisidir; vergi, kur, fire yüzdesi, levha verimi, stok, CNC veya fiziksel üretim doğrulaması yoktur. `main` dalına dokunulmadı.
 - Sonraki görev: DOM-039'u yalnızca gerçek CI/QA sonuçları görüldükten sonra DONE yap. Sonraki domain dilimi DOM-040: gardırop/TV özel raf ve bölücü Part snapshot alanlarını (materialId, gerçek kalınlık, quantity, yerleşim) JSON round-trip boyunca genişlet.
+
+
+## 19 Kasım 2026 00:05 TRT — DOM-040 özel raf/bölücü snapshot round-trip (Actions doğrulandı)
+
+- Başlangıç HEAD: `e1661778569b82101471c8b7756149ebfc189bdf`; test ve sözleşme commit'i: [9a65b499029c5ea1d6250cf7ccb76fc99d2be746](https://github.com/Taylan789/MobilyaCAD/commit/9a65b499029c5ea1d6250cf7ccb76fc99d2be746).
+- Değişen dosyalar: `domain/production/projectSpecialPartSnapshot.test.mjs`, `docs/production-domain-contract.md`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`. Frontend, adapter, production runtime, workflow YAML, package/lockfile ve secrets değiştirilmedi.
+- Test gerçek `calculateCabinetProjectProductionWithDiagnostics` agregatörünü gardırop ve TV ünitesiyle çalıştırır; iki özel rafı nesting'e seçer, iki özel dikey bölücüyü hariç tutar ve tüm dört Part kaydının `materialId`, `thickness`, `quantity`, `edgeBanding`, `grainDirection` ve aileye özgü yerleşim alanlarını proje kesim planı JSON v2 serializer/parser round-trip sonrasında karşılaştırır.
+- CI [#44398433365](https://github.com/Taylan789/MobilyaCAD/actions/runs/44398433365): başarılı (frontend build/lint).
+- QA [#44398433080](https://github.com/Taylan789/MobilyaCAD/actions/runs/44398433080): başarılı; frontend **124/124**, domain **392/392**, shared-domain strict TypeScript, lint, frontend TypeScript/build ve production dependency audit başarılı; **0 vulnerability**.
+- Pages deploy [#44398433257](https://github.com/Taylan789/MobilyaCAD/actions/runs/44398433257): başarılı.
+- Bilinen sınırlar: generic canonical snapshot mevcut tüm JSON alanlarını saklıyor; bu teslimat runtime kodu değiştirmedi, aileye özgü alan sadakatini gerçek üretim agregatörüyle otomatik test altına aldı. Snapshot kriptografik imza değildir; nesting testi CNC/makine standardı veya fiziksel üretim onayı sağlamaz.
+- AI Developer/Entegrasyon-Performans run [#44374039856](https://github.com/Taylan789/MobilyaCAD/actions/runs/44374039856) OpenRouter `free-models-per-day` 429 nedeniyle başarısız; reset 19 Kasım 2026 03:00 TRT. Kota resetlenmeden rerun yapılmadı; secrets, kredi veya servis ayarı değiştirilmedi.
+- Sonraki görev: DOM-041 — özel raf/bölücü Part satırlarını malzeme tüketimi ve kalınlık duyarlı teklif özetine gerçek aile agregatörü üzerinden bağlayarak doğrula.
