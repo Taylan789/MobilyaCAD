@@ -1280,7 +1280,7 @@ DOM-032 doğrulaması: [commit fe720ce](https://github.com/Taylan789/MobilyaCAD/
 
 **Actions doğrulaması — tamamlandı:** [commit 64c11776](https://github.com/Taylan789/MobilyaCAD/commit/64c1177651d9137bb4e17e4076ad2fef1320602e); [CI #44345824527](https://github.com/Taylan789/MobilyaCAD/actions/runs/44345824527), [QA #44345823923](https://github.com/Taylan789/MobilyaCAD/actions/runs/44345823923) ve [Pages #44345823859](https://github.com/Taylan789/MobilyaCAD/actions/runs/44345823859) başarılı. QA: 102/102 frontend + 382/382 domain testi; strict shared-domain TypeScript, lint (32 uyarı / 0 hata), production build ve production dependency audit (0 bulgu).
 
-## DOM-037 — Gövde panel malzeme override aile matrisi (Actions bekleniyor)
+## DOM-037 — Gövde panel malzeme override aile matrisi (Tamamlandı)
 
 **Kullanıcı akışı:** kullanıcı aynı panel malzeme kataloğunu ve grup bazlı override girdilerini dolap, kitaplık, gardırop, TV ünitesi ve banyo dolabı gövdesinde kullanır. Hesaplanan Part listesi, malzeme tüketimi ve proje kesim planı snapshot'ı aynı katalog kimliği, gerçek mm kalınlığı ve quantity değerini korur.
 
@@ -1297,7 +1297,7 @@ DOM-032 doğrulaması: [commit fe720ce](https://github.com/Taylan789/MobilyaCAD/
 
 **Değişen dosyalar:** `domain/production/bodyPanelMaterialsFamilies.test.mjs`, `docs/production-domain-contract.md`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`.
 
-**Doğrulama:** yeni commit için CI/QA Actions sonuçları bekleniyor; gerçek run görülmeden başarılı sayılmayacak.
+**Doğrulama:** [CI #44371780553](https://github.com/Taylan789/MobilyaCAD/actions/runs/44371780553) ve [QA #44371780460](https://github.com/Taylan789/MobilyaCAD/actions/runs/44371780460) başarılı. QA: 124/124 frontend ve 385/385 domain testi; shared-domain strict type-check, lint, TypeScript/build ve production dependency audit başarılı. [Pages #44371780762](https://github.com/Taylan789/MobilyaCAD/actions/runs/44371780762) deploy başarılı. İlk QA denemesinde fixture helper'ın açık undefined alanlara varsayılan eklemesi 1 test hatasına neden oldu; 3c2180a commitinde düzeltildi ve tam QA tekrar yeşil oldu.
 
 **Sınırlar:** grup override'ları yalnızca sabit kimlikli ana gövde gruplarına uygulanır. Gardırop/TV ünitesi özel rafları ve dikey bölücüleri kendi açık spec materialId/kalınlık girdilerini kullanır; bu alanlardan varsayılan veya grup override'ı türetilmez. Banyo dolabı kesitli üst paneli JSON/CSV adapter'ı panelGeometry alanını kayıpsız taşıyana kadar export dışı kalır. CNC ve fiziksel üretim onayı değildir.
 
@@ -1310,3 +1310,6 @@ DOM-032 doğrulaması: [commit fe720ce](https://github.com/Taylan789/MobilyaCAD/
 
 
 **QA düzeltme kaydı:** İlk doğrulamada CI #44371472424 başarılı, QA #44371472416 başarısız (384/385 domain testi). Yeni testin aile raporu blocked çıktısı ayrıştırılacak; açıkça kaldırılan legacy override alanlarının helper tarafından tekrar eklenmesi önlenecek. DOM-037, yeni Actions doğrulaması yeşil olmadan tamamlanmış sayılmayacak.
+
+
+**DOM-037 kapanış:** `dev/github-work` commit `3c2180a8b7743a75bb18c59d63ae7dd5c4c93748`; CI/QA/Pages doğrulamaları yukarıdaki run'larla başarılı. DOM-038 bir sonraki READY domain dilimidir.

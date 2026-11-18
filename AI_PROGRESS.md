@@ -1255,3 +1255,16 @@
 - QA [#44371472416](https://github.com/Taylan789/MobilyaCAD/actions/runs/44371472416): **başarısız**; shared domain testleri 384/385. Tek başarısızlık yeni aile matrisi testinde `report.status` değerinin `blocked` gelmesi. Mevcut üretim kodunda hata kanıtlanmadı; test fixture/rapor tanısı ayrıştırılıyor.
 - Bu düzeltme, opsiyonel helper alanında açıkça `undefined` verilmesini gerçek alan yokluğu olarak korur ve başarısız proje tanılarını assertion çıktısına ekler.
 - DOM-037 henüz DONE değil; yeni CI/QA sonucu bekleniyor. Bilinen üretim sınırları ve frontend sahiplik ayrımı korunuyor.
+
+
+## DOM-037 — Nihai doğrulama ve kapanış (18 Kasım 2026 21:30 TRT)
+
+- Başlangıç HEAD: `f5f39271170aafe9fe46e5f9282827e2b99ff80f`.
+- İlk test commit'i: `b06898657c1f853ac8c37af3f84b7eb9ec9a8aec`; CI başarılı, ilk QA `384/385` domain testi nedeniyle başarısız oldu. Log, test helper'ın açık `undefined` opsiyonel alanlara destructuring default'u uyguladığını gösterdi; üretim kodunda regresyon kanıtlanmadı.
+- Düzeltme/teslim commit'i: `3c2180a8b7743a75bb18c59d63ae7dd5c4c93748`.
+- Değişen dosyalar: `domain/production/bodyPanelMaterialsFamilies.test.mjs`, `docs/production-domain-contract.md`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`.
+- CI [#44371780553](https://github.com/Taylan789/MobilyaCAD/actions/runs/44371780553): **başarılı**; frontend TypeScript/production build ve lint yeşil.
+- QA [#44371780460](https://github.com/Taylan789/MobilyaCAD/actions/runs/44371780460): **başarılı**; frontend **124/124**, domain **385/385**, strict shared-domain type-check, lint, TypeScript/build ve production dependency audit başarılı.
+- Pages deploy [#44371780762](https://github.com/Taylan789/MobilyaCAD/actions/runs/44371780762): **başarılı**.
+- AI Developer [#44282900800](https://github.com/Taylan789/MobilyaCAD/actions/runs/44282900800): OpenRouter `free-models-per-day` 429 kotası; tekrar deneme günlük kotayı değiştirmeyeceğinden güvenli değil. Secrets, kredi veya servis ayarı değiştirilmedi.
+- DOM-037 DONE. Sonraki görev: DOM-038 — body-panel materialId/thickness değişiminin kayıtlı sheet cut-plan freshness kontrolünde stale tespit edilmesini aile matrisiyle test et.
