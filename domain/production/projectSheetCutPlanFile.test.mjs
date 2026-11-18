@@ -213,7 +213,7 @@ test("nested plan geometri/şema bozulması veya kaynak Part eşleşmezliği red
 
   assertBlocked(report({
     schemaVersion: 1,
-    sourcePartIds: ["part-a"],
+    sourcePartIds: ["part-a", "different-part"],
     groups: [group(plan, { sourcePartIds: ["different-part"] })]
   }), /kaynak Part ID listesi/);
 });
