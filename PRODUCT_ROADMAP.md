@@ -1046,27 +1046,24 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 **Doğrulama:** İlk QA #44253336502 yalnızca 0.05 mm test tanısı beklentisi nedeniyle başarısız oldu; kapsam korunarak 48f6be6d ile düzeltildi. Son kod SHA için CI #44253469719, QA #44253469656 ve Pages #44253469658 başarılı. QA 102/102 frontend + 329/329 domain testi, strict shared-domain TypeScript, lint, production build ve production dependency audit 0 bulgu.
 
 
-## 18 Kasım 2026 10:36 TRT — DOM-026 geometrik levha alanı ve doluluk özeti
+## 18 Kasım 2026 10:36 TRT — DOM-026 geometrik levha alanı ve doluluk özeti (Actions doğrulandı)
 
 **Kullanıcı akışı:** kullanıcı tarafından tanımlanan levha ölçüsü ve dört kenar trim payı ile doğrulanmış kesim planı; brüt levha alanı, net kullanılabilir alan ve yerleşen gerçek dikdörtgen parça alanını hem levha hem toplam düzeyinde raporlar.
 
-**Kabul kriterleri:**
-- Her kullanılan levha için brüt alan, trim ile ayrılan alan, net kullanılabilir alan, yerleşen net parça alanı ve kullanılmayan geometrik alan ayrı raporlanır; proje toplamları per-sheet değerlerle aynı aritmetiği kullanır.
-- Kaynak plan alan hesabından önce tekrar doğrulanır; değiştirilmiş geometri, ölçü, adet, trim veya blocked upstream raporu kısmi sonuç vermez.
-- 0.1 mm ölçü tick'leri BigInt ile çarpılıp toplanır; alan çözünürlüğü 0.01 mm², güvenli sayı aralığı aşımı blocked olur.
-- Geometrik doluluk yüzdesi yalnızca yerleşen net parça alanı / net kullanılabilir levha alanıdır ve iki ondalığa yuvarlanır. Empty planda yüzdelik null, alan toplamları sıfırdır.
-- Kullanılmayan geometrik alan kerf aralıkları/offcut/boş bölgeleri içerebilir; fire, yield, kesim kaybı veya CNC verisi olarak adlandırılmaz.
+**Kabul kriterleri:** 0.1 mm integer tick'lerden 0.01 mm² BigInt alan hesabı; kaynak planı yeniden doğrulama; per-sheet ve toplam rapor; empty/blocked/overflow durumları; geometrik doluluk yüzdesinin iki ondalık basamağa yuvarlanması.
 
-**Sınırlar:** Bu rapor deterministik shelf yerleşiminin geometrik alan muhasebesidir; optimal nesting veya malzeme verimi tahmini değildir. Kesim sırası/yolu, makine standardı, CNC/postprocessor ve fiziksel üretim onayı yoktur.
+**Teslimat:** `calculateSheetCutPlanAreaSummary` eklendi. Brüt levha, trim ile ayrılan, net kullanılabilir, yerleşen net dikdörtgen parça ve kullanılmayan geometrik alan ayrı sunulur. Kullanılmayan alan kerf boşlukları ve offcut bölgelerini içerebilir; fire/yield değildir.
 
 **Değişen dosyalar:** `domain/production/sheetCutPlan.ts`, `domain/production/sheetCutPlan.test.mjs`, `docs/production-domain-contract.md`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`. Hiçbir `frontend/**` veya entegrasyon/performance agent dosyası değiştirilmedi.
 
-**İlk doğrulama durumu:** Kod ve regresyon testleri eklendi; bu commit sonrası CI/QA/Pages Actions sonuçları bekleniyor.
+**Doğrulama:** [commit c774515](https://github.com/Taylan789/MobilyaCAD/commit/c7745150810379fbd167f6754a9e9677f779df3e) için [CI #44260882283](https://github.com/Taylan789/MobilyaCAD/actions/runs/44260882283), [QA #44260882215](https://github.com/Taylan789/MobilyaCAD/actions/runs/44260882215) ve [Pages #44260882185](https://github.com/Taylan789/MobilyaCAD/actions/runs/44260882185) başarılı. QA: 102/102 frontend + 334/334 domain testi, 0 başarısız; shared-domain strict TypeScript, lint, production build ve production dependency audit 0 bulgu. Lint 32 uyarı / 0 hata; uyarılar frontend dosyalarında, bu turdaki değişiklik kapsamı dışında.
+
+**Sınırlar:** Bu rapor deterministik shelf yerleşiminin geometrik alan muhasebesidir; optimal nesting, fire/yield, kesim sırası/yolu, CNC veya makine standardı değildir. Fiziksel kesim öncesi atölye doğrulaması gerekir.
 
 ### DOM-026 sonrası sıradaki 3-5 küçük görev
 
-1. DOM-027: makine bağımsız kesim operasyonu/kesim sırası veri sözleşmesini tasarla; gerçek makine standardı olmadan takım yolu veya CNC kodu üretme.
+1. DOM-027: proje genelinde malzeme/kalınlık bazlı kesim planı alan özetlerini birleştir; grup kimliği ve ayrı levha toplamlarını koru, blocked batch'te kısmi rapor verme.
 2. INT-001 / PR #61: frontend sahibinin domain üretim raporu/JSON-CSV adapter entegrasyonunu güncel base ve Actions kanıtıyla tamamlamasını bekle; frontend PR'ını sahiplenme veya merge etme.
 3. INT-002 / QA-003: entegrasyon-performans ajanının izole PR'ındaki adapter round-trip kanıtını salt okunur doğrula; adapter/test sahipliğine dokunma.
-4. QA: yeni alan özeti sözleşmesinin UI entegrasyonunda ready/empty/blocked durumlarının kayıpsız tüketildiğini kontrol et.
+4. UI entegrasyonu: alan özeti ready/empty/blocked durumlarını mevcut frontend domain raporu sözleşmesiyle tüketmeli; sahte fire/yield etiketi üretmemeli.
 5. CNC/postprocessor: operatörün gerçek makine/üretici standardı ve fiziksel güvenlik gereksinimleri olmadan uygulama başlatma.
