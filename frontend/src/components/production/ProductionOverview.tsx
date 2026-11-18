@@ -4,9 +4,7 @@ import {
   CheckCircle2,
   ClipboardList,
   Crosshair,
-  Layers3,
   Package,
-  Ruler,
 } from "lucide-react";
 
 import { Button } from "../ui/button";
@@ -88,32 +86,24 @@ export function ProductionOverview({
         </div>
       </section>
 
-      <section className="mc-production__metrics" aria-label="Üretim ölçütleri">
-        <article className="mc-production__metric">
-          <span className="mc-production__metric-icon"><Layers3 /></span>
-          <span className="mc-production__metric-label">Parça satırı</span>
-          <strong>{formatNumber(production.parts.length, 0)}</strong>
-          <small>farklı parça kaydı</small>
-        </article>
-        <article className="mc-production__metric">
-          <span className="mc-production__metric-icon"><Package /></span>
-          <span className="mc-production__metric-label">Toplam adet</span>
-          <strong>{formatNumber(totalPieceCount, 0)}</strong>
-          <small>kesilecek parça</small>
-        </article>
-        <article className="mc-production__metric">
-          <span className="mc-production__metric-icon"><Ruler /></span>
-          <span className="mc-production__metric-label">Kenar bantlama</span>
-          <strong>{formatNumber(edgeBanding.totalLength, 1)}</strong>
-          <small>toplam mm</small>
-        </article>
-        <article className="mc-production__metric">
-          <span className="mc-production__metric-icon"><ClipboardList /></span>
-          <span className="mc-production__metric-label">Malzeme grubu</span>
-          <strong>{formatNumber(materialConsumption.length, 0)}</strong>
-          <small>malzeme / kalınlık</small>
-        </article>
-      </section>
+      <dl className="mc-production__register" aria-label="Üretim veri kaydı">
+        <div className="mc-production__register-item">
+          <dt>Parça satırı</dt>
+          <dd><strong>{formatNumber(production.parts.length, 0)}</strong><span>satır</span></dd>
+        </div>
+        <div className="mc-production__register-item">
+          <dt>Toplam adet</dt>
+          <dd><strong>{formatNumber(totalPieceCount, 0)}</strong><span>parça</span></dd>
+        </div>
+        <div className="mc-production__register-item">
+          <dt>Kenar bantlama</dt>
+          <dd><strong>{formatNumber(edgeBanding.totalLength, 1)}</strong><span>mm</span></dd>
+        </div>
+        <div className="mc-production__register-item">
+          <dt>Malzeme grubu</dt>
+          <dd><strong>{formatNumber(materialConsumption.length, 0)}</strong><span>grup</span></dd>
+        </div>
+      </dl>
 
       {production.exportBlockReason && (
         <section className="mc-production__notice mc-production__notice--danger" role="alert">
