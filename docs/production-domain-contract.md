@@ -720,3 +720,17 @@ Kaynaklar: `domain/production/projectPartSnapshot.ts`, `projectSheetNestingBatch
 - `validateProjectSheetCutPlanFreshness` v2 için güncel `currentSelectedPartIds` listesini proje sırasıyla zorunlu ister. Seçim kapsamı farklıysa `stale`; liste verilmezse `blocked`; tam proje snapshot'ında Part ekleme, silme, sıra veya herhangi bir Part alanı değişikliği varsa `stale` ve `result/json: null` döner.
 - Snapshot kriptografik imza değildir; canonical JSON eşitliğiyle veri değişimini tespit eder. Kaydedilmiş v1 planlar geriye uyumlu biçimde parse edilir ve eski seçili-Part freshness davranışını korur.
 - Bu model kesim sırası, testere yolu, fire/yield, CNC/postprocessor, makine standardı veya fiziksel üretim onayı üretmez; fiziksel kesim öncesi operatör/atölye doğrulaması gerekir.
+
+
+## DOM-032 — Freshness doğrulamalı proje kesim planı v2 export kapısı
+
+Kaynak: domain/production/projectSheetCutPlanExport.ts
+API: createFreshProjectSheetCutPlanExport({ schemaVersion: 1, freshness }).
+
+- Bu API, kaydedilmiş çoklu grup planını dışa aktarmak için tek domain kapısıdır. freshness girdisi zorunludur; doğrudan serializer çağrısı yeni UI export akışında ready kabul edilmemelidir.
+- Güncel productionReport yalnızca status ready, canExport true, result mevcut ve exportBlockers boş olduğunda freshness kontrolüne geçer. Boş/blocked rapor, adapter blocker veya eksik/bozuk blocker listesi export'u engeller.
+- Kayıtlı plan MobilyaCADProjectSheetCutPlan formatVersion 2 ve tam projectPartSnapshot taşımalıdır. Legacy v1 dosyaları parse edilebilir fakat bu yeni export kapısından geçmez.
+- v2 freshness için güncel currentSelectedPartIds proje sırasıyla zorunludur. Tam proje snapshot'ında seçili/hariç Part ekleme, silme, sıralama veya herhangi bir alan değişikliği; ayrıca kullanıcı seçim kapsamı değişikliği stale üretir. Eksik/bozuk girdiler blocked olur.
+- Yalnızca status ready ve freshnessStatus fresh sonucu result ve JSON verir. stale/blocked her durumda result null, json null döner; kısmi dışa aktarım yoktur.
+- Bu kapı plan koordinatlarını yeniden hesaplamaz. Snapshot canonical JSON eşitliğidir, kriptografik imza değildir. JSON CNC, kesim sırası/yolu, fire/yield veya makine standardı iddiası taşımaz.
+- Frontend entegrasyonu ready/json çıktısını indirebilir; blocked durumunda tanılar gösterilir ve JSON indirme kapalı kalır. Bu teslimat hiçbir frontend/** veya adapter dosyasını değiştirmez.

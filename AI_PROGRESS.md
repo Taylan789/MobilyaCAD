@@ -1176,3 +1176,13 @@
 - AI Developer [#44282900800](https://github.com/Taylan789/MobilyaCAD/actions/runs/44282900800) iki job'da OpenRouter free-models-per-day 429 (50/50, kalan 0) nedeniyle başarısız. Loglar incelendi; kota sıfırken rerun aynı hatayı tekrarlayacağından yapılmadı. Reset 19 Kasım 2026 03:00 TRT; secrets/ayar/ücretli kredi değiştirilmedi.
 - Bilinen sınırlar: snapshot kriptografik imza değildir; v1 planlar yalnızca seçili Part freshness davranışını korur; fiziksel CNC/atölye doğrulaması bu modelin kapsamı değildir.
 - Sonraki görev: DOM-032 — proje kesim planı dışa aktarımını freshness doğrulaması olmadan ready kabul etmeyen tek domain kapısı.
+
+
+## 18 Kasım 2026 16:08 TRT — DOM-032 uygulandı; Actions doğrulaması bekleniyor
+
+- Tek domain export kapısı: createFreshProjectSheetCutPlanExport, yalnızca canExport=true ve boş exportBlockers taşıyan güncel ready üretim raporunu kabul eder; kayıtlı JSON v2 planını tam proje Part snapshot'ı ve güncel currentSelectedPartIds ile freshness kontrolünden geçirir.
+- Freshness stale/blocked, eksik seçim girdisi, v1 zarfı veya export blocker durumunda result/json null kalır; kısmi JSON üretilmez. Legacy v1 parser davranışı değişmedi.
+- Değişen dosyalar: domain/production/projectSheetCutPlanExport.ts (yeni), domain/production/projectSheetCutPlanExport.test.mjs (yeni), .github/workflows/qa-test.yml, AI_COORDINATION.md, AI_PROGRESS.md, PRODUCT_ROADMAP.md, docs/production-domain-contract.md.
+- Commit SHA ve CI/QA/Pages sonuçları Actions tamamlandıktan sonra doğrulama kaydına eklenecek.
+- Bilinen sınırlar: JSON v2 snapshot canonical JSON karşılaştırmasıdır, kriptografik imza değildir. Makine bağımsız dikdörtgen plan; kesim sırası/yolu, fire/yield, CNC/postprocessor veya fiziksel üretim onayı değildir.
+- Sonraki adım: frontend sahibinin export kapısını INT-001 akışına bağlaması; domain tarafında kullanıcı/atölye standardı gerektirmeyen üretim veri doğruluğu görevlerini sürdürmek.
