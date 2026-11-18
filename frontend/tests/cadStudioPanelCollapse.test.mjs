@@ -50,6 +50,6 @@ test("panel disclosure controls identify their regions and make a collapsed insp
   assert.match(app, /aria-pressed=\{!inspectorCollapsed\} aria-expanded=\{!inspectorCollapsed\} aria-controls="cad-inspector"/);
   assert.match(
     app,
-    /<aside id="cad-inspector" className="cad-inspector" aria-hidden=\{inspectorCollapsed\} inert=\{inspectorCollapsed\}>/,
+    /<aside id="cad-inspector" className="cad-inspector" aria-hidden=\{mobileInspectorHidden\} inert=\{mobileInspectorHidden\}>/,
   );
 });
