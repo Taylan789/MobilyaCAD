@@ -989,3 +989,16 @@
 - Bilinen sınırlar: mevcut frontend JSON v1 serializer/parser ve tüm `frontend/**` dosyaları değişmedi. Bu adapter tam v2 proje şema doğrulaması, kalıcı yazma, atomik transaction, otomatik kayıt veya UI entegrasyonu sağlamaz. V2 kimliğini domain adapter üretmez.
 - Durum: DOM-018 domain testleri, strict TypeScript ve build açısından doğrulandı; genel QA, frontend sahibinin SEC-001 kapsamındaki production audit düzeltmesi beklenene kadar BLOCKED.
 - Sonraki görev: SEC-001 ve DOM-014/015/016/017 tam QA yeniden doğrulaması; ardından INT-001/INT-002/QA-003 entegrasyon kanıtları. Bağımsız sonraki domain dilimi DOM-019 levha ölçüsü/kerf/damar yönü girdilerinin nesting öncesi doğrulamasıdır.
+
+
+## 18 Kasım 2026 03:04 TRT — DOM-019 levha nesting girdisi ön doğrulaması teslim edildi
+
+- Başlangıç HEAD: 82737990987b0f2404c5b44cadbff6710b8bf82c.
+- Özellik commit'i: [63841cd3933de238962ffb60059ea3224b02c6cd](https://github.com/Taylan789/MobilyaCAD/commit/63841cd3933de238962ffb60059ea3224b02c6cd). Test beklentisi düzeltme commit'i: [d807ec187c2d79afb030f0d838b9286eeb7ee143](https://github.com/Taylan789/MobilyaCAD/commit/d807ec187c2d79afb030f0d838b9286eeb7ee143).
+- Değişen dosyalar: domain/production/sheetNestingInput.ts, domain/production/sheetNestingInput.test.mjs, docs/production-domain-contract.md, AI_COORDINATION.md, PRODUCT_ROADMAP.md, .github/workflows/qa-test.yml. İkinci commit yalnızca domain/production/sheetNestingInput.test.mjs test fixture/regex beklentilerini düzeltti. frontend/**, adapter, package manifest, lockfile ve secret değiştirilmedi.
+- Davranış: kullanıcı girdili levha materialId/en-boy/kalınlık/kerf/levha damar yönü ile her rectangular parçanın materialId/ölçü/kalınlık/quantity/damar yönü doğrulanır. mm değerleri 0.1 mm'ye normalize edilir; malzeme/kalınlık eşleşmesi, benzersiz ID, güvenli quantity toplamı ve damar uyumlu 0/90 derece zarf sığması aranır. Herhangi bir hata tüm batch'i blocked ve result=null yapar.
+- Yeni otomatik testler: 13. İlk Actions koşusunda 266/268 geçti; iki hata test fixture yönü ve regex büyük/küçük harf beklentisindeydi. Test kapsamı azaltılmadan düzeltildi. Son QA: 101/101 frontend + 268/268 domain testi, 0 başarısız; shared-domain strict TypeScript, lint ve production build başarılı.
+- [CI #44204537545](https://github.com/Taylan789/MobilyaCAD/actions/runs/44204537545) başarılı; [QA #44204537384](https://github.com/Taylan789/MobilyaCAD/actions/runs/44204537384) genel sonucu production dependency audit nedeniyle failure; [Pages #44204537387](https://github.com/Taylan789/MobilyaCAD/actions/runs/44204537387) başarılı.
+- Bilinen sınırlar: yalnızca rectangular panel batch; kerf doğrulanır/saklanır ama henüz yerleşimde tüketilmez. Parça yerleşimi/koordinatı, nesting optimizasyonu, fire/yield, kesim sırası, CNC/postprocessor, makine standardı veya fiziksel üretim onayı yoktur. Kesitli parçalar blocked olur.
+- QA blokajı: production audit 12 bulgu (2 moderate, 10 high; picomatch ReDoS). npm audit fix --force Vite 6.2.7 kırıcı downgrade önerdi; SEC-001 frontend sahibinin kapsamındadır. Bu otomasyon frontend, manifest veya lockfile'a dokunmadı.
+- Sonraki görev: DOM-020 — proje Part listesini doğrulanmış rectangular batch girdisine kayıpsız bağla; kaynak Part ID ve quantity'yi koru, kesitli/uyumsuz parçaları blocked tut. INT-001 PR #61 ve INT-002 ayrı sahiplik alanlarında kalır.
