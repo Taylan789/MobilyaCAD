@@ -1,7 +1,6 @@
 import { calculateProjectSheetCutPlanAreaSummary } from "./projectSheetCutPlanAreaSummary.ts";
 import {
   parseSheetCutPlanJson,
-  serializeSheetCutPlanJson,
   type SheetCutPlanResult,
   type SheetCutPlanReport
 } from "./sheetCutPlan.ts";
@@ -105,17 +104,11 @@ function validateProjectSheetCutPlanFileResult(value: unknown): ProjectSheetCutP
       );
       const rawPlan = record(rawGroup.cutPlan, groupId + " kesim planı");
 
-      const serializedPlan = serializeSheetCutPlanJson({
-        schemaVersion: 1,
-        status: "ready",
-        result: rawPlan,
-        diagnostics: []
-      });
-      if (serializedPlan.status !== "ready" || serializedPlan.json === null) {
-        throw new Error(groupId + " grubu kesim planı doğrulanamadı: " + serializedPlan.diagnostics.join(" "));
-      }
-
-      const parsedPlan: SheetCutPlanReport = parseSheetCutPlanJson(serializedPlan.json);
+      const parsedPlan: SheetCutPlanReport = parseSheetCutPlanJson(JSON.stringify({
+        format: "MobilyaCADSheetCutPlan",
+        formatVersion: 1,
+        plan: rawPlan
+      }));
       if (parsedPlan.status !== "ready" || parsedPlan.result === null) {
         throw new Error(groupId + " grubu ready bir kesim planı taşımıyor: " + parsedPlan.diagnostics.join(" "));
       }
