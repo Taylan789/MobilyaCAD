@@ -11,7 +11,7 @@ import { calculateProjectPricedConsumptionSummary } from "./projectPricedConsump
 
 const noBanding = { top: false, bottom: false, left: false, right: false };
 
-function createReport(options = {}) {
+function createCabinetRequest(id, options = {}) {
   const edgeBandingByGroup = Object.fromEntries(
     BODY_PANEL_GROUPS.map((group) => [group, { ...noBanding }])
   );
@@ -19,32 +19,51 @@ function createReport(options = {}) {
     edgeBandingByGroup.leftSide = { ...noBanding, top: true };
   }
 
-  const request = {
+  const materialId = options.materialId ?? "mdf-18";
+  const material = options.material ?? "MDF Lam 18";
+  return {
     schemaVersion: 1,
     furniture: {
-      id: "cab-cost-1",
+      id,
       widthMm: options.widthMm ?? 800,
       heightMm: 720,
       depthMm: 560,
-      material: "MDF Lam 18",
-      materialId: "mdf-18"
+      material,
+      materialId
     },
     profile: {
-      panelThicknessMm: 18,
+      panelThicknessMm: options.panelThicknessMm ?? 18,
+      ...(options.panelThicknessMmByGroup === undefined
+        ? {}
+        : { panelThicknessMmByGroup: options.panelThicknessMmByGroup }),
       carcassStyle: "between-sides",
       backPanel: { enabled: false },
       shelfCount: 0,
       doors: { enabled: false, count: 0 },
       edgeBandingByGroup
     },
-    materials: [
-      { id: "mdf-18", name: "MDF Lam 18", category: "panel", thicknessesMm: [18], unit: "mm" }
-    ]
+    materials: options.materials ?? [
+      {
+        id: materialId,
+        name: material,
+        category: "panel",
+        thicknessesMm: options.materialThicknessesMm ?? [18],
+        unit: "mm"
+      }
+    ],
+    ...(options.panelMaterialOverrides === undefined
+      ? {}
+      : { panelMaterialOverrides: options.panelMaterialOverrides })
   };
+}
 
+function createReport(options = {}) {
+  const furniture = options.furnitureRequests ?? [
+    createCabinetRequest(options.furnitureId ?? "cab-cost-1", options)
+  ];
   return calculateCabinetProjectProductionWithDiagnostics({
     schemaVersion: 1,
-    furniture: options.empty === true ? [] : [request],
+    furniture: options.empty === true ? [] : furniture,
     ...(options.hardwareItems === undefined ? {} : { hardwareItems: options.hardwareItems }),
     ...(options.edgeBandingAssignments === undefined
       ? {}
@@ -52,14 +71,23 @@ function createReport(options = {}) {
   });
 }
 
-function price(resourceType, resourceId, unit, unitPriceMinor, currencyCode = "TRY", sourceReference) {
+function price(
+  resourceType,
+  resourceId,
+  unit,
+  unitPriceMinor,
+  currencyCode = "TRY",
+  sourceReference,
+  thicknessMm
+) {
   return {
     resourceType,
     resourceId,
     unit,
     unitPriceMinor,
     currencyCode,
-    ...(sourceReference === undefined ? {} : { sourceReference })
+    ...(sourceReference === undefined ? {} : { sourceReference }),
+    ...(thicknessMm === undefined ? {} : { thicknessMm })
   };
 }
 
@@ -103,6 +131,90 @@ test("malzeme m2 ve donanım özgün birimi fiyatlarıyla tek para biriminde mal
     summary.costSummary.lines.reduce((total, line) => total + line.lineTotalMinor, 0)
   );
   assert.deepEqual(summary.missingPrices, []);
+});
+
+test("aynı malzeme adı farklı katalog kimliği veya kalınlıkta ayrı fiyat satırları üretir", () => {
+  const report = createReport({
+    furnitureRequests: [
+      createCabinetRequest("cab-material-a", {
+        materialId: "mdf-a",
+        material: "MDF Lam",
+        materialThicknessesMm: [18]
+      }),
+      createCabinetRequest("cab-material-b", {
+        materialId: "mdf-b",
+        material: "MDF Lam",
+        materialThicknessesMm: [18]
+      }),
+      createCabinetRequest("cab-thickness", {
+        materialId: "mdf-shared",
+        material: "MDF Lam",
+        materialThicknessesMm: [8, 18],
+        panelMaterialOverrides: { top: "mdf-shared" },
+        panelThicknessMmByGroup: { top: 8 }
+      })
+    ]
+  });
+  assert.equal(report.status, "ready");
+
+  const materialGroups = calculateProjectMaterialConsumptionSummary(report.result);
+  assert.deepEqual(
+    materialGroups.map((group) => [group.materialId, group.thicknessMm]),
+    [
+      ["mdf-a", 18],
+      ["mdf-b", 18],
+      ["mdf-shared", 8],
+      ["mdf-shared", 18]
+    ]
+  );
+
+  const summary = calculateProjectPricedConsumptionSummary(report, [
+    price("material", "mdf-a", "m2", 1000, "TRY", undefined, 18),
+    price("material", "mdf-b", "m2", 2000, "TRY", undefined, 18),
+    price("material", "mdf-shared", "m2", 3000, "TRY", undefined, 8),
+    price("material", "mdf-shared", "m2", 4000, "TRY", undefined, 18)
+  ]);
+
+  assert.equal(summary.status, "ready");
+  assert.equal(summary.requiredLineCount, 4);
+  assert.equal(summary.pricedLineCount, 4);
+  assert.deepEqual(
+    summary.costSummary.lines.map((line) => [line.description, line.unitPriceMinor]),
+    [
+      ["MDF Lam (18 mm; mdf-a)", 1000],
+      ["MDF Lam (18 mm; mdf-b)", 2000],
+      ["MDF Lam (8 mm; mdf-shared)", 3000],
+      ["MDF Lam (18 mm; mdf-shared)", 4000]
+    ]
+  );
+  assert.equal(
+    summary.costSummary.grandTotalMinor,
+    summary.costSummary.lines.reduce((total, line) => total + line.lineTotalMinor, 0)
+  );
+  assert.deepEqual(summary.missingPrices, []);
+});
+
+test("çoklu kalınlıkta kalınlık belirtmeyen legacy fiyat hiçbir gruba uygulanmaz", () => {
+  const report = createReport({
+    materialId: "mdf-shared",
+    material: "MDF Lam",
+    materialThicknessesMm: [8, 18],
+    panelMaterialOverrides: { top: "mdf-shared" },
+    panelThicknessMmByGroup: { top: 8 }
+  });
+  const summary = calculateProjectPricedConsumptionSummary(report, [
+    price("material", "mdf-shared", "m2", 1250)
+  ]);
+
+  assert.equal(summary.status, "incomplete");
+  assert.equal(summary.costSummary, null);
+  assert.equal(summary.currencyCode, null);
+  assert.equal(summary.requiredLineCount, 2);
+  assert.equal(summary.pricedLineCount, 0);
+  assert.deepEqual(
+    summary.missingPrices.map((issue) => [issue.thicknessMm, issue.legacyPriceAvailable]),
+    [[8, true], [18, true]]
+  );
 });
 
 test("eksik bir donanım fiyatı toplamı hazır göstermez ve kısmi toplam döndürmez", () => {
@@ -285,6 +397,12 @@ test("yinelenen fiyat anahtarı, geçersiz fiyat ve bilinmeyen alan reddedilir",
       price("material", "mdf-18", "m2", 100),
       price("material", "mdf-18", "m2", 200)
     ],
+    [
+      price("material", "mdf-18", "m2", 100, "TRY", undefined, 18),
+      price("material", "mdf-18", "m2", 200, "TRY", undefined, 18)
+    ],
+    [price("material", "mdf-18", "m2", 100, "TRY", undefined, 18.05)],
+    [price("hardware", "hinge-110", "adet", 100, "TRY", undefined, 18)],
     [price("material", "mdf-18", "m2", -1)],
     [price("material", "mdf-18", "m2", 100, "try")],
     [{ ...price("material", "mdf-18", "m2", 100), guessed: true }]
