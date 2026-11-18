@@ -307,6 +307,9 @@ Proje isteğinde `family: "bathroom-vanity"` kullanılır. Diğer gövde ölçü
 - Bu ilk aile dilimi yalnızca eksenlere paralel dikdörtgen geçiş açıklıklarını kapsar. Oval/özel lavabo şablonu, musluk/drenaj deliği, sifon/tesisat boşluğu, köşe yarıçapı, pah, tezgâh bindirmesi, ayak/baza, duvar montajı, ankraj, yük, bağlantı, donanım veya CNC koordinatı üretmez. Gerçek lavabo/armatür ölçüsü ve fiziksel uygunluk üretici/atölye tarafından ayrıca doğrulanmalıdır.
 - Frontend JSON v1/CSV adapter'ı ayrı frontend sahibinin kapsamındadır; bu domain değişikliği hiçbir `frontend/**` dosyasını değiştirmez.
 
+Çoklu açıklıkların kesişme/temas kontrolü X sweep-line ve koordinat sıkıştırmalı Y aralık maksimum ağacıyla O(n log n) çalışır. Koordinatlar mevcut 0.1 mm normalizasyonundan sonra karşılaştırılır; kenar veya köşe teması da geçersizdir. Bu algoritma yalnızca panel açıklıklarının kendi aralarındaki geometri doğrulamasıdır. `createProjectSheetNestingInput`, `panelGeometry` içeren parçaları hâlâ blocked/`result: null` ile reddeder; açıklık içi parça yerleşimi, kerf açıklığı, kesim sırası veya CNC toolpath üretmez.
+
+
 
 ## 2.15 Karışık aile projelerinde kesitli panel tüketimi
 

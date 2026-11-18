@@ -93,6 +93,32 @@ test("birbirinden ayrık birden fazla açıklığın alanı ve çevresi toplanı
   assert.equal(result.cutoutPerimeterMm, 1200);
 });
 
+
+test("50.000 ayrık panel açıklığı sweep-line doğrulamasında alan ve geometriyi korur", () => {
+  const cutouts = [];
+  for (let index = 0; index < 50_000; index += 1) {
+    const column = index % 250;
+    const row = Math.floor(index / 250);
+    cutouts.push(createCutout({
+      id: "opening-" + index,
+      xMm: 1 + column * 4,
+      yMm: 1 + row * 4,
+      widthMm: 1,
+      lengthMm: 1
+    }));
+  }
+
+  const result = calculatePanelCutoutGeometry(createRequest({
+    widthMm: 1000,
+    lengthMm: 1000,
+    cutouts
+  }));
+
+  assert.equal(result.cutouts.length, 50_000);
+  assert.equal(result.cutoutAreaMm2, 50_000);
+  assert.equal(result.netFaceAreaMm2, 950_000);
+});
+
 test("açıklık dış sınıra temas edemez veya panel dışına taşamaz", () => {
   for (const cutout of [
     createCutout({ xMm: 0 }),

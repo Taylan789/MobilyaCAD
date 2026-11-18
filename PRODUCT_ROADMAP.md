@@ -1250,9 +1250,26 @@ DOM-032 doğrulaması: [commit fe720ce](https://github.com/Taylan789/MobilyaCAD/
 
 **Sınırlar:** bu teslimat cutout-aware nesting veya CNC işlemesi sağlamaz. Kesitli geometri, gerçek geometri yerleşim doğrulaması ve adapter round-trip desteği gelene kadar export dışında kalır. Fiziksel üretim onayı değildir.
 
-### DOM-035 sonrası sıradaki 5 küçük görev
+## DOM-036 — Kesitli panel geometri için nesting önkoşulları (devam ediyor)
+
+**Kullanıcı akışı:** kullanıcı bir panelde birden fazla dikdörtgen geçiş açıklığı tanımladığında geometri doğrulaması ölçeklenebilir olmalı; aynı zamanda kesitli parça, gerçek hole-aware yerleşim kanıtlanana kadar dikdörtgen dış zarf gibi davranıp nesting'e sızmamalıdır.
+
+**Tamamlanan ilk dilim:**
+- `calculatePanelCutoutGeometry` içindeki tüm açıklık çiftlerini karşılaştıran O(n²) döngü, X sweep-line ve koordinat sıkıştırmalı Y aralık maksimum ağacıyla O(n log n) doğrulamaya taşındı.
+- X veya Y kenar/köşe teması hâlâ çakışma sayılır; başlangıç olayları aynı X'teki bitiş olaylarından önce işlenir. Mevcut 0.1 mm normalizasyonu, alan/hacim/bant hesabı ve hata sözleşmesi korunur.
+- 50.000 ayrık açıklık testi, geometri adedini ve net yüzey alanını doğrular.
+
+**Güvenlik sınırı:** `createProjectSheetNestingInput` `panelGeometry` içeren Part kayıtlarını hâlâ blocked ve `result: null` döndürerek reddeder. Bu dilim hole-aware placement, kerf açıklığı, kesim sırası, toolpath veya CNC üretmez; panelin dış dikdörtgen zarfı üzerinden nesting yapılmaz.
+
+**Kalan kabul kriterleri:**
+- Açıklık içindeki ikinci parçanın fiziksel kesim sırası ve kerf mesafesi için doğrulanabilir hole-aware yerleşim modeli tanımlanmalı.
+- Dönüş/damar kısıtları, açıklık kenarları ve levha trim sınırları aynı geometri sözleşmesinde tekrar doğrulanmalı.
+- Herhangi bir belirsizlikte tüm grup/proje blocked ve kısmi sonuçsuz kalmalı; blocker ancak geometri, kerf ve yerleşim regresyonları tamamlandığında kaldırılmalı.
+- Makine standardı ve gerçek kesim sırası doğrulanmadan CNC/postprocessor çıktısı sunulmamalı.
+
+### DOM-036 sonrası sıradaki 5 küçük görev
 1. INT-001 / PR #61: frontend sahibinin güncel base üzerinde domain raporu, `productionDiagnostics`, freshness-gated JSON export ve v3 metadata round-trip entegrasyonunu tamamlamasını salt okunur izle; PR'ı sahiplenme veya merge etme.
-2. DOM-036: panel açıklığı geometri modelini nesting girdisinde dikdörtgen envelope olarak değil, açık ve doğrulanabilir geometri türü olarak temsil etmenin önkoşullarını ve çakışma/kerf kabul kriterlerini tanımla; güvenli algoritma yoksa mevcut export blocker'ı koru.
+2. DOM-036 devamı: hole-aware yerleşim ve kerf/işlem sırası için doğrulanabilir model kanıtlanana kadar kesitli Part nesting/export blocker'ını koru.
 3. DOM-037: desteklenen mobilya aileleri için gövde panel malzeme/kalınlık override'larının ortak proje Part snapshot ve malzeme tüketim özetinde aynı kimlik/ölçüyle korunmasını genişlet.
 4. INT-002 / PERF-001: adapter round-trip ve benchmark çalışmalarını yalnızca entegrasyon/performance ajanının sahiplik sınırında denetle.
 5. CNC operasyon/postprocessor tasarımını gerçek makine üretici standardı ve operatör güvenliği girdileri olmadan üretim çıktısına dönüştürme.

@@ -140,6 +140,156 @@ function addFinite(total: number, contribution: number, label: string): number {
   return next;
 }
 
+
+type PanelCutoutSweepEvent = {
+  xMm: number;
+  /** Starts are processed before ends at the same X so edge-touch remains invalid. */
+  kind: 0 | 1;
+  opening: PanelCutoutGeometryOpening;
+};
+
+/** Range-add/range-maximum tree over compressed Y coordinates. */
+function createRangeMaximumTree(size: number): {
+  add(startIndex: number, endIndex: number, delta: number): void;
+  maximumInRange(startIndex: number, endIndex: number): number;
+} {
+  const maximum = new Array<number>(size * 4).fill(0);
+  const lazy = new Array<number>(size * 4).fill(0);
+
+  function apply(node: number, delta: number): void {
+    maximum[node] += delta;
+    lazy[node] += delta;
+  }
+
+  function push(node: number): void {
+    const delta = lazy[node];
+    if (delta === 0) return;
+    apply(node * 2, delta);
+    apply(node * 2 + 1, delta);
+    lazy[node] = 0;
+  }
+
+  function addRange(
+    node: number,
+    left: number,
+    right: number,
+    queryLeft: number,
+    queryRight: number,
+    delta: number
+  ): void {
+    if (queryLeft <= left && right <= queryRight) {
+      apply(node, delta);
+      return;
+    }
+    push(node);
+    const middle = Math.floor((left + right) / 2);
+    if (queryLeft <= middle) {
+      addRange(node * 2, left, middle, queryLeft, queryRight, delta);
+    }
+    if (queryRight > middle) {
+      addRange(node * 2 + 1, middle + 1, right, queryLeft, queryRight, delta);
+    }
+    maximum[node] = Math.max(maximum[node * 2], maximum[node * 2 + 1]);
+  }
+
+  function queryRange(
+    node: number,
+    left: number,
+    right: number,
+    queryLeft: number,
+    queryRight: number
+  ): number {
+    if (queryLeft <= left && right <= queryRight) return maximum[node];
+    push(node);
+    const middle = Math.floor((left + right) / 2);
+    let result = 0;
+    if (queryLeft <= middle) {
+      result = Math.max(result, queryRange(node * 2, left, middle, queryLeft, queryRight));
+    }
+    if (queryRight > middle) {
+      result = Math.max(result, queryRange(node * 2 + 1, middle + 1, right, queryLeft, queryRight));
+    }
+    return result;
+  }
+
+  return {
+    add(startIndex, endIndex, delta) {
+      addRange(1, 0, size - 1, startIndex, endIndex, delta);
+    },
+    maximumInRange(startIndex, endIndex) {
+      return queryRange(1, 0, size - 1, startIndex, endIndex);
+    }
+  };
+}
+
+/**
+ * Rejects intersecting or touching axis-aligned cutouts in O(n log n) time.
+ * The active X sweep is checked against a compressed-Y range maximum; the
+ * active map is scanned only after a collision is already known, to preserve
+ * the existing source-specific diagnostic.
+ */
+function validateCutoutSeparation(cutouts: readonly PanelCutoutGeometryOpening[]): void {
+  if (cutouts.length < 2) return;
+
+  const yCoordinateSet = new Set<number>();
+  const events: PanelCutoutSweepEvent[] = [];
+  for (const opening of cutouts) {
+    const rightMm = opening.xMm + opening.widthMm;
+    const bottomMm = opening.yMm + opening.lengthMm;
+    yCoordinateSet.add(opening.yMm);
+    yCoordinateSet.add(bottomMm);
+    events.push({ xMm: opening.xMm, kind: 0, opening });
+    events.push({ xMm: rightMm, kind: 1, opening });
+  }
+
+  const yCoordinates = [...yCoordinateSet].sort((first, second) => first - second);
+  const yIndexByCoordinate = new Map<number, number>();
+  yCoordinates.forEach((coordinate, index) => yIndexByCoordinate.set(coordinate, index));
+  const tree = createRangeMaximumTree(yCoordinates.length);
+
+  events.sort((first, second) =>
+    first.xMm - second.xMm ||
+    first.kind - second.kind ||
+    (first.opening.id < second.opening.id ? -1 : first.opening.id > second.opening.id ? 1 : 0)
+  );
+
+  const activeOpenings = new Map<string, PanelCutoutGeometryOpening>();
+  for (const event of events) {
+    const opening = event.opening;
+    const topIndex = yIndexByCoordinate.get(opening.yMm);
+    const bottomIndex = yIndexByCoordinate.get(opening.yMm + opening.lengthMm);
+    if (topIndex === undefined || bottomIndex === undefined) {
+      throw new Error("Panel açıklığı Y koordinatları sıkıştırılmış geometri listesinde bulunamadı.");
+    }
+
+    if (event.kind === 0) {
+      if (tree.maximumInRange(topIndex, bottomIndex) > 0) {
+        const openingBottomMm = opening.yMm + opening.lengthMm;
+        let conflictingOpening: PanelCutoutGeometryOpening | undefined;
+        for (const candidate of activeOpenings.values()) {
+          const candidateBottomMm = candidate.yMm + candidate.lengthMm;
+          if (candidate.yMm <= openingBottomMm && opening.yMm <= candidateBottomMm) {
+            conflictingOpening = candidate;
+            break;
+          }
+        }
+        if (conflictingOpening) {
+          throw new Error(
+            conflictingOpening.id + " ve " + opening.id +
+            " panel açıklıkları çakışamaz veya birbirine temas edemez."
+          );
+        }
+        throw new Error("Panel açıklıkları çakışamaz veya birbirine temas edemez.");
+      }
+      tree.add(topIndex, bottomIndex, 1);
+      activeOpenings.set(opening.id, opening);
+    } else {
+      tree.add(topIndex, bottomIndex, -1);
+      activeOpenings.delete(opening.id);
+    }
+  }
+}
+
 /**
  * Calculates one rectangular panel with explicit, axis-aligned rectangular
  * through-cutouts. This is a geometry primitive, not a production Part or CNC
@@ -197,26 +347,7 @@ export function calculatePanelCutoutGeometry(value: unknown): PanelCutoutGeometr
     return { id, xMm, yMm, widthMm: openingWidthMm, lengthMm: openingLengthMm, edgeBanding };
   });
 
-  for (let firstIndex = 0; firstIndex < cutouts.length; firstIndex += 1) {
-    const first = cutouts[firstIndex];
-    const firstRight = first.xMm + first.widthMm;
-    const firstBottom = first.yMm + first.lengthMm;
-
-    for (let secondIndex = firstIndex + 1; secondIndex < cutouts.length; secondIndex += 1) {
-      const second = cutouts[secondIndex];
-      const secondRight = second.xMm + second.widthMm;
-      const secondBottom = second.yMm + second.lengthMm;
-      const separated =
-        firstRight < second.xMm ||
-        secondRight < first.xMm ||
-        firstBottom < second.yMm ||
-        secondBottom < first.yMm;
-
-      if (!separated) {
-        throw new Error(first.id + " ve " + second.id + " panel açıklıkları çakışamaz veya birbirine temas edemez.");
-      }
-    }
-  }
+  validateCutoutSeparation(cutouts);
 
   const outerFaceAreaMm2 = widthMm * lengthMm;
   if (!Number.isFinite(outerFaceAreaMm2)) {

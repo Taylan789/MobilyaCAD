@@ -1223,3 +1223,15 @@
 - Bilinen sınırlar: panel açıklıkları dikdörtgen nesting'e veya CNC'ye dönüştürülmez; gerçek kesit geometri desteği gelene kadar export engellidir. Fiziksel atölye/CNC doğrulaması yoktur.
 - AI Developer #44282900800 logları yeniden incelendi: iki job da OpenRouter free-models-per-day 429, limit 50/kalan 0 ile başarısız; reset 19 Kasım 2026 03:00 TRT. Rerun yapılmadı; quota/secrets/ayar/ücretli kredi değiştirilmedi.
 - Sonraki adım: DOM-035 doğrulandı ve DONE; INT-001 PR #61'in güncel domain export sözleşmesine entegrasyonunu salt okunur izle. PR #61 hâlâ eski base üzerinde; frontend sahibinin kendi dalında senkronizasyon ve yeni QA kanıtı gerekir.
+
+
+## 18 Kasım 2026 20:17 TRT — DOM-036 kesitli panel açıklığı doğrulamasını ölçekle
+
+- Başlangıç `dev/github-work` HEAD: `d324d9d4c8eff8ae7a64b7d218c8232d7b14cf99`; önceki HEAD için CI #44346109707, QA #44346109778 ve Pages #44346109635 başarılıydı.
+- Dikey dilim: `calculatePanelCutoutGeometry` içindeki O(n²) çiftli açıklık taraması X sweep-line + sıkıştırılmış Y aralık maksimum ağacına dönüştürüldü. Kenar/köşe teması reddi ve mevcut hata mesajı korunur.
+- Regresyon: 50.000 ayrık açıklık fixture'ı geometri sayısını ve net alanı doğrular; mevcut çakışma, temas, sınır, 0.1 mm normalizasyon ve tüketim testleri korunur.
+- Değişen dosyalar: `domain/production/panelCutoutGeometry.ts`, `domain/production/panelCutoutGeometry.test.mjs`, `docs/production-domain-contract.md`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`. `frontend/**`, adapter/performance agent dosyaları ve bağımlılıklar değiştirilmedi.
+- Commit SHA: GitHub commit nesnesi oluşturulup `dev/github-work` ref'i güncellendikten sonra sonraki doğrulama kaydında kesinleştirilecek.
+- Otomatik doğrulama: yeni commit için CI/QA/Pages Actions sonuçları bekleniyor; henüz başarılı ilan edilmedi.
+- Bilinen sınırlar: `createProjectSheetNestingInput` `panelGeometry` girdisini blocked/`result: null` tutar. Hole-aware placement, kerf clearance, kesim sırası, CNC ve fiziksel üretim doğrulaması yoktur.
+- Sonraki adım: Actions sonucunu incele; ardından DOM-036 için hole-aware yerleşim/kerf kabul kriterlerini ve güvenli algoritma önkoşullarını sürdür. INT-001 PR #61 ve UI PR #73 ayrı sahipliklerinde kalır; bu ajan onları değiştirmez veya merge etmez.
