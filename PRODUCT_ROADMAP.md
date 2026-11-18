@@ -1121,7 +1121,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 **Sınırlar:** nesting halen deterministic shelf heuristic'tir; optimal levha verimi, kesim sırası/testere yolu, CNC/postprocessor veya fiziksel üretim onayı değildir. Frontend ve adapter/performance ajanı dosyaları değiştirilmedi.
 
 
-## 18 Kasım 2026 14:00 TRT — DOM-030 kayıtlı kesim planı snapshot doğrulaması
+## 18 Kasım 2026 14:00 TRT — DOM-030 kayıtlı kesim planı snapshot doğrulaması (Actions doğrulandı)
 
 **Kullanıcı akışı:** kullanıcı daha önce kaydettiği çoklu grup kesim planını açtığında, güncel domain üretim Part listesiyle karşılaştırır. Parça ölçüsü, adet, malzeme, kalınlık, damar yönü veya kaynak kimliği değişmişse eski yerleşim hazır kabul edilmez.
 
@@ -1132,6 +1132,9 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 - Bozuk kayıtlı JSON, blocked/bozuk güncel rapor ve legacy Part için tekrar sağlanmayan grain override blocked olur.
 - Boş plan yalnızca boş güncel üretim snapshot'ında fresh kalır.
 - Domain testleri ve shared-domain strict TypeScript QA listesine eklenir; frontend ve adapter/performance sahiplik alanlarına dokunulmaz.
+
+
+**Gerçek Actions doğrulaması:** feature commit `61bac5aa` için ilk QA [#44291710603](https://github.com/Taylan789/MobilyaCAD/actions/runs/44291710603) 361/362 domain testinde tek assertion metin farkıyla başarısız oldu (`kalınlık` / `kalınlığı`); stale davranışı doğruydu ve test beklentisi gevşetilmeden düzeltildi. Son SHA `7f8a9cc` için [CI #44291888414](https://github.com/Taylan789/MobilyaCAD/actions/runs/44291888414), [QA #44291888410](https://github.com/Taylan789/MobilyaCAD/actions/runs/44291888410) ve [Pages #44291888398](https://github.com/Taylan789/MobilyaCAD/actions/runs/44291888398) başarılı. QA: 102/102 frontend + 362/362 domain testi; strict shared-domain TypeScript, lint (32 uyarı / 0 hata), production build ve production dependency audit (0 bulgu) geçti.
 
 **Bilinen sınırlar:** v1 dosyası yalnızca seçili `sourcePartIds` listesini taşır; seçilmemiş Part eklenmesi/değişmesi bu doğrulamanın kapsamı değildir. Bu API yerleşimi yeniden üretmez ve CNC/makine standardı veya fiziksel üretim onayı sağlamaz. Legacy grain override'ları freshness çağrısına yeniden verilmelidir.
 
