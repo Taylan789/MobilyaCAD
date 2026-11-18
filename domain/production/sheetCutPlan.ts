@@ -69,7 +69,9 @@ function mm(value: unknown, label: string, zero: boolean): number {
       : " sıfırdan büyük ve sonlu bir mm değeri olmalıdır."));
   }
   const scaled = value * 10;
-  if (!Number.isSafeInteger(scaled)) throw new Error(label + " güvenli 0.1 mm hassasiyet aralığını aşıyor.");
+  if (!Number.isFinite(scaled) || Math.abs(scaled) > Number.MAX_SAFE_INTEGER) {
+    throw new Error(label + " güvenli 0.1 mm hassasiyet aralığını aşıyor.");
+  }
   const normalized = Math.round(scaled + Number.EPSILON * 10) / 10;
   if (normalized !== value) throw new Error(label + " 0.1 mm hassasiyetinde normalize edilmiş olmalıdır.");
   return normalized === 0 ? 0 : value;
@@ -77,7 +79,7 @@ function mm(value: unknown, label: string, zero: boolean): number {
 function addMm(a: number, b: number, label: string): number {
   const value = a + b;
   const scaled = value * 10;
-  if (!Number.isSafeInteger(scaled)) {
+  if (!Number.isFinite(scaled) || Math.abs(scaled) > Number.MAX_SAFE_INTEGER) {
     throw new Error(label + " güvenli 0.1 mm koordinat aralığını aşıyor.");
   }
   return Math.round(scaled + Number.EPSILON * 10) / 10;
