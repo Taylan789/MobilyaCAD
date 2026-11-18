@@ -1062,30 +1062,26 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 
 ### DOM-026 sonrası sıradaki 3-5 küçük görev
 
-1. DOM-027: proje genelinde malzeme/kalınlık bazlı kesim planı alan özetlerini birleştir; grup kimliği ve ayrı levha toplamlarını koru, blocked batch'te kısmi rapor verme.
+1. DOM-028: çoklu grup kesim planları için sürümlü, makine bağımsız JSON zarfı ve strict round-trip; grup kimliği, levha indeksleri, trim/kerf ve kaynak Part ID'lerini koru.
 2. INT-001 / PR #61: frontend sahibinin domain üretim raporu/JSON-CSV adapter entegrasyonunu güncel base ve Actions kanıtıyla tamamlamasını bekle; frontend PR'ını sahiplenme veya merge etme.
 3. INT-002 / QA-003: entegrasyon-performans ajanının izole PR'ındaki adapter round-trip kanıtını salt okunur doğrula; adapter/test sahipliğine dokunma.
 4. UI entegrasyonu: alan özeti ready/empty/blocked durumlarını mevcut frontend domain raporu sözleşmesiyle tüketmeli; sahte fire/yield etiketi üretmemeli.
 5. CNC/postprocessor: operatörün gerçek makine/üretici standardı ve fiziksel güvenlik gereksinimleri olmadan uygulama başlatma.
 
 
-## 18 Kasım 2026 11:13 TRT — DOM-027 proje geneli kesim planı alan özeti
+## 18 Kasım 2026 11:13 TRT — DOM-027 proje geneli kesim planı alan özeti (Actions doğrulandı)
 
 **Kullanıcı akışı:** proje Part seçimi, malzeme/kalınlık gruplarına ayrılmış kesim planlarıyla tamamlanır. Her grubun kendi levha/kerf/trim girdisi ve levha bazlı alan özeti korunur; proje toplamı yalnızca tüm seçili parçalar doğrulandığında gösterilir.
 
-**Kabul kriterleri:**
-- Her grup kimliği katalog materialId + normalize 0.1 mm kalınlıktan deterministik türetilir; grup ve kaynak Part ID tekrarları reddedilir.
-- Kesim planı her grup için yeniden doğrulanır; stock sheet, kaynak parça malzemesi/kalınlığı ve Part ID sırası grup tanımıyla eşleşir.
-- Üst düzey seçili Part ID listesi, gruplarda tam bir kez temsil edilir; eksik veya başka gruba taşınmış parça tüm raporu blocked yapar.
-- Her grup kendi levha indeksleri ve alan özetini taşır; proje alan toplamları BigInt tabanlı 0.01 mm² birimlerinde güvenli biçimde toplanır.
-- Herhangi bir blocked grup veya güvenli aralık ihlali result: null üretir; kısmi proje toplamı yoktur. Boş proje yalnızca boş grup listesiyle empty döner.
-- Proje doluluk oranı, toplam net kullanılabilir alan üzerinden ağırlıklı geometrik orandır; fire/yield veya optimizasyon iddiası değildir.
+**Teslimat:** calculateProjectSheetCutPlanAreaSummary, materialId + normalize 0.1 mm thickness üzerinden deterministik groupId üretir. Her grup planı yeniden doğrulanır; seçili Part ID'leri gruplarda tam bir kez bulunur; grup/levha/source part uyuşmazlığı ve blocked upstream raporları kısmi sonuç vermeden tüm özeti blocked yapar. Grup bazında levha toplamları korunur; proje alanları BigInt 0.01 mm² alt birimlerinde toplanır ve ağırlıklı geometrik doluluk yüzdesi hesaplanır.
 
-**Sınırlar:** Her grubun makine bağımsız kesim planı önceden oluşturulmuş olmalıdır. JSON zarfı/adapter, CNC kesim sırası/yolu, makine postprocessor ve fiziksel üretim doğrulaması bu dilimde yoktur.
+**Değişen dosyalar:** domain/production/projectSheetCutPlanAreaSummary.ts, domain/production/projectSheetCutPlanAreaSummary.test.mjs, .github/workflows/qa-test.yml, docs/production-domain-contract.md, AI_COORDINATION.md, PRODUCT_ROADMAP.md ve AI_PROGRESS.md. frontend/** ve adapter/performance agent dosyaları değiştirilmedi.
 
-**Değişen dosyalar:** domain/production/projectSheetCutPlanAreaSummary.ts, yeni domain testi, QA strict TypeScript listesi, üretim sözleşmesi, görev panosu, yol haritası ve ilerleme kaydı. frontend/**, adapter/performance agent dosyaları, package manifest/lockfile ve secrets değiştirilmedi.
+**Doğrulama:** [domain commit 379139c](https://github.com/Taylan789/MobilyaCAD/commit/379139cc1e905ba9c3e729f4beb9570a7a8b4da8) sonrası ilk QA'da bir test fixture beklentisi hatalıydı; [abfd0f0](https://github.com/Taylan789/MobilyaCAD/commit/abfd0f0a1ed487ff4f619acc13c7810cf4f2806f) ile fixture gerçek plan kimliği uyuşmazlığını test edecek şekilde düzeltildi. Son SHA için [CI #44266286088](https://github.com/Taylan789/MobilyaCAD/actions/runs/44266286088), [QA #44266286004](https://github.com/Taylan789/MobilyaCAD/actions/runs/44266286004) ve [Pages #44266285982](https://github.com/Taylan789/MobilyaCAD/actions/runs/44266285982) başarılı. QA 102/102 frontend + 339/339 domain testi, strict TypeScript, lint, production build ve production dependency audit 0 bulgu. Lint 32 uyarı / 0 hata.
 
-### DOM-027 sonrası sıradaki 3-5 küçük görev
+**Sınırlar:** ağırlıklı geometrik doluluk fire/yield veya optimal nesting değildir. Her grup için doğrulanmış makine bağımsız kesim planı gerekir. JSON zarfı/adapter, CNC kesim sırası/yolu, makine postprocessor ve fiziksel üretim doğrulaması bu dilimde yoktur.
+
+### DOM-028 sonrası sıradaki 3-5 küçük görev
 1. DOM-028: çoklu grup kesim planları için sürümlü, makine bağımsız JSON zarfı ve strict round-trip; grup kimliği, levha indeksleri, trim/kerf ve kaynak Part ID'lerini koru.
 2. INT-001 / PR #61: frontend sahibinin domain raporu ve adapter entegrasyonunu güncel base/Actions kanıtıyla tamamlamasını bekle; PR'ı sahiplenme veya merge etme.
 3. INT-002 / QA-003: entegrasyon-performans ajanının ayrı adapter PR'ındaki JSON/CSV round-trip kanıtını salt okunur doğrula; test sahipliğine dokunma.

@@ -1100,12 +1100,16 @@
 - Sonraki görev: DOM-027 — proje genelinde malzeme/kalınlık bazlı kesim planı alan özetlerini güvenli biçimde birleştir; grup kimliğini ve ayrı levha toplamlarını koru, blocked batch'te kısmi sonuç verme.
 
 
-## 18 Kasım 2026 11:13 TRT — DOM-027 proje geneli alan özeti (Actions bekleniyor)
+## 18 Kasım 2026 11:13 TRT — DOM-027 proje geneli alan özeti (Actions doğrulandı)
 
 - Başlangıç HEAD: 251322135f5410781d86d474d48bf76345fa06d4.
-- Kod/test/dokümantasyon dilimi: domain/production/projectSheetCutPlanAreaSummary.ts ve yeni otomatik test; QA strict shared-domain TypeScript listesi; docs/production-domain-contract.md, AI_COORDINATION.md ve PRODUCT_ROADMAP.md.
-- Commit SHA: GitHub commit kimliği oluşturulduktan sonra doğrulama kaydında sabitlenecek; şu an Actions sonucu bekleniyor.
-- Kabul kriterleri: seçili Part ID'leri gruplarda tam bir kez temsil edilmeli; malzeme/kalınlık/levha planı uyuşmalı; her grup kendi sheet alan özetini korumalı; proje alan toplamı 0.01 mm² BigInt alt birimlerinde güvenli toplanmalı; tek blocked grup tüm sonucu blocked yapmalı.
-- Otomatik kontroller: yeni domain testleri node --experimental-strip-types --test domain/production/*.test.mjs kapsamına girer; strict TypeScript listesine modül eklendi. CI/QA/Pages sonuçları henüz görülmedi.
+- Domain teslimat commit'i: [379139cc1e905ba9c3e729f4beb9570a7a8b4da8](https://github.com/Taylan789/MobilyaCAD/commit/379139cc1e905ba9c3e729f4beb9570a7a8b4da8); test fixture doğrulama düzeltmesi: [abfd0f0a1ed487ff4f619acc13c7810cf4f2806f](https://github.com/Taylan789/MobilyaCAD/commit/abfd0f0a1ed487ff4f619acc13c7810cf4f2806f).
+- Değişen dosyalar: domain/production/projectSheetCutPlanAreaSummary.ts, yeni domain testi, .github/workflows/qa-test.yml, docs/production-domain-contract.md, AI_COORDINATION.md, PRODUCT_ROADMAP.md ve AI_PROGRESS.md. frontend/**, adapter/performance agent dosyaları, package manifest/lockfile, secrets ve main değiştirilmedi.
+- API calculateProjectSheetCutPlanAreaSummary; proje seçili Part ID listesini her materialId + normalize 0.1 mm thickness grubunda tam bir kez doğrular. Her grup kendi SheetCutPlanAreaSummary ve yerel levha indekslerini taşır. Malzeme/kalınlık/stock sheet/sourcePart uyuşmazlığı, duplicate/missing ID veya blocked grup tüm aggregate sonucu blocked + result:null yapar.
+- Proje toplam alanları 0.01 mm² BigInt alt birimleriyle toplanır ve güvenli Number sınırı kontrol edilir. Proje doluluk yüzdesi tüm grupların net kullanılabilir alanına ağırlıklı geometrik orandır; fire/yield/optimizasyon iddiası değildir.
+- İlk QA #44266013551 yalnızca test fixture'ının beklenen doğrulama aşamasını yanlış kurması nedeniyle başarısız oldu: testteki different-part ID'si seçili proje listesinde yoktu ve plan eşleşme kontrolüne ulaşmadan doğru biçimde reddediliyordu. Fixture, different-part'i seçili listeye alacak şekilde düzeltildi; test veya üretim kapsamı kaldırılmadı/zayıflatılmadı.
+- Son kod SHA için [CI #44266286088](https://github.com/Taylan789/MobilyaCAD/actions/runs/44266286088) başarılı; [QA #44266286004](https://github.com/Taylan789/MobilyaCAD/actions/runs/44266286004) başarılı: 102/102 frontend + 339/339 domain testi, strict shared-domain TypeScript, lint, production build ve production dependency audit başarılı; audit 0 bulgu. Lint 32 mevcut uyarı / 0 hata. [Pages #44266285982](https://github.com/Taylan789/MobilyaCAD/actions/runs/44266285982) başarılı.
 - Bilinen sınırlar: her grup için doğrulanmış makine bağımsız kesim planı gerekir. Bu modül JSON zarfı, CSV adapter, CNC kesim sırası/yolu veya makine postprocessor üretmez; geometrik doluluk fire/yield değildir. Fiziksel üretim öncesi operatör/atölye doğrulaması gerekir.
-- Sonraki görev: DOM-028 — çoklu grup kesim planı JSON zarfı ve strict round-trip.
+- AI Developer [#44221779571](https://github.com/Taylan789/MobilyaCAD/actions/runs/44221779571) eski a22c771 checkout SHA'sında OpenRouter free-models-per-day 429 (limit 50, kalan 0) nedeniyle başarısız. Eski SHA rerun edilmedi; güncel SHA dispatch aracı bulunmadığından yeni run başlatılmadı; secrets/ayar değiştirilmedi.
+- INT-001 PR #61 frontend sahibinin alanında açık ve base'e göre 13 commit ahead / 7 behind; değişen dosyaları yalnızca frontend/**. Domain bu turda onun PR'ına müdahale etmedi, merge etmedi. Adapter/performance agent'ın INT-002/PERF-001 dosya sahipliği korundu.
+- Sonraki görev: DOM-028 — çoklu grup kesim planları için sürümlü, makine bağımsız JSON zarfı ve strict round-trip.
