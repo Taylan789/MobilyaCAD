@@ -798,3 +798,19 @@ Kesim planı JSON v2, nesting seçiminden bağımsız olarak projedeki tüm üre
 `domain/production/bodyPanelMaterialsFreshness.test.mjs` beş desteklenen aileyi (dolap, kitaplık, gardırop, TV ünitesi ve banyo dolabı) gerçek proje üretim agregatörü üzerinden çalıştırır. Sabit üst panel Part kimlikleri ve seçim kapsamı korunurken malzeme kimliği veya kalınlık değişimi `stale` üretmeli; `result` ve `json` null kalmalıdır. Başlangıç snapshot'ı değişmediyse aynı kayıt `fresh` kalır. Legacy Part satırları stored grainDirection taşımadığında, freshness isteği plan oluşturulurken kullanılan aynı açık `grainDirectionsByPartId` eşlemesini tekrar vermelidir; eksik override `blocked` durumudur.
 
 Kesim planı yalnızca dört ailenin dikdörtgen üst panellerini seçer. Banyo dolabının açıklıklı üst paneli (`panelGeometry`) nesting seçimine alınmaz; buna rağmen tam proje snapshot'ında kalır ve değişikliği freshness kontrolünde yakalanır. Testteki 5000 mm levha, sıfır kerf ve `none` damar girdileri yalnızca deterministik fixture değerleridir; atölye/üretici standardı veya fiziksel kesim onayı değildir. Kesit geometrisi için mevcut nesting/export blocker'ı kaldırılmaz.
+
+
+## DOM-039 — Kalınlık duyarlı malzeme fiyatlandırması
+
+Kaynak: `domain/production/projectPricedConsumption.ts`  
+API: `calculateProjectPricedConsumptionSummary(productionReport, priceTable)`  
+Fiyat girdisi: `ProjectConsumptionPriceInput.thicknessMm` (opsiyonel, yalnızca `resourceType: "material"` için).
+
+- Malzeme fiyatı anahtarı katalog kimliği + `m2` birimi + gerçek parça kalınlığı (mm) bileşimidir. Aynı görünen malzeme adı farklı `materialId` değerlerini birleştirmez; aynı katalog kimliğinin farklı kalınlıkları da ayrı fiyat ve maliyet satırlarıdır.
+- `thicknessMm` pozitif, sonlu ve en fazla 0.1 mm hassasiyetinde olmalıdır. Donanım ve kenar bandı fiyat satırlarında kalınlık alanı reddedilir.
+- Tam `materialId + m2 + thicknessMm` fiyatı varsa önceliklidir. Kalınlık alanı olmayan legacy fiyat, yalnızca proje içinde o `materialId` için tek bir farklı kalınlık bulunuyorsa geriye uyumlu biçimde kullanılabilir.
+- Aynı `materialId` birden fazla kalınlıkta tüketiliyorsa kalınlık belirtmeyen legacy fiyat hiçbir gruba uygulanmaz. Eksik satırlar `missingPrices` içinde `thicknessMm` ve varsa `legacyPriceAvailable` bilgisiyle raporlanır; sonuç `incomplete`, `costSummary: null` olur. Kısmi parasal toplam verilmez.
+- Maliyet satırı açıklaması malzeme adı, mm kalınlığı ve katalog kimliğini korur. Donanım/kenar bandı anahtarları ve özgün birimleri değişmez; otomatik fiyat, kur veya birim dönüşümü yapılmaz.
+- Otomatik kabul testleri: `projectPricedConsumption.test.mjs` aynı adı taşıyan farklı kimlikleri, aynı kimliğin farklı kalınlıklarını, legacy fiyat belirsizliğini ve fiyat anahtarı doğrulamasını; `projectQuoteSummary.test.mjs` birleşik teklif satırları ile eksik kalınlık fiyatında toplamın gizlenmesini doğrular.
+
+Bu değişiklik fiyat girdisinin şemasını geriye uyumlu genişletir; fiyatlar hâlâ kullanıcı/atölye tarafından sağlanmalıdır. Üretici fiyatı, stok, fire/yield veya fiziksel üretim onayı değildir.
