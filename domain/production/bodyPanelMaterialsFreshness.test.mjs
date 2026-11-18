@@ -141,6 +141,7 @@ function checkFreshness(savedPlanJson, report, selectedPartIds) {
     schemaVersion: 1,
     savedPlanJson,
     productionReport: report,
+    grainDirectionsByPartId: Object.fromEntries(selectedPartIds.map(id => [id, "none"])),
     currentSelectedPartIds: selectedPartIds
   });
 }

@@ -1268,3 +1268,13 @@
 - Pages deploy [#44371780762](https://github.com/Taylan789/MobilyaCAD/actions/runs/44371780762): **başarılı**.
 - AI Developer [#44282900800](https://github.com/Taylan789/MobilyaCAD/actions/runs/44282900800): OpenRouter `free-models-per-day` 429 kotası; tekrar deneme günlük kotayı değiştirmeyeceğinden güvenli değil. Secrets, kredi veya servis ayarı değiştirilmedi.
 - DOM-037 DONE. Sonraki görev: DOM-038 — body-panel materialId/thickness değişiminin kayıtlı sheet cut-plan freshness kontrolünde stale tespit edilmesini aile matrisiyle test et.
+
+
+## 18 Kasım 2026 22:52 TRT — DOM-038 freshness test düzeltmeleri
+
+- İlk test commit'i: `b040393404c19d2591a16832b8436ee4f965545b`; CI [#44384148344](https://github.com/Taylan789/MobilyaCAD/actions/runs/44384148344) başarılı, QA [#44384148272](https://github.com/Taylan789/MobilyaCAD/actions/runs/44384148272) başarısız: 385/387 domain testi. Banyo dolabı fixture'ında geçerli açık geçiş geometrisi eksikti.
+- İkinci fixture commit'i: `48e2d940d8f5d9a8ec1302e147c79db580f2953e`; CI [#44384629930](https://github.com/Taylan789/MobilyaCAD/actions/runs/44384629930) başarılı, QA [#44384629941](https://github.com/Taylan789/MobilyaCAD/actions/runs/44384629941) başarısız: 385/387 domain testi. Freshness çağrısı, legacy Part'ların plan üretiminde kullanılan aynı açık `grainDirectionsByPartId` girdisini tekrar vermediği için blocked döndü.
+- Pages [#44384629749](https://github.com/Taylan789/MobilyaCAD/actions/runs/44384629749) başarılı.
+- Değişen kapsam: yalnızca domain freshness testi, üretim sözleşmesi, görev panosu ve yol haritası. Üretim hesap motoru değiştirilmedi; kesitli banyo paneli nesting blocker'ı korundu.
+- Düzeltme: freshness doğrulamasına seçili legacy Part ID'leri için aynı açık `none` grain override haritası ekleniyor. Eksik override'ın blocked olması gevşetilmiyor.
+- Sonraki adım: yeni CI/QA sonucunu incele; başarılıysa DOM-038'i DONE yap. AI Developer [#44374039856](https://github.com/Taylan789/MobilyaCAD/actions/runs/44374039856) OpenRouter günlük 429 kotası nedeniyle başarısız; rerun yapılmadı ve secrets/ayar değiştirilmedi.
