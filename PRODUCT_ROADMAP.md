@@ -19,7 +19,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 | Parçalar | Görsel kapak/çekmece/raf parçaları; domain gövde, çekmece kutusu, kitaplık, masa, gardırop ve TV ünitesi Part listesi; dikdörtgen iç açıklıklar opsiyonel `ProjectProductionPart.panelGeometry` alanıyla taşınır; banyo dolabı v1 üst panelinde açık ölçülü çoklu dikdörtgen açıklıklar zorunludur | Kesitli Part JSON v1/CSV adapter entegrasyonu henüz ayrı frontend sahibince yapılmadı; diğer aileler, donanım ve CNC operasyonları eksik |
 | Hesap motoru | `cabinetConstruction`, `drawerBoxConstruction`, `bookshelfConstruction`, `tableConstruction`, `wardrobeConstruction`, `tvUnitConstruction` (floor-standing gövde, açık ölçülü raf ve dikey bölücü) ve `bathroom-vanity` (cabinet gövdesi + zorunlu açık ölçülü üst panel açıklığı) aile ayrımlı sürüm 1 proje agregatörü; ortak Part listesi quantity, malzeme, damar yönü ve kenar bantlamayı korur | Frontend adapter henüz domain agregatörünü çağırmıyor; duvar montajlı TV ünitesi/ayak-baza modelleri ve diğer aileler, üreticiye özel konstrüksiyonlar eksik |
 | Kesim listesi | Projedeki desteklenen düz mutfak gövdeleri ve tam tanımlı çekmece parçaları için tek Türkçe Excel uyumlu CSV; her satır kaynak mobilya adı/ID'si ve varsa katalog Malzeme ID değeriyle izlenir | Köşe/cihaz/evye konstrüksiyonları ve diğer aileler eksik |
-| Levha yerleşimi / kesim planı | Deterministik shelf yerleşimi, tek ve çoklu grup makine bağımsız kesim planı, batch→layout→atomik proje planı, kerf/çakışma doğrulaması, opsiyonel trim, JSON v1/v2/v3 round-trip, tam Part snapshot freshness, DOM-032 freshness-gated v2/v3 export API'si ve opsiyonel kullanıcı girdili levha kaynak/revizyon provenance | Fire/yield yüzdesi, kesim sırası/yolu ve CNC çıktısı yok |
+| Levha yerleşimi / kesim planı | Deterministik shelf yerleşimi, tek ve çoklu grup makine bağımsız kesim planı, batch→layout→atomik proje planı, kerf/çakışma doğrulaması, opsiyonel trim, JSON v1/v2/v3 round-trip, tam Part snapshot freshness, DOM-032 freshness-gated v2/v3 export API'si, kullanıcı girdili levha kaynak/revizyon provenance ve DOM-034 grup bazlı provenance kapsam özeti | Fire/yield yüzdesi, kesim sırası/yolu ve CNC çıktısı yok |
 | Kenar bantlama / malzeme tüketimi | Domain malzeme özeti gövde, çekmece, kitaplık, masa, gardırop, TV bölücü/raf ve kesitli panellerin ortak Part listesinden quantity ağırlıklı net alan/hacim ve dış/iç kenar bantlamasını hesaplayabilir | Domain özeti henüz UI/JSON/CSV'ye bağlı değil; fire, levha verimi, kerf, bant kalınlığı ve rulo payı yok |
 | Malzeme kataloğu | UI CRUD; mobilya varsayılan materialId ve çekmece grubunda varsayılan + dört panel grubu override; domain gövde/kitaplık motorları altı gövde panel grubu için malzeme override'ını doğrular | Gövde panel override'ları henüz frontend JSON v1/CSV ve UI akışına bağlanmadı; fiyat, tedarikçi ve fire henüz yok |
 | Proje dosyası | Yerel JSON v1 indirme/yükleme; saf serializer/parser; round-trip ve eski v1 uyumluluk; mm, mobilya ve çekmece grubu katalog referansları ile dört çekmece panel kalınlığının doğrulanması | Şema migrasyonu, otomatik kayıt ve kurtarma yok |
@@ -1205,9 +1205,26 @@ DOM-032 doğrulaması: [commit fe720ce](https://github.com/Taylan789/MobilyaCAD/
 
 **Sınırlar:** provenance fiziksel levha ölçüsünü/kalitesini veya tedarik zincirini kanıtlamaz. CNC, kesim sırası/yolu, fire/yield veya fiziksel üretim onayı değildir; atölye doğrulaması gerekir.
 
-### DOM-033 sonrası sıradaki küçük görevler
-1. INT-001 / PR #61: frontend sahibinin freshness-gated export kapısını ve v3 `stockSheetSource` JSON round-trip'ini güncel base üzerinde tamamlamasını salt okunur izle.
-2. DOM-034: provenance kapsam özetini (kaynak/revizyon bulunan ve eksik gruplar) kullanıcı girdisini değiştirmeden hesapla.
-3. Desteklenmeyen aile/kesitli geometri blocker'larının export gate'e kayıpsız taşınmasını domain testleriyle doğrula.
-4. INT-002 / PERF-001 adapter/benchmark çalışmalarını yalnızca ilgili ajanın dosya sahipliği sınırında denetle.
-5. CNC/postprocessor tasarımını gerçek makine standardı ve operatör güvenliği girdileri mevcut olduğunda başlat.
+## DOM-034 — Kesim planı provenance kapsam özeti
+
+**Kullanıcı akışı:** kullanıcı kayıtlı proje kesim planında hangi malzeme/kalınlık gruplarının kaynak kimliği ve revizyon bilgisi taşıdığını, hangilerinin eksik olduğunu görür. Özet, kayıtlı JSON'u veya kullanıcı girdilerini değiştirmez.
+
+**Dikey dilim:** `summarizeProjectSheetCutPlanProvenance(savedPlanJson)` strict v1/v2/v3 parser'ını kullanır; her grubu proje sırasıyla `provided` / `missing` olarak sınıflandırır ve toplam kapsam sayaçlarını üretir.
+
+**Kabul kriterleri:**
+- v1/v2 planlarda provenance bulunmadığı açıkça sayılır; mevcut dosya biçimleri değişmez.
+- v3 planlarda her grubun `sourceId + revision` çifti korunur; eksik gruplar ayrı sayılır.
+- Empty plan empty ve sıfır kapsamla kalır.
+- Bozuk/uyumsuz JSON blocked, sıfır sayaç ve boş grup listesi döndürür; kısmi özet yoktur.
+- Kaynak/revizyon varlığı yalnızca metadata varlığıdır; tedarikçi, katalog, fiziksel levha, sertifika veya makine standardı doğrulaması iddiası taşımaz.
+- Yeni domain testi ve shared-domain strict TypeScript kontrolü CI/QA içinde çalışır.
+
+**UI sözleşmesi:** grup sırası, `groupId`, `materialId`, `thicknessMm`, `sourcePartIds`, provided/missing durumu ve varsa kullanıcı `sourceId/revision` değerleri korunmalıdır. Blocked durumda kısmi grup özeti gösterilmemelidir. Bu domain teslimatı frontend dosyalarını değiştirmez.
+
+### DOM-034 sonrası sıradaki 5 küçük görev
+1. INT-001 / PR #61: frontend sahibinin güncel base üzerinde domain raporu, freshness-gated JSON export ve v3 metadata round-trip entegrasyonunu salt okunur izle.
+2. DOM-035: desteklenmeyen aile ve kesitli geometri blocker'larının proje export kapısına kayıpsız taşındığını doğrula; kısmi JSON üretimini regresyon testleriyle engelle.
+3. INT-002 / PERF-001: adapter round-trip ve benchmark çalışmalarını yalnızca ilgili ajanın sahiplik sınırında denetle.
+4. Desteklenen mobilya aileleri için malzeme/kalınlık override ve parça ağacı kapsamını küçük domain dilimleriyle genişlet.
+5. CNC/postprocessor tasarımını gerçek makine standardı ve operatör güvenliği girdileri olmadan üretim çıktısına dönüştürme.
+

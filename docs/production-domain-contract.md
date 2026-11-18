@@ -750,3 +750,15 @@ Alan: `groups[].stockSheetSource = { sourceId, revision }`.
 - Metadata fiziksel levha ölçüsünü/kalitesini veya tedarik zincirini kanıtlamaz; fiziksel atölye doğrulaması gerekir.
 
 Frontend entegrasyon notu: v3 arayüzü `stockSheetSource` alanını grup bazında opsiyonel form girdisi olarak taşımalı ve JSON aç/kaydet sırasında korumalıdır. Kullanıcı vermediyse değer uydurulmamalı; CSV/CNC çıktısına destekleniyormuş gibi eklenmemelidir. Bu teslimat `frontend/**` ve adapter dosyalarına dokunmaz.
+
+## DOM-034 — Kesim planı provenance kapsam özeti
+
+Kaynak: `domain/production/projectSheetCutPlanProvenanceSummary.ts`  
+API: `summarizeProjectSheetCutPlanProvenance(savedPlanJson)`.
+
+- Girdi, `parseProjectSheetCutPlanJson` strict parser'ından geçirilir; JSON v1/v2/v3 aynı grup doğrulama kurallarını kullanır.
+- Ready/empty sonuç her grubu proje sırasıyla `groupId`, `materialId`, `thicknessMm`, `sourcePartIds`, `provenanceStatus` ve opsiyonel `stockSheetSource` bilgisiyle özetler.
+- `groupsWithProvenance` ve `groupsMissingProvenance` yalnızca `sourceId + revision` alanlarının birlikte bulunmasını sayar. v1/v2 planlarda tüm gruplar eksik; v3 planlarda provenance bulunmayan gruplar eksik olarak görünür.
+- Empty plan empty ve sıfır grup/sayaçla kalır. Bozuk/uyumsuz JSON blocked döner; sayaçlar sıfır, grup listesi boş ve tanılar doludur. Kısmi özet üretilmez.
+- Özet kullanıcı girdisini değiştirmez ve kaynak/revizyon değerlerinin tedarikçi, katalog, fiziksel levha, sertifika veya makine standardı tarafından doğrulandığını iddia etmez.
+- Frontend sözleşmesi: kapsam sayaçlarını ve grup bazlı provided/missing durumunu gösterebilir; blocked durumda kısmi satır gösterilmemeli, tanılar sunulmalıdır. Bu domain dilimi `frontend/**` ve adapter dosyalarına dokunmaz.
