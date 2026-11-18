@@ -1145,13 +1145,15 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 4. INT-002 / QA-003: entegrasyon/performance agent'ın adapter round-trip ve geometri/adet sadakati testlerini ayrı PR'da tamamlamasından sonra denetle; adapter/test dosyalarına dokunma.
 5. CNC operasyon modeli: makine bağımsız operasyon semantiği, operatör onayı ve gerçek üretici standardı gereksinimlerini tanımla; doğrulanmamış G-code/postprocessor üretme.
 
-## 18 Kasım 2026 15:22 TRT — DOM-031 tam proje Part snapshot'ı (uygulama, Actions bekleniyor)
+## 18 Kasım 2026 15:22 TRT — DOM-031 tam proje Part snapshot'ı (tamamlandı)
 
 **Kullanıcı akışı:** kullanıcı bir malzeme/kalınlık grubunu levha kesim planına seçtiğinde, kaydedilen dosya yalnızca yerleşen parçaları değil aynı üretim raporundaki bütün proje Part kayıtlarını da izler. Sonradan seçilmemiş bir parçanın eklenmesi, silinmesi, sırası veya alanlarının değişmesi; ya da kullanıcının farklı Part seçmesi eski planı hazır bırakmaz.
 
 **Dikey dilim:** tüm Part kayıtları kanonik JSON snapshot'ında saklanır; çoklu grup plan dosyası v2'ye yükselir; parser v1 dosyalarını okumaya devam eder. v2 freshness doğrulaması güncel seçim listesini zorunlu alır ve tam proje snapshot'ını karşılaştırır.
 
 **Kabul kriterleri:** seçili + hariç Part ID kümeleri snapshot ile tam eşleşmeli; v2 round-trip tüm kayıtları korumalı; v1 biçimi değişmeden parse edilmeli; Part ekleme/silme/değişim/sıra ve seçim kapsamı değişikliği `stale`, güncel seçim girdisi eksikliği `blocked` ve her ikisinde `result/json: null` olmalı.
+
+**Doğrulama:** [commit d88d2c86](https://github.com/Taylan789/MobilyaCAD/commit/d88d2c865a8cbef9e778cd51bdec611f7ad8e912); [CI #44304935436](https://github.com/Taylan789/MobilyaCAD/actions/runs/44304935436), [QA #44304935049](https://github.com/Taylan789/MobilyaCAD/actions/runs/44304935049) — 102/102 frontend + 367/367 domain testi, 0 başarısız; strict TypeScript, lint, production build ve production dependency audit başarılı; [Pages #44304934560](https://github.com/Taylan789/MobilyaCAD/actions/runs/44304934560) başarılı.
 
 **Sınırlar:** snapshot canonical JSON karşılaştırmasıdır, kriptografik imza değildir. Makine bağımsız dikdörtgen plan; CNC, kesim sırası/yolu, fire/yield veya fiziksel üretim onayı değildir.
 
