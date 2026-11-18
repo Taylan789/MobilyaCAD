@@ -1154,11 +1154,7 @@ function App() {
                   <input id="atelier-open-project" type="file" accept=".json,application/json" hidden onChange={(event) => { void loadProject(event).then((loaded) => { if (loaded) startWorkspace(); }); }} />
                 </div>
               </div>
-              <div className="atelier-feature-art" aria-label="Parametrik mobilya tasarım illüstrasyonu">
-                <div className="atelier-art-grid"></div><div className="atelier-art-index">FIG. 001 — MODULAR SYSTEM</div>
-                <div className="atelier-art-cube"><div className="atelier-cube-top"></div><div className="atelier-cube-front"></div><div className="atelier-cube-side"></div><span className="atelier-dim atelier-dim-x">1200</span><span className="atelier-dim atelier-dim-y">740</span><span className="atelier-dim atelier-dim-z">18</span></div>
-                <div className="atelier-art-caption"><b>01 / MODÜLER TASARIM</b><span>ÖLÇÜ · MALZEME · MONTAJ</span></div>
-              </div>
+
             </section>
             <section className="atelier-section atelier-start-section" id="templates">
               <div className="atelier-section-heading"><div><span className="atelier-eyebrow">BAŞLANGIÇ NOKTASI</span><h2>Ne tasarlıyoruz?</h2></div><span className="atelier-section-note">Bir çalışma türü seçerek başla</span></div>
@@ -1170,7 +1166,6 @@ function App() {
             </section>
             <section className="atelier-bottom-row">
               <div className="atelier-recent" id="recent"><div className="atelier-section-heading"><div><span className="atelier-eyebrow">ÇALIŞMALARIN</span><h2>Son projeler</h2></div><button onClick={() => startNewProject()}>Yeni proje ↗</button></div><button className="atelier-empty-project" onClick={() => startNewProject()}><span className="atelier-empty-plus">＋</span><span><b>İlk projen burada başlayacak</b><small>Yeni bir tasarım alanı oluştur ve çalışmaya başla.</small></span><span className="atelier-empty-arrow">→</span></button></div>
-              <aside className="atelier-tip"><span className="atelier-eyebrow">STÜDYO NOTU / 01</span><b>Önce geometri.<br/>Sonra üretim.</b><p>MobilyaCAD'de tasarladığın her parça, üretim verisinin bir parçası olarak yaşar.</p><span className="atelier-tip-mark">M / CAD</span></aside>
             </section>
           </main>
           <footer className="atelier-home-footer"><span>MOBİLYACAD STUDIO <b>·</b> TASARIM VE ÜRETİM ORTAMI</span><span>PARAMETRİK DÜŞÜN. ÖZGÜRCE TASARLA.</span></footer>
