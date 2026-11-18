@@ -268,6 +268,49 @@ test("JSON v2 tam proje Part snapshot'ını round-trip korur ve eksik snapshot'�
   assert.equal(parseProjectSheetCutPlanJson(JSON.stringify(legacyWithV2Field)).status, "blocked");
 });
 
+test("JSON v3 kullanıcı girdili levha kaynağı kimliği ve revizyonunu round-trip korur; v1/v2 biçimlerini ayırır", () => {
+  const plan = makeCutPlan({ id: "part-mdf", materialId: "mdf-18" });
+  const stockSheetSource = {
+    sourceId: "stock-catalog:mdf-18:1200x1000",
+    revision: "atelier-2026-11-18-r2"
+  };
+  const value = {
+    schemaVersion: 1,
+    sourcePartIds: ["part-mdf"],
+    groups: [group(plan, { stockSheetSource })],
+    projectPartSnapshot: {
+      schemaVersion: 1,
+      parts: [{ id: "part-mdf", snapshot: '{"id":"part-mdf","materialId":"mdf-18"}' }]
+    }
+  };
+  const serialized = serializeProjectSheetCutPlanJson(report(value));
+  assert.equal(serialized.status, "ready");
+  assert.ok(serialized.json);
+  const envelope = JSON.parse(serialized.json);
+  assert.equal(envelope.formatVersion, 3);
+  const parsed = parseProjectSheetCutPlanJson(serialized.json);
+  assert.equal(parsed.status, "ready");
+  assert.deepEqual(parsed.result, value);
+  assert.deepEqual(parsed.result?.groups[0]?.stockSheetSource, stockSheetSource);
+
+  const versionTwoWithProvenance = structuredClone(envelope);
+  versionTwoWithProvenance.formatVersion = 2;
+  assert.equal(parseProjectSheetCutPlanJson(JSON.stringify(versionTwoWithProvenance)).status, "blocked");
+  const versionThreeWithoutProvenance = structuredClone(envelope);
+  delete versionThreeWithoutProvenance.result.groups[0].stockSheetSource;
+  assert.equal(parseProjectSheetCutPlanJson(JSON.stringify(versionThreeWithoutProvenance)).status, "blocked");
+
+  const missingSnapshot = structuredClone(value);
+  delete missingSnapshot.projectPartSnapshot;
+  assertBlocked(report(missingSnapshot), /tam proje Part snapshot/);
+  const invalidSource = structuredClone(value);
+  invalidSource.groups[0].stockSheetSource.sourceId = " ";
+  assertBlocked(report(invalidSource), /levha kaynağı kimliği/);
+  const unknownSourceField = structuredClone(value);
+  unknownSourceField.groups[0].stockSheetSource.supplierName = "tahmin edilmemeli";
+  assertBlocked(report(unknownSourceField), /desteklenmeyen alan/);
+});
+
 test("blocked rapor JSON üretmez ve serializer bilinmeyen rapor alanlarını reddeder", () => {
   const blockedReport = {
     schemaVersion: 1,

@@ -734,3 +734,19 @@ API: createFreshProjectSheetCutPlanExport({ schemaVersion: 1, freshness }).
 - Yalnızca status ready ve freshnessStatus fresh sonucu result ve JSON verir. stale/blocked her durumda result null, json null döner; kısmi dışa aktarım yoktur.
 - Bu kapı plan koordinatlarını yeniden hesaplamaz. Snapshot canonical JSON eşitliğidir, kriptografik imza değildir. JSON CNC, kesim sırası/yolu, fire/yield veya makine standardı iddiası taşımaz.
 - Frontend entegrasyonu ready/json çıktısını indirebilir; blocked durumunda tanılar gösterilir ve JSON indirme kapalı kalır. Bu teslimat hiçbir frontend/** veya adapter dosyasını değiştirmez.
+
+
+## DOM-033 — Levha kaynağı/revizyon provenance metadata'sı (JSON v3)
+
+Kaynak: `domain/production/projectSheetCutPlanFile.ts`  
+API: `serializeProjectSheetCutPlanJson` / `parseProjectSheetCutPlanJson`  
+Alan: `groups[].stockSheetSource = { sourceId, revision }`.
+
+- Metadata her malzeme/kalınlık grubunda opsiyoneldir; kullanılıyorsa `sourceId` ve `revision` birlikte, boş olmayan ve kenar boşluğu içermeyen metin olmalıdır. Bilinmeyen alanlar reddedilir.
+- Değerler kullanıcı/atölye tarafından sağlanır. Otomatik tedarikçi, levha kataloğu, fiyat, stok, sertifika veya üretici standardı doğrulaması yapılmaz; varsayılan kimlik/revizyon üretilmez.
+- En az bir grupta provenance varsa ve tam `projectPartSnapshot` mevcutsa serializer JSON `formatVersion: 3` üretir. v3 tam proje snapshot'ı ve en az bir provenance kaydı gerektirir; diğer gruplarda metadata bulunmayabilir.
+- v1 ve v2 biçimleri değişmeden parse edilir. v1 snapshot/provenance taşıyamaz; v2 tam snapshot taşır fakat provenance alanı taşıyamaz.
+- Freshness v3'ü v2 ile aynı tam proje snapshot kurallarıyla kontrol eder; export kapısı fresh v2/v3 dosyasını kabul eder ve metadata'yı JSON'da korur. stale/blocked durumda JSON null kalır.
+- Metadata fiziksel levha ölçüsünü/kalitesini veya tedarik zincirini kanıtlamaz; fiziksel atölye doğrulaması gerekir.
+
+Frontend entegrasyon notu: v3 arayüzü `stockSheetSource` alanını grup bazında opsiyonel form girdisi olarak taşımalı ve JSON aç/kaydet sırasında korumalıdır. Kullanıcı vermediyse değer uydurulmamalı; CSV/CNC çıktısına destekleniyormuş gibi eklenmemelidir. Bu teslimat `frontend/**` ve adapter dosyalarına dokunmaz.

@@ -106,6 +106,23 @@ test("fresh JSON v2 ve canExport raporu tam eşleştiğinde tek export kapısı 
   assert.deepEqual(result.diagnostics, []);
 });
 
+test("fresh JSON v3 kullanıcı girdili levha kaynağı provenance bilgisini export boyunca korur", () => {
+  const parts = [part("part-1")];
+  const envelope = JSON.parse(savedPlan(parts, ["part-1"]));
+  const stockSheetSource = {
+    sourceId: "atelier-stock-sheet-18",
+    revision: "revision-2026-11-18-b"
+  };
+  envelope.formatVersion = 3;
+  envelope.result.groups[0].stockSheetSource = stockSheetSource;
+  const json = JSON.stringify(envelope);
+  const result = createFreshProjectSheetCutPlanExport(request(json, parts, ["part-1"]));
+  assert.equal(result.status, "ready");
+  assert.equal(result.freshnessStatus, "fresh");
+  assert.equal(result.json, json);
+  assert.deepEqual(result.result.groups[0]?.stockSheetSource, stockSheetSource);
+});
+
 test("seçilmemiş Part alanı değiştiğinde export stale olur ve JSON üretmez", () => {
   const original = [
     part("part-1"),

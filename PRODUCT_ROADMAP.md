@@ -19,7 +19,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 | Parçalar | Görsel kapak/çekmece/raf parçaları; domain gövde, çekmece kutusu, kitaplık, masa, gardırop ve TV ünitesi Part listesi; dikdörtgen iç açıklıklar opsiyonel `ProjectProductionPart.panelGeometry` alanıyla taşınır; banyo dolabı v1 üst panelinde açık ölçülü çoklu dikdörtgen açıklıklar zorunludur | Kesitli Part JSON v1/CSV adapter entegrasyonu henüz ayrı frontend sahibince yapılmadı; diğer aileler, donanım ve CNC operasyonları eksik |
 | Hesap motoru | `cabinetConstruction`, `drawerBoxConstruction`, `bookshelfConstruction`, `tableConstruction`, `wardrobeConstruction`, `tvUnitConstruction` (floor-standing gövde, açık ölçülü raf ve dikey bölücü) ve `bathroom-vanity` (cabinet gövdesi + zorunlu açık ölçülü üst panel açıklığı) aile ayrımlı sürüm 1 proje agregatörü; ortak Part listesi quantity, malzeme, damar yönü ve kenar bantlamayı korur | Frontend adapter henüz domain agregatörünü çağırmıyor; duvar montajlı TV ünitesi/ayak-baza modelleri ve diğer aileler, üreticiye özel konstrüksiyonlar eksik |
 | Kesim listesi | Projedeki desteklenen düz mutfak gövdeleri ve tam tanımlı çekmece parçaları için tek Türkçe Excel uyumlu CSV; her satır kaynak mobilya adı/ID'si ve varsa katalog Malzeme ID değeriyle izlenir | Köşe/cihaz/evye konstrüksiyonları ve diğer aileler eksik |
-| Levha yerleşimi / kesim planı | Deterministik shelf yerleşimi, tek ve çoklu grup makine bağımsız kesim planı, batch→layout→atomik proje planı, kerf/çakışma doğrulaması, opsiyonel trim, JSON v1/v2 round-trip, tam Part snapshot freshness ve DOM-032 freshness-gated v2 export API'si | Fire/yield yüzdesi, kesim sırası/yolu ve CNC çıktısı yok |
+| Levha yerleşimi / kesim planı | Deterministik shelf yerleşimi, tek ve çoklu grup makine bağımsız kesim planı, batch→layout→atomik proje planı, kerf/çakışma doğrulaması, opsiyonel trim, JSON v1/v2/v3 round-trip, tam Part snapshot freshness, DOM-032 freshness-gated v2/v3 export API'si ve opsiyonel kullanıcı girdili levha kaynak/revizyon provenance | Fire/yield yüzdesi, kesim sırası/yolu ve CNC çıktısı yok |
 | Kenar bantlama / malzeme tüketimi | Domain malzeme özeti gövde, çekmece, kitaplık, masa, gardırop, TV bölücü/raf ve kesitli panellerin ortak Part listesinden quantity ağırlıklı net alan/hacim ve dış/iç kenar bantlamasını hesaplayabilir | Domain özeti henüz UI/JSON/CSV'ye bağlı değil; fire, levha verimi, kerf, bant kalınlığı ve rulo payı yok |
 | Malzeme kataloğu | UI CRUD; mobilya varsayılan materialId ve çekmece grubunda varsayılan + dört panel grubu override; domain gövde/kitaplık motorları altı gövde panel grubu için malzeme override'ını doğrular | Gövde panel override'ları henüz frontend JSON v1/CSV ve UI akışına bağlanmadı; fiyat, tedarikçi ve fire henüz yok |
 | Proje dosyası | Yerel JSON v1 indirme/yükleme; saf serializer/parser; round-trip ve eski v1 uyumluluk; mm, mobilya ve çekmece grubu katalog referansları ile dört çekmece panel kalınlığının doğrulanması | Şema migrasyonu, otomatik kayıt ve kurtarma yok |
@@ -1189,3 +1189,21 @@ Sınırlar: bu API JSON'u güncel tutarlılık bakımından doğrular; kesim yer
 
 
 DOM-032 doğrulaması: [commit fe720ce](https://github.com/Taylan789/MobilyaCAD/commit/fe720ce65b3d1710dfc0eab050a5ed01989c2217); [CI #44311591605](https://github.com/Taylan789/MobilyaCAD/actions/runs/44311591605), [QA #44311591631](https://github.com/Taylan789/MobilyaCAD/actions/runs/44311591631) — 102/102 frontend + 373/373 domain testi, strict TypeScript, lint, production build ve production audit başarılı; [Pages #44311591602](https://github.com/Taylan789/MobilyaCAD/actions/runs/44311591602) başarılı.
+
+ 
+## 18 Kasım 2026 17:43 TRT — DOM-033 levha kaynağı/revizyon provenance (kod teslimi, Actions bekleniyor)
+
+**Kullanıcı akışı:** atölye, her malzeme/kalınlık levha grubunun hangi kullanıcı/tedarikçi kaydı ve hangi revizyonla hazırlandığını kesim planına ekleyebilir. Bu bilgi zorunlu değildir; verilmediğinde sistem kimlik veya revizyon tahmin etmez.
+
+**Dikey dilim:** `groups[].stockSheetSource = { sourceId, revision }` opsiyonel domain alanı eklendi. En az bir grupta metadata varsa serializer, tam proje Part snapshot'ını koruyan JSON formatVersion 3 üretir. Parser v1/v2'yi olduğu gibi okumaya devam eder; v3 için snapshot ve en az bir provenance kaydı zorunludur. Freshness v3'ü tam snapshot ile doğrular; export gate fresh v2/v3 dosyalarını kabul eder.
+
+**Kabul kriterleri:** sourceId/revision birlikte ve boş olmayan metin; bilinmeyen alan reddi; v1/v2 geriye uyumluluğu; v3 freshness/export round-trip; stale/blocked durumda JSON null.
+
+**Sınırlar:** provenance fiziksel levha ölçüsünü/kalitesini veya tedarik zincirini kanıtlamaz. CNC, kesim sırası/yolu, fire/yield veya fiziksel üretim onayı değildir; atölye doğrulaması gerekir.
+
+### DOM-033 sonrası sıradaki küçük görevler
+1. INT-001 / PR #61: frontend sahibinin freshness-gated export kapısını ve v3 `stockSheetSource` JSON round-trip'ini güncel base üzerinde tamamlamasını salt okunur izle.
+2. DOM-034: provenance kapsam özetini (kaynak/revizyon bulunan ve eksik gruplar) kullanıcı girdisini değiştirmeden hesapla.
+3. Desteklenmeyen aile/kesitli geometri blocker'larının export gate'e kayıpsız taşınmasını domain testleriyle doğrula.
+4. INT-002 / PERF-001 adapter/benchmark çalışmalarını yalnızca ilgili ajanın dosya sahipliği sınırında denetle.
+5. CNC/postprocessor tasarımını gerçek makine standardı ve operatör güvenliği girdileri mevcut olduğunda başlat.

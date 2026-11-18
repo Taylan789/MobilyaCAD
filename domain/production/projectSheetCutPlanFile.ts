@@ -6,6 +6,13 @@ import {
   type SheetCutPlanReport
 } from "./sheetCutPlan.ts";
 
+export interface ProjectSheetCutPlanStockSheetSource {
+  /** User/atölye tarafından sağlanan levha kaynağı kimliği. */
+  sourceId: string;
+  /** Kaynak kaydının kullanıcı/atölye tarafından sağlanan revizyonu. */
+  revision: string;
+}
+
 export interface ProjectSheetCutPlanFileGroup {
   /** Stable key: JSON.stringify([materialId, normalizedThicknessTenthsMm]). */
   groupId: string;
@@ -14,6 +21,8 @@ export interface ProjectSheetCutPlanFileGroup {
   sourcePartIds: string[];
   /** A fully validated machine-independent plan; sheet indexes are local to this group. */
   cutPlan: SheetCutPlanResult;
+  /** Optional user-supplied provenance; it does not imply a catalog or supplier lookup. */
+  stockSheetSource?: ProjectSheetCutPlanStockSheetSource;
 }
 
 export interface ProjectSheetCutPlanFileResult {
@@ -21,7 +30,7 @@ export interface ProjectSheetCutPlanFileResult {
   /** Selected project Part IDs in their original project order. */
   sourcePartIds: string[];
   groups: ProjectSheetCutPlanFileGroup[];
-  /** Present in JSON formatVersion 2; absent in legacy v1 files. */
+  /** Present in JSON formatVersion 2 and 3; absent in legacy v1 files. */
   projectPartSnapshot?: ProjectPartSnapshot;
 }
 
@@ -93,7 +102,7 @@ function validateProjectSheetCutPlanFileResult(value: unknown): ProjectSheetCutP
       const rawGroup = record(result.groups[index], "Kesim planı grubunun " + (index + 1) + ". kaydı");
       closed(
         rawGroup,
-        ["groupId", "materialId", "thicknessMm", "sourcePartIds", "cutPlan"],
+        ["groupId", "materialId", "thicknessMm", "sourcePartIds", "cutPlan", "stockSheetSource"],
         "Kesim planı JSON grubu"
       );
 
@@ -105,6 +114,16 @@ function validateProjectSheetCutPlanFileResult(value: unknown): ProjectSheetCutP
       const groupPartIds = rawGroup.sourcePartIds.map((rawId, partIndex) =>
         identifier(rawId, groupId + " grubunun " + (partIndex + 1) + ". kaynak Part ID'si")
       );
+      const stockSheetSource = rawGroup.stockSheetSource === undefined
+        ? undefined
+        : (() => {
+            const source = record(rawGroup.stockSheetSource, groupId + " levha kaynağı bilgisi");
+            closed(source, ["sourceId", "revision"], "Levha kaynağı bilgisi");
+            return {
+              sourceId: identifier(source.sourceId, groupId + " levha kaynağı kimliği"),
+              revision: identifier(source.revision, groupId + " levha kaynağı revizyonu")
+            };
+          })();
       const rawPlan = record(rawGroup.cutPlan, groupId + " kesim planı");
 
       const parsedPlan: SheetCutPlanReport = parseSheetCutPlanJson(JSON.stringify({
@@ -121,7 +140,8 @@ function validateProjectSheetCutPlanFileResult(value: unknown): ProjectSheetCutP
         materialId,
         thicknessMm: rawGroup.thicknessMm as number,
         sourcePartIds: groupPartIds,
-        cutPlan: parsedPlan.result
+        cutPlan: parsedPlan.result,
+        ...(stockSheetSource === undefined ? {} : { stockSheetSource })
       });
       summaryGroups.push({
         materialId,
@@ -182,7 +202,8 @@ function validateProjectSheetCutPlanFileResult(value: unknown): ProjectSheetCutP
         materialId: verified.materialId,
         thicknessMm: verified.thicknessMm,
         sourcePartIds: verified.sourcePartIds,
-        cutPlan: group.cutPlan
+        cutPlan: group.cutPlan,
+        ...(group.stockSheetSource === undefined ? {} : { stockSheetSource: group.stockSheetSource })
       };
     });
 
@@ -212,17 +233,30 @@ export function parseProjectSheetCutPlanJson(value: unknown): ProjectSheetCutPla
     closed(envelope, ["format", "formatVersion", "result"], "Proje kesim planı JSON zarfı");
     if (
       envelope.format !== "MobilyaCADProjectSheetCutPlan" ||
-      (envelope.formatVersion !== 1 && envelope.formatVersion !== 2)
+      (envelope.formatVersion !== 1 && envelope.formatVersion !== 2 && envelope.formatVersion !== 3)
     ) {
       throw new Error("Desteklenmeyen proje kesim planı JSON formatı veya sürümü.");
     }
     const validated = validateProjectSheetCutPlanFileResult(envelope.result);
     if (validated.status === "blocked" || validated.result === null) return validated;
-    if (envelope.formatVersion === 2 && validated.result.projectPartSnapshot === undefined) {
-      throw new Error("Proje kesim planı JSON v2 tam proje Part snapshot'ı taşımalıdır.");
+    const hasStockSheetSource = validated.result.groups.some((group) => group.stockSheetSource !== undefined);
+    if (
+      (envelope.formatVersion === 2 || envelope.formatVersion === 3) &&
+      validated.result.projectPartSnapshot === undefined
+    ) {
+      throw new Error("Proje kesim planı JSON v2/v3 tam proje Part snapshot'ı taşımalıdır.");
     }
-    if (envelope.formatVersion === 1 && validated.result.projectPartSnapshot !== undefined) {
-      throw new Error("Proje kesim planı JSON v1 yeni snapshot alanını taşıyamaz.");
+    if (
+      envelope.formatVersion === 1 &&
+      (validated.result.projectPartSnapshot !== undefined || hasStockSheetSource)
+    ) {
+      throw new Error("Proje kesim planı JSON v1 snapshot veya levha kaynağı provenance alanı taşıyamaz.");
+    }
+    if (envelope.formatVersion === 2 && hasStockSheetSource) {
+      throw new Error("Proje kesim planı JSON v2 levha kaynağı provenance alanı taşıyamaz.");
+    }
+    if (envelope.formatVersion === 3 && !hasStockSheetSource) {
+      throw new Error("Proje kesim planı JSON v3 en az bir levha kaynağı provenance kaydı taşımalıdır.");
     }
     return validated;
   } catch (error) {
@@ -265,9 +299,16 @@ export function serializeProjectSheetCutPlanJson(value: unknown): ProjectSheetCu
       throw new Error("Proje kesim planı rapor durumu içerikle eşleşmiyor.");
     }
 
+    const hasStockSheetSource = validated.result.groups.some((group) => group.stockSheetSource !== undefined);
+    if (hasStockSheetSource && validated.result.projectPartSnapshot === undefined) {
+      throw new Error("Levha kaynağı provenance metadata'sı tam proje Part snapshot'ı gerektirir.");
+    }
+    const formatVersion = hasStockSheetSource
+      ? 3
+      : validated.result.projectPartSnapshot === undefined ? 1 : 2;
     const json = JSON.stringify({
       format: "MobilyaCADProjectSheetCutPlan",
-      formatVersion: validated.result.projectPartSnapshot === undefined ? 1 : 2,
+      formatVersion,
       result: validated.result
     });
     const roundTrip = parseProjectSheetCutPlanJson(json);

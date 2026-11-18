@@ -65,7 +65,7 @@ function blocked(
 }
 
 /**
- * The only ready-export gate for project cut-plan JSON v2.
+ * The only ready-export gate for project cut-plan JSON v2/v3.
  * It requires an explicitly exportable current production report, a fresh
  * full-project Part snapshot, the current selected Part IDs, and a v2 envelope.
  * Legacy v1 files remain readable through the parser but cannot pass this gate.
@@ -111,8 +111,11 @@ export function createFreshProjectSheetCutPlanExport(value: unknown): ProjectShe
     }
 
     const envelope = record(JSON.parse(freshness.json) as unknown, "Doğrulanmış proje kesim planı JSON zarfı");
-    if (envelope.format !== "MobilyaCADProjectSheetCutPlan" || envelope.formatVersion !== 2) {
-      throw new Error("Dışa aktarım yalnızca tam proje Part snapshot'ı içeren JSON formatVersion 2 planlarını kabul eder.");
+    if (
+      envelope.format !== "MobilyaCADProjectSheetCutPlan" ||
+      (envelope.formatVersion !== 2 && envelope.formatVersion !== 3)
+    ) {
+      throw new Error("Dışa aktarım yalnızca tam proje Part snapshot'ı içeren JSON formatVersion 2 veya 3 planlarını kabul eder.");
     }
     if (freshness.result.projectPartSnapshot === undefined) {
       throw new Error("Güncel kesim planı tam proje Part snapshot'ı taşımıyor.");
