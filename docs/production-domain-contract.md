@@ -595,7 +595,7 @@ Kaynak: `domain/production/sheetNestingLayout.ts`; API: `calculateSheetNestingLa
 - Girdi, `validateSheetNestingInput` veya `createProjectSheetNestingBatches` tarafından üretilmiş v1 batch sonucudur. Layout motoru girdiyi tekrar doğrular; `allowedRotationsDeg` güvenilir kabul edilmez, yeniden hesaplanır.
 - Çıktı `strategy: "deterministic-shelf-v1"` taşır. Parçalar en uzun kenar, kısa kenar, kaynak ID ve parça sıra numarasına göre kararlı sıralanır; mevcut sıralar, yeni sıra ve yeni levha sırasıyla değerlendirilir.
 - Koordinat başlangıcı levhanın sol üst köşesidir: X levha genişliği, Y levha uzunluğu yönünde mm cinsindedir. Placement kaynak Part ID, 1 tabanlı fiziksel parça numarası, yerleşmiş genişlik/uzunluk ve 0/90 derece dönüşü taşır.
-- Kerf yalnızca aynı sıradaki komşu parçalar ve ardışık sıralar arasında tüketilir. Trim/kenar payı girdisi olmadığı için levha kenarında ilave pay varsayılmaz. Dönüşler yalnızca doğrulanmış damar uyumlu yönlerden seçilir.
+- Kerf yalnızca aynı sıradaki komşu parçalar ve ardışık sıralar arasında tüketilir. Opsiyonel edgeTrimMm dört kenarı kullanıcı girdisi olarak alır; alan verilmezse legacy davranış korunur ve kenar payı uydurulmaz. Dönüşler yalnızca doğrulanmış damar uyumlu yönlerden seçilir.
 - Quantity fiziksel placement kayıtlarına açılır. Tek batch en fazla 50.000 fiziksel parçadır; üstü blocked olur. Hata veya tutarsızlıkta `result: null`; boş batch `empty` döner.
 - Bu algoritma deterministik raf (shelf) sezgisidir; küresel optimum, fire/yield, kesim sırası/yolu, CNC koordinatı veya makineye özel çıktı iddia etmez. Fiziksel kesim güvenliği operatör/atölye doğrulaması gerektirir.
 - Frontend: `ready` durumunda levha/placement koordinatlarını mm göster; `empty` boş durum, `blocked` ise tüm yerleşimi engelleyen tanılama olarak sunulmalıdır. `strategy` optimizasyon garantisi değildir.
@@ -610,7 +610,7 @@ API: createSheetCutPlan({ schemaVersion: 1, batch, layout })
 - Çıktı; kullanıcı levha stoğunu, açık kerf değerini, kaynak Part kimliği/ölçüsü/malzeme/kalınlık/quantity/damar yönünü ve her fiziksel placement için kaynak ID, parça numarası, 1 tabanlı levha indeksi, X/Y koordinatı, döndürülmüş ölçüler ve dönüş açısını korur.
 - Her placement kaynak Part ve quantity ile eşleşmeli; her fiziksel adet tam bir kez bulunmalı; ölçü/dönüş grain kısıtıyla uyumlu ve levha sınırları içinde olmalıdır. Sheet index kesintisiz, pieceCount placement adediyle eşit olmalıdır. Batch ile yerleşim raporunun stock sheet ve kerf değerleri aynı olmalıdır.
 - Herhangi bir hata, upstream blocked rapor veya eksik/çift adet tüm kesim planını blocked ve result=null yapar. Boş batch yalnızca boş levha/placement listesiyle empty döner.
-- Bu sözleşme makine bağımsız veri modelidir; kesim sırası, testere yolu, trim payı, fire/yield, ortak kesim hattı, CNC operasyonu, postprocessor, makine kodu veya üretim güvenliği iddiası taşımaz.
+- Bu sözleşme makine bağımsız veri modelidir; kesim sırası, testere yolu, fire/yield, ortak kesim hattı, CNC operasyonu, postprocessor, makine kodu veya üretim güvenliği iddiası taşımaz. Kullanıcı trim payı DOM-025 ile açıkça taşınır.
 - Bu dilimde kerf değeri batch'ten aynen korunur ve eşitliği doğrulanır; placement çiftleri arasındaki geometrik çakışma ve kerf mesafesinin bağımsız doğrulaması DOM-024 kapsamındadır. Fiziksel kesim güvenliği atölye doğrulaması gerektirir.
 - Frontend JSON v1/CSV adapter'ı ve tüm frontend/** dosyaları değişmemiştir. Gelecekteki entegrasyon, blocked tanıları göstermeli ve doğrulanmamış planı üretim emri/CNC çıktısı olarak sunmamalıdır.
 
@@ -626,3 +626,15 @@ Kaynak: `domain/production/sheetCutPlan.ts`.
 - `serializeSheetCutPlanJson(report)` yalnızca ready/empty planı tam geometri doğrulamasından sonra `MobilyaCADSheetCutPlan` / formatVersion 1 zarfında serileştirir; blocked rapor JSON üretmez.
 - `parseSheetCutPlanJson(json)` kapalı zarf/plan şemasını, kaynak adetleri, levha sınırını, dönüş/grain ilişkisini, kerf mesafesini ve bütün geometriyi yeniden doğrular. Round-trip sonucu aynı plan verisini korumalıdır.
 - JSON biçimi makine bağımsız veri taşıma biçimidir; kesim sırası, testere yolu, takım/koordinat sistemi, CNC G-code veya üretici standardı içermez. Fiziksel üretim öncesi levha/kerf ve atölye güvenliği operatör tarafından doğrulanmalıdır.
+
+## DOM-025 — Kullanıcı tanımlı levha kenar trim payları
+
+Kaynak: domain/production/sheetNestingLayout.ts ve domain/production/sheetCutPlan.ts.
+
+- calculateSheetNestingLayout({ ...validatedBatch, edgeTrimMm }) isteğinde edgeTrimMm, fiziksel levhanın sol/sağ/üst/alt kenarından ayrılacak payı mm cinsinden taşır. Dört alan da açıkça verilmelidir.
+- Her pay sonlu, sıfır veya pozitif ve 0.1 mm hassasiyetinde olmalıdır. Yatay/düşey toplam pay, levhada pozitif kullanılabilir genişlik ve uzunluk bırakmalıdır; aksi durumda tüm yerleşim blocked ve result: null olur.
+- Koordinat başlangıcı fiziksel levhanın sol üst köşesidir. Yerleşim sol/üst paydan başlar; sağ/alt sınırlar karşılık gelen kullanıcı payı kadar içeri alınır. Kerf davranışı ve damar uyumlu dönüşler değişmez.
+- Alan verilmezse eski v1 davranışı korunur: sıfır kenar payı uygulanır, herhangi bir güvenlik payı veya fire yüzdesi tahmin edilmez. Açıkça verilen sıfır değerleri de round-trip içinde korunur.
+- SheetNestingLayoutResult.edgeTrimMm ve SheetCutPlanResult.edgeTrimMm opsiyoneldir. Kesim planı JSON formatVersion 1'e eklenen alan geriye dönük uyumlu ve opsiyoneldir; parser trim geometrisini tekrar doğrular. Yerleşim trim sınırını ihlal ederse kesim planı blocked olur.
+- Bu model fire/yield yüzdesi, gerçek kesim kaybı, optimizasyon verimi veya CNC/makine standardı üretmez. Kullanıcı girdisi olmayan trim payı uydurulmaz; fiziksel kesim öncesi operatör/atölye doğrulaması gerekir.
+- Frontend entegrasyonu dört kenarı ayrı mm alanlarıyla isteğe bağlı toplamalı; net kullanılabilir dikdörtgeni ve fiziksel levha sınırını ayrı göstermeli, JSON round-trip'te alanı korumalı ve blocked tanısını görünür kılmalıdır.

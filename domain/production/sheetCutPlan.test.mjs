@@ -245,6 +245,37 @@ test("50.000 fiziksel placement geometri denetimi O(n²) çifti taramadan tamaml
   assert.equal(report.result?.sheets[0].placements.length, quantity);
 });
 
+test("kullanıcı trim payları kesim planı ve JSON round-trip içinde korunur", () => {
+  const input = batch({
+    sheet: { widthMm: 1000, lengthMm: 1000 },
+    kerfMm: 0,
+    part: { widthMm: 900, lengthMm: 900, quantity: 1 }
+  });
+  const edgeTrimMm = { left: 10, right: 20, top: 30, bottom: 40 };
+  const layout = calculateSheetNestingLayout({ ...input, edgeTrimMm });
+  const plan = makePlan(input, layout);
+  assert.equal(plan.status, "ready");
+  assert.deepEqual(plan.result?.edgeTrimMm, edgeTrimMm);
+  assert.deepEqual(
+    plan.result?.sheets[0].placements.map(({ xMm, yMm }) => [xMm, yMm]),
+    [[10, 30]]
+  );
+  const serialized = serializeSheetCutPlanJson(plan);
+  assert.equal(serialized.status, "ready");
+  assert.ok(serialized.json);
+  assert.deepEqual(parseSheetCutPlanJson(serialized.json), plan);
+
+  const outsideTrim = structuredClone(layout);
+  outsideTrim.result.sheets[0].placements[0].xMm = 0;
+  blocked({ schemaVersion: 1, batch: input, layout: outsideTrim }, /trim sınırlarının dışına taşıyor/);
+
+  const tamperedJson = JSON.parse(serialized.json);
+  tamperedJson.plan.edgeTrimMm.left = -1;
+  const invalidTrim = parseSheetCutPlanJson(JSON.stringify(tamperedJson));
+  assert.equal(invalidTrim.status, "blocked");
+  assert.match(invalidTrim.diagnostics.join(" "), /sıfır veya pozitif/);
+});
+
 test("kesim planı sürümlü JSON zarfına kayıpsız yazılır ve yeniden doğrulanır", () => {
   const original = makePlan(batch({ part: { quantity: 3 } }));
   const serialized = serializeSheetCutPlanJson(original);

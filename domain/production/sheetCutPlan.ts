@@ -1,4 +1,7 @@
-import { MAX_SHEET_NESTING_LAYOUT_PIECES } from "./sheetNestingLayout.ts";
+import {
+  MAX_SHEET_NESTING_LAYOUT_PIECES,
+  type SheetNestingEdgeTrimMm
+} from "./sheetNestingLayout.ts";
 import {
   validateSheetNestingInput,
   type SheetNestingBatchResult,
@@ -35,6 +38,7 @@ export interface SheetCutPlanResult {
   strategy: "deterministic-shelf-v1";
   stockSheet: SheetNestingBatchResult["sheet"];
   kerfMm: number;
+  edgeTrimMm?: SheetNestingEdgeTrimMm;
   sourceParts: SheetCutPlanSourcePart[];
   sheets: SheetCutPlanSheet[];
   totalPieceCount: number;
@@ -83,6 +87,25 @@ function addMm(a: number, b: number, label: string): number {
     throw new Error(label + " güvenli 0.1 mm koordinat aralığını aşıyor.");
   }
   return Math.round(scaled + Number.EPSILON * 10) / 10;
+}
+function normalizeEdgeTrimMm(
+  value: unknown,
+  stockSheet: SheetNestingBatchResult["sheet"]
+): SheetNestingEdgeTrimMm | undefined {
+  if (value === undefined) return undefined;
+  const trim = record(value, "Levha kenar trim payı");
+  closed(trim, ["left", "right", "top", "bottom"], "Levha kenar trim payı");
+  const left = mm(trim.left, "Sol trim payı", true);
+  const right = mm(trim.right, "Sağ trim payı", true);
+  const top = mm(trim.top, "Üst trim payı", true);
+  const bottom = mm(trim.bottom, "Alt trim payı", true);
+  if (addMm(left, right, "Yatay trim toplamı") >= stockSheet.widthMm) {
+    throw new Error("Sol/sağ trim payları levhada pozitif kullanılabilir genişlik bırakmalıdır.");
+  }
+  if (addMm(top, bottom, "Düşey trim toplamı") >= stockSheet.lengthMm) {
+    throw new Error("Üst/alt trim payları levhada pozitif kullanılabilir uzunluk bırakmalıdır.");
+  }
+  return { left, right, top, bottom };
 }
 function fail(error: unknown): SheetCutPlanReport {
   return {
@@ -338,7 +361,9 @@ export function createSheetCutPlan(value: unknown): SheetCutPlanReport {
     }
 
     const layout = record(report.result, "Levha yerleşim sonucu");
-    closed(layout, ["schemaVersion", "strategy", "sheet", "kerfMm", "sheets", "totalPieceCount"], "Levha yerleşim sonucu");
+    closed(layout, [
+      "schemaVersion", "strategy", "sheet", "kerfMm", "edgeTrimMm", "sheets", "totalPieceCount"
+    ], "Levha yerleşim sonucu");
     if (layout.schemaVersion !== 1 || layout.strategy !== "deterministic-shelf-v1") {
       throw new Error("Desteklenmeyen levha yerleşim sonucu sürümü veya stratejisi.");
     }
@@ -351,6 +376,11 @@ export function createSheetCutPlan(value: unknown): SheetCutPlanReport {
     }
     const kerfMm = mm(layout.kerfMm, "Yerleşim kerf değeri", true);
     if (kerfMm !== batch.kerfMm) throw new Error("Yerleşim kerf değeri doğrulanmış batch ile eşleşmiyor.");
+    const edgeTrimMm = normalizeEdgeTrimMm(layout.edgeTrimMm, batch.sheet);
+    const leftBoundaryMm = edgeTrimMm?.left ?? 0;
+    const topBoundaryMm = edgeTrimMm?.top ?? 0;
+    const rightBoundaryMm = batch.sheet.widthMm - (edgeTrimMm?.right ?? 0);
+    const bottomBoundaryMm = batch.sheet.lengthMm - (edgeTrimMm?.bottom ?? 0);
     if (
       typeof layout.totalPieceCount !== "number" ||
       !Number.isSafeInteger(layout.totalPieceCount) ||
@@ -415,9 +445,10 @@ export function createSheetCutPlan(value: unknown): SheetCutPlanReport {
           throw new Error(sourcePartId + " placement ölçüleri kaynak Part ve dönüş ile eşleşmiyor.");
         }
         if (
-          addMm(xMm, widthMm, sourcePartId + " sağ sınırı") > batch.sheet.widthMm ||
-          addMm(yMm, lengthMm, sourcePartId + " alt sınırı") > batch.sheet.lengthMm
-        ) throw new Error(sourcePartId + " placement kullanıcı levhası sınırlarının dışına taşıyor.");
+          xMm < leftBoundaryMm || yMm < topBoundaryMm ||
+          addMm(xMm, widthMm, sourcePartId + " sağ sınırı") > rightBoundaryMm ||
+          addMm(yMm, lengthMm, sourcePartId + " alt sınırı") > bottomBoundaryMm
+        ) throw new Error(sourcePartId + " placement kullanıcı levhası veya tanımlı trim sınırlarının dışına taşıyor.");
 
         placementCount += 1;
         return { sourcePartId, pieceNumber: item.pieceNumber, sheetIndex: index, xMm, yMm, widthMm, lengthMm, rotationDeg };
@@ -442,6 +473,7 @@ export function createSheetCutPlan(value: unknown): SheetCutPlanReport {
       strategy: "deterministic-shelf-v1",
       stockSheet: { ...batch.sheet },
       kerfMm: batch.kerfMm,
+      ...(edgeTrimMm === undefined ? {} : { edgeTrimMm: { ...edgeTrimMm } }),
       sourceParts: batch.parts.map((part) => ({
         id: part.id, materialId: part.materialId, widthMm: part.widthMm,
         lengthMm: part.lengthMm, thicknessMm: part.thicknessMm,
@@ -469,7 +501,7 @@ function validateSheetCutPlanResult(value: unknown): SheetCutPlanReport {
   const plan = record(value, "Kesim planı JSON içeriği");
   closed(
     plan,
-    ["schemaVersion", "strategy", "stockSheet", "kerfMm", "sourceParts", "sheets", "totalPieceCount"],
+    ["schemaVersion", "strategy", "stockSheet", "kerfMm", "edgeTrimMm", "sourceParts", "sheets", "totalPieceCount"],
     "Kesim planı JSON içeriği"
   );
   if (plan.schemaVersion !== 1 || plan.strategy !== "deterministic-shelf-v1") {
@@ -553,6 +585,7 @@ function validateSheetCutPlanResult(value: unknown): SheetCutPlanReport {
         strategy: plan.strategy,
         sheet: plan.stockSheet,
         kerfMm: plan.kerfMm,
+        ...(plan.edgeTrimMm === undefined ? {} : { edgeTrimMm: plan.edgeTrimMm }),
         sheets,
         totalPieceCount
       }

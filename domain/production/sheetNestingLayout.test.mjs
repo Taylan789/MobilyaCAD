@@ -126,6 +126,52 @@ test("trim payı tanımlanmadığında levha kenarına ek boşluk uydurmaz", () 
   }));
   assert.equal(r.status, "ready");
   assert.deepEqual(r.result?.sheets[0].placements.map(({ xMm, yMm }) => [xMm, yMm]), [[0, 0]]);
+  assert.equal("edgeTrimMm" in (r.result ?? {}), false);
+});
+
+test("kullanıcı tanımlı dört kenar trim payı fiziksel levha koordinatlarına uygulanır", () => {
+  const input = batch({
+    sheet: { widthMm: 1000, lengthMm: 1000 },
+    kerfMm: 0,
+    part: { widthMm: 900, lengthMm: 900 }
+  });
+  const edgeTrimMm = { left: 10, right: 20, top: 30, bottom: 40 };
+  const report = calculateSheetNestingLayout({ ...input, edgeTrimMm });
+  assert.equal(report.status, "ready");
+  assert.deepEqual(report.result?.edgeTrimMm, edgeTrimMm);
+  assert.deepEqual(
+    report.result?.sheets[0].placements.map(({ xMm, yMm }) => [xMm, yMm]),
+    [[10, 30]]
+  );
+  const placement = report.result?.sheets[0].placements[0];
+  assert.ok(placement);
+  assert.ok(placement.xMm + placement.widthMm <= 980);
+  assert.ok(placement.yMm + placement.lengthMm <= 960);
+});
+
+test("yeni nesting sırası da sol trim payından başlar", () => {
+  const input = batch({
+    sheet: { widthMm: 1000, lengthMm: 900 },
+    kerfMm: 0,
+    part: { widthMm: 900, lengthMm: 400, quantity: 2 }
+  });
+  const report = calculateSheetNestingLayout({
+    ...input,
+    edgeTrimMm: { left: 10, right: 10, top: 20, bottom: 20 }
+  });
+  assert.equal(report.status, "ready");
+  assert.deepEqual(
+    report.result?.sheets[0].placements.map(({ xMm, yMm }) => [xMm, yMm]),
+    [[10, 20], [10, 420]]
+  );
+});
+
+test("geçersiz veya kullanılabilir alan bırakmayan trim payları yerleşimi engeller", () => {
+  const input = batch({ sheet: { widthMm: 1000, lengthMm: 1000 } });
+  blocked({ ...input, edgeTrimMm: { left: -1, right: 0, top: 0, bottom: 0 } }, /sıfır veya pozitif/);
+  blocked({ ...input, edgeTrimMm: { left: 0.05, right: 0, top: 0, bottom: 0 } }, /0.1 mm hassasiyetinde/);
+  blocked({ ...input, edgeTrimMm: { left: 500, right: 500, top: 0, bottom: 0 } }, /pozitif kullanılabilir genişlik/);
+  blocked({ ...input, edgeTrimMm: { left: 0, right: 0, top: 500, bottom: 500 } }, /pozitif kullanılabilir uzunluk/);
 });
 
 test("boş batch empty döner ve levha oluşturmaz", () => {
