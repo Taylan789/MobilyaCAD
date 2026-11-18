@@ -388,6 +388,14 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 
 ### Sıradaki 3-5 küçük görev
 
-1. DOM-041: özel raf/bölücü Part satırlarının malzeme tüketimi ve kalınlık duyarlı teklif özetine katkısını gerçek aile agregatörü üzerinden doğrula.
+1. DOM-041: özel raf/bölücü malzeme tüketimi ve kalınlık duyarlı teklif testi — IN PROGRESS, CI/QA bekleniyor.
 2. DOM-042: kayıtlı kesim planında özel raf/bölücü malzeme, kalınlık veya yerleşim değişikliğinin freshness sonucunu stale yaptığını test et.
 3. DOM-043: diğer aileye özgü özel Part alanlarının snapshot kapsamını incele; yalnızca ölçülebilir veri kaybı riski varsa yeni dilim aç.
+
+
+## 19 Kasım 2026 01:43 TRT — DOM-041 özel Part tüketimi ve teklif testi (Actions bekleniyor)
+
+- Yeni domain regresyon testi: `domain/production/projectSpecialPartPricing.test.mjs`. Gardırop ve TV ünitesi özel raf/bölücü Part satırlarını gerçek proje agregatöründen üretir; tüm üretim Part satırlarının malzeme/kalınlık/quantity/net alan toplamını bağımsız fixture hesabıyla karşılaştırır.
+- Test, 18 mm ve 8 mm katalog malzemelerini ayrı fiyatlandırır; hazır tüketim özeti yanında birleşik teklif satır kaynaklarını da doğrular. 8 mm özel raf fiyatı eksikse her iki katman `incomplete` ve `costSummary: null` döndürür.
+- Runtime üretim kodu değiştirilmedi; frontend/adapter, fiyat kataloğu, gerçek fiyat, CNC veya fiziksel üretim varsayımı eklenmedi.
+- İlk kod/test commit SHA ve Actions sonuçları AI_PROGRESS.md içinde kapanışta kaydedilecek.

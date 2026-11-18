@@ -825,3 +825,16 @@ Kaynaklar: `domain/production/wardrobeConstruction.ts`, `domain/production/tvUni
 - `createProjectPartSnapshot` tüm Part nesnesini canonical JSON olarak saklar. Proje kesim planı JSON v2/v3 `projectPartSnapshot` tam proje listesini içerir; nesting seçiminden hariç tutulan özel bölücüler de snapshot kapsamındadır.
 - `domain/production/projectSpecialPartSnapshot.test.mjs` gerçek proje üretim agregatöründen iki aileyi hesaplar, yalnızca özel rafları nesting'e seçer, JSON v2 planını serialize/parse eder ve hem seçili rafların hem hariç bölücülerin malzeme, kalınlık, adet, damar, kenar bantlama ve yerleşim alanlarını karşılaştırır.
 - Bu dilim generic snapshot runtime kodunu değiştirmez; test, mevcut veri sözleşmesinin aileye özgü alanları kaybetmemesini güvence altına alır. Snapshot kriptografik imza değildir ve CNC/atölye fiziksel doğrulaması sağlamaz.
+
+
+## DOM-041 — gardırop/TV özel Part tüketimi ve kalınlık duyarlı teklif doğrulaması
+
+Kaynak test: `domain/production/projectSpecialPartPricing.test.mjs`.
+
+- Test, `calculateCabinetProjectProductionWithDiagnostics` üzerinden gerçek gardırop ve floor-standing TV ünitesi konstrüksiyonlarını hesaplar; doğrudan fixture Part listesi üretmez.
+- Özel raflar (`wardrobe-1-shelf-lower`, `tv-1-shelf-middle`) ve dikey bölücüler (`wardrobe-1-vertical-divider-center`, `tv-1-vertical-divider-center`) aynı proje `result.parts` listesinde kalır. Test tüm Part satırlarından bağımsız beklenen `materialId + material + thickness` gruplarını ve quantity ağırlıklı net alanı hesaplayıp `calculateProjectMaterialConsumptionSummary` ile karşılaştırır.
+- 18 mm MDF ve 8 mm MDF aynı projede ayrı malzeme tüketim/fiyat satırlarıdır. `calculateProjectPricedConsumptionSummary` yalnızca `materialId + m2 + thicknessMm` fiyat anahtarını kullanır; özel parça kalınlığı fiyat açıklamasına ve satır miktarına yansır.
+- Aynı kullanıcı girdili fiyat tablosu `calculateProjectQuoteSummary(report, prices, [], [])` üzerinden birleşik teklif katmanına da bağlanır; hazır durumda tüm tüketim satırlarının kaynak eşlemesi korunur.
+- 8 mm özel rafın fiyatı kaldırıldığında tüketim fiyatlandırması ve birleşik teklif `incomplete` döner; eksik `mdf-8 / 8 mm` satırı görünür, `costSummary: null` kalır ve kısmi toplam sunulmaz.
+- Özel raf/bölücü kenar bantları yalnızca test fixture'ında açık `edgeBandingAssignments` ve `pvc-white-1 / m` fiyatıyla karşılanır. Bu fiyatlar gerçek piyasa/tedarikçi fiyatı değildir; ürün varsayılanı veya kullanıcı kataloğu olarak kullanılmaz.
+- Testteki fiyat/ölçü girdileri deterministik kabul fixture'larıdır. Fire, vergi, kur, levha verimi, CNC, makine standardı veya fiziksel üretim uygunluğu iddiası yoktur. Runtime üretim hesap motoru değiştirilmez.

@@ -1319,3 +1319,16 @@
 - Bilinen sınırlar: generic canonical snapshot mevcut tüm JSON alanlarını saklıyor; bu teslimat runtime kodu değiştirmedi, aileye özgü alan sadakatini gerçek üretim agregatörüyle otomatik test altına aldı. Snapshot kriptografik imza değildir; nesting testi CNC/makine standardı veya fiziksel üretim onayı sağlamaz.
 - AI Developer/Entegrasyon-Performans run [#44374039856](https://github.com/Taylan789/MobilyaCAD/actions/runs/44374039856) OpenRouter `free-models-per-day` 429 nedeniyle başarısız; reset 19 Kasım 2026 03:00 TRT. Kota resetlenmeden rerun yapılmadı; secrets, kredi veya servis ayarı değiştirilmedi.
 - Sonraki görev: DOM-041 — özel raf/bölücü Part satırlarını malzeme tüketimi ve kalınlık duyarlı teklif özetine gerçek aile agregatörü üzerinden bağlayarak doğrula.
+
+
+## 19 Kasım 2026 01:43 TRT — DOM-041 özel Part tüketimi ve teklif testi (Actions bekleniyor)
+
+- Başlangıç HEAD: `831d65e28007ad810a86f25efac7068d3ad50a82`.
+- Bu committe yeni kabul testi `domain/production/projectSpecialPartPricing.test.mjs` eklendi; üretim domain runtime dosyaları değiştirilmedi.
+- Gerçek `calculateCabinetProjectProductionWithDiagnostics` gardırop + floor-standing TV ünitesi istekleriyle çalıştırılır. Dört özel raf/bölücü Part satırının materialId, gerçek mm kalınlık ve quantity değerleri korunur; tüm Part listesi için bağımsız malzeme grubu/net alan hesabı domain özetiyle karşılaştırılır.
+- Kalınlık duyarlı fiyatlandırma ve birleşik teklif katmanı, 18 mm ve 8 mm malzeme fixture fiyatlarıyla doğrulanır. 8 mm özel raf fiyatı eksik bırakıldığında `incomplete`, eksik `mdf-8 / 8 mm` tanısı ve `costSummary: null` beklenir.
+- Değişen dosyalar: `domain/production/projectSpecialPartPricing.test.mjs` (yeni), `docs/production-domain-contract.md`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`. Frontend, adapter, production runtime, workflow YAML, package/lockfile ve secrets değiştirilmedi.
+- Kabul: özel Part satırları üretim agregatöründen gelir; malzeme tüketimi tüm Part satırlarını quantity ile toplar; fiyatlar materialId + m2 + thicknessMm ile eşleşir; birleşik teklif kaynak satırları hazır durumda korunur; eksik kalınlık fiyatı kısmi parasal toplamı engeller.
+- GitHub Actions doğrulaması bu committen sonra incelenecek. CI/QA sonucu görülmeden başarılı sayılmayacak; DOM-041 yalnızca gerçek sonuçlar tamamlandıktan sonra DONE yapılacak.
+- Bilinen sınırlar: fiyatlar yalnızca test fixture'ıdır; gerçek tedarikçi fiyatı, fire, vergi, kur, CNC/makine standardı veya fiziksel üretim onayı değildir. Özel raf/bölücü export ve kesim planı freshness akışı bu testin kapsamı değildir.
+- Sıradaki görev: DOM-042 — özel raf/bölücü malzeme, kalınlık veya yerleşim değişikliğinin kayıtlı kesim planını stale yapmasını doğrula.
