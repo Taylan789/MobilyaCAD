@@ -1003,7 +1003,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 
 
 
-## 18 Kasım 2026 08:51 TRT — DOM-024 kesim planı geometri ve JSON doğrulaması (Actions bekleniyor)
+## 18 Kasım 2026 08:51 TRT — DOM-024 kesim planı geometri ve JSON doğrulaması (Actions doğrulandı)
 
 **Kullanıcı akışı:** doğrulanmış nesting yerleşimi makine bağımsız kesim planına dönüştürülür; plan JSON olarak saklanıp yeniden açıldığında aynı kaynak parçaları, adetleri ve koordinatlarıyla tekrar doğrulanır.
 
@@ -1024,3 +1024,6 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 3. DOM-027: kesim sırası/testere yolu için makine bağımsız operasyon sözleşmesi ve güvenlik gereksinimlerini tasarla; gerçek makine standardı olmadan CNC kodu üretme.
 4. INT-001 / PR #61: frontend sahibinin domain raporu ve adapter entegrasyonunu güncel base/Actions kanıtıyla tamamlamasını bekle; bu ajan frontend PR'ını sahiplenmez/merge etmez.
 5. INT-002 / QA-003: entegrasyon-performans ajanının izole PR'ındaki adapter round-trip kanıtından sonra salt okunur uçtan uca denetim yap.
+
+
+**DOM-024 teslimat ve doğrulama:** Kod commit zinciri [b0699f48](https://github.com/Taylan789/MobilyaCAD/commit/b0699f48cfe23c91ed2f003cb805e5aae3889544) → [a5a6c79](https://github.com/Taylan789/MobilyaCAD/commit/a5a6c79eeec546e8512e4b56b9fbf4c1d88511d2) → [c69e8ee](https://github.com/Taylan789/MobilyaCAD/commit/c69e8eef627d4cd589844fa4d64df119d01106bf). Son SHA için [CI #44247976620](https://github.com/Taylan789/MobilyaCAD/actions/runs/44247976620), [QA #44247976704](https://github.com/Taylan789/MobilyaCAD/actions/runs/44247976704) ve [Pages #44247976615](https://github.com/Taylan789/MobilyaCAD/actions/runs/44247976615) başarılı. QA 102/102 frontend + 324/324 domain testi, strict shared-domain TypeScript, lint, production build ve production audit 0 bulgu. 50.000 placement testi yaklaşık 251 ms. İlk iki QA denemesinde bulunan runtime/fixture sorunları kapsam azaltılmadan düzeltildi.

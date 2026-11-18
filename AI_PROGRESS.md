@@ -1058,13 +1058,17 @@
 - Sonraki görev: DOM-024 — büyük listelerde O(n²) kullanmadan çakışma, kerf aralığı, levha sınırı, adet tamlığı ve JSON round-trip doğrulaması.
 
 
-## 18 Kasım 2026 08:51 TRT — DOM-024 kesim planı geometri ve JSON doğrulaması (Actions bekleniyor)
+## 18 Kasım 2026 08:51 TRT — DOM-024 kesim planı geometri ve JSON doğrulaması (tamamlandı)
 
-- Başlangıç HEAD: `f4dfaf6a5b6bda2fb9d46454c8ac537434ec1387`.
-- Kod/test/dokümantasyon: `domain/production/sheetCutPlan.ts`, `domain/production/sheetCutPlan.test.mjs`, `docs/production-domain-contract.md`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`.
-- Yeni davranış: aynı levhadaki placement çiftleri için kerf/çakışma denetimi; sweep-line + sıkıştırılmış Y aralık maksimum ağacı ile O(n log n). 50.000 placement regresyonu, yatay/düşey/diagonal kerf ihlali, overlap, exact kerf, zero-kerf edge-touch ve levhalar arası izolasyon testleri eklendi.
-- JSON: `MobilyaCADSheetCutPlan` formatVersion 1 serialize/parse API'si; serializer round-trip yapar, parser kaynağı/adedi/ölçüyü/grain/levha/kerf/geometriyi tekrar doğrular.
-- Otomatik kontroller: GitHub Actions CI/QA/Pages sonuçları henüz bekleniyor; başarılı ilan edilmedi. Yerel test sonucu raporlanmıyor.
-- Bilinen sınırlar: trim/fire/yield, kesim sırası, testere yolu, CNC/postprocessor ve gerçek makine standardı yok; fiziksel üretim güvenliği operatör doğrulaması gerektirir.
-- Commit SHA ve Actions bağlantıları doğrulama tamamlandıktan sonra bu kayda eklenecek.
-- Sonraki görev: DOM-025 kullanıcı tanımlı trim payı ve fire modelini açık mm girdileriyle eklemek.
+- Başlangıç HEAD: `f4dfaf6a5b6bda2fb9d46454c8ac537434ec1387`; son doğrulanmış kod HEAD: [`c69e8eef627d4cd589844fa4d64df119d01106bf`](https://github.com/Taylan789/MobilyaCAD/commit/c69e8eef627d4cd589844fa4d64df119d01106bf).
+- Commit zinciri: [ilk domain/test/docs dilimi b0699f48](https://github.com/Taylan789/MobilyaCAD/commit/b0699f48cfe23c91ed2f003cb805e5aae3889544); [Node 22 strip-only uyumu a5a6c79](https://github.com/Taylan789/MobilyaCAD/commit/a5a6c79eeec546e8512e4b56b9fbf4c1d88511d2); [0.1 mm normalizasyon/safe tick ayrımı c69e8ee](https://github.com/Taylan789/MobilyaCAD/commit/c69e8eef627d4cd589844fa4d64df119d01106bf).
+- Değişen dosyalar: `domain/production/sheetCutPlan.ts`, `domain/production/sheetCutPlan.test.mjs`, `docs/production-domain-contract.md`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`. Frontend, adapter, package manifest/lockfile, secrets ve main dalı değiştirilmedi.
+- Davranış: her levha içinde dikdörtgen placement'lar kerf/2 genişletilmiş aralıklarla sweep-line + sıkıştırılmış Y range-max tree kullanılarak O(n log n) doğrulanır. Overlap, yatay/düşey/diagonal yetersiz kerf blocked; tam kerf boşluğu ve sıfır kerf ile kenar teması kabul edilir. Levhalar arası koordinatlar bağımsızdır.
+- Ölçü/koordinat doğrulaması güvenli 0.1 mm tick aralığını aşan değerleri reddeder; normalize edilmemiş küçük değer için ayrı hata mesajı korunur.
+- JSON API: `serializeSheetCutPlanJson` / `parseSheetCutPlanJson`, `MobilyaCADSheetCutPlan` formatVersion 1 zarfı kullanır. Serializer round-trip yapar; parser bütün planı ve geometriyi yeniden doğrular; blocked/bozuk dosya kısmi sonuç üretmez.
+- Yeni testler: overlap, horizontal/vertical/diagonal kerf, exact kerf, zero-kerf edge-touch, farklı levha izolasyonu, 50.000 placement, JSON round-trip, bozuk geometri ve desteklenmeyen sürüm. 50.000 placement denetimi QA logunda yaklaşık 251 ms sürdü.
+- İlk QA denemesi [#44247719836](https://github.com/Taylan789/MobilyaCAD/actions/runs/44247719836), Node strip-only parametre property sözdizimini reddetti; [a5a6c79](https://github.com/Taylan789/MobilyaCAD/commit/a5a6c79eeec546e8512e4b56b9fbf4c1d88511d2) bunu explicit class field yaptı. İkinci QA [#44247863906](https://github.com/Taylan789/MobilyaCAD/actions/runs/44247863906), normalize edilmemiş 0.04 mm testindeki hata metni beklentisini yakaladı; [c69e8ee](https://github.com/Taylan789/MobilyaCAD/commit/c69e8eef627d4cd589844fa4d64df119d01106bf) finite/safe-range kontrolünü normalizasyon kontrolünden ayırdı. Testler silinmedi veya gevşetilmedi.
+- Son SHA Actions kanıtı: [CI #44247976620](https://github.com/Taylan789/MobilyaCAD/actions/runs/44247976620), [QA #44247976704](https://github.com/Taylan789/MobilyaCAD/actions/runs/44247976704), [Pages #44247976615](https://github.com/Taylan789/MobilyaCAD/actions/runs/44247976615) başarılı. QA: 102/102 frontend + 324/324 domain, strict shared-domain TypeScript, lint, production build, production dependency audit 0 bulgu.
+- AI Developer [#44221779571](https://github.com/Taylan789/MobilyaCAD/actions/runs/44221779571) logları: ürün ve entegrasyon job'ları OpenRouter free-models-per-day 429 (50/50 limit, kalan 0) nedeniyle başarısız. Eski `a22c771` checkout SHA'sı nedeniyle rerun güvenli değildi; güncel SHA dispatch aracı yok, yeni run başlatılmadı. Kota reseti 19 Kasım 2026 03:00 TRT.
+- Bilinen sınırlar: bu yalnızca makine bağımsız dikdörtgen kesim planı doğrulamasıdır; trim/fire/yield, kesim sırası, testere yolu, CNC/postprocessor, makine standardı ve fiziksel üretim onayı yoktur. Atölye güvenliği operatör doğrulaması gerektirir.
+- Sonraki görev: DOM-025 — kullanıcı tanımlı trim payı/fire girdileri; varsayılan pay veya verim yüzdesi üretme.
