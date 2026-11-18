@@ -9,6 +9,15 @@ export interface ProjectSheetCutPlanExportRequest {
   freshness: ProjectSheetCutPlanFreshnessRequest;
 }
 
+/** Structured source diagnostics retained from the current production report. */
+export interface ProjectSheetCutPlanExportDiagnostic {
+  source: "unsupportedFurniture" | "blockedFurniture" | "projectErrors" | "exportBlockers" | "firstError";
+  furnitureId: string | null;
+  family: string | null;
+  code: string | null;
+  message: string;
+}
+
 export type ProjectSheetCutPlanExportReport =
   | {
       schemaVersion: 1;
@@ -18,6 +27,7 @@ export type ProjectSheetCutPlanExportReport =
       json: string;
       sourcePartIds: string[];
       diagnostics: [];
+      productionDiagnostics?: [];
     }
   | {
       schemaVersion: 1;
@@ -27,6 +37,7 @@ export type ProjectSheetCutPlanExportReport =
       json: null;
       sourcePartIds: string[];
       diagnostics: string[];
+      productionDiagnostics?: ProjectSheetCutPlanExportDiagnostic[];
     };
 
 type RecordValue = Record<string, unknown>;
@@ -48,7 +59,8 @@ function closed(value: RecordValue, allowed: readonly string[], label: string): 
 function blocked(
   freshnessStatus: "stale" | "blocked",
   diagnostics: readonly string[],
-  sourcePartIds: readonly string[] = []
+  sourcePartIds: readonly string[] = [],
+  productionDiagnostics: readonly ProjectSheetCutPlanExportDiagnostic[] = []
 ): ProjectSheetCutPlanExportReport {
   const safeDiagnostics = diagnostics.filter((item) => item.trim() !== "");
   return {
@@ -60,8 +72,121 @@ function blocked(
     sourcePartIds: [...sourcePartIds],
     diagnostics: safeDiagnostics.length > 0
       ? safeDiagnostics
-      : ["Proje kesim planı dışa aktarıma hazır değil."]
+      : ["Proje kesim planı dışa aktarıma hazır değil."],
+    productionDiagnostics: [...productionDiagnostics]
   };
+}
+
+function nullableDiagnosticText(value: unknown, label: string): string | null {
+  if (value === null) return null;
+  if (typeof value !== "string" || value.trim() === "") {
+    throw new Error(label + " boş olmayan metin veya null olmalıdır.");
+  }
+  return value;
+}
+
+/**
+ * Retains each domain blocker with its source and furniture context. The
+ * human-readable diagnostics remain available for existing consumers.
+ */
+function readProductionDiagnostics(
+  report: RecordValue
+): ProjectSheetCutPlanExportDiagnostic[] {
+  const diagnostics: ProjectSheetCutPlanExportDiagnostic[] = [];
+  const representedMessages = new Set<string>();
+
+  const readEntries = (
+    field: "unsupportedFurniture" | "blockedFurniture",
+    source: "unsupportedFurniture" | "blockedFurniture"
+  ): void => {
+    const entries = report[field];
+    if (!Array.isArray(entries)) {
+      throw new Error("Güncel proje üretim raporu " + field + " listesi taşımalıdır.");
+    }
+    for (let index = 0; index < entries.length; index += 1) {
+      const entry = record(entries[index], field + " tanısının " + (index + 1) + ". kaydı");
+      if (typeof entry.message !== "string" || entry.message.trim() === "") {
+        throw new Error(field + " tanısı geçerli bir mesaj taşımalıdır.");
+      }
+      if (typeof entry.code !== "string" || entry.code.trim() === "") {
+        throw new Error(field + " tanısı geçerli bir kod taşımalıdır.");
+      }
+      const furnitureId = nullableDiagnosticText(entry.furnitureId, field + " furnitureId");
+      const family = nullableDiagnosticText(entry.family, field + " family");
+      const message = entry.message;
+      diagnostics.push({
+        source,
+        furnitureId,
+        family,
+        code: entry.code,
+        message
+      });
+      representedMessages.add(message);
+    }
+  };
+
+  const readMessages = (
+    field: "projectErrors" | "exportBlockers",
+    source: "projectErrors" | "exportBlockers"
+  ): void => {
+    const entries = report[field];
+    if (!Array.isArray(entries)) {
+      throw new Error("Güncel proje üretim raporu " + field + " listesi taşımalıdır.");
+    }
+    for (const message of entries) {
+      if (typeof message !== "string" || message.trim() === "") {
+        throw new Error(field + " yalnızca boş olmayan metin kayıtları taşımalıdır.");
+      }
+      diagnostics.push({
+        source,
+        furnitureId: null,
+        family: null,
+        code: null,
+        message
+      });
+      representedMessages.add(message);
+    }
+  };
+
+  readEntries("unsupportedFurniture", "unsupportedFurniture");
+  readEntries("blockedFurniture", "blockedFurniture");
+  readMessages("projectErrors", "projectErrors");
+  readMessages("exportBlockers", "exportBlockers");
+
+  if (report.firstError !== null) {
+    if (typeof report.firstError !== "string" || report.firstError.trim() === "") {
+      throw new Error("Güncel proje üretim raporu firstError alanı metin veya null olmalıdır.");
+    }
+    if (!representedMessages.has(report.firstError)) {
+      diagnostics.push({
+        source: "firstError",
+        furnitureId: null,
+        family: null,
+        code: null,
+        message: report.firstError
+      });
+    }
+  }
+
+  return diagnostics;
+}
+
+function formatProductionDiagnostics(
+  diagnostics: readonly ProjectSheetCutPlanExportDiagnostic[]
+): string[] {
+  const messages: string[] = [];
+  for (const diagnostic of diagnostics) {
+    const context = [
+      diagnostic.furnitureId,
+      diagnostic.family,
+      diagnostic.code
+    ].filter((value) => value !== null).join(" / ");
+    const message = context === ""
+      ? diagnostic.message
+      : context + ": " + diagnostic.message;
+    if (!messages.includes(message)) messages.push(message);
+  }
+  return messages;
 }
 
 /**
@@ -85,17 +210,21 @@ export function createFreshProjectSheetCutPlanExport(value: unknown): ProjectShe
 
     const freshnessRequest = record(request.freshness, "Kesim planı güncellik girdisi");
     const productionReport = record(freshnessRequest.productionReport, "Güncel proje üretim raporu");
-    if (productionReport.status !== "ready") {
-      throw new Error("Kesim planı dışa aktarımı için güncel proje üretim raporu ready olmalıdır.");
-    }
-    if (!Array.isArray(productionReport.exportBlockers)) {
-      throw new Error("Güncel proje üretim raporu exportBlockers listesi taşımalıdır.");
-    }
-    if (productionReport.exportBlockers.some((item) => typeof item !== "string" || item.trim() === "")) {
-      throw new Error("Güncel proje üretim raporu geçerli metin export blocker kayıtları taşımalıdır.");
-    }
-    if (productionReport.exportBlockers.length > 0) {
-      return blocked("blocked", productionReport.exportBlockers as string[]);
+    const productionDiagnostics = readProductionDiagnostics(productionReport);
+    const productionMessages = formatProductionDiagnostics(productionDiagnostics);
+    if (productionReport.status !== "ready" || productionDiagnostics.length > 0) {
+      if (productionReport.status === "blocked" && productionReport.result !== null) {
+        throw new Error("Blocked proje üretim raporu kısmi Part sonucu taşıyamaz.");
+      }
+      const fallback = productionReport.status === "empty"
+        ? "Boş proje üretim raporu kesim planı dışa aktarımı sağlayamaz."
+        : "Kesim planı dışa aktarımı için güncel proje üretim raporu ready olmalıdır.";
+      return blocked(
+        "blocked",
+        productionMessages.length > 0 ? productionMessages : [fallback],
+        [],
+        productionDiagnostics
+      );
     }
     if (productionReport.canExport !== true) {
       throw new Error("Güncel proje üretim raporu canExport=true olmalıdır.");
@@ -128,7 +257,8 @@ export function createFreshProjectSheetCutPlanExport(value: unknown): ProjectShe
       result: freshness.result,
       json: freshness.json,
       sourcePartIds,
-      diagnostics: []
+      diagnostics: [],
+      productionDiagnostics: []
     };
   } catch (error) {
     return blocked(

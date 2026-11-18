@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { BODY_PANEL_GROUPS } from "./bodyPanelMaterials.ts";
+import { calculateCabinetProjectProductionWithDiagnostics } from "./projectProduction.ts";
 import { createProjectSheetNestingBatches } from "./projectSheetNestingBatches.ts";
 import { createProjectSheetCutPlan } from "./projectSheetCutPlan.ts";
 import { createFreshProjectSheetCutPlanExport } from "./projectSheetCutPlanExport.ts";
@@ -195,4 +197,143 @@ test("freshness girdisi veya v2 için güncel seçim listesi eksikse export bloc
     freshness
   });
   assertBlocked(missingSelection, "blocked", /currentSelectedPartIds/);
+});
+
+
+function cabinetRequest(id) {
+  const noBanding = { top: false, bottom: false, left: false, right: false };
+  return {
+    schemaVersion: 1,
+    furniture: {
+      id,
+      widthMm: 800,
+      heightMm: 720,
+      depthMm: 560,
+      material: "MDF"
+    },
+    profile: {
+      panelThicknessMm: 18,
+      carcassStyle: "between-sides",
+      backPanel: { enabled: false },
+      shelfCount: 0,
+      doors: { enabled: false, count: 0 },
+      edgeBandingByGroup: Object.fromEntries(
+        BODY_PANEL_GROUPS.map((group) => [group, { ...noBanding }])
+      )
+    },
+    materials: [{
+      id: "mdf-18",
+      name: "MDF",
+      category: "panel",
+      thicknessesMm: [18],
+      unit: "mm"
+    }]
+  };
+}
+
+function projectReportWithCutout({ invalid = false } = {}) {
+  const furniture = cabinetRequest("cutout-cabinet");
+  const base = calculateCabinetProjectProductionWithDiagnostics({
+    schemaVersion: 1,
+    furniture: [furniture]
+  });
+  assert.equal(base.status, "ready", base.firstError ?? "");
+  assert.ok(base.result);
+  const top = base.result.parts.find((item) => item.id === "cutout-cabinet-top");
+  assert.ok(top);
+
+  return calculateCabinetProjectProductionWithDiagnostics({
+    schemaVersion: 1,
+    furniture: [furniture],
+    panelCutouts: [{
+      partId: top.id,
+      geometry: {
+        schemaVersion: 1,
+        widthMm: top.width,
+        lengthMm: top.length,
+        thicknessMm: top.thickness,
+        outerEdgeBanding: top.edgeBanding,
+        cutouts: [{
+          id: "opening-1",
+          xMm: invalid ? 0 : 10,
+          yMm: 10,
+          widthMm: 50,
+          lengthMm: 50,
+          edgeBanding: { top: false, bottom: false, left: false, right: false }
+        }]
+      }
+    }]
+  });
+}
+
+test("unsupported family diagnostics reach the export gate with source context and no partial JSON", () => {
+  const report = calculateCabinetProjectProductionWithDiagnostics({
+    schemaVersion: 1,
+    furniture: [{
+      schemaVersion: 1,
+      furniture: { id: "custom-furniture" },
+      family: "custom-family"
+    }]
+  });
+  assert.equal(report.status, "blocked");
+  assert.equal(report.result, null);
+
+  const parts = [part("part-1")];
+  const json = savedPlan(parts, ["part-1"]);
+  const result = createFreshProjectSheetCutPlanExport(
+    request(json, parts, ["part-1"], report)
+  );
+
+  assertBlocked(result, "blocked", /custom-furniture.*custom-family.*unsupported-family/);
+  assert.deepEqual(result.productionDiagnostics, [{
+    source: "unsupportedFurniture",
+    furnitureId: "custom-furniture",
+    family: "custom-family",
+    code: "unsupported-family",
+    message: report.unsupportedFurniture[0].message
+  }]);
+});
+
+test("invalid panel cutout diagnostics reach the export gate without a partial JSON", () => {
+  const report = projectReportWithCutout({ invalid: true });
+  assert.equal(report.status, "blocked");
+  assert.equal(report.result, null);
+  assert.equal(report.blockedFurniture[0]?.code, "invalid-panel-geometry");
+
+  const parts = [part("part-1")];
+  const json = savedPlan(parts, ["part-1"]);
+  const result = createFreshProjectSheetCutPlanExport(
+    request(json, parts, ["part-1"], report)
+  );
+
+  assertBlocked(result, "blocked", /cutout-cabinet.*cabinet.*invalid-panel-geometry/);
+  assert.deepEqual(result.productionDiagnostics, [{
+    source: "blockedFurniture",
+    furnitureId: "cutout-cabinet",
+    family: "cabinet",
+    code: "invalid-panel-geometry",
+    message: report.blockedFurniture[0].message
+  }]);
+});
+
+test("valid cutout geometry remains an explicit export blocker with its original message", () => {
+  const report = projectReportWithCutout();
+  assert.equal(report.status, "ready");
+  assert.equal(report.canExport, false);
+  assert.equal(report.exportBlockers.length, 1);
+
+  const parts = [part("part-1")];
+  const json = savedPlan(parts, ["part-1"]);
+  const result = createFreshProjectSheetCutPlanExport(
+    request(json, parts, ["part-1"], report)
+  );
+
+  assertBlocked(result, "blocked", /Kesitli panel geometrisi/);
+  assert.deepEqual(result.productionDiagnostics, [{
+    source: "exportBlockers",
+    furnitureId: null,
+    family: null,
+    code: null,
+    message: report.exportBlockers[0]
+  }]);
 });

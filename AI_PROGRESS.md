@@ -1210,3 +1210,16 @@
 - Bilinen sınırlar: provenance yalnızca kullanıcı/atölye metadata'sının varlığını gösterir; kaynak, revizyon, tedarikçi, fiziksel levha, sertifika veya makine standardı doğrulaması değildir. CNC, kesim sırası/yolu veya fire/yield üretmez.
 - AI Developer [#44282900800](https://github.com/Taylan789/MobilyaCAD/actions/runs/44282900800) en son workflow olarak tamamlandı/başarısız; ürün ve entegrasyon agent job'ları OpenRouter free-models-per-day 429 (50/50, kalan 0) nedeniyle durdu. Log incelendi; eski SHA üzerinde rerun yapılmadı, yeni dispatch aracı bulunmadı; secret/ayar/ücretli kredi değiştirilmedi.
 - Sonraki görev: DOM-035 — desteklenmeyen aile ve kesitli geometri blocker'larının proje export kapısına kayıpsız taşındığını doğrula; kısmi JSON üretimini regresyon testleriyle engelle.
+
+
+## 18 Kasım 2026 19:13 TRT — DOM-035 export tanılarının kayıpsız aktarımı (Actions bekleniyor)
+
+- Başlangıç `dev/github-work` HEAD: `4cb72e6d6ea213b7386d69756d0c3778828ba522`; önceki CI #44335528115 ve QA #44335528375 bu SHA için başarılıydı. Kod değişikliğinden önce aktif CI/QA/AI Developer işi bulunmadı.
+- Dikey dilim: `createFreshProjectSheetCutPlanExport`, domain üretim raporunun desteklenmeyen aile, bloklu mobilya, proje hatası ve export blocker tanılarını `productionDiagnostics` alanında kaynak, mobilya kimliği, aile, kod ve özgün mesajıyla taşır. Mevcut `diagnostics` metin listesi korunur.
+- Regresyon testleri: gerçek domain raporlarıyla desteklenmeyen aile, geçersiz panel açıklığı geometrisi ve geçerli kesitli panelin adapter export blocker'ı; tüm bloklu durumlarda `result/json: null`.
+- Değişen dosyalar: `domain/production/projectSheetCutPlanExport.ts`, `domain/production/projectSheetCutPlanExport.test.mjs`, `docs/production-domain-contract.md`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`. Hiçbir `frontend/**`, adapter/performance agent dosyası veya bağımlılık değişmedi.
+- Commit SHA: GitHub commit nesnesi oluşturulup branch ref güncellendikten sonra kesinleşecek; bu kayıt bir sonraki doğrulanmış ilerleme girişinde gerçek SHA ve Actions bağlantılarıyla tamamlanacak.
+- Otomatik doğrulama: yeni commit için CI/QA/Pages tetiklenmesi bekleniyor; henüz başarılı ilan edilmedi.
+- Bilinen sınırlar: panel açıklıkları dikdörtgen nesting'e veya CNC'ye dönüştürülmez; gerçek kesit geometri desteği gelene kadar export engellidir. Fiziksel atölye/CNC doğrulaması yoktur.
+- AI Developer #44282900800 logları yeniden incelendi: iki job da OpenRouter free-models-per-day 429, limit 50/kalan 0 ile başarısız; reset 19 Kasım 2026 03:00 TRT. Rerun yapılmadı; quota/secrets/ayar/ücretli kredi değiştirilmedi.
+- Sonraki adım: Actions sonucunu doğrulamak; ardından DOM-035'i DONE yapmak ve INT-001 PR #61'in güncel domain export sözleşmesine entegrasyonunu salt okunur izlemek.

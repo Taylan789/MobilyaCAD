@@ -762,3 +762,14 @@ API: `summarizeProjectSheetCutPlanProvenance(savedPlanJson)`.
 - Empty plan empty ve sıfır grup/sayaçla kalır. Bozuk/uyumsuz JSON blocked döner; sayaçlar sıfır, grup listesi boş ve tanılar doludur. Kısmi özet üretilmez.
 - Özet kullanıcı girdisini değiştirmez ve kaynak/revizyon değerlerinin tedarikçi, katalog, fiziksel levha, sertifika veya makine standardı tarafından doğrulandığını iddia etmez.
 - Frontend sözleşmesi: kapsam sayaçlarını ve grup bazlı provided/missing durumunu gösterebilir; blocked durumda kısmi satır gösterilmemeli, tanılar sunulmalıdır. Bu domain dilimi `frontend/**` ve adapter dosyalarına dokunmaz.
+
+
+## 7. DOM-035 — proje kesim planı export tanılarını kayıpsız taşıma
+
+Kaynak: `domain/production/projectSheetCutPlanExport.ts`.
+
+- `createFreshProjectSheetCutPlanExport` güncel üretim raporundaki `unsupportedFurniture`, `blockedFurniture`, `projectErrors`, `exportBlockers` ve ayrıca temsil edilmeyen `firstError` bilgisini okur.
+- Blocked rapor tanıları `productionDiagnostics` alanında kaynak türü, `furnitureId`, `family`, `code` ve özgün `message` ile korunur. Mevcut `diagnostics: string[]` alanı geriye uyumlu, insan tarafından okunabilir bağlamlı metinleri sunmaya devam eder.
+- Desteklenmeyen aile, geçersiz panel açıklığı geometrisi veya adapter'ın henüz taşıyamadığı geçerli kesitli panel geometrisi varsa export `blocked`; `result` ve `json` kesinlikle `null` kalır. Kısmi kesim planı üretilmez.
+- `ready` raporunda bile herhangi bir domain tanısı veya export blocker bulunması JSON dışa aktarımını engeller. Eski consumer'lar yeni `productionDiagnostics` alanını yok sayabilir; mevcut alanlar ve JSON v1/v2/v3 dosya biçimleri değişmez.
+- Bu kapı panel açıklığını nesting algoritmasına dönüştürmez, CNC/işleme koordinatı üretmez ve fiziksel üretim onayı değildir. Dikdörtgen nesting, gerçek kesit geometrisini destekleyene kadar bu parçalar export dışında kalır.
