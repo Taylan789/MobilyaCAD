@@ -1001,3 +1001,26 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 4. INT-002 / QA-003: entegrasyon-performans ajanının izole PR'ındaki JSON/CSV round-trip kanıtı geldikten sonra uçtan uca denetim; adapter/test sahipliğine dokunma.
 5. CNC/postprocessor: ancak operatörün gerçek makine/üretici standardı ve fiziksel güvenlik gereksinimleri belirlendiğinde ayrı bir tasarım kararı olarak ele al.
 
+
+
+## 18 Kasım 2026 08:51 TRT — DOM-024 kesim planı geometri ve JSON doğrulaması (Actions bekleniyor)
+
+**Kullanıcı akışı:** doğrulanmış nesting yerleşimi makine bağımsız kesim planına dönüştürülür; plan JSON olarak saklanıp yeniden açıldığında aynı kaynak parçaları, adetleri ve koordinatlarıyla tekrar doğrulanır.
+
+**Kabul kriterleri:**
+- Her fiziksel Part adedi tam bir kez yer alır; kaynak kimliği, 1 tabanlı levha indeksi, mm koordinatları, dönüş ve döndürülmüş ölçüler korunur.
+- Aynı levhadaki placement'lar çakışmaz ve aralarında kullanıcı kerf değerinden az boşluk bulunmaz. Tam kerf mesafesi geçerlidir; farklı levhalar birbirleriyle karşılaştırılmaz.
+- Geometri doğrulaması 50.000 placement sınırında O(n log n) sweep-line / aralık ağacı ile çalışır; O(n²) çift taraması kullanılmaz.
+- JSON format adı ve sürümü açıkça taşınır; parser her alanı ve geometriyi yeniden doğrular. Bozuk/uyumsuz dosya blocked olur, kısmi plan dönmez.
+- Güvenli 0.1 mm integer tick aralığını aşan koordinatlar reddedilir.
+
+**Sınırlar:** kesim sırası, testere yolu, trim/fire/yield, CNC/postprocessor, makine standardı veya fiziksel üretim güvenliği bu dilimde üretilmez. JSON yalnızca makine bağımsız kesim planı verisidir.
+
+**Değişen dosyalar:** `domain/production/sheetCutPlan.ts`, `domain/production/sheetCutPlan.test.mjs`, `docs/production-domain-contract.md`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`. Frontend, adapter ve entegrasyon/performance agent dosyaları değişmez.
+
+### DOM-024 sonrası sıradaki küçük görevler
+1. DOM-025: kullanıcı tanımlı trim payı ve fire modeli; her kenar payını açık mm girdisi olarak sakla, varsayılan/fire yüzdesi üretme.
+2. DOM-026: doğrulanmış trim girdisinden levha net alanı, yerleşen parça alanı ve hesaplanabilir fire oranını ayrı raporla; tahmini verim/optimizasyon iddiası yapma.
+3. DOM-027: kesim sırası/testere yolu için makine bağımsız operasyon sözleşmesi ve güvenlik gereksinimlerini tasarla; gerçek makine standardı olmadan CNC kodu üretme.
+4. INT-001 / PR #61: frontend sahibinin domain raporu ve adapter entegrasyonunu güncel base/Actions kanıtıyla tamamlamasını bekle; bu ajan frontend PR'ını sahiplenmez/merge etmez.
+5. INT-002 / QA-003: entegrasyon-performans ajanının izole PR'ındaki adapter round-trip kanıtından sonra salt okunur uçtan uca denetim yap.

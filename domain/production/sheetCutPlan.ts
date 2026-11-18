@@ -69,7 +69,7 @@ function mm(value: unknown, label: string, zero: boolean): number {
       : " sıfırdan büyük ve sonlu bir mm değeri olmalıdır."));
   }
   const scaled = value * 10;
-  if (!Number.isFinite(scaled)) throw new Error(label + " 0.1 mm aralığını aşıyor.");
+  if (!Number.isSafeInteger(scaled)) throw new Error(label + " güvenli 0.1 mm hassasiyet aralığını aşıyor.");
   const normalized = Math.round(scaled + Number.EPSILON * 10) / 10;
   if (normalized !== value) throw new Error(label + " 0.1 mm hassasiyetinde normalize edilmiş olmalıdır.");
   return normalized === 0 ? 0 : value;
@@ -77,8 +77,8 @@ function mm(value: unknown, label: string, zero: boolean): number {
 function addMm(a: number, b: number, label: string): number {
   const value = a + b;
   const scaled = value * 10;
-  if (!Number.isFinite(value) || !Number.isFinite(scaled)) {
-    throw new Error(label + " sonlu 0.1 mm koordinat aralığını aşıyor.");
+  if (!Number.isSafeInteger(scaled)) {
+    throw new Error(label + " güvenli 0.1 mm koordinat aralığını aşıyor.");
   }
   return Math.round(scaled + Number.EPSILON * 10) / 10;
 }
@@ -89,6 +89,185 @@ function fail(error: unknown): SheetCutPlanReport {
     result: null,
     diagnostics: [error instanceof Error ? error.message : String(error)]
   };
+}
+
+type ExpandedPlacement = {
+  left: number;
+  right: number;
+  top: number;
+  bottom: number;
+  topIndex: number;
+  bottomIndex: number;
+};
+
+function safeInteger(value: number, label: string): number {
+  if (!Number.isSafeInteger(value)) {
+    throw new Error(label + " güvenli 0.1 mm koordinat aralığını aşıyor.");
+  }
+  return value;
+}
+
+function mmTicks(value: number, label: string): number {
+  return safeInteger(value * 10, label);
+}
+
+function safeAddInteger(a: number, b: number, label: string): number {
+  return safeInteger(a + b, label);
+}
+
+function safeSubtractInteger(a: number, b: number, label: string): number {
+  return safeInteger(a - b, label);
+}
+
+function safeDoubleInteger(value: number, label: string): number {
+  return safeInteger(value * 2, label);
+}
+
+/** Range-add / range-maximum tree over compressed Y intervals. */
+class IntervalCoverageTree {
+  private readonly maximum: Int32Array;
+  private readonly lazy: Int32Array;
+
+  constructor(private readonly segmentCount: number) {
+    const capacity = Math.max(4, segmentCount * 4 + 4);
+    this.maximum = new Int32Array(capacity);
+    this.lazy = new Int32Array(capacity);
+  }
+
+  add(start: number, end: number, delta: number): void {
+    this.update(1, 0, this.segmentCount - 1, start, end, delta);
+  }
+
+  max(start: number, end: number): number {
+    return this.query(1, 0, this.segmentCount - 1, start, end);
+  }
+
+  private update(
+    node: number,
+    left: number,
+    right: number,
+    queryLeft: number,
+    queryRight: number,
+    delta: number
+  ): void {
+    if (queryLeft <= left && right <= queryRight) {
+      this.maximum[node] = (this.maximum[node] ?? 0) + delta;
+      this.lazy[node] = (this.lazy[node] ?? 0) + delta;
+      return;
+    }
+
+    const middle = Math.floor((left + right) / 2);
+    if (queryLeft <= middle) {
+      this.update(node * 2, left, middle, queryLeft, queryRight, delta);
+    }
+    if (queryRight > middle) {
+      this.update(node * 2 + 1, middle + 1, right, queryLeft, queryRight, delta);
+    }
+    this.maximum[node] = (this.lazy[node] ?? 0) +
+      Math.max(this.maximum[node * 2] ?? 0, this.maximum[node * 2 + 1] ?? 0);
+  }
+
+  private query(
+    node: number,
+    left: number,
+    right: number,
+    queryLeft: number,
+    queryRight: number
+  ): number {
+    if (queryLeft <= left && right <= queryRight) {
+      return this.maximum[node] ?? 0;
+    }
+
+    const middle = Math.floor((left + right) / 2);
+    let result = Number.NEGATIVE_INFINITY;
+    if (queryLeft <= middle) {
+      result = Math.max(
+        result,
+        this.query(node * 2, left, middle, queryLeft, queryRight)
+      );
+    }
+    if (queryRight > middle) {
+      result = Math.max(
+        result,
+        this.query(node * 2 + 1, middle + 1, right, queryLeft, queryRight)
+      );
+    }
+    return (this.lazy[node] ?? 0) + result;
+  }
+}
+
+/**
+ * Detects any pair whose expanded rectangles overlap with positive area.
+ * Expanding each rectangle by kerf / 2 on all sides makes this equivalent to
+ * requiring at least kerf clearance in one axis for every pair. A sweep line
+ * plus a compressed-Y range-max tree keeps the check O(n log n), not O(n²).
+ */
+function assertKerfSeparated(
+  placements: readonly SheetCutPlanPlacement[],
+  kerfMm: number,
+  sheetIndex: number
+): void {
+  if (placements.length < 2) return;
+
+  const kerfTicks = mmTicks(kerfMm, "Kerf");
+  const expanded = placements.map((item) => {
+    const x = mmTicks(item.xMm, "Placement X");
+    const y = mmTicks(item.yMm, "Placement Y");
+    const width = mmTicks(item.widthMm, "Placement genişliği");
+    const length = mmTicks(item.lengthMm, "Placement uzunluğu");
+    const right = safeAddInteger(x, width, "Placement sağ sınırı");
+    const bottom = safeAddInteger(y, length, "Placement alt sınırı");
+
+    return {
+      left: safeSubtractInteger(safeDoubleInteger(x, "Placement X"), kerfTicks, "Genişletilmiş sol sınır"),
+      right: safeAddInteger(safeDoubleInteger(right, "Placement sağ sınırı"), kerfTicks, "Genişletilmiş sağ sınır"),
+      top: safeSubtractInteger(safeDoubleInteger(y, "Placement Y"), kerfTicks, "Genişletilmiş üst sınır"),
+      bottom: safeAddInteger(safeDoubleInteger(bottom, "Placement alt sınırı"), kerfTicks, "Genişletilmiş alt sınır"),
+      topIndex: -1,
+      bottomIndex: -1
+    };
+  });
+
+  const yCoordinates = Array.from(
+    new Set(expanded.flatMap((item) => [item.top, item.bottom]))
+  ).sort((a, b) => a - b);
+  const yIndices = new Map<number, number>(
+    yCoordinates.map((coordinate, index) => [coordinate, index])
+  );
+
+  const intervals: ExpandedPlacement[] = expanded.map((item) => {
+    const topIndex = yIndices.get(item.top);
+    const bottomIndex = yIndices.get(item.bottom);
+    if (topIndex === undefined || bottomIndex === undefined || bottomIndex <= topIndex) {
+      throw new Error("Yerleşim kerf denetimi için Y aralığı geçersiz.");
+    }
+    return { ...item, topIndex, bottomIndex: bottomIndex - 1 };
+  });
+
+  const byStart = [...intervals].sort((a, b) =>
+    a.left - b.left || a.right - b.right || a.top - b.top || a.bottom - b.bottom
+  );
+  const byEnd = [...intervals].sort((a, b) =>
+    a.right - b.right || a.left - b.left || a.top - b.top || a.bottom - b.bottom
+  );
+  const coverage = new IntervalCoverageTree(yCoordinates.length - 1);
+  let nextEnd = 0;
+
+  for (const current of byStart) {
+    while (nextEnd < byEnd.length && byEnd[nextEnd]!.right <= current.left) {
+      const expired = byEnd[nextEnd]!;
+      coverage.add(expired.topIndex, expired.bottomIndex, -1);
+      nextEnd += 1;
+    }
+
+    if (coverage.max(current.topIndex, current.bottomIndex) > 0) {
+      throw new Error(
+        "Levha " + sheetIndex +
+        " üzerindeki placement'lar çakışıyor veya gereken kerf aralığını korumuyor."
+      );
+    }
+    coverage.add(current.topIndex, current.bottomIndex, 1);
+  }
 }
 function normalizeBatch(value: unknown): SheetNestingBatchResult {
   const input = record(value, "Levha nesting batch sonucu");
@@ -239,6 +418,7 @@ export function createSheetCutPlan(value: unknown): SheetCutPlanReport {
         placementCount += 1;
         return { sourcePartId, pieceNumber: item.pieceNumber, sheetIndex: index, xMm, yMm, widthMm, lengthMm, rotationDeg };
       });
+      assertKerfSeparated(placements, kerfMm, index);
       return { index, pieceCount: placements.length, placements };
     });
 
@@ -276,3 +456,175 @@ export function createSheetCutPlan(value: unknown): SheetCutPlanReport {
     return fail(error);
   }
 }
+
+export type SheetCutPlanJsonReport =
+  | { schemaVersion: 1; status: "ready" | "empty"; json: string; diagnostics: [] }
+  | { schemaVersion: 1; status: "blocked"; json: null; diagnostics: string[] };
+
+function validateSheetCutPlanResult(value: unknown): SheetCutPlanReport {
+  const plan = record(value, "Kesim planı JSON içeriği");
+  closed(
+    plan,
+    ["schemaVersion", "strategy", "stockSheet", "kerfMm", "sourceParts", "sheets", "totalPieceCount"],
+    "Kesim planı JSON içeriği"
+  );
+  if (plan.schemaVersion !== 1 || plan.strategy !== "deterministic-shelf-v1") {
+    throw new Error("Desteklenmeyen kesim planı şema sürümü veya yerleşim stratejisi.");
+  }
+  if (!Array.isArray(plan.sourceParts)) {
+    throw new Error("Kesim planı kaynak parçaları bir liste olmalıdır.");
+  }
+
+  const parts = plan.sourceParts.map((rawPart, offset) => {
+    const part = record(rawPart, "Kesim planı kaynak parçasının " + (offset + 1) + ". kaydı");
+    closed(
+      part,
+      ["id", "materialId", "widthMm", "lengthMm", "thicknessMm", "quantity", "grainDirection", "geometry"],
+      "Kesim planı kaynak parçası"
+    );
+    return {
+      id: part.id,
+      materialId: part.materialId,
+      widthMm: part.widthMm,
+      lengthMm: part.lengthMm,
+      thicknessMm: part.thicknessMm,
+      quantity: part.quantity,
+      grainDirection: part.grainDirection,
+      geometry: part.geometry
+    };
+  });
+
+  if (!Array.isArray(plan.sheets)) {
+    throw new Error("Kesim planı levhaları bir liste olmalıdır.");
+  }
+  const sheets = plan.sheets.map((rawSheet, offset) => {
+    const sheet = record(rawSheet, "Kesim planı levhasının " + (offset + 1) + ". kaydı");
+    closed(sheet, ["index", "pieceCount", "placements"], "Kesim planı levhası");
+    if (!Array.isArray(sheet.placements)) {
+      throw new Error("Kesim planı placement kayıtları bir liste olmalıdır.");
+    }
+    const placements = sheet.placements.map((rawPlacement, placementOffset) => {
+      const item = record(
+        rawPlacement,
+        "Kesim planı placement kaydının " + (placementOffset + 1) + ". öğesi"
+      );
+      closed(
+        item,
+        ["sourcePartId", "pieceNumber", "sheetIndex", "xMm", "yMm", "widthMm", "lengthMm", "rotationDeg"],
+        "Kesim planı placement kaydı"
+      );
+      if (item.sheetIndex !== sheet.index) {
+        throw new Error("Kesim planı placement sheetIndex değeri levha indeksiyle eşleşmiyor.");
+      }
+      return {
+        sourcePartId: item.sourcePartId,
+        pieceNumber: item.pieceNumber,
+        xMm: item.xMm,
+        yMm: item.yMm,
+        widthMm: item.widthMm,
+        lengthMm: item.lengthMm,
+        rotationDeg: item.rotationDeg
+      };
+    });
+    return { index: sheet.index, pieceCount: sheet.pieceCount, placements };
+  });
+
+  const totalPieceCount = plan.totalPieceCount;
+  const empty = totalPieceCount === 0;
+  return createSheetCutPlan({
+    schemaVersion: 1,
+    batch: {
+      schemaVersion: 1,
+      sheet: plan.stockSheet,
+      kerfMm: plan.kerfMm,
+      parts,
+      totalPieceCount
+    },
+    layout: {
+      schemaVersion: 1,
+      status: empty ? "empty" : "ready",
+      diagnostics: [],
+      result: {
+        schemaVersion: 1,
+        strategy: plan.strategy,
+        sheet: plan.stockSheet,
+        kerfMm: plan.kerfMm,
+        sheets,
+        totalPieceCount
+      }
+    }
+  });
+}
+
+/** Parses and fully revalidates the versioned machine-independent cut-plan JSON envelope. */
+export function parseSheetCutPlanJson(value: unknown): SheetCutPlanReport {
+  try {
+    if (typeof value !== "string") {
+      throw new Error("Kesim planı JSON içeriği metin olmalıdır.");
+    }
+    const envelope = record(JSON.parse(value) as unknown, "Kesim planı JSON zarfı");
+    closed(envelope, ["format", "formatVersion", "plan"], "Kesim planı JSON zarfı");
+    if (envelope.format !== "MobilyaCADSheetCutPlan" || envelope.formatVersion !== 1) {
+      throw new Error("Desteklenmeyen kesim planı JSON formatı veya sürümü.");
+    }
+    return validateSheetCutPlanResult(envelope.plan);
+  } catch (error) {
+    return fail(error);
+  }
+}
+
+/** Serializes only a ready/empty plan after a full geometry check and parser round-trip. */
+export function serializeSheetCutPlanJson(value: unknown): SheetCutPlanJsonReport {
+  try {
+    const report = record(value, "Kesim planı raporu");
+    closed(report, ["schemaVersion", "status", "result", "diagnostics"], "Kesim planı raporu");
+    if (report.schemaVersion !== 1) {
+      throw new Error("Desteklenmeyen kesim planı rapor şema sürümü.");
+    }
+    if (report.status === "blocked") {
+      if (report.result !== null || !Array.isArray(report.diagnostics)) {
+        throw new Error("Blocked kesim planı raporu null sonuç ve tanı listesi taşımalıdır.");
+      }
+      const diagnostics = report.diagnostics.filter(
+        (item): item is string => typeof item === "string" && item.trim() !== ""
+      );
+      if (diagnostics.length !== report.diagnostics.length || diagnostics.length === 0) {
+        throw new Error("Blocked kesim planı raporu boş olmayan metin tanıları taşımalıdır.");
+      }
+      return { schemaVersion: 1, status: "blocked", json: null, diagnostics };
+    }
+    if (report.status !== "ready" && report.status !== "empty") {
+      throw new Error("Kesim planı raporu ready, empty veya blocked durumunda olmalıdır.");
+    }
+    if (!Array.isArray(report.diagnostics) || report.diagnostics.length !== 0) {
+      throw new Error("Ready/empty kesim planı raporu tanı içermemelidir.");
+    }
+
+    const validated = validateSheetCutPlanResult(report.result);
+    if (validated.status !== report.status || validated.result === null) {
+      throw new Error("Kesim planı rapor durumu içerikle eşleşmiyor.");
+    }
+    const json = JSON.stringify({
+      format: "MobilyaCADSheetCutPlan",
+      formatVersion: 1,
+      plan: validated.result
+    });
+    const roundTrip = parseSheetCutPlanJson(json);
+    if (
+      roundTrip.status === "blocked" ||
+      roundTrip.result === null ||
+      JSON.stringify(roundTrip.result) !== JSON.stringify(validated.result)
+    ) {
+      throw new Error("Kesim planı JSON round-trip doğrulaması başarısız.");
+    }
+    return { schemaVersion: 1, status: validated.status, json, diagnostics: [] };
+  } catch (error) {
+    return {
+      schemaVersion: 1,
+      status: "blocked",
+      json: null,
+      diagnostics: [error instanceof Error ? error.message : String(error)]
+    };
+  }
+}
+

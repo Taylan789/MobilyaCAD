@@ -1056,3 +1056,15 @@
 - Bilinen kısıtlar: bu model kesim sırası/testere yolu/CNC/postprocessor veya makine standardı üretmez. Placement çiftleri arasındaki çakışma ve kerf aralığının bağımsız geometrik denetimi DOM-024'e bırakıldı; fiziksel üretim güvenliği atölye doğrulaması gerektirir.
 - AI Developer [#44221779571](https://github.com/Taylan789/MobilyaCAD/actions/runs/44221779571) eski a22c771 SHA'sında OpenRouter free-models-per-day 429 nedeniyle başarısız. Eski checkout rerun edilmedi; güncel SHA ile dispatch aracı bulunmadığından yeni run başlatılmadı. Sağlayıcı günlük kota reseti 19 Kasım 2026 03:00 TRT.
 - Sonraki görev: DOM-024 — büyük listelerde O(n²) kullanmadan çakışma, kerf aralığı, levha sınırı, adet tamlığı ve JSON round-trip doğrulaması.
+
+
+## 18 Kasım 2026 08:51 TRT — DOM-024 kesim planı geometri ve JSON doğrulaması (Actions bekleniyor)
+
+- Başlangıç HEAD: `f4dfaf6a5b6bda2fb9d46454c8ac537434ec1387`.
+- Kod/test/dokümantasyon: `domain/production/sheetCutPlan.ts`, `domain/production/sheetCutPlan.test.mjs`, `docs/production-domain-contract.md`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`.
+- Yeni davranış: aynı levhadaki placement çiftleri için kerf/çakışma denetimi; sweep-line + sıkıştırılmış Y aralık maksimum ağacı ile O(n log n). 50.000 placement regresyonu, yatay/düşey/diagonal kerf ihlali, overlap, exact kerf, zero-kerf edge-touch ve levhalar arası izolasyon testleri eklendi.
+- JSON: `MobilyaCADSheetCutPlan` formatVersion 1 serialize/parse API'si; serializer round-trip yapar, parser kaynağı/adedi/ölçüyü/grain/levha/kerf/geometriyi tekrar doğrular.
+- Otomatik kontroller: GitHub Actions CI/QA/Pages sonuçları henüz bekleniyor; başarılı ilan edilmedi. Yerel test sonucu raporlanmıyor.
+- Bilinen sınırlar: trim/fire/yield, kesim sırası, testere yolu, CNC/postprocessor ve gerçek makine standardı yok; fiziksel üretim güvenliği operatör doğrulaması gerektirir.
+- Commit SHA ve Actions bağlantıları doğrulama tamamlandıktan sonra bu kayda eklenecek.
+- Sonraki görev: DOM-025 kullanıcı tanımlı trim payı ve fire modelini açık mm girdileriyle eklemek.

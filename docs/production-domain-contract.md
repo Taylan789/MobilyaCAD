@@ -613,3 +613,16 @@ API: createSheetCutPlan({ schemaVersion: 1, batch, layout })
 - Bu sözleşme makine bağımsız veri modelidir; kesim sırası, testere yolu, trim payı, fire/yield, ortak kesim hattı, CNC operasyonu, postprocessor, makine kodu veya üretim güvenliği iddiası taşımaz.
 - Bu dilimde kerf değeri batch'ten aynen korunur ve eşitliği doğrulanır; placement çiftleri arasındaki geometrik çakışma ve kerf mesafesinin bağımsız doğrulaması DOM-024 kapsamındadır. Fiziksel kesim güvenliği atölye doğrulaması gerektirir.
 - Frontend JSON v1/CSV adapter'ı ve tüm frontend/** dosyaları değişmemiştir. Gelecekteki entegrasyon, blocked tanıları göstermeli ve doğrulanmamış planı üretim emri/CNC çıktısı olarak sunmamalıdır.
+
+
+## 5. Makine bağımsız kesim planı geometri doğrulaması ve JSON dosyası
+
+Kaynak: `domain/production/sheetCutPlan.ts`.
+
+- `createSheetCutPlan({ schemaVersion: 1, batch, layout })`, kaynak Part/adet kimliği, 1 tabanlı levha indeksi, mm koordinatı, döndürülmüş ölçü ve kerf ilişkisini doğrular.
+- Her levhadaki placement çifti için bağımsız çakışma/kerf denetimi yapılır. Her dikdörtgen, kerf değerinin yarısı kadar dört yönde genişletilir; pozitif alan kesişimi, gerçek parça aralığının kerf değerinden küçük olduğunu veya parçaların çakıştığını gösterir. Tam kerf boşluğu ve sıfır kerf ile kenar teması geçerlidir.
+- Geometri denetimi X başlangıç/bitiş sıralı sweep-line ve koordinat sıkıştırmalı Y aralık maksimum ağacı kullanır; placement başına çift taraması yapmaz ve `MAX_SHEET_NESTING_LAYOUT_PIECES = 50_000` sınırını korur. Farklı levhalardaki koordinatlar birbirinden bağımsızdır.
+- Koordinat/ölçü değerleri güvenli tam sayı 0.1 mm tick aralığında olmalıdır; güvenli integer hassasiyetini aşan değerler kesim planına alınmaz.
+- `serializeSheetCutPlanJson(report)` yalnızca ready/empty planı tam geometri doğrulamasından sonra `MobilyaCADSheetCutPlan` / formatVersion 1 zarfında serileştirir; blocked rapor JSON üretmez.
+- `parseSheetCutPlanJson(json)` kapalı zarf/plan şemasını, kaynak adetleri, levha sınırını, dönüş/grain ilişkisini, kerf mesafesini ve bütün geometriyi yeniden doğrular. Round-trip sonucu aynı plan verisini korumalıdır.
+- JSON biçimi makine bağımsız veri taşıma biçimidir; kesim sırası, testere yolu, takım/koordinat sistemi, CNC G-code veya üretici standardı içermez. Fiziksel üretim öncesi levha/kerf ve atölye güvenliği operatör tarafından doğrulanmalıdır.
