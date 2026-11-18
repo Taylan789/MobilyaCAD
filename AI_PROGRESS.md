@@ -1137,3 +1137,12 @@
 - Otomatik kontroller: commit sonrası CI, QA ve Pages sonuçları bekleniyor; henüz başarılı ilan edilmedi.
 - Bilinen sınırlar: deterministic shelf heuristic optimal nesting değildir; fire/yield, CNC, kesim sırası/yolu ve makine standardı üretmez. Fiziksel üretim öncesi atölye doğrulaması gerekir.
 - Sonraki görev: DOM-030 — kaydedilmiş proje kesim planını güncel üretim Part snapshot'ına karşı doğrula; stale planı export edilebilir göstermeden engelle.
+
+
+## 18 Kasım 2026 13:36 TRT — DOM-029 ilk QA bulgusu ve doğrulama sırası düzeltmesi
+
+- İlk kod commit'i: 10cc11aad3e4307bbff1129c82a6effb06b3c1fd.
+- [CI #44286822455](https://github.com/Taylan789/MobilyaCAD/actions/runs/44286822455) başarılı; [Pages build #44286822620](https://github.com/Taylan789/MobilyaCAD/actions/runs/44286822620) başarılı.
+- [QA #44286822565](https://github.com/Taylan789/MobilyaCAD/actions/runs/44286822565) başarısız: 354/355 domain testi geçti. Tek hata, duplicate Part ID testinin beklediği duplicate tanısı yerine daha önce çalışan grup sırası tanısını almasıydı; üretim davranışı yine güvenli biçimde blocked idi.
+- Düzeltme: grup sırası denetiminden önce global Part ID tekilliği doğrulanacak şekilde doğrulama sırası değiştirildi. Test kapsamı veya assertion gevşetilmedi; duplicate kimlik testi aynı kaldı.
+- Yeni commit sonrası CI/QA/Pages sonuçları bekleniyor; henüz başarılı ilan edilmedi.

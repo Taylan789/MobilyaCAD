@@ -203,10 +203,9 @@ function validateBatchGroups(
     }
 
     const firstPartIndex = sourcePartIds.indexOf(groupPartIds[0] ?? "");
-    if (firstPartIndex < 0 || firstPartIndex <= previousFirstPartIndex) {
-      throw new Error("Nesting batch grup sırası seçili proje Part sırasını korumuyor.");
+    if (firstPartIndex < 0) {
+      throw new Error("Nesting batch grup kaynağı seçili proje Part listesinde bulunmuyor.");
     }
-    previousFirstPartIndex = firstPartIndex;
 
     for (const id of groupPartIds) {
       if (!selectedIds.has(id)) {
@@ -217,6 +216,11 @@ function validateBatchGroups(
       }
       seenPartIds.add(id);
     }
+
+    if (firstPartIndex <= previousFirstPartIndex) {
+      throw new Error("Nesting batch grup sırası seçili proje Part sırasını korumuyor.");
+    }
+    previousFirstPartIndex = firstPartIndex;
 
     const batch = record(rawGroup.batch, groupId + " nesting batch");
     if (batch.schemaVersion !== 1 || !Array.isArray(batch.parts) || batch.parts.length === 0) {
