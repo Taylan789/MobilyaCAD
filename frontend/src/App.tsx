@@ -43,7 +43,6 @@ import { Separator } from "./components/ui/separator";
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -161,11 +160,9 @@ function matchesSceneMaterialSearch(
 
 function App() {
   const [workspaceOpen, setWorkspaceOpen] = useState(false);
-  const [workspaceLoading, setWorkspaceLoading] = useState(false);
   function startWorkspace() {
-    if (workspaceLoading || workspaceOpen) return;
-    setWorkspaceLoading(true);
-    window.setTimeout(() => { setWorkspaceOpen(true); setWorkspaceLoading(false); }, 1450);
+    if (workspaceOpen) return;
+    setWorkspaceOpen(true);
   }
   const [roomWidth, setRoomWidth] = useState(4000);
   const [roomLength, setRoomLength] = useState(5000);
@@ -178,6 +175,15 @@ function App() {
   const [focusRequestId, setFocusRequestId] = useState(0);
   const [transformMode, setTransformMode] = useState<"translate" | "scale" | "rotate">("translate");
   const [mobilePanel, setMobilePanel] = useState<"catalog" | "inspector" | null>(null);
+  const [isCompactViewport, setIsCompactViewport] = useState(
+    () => typeof window !== "undefined" && window.matchMedia("(max-width: 760px)").matches
+  );
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(max-width: 760px)");
+    const syncCompactViewport = () => setIsCompactViewport(mediaQuery.matches);
+    mediaQuery.addEventListener("change", syncCompactViewport);
+    return () => mediaQuery.removeEventListener("change", syncCompactViewport);
+  }, []);
   const [leftDockCollapsed, setLeftDockCollapsed] = useState(false);
   const [inspectorCollapsed, setInspectorCollapsed] = useState(false);
   const [showShortcuts, setShowShortcuts] = useState(false);
@@ -190,6 +196,11 @@ function App() {
   const [workspaceMode, setWorkspaceMode] = useState<"design" | "production">("design");
   const [productionSection, setProductionSection] = useState<"report" | "materials">("report");
   const [bottomPanelTab, setBottomPanelTab] = useState<"parts" | "materials" | "issues">("parts");
+
+  const mobileCatalogHidden = isCompactViewport && mobilePanel !== "catalog";
+  const mobileInspectorHidden = isCompactViewport
+    ? mobilePanel !== "inspector"
+    : inspectorCollapsed;
 
   const [constructionRules] = useState<CabinetConstructionRules>({
     panelThickness: 18,
@@ -255,7 +266,6 @@ function App() {
     initialPanel: "catalog" | "scene" = "catalog",
     initialInspector: "room" | "furniture" | "production" | "materials" = "room"
   ) {
-    if (workspaceLoading) return;
     if (
       hasUnsavedChanges &&
       !window.confirm("Kaydedilmemiş değişiklikler var. Yeni projeye geçmek istiyor musun?")
@@ -1143,7 +1153,7 @@ function App() {
             </nav>
             <div className="atelier-profile">
               <span className="atelier-profile-indicator" aria-hidden="true" />
-              <div><b>PARAMETRİK STÜDYO</b><small>Mobilya · Bileşen · Üretim</small></div>
+              <div><b>TASARIM STÜDYOSU</b><small>Mobilya · Bileşen · Üretim</small></div>
             </div>
           </header>
           <main className="atelier-home-main" id="studio-home">
@@ -1158,11 +1168,7 @@ function App() {
                   <input id="atelier-open-project" type="file" accept=".json,application/json" hidden onChange={(event) => { void loadProject(event).then((loaded) => { if (loaded) startWorkspace(); }); }} />
                 </div>
               </div>
-              <div className="atelier-feature-art" aria-label="Parametrik mobilya tasarım illüstrasyonu">
-                <div className="atelier-art-grid"></div><div className="atelier-art-index">FIG. 001 — MODULAR SYSTEM</div>
-                <div className="atelier-art-cube"><div className="atelier-cube-top"></div><div className="atelier-cube-front"></div><div className="atelier-cube-side"></div><span className="atelier-dim atelier-dim-x">1200</span><span className="atelier-dim atelier-dim-y">740</span><span className="atelier-dim atelier-dim-z">18</span></div>
-                <div className="atelier-art-caption"><b>01 / PARAMETRİK MODÜL</b><span>ÖLÇÜ · MALZEME · MONTAJ</span></div>
-              </div>
+
             </section>
             <section className="atelier-section atelier-start-section" id="templates">
               <div className="atelier-section-heading"><div><span className="atelier-eyebrow">BAŞLANGIÇ NOKTASI</span><h2>Ne tasarlıyoruz?</h2></div><span className="atelier-section-note">Bir çalışma türü seçerek başla</span></div>
@@ -1174,10 +1180,9 @@ function App() {
             </section>
             <section className="atelier-bottom-row">
               <div className="atelier-recent" id="recent"><div className="atelier-section-heading"><div><span className="atelier-eyebrow">ÇALIŞMALARIN</span><h2>Son projeler</h2></div><button onClick={() => startNewProject()}>Yeni proje ↗</button></div><button className="atelier-empty-project" onClick={() => startNewProject()}><span className="atelier-empty-plus">＋</span><span><b>İlk projen burada başlayacak</b><small>Yeni bir tasarım alanı oluştur ve çalışmaya başla.</small></span><span className="atelier-empty-arrow">→</span></button></div>
-              <aside className="atelier-tip"><span className="atelier-eyebrow">STÜDYO NOTU / 01</span><b>Önce geometri.<br/>Sonra üretim.</b><p>MobilyaCAD'de tasarladığın her parça, üretim verisinin bir parçası olarak yaşar.</p><span className="atelier-tip-mark">M / CAD</span></aside>
             </section>
           </main>
-          <footer className="atelier-home-footer"><span>MOBİLYACAD STUDIO <b>·</b> TASARIM VE ÜRETİM ORTAMI</span><span>PARAMETRİK DÜŞÜN. ÖZGÜRCE TASARLA.</span></footer>
+          <footer className="atelier-home-footer"><span>MOBİLYACAD STUDIO <b>·</b> TASARIM VE ÜRETİM ORTAMI</span><span>ÖLÇÜYLE TASARLA. ÜRETİME HAZIRLA.</span></footer>
         </div>
       ) : (
       <div className="cad-app">
@@ -1440,6 +1445,11 @@ function App() {
           className={`cad-workspace${mobilePanel === "catalog" ? " mobile-catalog-open" : mobilePanel === "inspector" ? " mobile-inspector-open" : ""}${leftDockCollapsed ? " cad-workspace--left-collapsed" : ""}`}
         >
           <Sidebar
+            id="cad-left-dock"
+            role="region"
+            aria-label="Kütüphane ve sahne paneli"
+            aria-hidden={mobileCatalogHidden}
+            inert={mobileCatalogHidden}
             collapsible="none"
             className="cad-sidebar"
           >
@@ -1794,40 +1804,6 @@ function App() {
               </div>
             )}
           </SidebarContent>
-
-            <SidebarSeparator />
-
-            <SidebarFooter className="cad-project-footer">
-              <div className="cad-project-heading">
-                <div>
-                  <strong>Proje Nesneleri</strong>
-                  <span>SAHNEDEKİ MOBİLYALAR</span>
-                </div>
-                <span>{furniture.length}</span>
-              </div>
-
-              <ScrollArea className="cad-project-scroll">
-                <SidebarMenu>
-                  {furniture.length === 0 && (
-                    <p className="cad-empty-state">
-                      Henüz odaya mobilya eklenmedi.
-                    </p>
-                  )}
-
-                  {furniture.map((item) => (
-                    <SidebarMenuItem key={item.id}>
-                      <SidebarMenuButton
-                        isActive={selectedFurnitureId === item.id}
-                        onClick={() => focusSceneFurniture(item.id)}
-                      >
-                        <Box />
-                        <span>{item.name}</span>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  ))}
-                </SidebarMenu>
-              </ScrollArea>
-            </SidebarFooter>
           </Sidebar>
 
           <div className="cad-main-area">
@@ -1861,8 +1837,8 @@ function App() {
                 <button type="button" className={transformMode === "scale" ? "active" : ""} onClick={() => setTransformMode("scale")}><Maximize2 /> Ölçekle</button>
                 <button type="button" className={transformMode === "rotate" ? "active" : ""} onClick={() => setTransformMode("rotate")}><RotateCw /> Döndür</button>
                 <span className="studio-heading-divider" />
-                <button type="button" className="studio-panel-toggle" aria-label={leftDockCollapsed ? "Sol paneli göster" : "Sol paneli gizle"} title={leftDockCollapsed ? "Sol paneli göster" : "Sol paneli gizle"} aria-pressed={!leftDockCollapsed} onClick={() => setLeftDockCollapsed((current) => !current)}><PanelLeft /></button>
-                <button type="button" className="studio-panel-toggle" aria-label={inspectorCollapsed ? "Özellik panelini göster" : "Özellik panelini gizle"} title={inspectorCollapsed ? "Özellik panelini göster" : "Özellik panelini gizle"} aria-pressed={!inspectorCollapsed} onClick={() => setInspectorCollapsed((current) => !current)}><PanelRight /></button>
+                <button type="button" className="studio-panel-toggle" aria-label={leftDockCollapsed ? "Sol paneli göster" : "Sol paneli gizle"} title={leftDockCollapsed ? "Sol paneli göster" : "Sol paneli gizle"} aria-pressed={!leftDockCollapsed} aria-expanded={!leftDockCollapsed} aria-controls="cad-left-dock" onClick={() => setLeftDockCollapsed((current) => !current)}><PanelLeft /></button>
+                <button type="button" className="studio-panel-toggle" aria-label={inspectorCollapsed ? "Özellik panelini göster" : "Özellik panelini gizle"} title={inspectorCollapsed ? "Özellik panelini göster" : "Özellik panelini gizle"} aria-pressed={!inspectorCollapsed} aria-expanded={!inspectorCollapsed} aria-controls="cad-inspector" onClick={() => setInspectorCollapsed((current) => !current)}><PanelRight /></button>
                 <span className="studio-unit-pill">MM</span>
               </div>
             </div>
@@ -1922,7 +1898,7 @@ function App() {
                 <div className="studio-canvas-footer"><span><i /> SAHNE GÖRÜNÜMÜ</span><span>GRID · SNAP 10 MM</span><span>{furniture.length} / {furnitureCatalog.length} MODÜL</span></div>
               </main>
 
-              <aside className="cad-inspector">
+              <aside id="cad-inspector" className="cad-inspector" aria-hidden={mobileInspectorHidden} inert={mobileInspectorHidden}>
                 <div className="cad-inspector-header">
                   <div>
                     <strong>Özellikler</strong>
@@ -2318,7 +2294,7 @@ function App() {
 
         {workspaceMode === "design" && (
         <nav className="cad-mobile-toolbar" aria-label="Mobil çalışma araçları">
-          <button type="button" onClick={() => setMobilePanel(mobilePanel === "catalog" ? null : "catalog")} aria-pressed={mobilePanel === "catalog"}>
+          <button type="button" onClick={() => setMobilePanel(mobilePanel === "catalog" ? null : "catalog")} aria-pressed={mobilePanel === "catalog"} aria-expanded={mobilePanel === "catalog"} aria-controls="cad-left-dock">
             <Package />
             <span>Katalog</span>
           </button>
@@ -2334,20 +2310,13 @@ function App() {
             <RotateCw />
             <span>Döndür</span>
           </button>
-          <button type="button" onClick={() => setMobilePanel(mobilePanel === "inspector" ? null : "inspector")} aria-pressed={mobilePanel === "inspector"}>
+          <button type="button" onClick={() => setMobilePanel(mobilePanel === "inspector" ? null : "inspector")} aria-pressed={mobilePanel === "inspector"} aria-expanded={mobilePanel === "inspector"} aria-controls="cad-inspector">
             <Settings2 />
             <span>Özellik</span>
           </button>
         </nav>
         )}
 
-        {workspaceLoading && <div className="cad-loading-screen" role="status" aria-live="polite">
-          <MobilyaCadLogo className="cad-loading-brand" tone="inverse" descriptor="STUDIO" />
-          <div className="cad-loading-model" aria-hidden="true"><i className="cad-loading-panel cad-loading-panel-a" /><i className="cad-loading-panel cad-loading-panel-b" /><i className="cad-loading-panel cad-loading-panel-c" /><i className="cad-loading-shelf" /><i className="cad-loading-dimension">1200 mm</i></div>
-          <p className="cad-loading-kicker">PARAMETRİK TASARIM ORTAMI</p><h2>Çalışma alanın hazırlanıyor</h2>
-          <span className="cad-loading-caption">Geometri motoru · Malzeme kataloğu · Üretim araçları</span>
-          <div className="cad-loading-track"><span /></div><span className="cad-loading-percent">MOBİLYACAD STUDIO / INITIALIZING</span>
-        </div>}
         <footer className="cad-statusbar">
           <div className="cad-status-item">
             <span className="cad-status-light" />
