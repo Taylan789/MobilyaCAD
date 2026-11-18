@@ -1098,7 +1098,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 
 **Sınırlar:** zarf makine bağımsızdır; kesim sırası, testere yolu, CNC/postprocessor, fire/yield, makine standardı veya fiziksel üretim onayı değildir. Frontend ve adapter/performance agent dosyaları değiştirilmez.
 
-**Değişen dosyalar:** `domain/production/projectSheetCutPlanFile.ts`, yeni domain testi, `.github/workflows/qa-test.yml`, `docs/production-domain-contract.md`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`. Actions doğrulaması bekleniyor.
+**Değişen dosyalar:** `domain/production/projectSheetCutPlanFile.ts`, yeni domain testi, `.github/workflows/qa-test.yml`, `docs/production-domain-contract.md`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`. Doğrulama: [son SHA b51c293](https://github.com/Taylan789/MobilyaCAD/commit/b51c293815a11d38215740fa2e17f648271bdafb), [CI #44277876041](https://github.com/Taylan789/MobilyaCAD/actions/runs/44277876041), [QA #44277876003](https://github.com/Taylan789/MobilyaCAD/actions/runs/44277876003) ve [Pages #44277876046](https://github.com/Taylan789/MobilyaCAD/actions/runs/44277876046) başarılı; QA 102/102 frontend + 347/347 domain testi, strict TypeScript/lint/build ve production audit 0 bulgu.
 
 ### DOM-028 sonrası sıradaki 3-5 küçük görev
 1. DOM-029: doğrulanmış `ProjectSheetNestingBatchesResult` + her grup için layout raporundan atomik proje kesim planı raporu oluştur; eksik/çift/blocked grup tüm sonucu engellesin.
