@@ -388,9 +388,9 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 
 ### Sıradaki 3-5 küçük görev
 
-1. DOM-042 (IN_PROGRESS): gardırop/TV özel raf ve bölücü materialId, gerçek kalınlık veya yerleşim değişiminde kayıtlı JSON v2 planının stale olması; 12 senaryolu gerçek aile agregatörü testi.
-2. DOM-043: özel Part tüketim satırlarının teklif fiyat snapshot ve revizyon round-trip kaynak izini korumasını doğrula.
-3. DOM-044: açıklıklı banyo üst panelinin net alan/hacim tüketimi ve kalınlık duyarlı fiyatlandırmasını doğrula.
+1. DOM-043: özel Part tüketim satırlarının teklif fiyat snapshot ve revizyon round-trip kaynak izini korumasını doğrula.
+2. DOM-044: açıklıklı banyo üst panelinin net alan/hacim tüketimi ve kalınlık duyarlı fiyatlandırmasını doğrula.
+3. DOM-045: JSON v3 stockSheetSource provenance metadata'sının fresh/stale plan doğrulaması boyunca korunmasını doğrula.
 
 
 ## 19 Kasım 2026 01:43 TRT — DOM-041 özel Part tüketimi ve teklif testi (Actions doğrulandı)

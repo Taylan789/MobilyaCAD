@@ -1340,6 +1340,8 @@
 - Her stale senaryoda result/json null ve tanı değişen Part ID'sini içermeli. Seçilmemiş bölücüler tam proje snapshot'ı üzerinden kapsanır.
 - Değişen dosyalar: domain/production/projectSpecialPartFreshness.test.mjs (yeni), docs/production-domain-contract.md, AI_COORDINATION.md, PRODUCT_ROADMAP.md, AI_PROGRESS.md.
 - Kod/freshness runtime davranışı, frontend/**, adapter/benchmark, workflow, package/lockfile ve secrets değiştirilmedi. CNC veya fiziksel üretim uygunluğu iddiası yoktur.
-- Commit SHA ve CI/QA/Pages run bağlantıları GitHub push sonucu görüldükten sonra doğrulama kaydına eklenecek; şu an başarılı ilan edilmedi.
+- Kod/test commit'i: [7d66017c2d6b41ed19aba673a4ceea3a1324c346](https://github.com/Taylan789/MobilyaCAD/commit/7d66017c2d6b41ed19aba673a4ceea3a1324c346).
+- CI [#44419258580](https://github.com/Taylan789/MobilyaCAD/actions/runs/44419258580), QA [#44419258622](https://github.com/Taylan789/MobilyaCAD/actions/runs/44419258622) ve Pages [#44419258581](https://github.com/Taylan789/MobilyaCAD/actions/runs/44419258581) başarılı. QA: 124/124 frontend + 395/395 domain testi; strict shared-domain TypeScript, lint, frontend TypeScript/production build ve production dependency audit (0 vulnerability) geçti. Tam dependency install çıktısında 4 moderate advisory bildirildi; production-only audit temiz.
+- Test sonucu: değişmeyen plan fresh; gardırop/TV rafı ve dikey bölücülerinin materialId, kalınlık ve yerleşimindeki 12 ayrı değişiklik stale; her durumda result/json null ve değişen Part kimliği tanıda mevcut.
 - Bilinen sınır: JSON v2 snapshot canonical veri karşılaştırmasıdır, kriptografik imza değildir. Gerçek makine standardı ve atölye doğrulaması kapsam dışıdır.
 - Sonraki adım: Actions başarılıysa DOM-042'yi DONE olarak kapat ve DOM-043 teklif fiyat snapshot/revizyon kaynak izi testine geç.
