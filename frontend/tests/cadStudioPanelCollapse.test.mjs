@@ -46,6 +46,8 @@ test("panel disclosure controls identify their regions and make a collapsed insp
   assert.match(app, /id="cad-left-dock"\s+role="region"\s+aria-label="Kütüphane ve sahne paneli"/);
   assert.match(app, /aria-expanded=\{!leftDockCollapsed\} aria-controls="cad-left-dock"/);
   assert.match(app, /aria-expanded=\{!inspectorCollapsed\} aria-controls="cad-inspector"/);
+  assert.match(app, /aria-pressed=\{!leftDockCollapsed\} aria-expanded=\{!leftDockCollapsed\} aria-controls="cad-left-dock"/);
+  assert.match(app, /aria-pressed=\{!inspectorCollapsed\} aria-expanded=\{!inspectorCollapsed\} aria-controls="cad-inspector"/);
   assert.match(
     app,
     /<aside id="cad-inspector" className="cad-inspector" aria-hidden=\{inspectorCollapsed\} inert=\{inspectorCollapsed\}>/,
