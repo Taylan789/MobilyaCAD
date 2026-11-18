@@ -1,0 +1,148 @@
+.cad-furniture-transform {
+  gap: 12px;
+}
+
+.cad-furniture-transform > .cad-section-heading {
+  min-height: 24px;
+  margin: 0;
+  padding-bottom: 8px;
+  color: #a8bdca;
+  border-bottom: 1px solid rgba(132, 164, 184, 0.2);
+  letter-spacing: 0.13em;
+}
+
+.cad-furniture-transform > .cad-section-heading svg {
+  color: #91b1c5;
+}
+
+.cad-furniture-transform__coordinates {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.cad-furniture-transform__axis {
+  min-width: 0;
+  gap: 7px;
+  padding: 8px 7px 9px;
+  border: 1px solid rgba(132, 164, 184, 0.2);
+  border-radius: 7px;
+  background: linear-gradient(155deg, rgba(39, 56, 67, 0.76), rgba(23, 36, 45, 0.82));
+}
+
+.cad-furniture-transform__axis-label {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 5px;
+  color: #aebfc9 !important;
+  font-size: 9px !important;
+  font-weight: 650 !important;
+  white-space: nowrap;
+}
+
+.cad-furniture-transform__axis-tag {
+  display: inline-grid;
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  place-items: center;
+  color: #d6e4eb;
+  border: 1px solid rgba(145, 180, 202, 0.28);
+  border-radius: 4px;
+  background: rgba(145, 180, 202, 0.1);
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.cad-furniture-transform__axis .cad-input-with-unit input,
+.cad-furniture-transform__rotation .cad-input-with-unit input {
+  width: 100%;
+  min-width: 0;
+  min-height: 34px;
+  height: 34px;
+  padding: 0 27px 0 7px;
+  color: #e3edf2;
+  border: 1px solid rgba(133, 161, 178, 0.3);
+  border-radius: 5px;
+  background: #101c24;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.cad-furniture-transform__axis .cad-input-with-unit input:focus-visible,
+.cad-furniture-transform__rotation .cad-input-with-unit input:focus-visible {
+  border-color: #a9c7d8;
+  outline: 2px solid rgba(169, 199, 216, 0.72);
+  outline-offset: 1px;
+  box-shadow: 0 0 0 3px rgba(122, 168, 195, 0.1);
+}
+
+.cad-furniture-transform__axis .cad-input-with-unit > span,
+.cad-furniture-transform__rotation .cad-input-with-unit > span {
+  right: 7px;
+  color: #8199a7;
+  font-size: 8px;
+}
+
+.cad-furniture-transform__rotation {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(90px, 0.62fr);
+  align-items: center;
+  gap: 12px;
+  padding: 9px 10px;
+  border: 1px solid rgba(132, 164, 184, 0.2);
+  border-radius: 7px;
+  background: rgba(28, 43, 53, 0.62);
+}
+
+.cad-furniture-transform__rotation-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #b4c5ce !important;
+  font-size: 10px !important;
+  font-weight: 650 !important;
+}
+
+.cad-furniture-transform__rotation-label svg {
+  width: 14px;
+  height: 14px;
+  color: #91b1c5;
+}
+
+.cad-furniture-transform__note {
+  margin: 0;
+  padding: 2px 0 2px 9px;
+  color: #8fa3af;
+  border-left: 2px solid rgba(145, 180, 202, 0.38);
+  font-size: 9px;
+  line-height: 1.55;
+}
+
+@media (max-width: 420px) {
+  .cad-furniture-transform__coordinates {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .cad-furniture-transform__axis:last-child {
+    grid-column: 1 / -1;
+  }
+
+  .cad-furniture-transform__rotation {
+    grid-template-columns: minmax(0, 1fr) minmax(88px, 0.7fr);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cad-furniture-transform *,
+  .cad-furniture-transform *::before,
+  .cad-furniture-transform *::after {
+    scroll-behavior: auto;
+    transition: none !important;
+    animation: none !important;
+  }
+}
