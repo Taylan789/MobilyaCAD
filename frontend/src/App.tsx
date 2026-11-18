@@ -198,8 +198,9 @@ function App() {
   const [bottomPanelTab, setBottomPanelTab] = useState<"parts" | "materials" | "issues">("parts");
 
   const mobileCatalogHidden = isCompactViewport && mobilePanel !== "catalog";
-  const mobileInspectorHidden =
-    inspectorCollapsed || (isCompactViewport && mobilePanel !== "inspector");
+  const mobileInspectorHidden = isCompactViewport
+    ? mobilePanel !== "inspector"
+    : inspectorCollapsed;
 
   const [constructionRules] = useState<CabinetConstructionRules>({
     panelThickness: 18,
