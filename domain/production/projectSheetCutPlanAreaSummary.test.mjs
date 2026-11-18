@@ -148,7 +148,7 @@ test("grup malzemesi, kalınlığı ve kaynak Part sırası doğrulanmış kesim
 
   assertBlocked({
     schemaVersion: 1,
-    sourcePartIds: ["part-a"],
+    sourcePartIds: ["different-part"],
     groups: [group(plan, { sourcePartIds: ["different-part"] })]
   }, /kaynak Part ID listesi/);
 });
