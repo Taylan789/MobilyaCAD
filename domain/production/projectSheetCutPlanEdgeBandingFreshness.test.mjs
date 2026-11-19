@@ -113,7 +113,7 @@ function createSavedV3Plan(productionReport) {
   });
   assert.equal(serialized.status, "ready", serialized.diagnostics.join(" "));
   assert.ok(serialized.json);
-  return { json: serialized.json, selectedPartIds };
+  return { json: serialized.json, selectedPartIds, grainDirectionsByPartId: { [partId]: "length" } };
 }
 
 function freshnessRequest(saved, report) {
@@ -121,7 +121,8 @@ function freshnessRequest(saved, report) {
     schemaVersion: 1,
     savedPlanJson: saved.json,
     productionReport: report,
-    currentSelectedPartIds: saved.selectedPartIds
+    currentSelectedPartIds: saved.selectedPartIds,
+    grainDirectionsByPartId: saved.grainDirectionsByPartId
   };
 }
 
