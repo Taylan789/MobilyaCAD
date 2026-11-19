@@ -113,6 +113,29 @@ button:disabled {
   background: #627783;
 }
 
+/* Honor system motion preferences without changing CAD interaction state. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Keep keyboard focus and disabled controls legible in Windows High Contrast. */
+@media (forced-colors: active) {
+  :focus-visible {
+    outline: 2px solid Highlight !important;
+    outline-offset: 2px !important;
+  }
+
+  button:disabled {
+    color: GrayText !important;
+  }
+}
+
 @theme inline {
   --font-heading: var(--font-sans);
   --font-sans: "Geist Variable", sans-serif;
