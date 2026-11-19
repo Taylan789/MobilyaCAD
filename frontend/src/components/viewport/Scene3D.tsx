@@ -394,7 +394,7 @@ const PlacementWarnings = memo(function PlacementWarnings({ furniture, roomWidth
       })}
     </>
   );
-}
+});
 
 export default function Scene3D({
   width,
