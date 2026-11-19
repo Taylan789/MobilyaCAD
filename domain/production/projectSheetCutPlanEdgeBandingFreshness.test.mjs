@@ -24,7 +24,8 @@ function cabinetRequest(id) {
       widthMm: 800,
       heightMm: 720,
       depthMm: 560,
-      material: "MDF"
+      material: "MDF",
+      materialId: "mdf-18"
     },
     profile: {
       panelThicknessMm: 18,
