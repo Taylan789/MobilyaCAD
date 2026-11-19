@@ -17,6 +17,7 @@ import type { WardrobeConstructionPart } from "./wardrobeConstruction.ts";
 
 const edgeBandingIdPattern = /^[a-z0-9][a-z0-9._-]{0,63}$/;
 const EDGE_KEYS = ["top", "bottom", "left", "right"] as const;
+export type ProjectEdgeBandingEdge = (typeof EDGE_KEYS)[number];
 
 export interface CabinetProjectProductionRequest {
   schemaVersion: 1;
@@ -62,9 +63,16 @@ export interface ProjectHardwareItem {
   sourceReference?: string;
 }
 
-/** Explicit catalogue identity and price unit for every banded edge on one Part. */
+/** Explicit catalogue identity and price unit for one Part or one directional edge. */
 export interface ProjectEdgeBandingAssignment {
   partId: string;
+  /** Omitted for the legacy whole-Part default; explicit values override that fallback. */
+  edge?: ProjectEdgeBandingEdge;
+  edgeBandingId: string;
+  unit: "mm" | "m";
+}
+
+export interface ProjectEdgeBandingByEdge {
   edgeBandingId: string;
   unit: "mm" | "m";
 }
@@ -74,10 +82,12 @@ export type ProjectProductionPart = (
 ) & {
   /** Optional, explicitly validated panel profile; absent on legacy rectangular parts. */
   panelGeometry?: PanelCutoutGeometryResult;
-  /** One explicit edge-band catalogue identity for all banded edges on this Part. */
+  /** Legacy Part-level edge-band default. Explicit edge entries take precedence. */
   edgeBandingMaterialId?: string;
-  /** User-selected price unit; measured geometry is converted only from mm to m when explicitly requested. */
+  /** Legacy Part-level price unit; conversion from mm to m is only explicit. */
   edgeBandingUnit?: "mm" | "m";
+  /** Optional per-direction overrides for outer and cutout edges that are actually banded. */
+  edgeBandingByEdge?: Partial<Record<ProjectEdgeBandingEdge, ProjectEdgeBandingByEdge>>;
 };
 
 export interface CabinetProjectProductionResult {
@@ -187,7 +197,7 @@ function readProjectHardwareItem(value: unknown, index: number): ProjectHardware
 
 function readProjectEdgeBandingAssignment(value: unknown, index: number): ProjectEdgeBandingAssignment {
   const entry = requireRecord(value, "Projenin " + (index + 1) + ". kenar bandı ataması");
-  const allowed = ["partId", "edgeBandingId", "unit"];
+  const allowed = ["partId", "edge", "edgeBandingId", "unit"];
   const unknownKey = Object.keys(entry).find((key) => !allowed.includes(key));
   if (unknownKey !== undefined) {
     throw new Error("Kenar bandı atamasında desteklenmeyen alan: " + unknownKey + ".");
@@ -206,7 +216,11 @@ function readProjectEdgeBandingAssignment(value: unknown, index: number): Projec
   if (entry.unit !== "mm" && entry.unit !== "m") {
     throw new Error(partId + " kenar bandı birimi yalnızca mm veya m olabilir.");
   }
-  return { partId, edgeBandingId, unit: entry.unit };
+  const edge = entry.edge;
+  if (edge !== undefined && !(EDGE_KEYS as readonly string[]).includes(edge as string)) {
+    throw new Error(partId + " kenar bandı yönü top, bottom, left veya right olmalıdır.");
+  }
+  return { partId, edgeBandingId, unit: entry.unit, ...(edge === undefined ? {} : { edge: edge as ProjectEdgeBandingEdge }) };
 }
 
 function partHasBandedEdges(part: ProjectProductionPart): boolean {
@@ -579,7 +593,8 @@ export function calculateCabinetProjectProductionWithDiagnostics(
   const productionPartById = new Map(productionParts.map((part) => [part.id, part] as const));
   const edgeBandingRequests = (value.edgeBandingAssignments ?? []) as readonly unknown[];
   const edgeBandingAssignments: ProjectEdgeBandingAssignment[] = [];
-  const seenEdgeBandingPartIds = new Set<string>();
+  const seenLegacyEdgeBandingPartIds = new Set<string>();
+  const seenDirectionalEdgeBandingKeys = new Set<string>();
 
   for (const [index, rawAssignment] of edgeBandingRequests.entries()) {
     let assignment: ProjectEdgeBandingAssignment;
@@ -596,32 +611,62 @@ export function calculateCabinetProjectProductionWithDiagnostics(
       continue;
     }
     const family = familyByFurnitureId.get(part.furnitureId) ?? null;
-    if (!partHasBandedEdges(part)) {
-      addBlocked(part.furnitureId, family, "invalid-edge-banding",
-        part.id + " parçasında kenar bandı atanabilecek bantlı kenar bulunmuyor.");
-      continue;
+    if (assignment.edge === undefined) {
+      if (!partHasBandedEdges(part)) {
+        addBlocked(part.furnitureId, family, "invalid-edge-banding",
+          part.id + " parçasında kenar bandı atanabilecek bantlı kenar bulunmuyor.");
+        continue;
+      }
+      if (seenLegacyEdgeBandingPartIds.has(part.id)) {
+        addBlocked(part.furnitureId, family, "invalid-edge-banding",
+          part.id + " parçası için yinelenen kenar bandı ataması.");
+        continue;
+      }
+      seenLegacyEdgeBandingPartIds.add(part.id);
+    } else {
+      if (!partHasBandedEdge(part, assignment.edge)) {
+        addBlocked(part.furnitureId, family, "invalid-edge-banding",
+          part.id + " parçasında " + assignment.edge + " kenarı için kenar bandı bulunmuyor.");
+        continue;
+      }
+      const key = JSON.stringify([part.id, assignment.edge]);
+      if (seenDirectionalEdgeBandingKeys.has(key)) {
+        addBlocked(part.furnitureId, family, "invalid-edge-banding",
+          part.id + " parçasının " + assignment.edge + " kenarı için yinelenen kenar bandı ataması.");
+        continue;
+      }
+      seenDirectionalEdgeBandingKeys.add(key);
     }
-    if (seenEdgeBandingPartIds.has(part.id)) {
-      addBlocked(part.furnitureId, family, "invalid-edge-banding",
-        part.id + " parçası için yinelenen kenar bandı ataması.");
-      continue;
-    }
-    seenEdgeBandingPartIds.add(part.id);
     edgeBandingAssignments.push(assignment);
   }
 
-  const assignmentByPartId = new Map(edgeBandingAssignments.map((assignment) =>
-    [assignment.partId, assignment] as const
-  ));
+
+  const legacyAssignmentByPartId = new Map<string, ProjectEdgeBandingAssignment>();
+  const edgeAssignmentsByPartId = new Map<string, Partial<Record<ProjectEdgeBandingEdge, ProjectEdgeBandingByEdge>>>();
+  for (const assignment of edgeBandingAssignments) {
+    if (assignment.edge === undefined) {
+      legacyAssignmentByPartId.set(assignment.partId, assignment);
+      continue;
+    }
+    let assignmentsByEdge = edgeAssignmentsByPartId.get(assignment.partId);
+    if (assignmentsByEdge === undefined) {
+      assignmentsByEdge = {};
+      edgeAssignmentsByPartId.set(assignment.partId, assignmentsByEdge);
+    }
+    assignmentsByEdge[assignment.edge] = { edgeBandingId: assignment.edgeBandingId, unit: assignment.unit };
+  }
   const productionPartsWithAssignments = productionParts.map((part) => {
-    const assignment = assignmentByPartId.get(part.id);
-    return assignment === undefined
-      ? part
-      : {
-          ...part,
-          edgeBandingMaterialId: assignment.edgeBandingId,
-          edgeBandingUnit: assignment.unit
-        };
+    const legacyAssignment = legacyAssignmentByPartId.get(part.id);
+    const edgeAssignments = edgeAssignmentsByPartId.get(part.id);
+    if (legacyAssignment === undefined && edgeAssignments === undefined) return part;
+    return {
+      ...part,
+      ...(legacyAssignment === undefined ? {} : {
+        edgeBandingMaterialId: legacyAssignment.edgeBandingId,
+        edgeBandingUnit: legacyAssignment.unit
+      }),
+      ...(edgeAssignments === undefined ? {} : { edgeBandingByEdge: edgeAssignments })
+    };
   });
 
   const isEmpty = value.furniture.length === 0 &&
@@ -639,7 +684,7 @@ export function calculateCabinetProjectProductionWithDiagnostics(
     exportBlockers.push("Açık donanım BOM satırları mevcut; JSON v1/CSV dışa aktarıcısı hardwareItems alanını kayıpsız destekleyene kadar dışa aktarım kapalıdır.");
   }
   if (canCalculate && edgeBandingAssignments.length > 0) {
-    exportBlockers.push("Kenar bandı katalog atamaları mevcut; JSON v1/CSV dışa aktarıcısı edgeBandingMaterialId ve edgeBandingUnit alanlarını kayıpsız destekleyene kadar dışa aktarım kapalıdır.");
+    exportBlockers.push("Kenar bandı katalog atamaları mevcut; JSON v1/CSV dışa aktarıcısı edgeBandingMaterialId, edgeBandingUnit ve edgeBandingByEdge alanlarını kayıpsız destekleyene kadar dışa aktarım kapalıdır.");
   }
   const result: CabinetProjectProductionResult | null = canCalculate
     ? {

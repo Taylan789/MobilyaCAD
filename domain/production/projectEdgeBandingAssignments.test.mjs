@@ -147,3 +147,87 @@ test("invalid edge-band ID, unit and extra assignment fields block the project",
     assertBlocked(report, item.message);
   }
 });
+
+
+test("directional assignments preserve each edge catalogue identity and unit", () => {
+  const request = createRequest("cab-edge-directional", {
+    leftSide: { top: true, bottom: true, left: true, right: true }
+  });
+  const report = calculateCabinetProjectProductionWithDiagnostics({
+    schemaVersion: 1,
+    furniture: [request],
+    edgeBandingAssignments: [
+      { partId: "cab-edge-directional-left-side", edge: "top", edgeBandingId: "pvc-top", unit: "m" },
+      { partId: "cab-edge-directional-left-side", edge: "bottom", edgeBandingId: "pvc-bottom", unit: "mm" },
+      { partId: "cab-edge-directional-left-side", edge: "left", edgeBandingId: "pvc-left", unit: "m" },
+      { partId: "cab-edge-directional-left-side", edge: "right", edgeBandingId: "pvc-right", unit: "mm" }
+    ]
+  });
+
+  assert.equal(report.status, "ready");
+  assert.equal(report.canExport, false);
+  assert.ok(report.exportBlockers.some((message) => /edgeBandingMaterialId.*edgeBandingUnit.*edgeBandingByEdge/.test(message)));
+  const part = report.result.parts.find((item) => item.id === "cab-edge-directional-left-side");
+  assert.ok(part);
+  assert.deepEqual(part.edgeBanding, { top: true, bottom: true, left: true, right: true });
+  assert.deepEqual(part.edgeBandingByEdge, {
+    top: { edgeBandingId: "pvc-top", unit: "m" },
+    bottom: { edgeBandingId: "pvc-bottom", unit: "mm" },
+    left: { edgeBandingId: "pvc-left", unit: "m" },
+    right: { edgeBandingId: "pvc-right", unit: "mm" }
+  });
+  assert.equal("edgeBandingMaterialId" in part, false);
+  assert.equal("edgeBandingUnit" in part, false);
+});
+
+test("legacy Part-level edge-band assignment is the fallback for unoverridden edges", () => {
+  const request = createRequest("cab-edge-fallback", {
+    leftSide: { top: true, bottom: true, left: true, right: true }
+  });
+  const report = calculateCabinetProjectProductionWithDiagnostics({
+    schemaVersion: 1,
+    furniture: [request],
+    edgeBandingAssignments: [
+      { partId: "cab-edge-fallback-left-side", edgeBandingId: "pvc-default", unit: "mm" },
+      { partId: "cab-edge-fallback-left-side", edge: "top", edgeBandingId: "pvc-top", unit: "m" },
+      { partId: "cab-edge-fallback-left-side", edge: "right", edgeBandingId: "pvc-right", unit: "mm" }
+    ]
+  });
+
+  assert.equal(report.status, "ready");
+  const part = report.result.parts.find((item) => item.id === "cab-edge-fallback-left-side");
+  assert.ok(part);
+  assert.equal(part.edgeBandingMaterialId, "pvc-default");
+  assert.equal(part.edgeBandingUnit, "mm");
+  assert.deepEqual(part.edgeBandingByEdge, {
+    top: { edgeBandingId: "pvc-top", unit: "m" },
+    right: { edgeBandingId: "pvc-right", unit: "mm" }
+  });
+});
+
+test("duplicate directional edge assignment blocks the project without partial Parts", () => {
+  const request = createRequest("cab-edge-duplicate-direction", { leftSide: { top: true, bottom: true } });
+  const report = calculateCabinetProjectProductionWithDiagnostics({
+    schemaVersion: 1,
+    furniture: [request],
+    edgeBandingAssignments: [
+      { partId: "cab-edge-duplicate-direction-left-side", edge: "top", edgeBandingId: "pvc-a", unit: "mm" },
+      { partId: "cab-edge-duplicate-direction-left-side", edge: "top", edgeBandingId: "pvc-b", unit: "m" }
+    ]
+  });
+  assertBlocked(report, /top kenarı için yinelenen kenar bandı ataması/);
+});
+
+test("unknown directional edge and assignment to an unbanded edge are rejected", () => {
+  const request = createRequest("cab-edge-direction-validation", { leftSide: { top: true } });
+  const cases = [
+    { assignment: { partId: "cab-edge-direction-validation-left-side", edge: "front", edgeBandingId: "pvc-top", unit: "mm" }, message: /yönü top, bottom, left veya right olmalıdır/ },
+    { assignment: { partId: "cab-edge-direction-validation-left-side", edge: "right", edgeBandingId: "pvc-top", unit: "mm" }, message: /right kenarı için kenar bandı bulunmuyor/ }
+  ];
+  for (const item of cases) {
+    const report = calculateCabinetProjectProductionWithDiagnostics({
+      schemaVersion: 1, furniture: [request], edgeBandingAssignments: [item.assignment]
+    });
+    assertBlocked(report, item.message);
+  }
+});

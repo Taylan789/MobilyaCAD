@@ -466,3 +466,10 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 - JSON v1/CSV export adapter edge-band atama alanlarını henüz kayıpsız taşımadığından gerçek üretim raporu `canExport=false` kalır; export kapısı kaynak blocker'ı `productionDiagnostics` içinde korur ve JSON üretmez.
 - Test commit: [0247ad1](https://github.com/Taylan789/MobilyaCAD/commit/0247ad19603965bc5c32881b0bc9b2ff30e7d164). CI [#44513172692], QA [#44513172630], Pages [#44513172814] başarılı — 124 frontend + 416 domain; strict TS, lint 32 uyarı/0 hata, production build ve audit 0 vulnerability.
 - Sıradaki: DOM-053 — Part'ın dört fiziksel kenarı için ayrı edge-band assignment ve legacy Part-level fallback.
+
+
+## 19 Kasım 2026 15:56 TRT — DOM-053 yönsel kenar bandı atamaları (çalışıyor)
+
+- edgeBandingAssignments v1 girdisine opsiyonel edge yönü ekleniyor: top / bottom / left / right.
+- Eski Part-level assignment tekil default/fallback olarak korunur; aynı Part'ta yönsel override'lar farklı katalog ID/birim taşır. Yön, Part dış kenarı veya cutout edge flag'iyle desteklenmiyorsa; duplicate, unknown yön veya unknown Part varsa bütün rapor blocked/null olur.
+- Per-edge consumption/pricing DOM-054; JSON persistence/export extension DOM-055. Bu dilimde üretim dışa aktarıcıları per-edge alanını kayıpsız desteklemediğinden export blocker korunur.
