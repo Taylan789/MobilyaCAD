@@ -1442,3 +1442,13 @@
 - Bilinen sınır: runtime/domain hesap kodu değişmedi; edge-band JSON v1/CSV adapter desteği hâlâ yok, fiyat/katalog doğrulaması ve CNC/atölye fiziksel doğrulaması kapsam dışı.
 - AI Developer run [#44483736288](https://github.com/Taylan789/MobilyaCAD/actions/runs/44483736288) ve integration/performance job'ları OpenRouter free-model daily quota 429 (limit 50, kalan 0) nedeniyle başarısız; aktif run yok, rerun yapılmadı. Secrets, kredi veya servis ayarı değiştirilmedi.
 - Sıradaki: DOM-053 — per-edge edge-band assignments (4 kenar) schema/validation ve legacy Part-level fallback.
+
+
+## 19 Kasım 2026 15:56 TRT — DOM-053 yönsel kenar bandı atamaları (Actions doğrulandı)
+
+- Kod/test commit [9df2b619e25952350a7f146608b7e144546852a6](https://github.com/Taylan789/MobilyaCAD/commit/9df2b619e25952350a7f146608b7e144546852a6); değişen kod dosyaları: domain/production/projectProduction.ts ve domain/production/projectEdgeBandingAssignments.test.mjs. Task board, roadmap ve contract dokümanı follow-up commit'te güncellendi.
+- İlk commit [a72f6cd](https://github.com/Taylan789/MobilyaCAD/commit/a72f6cd8719dcb366e86583b56e27cd2d8ac24b5) CI/QA/Pages başarısız oldu: directional edge helper eksikti. Loglar incelendi, helper eklenerek düzeltildi; testler kaldırılmadı/zayıflatılmadı.
+- Son kod commit Actions: CI [#44529826346](https://github.com/Taylan789/MobilyaCAD/actions/runs/44529826346) success; QA [#44529826191](https://github.com/Taylan789/MobilyaCAD/actions/runs/44529826191) success — **124/124 frontend + 420/420 domain test**, shared-domain strict TypeScript, lint **32 warning / 0 error**, production build ve production dependency audit **0 vulnerability**; Pages [#44529826320](https://github.com/Taylan789/MobilyaCAD/actions/runs/44529826320) success.
+- DOM-053: edgeBandingAssignments optional edge direction; legacy Part-level fields remain fallback; explicit overrides are kept in edgeBandingByEdge. Validation checks direction is supported and actually banded on the outer/cutout edge, rejects duplicate Part+edge, and keeps blocked result null. JSON v1/CSV export blocker remains. No frontend, adapter/performance-agent files, workflow, package/lockfile, secrets, machine standard or physical production changed.
+- AI Developer/integration run [#44483736288](https://github.com/Taylan789/MobilyaCAD/actions/runs/44483736288) previously failed on OpenRouter free daily quota 429; no rerun or secret/credit/settings change. This task did not rely on that agent.
+- Next: DOM-054 per-edge consumption/price grouping with quantity, edgeCount, Part provenance and exact unit; then DOM-055 project JSON extension. CNC/physical workshop verification remains out of scope.

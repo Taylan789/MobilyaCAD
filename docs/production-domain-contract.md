@@ -918,3 +918,13 @@ Kaynak test: domain/production/projectBathroomVanityPanelPricing.test.mjs.
 - Mevcut `calculateCabinetProjectProductionWithDiagnostics` explicit Part-level edge-band assignment'ı doğrular fakat JSON v1/CSV adapter bu alanları kayıpsız taşımadığı için `canExport: false` ve açık `exportBlockers` verir. `createFreshProjectSheetCutPlanExport` blocker'ı `productionDiagnostics` içinde tutar, kısmi sonuç veya JSON döndürmez.
 - Kabul testleri `domain/production/projectSheetCutPlanEdgeBandingFreshness.test.mjs` dosyasında gerçek proje agregatörüyle çalışır; v3 round-trip, unchanged freshness, ID/unit/removal stale ve export fail-closed davranışını doğrular.
 - Bu test dilimi runtime geometri veya adapter değiştirmez. Gerçek edge-band katalog/fiyat, rulo/fire payı, makine standardı veya fiziksel üretim doğrulaması sağlamaz.
+
+
+## 2.17 Per-edge kenar bandı atamaları — DOM-053
+
+- edgeBandingAssignments kayıtlarında edge alanı opsiyoneldir. Alan yoksa mevcut v1 Part-level atama davranışı aynen korunur (edgeBandingMaterialId + edgeBandingUnit); bu değer, aynı Part'taki per-edge override'ların bulunmadığı kenarlar için fallback'tir.
+- edge yalnızca top, bottom, left veya right olabilir. Her yön, Part'ın dış kenarında veya açık panelGeometry cutout kenarında gerçekten bantlı olmalıdır; bantlanmayan yön atanamaz.
+- Bir Part bir legacy Part-level atama ve birden çok yönsel atama taşıyabilir. Part-level atama tekil kalır; aynı Part+edge yönüne ikinci atama bloklanır. Farklı yönler için ayrı katalog kimliği ve birim geçerlidir.
+- Yönsel atamalar parts[].edgeBandingByEdge üzerinde { edgeBandingId, unit } olarak korunur. Map yalnızca açık override yönlerini içerir; legacy fallback edgeBandingMaterialId/edgeBandingUnit alanlarında korunur. Per-edge tüketim/fiyat gruplaması DOM-054'te eklenecektir.
+- Legacy edgeBandingAssignments v1 ve mevcut JSON/CSV export alanları yönsel atamaları kayıpsız taşımadığı için bütün kenar bandı atamalarında export blocker sürer. Per-edge alanı tüketim özeti ve export tarafından desteklenene kadar üretim raporu atama verisini gösterir, fakat export onaylamaz.
+- Test kapsamı: dört yön ayrı ID/unit, legacy fallback + override, duplicate edge, unknown edge, banded olmayan yön ve mevcut legacy Part-level regresyonları.

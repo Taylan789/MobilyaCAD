@@ -473,3 +473,11 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 - edgeBandingAssignments v1 girdisine opsiyonel edge yönü ekleniyor: top / bottom / left / right.
 - Eski Part-level assignment tekil default/fallback olarak korunur; aynı Part'ta yönsel override'lar farklı katalog ID/birim taşır. Yön, Part dış kenarı veya cutout edge flag'iyle desteklenmiyorsa; duplicate, unknown yön veya unknown Part varsa bütün rapor blocked/null olur.
 - Per-edge consumption/pricing DOM-054; JSON persistence/export extension DOM-055. Bu dilimde üretim dışa aktarıcıları per-edge alanını kayıpsız desteklemediğinden export blocker korunur.
+
+
+## 19 Kasım 2026 15:56 TRT — DOM-053 tamamlandı
+
+- Per-edge edge-band assignments domain modeli eklendi; Part-level legacy atama fallback olarak korunurken top/bottom/left/right override'ları ayrı edgeBandingByEdge alanında exact katalog ID ve mm/m birim taşır.
+- Dört yönlü atama, legacy fallback + override, duplicate edge, unknown edge ve banded olmayan edge validation otomatik testlerle doğrulandı. Eksik yön/duplicate/invalid girişler tüm proje raporunu blocked/null tutar. Export blocker korunur.
+- Kod commit [9df2b61](https://github.com/Taylan789/MobilyaCAD/commit/9df2b619e25952350a7f146608b7e144546852a6). CI [#44529826346](https://github.com/Taylan789/MobilyaCAD/actions/runs/44529826346) ve QA [#44529826191](https://github.com/Taylan789/MobilyaCAD/actions/runs/44529826191) başarılı — 124 frontend + 420 domain; strict TS/lint/build/audit geçti, 0 vulnerability. Pages [#44529826320](https://github.com/Taylan789/MobilyaCAD/actions/runs/44529826320) başarılı.
+- Sıradaki DOM-054: edge başına tüketim ve exact ID/unit fiyat gruplaması; quantity, edgeCount ve Part provenance; missing price fail-closed. DOM-055 ardından per-edge proje JSON extension ve legacy v1 güvenli blocker/round-trip.
