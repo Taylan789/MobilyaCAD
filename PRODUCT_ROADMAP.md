@@ -521,9 +521,10 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 - Known boundary: project-file API round-trip is domain-level; frontend project import/export integration is not claimed. Direction remains encoded in quote-line description rather than a separate machine-readable field; CNC and workshop validation are not covered.
 
 ### Next domain slices
-1. DOM-060 DONE — strict quote revision source-line/Part integrity; new revisions use an opt-in version marker and legacy histories remain compatible.
-2. DOM-061 READY — optional structured edge-direction field with backward-compatible strict validation.
-3. DOM-062 PLANNED — revision comparison JSON export contract, exact line deltas/currency/source, no unit conversion.
+1. DOM-061 DONE — structured edge direction is carried as `edgeDirection` through consumption, quote summaries, revision snapshots, and JSON round-trip; legacy v1 descriptions remain supported.
+2. DOM-062 READY — revision comparison JSON export contract, exact line deltas/currency/source, no unit conversion.
+3. DOM-063 PLANNED — stable quote CSV export with exact units, currency, source and escaping validation.
+4. DOM-064 PLANNED — strict quote adjustment provenance for explicit waste/profit lines; no inferred percentages.
 
 
 ## 19 Kasım 2026 21:21 TRT — DOM-059 teklif revizyon satır karşılaştırması
@@ -551,3 +552,10 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 - Final [CI #44597253393](https://github.com/Taylan789/MobilyaCAD/actions/runs/44597253393) and [QA #44597251224](https://github.com/Taylan789/MobilyaCAD/actions/runs/44597251224) succeeded: **124/124 frontend + 443/443 domain tests, strict TypeScript, lint (32 warnings/0 errors), production build and production audit (0 vulnerabilities)**. Local tests were unavailable because the container could not resolve github.com.
 - UI/project import-export adapter and physical CNC/workshop validation remain outside this slice.
 - Next: DOM-061 READY — structured edge direction metadata without description parsing.
+
+
+## 19 Kasım 2026 23:08 TRT — DOM-061 tamamlandı
+
+- Kod/test commit: [1ef583d](https://github.com/Taylan789/MobilyaCAD/commit/1ef583d6a1b52d257c4a3879b58ebe913f2d5bb1). Structured `edgeDirection` artık per-edge tüketim fiyatından teklif satırı ve immutable revizyon JSON round-trip'ine taşınır; karşılaştırmada yön, açıklama metni yerine kimlik olarak kullanılır.
+- CI [#44606647153](https://github.com/Taylan789/MobilyaCAD/actions/runs/44606647153) success; QA [#44606647019](https://github.com/Taylan789/MobilyaCAD/actions/runs/44606647019) success — 124 frontend + 446 domain tests, strict domain TS, lint (32 warning/0 error), build ve production audit 0 vulnerability. Pages [#44606646888](https://github.com/Taylan789/MobilyaCAD/actions/runs/44606646888) successful.
+- Bilinen sınırlar: UI adapter/CNC/atölye fiziksel doğrulaması ayrı; yön sadece explicit edge-banding satırlarında, legacy v1 kayıtları migrate edilmez.

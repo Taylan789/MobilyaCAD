@@ -1531,3 +1531,12 @@
 - Compatibility: direct create without `sourceIntegrityVersion` remains legacy; new strict direct revisions must explicitly set `sourceIntegrityVersion: 1`; `appendProjectQuoteRevision` always sets it. Existing revision history without marker remains readable.
 - Limits: local tests could not run because GitHub host DNS was unavailable; Actions is the verification source. UI/project adapter and physical CNC validation are not included. AI Developer run [#44572846832](https://github.com/Taylan789/MobilyaCAD/actions/runs/44572846832) failed OpenRouter free-model daily quota (429); no rerun/credit/secrets change.
 - Next: DOM-061 READY — structured edge-direction field with legacy description compatibility.
+
+
+## 19 Kasım 2026 23:08 TRT — DOM-061 structured edge direction tamamlandı
+- Kod commit: [1ef583d6a1b52d257c4a3879b58ebe913f2d5bb1](https://github.com/Taylan789/MobilyaCAD/commit/1ef583d6a1b52d257c4a3879b58ebe913f2d5bb1). `edgeDirection` optional enum (`top/bottom/left/right`) per-edge production consumption -> priced cost lines -> quote summary -> immutable revision snapshots -> JSON history round-trip zincirinde korunuyor. Revision comparison structured direction ile eşleşir; display description değişimi value delta olarak kalır.
+- Dosyalar: `projectCostSummary.ts`, `projectPricedConsumption.ts`, `projectQuoteSummary.ts`, `projectQuoteRevision.ts`; üç test dosyası; `docs/production-domain-contract.md`. UI/adapter, CNC, frontend/** ve main değişmedi.
+- Actions: CI [#44606647153](https://github.com/Taylan789/MobilyaCAD/actions/runs/44606647153) success; QA [#44606647019](https://github.com/Taylan789/MobilyaCAD/actions/runs/44606647019) success (**124/124 frontend + 446/446 domain, 0 fail**, strict TS, lint 32 warnings/0 errors, build, production audit 0); Pages [#44606646888](https://github.com/Taylan789/MobilyaCAD/actions/runs/44606646888) successful.
+- Known limitations: no frontend adapter/CNC or physical workshop validation; legacy v1 quote lines without `edgeDirection` still use description-based comparison. GitHub Actions is the verification source.
+- AI Developer run [#44572846832](https://github.com/Taylan789/MobilyaCAD/actions/runs/44572846832) and integration/performance job failed due OpenRouter free-model daily 429 quota; no rerun because quota exhaustion is non-transient, no active run, and no secrets/settings/credits touched.
+- Next: DOM-062 — versioned comparison JSON export, exact line delta/currency/source metadata, no unit conversions; fail closed unsupported formats.
