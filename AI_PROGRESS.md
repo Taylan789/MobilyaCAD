@@ -1505,10 +1505,9 @@
 - Next: DOM-059 compare directional quote line deltas without unit or price inference; DOM-060 source integrity; DOM-061 structured direction metadata compatibility.
 
 
-## 19 Kasım 2026 21:21 TRT — DOM-059 teklif revizyon satır karşılaştırması (commit doğrulaması bekliyor)
-
-- `compareProjectQuoteRevisions` toplam/kategori farklarına ek olarak exact eşleşmeli `lineChanges` döndürecek: description (direction), unit, source type/id, tariff ID ve sorted Part provenance kimlikte; quantity, unit price, line total ve sourceReference değişiklikleri `changed` olarak taşınır. Direction/unit/source-Part değişimleri conversion/inference olmadan removed/added çiftleri.
-- Otomatik regresyon fixture'ı aynı üst kenar satırında quantity/price/sourceReference değişimini; sağ→sol yön, mm→m unit ve Part provenance değişimlerini ayrı delta olarak kontrol eder. Immutable result testleri eklendi.
-- Kod commit SHA ve CI/QA/Pages run linkleri commit sonrası doğrulama ekinde tamamlanacak; bu aşamada Actions sonucu henüz yok.
-- Known limitation: yön hâlâ description text'te; frontend adapter/persistence/CSV entegrasyonu, CNC ve fiziksel atölye doğrulaması kapsam dışı. `frontend/**` dosyaları değiştirilmedi.
-- Next: DOM-060 — revision history source-line/Part mapping integrity; then DOM-061 structured direction field with legacy compatibility.
+## 19 Kasım 2026 21:21 TRT — DOM-059 ilk Actions sonucu ve strict TypeScript düzeltmesi
+- İlk kod/test commit: [1363995](https://github.com/Taylan789/MobilyaCAD/commit/136399599256ba8ef0f254dcf3efebb6c380fdba). CI [#44588349138](https://github.com/Taylan789/MobilyaCAD/actions/runs/44588349138) ve Pages [#44588349252](https://github.com/Taylan789/MobilyaCAD/actions/runs/44588349252) başarılı.
+- QA [#44588349115](https://github.com/Taylan789/MobilyaCAD/actions/runs/44588349115): **439/439 domain test geçti**; strict domain TypeScript kontrolü readonly line source tipi nedeniyle TS2345 ile başarısız. Hata logu incelendi; source mapping parametresi DeepReadonly'a uyumlu hale getiriliyor, testler gevşetilmedi.
+- DOM-059 kabulü henüz final değil; bu düzeltme commit'i ve Actions sonucu bekleniyor. Frontend, adapter/performance agent alanı, main, workflow ve secrets değişmedi.
+- AI Developer ve Integration agent run'ları OpenRouter free-model günlük kota 429 nedeniyle başarısız; rerun güvenli/yararlı olmadığından yapılmadı, aktif run yok.
+- Next: strict TypeScript düzeltmesini doğrulamak, ardından DOM-060 quote history source-line/Part provenance integrity.

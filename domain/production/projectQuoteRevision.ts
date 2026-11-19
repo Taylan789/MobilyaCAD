@@ -723,7 +723,7 @@ export interface ProjectQuoteRevisionComparisonResult {
 
 function createRevisionComparisonLineSnapshot(
   line: ProjectCostLine,
-  source: ProjectQuoteLineSource
+  source: DeepReadonly<ProjectQuoteLineSource>
 ): ProjectQuoteRevisionCostLineSnapshot {
   return {
     category: line.category,

@@ -531,3 +531,8 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 - `compareProjectQuoteRevisions` artık toplam/kategori farklarına ek olarak `lineChanges` döndürür. Maliyet satırı kimlikleri değişken olabileceğinden eşleşme line ID yerine exact sourceType/sourceId, category, description, unit, tariffId ve sorted sourcePartIds tuple'ına dayanır.
 - Yön açıklaması ve birim değişiklikleri birim dönüştürmeden ayrı added/removed; miktar, birim fiyat, satır toplamı ve fiyat kaynağı değişiklikleri matched line üzerinde changed olarak gösterilir. Kaynak Part ID değişikliği ayrı added/removed olur.
 - DOM-060: quote history source-line/Part provenance integrity. DOM-061: description parsing bağımlılığını azaltan structured direction metadata, backward-compatible strict schema.
+
+
+## DOM-059 Actions correction note — 19 Kasım 2026
+
+- İlk kod commit'inde CI ve Pages başarılı, domain testleri 439/439 başarılı; QA strict TypeScript `ProjectQuoteLineSource` readonly-array uyumsuzluğu nedeniyle fail oldu. Kaynak parametresi DeepReadonly ile düzeltildi; final doğrulama pending.
