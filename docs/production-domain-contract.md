@@ -928,3 +928,12 @@ Kaynak test: domain/production/projectBathroomVanityPanelPricing.test.mjs.
 - Yönsel atamalar parts[].edgeBandingByEdge üzerinde { edgeBandingId, unit } olarak korunur. Map yalnızca açık override yönlerini içerir; legacy fallback edgeBandingMaterialId/edgeBandingUnit alanlarında korunur. Per-edge tüketim/fiyat gruplaması DOM-054'te eklenecektir.
 - Legacy edgeBandingAssignments v1 ve mevcut JSON/CSV export alanları yönsel atamaları kayıpsız taşımadığı için bütün kenar bandı atamalarında export blocker sürer. Per-edge alanı tüketim özeti ve export tarafından desteklenene kadar üretim raporu atama verisini gösterir, fakat export onaylamaz.
 - Test kapsamı: dört yön ayrı ID/unit, legacy fallback + override, duplicate edge, unknown edge, banded olmayan yön ve mevcut legacy Part-level regresyonları.
+
+
+## DOM-055 — Per-edge kenar bandı proje JSON uzantısı
+
+- Domain API: `readProjectEdgeBandingAssignmentsFromProjectFile` ve `updateProjectEdgeBandingAssignmentsInProjectFile`; `edgeBandingAssignments` alanını MobilyaCAD proje zarfında okur/yazar, diğer proje alanlarını korur ve kaynak nesneyi mutate etmez.
+- JSON v1 yalnızca legacy Part-level `partId/edgeBandingId/unit` atamalarını round-trip yapar. Yönsel `edge` alanı v1'de desteklenmez ve unknown-field blocker ile reddedilir; otomatik migrasyon yapılmaz.
+- JSON v2, kararlı `projectId` zorunluluğu ile legacy default atama ve `top/bottom/left/right` override'larını birlikte korur. Atama anahtarı Part+edge (legacy default için Part) olup duplicate kayıtlar blocked/null döner.
+- Unknown alan, invalid Part ID/katalog ID/unit/direction, bozuk envelope, unsupported version ve 10000 kayıt sınırı fail-closed doğrulanır. Geometri, Part existence ve gerçekten bantlı edge kontrolü hâlâ `calculateCabinetProjectProductionWithDiagnostics` sorumluluğundadır.
+- Kabul testleri v1/v2 JSON round-trip, v1 directional blocker, v2 default+override, empty extension, duplicate/invalid/unknown fields, projectId/version ve input immutability koşullarını kapsar. Frontend proje parser/adapter entegrasyonu ayrı sahiplikte; bu domain API tek başına UI/CSV export blocker'ını kaldırmaz.
