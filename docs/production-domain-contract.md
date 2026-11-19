@@ -857,3 +857,15 @@ Kaynak test: domain/production/projectSpecialPartFreshness.test.mjs. Kullanıcı
 - İki ayrı fiyat listesi sürümüyle oluşturulan teklif snapshot'ları proje JSON v2 `quoteRevisionHistory` alanına ardışık revizyon olarak eklenir; proje dosyasından okunur ve standalone revision-history JSON v1 serializer/parser round-trip sonrasında katalog sürümü, maliyet satırları, fiyat kaynağı ve lineSources alanları karşılaştırılır.
 - Exact 8 mm fiyatı eksik olduğunda snapshot `incomplete`, `costSummary: null` ve `snapshot: null` olur; revizyon append engellenir. `lineSources.costLineId` ile maliyet satırı uyuşmazsa append ve JSON serialization blocked/null kalır.
 - Sınır: teklif satırları `materialId + kalınlık` bazında gruplanır. `lineSources.sourceId`, tekil Part ID'si değil, doğrulanmış üretim-tüketim özet satırının kimliğidir. Orijinal Part kimlikleri üretim raporu/snapshot katmanında kalır; teklif satırı her Part'ı ayrı fiyatlandırdığı iddiasında değildir. Fiyatlar yalnızca test fixture'ıdır; gerçek tedarikçi fiyatı veya fiziksel üretim onayı değildir.
+
+
+## DOM-044 — açıklıklı banyo üst paneli net tüketim ve exact kalınlık fiyatı
+
+Kaynak test: domain/production/projectBathroomVanityPanelPricing.test.mjs.
+
+- Test, doğrudan Part fixture'ı yerine calculateCabinetProjectProductionWithDiagnostics gerçek proje agregatörünü kullanır. bathroom-vanity üst paneline 200 × 150 mm dikdörtgen geçiş açıklığı eklenir; test panelin dış alanından açıklık alanını çıkarır ve net hacmi net alan × gerçek panel kalınlığı olarak doğrular.
+- calculateProjectMaterialConsumptionSummary, panelGeometry.netFaceAreaMm2 ve netVolumeMm3 değerlerini 8 mm malzeme/kalınlık grubunun panelAreaM2 ve volumeM3 alanlarına taşır. Açıklık geometrisi Part quantity değerini değiştirmez.
+- Aynı katalog materialId hem 8 mm üst panelde hem 18 mm diğer gövde panellerinde kullanılır. Fiyatlandırma yalnızca materialId + m2 + exact thicknessMm anahtarıyla iki ayrı satır üretir; 8 mm satırının miktarı açıklık düşülmüş net m² alanıdır.
+- 8 mm fiyatı kaldırıldığında mevcut 18 mm fiyatı 8 mm üst paneli karşılamaz. Üretim tüketim fiyatı ve birleşik teklif incomplete, costSummary null döner; kısmi parasal toplam gösterilmez.
+- Geçerli panelGeometry, JSON v1/CSV adapter'ı geometriyi kayıpsız taşımadığı için canExport false durumunu korur. Bu test dışa aktarım, nesting, CNC veya fiziksel üretim onayı sağlamaz.
+- Fiyatlar yalnızca deterministik test fixture'larıdır; gerçek tedarikçi fiyatı, vergi, kur, fire/yield veya stok varsayımı değildir. Lavabo/armatür standardı ve fiziksel uygunluk atölye/üretici tarafından doğrulanmalıdır.

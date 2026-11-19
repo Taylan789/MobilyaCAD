@@ -401,3 +401,17 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 - CI [#44414697417](https://github.com/Taylan789/MobilyaCAD/actions/runs/44414697417): başarılı. QA [#44414697280](https://github.com/Taylan789/MobilyaCAD/actions/runs/44414697280): başarılı — **124/124 frontend + 394/394 domain**, shared-domain strict TypeScript, lint, frontend production build ve `npm audit --omit=dev --audit-level=high` başarılı; **0 vulnerability**. Pages [#44414697288](https://github.com/Taylan789/MobilyaCAD/actions/runs/44414697288): başarılı.
 - Runtime üretim kodu, frontend/adapter, workflow, package/lockfile veya secrets değiştirilmedi. Fiyatlar yalnızca test fixture'ıdır; gerçek piyasa fiyatı, CNC/makine standardı veya fiziksel üretim onayı değildir.
 - Sonraki görevler: DOM-042 özel Part freshness; DOM-043 teklif fiyat snapshot/revizyon izi; DOM-044 kesitli banyo paneli tüketim/fiyat doğrulaması.
+
+
+## 19 Kasım 2026 05:12 TRT — DOM-044 banyo üst paneli net tüketim/fiyat doğrulaması (Actions bekleniyor)
+
+- Yeni domain kabul testi: domain/production/projectBathroomVanityPanelPricing.test.mjs. Gerçek bathroom-vanity proje agregatöründen açıklıklı üst panel üretir; net alan/hacim değerlerinin malzeme özetine ve m² fiyat satırına taşınmasını doğrular.
+- Aynı materialId altında 8 mm üst panel ve 18 mm diğer gövde panelleri ayrı exact fiyat anahtarlarıyla sınanır. 8 mm fiyatı eksikse 18 mm fiyatı fallback olmaz; tüketim ve birleşik teklif incomplete/null toplam üretir.
+- Kesitli panelin mevcut JSON/CSV export blocker'ı korunur; frontend, runtime üretim kodu, adapter, workflow, bağımlılık ve secrets değiştirilmez.
+- CI/QA sonucu bu kayıt oluşturulurken bekleniyor; Actions tamamlanmadan başarı iddiası yoktur.
+
+### Sıradaki küçük domain dilimleri
+
+1. DOM-045 — JSON v3 stockSheetSource provenance metadata'sını fresh/stale plan doğrulaması boyunca koru.
+2. DOM-046 — gruplanmış malzeme teklif satırlarında katkı veren üretim Part kimliklerini geriye uyumlu kaynak alanıyla koru.
+3. DOM-047 — kesitli panel net alan/hacim ve exact fiyat verisinin teklif snapshot/revizyon JSON round-trip sadakatini doğrula.

@@ -1356,3 +1356,15 @@
 - Bilinen sınır: teklif satırları materialId + kalınlık bazında gruplanır; `lineSources.sourceId` özgün Part ID değil, gruplanmış tüketim satır kimliğidir. DOM-046 bu Part düzeyi provenance boşluğunu ele alacak. Fiyatlar yalnızca deterministik test fixture'ıdır; gerçek tedarikçi fiyatı, CNC standardı veya fiziksel üretim onayı değildir.
 - AI Developer run [#44431694679](https://github.com/Taylan789/MobilyaCAD/actions/runs/44431694679) OpenRouter free-model daily quota 429 nedeniyle başarısız (limit 50, kalan 0; reset 20 Kasım 2026 03:00 TRT). Aynı kotayı tüketen rerun yapılmadı; secrets/kredi/servis ayarı değiştirilmedi ve yeni run başlatılmış gibi davranılmadı.
 - Sonraki görev: DOM-044 — kesitli banyo üst panelinin net alan/hacim tüketimi ve kalınlık duyarlı fiyatlandırması.
+
+
+## 19 Kasım 2026 05:12 TRT — DOM-044 banyo üst paneli net tüketim/fiyat testi (Actions bekleniyor)
+
+- Başlangıç HEAD: 78d7478a31de42fc97384c171055af3192d4cd90.
+- Yeni test: domain/production/projectBathroomVanityPanelPricing.test.mjs. Kabul kriteri: gerçek bathroom-vanity agregatörü, açık ölçülü üst panel açıklığı, net alan/hacim tüketimi, aynı materialId altında 8/18 mm exact fiyat satırları ve 8 mm fiyatı eksikken incomplete/null toplam.
+- Test, mevcut panelGeometry tüketim yolunu ve calculateProjectPricedConsumptionSummary / calculateProjectQuoteSummary katmanlarını birlikte doğrular; runtime davranışı değiştirmez.
+- Değişen dosyalar: domain/production/projectBathroomVanityPanelPricing.test.mjs, docs/production-domain-contract.md, AI_COORDINATION.md, PRODUCT_ROADMAP.md, AI_PROGRESS.md.
+- Commit SHA ve CI/QA run bağlantıları commit oluşturulduktan ve Actions tamamlandıktan sonra doğrulanarak bu kayda eklenecek.
+- Bilinen sınırlar: panelGeometry nedeniyle JSON v1/CSV export hâlâ engellidir; test fiyatları fixture'dır; CNC, lavabo/armatür standardı ve fiziksel üretim doğrulaması yoktur.
+- AI Developer run #44431694679, OpenRouter free-model daily quota 429 (50 limit / 0 remaining) nedeniyle başarısızdır; reset 20 Kasım 2026 03:00 TRT. Kota sıfırlanmadan rerun yapılmadı; secrets/kredi/ayar değiştirilmedi.
+- Sonraki görev: Actions sonucu doğrulanınca DOM-044'ü DONE yap ve DOM-045'e geç.
