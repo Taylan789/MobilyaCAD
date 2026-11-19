@@ -979,3 +979,8 @@ Kaynak test: domain/production/projectBathroomVanityPanelPricing.test.mjs.
 - Genel toplam farkı revizyon toplamlarıyla; kategori farkları satır değişimlerinin kategori bazlı toplamıyla; tüm kategori delta'ları genel delta ile tutarlı olmalıdır. Satır toplamı quantity × unitPriceMinor hesaplamasıyla doğrulanır.
 - Bilinmeyen alan/sürüm, bozuk JSON, tutarsız toplam, eksik satır uçları, geçersiz metadata veya blocked karşılaştırma export/parse için fail-closed: `json/file/comparison=null`.
 - Otomatik kabul: round-trip, TRY/currency, kaynak Part/tarife/edgeDirection, mm ve m'yi ayrı satır farkı olarak koruma, bozuk totals, unsupported fields/version ve blocked input. UI adapter ve gerçek dosya indirme entegrasyonu bu domain sözleşmesinin dışında.
+
+
+### DOM-062 QA düzeltme notu
+- İlk QA #44632666298, comparison line snapshot'larında optional \`sourceReference\`, \`tariffId\`, \`sourcePartIds\` ve \`edgeDirection\` alanlarının zorunlu sanılması nedeniyle dört export testini düşürdü. Satır doğrulaması optional alanları kabul ederken yalnızca temel satır alanlarını zorunlu kılacak şekilde ayrıldı.
+- Delta regresyon fixture'ı kategori farkları toplamını genel farkla eşit tutup satır/kategori tutarsızlığını doğrudan sınar. Testler zayıflatılmadı; export fail-closed kalır.

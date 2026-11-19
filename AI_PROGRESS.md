@@ -1549,3 +1549,9 @@
 - Kabul kriterleri: serializer yalnızca hazır comparison kabul eder; parser exact v1 envelope; satır total quantity×unit-price doğrulanır; kategori farkı line delta toplamı, genel fark kategori toplamı ve revizyon toplamlarıyla uyuşur; mm/m exact string olarak korunur.
 - Otomatik testler commit sonrası GitHub Actions tarafından çalıştırılacak; local runtime test bu turda yapılmadı.
 - Sonraki: Actions loglarını incele; başarısızlığı düzelt, başarı kanıtını ve commit SHA'sını kaydet; ardından DOM-063 quote CSV contract.
+
+
+## 20 Kasım 2026 02:04 TRT — DOM-062 QA log analizi ve düzeltme
+- İlk uygulama commit'i [c5491e4](https://github.com/Taylan789/MobilyaCAD/commit/c5491e47bdc79f2cf9afa2cc86138e8c48a06034); [CI #44632666267](https://github.com/Taylan789/MobilyaCAD/actions/runs/44632666267) başarılı, [QA #44632666298](https://github.com/Taylan789/MobilyaCAD/actions/runs/44632666298) başarısız. Domain testleri 447/451 geçti; dört yeni export testinin serializer'ın optional line metadata alanlarını zorunlu kabul etmesi nedeniyle blocked sonucu aldığı logdan doğrulandı.
+- Düzeltme: line snapshot için allowed-key ve required-core-key doğrulamaları ayrıldı; optional sourceReference/tariffId/sourcePartIds/edgeDirection yoksa legacy uyumluluk korunur. Delta test fixture'ı category sum ile grand total'ı eşitleyerek line/category inconsistency durumunu hedefler.
+- Düzeltme commit SHA ve yeni Actions sonucu bekleniyor; aynı dosyalara ikinci düzeltme yalnızca QA tamamlandıktan sonra yapılacak.

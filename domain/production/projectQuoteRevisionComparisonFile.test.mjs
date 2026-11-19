@@ -175,6 +175,7 @@ test("comparison JSON preserves mm and m as distinct added/removed lines without
 test("tampered line/category totals block serialization without a partial JSON result", () => {
   const tampered = readyComparisonResult();
   tampered.comparison.categoryDeltasMinor.material = 1000;
+  tampered.comparison.categoryDeltasMinor.labor = -250;
   const serialized = serializeProjectQuoteRevisionComparisonFile(tampered);
 
   assert.equal(serialized.status, "blocked");

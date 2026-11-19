@@ -563,7 +563,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 
 ## 20 Kasım 2026 — DOM-062 teklif karşılaştırması JSON sözleşmesi
 
-- **Durum:** uygulandı; GitHub Actions doğrulaması bekleniyor.
+- **Durum:** uygulandı; ilk QA optional metadata doğrulamasında başarısız oldu, fail-closed parser/serializer düzeltmesi eklendi; yeni Actions doğrulaması bekleniyor.
 - **Teslim:** `mobilyacad-quote-revision-comparison` v1 strict JSON zarfı; hazır revision comparison sonuçlarını exact currency, unit, line delta, source metadata, Part ID, tariff ve structured edge direction ile serileştirir/parses.
 - **Fail-closed:** unsupported fields/version, malformed JSON, blocked input, satır toplamı/quantity-price uyuşmazlığı, kategori/genel delta tutarsızlığı veya line-change shape hatasında kısmi JSON döndürmez.
 - **Kabul:** domain otomatik test round-trip, metadata ve mm/m ayrımını; tam kategori ve grand-total delta tutarlılığını doğrular. Fiziksel üretim veya frontend dosya indirme entegrasyonu iddia edilmez.

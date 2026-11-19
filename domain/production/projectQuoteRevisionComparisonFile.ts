@@ -70,6 +70,20 @@ function requireExactKeys(value: Record<string, unknown>, keys: Set<string>, lab
   }
 }
 
+function requireAllowedKeys(value: Record<string, unknown>, keys: Set<string>, label: string): void {
+  for (const key of Object.keys(value)) {
+    if (!keys.has(key)) throw new Error(label + " desteklenmeyen alan içeriyor: " + key + ".");
+  }
+}
+
+function requireRequiredKeys(value: Record<string, unknown>, keys: Set<string>, label: string): void {
+  for (const key of keys) {
+    if (!Object.prototype.hasOwnProperty.call(value, key)) {
+      throw new Error(label + " zorunlu alanı eksik: " + key + ".");
+    }
+  }
+}
+
 function requireText(value: unknown, label: string, maximum: number): string {
   if (
     typeof value !== "string" ||
@@ -105,7 +119,11 @@ function deepFreeze<T>(value: T): DeepReadonly<T> {
 
 function validateLine(value: unknown, currencyCode: string): ProjectQuoteRevisionCostLineSnapshot {
   if (!isRecord(value)) throw new Error("Teklif fark satırı geçerli bir nesne olmalıdır.");
-  requireExactKeys(value, lineKeys, "Teklif fark satırı");
+  requireAllowedKeys(value, lineKeys, "Teklif fark satırı");
+  requireRequiredKeys(value, new Set([
+    "category", "description", "quantity", "unit", "unitPriceMinor",
+    "lineTotalMinor", "currencyCode", "sourceType", "sourceId"
+  ]), "Teklif fark satırı");
 
   if (typeof value.category !== "string" || !categoryKeys.has(value.category as ProjectQuoteCostCategory)) {
     throw new Error("Teklif fark satırı kategorisi desteklenmiyor.");
