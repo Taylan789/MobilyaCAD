@@ -1405,11 +1405,12 @@
 - Roadmap/coordination/domain contract kayıt commit'i [c080a6d](https://github.com/Taylan789/MobilyaCAD/commit/c080a6d356dc4e0b3a88e00df5102e5492809867); CI [#44480470348](https://github.com/Taylan789/MobilyaCAD/actions/runs/44480470348), QA [#44480470355](https://github.com/Taylan789/MobilyaCAD/actions/runs/44480470355) ve Pages [#44480470362](https://github.com/Taylan789/MobilyaCAD/actions/runs/44480470362) başarılı.
 
 
-## 19 Kasım 2026 11:18 TRT — DOM-049 edge-band consumption summary acceptance (Actions bekliyor)
+## 19 Kasım 2026 11:18 TRT — DOM-049 edge-band consumption summary acceptance (Actions doğrulandı)
 
-- Başlangıç HEAD: `20209d81a06ffd2b25e92d7d6b4145fc8247055c`. Bu dilim, mevcut `calculateProjectEdgeBandingConsumptionSummary` davranışını testle sabitler; runtime üretim kodu değiştirmez.
-- Yeni `domain/production/projectEdgeBandingConsumption.test.mjs`: mixed-family Part/furniture kaynak izi; aynı katalog kimliği + mm biriminde cabinet/table satırlarının birleştirilmesi; quantity ağırlıklı kenar uzunluğu ve edgeCount; aynı katalog kimliğinin m biriminde ayrı gruplanması; legacy atamasız Part'ın null ID/mm grubuna düşmesi; bantlanmayan Part'ın yok sayılması ve boş/duplicate-ID doğrulaması.
-- Değişen dosyalar: test dosyası, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`, `docs/production-domain-contract.md`. Frontend, adapter/benchmark, workflow, package/lockfile ve secrets değişmedi.
-- CI/QA/Pages sonuçları commit sonrası bekleniyor; testler yerel ortamda çalıştırılmadı. Actions sonucu görülmeden başarılı kabul edilmeyecek.
-- Bilinen sınır: `totalQuantity` kenar uzunluğu tüketimidir (mm veya m), parça adedi değildir; katalog bandı, fire/rulo payı, fiyat ve fiziksel üretim doğrulaması kapsam dışıdır.
-- Sonraki görev: DOM-050 — kenar bandı fiyatlandırması, exact resource/unit eşleşmesi ve teklif revision Part provenance round-trip.
+- Başlangıç HEAD: `20209d81a06ffd2b25e92d7d6b4145fc8247055c`; test commit'i: [96553086](https://github.com/Taylan789/MobilyaCAD/commit/96553086a370c93fd870086f7aaaedde80c60535).
+- Yeni `domain/production/projectEdgeBandingConsumption.test.mjs`, mevcut `calculateProjectEdgeBandingConsumptionSummary` davranışını iki acceptance testinde sabitler: mixed-family cabinet/table aynı `pvc-18 + mm` grubunda birleşir; bookshelf aynı katalog kimliği + `m` biriminde ayrı kalır; quantity-weighted kenar uzunluğu ve edgeCount; sorted Part/furniture kaynak izi; atamasız legacy Part null ID/mm grubunda; banded olmayan Part yok sayılır ve duplicate Part ID reddedilir. Runtime domain kodu değişmedi.
+- Değişen dosyalar: test, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`, `docs/production-domain-contract.md`. Frontend, adapter/benchmark, workflow, package/lockfile ve secrets değiştirilmedi.
+- CI [#44487103626](https://github.com/Taylan789/MobilyaCAD/actions/runs/44487103626) başarılı; QA [#44487103661](https://github.com/Taylan789/MobilyaCAD/actions/runs/44487103661) başarılı — **124/124 frontend + 411/411 domain**, shared-domain strict TypeScript, lint **32 uyarı / 0 hata**, frontend production build ve production dependency audit **0 vulnerability**. Pages [#44487103615](https://github.com/Taylan789/MobilyaCAD/actions/runs/44487103615) build/deploy başarılı.
+- Bilinen sınır: `totalQuantity` band uzunluğu tüketimidir (mm veya m), Part adet sayısı değildir. Katalog gerçekliği, bant kalınlığı, fire/rulo payı, fiyat, CNC ve fiziksel üretim doğrulaması kapsam dışıdır.
+- AI Developer run [#44483736288](https://github.com/Taylan789/MobilyaCAD/actions/runs/44483736288) iki job'da OpenRouter free-model daily quota 429 (limit 50, kalan 0) nedeniyle başarısız. Rerun yapılmadı; secrets/kredi/ayar değişmedi.
+- Sonraki görev: DOM-050 — kenar bandı fiyatlandırması, exact resource/unit eşleşmesi, missing-price fail-closed ve teklif revision Part provenance round-trip.

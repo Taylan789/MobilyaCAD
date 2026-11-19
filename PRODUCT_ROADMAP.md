@@ -252,12 +252,16 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 - Ray boşluğu, reveal, bağlantı, delik, CNC, fire ve fiziksel üretim güvenliği hesabı kapsam dışıdır; gerçek atölye uygunluğu insan doğrulaması gerektirir.
 - Kod commit'i sonrası CI/QA/Pages sonuçları bu kayıttan ayrı olarak Actions üzerinden doğrulanacaktır.
 
+## DOM-049 tamamlandı
+
+- [Test commit 96553086](https://github.com/Taylan789/MobilyaCAD/commit/96553086a370c93fd870086f7aaaedde80c60535) mixed-family Part/furniture kaynak izini, quantity-weighted edgeCount ve mm/m tüketim birimlerini doğrular.
+- [CI #44487103626](https://github.com/Taylan789/MobilyaCAD/actions/runs/44487103626) ve [QA #44487103661](https://github.com/Taylan789/MobilyaCAD/actions/runs/44487103661) başarılı: 124 frontend + 411 domain test; strict TypeScript, lint, production build ve audit 0 bulgu. [Pages #44487103615](https://github.com/Taylan789/MobilyaCAD/actions/runs/44487103615) başarılı.
+
 ## Sıradaki 3 küçük görev — domain sahipliği
 
-1. DOM-049 (IN_PROGRESS) — atanmış kenar bandı tüketim özetini mixed-family Part/furniture provenance, quantity-weighted edgeCount ve mm↔m dönüşümüyle doğrula; legacy atamasız Part'ları koru.
-2. DOM-050 — kenar bandı fiyatlandırması ve teklif Part kaynak izi; exact resource/unit eşleşmesi, eksik fiyat güvenliği ve revision round-trip.
-3. DOM-051 — family bazlı üretim raporu, JSON/CSV export blocker ve kesitli Part kaybı için contract regression tests.
-
+1. DOM-050 — kenar bandı fiyatlandırması ve teklif Part kaynak izi; exact resource/unit eşleşmesi, eksik fiyat güvenliği ve revision round-trip.
+2. DOM-051 — family bazlı üretim raporu, JSON/CSV export blocker ve kesitli Part kaybı için contract regression tests.
+3. DOM-052 — edge-band ID veya unit değişince kaydedilmiş project cut planı stale/blocked yap; snapshot provenance ve export blocker korunsun.
 ### Sonraki adaylar
 
 - Project cut-plan snapshot/freshness, edge-band ID veya birim değiştiğinde planı stale yapmalı.
