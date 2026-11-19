@@ -849,3 +849,11 @@ Kaynak test: domain/production/projectSpecialPartFreshness.test.mjs. Kullanıcı
 - Her stale sonuç result ve json alanlarını null tutar; tanı değişen özel Part kimliğini içerir. Böylece seçilmemiş bölücü değişikliği de eski kesim planının sessizce kullanılmasını engeller.
 - Runtime üretim/freshness kodu değiştirilmez; mevcut canonical tam proje snapshot sözleşmesi doğrulanır. Snapshot kriptografik imza değildir.
 - Frontend entegrasyon sözleşmesi değişmez: yalnızca fresh sonucu export edilebilir; stale/blocked durumda kısmi JSON veya CSV indirme açılmamalı ve tanılar gösterilmelidir. CNC, kesim sırası, makine standardı veya fiziksel üretim onayı sağlanmaz.
+
+## DOM-043 — Özel Part teklif snapshot ve revizyon kaynak izi
+
+- `projectSpecialPartQuoteRevision.test.mjs`, gerçek gardırop + floor-standing TV üretim agregatöründen gelen özel raf/bölücü Part'larını fiyat snapshot ve revizyon dosyası akışına taşır.
+- Malzeme fiyat eşleşmesi `materialId + m2 + thicknessMm` anahtarıyla doğrulanır. 18 mm ve 8 mm özel Part grupları ayrı teklif satırları üretir; satır açıklaması malzeme kimliği/kalınlığı, `sourceReference` atölye fiyat kaynağını, `lineSources` ise costLineId → üretim-tüketim satır kimliği eşlemesini korur.
+- İki ayrı fiyat listesi sürümüyle oluşturulan teklif snapshot'ları proje JSON v2 `quoteRevisionHistory` alanına ardışık revizyon olarak eklenir; proje dosyasından okunur ve standalone revision-history JSON v1 serializer/parser round-trip sonrasında katalog sürümü, maliyet satırları, fiyat kaynağı ve lineSources alanları karşılaştırılır.
+- Exact 8 mm fiyatı eksik olduğunda snapshot `incomplete`, `costSummary: null` ve `snapshot: null` olur; revizyon append engellenir. `lineSources.costLineId` ile maliyet satırı uyuşmazsa append ve JSON serialization blocked/null kalır.
+- Sınır: teklif satırları `materialId + kalınlık` bazında gruplanır. `lineSources.sourceId`, tekil Part ID'si değil, doğrulanmış üretim-tüketim özet satırının kimliğidir. Orijinal Part kimlikleri üretim raporu/snapshot katmanında kalır; teklif satırı her Part'ı ayrı fiyatlandırdığı iddiasında değildir. Fiyatlar yalnızca test fixture'ıdır; gerçek tedarikçi fiyatı veya fiziksel üretim onayı değildir.

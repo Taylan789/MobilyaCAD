@@ -388,7 +388,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 
 ### Sıradaki 3-5 küçük görev
 
-1. DOM-043: özel Part tüketim satırlarının teklif fiyat snapshot ve revizyon round-trip kaynak izini korumasını doğrula.
+1. DOM-043 (IN_PROGRESS): özel Part tüketim satırlarının exact materialId + thicknessMm fiyatı, price sourceReference ve quote lineSources alanlarını JSON v2 / revision-file round-trip boyunca koru; eksik fiyat veya bozuk kaynak eşlemesinde revizyonu engelle.
 2. DOM-044: açıklıklı banyo üst panelinin net alan/hacim tüketimi ve kalınlık duyarlı fiyatlandırmasını doğrula.
 3. DOM-045: JSON v3 stockSheetSource provenance metadata'sının fresh/stale plan doğrulaması boyunca korunmasını doğrula.
 
