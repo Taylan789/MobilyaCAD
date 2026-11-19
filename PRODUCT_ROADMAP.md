@@ -259,7 +259,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 
 ## Sıradaki 3 küçük görev — domain sahipliği
 
-1. DOM-051 — family bazlı üretim raporu, JSON/CSV export blocker ve kesitli Part kaybı için contract regression tests.
+1. DOM-051 — mixed-family rapor/Part kimliği/kesit export-block contract testleri (**IMPLEMENTED; Actions pending**).
 2. DOM-052 — edge-band ID veya unit değişince kaydedilmiş project cut planı stale/blocked yap; snapshot provenance ve export blocker korunsun.
 3. DOM-053 — farklı malzeme/birimli edge bandı aynı Part'ın fiziksel kenarlarına ayrı atama; legacy Part-level fallback.
 ### Sonraki adaylar
@@ -420,7 +420,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 ### Sıradaki küçük domain dilimleri
 
 - DOM-048 **DONE** — explicit kenar bandı Part atamaları, invalid diagnostics ve export blocker; [test commit c869d91](https://github.com/Taylan789/MobilyaCAD/commit/c869d91b6707ac13975ced5e5bf69c0a5298fbce), [CI #44480199298](https://github.com/Taylan789/MobilyaCAD/actions/runs/44480199298), [QA #44480199308](https://github.com/Taylan789/MobilyaCAD/actions/runs/44480199308), [Pages #44480199326](https://github.com/Taylan789/MobilyaCAD/actions/runs/44480199326) başarılı (124 frontend + 409 domain).
-1. DOM-051 — family bazlı üretim raporu, JSON/CSV export blocker ve kesitli Part kaybı için contract regression tests (**READY**).
+1. DOM-051 — family bazlı üretim raporu, JSON/CSV export blocker ve kesitli Part kaybı için contract regression tests (**IN REVIEW; Actions pending**).
 2. DOM-052 — edge-band ID/unit değişikliklerinde cut-plan freshness ve export blocker regresyonu (**READY**).
 3. DOM-053 — Part'ın her fiziksel kenarı için ayrı edge-band ataması; legacy Part-level fallback (**READY**).
 4. DOM-054 — per-edge tüketim, quantity/edgeCount, kaynak izi ve exact unit pricing (**READY; DOM-053 bağımlı**).

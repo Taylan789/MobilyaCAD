@@ -710,6 +710,57 @@ test("proje raporu desteklenen aileleri ve desteklenmeyen mobilyaları ayrı tan
   assert.equal(report.firstError?.includes("sofa"), true);
 });
 
+test("desteklenen kesitli Part ile bilinmeyen aile karışınca proje raporu kısmi üretim sonucu döndürmez", () => {
+  const cabinetId = "cab-mixed-unsupported-cutout";
+  const cabinet = createRequest(cabinetId, { profile: { shelfCount: 1 } });
+  const baseline = calculateCabinetProjectProduction({
+    schemaVersion: 1,
+    furniture: [cabinet]
+  });
+  const shelf = baseline.parts.find((part) => part.id === cabinetId + "-shelf");
+  assert.ok(shelf);
+  const geometry = {
+    schemaVersion: 1,
+    widthMm: shelf.width,
+    lengthMm: shelf.length,
+    thicknessMm: shelf.thickness,
+    outerEdgeBanding: shelf.edgeBanding,
+    cutouts: [{
+      id: "unsupported-project-cable-pass",
+      xMm: 100,
+      yMm: 100,
+      widthMm: 100,
+      lengthMm: 100,
+      edgeBanding: { ...noBanding }
+    }]
+  };
+  const unsupported = createBookshelfRequest("sofa-mixed-unsupported-cutout");
+  unsupported.family = "sofa";
+
+  const report = calculateCabinetProjectProductionWithDiagnostics({
+    schemaVersion: 1,
+    furniture: [cabinet, unsupported],
+    panelCutouts: [{ partId: shelf.id, geometry }]
+  });
+
+  assert.equal(report.status, "blocked");
+  assert.equal(report.canExport, false);
+  assert.equal(report.result, null);
+  assert.deepEqual(report.supportedFurniture, [{
+    furnitureId: cabinetId,
+    family: "cabinet"
+  }]);
+  assert.deepEqual(report.unsupportedFurniture, [{
+    furnitureId: "sofa-mixed-unsupported-cutout",
+    family: "sofa",
+    code: "unsupported-family",
+    message: "Projenin 2. mobilya ailesi desteklenmiyor: sofa."
+  }]);
+  assert.deepEqual(report.blockedFurniture, []);
+  assert.deepEqual(report.projectErrors, []);
+  assert.deepEqual(report.exportBlockers, []);
+});
+
 test("proje raporu geçersiz desteklenen konstrüksiyonu mobilya kimliğiyle engeller", () => {
   const invalid = createRequest("cab-invalid-report", {
     furniture: { widthMm: 0 }
@@ -1290,11 +1341,30 @@ test("karışık banyo dolabı ve kitaplık projesinde kesitler malzeme, kalınl
 
   assert.equal(report.status, "ready");
   assert.equal(report.canExport, false);
-  assert.equal(report.result.furniture[0].family, "bathroom-vanity");
-  assert.equal(report.result.furniture[1].family, "bookshelf");
-  assert.equal(report.result.parts.find((part) => part.id === vanityTop.id).panelGeometry.cutouts.length, 2);
+  assert.deepEqual(report.supportedFurniture, [
+    { furnitureId: vanityId, family: "bathroom-vanity" },
+    { furnitureId: bookshelfId, family: "bookshelf" }
+  ]);
+  assert.deepEqual(report.exportBlockers, [
+    "Kesitli panel geometrisi mevcut; JSON v1/CSV dışa aktarıcısı panelGeometry alanını kayıpsız destekleyene kadar dışa aktarım kapalıdır."
+  ]);
+  assert.deepEqual(report.result.parts.map((part) => part.id), [
+    "vanity-mixed-cutouts-left-side",
+    "vanity-mixed-cutouts-right-side",
+    "vanity-mixed-cutouts-top",
+    "vanity-mixed-cutouts-bottom",
+    "book-mixed-cutouts-left-side",
+    "book-mixed-cutouts-right-side",
+    "book-mixed-cutouts-top",
+    "book-mixed-cutouts-bottom",
+    "book-mixed-cutouts-shelf"
+  ]);
+  assert.deepEqual(
+    report.result.parts.find((part) => part.id === vanityTop.id).panelGeometry.cutouts,
+    vanityGeometry.cutouts
+  );
   const profiledShelf = report.result.parts.find((part) => part.id === bookshelfShelf.id);
-  assert.equal(profiledShelf.panelGeometry.cutouts.length, 1);
+  assert.deepEqual(profiledShelf.panelGeometry.cutouts, bookshelfGeometry.cutouts);
   assert.deepEqual(
     [profiledShelf.materialId, profiledShelf.thickness, profiledShelf.quantity],
     ["mdf-8", 8, 3]
