@@ -902,8 +902,3 @@ Kaynak test: domain/production/projectBathroomVanityPanelPricing.test.mjs.
 - `totalLengthMm` is quantity-weighted measured length in millimetres. `totalQuantity` expresses that length in the selected unit: mm rounded to 0.1, or m rounded to 0.0001; it is not Part count. `edgeCount` is quantity-weighted, `partLineCount` counts source Part rows, and sorted `partIds`/`furnitureIds` preserve provenance.
 - Legacy Parts without an explicit edge-band ID or unit stay in `edgeBandingId: null, unit: "mm"`; Parts with no banded edges are omitted. Duplicate Part IDs are rejected.
 - The test proves summary arithmetic only; it does not verify catalogue existence, band thickness, waste/roll allowance, pricing, CNC, or physical manufacturing.
-
-- `calculateProjectEdgeBandingConsumptionSummary` groups explicit edge-band assignments by catalogue ID and requested unit. The same ID with `mm` and `m` is kept in separate rows; assigned cabinet/table Parts sharing ID+unit aggregate together.
-- `totalLengthMm` is the quantity-weighted measured length in millimetres. `totalQuantity` is that length expressed in the selected unit: mm rounded to 0.1, or m rounded to 0.0001. It is not the number of Part units.
-- `partLineCount` counts contributing Part rows, `edgeCount` is quantity-weighted, and sorted `partIds`/`furnitureIds` preserve provenance. Parts with no edge-banded edges are excluded.
-- Legacy Parts without an explicit edge-band ID or unit remain in the `edgeBandingId: null, unit: "mm"` group. No band catalogue validation, waste/roll allowance, pricing, or physical production confirmation is inferred.
