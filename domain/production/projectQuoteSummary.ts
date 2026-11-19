@@ -19,6 +19,8 @@ export interface ProjectQuoteLineSource {
   sourceType: "production-consumption" | "labor-operation" | "quote-adjustment";
   sourceId: string;
   tariffId?: string;
+  /** Sorted unique production Part IDs for grouped consumption rows, when available. */
+  sourcePartIds?: string[];
 }
 
 export interface ProjectQuoteSummary {
@@ -214,10 +216,12 @@ export function calculateProjectQuoteSummary(
   consumptionLines.forEach((line, index) => {
     const costLineId = quoteLineId("consumption", index);
     costLines.push(toCostLine(line, costLineId));
+    const partSource = consumption.linePartSources.find((source) => source.costLineId === line.id);
     lineSources.push({
       costLineId,
       sourceType: "production-consumption",
-      sourceId: line.id
+      sourceId: line.id,
+      ...(partSource === undefined ? {} : { sourcePartIds: [...partSource.sourcePartIds] })
     });
   });
 

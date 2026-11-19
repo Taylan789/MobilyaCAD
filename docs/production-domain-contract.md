@@ -877,3 +877,12 @@ Kaynak test: domain/production/projectBathroomVanityPanelPricing.test.mjs.
 - Part snapshot değişmediğinde freshness sonucu fresh kalır, exact kayıtlı JSON stringini döndürür ve doğrulanmış result.groups[].stockSheetSource alanını korur.
 - Part snapshot değiştiğinde (örnekte quantity), sonuç stale; result/json null, tanı kaynak Part ID'sini içerir. Kısmi/eskimiş export açılmaz; orijinal kaydedilmiş JSON v3 metadata'sı değiştirilmez.
 - Mevcut runtime davranışı zaten parse edilmiş doğrulanmış planı fresh sonuçta döndürdüğünden değişmedi; test bu sözleşmeyi sabitler. Metadata gerçek tedarikçi/levha doğrulaması değildir.
+
+
+## DOM-046 — grouped consumption quote Part provenance
+
+- `calculateProjectMaterialConsumptionSummary` her malzeme/kalınlık grubuna katkı veren üretim Part ID'lerini sorted unique `partIds` alanıyla taşır. Bu alan adet/alan/hacim hesabını değiştirmez.
+- `calculateProjectPricedConsumptionSummary` fiyatlanmış malzeme ve kenar-bant tüketim satırlarını `linePartSources` içinde cost-line ID → sorted unique Part ID listesiyle eşler. Donanım BOM satırları mobilya kaynaklıdır; Part bağlantısı uydurulmaz.
+- `ProjectQuoteSummary.lineSources` üretim tüketim satırlarında isteğe bağlı `sourcePartIds` alanını içerir. `projectQuoteRevision` doğrulaması yeni alanı yalnızca üretim tüketiminde kabul eder, boş/tekrarlı/sırasız ID'leri reddeder.
+- Snapshot ve quote revision JSON v1 şeması değişmez. Eski snapshot'larda `sourcePartIds` bulunmaması geriye uyumlu kabul edilir; yeni alan varsa round-trip sırasında korunur.
+- Bu kaynak izi hesaplanan tüketim satırının hangi Part kayıtlarından geldiğini gösterir; fiziksel malzeme/atölye doğrulaması değildir.

@@ -79,6 +79,7 @@ test("proje agregatörünün Part listesinde quantity ağırlıklı alan, hacim 
     thicknessMm: 18,
     partLineCount: 9,
     totalQuantity: 10,
+    partIds: production.parts.map((part) => part.id).sort(),
     panelAreaM2: 4.097328,
     volumeM3: 0.073751904,
     edgeBanding: {

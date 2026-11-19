@@ -100,7 +100,7 @@ const costLineKeys = new Set([
   "sourceReference",
   "lineTotalMinor"
 ]);
-const sourceKeys = new Set(["costLineId", "sourceType", "sourceId", "tariffId"]);
+const sourceKeys = new Set(["costLineId", "sourceType", "sourceId", "tariffId", "sourcePartIds"]);
 const costCategories = ["material", "hardware", "labor", "operation", "waste", "profit"];
 const identifierPattern = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
 const datePattern = /^\d{4}-\d{2}-\d{2}$/;
@@ -315,6 +315,22 @@ function validateQuoteSummary(value: unknown): asserts value is Record<string, u
     requireIdentifier(source.sourceId, "Teklif kaynak kimliği");
     if (source.sourceType !== "production-consumption" && source.sourceType !== "labor-operation" && source.sourceType !== "quote-adjustment") {
       throw new Error("Teklif kaynak türü desteklenmiyor.");
+    }
+    if (source.sourcePartIds !== undefined) {
+      if (source.sourceType !== "production-consumption") {
+        throw new Error("Kaynak Part kimlikleri yalnızca üretim tüketimi satırlarına eklenebilir.");
+      }
+      if (!Array.isArray(source.sourcePartIds) || source.sourcePartIds.length === 0) {
+        throw new Error("Kaynak Part kimlikleri boş olmayan bir liste olmalıdır.");
+      }
+      let previousPartId: string | undefined;
+      for (const rawPartId of source.sourcePartIds) {
+        const partId = requireIdentifier(rawPartId, "Teklif kaynak Part kimliği");
+        if (previousPartId !== undefined && previousPartId >= partId) {
+          throw new Error("Teklif kaynak Part kimlikleri sıralı ve benzersiz olmalıdır.");
+        }
+        previousPartId = partId;
+      }
     }
     if (source.sourceType === "labor-operation") {
       requireIdentifier(source.tariffId, "Tarife kimliği");

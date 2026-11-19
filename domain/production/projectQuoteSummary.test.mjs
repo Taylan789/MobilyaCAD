@@ -5,6 +5,7 @@ import { BODY_PANEL_GROUPS } from "./bodyPanelMaterials.ts";
 import { calculateCabinetProjectProductionWithDiagnostics } from "./projectProduction.ts";
 import { calculateProjectLaborOperationPricingSummary } from "./projectLaborOperationPricing.ts";
 import { calculateProjectPricedConsumptionSummary } from "./projectPricedConsumption.ts";
+import { calculateProjectMaterialConsumptionSummary } from "./projectMaterialSummary.ts";
 import { calculateProjectQuoteSummary } from "./projectQuoteSummary.ts";
 
 const noBanding = { top: false, bottom: false, left: false, right: false };
@@ -133,7 +134,8 @@ test("malzeme tüketimi ile işçilik/operasyon satırlarını tek para birimind
     {
       costLineId: "consumption-0001",
       sourceType: "production-consumption",
-      sourceId: consumption.costSummary.lines[0].id
+      sourceId: consumption.costSummary.lines[0].id,
+      sourcePartIds: calculateProjectMaterialConsumptionSummary(report.result)[0].partIds
     },
     {
       costLineId: "work-0001",

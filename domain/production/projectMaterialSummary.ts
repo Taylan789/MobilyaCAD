@@ -22,6 +22,8 @@ export interface ProjectMaterialConsumptionSummary {
   materialId?: string;
   /** Part thickness in millimetres. */
   thicknessMm: number;
+  /** Sorted, unique IDs of Parts contributing to this material group. */
+  partIds: string[];
   /** Number of distinct production Part rows in this group. */
   partLineCount: number;
   /** Sum of each Part row's quantity. */
@@ -66,6 +68,7 @@ interface MaterialAccumulator {
   widthEdgesLengthMm: number;
   lengthEdgesLengthMm: number;
   edgeCount: number;
+  partIds: Set<string>;
 }
 
 interface ValidatedPart {
@@ -316,7 +319,8 @@ export function calculateProjectMaterialConsumptionSummary(
         volumeMm3: 0,
         widthEdgesLengthMm: 0,
         lengthEdgesLengthMm: 0,
-        edgeCount: 0
+        edgeCount: 0,
+        partIds: new Set<string>()
       };
       groups.set(key, group);
     }
@@ -334,6 +338,7 @@ export function calculateProjectMaterialConsumptionSummary(
     group.widthEdgesLengthMm += widthBandingContribution;
     group.lengthEdgesLengthMm += lengthBandingContribution;
     group.edgeCount += edgeCountContribution;
+    group.partIds.add(part.id);
 
     if (
       !Number.isSafeInteger(group.partLineCount) ||
@@ -366,6 +371,7 @@ export function calculateProjectMaterialConsumptionSummary(
         thicknessMm: group.thicknessMm,
         partLineCount: group.partLineCount,
         totalQuantity: group.totalQuantity,
+        partIds: [...group.partIds].sort(),
         panelAreaM2: roundTo(group.panelAreaMm2 / 1_000_000, 6),
         volumeM3: roundTo(group.volumeMm3 / 1_000_000_000, 9),
         edgeBanding: {

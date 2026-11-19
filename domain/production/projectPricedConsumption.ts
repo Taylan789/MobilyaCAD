@@ -38,6 +38,11 @@ export interface ProjectCostCoverageIssue {
   legacyPriceAvailable?: boolean;
 }
 
+export interface ProjectConsumptionLinePartSource {
+  costLineId: string;
+  sourcePartIds: string[];
+}
+
 export interface ProjectPricedConsumptionSummary {
   status: "empty" | "incomplete" | "ready" | "blocked";
   currencyCode: string | null;
@@ -46,6 +51,8 @@ export interface ProjectPricedConsumptionSummary {
   /** Missing inputs are reported separately; no partial monetary total is exposed. */
   missingPrices: ProjectCostCoverageIssue[];
   diagnostics: string[];
+  /** Part provenance for material/edge-band cost lines; hardware rows are furniture-scoped. */
+  linePartSources: ProjectConsumptionLinePartSource[];
   costSummary: ProjectCostSummary | null;
 }
 
@@ -175,6 +182,7 @@ function emptySummary(): ProjectPricedConsumptionSummary {
     pricedLineCount: 0,
     missingPrices: [],
     diagnostics: [],
+    linePartSources: [],
     costSummary: null
   };
 }
@@ -192,6 +200,7 @@ function blockedSummary(
     pricedLineCount,
     missingPrices,
     diagnostics,
+    linePartSources: [],
     costSummary: null
   };
 }
@@ -354,6 +363,7 @@ export function calculateProjectPricedConsumptionSummary(
   }
 
   const costLines: ProjectCostLineInput[] = [];
+  const linePartSources: ProjectConsumptionLinePartSource[] = [];
   const missingPrices: ProjectCostCoverageIssue[] = [];
   let materialLineNumber = 0;
   let hardwareLineNumber = 0;
@@ -388,15 +398,20 @@ export function calculateProjectPricedConsumptionSummary(
         ));
       } else {
         materialLineNumber += 1;
+        const costLineId = "material-" + String(materialLineNumber).padStart(4, "0");
         addPriceLine(
           costLines,
-          "material-" + String(materialLineNumber).padStart(4, "0"),
+          costLineId,
           "material",
           description,
           material.panelAreaM2,
           "m2",
           price
         );
+        linePartSources.push({
+          costLineId,
+          sourcePartIds: [...material.partIds].sort()
+        });
       }
     }
 
@@ -455,15 +470,20 @@ export function calculateProjectPricedConsumptionSummary(
       ));
     } else {
       edgeBandingLineNumber += 1;
+      const costLineId = "edge-banding-" + String(edgeBandingLineNumber).padStart(4, "0");
       addPriceLine(
         costLines,
-        "edge-banding-" + String(edgeBandingLineNumber).padStart(4, "0"),
+        costLineId,
         "material",
         description,
         edgeBanding.totalQuantity,
         edgeBanding.unit,
         price
       );
+      linePartSources.push({
+        costLineId,
+        sourcePartIds: [...edgeBanding.partIds].sort()
+      });
     }
   }
 
@@ -487,6 +507,7 @@ export function calculateProjectPricedConsumptionSummary(
       pricedLineCount,
       missingPrices,
       diagnostics: [],
+      linePartSources: [],
       costSummary: null
     };
   }
@@ -510,6 +531,7 @@ export function calculateProjectPricedConsumptionSummary(
       pricedLineCount,
       missingPrices: [],
       diagnostics: [],
+      linePartSources,
       costSummary
     };
   } catch (error) {
