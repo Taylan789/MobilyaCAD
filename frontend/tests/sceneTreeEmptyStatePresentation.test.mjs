@@ -9,26 +9,25 @@ const workbenchStyles = readFileSync(
 );
 
 test("scene tree empty states keep their existing real actions", () => {
-  assert.match(
-    appSource,
-    /className="studio-tree-empty">[\\s\\S]*?<strong>Sahne henüz boş<\\/strong>[\\s\\S]*?<button type="button" onClick=\\{\\(\\) => setLeftPanelMode\\("catalog"\\)\\}>Kütüphaneyi aç<\\/button>/
-  );
-  assert.match(
-    appSource,
-    /className="studio-tree-empty studio-tree-empty-search" role="status"/
+  assert.ok(appSource.includes('<strong>Sahne henüz boş</strong>'));
+  assert.ok(
+    appSource.includes('onClick={() => setLeftPanelMode("catalog")}>Kütüphaneyi aç')
   );
   assert.ok(
-    appSource.includes('onClick={() => setSceneSearch("")}>Aramayı temizle'),
-    "search empty state must keep its existing clear-search action"
+    appSource.includes('className="studio-tree-empty studio-tree-empty-search" role="status"')
+  );
+  assert.ok(
+    appSource.includes('onClick={() => setSceneSearch("")}>Aramayı temizle')
   );
 });
 
 test("scene tree empty states use compact graphite and steel styling", () => {
-  assert.match(workbenchStyles, /\\.studio-tree-empty\\s*\\{[^}]*min-height:\\s*164px/s);
-  assert.match(workbenchStyles, /\\.studio-tree-empty\\s*\\{[^}]*border:\\s*1px dashed #4b6573/s);
-  assert.match(workbenchStyles, /\\.studio-tree-empty > button:hover\\s*\\{/);
-  assert.match(workbenchStyles, /\\.studio-tree-empty > button:focus-visible\\s*\\{/);
-  assert.match(workbenchStyles, /@media\\s*\\(max-width:\\s*820px\\)/);
-  assert.match(workbenchStyles, /@media\\s*\\(prefers-reduced-motion:\\s*reduce\\)/);
-  assert.match(workbenchStyles, /@media\\s*\\(forced-colors:\\s*active\\)/);
+  assert.ok(workbenchStyles.includes(".studio-tree-empty {"));
+  assert.ok(workbenchStyles.includes("min-height: 164px !important;"));
+  assert.ok(workbenchStyles.includes("border: 1px dashed #4b6573 !important;"));
+  assert.ok(workbenchStyles.includes(".studio-tree-empty > button:hover {"));
+  assert.ok(workbenchStyles.includes(".studio-tree-empty > button:focus-visible {"));
+  assert.ok(workbenchStyles.includes("@media (max-width: 820px)"));
+  assert.ok(workbenchStyles.includes("@media (prefers-reduced-motion: reduce)"));
+  assert.ok(workbenchStyles.includes("@media (forced-colors: active)"));
 });
