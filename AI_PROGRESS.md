@@ -1403,3 +1403,13 @@
 - Bilinen sınır: edge-band ID syntax doğrulanır, gerçek katalog varlığı doğrulanmaz. JSON v1/CSV atama alanlarını kayıpsız taşımadığı için export blocker sürer; fiziksel bant, fire, rulo payı ve üretim standardı doğrulanmadı.
 - DOM-048 DONE. Sonraki görev: DOM-049 — mixed-family edge-band tüketim özeti, Part/furniture kaynak izi, quantity ve mm/m tutarlılığı.
 - Roadmap/coordination/domain contract kayıt commit'i [c080a6d](https://github.com/Taylan789/MobilyaCAD/commit/c080a6d356dc4e0b3a88e00df5102e5492809867); CI [#44480470348](https://github.com/Taylan789/MobilyaCAD/actions/runs/44480470348), QA [#44480470355](https://github.com/Taylan789/MobilyaCAD/actions/runs/44480470355) ve Pages [#44480470362](https://github.com/Taylan789/MobilyaCAD/actions/runs/44480470362) başarılı.
+
+
+## 19 Kasım 2026 11:18 TRT — DOM-049 edge-band consumption summary acceptance (Actions bekliyor)
+
+- Başlangıç HEAD: `20209d81a06ffd2b25e92d7d6b4145fc8247055c`. Bu dilim, mevcut `calculateProjectEdgeBandingConsumptionSummary` davranışını testle sabitler; runtime üretim kodu değiştirmez.
+- Yeni `domain/production/projectEdgeBandingConsumption.test.mjs`: mixed-family Part/furniture kaynak izi; aynı katalog kimliği + mm biriminde cabinet/table satırlarının birleştirilmesi; quantity ağırlıklı kenar uzunluğu ve edgeCount; aynı katalog kimliğinin m biriminde ayrı gruplanması; legacy atamasız Part'ın null ID/mm grubuna düşmesi; bantlanmayan Part'ın yok sayılması ve boş/duplicate-ID doğrulaması.
+- Değişen dosyalar: test dosyası, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`, `docs/production-domain-contract.md`. Frontend, adapter/benchmark, workflow, package/lockfile ve secrets değişmedi.
+- CI/QA/Pages sonuçları commit sonrası bekleniyor; testler yerel ortamda çalıştırılmadı. Actions sonucu görülmeden başarılı kabul edilmeyecek.
+- Bilinen sınır: `totalQuantity` kenar uzunluğu tüketimidir (mm veya m), parça adedi değildir; katalog bandı, fire/rulo payı, fiyat ve fiziksel üretim doğrulaması kapsam dışıdır.
+- Sonraki görev: DOM-050 — kenar bandı fiyatlandırması, exact resource/unit eşleşmesi ve teklif revision Part provenance round-trip.

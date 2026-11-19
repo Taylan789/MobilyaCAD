@@ -254,7 +254,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 
 ## Sıradaki 3 küçük görev — domain sahipliği
 
-1. DOM-049 — atanmış kenar bandı tüketim özetini mixed-family quantity ve mm/m birimleriyle doğrula; atamasız legacy Part davranışını koru.
+1. DOM-049 (IN_PROGRESS) — atanmış kenar bandı tüketim özetini mixed-family Part/furniture provenance, quantity-weighted edgeCount ve mm↔m dönüşümüyle doğrula; legacy atamasız Part'ları koru.
 2. DOM-050 — kenar bandı fiyatlandırması ve teklif Part kaynak izi; exact resource/unit eşleşmesi, eksik fiyat güvenliği ve revision round-trip.
 3. DOM-051 — family bazlı üretim raporu, JSON/CSV export blocker ve kesitli Part kaybı için contract regression tests.
 

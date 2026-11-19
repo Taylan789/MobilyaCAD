@@ -894,3 +894,11 @@ Kaynak test: domain/production/projectBathroomVanityPanelPricing.test.mjs.
 - Geçerli atama yalnızca hedef Part'a `edgeBandingMaterialId` ve açık `edgeBandingUnit` taşır; JSON v1/CSV alanları kayıpsız desteklenmediğinden export blocker korunur.
 - Unknown Part, duplicate Part assignment, banded edge olmayan Part, syntax-invalid katalog ID, unsupported unit ve unknown assignment field projeyi blocked yapar. Geçerli atama ile hatalı atama birlikte olduğunda da partial `result` verilmez.
 - Bu testler katalogda ID varlığını, bant kalınlığını, rulo/fire payını veya fiziksel üretim güvenliğini doğrulamaz.
+
+
+## DOM-049 — project edge-band consumption summary acceptance
+
+- `calculateProjectEdgeBandingConsumptionSummary` groups explicit edge-band assignments by catalogue ID and requested unit. The same ID with `mm` and `m` is kept in separate rows; assigned cabinet/table Parts sharing ID+unit aggregate together.
+- `totalLengthMm` is the quantity-weighted measured length in millimetres. `totalQuantity` is that length expressed in the selected unit: mm rounded to 0.1, or m rounded to 0.0001. It is not the number of Part units.
+- `partLineCount` counts contributing Part rows, `edgeCount` is quantity-weighted, and sorted `partIds`/`furnitureIds` preserve provenance. Parts with no edge-banded edges are excluded.
+- Legacy Parts without an explicit edge-band ID or unit remain in the `edgeBandingId: null, unit: "mm"` group. No band catalogue validation, waste/roll allowance, pricing, or physical production confirmation is inferred.
