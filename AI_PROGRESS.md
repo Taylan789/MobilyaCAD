@@ -1370,10 +1370,18 @@
 - Sonraki görev: DOM-044 tamamlandı; sıradaki domain dilimi DOM-045 — JSON v3 stockSheetSource provenance bilgisini fresh/stale kesim planı doğrulamasında korumak.
 
 
-## 19 Kasım 2026 07:32 TRT — DOM-045 JSON v3 stock-sheet provenance freshness testi (doğrulama bekliyor)
+## 19 Kasım 2026 07:32 TRT — DOM-045 JSON v3 stock-sheet provenance freshness testi (doğrulandı)
 
-- Başlangıç HEAD: 4051f14a5eb591337be36cdc1eaeac31bfe536a4.
-- Yeni kabul testi domain/production/projectSheetCutPlanFreshness.test.mjs: JSON v3 stockSheetSource.sourceId/revision metadata'sı değişmeyen Part snapshot'ında fresh sonuç ve exact JSON round-trip içinde korunmalı; quantity değişiminde stale sonuç result/json=null ve Part ID tanısı döndürmeli, orijinal v3 envelope metadata'sı değişmemeli.
-- docs/production-domain-contract.md, AI_COORDINATION.md, PRODUCT_ROADMAP.md güncellendi. Runtime/freshness üretim kodu, frontend/**, adapter/benchmark, workflow, package/lockfile ve secrets değişmedi.
-- Commit SHA ve CI/QA/Pages kanıtı sonraki doğrulama adımında eklenecek; bu commit için test sonucu henüz görülmedi.
-- Sıradaki domain dilimi: DOM-046 — grouped material quote lines'ına katkı veren sorted/unique Part IDs kaynak izi, legacy snapshot v1 ve quote revision round-trip uyumluluğu.
+- Başlangıç HEAD: 4051f14a5eb591337be36cdc1eaeac31bfe536a4; test commit'i: [7a72e5210a9a6ae7d6fb44f2b2840c8003c2bf4e](https://github.com/Taylan789/MobilyaCAD/commit/7a72e5210a9a6ae7d6fb44f2b2840c8003c2bf4e).
+- Fresh/stale API JSON v3 stockSheetSource.sourceId/revision metadata'sını exact JSON round-trip içinde korur; Part snapshot değişiminde stale, result/json=null ve Part ID tanısı döner.
+- CI [#44459306613](https://github.com/Taylan789/MobilyaCAD/actions/runs/44459306613), QA [#44459306600](https://github.com/Taylan789/MobilyaCAD/actions/runs/44459306600), Pages [#44459306739](https://github.com/Taylan789/MobilyaCAD/actions/runs/44459306739) başarılı — 124/124 frontend + 401/401 domain; strict TS/lint/build, audit 0 vulnerability.
+- AI Developer [#44431694679](https://github.com/Taylan789/MobilyaCAD/actions/runs/44431694679) OpenRouter free-model quota 429 nedeniyle başarısız; reset 20 Kasım 03:00 TRT öncesi rerun yapılmadı. Secrets/credits ayarı değişmedi.
+
+## 19 Kasım 2026 08:16 TRT — DOM-046 grouped quote Part provenance (doğrulandı)
+
+- Başlangıç HEAD: 7a72e5210a9a6ae7d6fb44f2b2840c8003c2bf4e. Kod commit'i [4d463c7b](https://github.com/Taylan789/MobilyaCAD/commit/4d463c7b0f5374c6cb1ca3932f2f876c75fb12f7); ilk QA [#44465774338](https://github.com/Taylan789/MobilyaCAD/actions/runs/44465774338) 4 test expectation/lookup hatası verdi. Düzeltme commit'i [16efb364](https://github.com/Taylan789/MobilyaCAD/commit/16efb3646759de99dfa9db3028c2535f4b226c65).
+- Yeni `partIds` material summary'ye, `linePartSources` priced consumption'a ve `sourcePartIds` grouped quote lines'a eklendi; revision v1 validation boş/duplicate/sırasız ID'leri reddeder, legacy field-less snapshots kabul edilir.
+- CI [#44466002195](https://github.com/Taylan789/MobilyaCAD/actions/runs/44466002195), QA [#44466002136](https://github.com/Taylan789/MobilyaCAD/actions/runs/44466002136), Pages [#44466002139](https://github.com/Taylan789/MobilyaCAD/actions/runs/44466002139) başarılı — 124/124 frontend + 403/403 domain, strict TypeScript, lint (32 warning/0 error), build ve audit (0 vulnerability).
+- Değişen dosyalar: `projectMaterialSummary.ts`, `projectMaterialSummary.test.mjs`, `projectPricedConsumption.ts`, `projectQuoteSummary.ts`, `projectQuoteSummary.test.mjs`, `projectQuoteRevision.ts`, `projectQuoteSourcePartIds.test.mjs`, `projectProduction.test.mjs`, `docs/production-domain-contract.md`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`. Frontend, adapter/benchmark, workflow, package/lockfile ve secrets değiştirilmedi.
+- Bilinen sınır: hardware BOM satırları furnitureId ile ilişkilidir; Part ID tahmin edilmez. Fiziksel/CNC doğrulaması yapılmadı.
+- Sıradaki görev: DOM-047 — kitaplık panel grubu kalınlık override'ları, katalog doğrulaması ve legacy ortak kalınlık uyumluluğu.

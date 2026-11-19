@@ -412,9 +412,17 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 
 ### Sıradaki küçük domain dilimleri
 
-1. DOM-045 — JSON v3 stockSheetSource provenance metadata'sını fresh/stale plan doğrulaması boyunca koru (IN_PROGRESS; Actions doğrulaması bekleniyor).
-2. DOM-046 — gruplanmış malzeme teklif satırlarında katkı veren üretim Part kimliklerini geriye uyumlu kaynak alanıyla koru.
-3. DOM-047 — kesitli panel net alan/hacim ve exact fiyat verisinin teklif snapshot/revizyon JSON round-trip sadakatini doğrula.
+1. DOM-047 — kitaplık panel grubu kalınlık override'larını katalog doğrulaması ve eski ortak kalınlık uyumluluğuyla ekle (READY).
+2. DOM-048 — masa konstrüksiyonunu tabla/ayak ve açık ölçü parametreleriyle testli dikey dilimlere genişlet; bağlantı standardı uydurma.
+3. DOM-049 — proje agregatöründe aile bazlı destek/engelleme tanılarını eksik aileler için otomatik testle sabitle.
+4. DOM-050 — domain üretim parça kimliği ve family sözleşmesini JSON/CSV entegrasyon testleriyle genişlet.
+5. DOM-051 — export/quote kesim listesi ve malzeme tüketim kaynak izi için CSV/JSON contract round-trip testlerini genişlet.
+
+## DOM-046 kabul ve entegrasyon kriterleri
+
+- Her malzeme/kalınlık teklif grubu sorted unique Part ID listesi taşır; aynı gruba katkı veren birden fazla mobilyanın parçaları kaybolmaz.
+- Yeni `sourcePartIds` alanı quote revision v1 JSON round-trip ile korunur. Eski v1 snapshot'lar alan olmadan geçerli kalır.
+- Boş, duplicate veya sırası bozulmuş Part kimliği listesi revizyonu blocked yapar; donanım BOM'larına Part bağlantısı varsayılmaz.
 
 
 ## 19 Kasım 2026 07:32 TRT — DOM-045 v3 levha kaynak izi freshness kabul testi
