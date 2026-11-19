@@ -521,8 +521,8 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 - Known boundary: project-file API round-trip is domain-level; frontend project import/export integration is not claimed. Direction remains encoded in quote-line description rather than a separate machine-readable field; CNC and workshop validation are not covered.
 
 ### Next domain slices
-1. DOM-060 IN_PROGRESS — strict source-line and Part provenance integrity with a backward-compatible integrity marker.
-2. DOM-061 PLANNED — optional structured edge-direction field with backward-compatible strict validation.
+1. DOM-060 DONE — strict quote revision source-line/Part integrity; new revisions use an opt-in version marker and legacy histories remain compatible.
+2. DOM-061 READY — optional structured edge-direction field with backward-compatible strict validation.
 3. DOM-062 PLANNED — revision comparison JSON export contract, exact line deltas/currency/source, no unit conversion.
 
 
@@ -544,10 +544,10 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 - Initial QA failure was only a readonly source-mapping type mismatch; the corrected type was verified on the final SHA. No manual test was requested or needed.
 
 
-## DOM-060 — Quote revision source integrity (19 Kasım 2026)
-- New quote revisions carry optional `sourceIntegrityVersion: 1` metadata while the existing history and snapshot schema versions stay unchanged.
-- Strict revisions require one-to-one ordered cost-line/source mapping, unique source identities, source type/category alignment, and sorted non-empty Part IDs for material-consumption lines. Hardware consumption can remain furniture-scoped without Part IDs; labor/operation source lines must retain tariff IDs; waste/profit adjustments retain their source references.
-- Legacy revision envelopes without the marker are validated with the prior v1 rules. Unknown integrity versions block; old saved histories are not silently migrated or discarded.
-- Acceptance: missing/duplicate line mappings, duplicate source identities, missing material Part provenance, and mismatched source/category fail closed; legacy history remains readable.
-- Automated verification pending on the first implementation SHA. Frontend project JSON/CSV adapter integration remains outside this domain slice.
-- Next: DOM-061 structured edge direction metadata without description parsing.
+## DOM-060 — Quote revision source integrity (19 Kasım 2026, verified)
+- Code: [0bfffef](https://github.com/Taylan789/MobilyaCAD/commit/0bfffefdb792f6b50f5d2a388609193a8421a479), [legacy compatibility fix e7bd921](https://github.com/Taylan789/MobilyaCAD/commit/e7bd92181da5b6c6c254a3da8795e2e304a1e04e), [strict marker type fix 8ba9115](https://github.com/Taylan789/MobilyaCAD/commit/8ba9115ceb127d9b9d461f5f5b5a90912f9156f4).
+- New strict revisions carry `sourceIntegrityVersion: 1`; cost-line mapping, source identity uniqueness, source-type/category alignment and material Part provenance are enforced. Hardware can remain furniture-scoped. Append API always creates strict revisions.
+- Legacy v1 revisions/direct create calls without the marker retain prior validation. This was preserved after two QA failures: first 441/443 tests due legacy fixture expectations, then 443/443 tests but strict TypeScript TS2322. The marker type was narrowed and verified.
+- Final [CI #44597253393](https://github.com/Taylan789/MobilyaCAD/actions/runs/44597253393) and [QA #44597251224](https://github.com/Taylan789/MobilyaCAD/actions/runs/44597251224) succeeded: **124/124 frontend + 443/443 domain tests, strict TypeScript, lint (32 warnings/0 errors), production build and production audit (0 vulnerabilities)**. Local tests were unavailable because the container could not resolve github.com.
+- UI/project import-export adapter and physical CNC/workshop validation remain outside this slice.
+- Next: DOM-061 READY — structured edge direction metadata without description parsing.
