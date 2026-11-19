@@ -72,7 +72,7 @@ export function FurnitureTransformFields({
     onRotationCommit(parsedValue);
   }
   return (
-    <section className="cad-property-section cad-transform-fields space-y-3">
+    <section className="cad-property-section cad-transform-fields">
       <div className="cad-section-heading cad-transform-fields__heading">
         <span>KONUM VE DÖNÜŞ</span>
         <Move3D />
