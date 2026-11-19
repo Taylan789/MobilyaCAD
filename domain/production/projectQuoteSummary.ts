@@ -48,15 +48,7 @@ function quoteLineId(prefix: "consumption" | "work" | "adjustment", index: numbe
   return prefix + "-" + String(index + 1).padStart(4, "0");
 }
 
-function toCostLine(line: {
-  category: ProjectCostLineInput["category"];
-  description: string;
-  quantity: number;
-  unit: string;
-  unitPriceMinor: number;
-  currencyCode: string;
-  sourceReference?: string;
-}, id: string): ProjectCostLineInput {
+function toCostLine(line: ProjectCostLineInput, id: string): ProjectCostLineInput {
   return {
     id,
     category: line.category,
@@ -65,7 +57,8 @@ function toCostLine(line: {
     unit: line.unit,
     unitPriceMinor: line.unitPriceMinor,
     currencyCode: line.currencyCode,
-    ...(line.sourceReference === undefined ? {} : { sourceReference: line.sourceReference })
+    ...(line.sourceReference === undefined ? {} : { sourceReference: line.sourceReference }),
+    ...(line.edgeDirection === undefined ? {} : { edgeDirection: line.edgeDirection })
   };
 }
 

@@ -17,6 +17,8 @@ export const PROJECT_COST_CATEGORIES = [
 
 export type ProjectCostCategory = (typeof PROJECT_COST_CATEGORIES)[number];
 
+export type ProjectCostLineEdgeDirection = "top" | "bottom" | "left" | "right";
+
 export interface ProjectCostLineInput {
   id: string;
   category: ProjectCostCategory;
@@ -26,7 +28,10 @@ export interface ProjectCostLineInput {
   unitPriceMinor: number;
   currencyCode: string;
   sourceReference?: string;
+  /** Explicit direction for edge-banding consumption; descriptions remain display-only. */
+  edgeDirection?: ProjectCostLineEdgeDirection;
 }
+
 
 export interface ProjectCostLine extends ProjectCostLineInput {
   lineTotalMinor: number;
@@ -55,7 +60,8 @@ const allowedLineKeys = new Set([
   "unit",
   "unitPriceMinor",
   "currencyCode",
-  "sourceReference"
+  "sourceReference",
+  "edgeDirection"
 ]);
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -202,6 +208,11 @@ export function calculateProjectCostSummary(value: unknown): ProjectCostSummary 
       throw new Error(id + " maliyet kategorisi desteklenmiyor.");
     }
     const category = rawLine.category as ProjectCostCategory;
+    const edgeDirection = rawLine.edgeDirection === undefined ? undefined : rawLine.edgeDirection;
+    if (edgeDirection !== undefined && (category !== "material" ||
+        edgeDirection !== "top" && edgeDirection !== "bottom" && edgeDirection !== "left" && edgeDirection !== "right")) {
+      throw new Error(id + " kenar yönü yalnızca material satırlarında top, bottom, left veya right olabilir.");
+    }
     const description = requireTrimmedText(rawLine.description, id + " açıklaması", 240);
     const unit = requireTrimmedText(rawLine.unit, id + " birimi", 32);
     const lineCurrency = requireTrimmedText(rawLine.currencyCode, id + " para birimi kodu", 3);
@@ -244,6 +255,7 @@ export function calculateProjectCostSummary(value: unknown): ProjectCostSummary 
       unitPriceMinor: rawLine.unitPriceMinor,
       currencyCode: lineCurrency,
       ...(sourceReference === undefined ? {} : { sourceReference }),
+      ...(edgeDirection === undefined ? {} : { edgeDirection }),
       lineTotalMinor
     });
   }

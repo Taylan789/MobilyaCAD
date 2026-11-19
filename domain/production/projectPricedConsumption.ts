@@ -10,6 +10,7 @@ import {
 } from "./projectMaterialSummary.ts";
 import {
   calculateProjectCostSummary,
+  type ProjectCostLineEdgeDirection,
   type ProjectCostLineInput,
   type ProjectCostSummary
 } from "./projectCostSummary.ts";
@@ -287,7 +288,8 @@ function addPriceLine(
   description: string,
   quantity: number,
   unit: string,
-  price: ProjectConsumptionPriceInput
+  price: ProjectConsumptionPriceInput,
+  edgeDirection?: ProjectCostLineEdgeDirection
 ): void {
   lines.push({
     id,
@@ -297,7 +299,8 @@ function addPriceLine(
     unit,
     unitPriceMinor: price.unitPriceMinor,
     currencyCode: price.currencyCode,
-    ...(price.sourceReference === undefined ? {} : { sourceReference: price.sourceReference })
+    ...(price.sourceReference === undefined ? {} : { sourceReference: price.sourceReference }),
+    ...(edgeDirection === undefined ? {} : { edgeDirection })
   });
 }
 
@@ -497,7 +500,8 @@ export function calculateProjectPricedConsumptionSummary(
         description,
         edgeBanding.totalQuantity,
         edgeBanding.unit,
-        price
+        price,
+        edgeBanding.edge
       );
       linePartSources.push({
         costLineId,

@@ -137,3 +137,13 @@ test("satır veya proje toplamı güvenli tam sayı aralığını aşarsa redded
     /güvenli tam sayı aralığını/
   );
 });
+
+
+test("structured edge direction is preserved and limited to material lines", () => {
+  const summary = calculateProjectCostSummary([line({ edgeDirection: "top" })]);
+  assert.equal(summary.lines[0].edgeDirection, "top");
+  for (const invalid of ["front", "TOP", null]) {
+    assert.throws(() => calculateProjectCostSummary([line({ edgeDirection: invalid })]), /kenar yönü/);
+  }
+  assert.throws(() => calculateProjectCostSummary([line({ category: "labor", edgeDirection: "left" })]), /kenar yönü/);
+});

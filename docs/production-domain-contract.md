@@ -961,3 +961,12 @@ Kaynak test: domain/production/projectBathroomVanityPanelPricing.test.mjs.
 - Older revision v1 records and direct create calls without the marker retain the previous validation rules for backward compatibility. Unsupported integrity marker versions fail closed.
 - Missing/duplicate source mapping or material Part IDs never produce a partial strict revision; quote amounts, currency, source references and exact units are not inferred or converted.
 - The domain-only tests cover the strict new path and legacy read compatibility. UI, project-import/export adapter, CNC and physical workshop validation remain separate.
+
+
+
+## DOM-061 — Structured quote edge direction
+
+- Cost line `edgeDirection` is an optional enum (`top`, `bottom`, `left`, `right`) for explicit edge-banding material rows. It is carried from the per-edge consumption summary through priced consumption, quote summary, immutable revision snapshots, and JSON history round-trip.
+- Direction metadata is validated as a material / production-consumption line and requires non-empty source Part IDs. Unknown direction values and metadata on non-material or non-consumption lines fail closed. No unit conversion or cost changes are implied.
+- Revision comparisons use structured direction as identity when present; display description is still retained and compared as a value. Legacy v1 lines without the field remain valid and continue to use their description-based identity, so no migration is required.
+- The field is additive in the existing JSON v1 quote-history envelope. Frontend/export integration and physical workshop/CNC verification remain separate.

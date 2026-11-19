@@ -211,6 +211,10 @@ test("directional edge-band quote lines preserve edge, exact unit, price source,
   const priced = calculateProjectPricedConsumptionSummary(directionalReport, directionalPrices);
   assert.equal(priced.status, "ready");
   assert.ok(priced.costSummary);
+  const pricedTopLine = priced.costSummary.lines.find((line) => line.description.includes("(üst kenar)"));
+  const pricedRightLine = priced.costSummary.lines.find((line) => line.description.includes("(sağ kenar)"));
+  assert.equal(pricedTopLine?.edgeDirection, "top");
+  assert.equal(pricedRightLine?.edgeDirection, "right");
 
   const snapshotResult = createSnapshot(directionalPrices, directionalReport);
   assert.equal(snapshotResult.status, "ready");
@@ -250,6 +254,8 @@ test("directional edge-band quote lines preserve edge, exact unit, price source,
     assert.ok(originalSource);
     assert.ok(roundTripLine);
     assert.ok(roundTripSource);
+    assert.equal(originalLine.edgeDirection, expected.edge);
+    assert.equal(roundTripLine.edgeDirection, expected.edge);
     assert.equal(originalLine.unit, expected.unit);
     assert.equal(originalLine.quantity, expected.summary.totalQuantity);
     assert.equal(originalLine.unitPriceMinor, expected.unitPriceMinor);

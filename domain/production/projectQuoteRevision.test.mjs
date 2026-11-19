@@ -128,13 +128,16 @@ function createEdgeQuoteLine({
   unitPriceMinor,
   sourceReference,
   sourceId,
-  sourcePartIds
+  sourcePartIds,
+  edgeDirection,
+  description
 }) {
   return {
     line: {
       id,
       category: "material",
-      description: "Kenar bandı pvc-directional (" + edge + " kenar)",
+      description: description ?? "Kenar bandı pvc-directional (" + edge + " kenar)",
+      ...(edgeDirection === undefined ? {} : { edgeDirection }),
       quantity,
       unit,
       unitPriceMinor,
@@ -1106,4 +1109,48 @@ test("DOM-060 legacy revision v1 provenance marker olmadan uyumlu kalır; strict
   assert.equal(strictResult.status, "blocked");
   assert.equal(strictResult.history, null);
   assert.match(strictResult.diagnostics[0], /kaynak Part kimlikleriyle eşleşmelidir/);
+});
+
+
+test("DOM-061 structured edge directions compare independently of display descriptions", () => {
+  const topSnapshot = createSnapshotWithQuoteLines([createEdgeQuoteLine({
+    id: "edge-direction-top-r1", edge: "üst", edgeDirection: "top", description: "Kenar bandı",
+    quantity: 0.42, unit: "m", unitPriceMinor: 25, sourceReference: "edge-band-catalog:v1",
+    sourceId: "edge-direction-source", sourcePartIds: ["part-direction"]
+  })]);
+  const rightSnapshot = createSnapshotWithQuoteLines([createEdgeQuoteLine({
+    id: "edge-direction-right-r2", edge: "sağ", edgeDirection: "right", description: "Kenar bandı",
+    quantity: 0.42, unit: "m", unitPriceMinor: 25, sourceReference: "edge-band-catalog:v1",
+    sourceId: "edge-direction-source", sourcePartIds: ["part-direction"]
+  })]);
+  const comparison = compareProjectQuoteRevisions(
+    createHistoryWithSnapshots(topSnapshot, rightSnapshot), "quote-r1", "quote-r2"
+  );
+  assert.equal(comparison.status, "ready");
+  assert.equal(comparison.comparison.lineChanges.length, 2);
+  const removed = comparison.comparison.lineChanges.find((change) => change.type === "removed");
+  const added = comparison.comparison.lineChanges.find((change) => change.type === "added");
+  assert.equal(removed?.from.edgeDirection, "top");
+  assert.equal(added?.to.edgeDirection, "right");
+  assert.equal(removed?.from.description, "Kenar bandı");
+  assert.equal(added?.to.description, "Kenar bandı");
+});
+
+test("DOM-061 structured edge direction rejects unknown values and non-material quote lines", () => {
+  const invalidDirectionSnapshot = createSnapshotWithQuoteLines([createEdgeQuoteLine({
+    id: "edge-invalid-direction", edge: "ön", edgeDirection: "front", description: "Kenar bandı",
+    quantity: 1, unit: "m", unitPriceMinor: 25, sourceReference: "edge-band-catalog:v1",
+    sourceId: "edge-invalid-source", sourcePartIds: ["part-invalid"]
+  })]);
+  const invalidDirection = createProjectQuoteRevision(createFirstRevision({ pricingSnapshot: invalidDirectionSnapshot }));
+  assert.equal(invalidDirection.status, "blocked");
+  assert.match(invalidDirection.diagnostics[0], /top, bottom, left veya right/);
+
+  const nonMaterialSnapshot = createSnapshot();
+  const laborLine = nonMaterialSnapshot.quoteSummary.costSummary.lines.find((line) => line.category === "labor");
+  assert.ok(laborLine);
+  laborLine.edgeDirection = "top";
+  const nonMaterial = createProjectQuoteRevision(createFirstRevision({ pricingSnapshot: nonMaterialSnapshot }));
+  assert.equal(nonMaterial.status, "blocked");
+  assert.match(nonMaterial.diagnostics[0], /yalnızca material maliyet satırlarında/);
 });

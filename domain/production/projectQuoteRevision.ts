@@ -1,5 +1,5 @@
 import { calculateProjectCostLineTotalMinor } from "./projectCostSummary.ts";
-import type { ProjectCostLine } from "./projectCostSummary.ts";
+import type { ProjectCostLine, ProjectCostLineEdgeDirection } from "./projectCostSummary.ts";
 import type { ProjectQuoteLineSource } from "./projectQuoteSummary.ts";
 import type { ProjectQuotePricingSnapshot } from "./projectQuotePricingSnapshot.ts";
 
@@ -104,7 +104,8 @@ const costLineKeys = new Set([
   "unitPriceMinor",
   "currencyCode",
   "sourceReference",
-  "lineTotalMinor"
+  "lineTotalMinor",
+  "edgeDirection"
 ]);
 const sourceKeys = new Set(["costLineId", "sourceType", "sourceId", "tariffId", "sourcePartIds"]);
 const costCategories = ["material", "hardware", "labor", "operation", "waste", "profit"];
@@ -144,6 +145,14 @@ function requireIdentifier(value: unknown, label: string): string {
   }
   return identifier;
 }
+
+function requireEdgeDirection(value: unknown, label: string): ProjectCostLineEdgeDirection {
+  if (value !== "top" && value !== "bottom" && value !== "left" && value !== "right") {
+    throw new Error(label + " top, bottom, left veya right olmalıdır.");
+  }
+  return value;
+}
+
 
 function requireSafeInteger(value: unknown, label: string, minimum: number): number {
   if (typeof value !== "number" || !Number.isSafeInteger(value) || value < minimum) {
@@ -288,6 +297,12 @@ function validateQuoteSummary(value: unknown, strictSourceIntegrity = false): as
     }
     lineIds.add(lineId);
 
+    const edgeDirection = line.edgeDirection === undefined
+      ? undefined
+      : requireEdgeDirection(line.edgeDirection, "Maliyet satırı kenar yönü");
+    if (edgeDirection !== undefined && line.category !== "material") {
+      throw new Error("Kenar yönü yalnızca material maliyet satırlarında kullanılabilir.");
+    }
     if (
       line.currencyCode !== currencyCode ||
       typeof line.category !== "string" ||
@@ -322,6 +337,12 @@ function validateQuoteSummary(value: unknown, strictSourceIntegrity = false): as
     const sourceId = requireIdentifier(source.sourceId, "Teklif kaynak kimliği");
     if (source.sourceType !== "production-consumption" && source.sourceType !== "labor-operation" && source.sourceType !== "quote-adjustment") {
       throw new Error("Teklif kaynak türü desteklenmiyor.");
+    }
+    if (edgeDirection !== undefined && source.sourceType !== "production-consumption") {
+      throw new Error("Kenar yönü yalnızca üretim tüketimi satırlarında kullanılabilir.");
+    }
+    if (edgeDirection !== undefined && (!Array.isArray(source.sourcePartIds) || source.sourcePartIds.length === 0)) {
+      throw new Error("Yönlü kenar bandı satırı kaynak Part kimlikleriyle eşleşmelidir.");
     }
     if (strictSourceIntegrity) {
       const allowedCategories = source.sourceType === "production-consumption"
@@ -730,6 +751,7 @@ export interface ProjectQuoteRevisionCostLineSnapshot {
   sourceId: string;
   tariffId?: string;
   sourcePartIds?: readonly string[];
+  edgeDirection?: ProjectCostLineEdgeDirection;
 }
 
 export interface ProjectQuoteRevisionLineChange {
@@ -778,14 +800,16 @@ function createRevisionComparisonLineSnapshot(
     sourceType: source.sourceType,
     sourceId: source.sourceId,
     ...(source.tariffId === undefined ? {} : { tariffId: source.tariffId }),
-    ...(source.sourcePartIds === undefined ? {} : { sourcePartIds: [...source.sourcePartIds] })
+    ...(source.sourcePartIds === undefined ? {} : { sourcePartIds: [...source.sourcePartIds] }),
+    ...(line.edgeDirection === undefined ? {} : { edgeDirection: line.edgeDirection })
   };
 }
 
 function revisionComparisonLineIdentity(line: ProjectQuoteRevisionCostLineSnapshot): string {
   return JSON.stringify([
     line.category,
-    line.description,
+    line.edgeDirection === undefined ? line.description : null,
+    line.edgeDirection ?? null,
     line.unit,
     line.sourceType,
     line.sourceId,
@@ -796,6 +820,7 @@ function revisionComparisonLineIdentity(line: ProjectQuoteRevisionCostLineSnapsh
 
 function revisionComparisonLineValue(line: ProjectQuoteRevisionCostLineSnapshot): string {
   return JSON.stringify([
+    line.description,
     line.quantity,
     line.unitPriceMinor,
     line.lineTotalMinor,
