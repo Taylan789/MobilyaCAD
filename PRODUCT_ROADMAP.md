@@ -261,10 +261,13 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 
 1. DOM-053 — Part'ın top/bottom/left/right fiziksel kenarlarına farklı edge-band atamaları; legacy Part-level fallback ve güvenli validation.
 2. DOM-054 — per-edge tüketim, quantity/edgeCount, Part provenance ve exact mm/m pricing; DOM-053 bağımlı.
-3. DOM-055 — per-edge assignments için JSON v2 extension, legacy v1 export blocker ve round-trip; DOM-053/054 bağı### Sonraki adaylar
+3. DOM-055 — per-edge assignments için JSON v2 extension, legacy v1 export blocker ve round-trip; DOM-053/054 bağımlı.
+
+### Sonraki adaylar
 
 - Per-edge edge-band assignments için schema/validation, tüketim/fiyat ve JSON persistence dilimlerini sırayla tamamla.
 - Adapter/export round-trip için INT-001/INT-002 sahipliğini ve mevcut UI/domain sözleşmesini takip et; adapter dosyalarını bu domain ajanı değiştirme.
+
 
 ## Üretim güvenliği ve karar sınırları
 
