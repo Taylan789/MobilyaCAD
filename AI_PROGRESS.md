@@ -1423,12 +1423,11 @@
 - AI Developer ve entegrasyon/performance job'ları [#44483736288](https://github.com/Taylan789/MobilyaCAD/actions/runs/44483736288) OpenRouter free-model günlük kotası 429 (limit 50, kalan 0) ile başarısız; reset 20 Kasım 2026 03:00 TRT. Kota resetinden önce rerun yapılmadı; secrets, kredi veya ayar değiştirilmedi.
 - Sıradaki görev: DOM-051 — mixed-family üretim raporu, JSON/CSV export blocker ve kesitli Part kaybı contract regresyon testleri.
 
-## 19 Kasım 2026 13:08 TRT — DOM-051 mixed-family export/cutout sözleşmesi (Actions pending)
+## 19 Kasım 2026 13:08 TRT — DOM-051 mixed-family export/cutout sözleşmesi (Actions doğrulandı)
 
-- Başlangıç HEAD: [a7369657](https://github.com/Taylan789/MobilyaCAD/commit/a736965719df4d00aba87f685f690a833bd1672a).
-- Test kapsamı: mixed bathroom-vanity + bookshelf raporunda exact supported-family listesi ve Part ID sırası; kesit geometrisinin opening ID/edge-band alanlarıyla kayıpsız korunması; panelGeometry JSON v1/CSV export blocker mesajının exact sözleşmesi.
-- Yeni regresyon: geçerli cutout'lu cabinet ve unsupported sofa family aynı projedeyken report blocked/null result, supported/unsupported diagnostic kimlikleri korunur ve kısmi üretim sonucu sızmaz.
-- Değişen dosyalar: domain/production/projectProduction.test.mjs; PRODUCT_ROADMAP.md; AI_COORDINATION.md; AI_PROGRESS.md. Runtime/domain API, frontend, adapter, benchmark veya workflow değişmedi.
-- Otomatik doğrulama: yeni testler commit sonrası GitHub Actions QA/CI tarafından çalıştırılacak; henüz sonuç yok.
-- Bilinen sınır: JSON v1/CSV panelGeometry adapter desteği yok; cutout'lu projelerin dışa aktarımı güvenli biçimde blocked. CNC/atölye doğrulaması kapsam dışıdır.
-- Sonraki: DOM-052 — edge-band ID/unit değişikliklerinde kaydedilmiş cut-plan freshness ve export blocker regresyonu.
+- Kod/test commit'i: [14c8b8f](https://github.com/Taylan789/MobilyaCAD/commit/14c8b8f3eb2f94dfcdf78e33f5639ec173108927). Yeni regresyon, cutout'lu cabinet + unsupported sofa family karışımında report blocked/null result, exact family diagnostics ve kısmi sonuç yokluğunu doğrular. Mixed bathroom-vanity + bookshelf testinde supported-family listesi, 9 exact Part ID, cutout opening/edge-band alanları ve JSON v1/CSV export-blocker mesajı doğrulanır.
+- QA [#44503315746](https://github.com/Taylan789/MobilyaCAD/actions/runs/44503315746) başarılı: **124/124 frontend + 414/414 domain test**, strict shared-domain TypeScript, lint **32 uyarı / 0 hata**, production build ve production dependency audit **0 vulnerability**.
+- CI [#44503315677](https://github.com/Taylan789/MobilyaCAD/actions/runs/44503315677) başarılı; Pages build/deploy [#44503315670](https://github.com/Taylan789/MobilyaCAD/actions/runs/44503315670) başarılı.
+- Runtime/domain kaynak kodu değişmedi; frontend, adapter/benchmark, workflow, package/lockfile veya secrets değişmedi. JSON v1/CSV panelGeometry adapter desteği yok; kesitli Part export blocker korunur. Fiziksel CNC/atölye doğrulaması kapsam dışıdır.
+- AI Developer ve entegrasyon/performance run [#44483736288](https://github.com/Taylan789/MobilyaCAD/actions/runs/44483736288) free-model daily quota 429 nedeniyle başarısız; aktif run yok. Rerun yapılmadı çünkü aynı günlük quota limiti bilinerek tekrar denenmesi yararsız; kredi/secrets/ayar değiştirilmedi.
+- Sonraki görev: DOM-052 — edge-band ID/unit değişikliklerinde kaydedilmiş cut-plan freshness ve export blocker regresyonu.
