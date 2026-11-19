@@ -63,6 +63,17 @@ function assignedProductionReport(furnitureId, edgeBandingId, unit) {
   return report;
 }
 
+function assignedDirectionalProductionReport(furnitureId, assignments) {
+  const report = calculateCabinetProjectProductionWithDiagnostics({
+    schemaVersion: 1,
+    furniture: [cabinetRequest(furnitureId)],
+    edgeBandingAssignments: assignments
+  });
+  assert.equal(report.status, "ready", report.firstError ?? "");
+  assert.ok(report.result);
+  return report;
+}
+
 function createSavedV3Plan(productionReport) {
   const partId = productionReport.result.parts.find((part) => part.id.endsWith("-left-side"))?.id;
   assert.ok(partId);
@@ -188,5 +199,83 @@ test("assigned edge-band plans remain blocked at the JSON export gate with sourc
   assert.ok(result.diagnostics.some((message) => /edgeBandingMaterialId.*edgeBandingUnit/.test(message)));
   assert.ok(result.productionDiagnostics?.some((diagnostic) =>
     diagnostic.source === "exportBlockers" && /edgeBandingMaterialId.*edgeBandingUnit/.test(diagnostic.message)
+  ));
+});
+
+
+test("directional edge-band ID, unit and assignment changes stale the saved v3 Part snapshot", () => {
+  const furnitureId = "directional-edge-band-freshness-cabinet";
+  const partId = furnitureId + "-left-side";
+  const originalAssignments = [
+    { partId, edge: "top", edgeBandingId: "pvc-top-1", unit: "m" },
+    { partId, edge: "right", edgeBandingId: "pvc-right-1", unit: "mm" }
+  ];
+  const original = assignedDirectionalProductionReport(furnitureId, originalAssignments);
+  const assignedPart = original.result.parts.find((part) => part.id === partId);
+  assert.ok(assignedPart);
+  assert.deepEqual(assignedPart.edgeBandingByEdge, {
+    top: { edgeBandingId: "pvc-top-1", unit: "m" },
+    right: { edgeBandingId: "pvc-right-1", unit: "mm" }
+  });
+  assert.equal(original.canExport, false);
+  assert.ok(original.exportBlockers.some((message) => /edgeBandingByEdge/.test(message)));
+
+  const saved = createSavedV3Plan(original);
+  const originalJson = saved.json;
+  const fresh = validateProjectSheetCutPlanFreshness(freshnessRequest(saved, original));
+  assert.equal(fresh.status, "fresh");
+  assert.equal(fresh.json, originalJson);
+
+  const changedTopCatalogueId = assignedDirectionalProductionReport(furnitureId, [
+    { partId, edge: "top", edgeBandingId: "pvc-top-2", unit: "m" },
+    originalAssignments[1]
+  ]);
+  assertStale(
+    validateProjectSheetCutPlanFreshness(freshnessRequest(saved, changedTopCatalogueId)),
+    partId
+  );
+
+  const changedRightUnit = assignedDirectionalProductionReport(furnitureId, [
+    originalAssignments[0],
+    { ...originalAssignments[1], unit: "m" }
+  ]);
+  assertStale(validateProjectSheetCutPlanFreshness(freshnessRequest(saved, changedRightUnit)), partId);
+
+  const removedTopAssignment = assignedDirectionalProductionReport(furnitureId, [originalAssignments[1]]);
+  assertStale(
+    validateProjectSheetCutPlanFreshness(freshnessRequest(saved, removedTopAssignment)),
+    partId
+  );
+  const removedAllAssignments = assignedDirectionalProductionReport(furnitureId, []);
+  assertStale(
+    validateProjectSheetCutPlanFreshness(freshnessRequest(saved, removedAllAssignments)),
+    partId
+  );
+
+  assert.equal(saved.json, originalJson, "stale checks must not mutate the saved plan");
+});
+
+test("directional edge-band plans remain blocked at the JSON export gate with provenance diagnostics", () => {
+  const furnitureId = "directional-edge-band-export-cabinet";
+  const partId = furnitureId + "-left-side";
+  const report = assignedDirectionalProductionReport(furnitureId, [
+    { partId, edge: "top", edgeBandingId: "pvc-top", unit: "m" },
+    { partId, edge: "right", edgeBandingId: "pvc-right", unit: "mm" }
+  ]);
+  assert.equal(report.canExport, false);
+  assert.ok(report.exportBlockers.some((message) => /edgeBandingByEdge/.test(message)));
+
+  const saved = createSavedV3Plan(report);
+  const result = createFreshProjectSheetCutPlanExport({
+    schemaVersion: 1,
+    freshness: freshnessRequest(saved, report)
+  });
+  assert.equal(result.status, "blocked");
+  assert.equal(result.freshnessStatus, "fresh");
+  assert.equal(result.result, null);
+  assert.equal(result.json, null);
+  assert.ok(result.diagnostics.some((message) => /edgeBandingByEdge/.test(message)));
+  assert.ok(result.productionDiagnostics?.some((diagnostic) =>
+    diagnostic.source === "exportBlockers" && /edgeBandingByEdge/.test(diagnostic.message)
   ));
 });
