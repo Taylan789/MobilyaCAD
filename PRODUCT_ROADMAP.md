@@ -412,11 +412,10 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 
 ### Sıradaki küçük domain dilimleri
 
-1. DOM-047 — kitaplık panel kalınlık override ve legacy ortak kalınlık uyumluluğu (VERIFYING; mevcut motor/testler doğrulanıyor).
-2. DOM-048 — proje kenar bandı Part atamalarının doğrulanması ve export blocker davranışı (READY).
-3. DOM-049 — atanmış kenar bandı tüketim özetinin mixed-family quantity ve mm/m birimleriyle doğrulanması (READY).
-4. DOM-050 — kenar bandı fiyatlandırması ve teklif Part kaynak izi round-trip (READY).
-5. DOM-051 — family bazlı üretim raporu, JSON/CSV export blocker ve kesitli Part kaybı için contract regression tests (READY).
+1. DOM-048 — proje kenar bandı Part atamalarının doğrulanması ve export blocker davranışı (READY).
+2. DOM-049 — atanmış kenar bandı tüketim özetinin mixed-family quantity ve mm/m birimleriyle doğrulanması (READY).
+3. DOM-050 — kenar bandı fiyatlandırması ve teklif Part kaynak izi round-trip (READY).
+4. DOM-051 — family bazlı üretim raporu, JSON/CSV export blocker ve kesitli Part kaybı için contract regression tests (READY).
 
 ## DOM-046 kabul ve entegrasyon kriterleri
 
@@ -439,3 +438,11 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 - Ek regresyon testi, panelThicknessMmByGroup olmadan legacy ortak 18 mm kalınlığın tüm üretilen parçalarda korunmasını ve yalnız top/shelf override verilen grupların 25/16 mm olarak, exact katalog materialId ile çözülmesini doğrular.
 - Değişen dosya: domain/production/bookshelfConstruction.test.mjs; runtime üretim kodu değiştirilmedi.
 - Test/CI sonucu commit sonrası bekleniyor.
+
+## 19 Kasım 2026 09:25 TRT — DOM-047 doğrulama tamamlandı
+
+- Kitaplık domain motorunda panel grubu kalınlık override'ları, exact katalog kalınlığı kontrolü ve legacy ortak kalınlık fallback'i mevcut. Test genişletmesi, override edilmeyen panellerin 18 mm ortak kalınlığını; üst panel 25 mm ve raf 16 mm override'larının exact katalog materialId ile çözülmesini doğruladı.
+- Kod/test commit'i: [6d0e197](https://github.com/Taylan789/MobilyaCAD/commit/6d0e19760fb6795ebcb536327d07adb4c2b15715).
+- CI [#44472503403](https://github.com/Taylan789/MobilyaCAD/actions/runs/44472503403), QA [#44472503395](https://github.com/Taylan789/MobilyaCAD/actions/runs/44472503395) başarılı — 124/124 frontend + 404/404 domain test, shared-domain strict TypeScript, lint, frontend TypeScript/production build ve production dependency audit 0 vulnerability. Pages [#44472503550](https://github.com/Taylan789/MobilyaCAD/actions/runs/44472503550) başarılı.
+- Runtime domain kaynak kodu değişmedi; frontend, adapter/benchmark, workflow, package/lockfile veya secrets değiştirilmedi. CNC/atölye doğrulaması kapsam dışıdır.
+- Sıradaki: DOM-048 — proje kenar bandı Part atamalarının validation, diagnostics ve export blocker testleri.

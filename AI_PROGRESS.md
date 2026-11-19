@@ -1387,8 +1387,10 @@
 - Roadmap/coordination/progress commit'i [352c0753](https://github.com/Taylan789/MobilyaCAD/commit/352c075334ec22f7101f5951600382464066f01f) ile DOM-046 DONE ve DOM-047 READY kaydedildi. Bu docs commit'i için CI [#44466247180](https://github.com/Taylan789/MobilyaCAD/actions/runs/44466247180), QA [#44466247160](https://github.com/Taylan789/MobilyaCAD/actions/runs/44466247160), Pages [#44466247163](https://github.com/Taylan789/MobilyaCAD/actions/runs/44466247163) başarılı.
 - Sıradaki görev: DOM-047 — kitaplık panel grubu kalınlık override'ları, katalog doğrulaması ve legacy ortak kalınlık uyumluluğu.
 
-## 19 Kasım 2026 09:25 TRT — DOM-047 legacy kalınlık fallback testi (doğrulama bekliyor)
+## 19 Kasım 2026 09:25 TRT — DOM-047 legacy kalınlık fallback testi (doğrulandı)
 
 - Mevcut kitaplık konstrüksiyon motoru panel grubu kalınlık override, katalog exact-thickness validation ve legacy shared-thickness fallback davranışını uyguluyor. Bu turda eksik acceptance coverage eklendi: override edilmeyen yan/alt paneller 18 mm ortak kalınlığını korurken üst panel 25 mm ve raf 16 mm katalog override ile çözülür; raf quantity 3 korunur.
-- Değişen dosya: domain/production/bookshelfConstruction.test.mjs. Runtime/domain source, frontend, adapter, benchmark, workflow, package/lockfile veya secrets değiştirilmedi.
-- Commit SHA/Actions doğrulaması: commit sonrası kayıt edilecek.
+- Kod/test commit'i: [6d0e197](https://github.com/Taylan789/MobilyaCAD/commit/6d0e19760fb6795ebcb536327d07adb4c2b15715). Değişen dosya: domain/production/bookshelfConstruction.test.mjs. Runtime/domain source, frontend, adapter, benchmark, workflow, package/lockfile veya secrets değiştirilmedi.
+- CI [#44472503403](https://github.com/Taylan789/MobilyaCAD/actions/runs/44472503403), QA [#44472503395](https://github.com/Taylan789/MobilyaCAD/actions/runs/44472503395) başarılı: 124/124 frontend + 404/404 domain test; strict TypeScript, lint (32 uyarı/0 hata), production build ve production audit (0 vulnerability). Pages [#44472503550](https://github.com/Taylan789/MobilyaCAD/actions/runs/44472503550) başarılı.
+- Bilinen sınır: build mevcut large-chunk warning veriyor; test/lint/compile/build/audit fail değil. Fiziksel/CNC doğrulaması yapılmadı.
+- Sıradaki görev: DOM-048 — proje kenar bandı Part atamalarının validation, diagnostics ve export blocker testleri.
