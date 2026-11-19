@@ -424,7 +424,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 - DOM-052 **DONE** — edge-band ID/unit değişiminde cut-plan freshness; CI/QA doğrulandı.
 - DOM-053 **DONE** — Part edge yönü assignment, legacy fallback ve strict validation; CI/QA doğrulandı.
 - DOM-054 **DONE** — yönsel tüketim/fiyat, quantity, edgeCount ve Part provenance; CI/QA doğrulandı.
-- DOM-055 **READY** — per-edge assignment JSON v2 extension, legacy v1 blocker ve round-trip.
+- DOM-055 **DONE** — [domain JSON v1/v2 extension commit](https://github.com/Taylan789/MobilyaCAD/commit/82c73f4c6f98649ff42ccdc9cbabce96e1fc1caf); [CI #44547140802](https://github.com/Taylan789/MobilyaCAD/actions/runs/44547140802), [QA #44547140762](https://github.com/Taylan789/MobilyaCAD/actions/runs/44547140762) (124/124 frontend + 432/432 domain), [Pages #44547141174](https://github.com/Taylan789/MobilyaCAD/actions/runs/44547141174) all successful.
 - DOM-056 **READY** — directional assignment değişimlerinde cut-plan freshness.
 - DOM-057 **READY** — quote revision directional edge-band cost snapshot/provenance.
 
@@ -481,7 +481,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 - Dört yönlü atama, legacy fallback + override, duplicate edge, unknown edge ve banded olmayan edge validation otomatik testlerle doğrulandı. Eksik yön/duplicate/invalid girişler tüm proje raporunu blocked/null tutar. Export blocker korunur.
 - Kod commit [9df2b61](https://github.com/Taylan789/MobilyaCAD/commit/9df2b619e25952350a7f146608b7e144546852a6). CI [#44529826346](https://github.com/Taylan789/MobilyaCAD/actions/runs/44529826346) ve QA [#44529826191](https://github.com/Taylan789/MobilyaCAD/actions/runs/44529826191) başarılı — 124 frontend + 420 domain; strict TS/lint/build/audit geçti, 0 vulnerability. Pages [#44529826320](https://github.com/Taylan789/MobilyaCAD/actions/runs/44529826320) başarılı.
 - DOM-054 tamamlandı: edge başına tüketim/fiyat satırları yön, exact katalog ID/birim, quantity, edgeCount ve Part kaynaklarını korur; eksik veya birim uyuşmaz fiyat fail-closed.
-- Sıradaki DOM-055: per-edge assignment için sürümlü proje JSON extension ve legacy v1 güvenli blocker/round-trip; ardından DOM-056 cut-plan freshness.
+- Sıradaki DOM-056: directional edge-band assignment değişikliklerinde saved cut-plan freshness snapshot ve export blocker regresyonu.
 
 
 ## 19 Kasım 2026 16:57 TRT — DOM-054 yönsel kenar bandı tüketimi ve fiyatlandırması (Actions doğrulandı)
@@ -491,4 +491,4 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 - Testler: mixed edge/fallback quantity, edgeCount, mm/m dönüşümü, cutout edge ölçüsü, geçersiz direction/ID/unit/unknown field, exact fiyat ve missing-price fail-closed.
 - Kod/test commit: [fa74ba7](https://github.com/Taylan789/MobilyaCAD/commit/fa74ba7ed58140d0fd4d2122985acfeea44bd8c8). CI [#44540071025](https://github.com/Taylan789/MobilyaCAD/actions/runs/44540071025), QA [#44540070904](https://github.com/Taylan789/MobilyaCAD/actions/runs/44540070904) başarılı — **124/124 frontend + 424/424 domain test**, strict TypeScript, lint **32 uyarı / 0 hata**, production build ve audit **0 vulnerability**. Pages [#44540071001](https://github.com/Taylan789/MobilyaCAD/actions/runs/44540071001) başarılı.
 - UI, adapter/export, CNC standardı, gerçek katalog fiyatı, workflow, package/lockfile ve secrets değiştirilmedi. Per-edge export/persistence mevcut JSON v1/CSV adapter'ları tarafından henüz kayıpsız desteklenmediğinden export blocker korunur; fiziksel üretim doğrulaması yapılmadı.
-- Sıradaki: DOM-055 — sürümlü per-edge proje JSON extension ve legacy v1 güvenli blocker/round-trip.
+- Sıradaki: DOM-056 — per-edge ID/unit değişikliklerinde saved cut-plan freshness.
