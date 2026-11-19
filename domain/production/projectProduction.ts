@@ -223,12 +223,12 @@ function readProjectEdgeBandingAssignment(value: unknown, index: number): Projec
   return { partId, edgeBandingId, unit: entry.unit, ...(edge === undefined ? {} : { edge: edge as ProjectEdgeBandingEdge }) };
 }
 
+function partHasBandedEdge(part: ProjectProductionPart, edge: ProjectEdgeBandingEdge): boolean {
+  return part.edgeBanding[edge] || (part.panelGeometry?.cutouts.some((opening) => opening.edgeBanding[edge]) ?? false);
+}
+
 function partHasBandedEdges(part: ProjectProductionPart): boolean {
-  const hasOuterEdges = EDGE_KEYS.some((edge) => part.edgeBanding[edge]);
-  const hasOpeningEdges = part.panelGeometry?.cutouts.some((opening) =>
-    EDGE_KEYS.some((edge) => opening.edgeBanding[edge])
-  ) ?? false;
-  return hasOuterEdges || hasOpeningEdges;
+  return EDGE_KEYS.some((edge) => partHasBandedEdge(part, edge));
 }
 
 function calculateFurnitureRequest(
