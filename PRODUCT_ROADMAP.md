@@ -415,10 +415,11 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 
 ### Sıradaki küçük domain dilimleri
 
-1. DOM-048 — proje kenar bandı Part atamalarının doğrulanması ve export blocker davranışı (READY).
-2. DOM-049 — atanmış kenar bandı tüketim özetinin mixed-family quantity ve mm/m birimleriyle doğrulanması (READY).
-3. DOM-050 — kenar bandı fiyatlandırması ve teklif Part kaynak izi round-trip (READY).
-4. DOM-051 — family bazlı üretim raporu, JSON/CSV export blocker ve kesitli Part kaybı için contract regression tests (READY).
+- DOM-048 **DONE** — explicit kenar bandı Part atamaları, invalid diagnostics ve export blocker; [test commit c869d91](https://github.com/Taylan789/MobilyaCAD/commit/c869d91b6707ac13975ced5e5bf69c0a5298fbce), [CI #44480199298](https://github.com/Taylan789/MobilyaCAD/actions/runs/44480199298), [QA #44480199308](https://github.com/Taylan789/MobilyaCAD/actions/runs/44480199308), [Pages #44480199326](https://github.com/Taylan789/MobilyaCAD/actions/runs/44480199326) başarılı (124 frontend + 409 domain).
+1. DOM-049 — atanmış kenar bandı tüketim özetini mixed-family quantity ve mm/m birimleriyle doğrula; atamasız legacy Part davranışını koru (**READY**).
+2. DOM-050 — kenar bandı fiyatlandırması ve teklif Part kaynak izi; exact resource/unit eşleşmesi, eksik fiyat güvenliği ve revision round-trip (**READY**).
+3. DOM-051 — family bazlı üretim raporu, JSON/CSV export blocker ve kesitli Part kaybı için contract regression tests (**READY**).
+
 
 ## DOM-046 kabul ve entegrasyon kriterleri
 
