@@ -886,3 +886,11 @@ Kaynak test: domain/production/projectBathroomVanityPanelPricing.test.mjs.
 - `ProjectQuoteSummary.lineSources` üretim tüketim satırlarında isteğe bağlı `sourcePartIds` alanını içerir. `projectQuoteRevision` doğrulaması yeni alanı yalnızca üretim tüketiminde kabul eder, boş/tekrarlı/sırasız ID'leri reddeder.
 - Snapshot ve quote revision JSON v1 şeması değişmez. Eski snapshot'larda `sourcePartIds` bulunmaması geriye uyumlu kabul edilir; yeni alan varsa round-trip sırasında korunur.
 - Bu kaynak izi hesaplanan tüketim satırının hangi Part kayıtlarından geldiğini gösterir; fiziksel malzeme/atölye doğrulaması değildir.
+
+
+## DOM-048 — explicit edge-band assignment regression coverage
+
+- `domain/production/projectEdgeBandingAssignments.test.mjs` mevcut project-production doğrulamasını gerçek domain agregatörüyle sınar.
+- Geçerli atama yalnızca hedef Part'a `edgeBandingMaterialId` ve açık `edgeBandingUnit` taşır; JSON v1/CSV alanları kayıpsız desteklenmediğinden export blocker korunur.
+- Unknown Part, duplicate Part assignment, banded edge olmayan Part, syntax-invalid katalog ID, unsupported unit ve unknown assignment field projeyi blocked yapar. Geçerli atama ile hatalı atama birlikte olduğunda da partial `result` verilmez.
+- Bu testler katalogda ID varlığını, bant kalınlığını, rulo/fire payını veya fiziksel üretim güvenliğini doğrulamaz.

@@ -1394,3 +1394,11 @@
 - CI [#44472503403](https://github.com/Taylan789/MobilyaCAD/actions/runs/44472503403), QA [#44472503395](https://github.com/Taylan789/MobilyaCAD/actions/runs/44472503395) başarılı: 124/124 frontend + 404/404 domain test; strict TypeScript, lint (32 uyarı/0 hata), production build ve production audit (0 vulnerability). Pages [#44472503550](https://github.com/Taylan789/MobilyaCAD/actions/runs/44472503550) başarılı.
 - Bilinen sınır: build mevcut large-chunk warning veriyor; test/lint/compile/build/audit fail değil. Fiziksel/CNC doğrulaması yapılmadı.
 - Sıradaki görev: DOM-048 — proje kenar bandı Part atamalarının validation, diagnostics ve export blocker testleri.
+
+## 19 Kasım 2026 10:31 TRT — DOM-048 kenar bandı atama doğrulaması (Actions doğrulandı)
+
+- Başlangıç HEAD: `a2ae30dbf4c9480d01bee19cfb3efe6b60f47795`; test commit'i: [c869d91b](https://github.com/Taylan789/MobilyaCAD/commit/c869d91b6707ac13975ced5e5bf69c0a5298fbce). Runtime üretim kodu değiştirilmedi; yeni `domain/production/projectEdgeBandingAssignments.test.mjs` eklendi.
+- Beş test: açık kenar-bandı ID/birim eşlemesi ve export blocker; geçerli + unknown Part atamasında atomik blok; duplicate Part assignment; banded-edge olmayan Part; invalid ID/unit/unknown field. Hatalı raporların tamamında `result: null` ve `canExport: false` doğrulandı.
+- CI [#44480199298](https://github.com/Taylan789/MobilyaCAD/actions/runs/44480199298) başarılı. QA [#44480199308](https://github.com/Taylan789/MobilyaCAD/actions/runs/44480199308) başarılı: **124/124 frontend + 409/409 domain**, shared-domain strict TypeScript, lint **32 uyarı / 0 hata**, production build ve production dependency audit **0 vulnerability**. Pages [#44480199326](https://github.com/Taylan789/MobilyaCAD/actions/runs/44480199326) başarılı.
+- Bilinen sınır: edge-band ID syntax doğrulanır, gerçek katalog varlığı doğrulanmaz. JSON v1/CSV atama alanlarını kayıpsız taşımadığı için export blocker sürer; fiziksel bant, fire, rulo payı ve üretim standardı doğrulanmadı.
+- DOM-048 DONE. Sonraki görev: DOM-049 — mixed-family edge-band tüketim özeti, Part/furniture kaynak izi, quantity ve mm/m tutarlılığı.

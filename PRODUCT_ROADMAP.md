@@ -252,13 +252,16 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 - Ray boşluğu, reveal, bağlantı, delik, CNC, fire ve fiziksel üretim güvenliği hesabı kapsam dışıdır; gerçek atölye uygunluğu insan doğrulaması gerektirir.
 - Kod commit'i sonrası CI/QA/Pages sonuçları bu kayıttan ayrı olarak Actions üzerinden doğrulanacaktır.
 
-## Sıradaki 5 küçük görev — domain sahipliği
+## Sıradaki 3 küçük görev — domain sahipliği
 
-1. Kitaplık için panel grubu bazlı kalınlık girdilerini ekle; her grubun gerçek katalog kalınlığını doğrula ve ortak kalınlık kullanan eski dolap/kitaplık isteklerini geriye uyumlu tut.
-2. İlk farklı konstrüksiyon ailesi olarak masa motorunu açık tabla, ayak ve varsa kayıt/apron ölçüleriyle tasarla; bağlantı standardı uydurma.
-3. Proje agregatörüne aile bazlı destek/engelleme tanılaması ekle; desteklenmeyen mobilyalar sessizce kesim listesine girmesin.
-4. Domain gövde/çekmece/kitaplık sonuçları için stabil aile ve kaynak kimliği sözleşmesini genişlet; eski proje sonuç alanlarını koru.
-5. Frontend sahibi domain agregatörünü JSON v1/CSV adapter'ına bağladıktan sonra aynı Part listesinin export ile birebir uzlaştığını otomatik test et.
+1. DOM-049 — atanmış kenar bandı tüketim özetini mixed-family quantity ve mm/m birimleriyle doğrula; atamasız legacy Part davranışını koru.
+2. DOM-050 — kenar bandı fiyatlandırması ve teklif Part kaynak izi; exact resource/unit eşleşmesi, eksik fiyat güvenliği ve revision round-trip.
+3. DOM-051 — family bazlı üretim raporu, JSON/CSV export blocker ve kesitli Part kaybı için contract regression tests.
+
+### Sonraki adaylar
+
+- Project cut-plan snapshot/freshness, edge-band ID veya birim değiştiğinde planı stale yapmalı.
+- Adapter/export round-trip için INT-001/INT-002 sahipliğini ve mevcut UI/domain sözleşmesini takip et; adapter dosyalarını bu domain ajanı değiştirmez.
 
 ## Üretim güvenliği ve karar sınırları
 
