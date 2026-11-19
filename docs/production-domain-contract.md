@@ -956,8 +956,8 @@ Kaynak test: domain/production/projectBathroomVanityPanelPricing.test.mjs.
 
 
 ## DOM-060 — Quote revision source integrity
-- Newly created revision envelopes include the additive `sourceIntegrityVersion: 1` marker; the quote-history and pricing-snapshot schema versions remain unchanged.
+- `createProjectQuoteRevision` accepts the additive `sourceIntegrityVersion: 1` input marker for strict source validation; callers creating new revisions should supply it. `appendProjectQuoteRevision` always adds the marker. Quote-history and pricing-snapshot schema versions remain unchanged.
 - Marked revisions enforce ordered one-to-one `costLineId` mapping, unique `sourceType/sourceId` identity, source-type/category alignment, and non-empty sorted unique Part provenance for `material` consumption rows (including edge-band lines). Hardware consumption may be furniture-scoped; labor/operation rows require their tariff ID; explicit waste/profit rows keep their source reference.
-- Older revision v1 records without the marker retain the previous validation rules for backward compatibility. Unsupported integrity marker versions fail closed.
-- Missing/duplicate source mapping or material Part IDs never produce a partial revision; quote amounts, currency, source references and exact units are not inferred or converted.
+- Older revision v1 records and direct create calls without the marker retain the previous validation rules for backward compatibility. Unsupported integrity marker versions fail closed.
+- Missing/duplicate source mapping or material Part IDs never produce a partial strict revision; quote amounts, currency, source references and exact units are not inferred or converted.
 - The domain-only tests cover the strict new path and legacy read compatibility. UI, project-import/export adapter, CNC and physical workshop validation remain separate.

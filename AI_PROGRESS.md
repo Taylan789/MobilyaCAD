@@ -1526,6 +1526,14 @@
 - Yeni teklif revizyonları için additive `sourceIntegrityVersion: 1` marker; geçmiş ve snapshot schemaVersion değişmedi. Yeni revision'da maliyet satırı/kaynak eşleşmesi, kaynak kimliği tekilliği, kaynak türü/kategori uyumu ve material tüketim Part ID zorunluluğu strict.
 - Legacy v1 revizyon marker olmadan eski doğrulama kurallarıyla okunur; strict marker'lı eski/bozuk kaynak Part mapping fail-closed. Hardware tüketimi furniture-scoped kalabilir, labor/operation tarife kimliği ve waste/profit sourceReference korunur.
 - Kod/test değişiklikleri: `domain/production/projectQuoteRevision.ts`, `domain/production/projectQuoteRevision.test.mjs`; sözleşme, roadmap ve koordinasyon panosu da aynı committe güncellendi.
-- Commit ve Actions sonuçları final doğrulamadan sonra kaydedilecek; bu ilk turda lokal test çalıştırılamadı (container internet erişimi yok ve repo clone başarısız). GitHub Actions kanıtı bekleniyor.
+- İlk commit [0bfffef](https://github.com/Taylan789/MobilyaCAD/commit/0bfffefdb792f6b50f5d2a388609193a8421a479): CI başarılı, QA 441/443 domain test; iki legacy fixture doğrudan create API'de Part ID olmayan v1 snapshot'ı beklediği için fail. Strict marker opt-in olarak düzeltildi, legacy davranış korunuyor; test düzeltmesi ve Actions sonucu bekleniyor.
 - Bilinen sınırlar: frontend adapter, proje import/export ve CNC/atölye doğrulaması bu dilimde yok; AI Developer workflow'u OpenRouter free-model daily quota 429 ile bloklu.
 - Sonraki: DOM-061 — structured edge-direction alanı, eski description metni uyumluluğu.
+
+
+## 19 Kasım 2026 22:20 TRT — DOM-060 legacy uyumluluk düzeltmesi (Actions pending)
+- İlk QA'da 441/443 domain test geçti; 2 failure, eski `projectQuoteSourcePartIds.test.mjs` legacy snapshot testleri direct revision create'ın Part IDs eksik v1 kaydını kabul etmesini bekliyordu. Strict marker varsayılan yapmak backward compatibility'yi bozdu.
+- Düzeltme: `sourceIntegrityVersion: 1` explicit input; strict new revision callers marker gönderir, append API marker'ı her zaman üretir. Marker olmadan direct legacy create eski v1 doğrulamasını korur. Legacy fixture korunarak strict yeni revision testinde marker eklendi.
+- Değişen ek test dosyası: `domain/production/projectQuoteSourcePartIds.test.mjs`. İlk failure testleri gevşetilmedi; yeni/legacy davranış ayrımı explicit.
+- CI [#44596679998](https://github.com/Taylan789/MobilyaCAD/actions/runs/44596679998) passed; QA [#44596680124](https://github.com/Taylan789/MobilyaCAD/actions/runs/44596680124) failed 441/443 domain tests; correction commit SHA/Actions pending.
+- Next: DOM-060 strict + legacy tests pass, then finalize DOM-060 status and move DOM-061 to READY.

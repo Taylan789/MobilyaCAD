@@ -178,6 +178,7 @@ test("gruplu malzeme teklif satırları sorted unique Part ID kaynak izini üret
       revisionNumber: legacyRevision.revisionNumber,
       createdAt: legacyRevision.createdAt
     },
+    sourceIntegrityVersion: 1,
     pricingSnapshot: currentSnapshot
   });
 

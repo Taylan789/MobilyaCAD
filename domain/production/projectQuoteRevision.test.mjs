@@ -174,6 +174,7 @@ function createFirstRevision(overrides = {}) {
     revisionNumber: 1,
     createdAt: "2026-11-17T10:00:00Z",
     previousRevision: null,
+    sourceIntegrityVersion: 1,
     pricingSnapshot: createSnapshot(),
     ...overrides
   };

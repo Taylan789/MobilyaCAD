@@ -52,7 +52,8 @@ const inputKeys = new Set([
   "revisionNumber",
   "createdAt",
   "previousRevision",
-  "pricingSnapshot"
+  "pricingSnapshot",
+  "sourceIntegrityVersion"
 ]);
 const historyInputKeys = new Set(["schemaVersion", "projectId", "revisions"]);
 const appendInputKeys = new Set(["revisionId", "createdAt", "pricingSnapshot"]);
@@ -496,16 +497,17 @@ function blocked(message: string): ProjectQuoteRevisionResult {
  * The caller supplies all identifiers and timestamps; no ID, date, price,
  * currency conversion or catalogue version is inferred.
  */
-function createProjectQuoteRevisionWithSourceIntegrity(
-  value: unknown,
-  sourceIntegrityVersion: 1 | undefined
-): ProjectQuoteRevisionResult {
+function createProjectQuoteRevisionWithSourceIntegrity(value: unknown): ProjectQuoteRevisionResult {
   if (!isRecord(value)) {
     return blocked("Teklif revizyon girdisi geçerli bir nesne olmalıdır.");
   }
 
   try {
     requireOnlyKeys(value, inputKeys, "Teklif revizyon girdisi");
+    const sourceIntegrityVersion = value.sourceIntegrityVersion;
+    if (sourceIntegrityVersion !== undefined && sourceIntegrityVersion !== 1) {
+      throw new Error("Teklif revizyon girdisi desteklenen sourceIntegrityVersion değerini kullanmalıdır.");
+    }
     if (!Object.prototype.hasOwnProperty.call(value, "previousRevision")) {
       throw new Error("Önceki revizyon alanı ilk revizyonda null olarak açıkça sağlanmalıdır.");
     }
@@ -567,7 +569,7 @@ function createProjectQuoteRevisionWithSourceIntegrity(
 }
 
 export function createProjectQuoteRevision(value: unknown): ProjectQuoteRevisionResult {
-  return createProjectQuoteRevisionWithSourceIntegrity(value, 1);
+  return createProjectQuoteRevisionWithSourceIntegrity(value);
 }
 
 function blockedHistory(message: string): ProjectQuoteRevisionHistoryResult {
@@ -626,8 +628,9 @@ export function validateProjectQuoteRevisionHistory(value: unknown): ProjectQuot
           projectId: previous.projectId, revisionId: previous.revisionId,
           revisionNumber: previous.revisionNumber, createdAt: previous.createdAt
         },
+        ...(sourceIntegrityVersion === undefined ? {} : { sourceIntegrityVersion }),
         pricingSnapshot: candidate.pricingSnapshot
-      }, sourceIntegrityVersion);
+      });
       if (result.status !== "ready" || result.revision === null) {
         throw new Error(label + ": " + (result.diagnostics[0] ?? "revizyon doğrulanamadı."));
       }
@@ -675,7 +678,7 @@ export function appendProjectQuoteRevision(
     const previous = currentHistory.revisions.length === 0
       ? null
       : currentHistory.revisions[currentHistory.revisions.length - 1];
-    const created = createProjectQuoteRevision({
+    const created = createProjectQuoteRevisionWithSourceIntegrity({
       projectId: currentHistory.projectId,
       revisionId,
       revisionNumber: currentHistory.revisions.length + 1,
@@ -686,6 +689,7 @@ export function appendProjectQuoteRevision(
         revisionNumber: previous.revisionNumber,
         createdAt: previous.createdAt
       },
+      sourceIntegrityVersion: 1,
       pricingSnapshot: revisionValue.pricingSnapshot
     });
 
