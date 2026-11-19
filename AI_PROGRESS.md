@@ -1472,3 +1472,13 @@
 - Sınırlar: frontend project JSON parser/adapter henüz extension API'sini çağırmıyor; bu domain sözleşmesi UI/CSV export blocker'ını kaldırmaz. Part existence, gerçek banded edge geometry ve fiziksel üretim doğrulaması üretim agregatörü/atölye kapsamındadır. Frontend, integration/performance ve main branch sahipliği değiştirilmedi.
 - AI Developer ve integration/performance workflow [#44483736288](https://github.com/Taylan789/MobilyaCAD/actions/runs/44483736288) free-model daily quota 429 nedeniyle başarısız; aktif run yok. Günlük limit reseti 20 Kasım 2026 03:00 TRT olduğundan bu tur rerun yapılmadı; secrets/credits/settings değiştirilmedi.
 - Sonraki: DOM-056 — directional edge-band ID/unit/assignment changes saved cut-plan snapshot freshness'ı stale yapmalı, export fail-closed kalmalı.
+
+
+## 19 Kasım 2026 18:13 TRT — DOM-056 directional edge-band cut-plan freshness (Actions doğrulandı)
+
+- İki regresyon testi domain/production/projectSheetCutPlanEdgeBandingFreshness.test.mjs içine eklendi. Per-edge assignment snapshot değişimleri: edge katalog ID, mm/m unit, tek yön ataması kaldırılması ve tüm atamaların kaldırılması saved v3 planı stale yapar; unchanged assignment fresh kalır. Export testinde directional banding metadata blocker ve productionDiagnostics kaynağı korunur.
+- Test commit [00dc6e3](https://github.com/Taylan789/MobilyaCAD/commit/00dc6e309aa116cb7a83cf47a76a9b6c54a6e73a) ilk QA'da test beklentisi hatalı olduğu için fail oldu; log doğrulaması sonrası yalnız assertion düzeltildi. Final test commit [77e6532](https://github.com/Taylan789/MobilyaCAD/commit/77e653291c7986258675bf0b7d3af6ffdc0ee6fe).
+- Actions: [CI #44552227836](https://github.com/Taylan789/MobilyaCAD/actions/runs/44552227836) success; [QA #44552227917](https://github.com/Taylan789/MobilyaCAD/actions/runs/44552227917) success — **124/124 frontend + 434/434 domain test**, strict domain TypeScript, lint **32 warning/0 error**, production build ve production dependency audit **0 vulnerability**; [Pages #44552227834](https://github.com/Taylan789/MobilyaCAD/actions/runs/44552227834) success.
+- Değişen kod alanı yalnız test dosyası; runtime domain/engine, frontend, adapter/performance agent dosyaları, workflow, package/lockfile ve secrets değişmedi. Per-edge JSON v1/CSV adapter desteği yok; export fail-closed. Fiziksel CNC/atölye doğrulaması yapılmadı.
+- AI Developer run [#44483736288](https://github.com/Taylan789/MobilyaCAD/actions/runs/44483736288) daha önce OpenRouter free-model günlük kota 429 nedeniyle başarısız; aktif run yok, bu tur rerun edilmedi.
+- Sonraki görev: DOM-057 — quote revision directional edge-band cost snapshot, exact unit ve Part provenance.
