@@ -259,13 +259,12 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 
 ## Sıradaki 3 küçük görev — domain sahipliği
 
-1. DOM-052 — edge-band ID veya unit değişince kaydedilmiş project cut planı stale/blocked yap; snapshot provenance ve export blocker korunsun.
-2. DOM-053 — farklı malzeme/birimli edge bandı aynı Part'ın fiziksel kenarlarına ayrı atama; legacy Part-level fallback.
-3. DOM-054 — per-edge banding tüketimi, kaynak Part izleri ve exact unit pricing; DOM-053 bağımlı.
-### Sonraki adaylar
+1. DOM-053 — Part'ın top/bottom/left/right fiziksel kenarlarına farklı edge-band atamaları; legacy Part-level fallback ve güvenli validation.
+2. DOM-054 — per-edge tüketim, quantity/edgeCount, Part provenance ve exact mm/m pricing; DOM-053 bağımlı.
+3. DOM-055 — per-edge assignments için JSON v2 extension, legacy v1 export blocker ve round-trip; DOM-053/054 bağı### Sonraki adaylar
 
-- Project cut-plan snapshot/freshness, edge-band ID veya birim değiştiğinde planı stale yapmalı.
-- Adapter/export round-trip için INT-001/INT-002 sahipliğini ve mevcut UI/domain sözleşmesini takip et; adapter dosyalarını bu domain ajanı değiştirmez.
+- Per-edge edge-band assignments için schema/validation, tüketim/fiyat ve JSON persistence dilimlerini sırayla tamamla.
+- Adapter/export round-trip için INT-001/INT-002 sahipliğini ve mevcut UI/domain sözleşmesini takip et; adapter dosyalarını bu domain ajanı değiştirme.
 
 ## Üretim güvenliği ve karar sınırları
 
@@ -456,3 +455,11 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 - CI [#44472503403](https://github.com/Taylan789/MobilyaCAD/actions/runs/44472503403), QA [#44472503395](https://github.com/Taylan789/MobilyaCAD/actions/runs/44472503395) başarılı — 124/124 frontend + 404/404 domain test, shared-domain strict TypeScript, lint, frontend TypeScript/production build ve production dependency audit 0 vulnerability. Pages [#44472503550](https://github.com/Taylan789/MobilyaCAD/actions/runs/44472503550) başarılı.
 - Runtime domain kaynak kodu değişmedi; frontend, adapter/benchmark, workflow, package/lockfile veya secrets değiştirilmedi. CNC/atölye doğrulaması kapsam dışıdır.
 - Sıradaki: DOM-048 — proje kenar bandı Part atamalarının validation, diagnostics ve export blocker testleri.
+
+## 19 Kasım 2026 14:16 TRT — DOM-052 edge-band assignment kesim planı freshness (Actions doğrulandı)
+
+- Gerçek `calculateCabinetProjectProductionWithDiagnostics` agregatöründen kenar bandı atamalı Part üretildi; JSON v3 kesim planı, kullanıcı levha kaynağı/revizyon provenance metadata'sıyla kaydedildi.
+- Aynı atama fresh kalır. Edge-band katalog ID değişimi, mm/m birim değişimi veya atamanın kaldırılması tam Part snapshot'ını değiştirir; freshness `stale`, `result/json=null`, Part ID tanısı verir. Orijinal v3 metadata korunur.
+- JSON v1/CSV export adapter edge-band atama alanlarını henüz kayıpsız taşımadığından gerçek üretim raporu `canExport=false` kalır; export kapısı kaynak blocker'ı `productionDiagnostics` içinde korur ve JSON üretmez.
+- Test commit: [0247ad1](https://github.com/Taylan789/MobilyaCAD/commit/0247ad19603965bc5c32881b0bc9b2ff30e7d164). CI [#44513172692], QA [#44513172630], Pages [#44513172814] başarılı — 124 frontend + 416 domain; strict TS, lint 32 uyarı/0 hata, production build ve audit 0 vulnerability.
+- Sıradaki: DOM-053 — Part'ın dört fiziksel kenarı için ayrı edge-band assignment ve legacy Part-level fallback.

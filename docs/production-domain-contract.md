@@ -909,3 +909,12 @@ Kaynak test: domain/production/projectBathroomVanityPanelPricing.test.mjs.
 - The priced consumption line maps to sorted source Part IDs. The quote snapshot and revision history v1 JSON serializer/parser round-trip preserve sourcePartIds, cost-line unit, unit price and sourceReference.
 - When the only price uses the wrong unit (mm for an m requirement), the quote stays incomplete, lists the available unit and returns no pricing snapshot. No unit conversion, partial total or fallback price is inferred.
 - Price values are deterministic test fixtures only; catalogue availability, supplier pricing, waste/roll allowance, CNC and physical manufacturing are not validated.
+
+
+## DOM-052 — Kenar bandı ataması değişince kesim planı freshness ve export blocker
+
+- Proje JSON v2/v3 cut-plan `projectPartSnapshot` her üretim Part kaydının kanonik JSON snapshot'ını taşır. `edgeBandingMaterialId` ve `edgeBandingUnit` alanları bu snapshot'a dahildir; assignment ID/unit değişimi veya atamanın kaldırılması snapshot farkıdır.
+- `validateProjectSheetCutPlanFreshness` aynı edge-band assignment ile fresh döner; assignment ID, `mm`/`m` unit veya assignment presence değiştiğinde `stale`, `result: null`, `json: null` ve kaynak Part ID tanısı döndürür. v3 `stockSheetSource.sourceId/revision` orijinal kayıtta korunur; stale validation kaydedilmiş JSON'u mutate etmez.
+- Mevcut `calculateCabinetProjectProductionWithDiagnostics` explicit Part-level edge-band assignment'ı doğrular fakat JSON v1/CSV adapter bu alanları kayıpsız taşımadığı için `canExport: false` ve açık `exportBlockers` verir. `createFreshProjectSheetCutPlanExport` blocker'ı `productionDiagnostics` içinde tutar, kısmi sonuç veya JSON döndürmez.
+- Kabul testleri `domain/production/projectSheetCutPlanEdgeBandingFreshness.test.mjs` dosyasında gerçek proje agregatörüyle çalışır; v3 round-trip, unchanged freshness, ID/unit/removal stale ve export fail-closed davranışını doğrular.
+- Bu test dilimi runtime geometri veya adapter değiştirmez. Gerçek edge-band katalog/fiyat, rulo/fire payı, makine standardı veya fiziksel üretim doğrulaması sağlamaz.

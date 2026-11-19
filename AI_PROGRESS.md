@@ -1431,3 +1431,14 @@
 - Runtime/domain kaynak kodu değişmedi; frontend, adapter/benchmark, workflow, package/lockfile veya secrets değişmedi. JSON v1/CSV panelGeometry adapter desteği yok; kesitli Part export blocker korunur. Fiziksel CNC/atölye doğrulaması kapsam dışıdır.
 - AI Developer ve entegrasyon/performance run [#44483736288](https://github.com/Taylan789/MobilyaCAD/actions/runs/44483736288) free-model daily quota 429 nedeniyle başarısız; aktif run yok. Rerun yapılmadı çünkü aynı günlük quota limiti bilinerek tekrar denenmesi yararsız; kredi/secrets/ayar değiştirilmedi.
 - Sonraki görev: DOM-052 — edge-band ID/unit değişikliklerinde kaydedilmiş cut-plan freshness ve export blocker regresyonu.
+
+
+## 19 Kasım 2026 14:16 TRT — DOM-052 edge-band assignment cut-plan freshness (Actions doğrulandı)
+
+- Başlangıç HEAD: `44e3db6e5302dff513de4b06517c953842c1c7d3`; test commit'i: [0247ad19603965bc5c32881b0bc9b2ff30e7d164](https://github.com/Taylan789/MobilyaCAD/commit/0247ad19603965bc5c32881b0bc9b2ff30e7d164). Yeni `domain/production/projectSheetCutPlanEdgeBandingFreshness.test.mjs` gerçek proje agregatörüyle v3 plan kurar.
+- Aynı edge-band assignment fresh kalır; ID değişimi, mm/m unit değişimi ve atama kaldırılması stale/null JSON+result üretir, kaynak Part ID tanısını korur; orijinal JSON v3 stock-sheet source/revision metadata'sı değişmez. Assigned-edge raporu JSON v1/CSV export blocker'ını `productionDiagnostics` ile korur.
+- Test geliştirme sırasında iki Actions QA denemesi başarısız oldu: ilkinde nest girdisine katalog materialId eksikti; ikincisinde legacy Part grain override freshness request'e taşınmamıştı. Her iki eksik test fixture düzeltildi; test silinmedi/zayıflatılmadı.
+- Nihai doğrulama: [CI #44513172692](https://github.com/Taylan789/MobilyaCAD/actions/runs/44513172692), [QA #44513172630](https://github.com/Taylan789/MobilyaCAD/actions/runs/44513172630), [Pages #44513172814](https://github.com/Taylan789/MobilyaCAD/actions/runs/44513172814) başarılı. QA: 124/124 frontend + 416/416 domain test; strict domain TypeScript, lint 32 uyarı/0 hata, frontend production build ve audit 0 vulnerability.
+- Bilinen sınır: runtime/domain hesap kodu değişmedi; edge-band JSON v1/CSV adapter desteği hâlâ yok, fiyat/katalog doğrulaması ve CNC/atölye fiziksel doğrulaması kapsam dışı.
+- AI Developer run [#44483736288](https://github.com/Taylan789/MobilyaCAD/actions/runs/44483736288) ve integration/performance job'ları OpenRouter free-model daily quota 429 (limit 50, kalan 0) nedeniyle başarısız; aktif run yok, rerun yapılmadı. Secrets, kredi veya servis ayarı değiştirilmedi.
+- Sıradaki: DOM-053 — per-edge edge-band assignments (4 kenar) schema/validation ve legacy Part-level fallback.
