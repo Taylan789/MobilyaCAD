@@ -1482,3 +1482,12 @@
 - Değişen kod alanı yalnız test dosyası; runtime domain/engine, frontend, adapter/performance agent dosyaları, workflow, package/lockfile ve secrets değişmedi. Per-edge JSON v1/CSV adapter desteği yok; export fail-closed. Fiziksel CNC/atölye doğrulaması yapılmadı.
 - AI Developer run [#44483736288](https://github.com/Taylan789/MobilyaCAD/actions/runs/44483736288) daha önce OpenRouter free-model günlük kota 429 nedeniyle başarısız; aktif run yok, bu tur rerun edilmedi.
 - Sonraki görev: DOM-057 — quote revision directional edge-band cost snapshot, exact unit ve Part provenance.
+
+
+## 19 Kasım 2026 19:36 TRT — DOM-057 yönsel kenar bandı teklif revizyonu regresyon testi (Actions bekleniyor)
+
+- Test kapsamı: aynı `pvc-directional` katalog kimliği için top/üst kenarı `m`, right/sağ kenarı `mm` biriminde fiyatlandır; teklif snapshot ve immutable revision round-trip'inde yön açıklaması, exact unit, birim fiyat, `sourceReference` ve kaynak Part ID'lerini koru.
+- Değişen test: `domain/production/projectEdgeBandingQuoteRevision.test.mjs`. Runtime domain/engine davranışı değiştirilmedi; frontend/**, adapter/performance agent dosyaları, main ve secrets değişmedi.
+- Başlangıç HEAD: `77a64e041151250a5875419f3e9ac25afc7da4b3`. Test commit SHA ve Actions CI/QA/Pages sonucu follow-up kaydında doğrulanacak.
+- Bilinen sınır: yön, teklif maliyet satırının açıklama alanında tutulur (mevcut snapshot şeması); ayrı machine-readable edge field eklenmedi. CNC/atölye doğrulaması yapılmadı.
+- Sonraki: DOM-058 — directional quote revision project-file versioned extension, legacy-safe blocker ve round-trip.

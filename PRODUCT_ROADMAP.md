@@ -501,3 +501,10 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 - Test commit [77e6532](https://github.com/Taylan789/MobilyaCAD/commit/77e653291c7986258675bf0b7d3af6ffdc0ee6fe). [CI #44552227836](https://github.com/Taylan789/MobilyaCAD/actions/runs/44552227836), [QA #44552227917](https://github.com/Taylan789/MobilyaCAD/actions/runs/44552227917) ve [Pages #44552227834](https://github.com/Taylan789/MobilyaCAD/actions/runs/44552227834) başarılı; 124 frontend + 434 domain test, lint 32 warning/0 error, strict TypeScript, production build ve production audit 0 vulnerability.
 - Runtime domain kodu değişmedi; mevcut full-Part snapshot davranışı testle güvenceye alındı. JSON v1/CSV directional export hâlâ desteklenmediği için güvenli blocker korunur. Fiziksel CNC/atölye doğrulaması yapılmadı.
 - Sıradaki: DOM-057 — teklif revizyonunda yön, exact edge-band ID/unit ve kaynak Part provenance.
+
+
+## 19 Kasım 2026 19:36 TRT — DOM-057 teklif revizyonu yönsel kenar bandı doğrulaması
+
+- DOM-057, aynı katalog kimliği için farklı kenar yönleri ve `mm`/`m` birimleriyle oluşturulan fiyat satırlarının teklif revizyonu JSON round-trip'inde açıklama (yön), birim, birim fiyat, fiyat kaynağı ve Part provenance alanlarını korumasını test eder.
+- Bu slice mevcut domain davranışına regresyon testi ekler; yeni runtime davranış iddia etmez. Actions doğrulaması bekleniyor.
+- Sıradaki 3 küçük görev: DOM-058 (proje JSON v2 quote-history extension round-trip + v1 blocker), DOM-059 (revizyon karşılaştırmasında yönsel kenar bandı satır değişikliklerinin ayrıştırılması), DOM-060 (quote revision kaynak eşlemesi ve Part provenance doğrulaması).

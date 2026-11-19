@@ -15,11 +15,18 @@ import {
 
 const noBanding = { top: false, bottom: false, left: false, right: false };
 
-function createEdgeBandingReport() {
+function createEdgeBandingReport({
+  leftSideEdges = { top: true },
+  edgeBandingAssignments = [{
+    partId: "cab-cost-1-left-side",
+    edgeBandingId: "pvc-white-1",
+    unit: "m"
+  }]
+} = {}) {
   const edgeBandingByGroup = Object.fromEntries(
     BODY_PANEL_GROUPS.map((group) => [group, { ...noBanding }])
   );
-  edgeBandingByGroup.leftSide = { ...noBanding, top: true };
+  edgeBandingByGroup.leftSide = { ...noBanding, ...leftSideEdges };
 
   return calculateCabinetProjectProductionWithDiagnostics({
     schemaVersion: 1,
@@ -46,11 +53,7 @@ function createEdgeBandingReport() {
         { id: "mdf-18", name: "MDF Lam 18", category: "panel", thicknessesMm: [18], unit: "mm" }
       ]
     }],
-    edgeBandingAssignments: [{
-      partId: "cab-cost-1-left-side",
-      edgeBandingId: "pvc-white-1",
-      unit: "m"
-    }]
+    edgeBandingAssignments
   });
 }
 
@@ -82,10 +85,10 @@ const priceTable = [
   }
 ];
 
-function createSnapshot(prices = priceTable) {
+function createSnapshot(prices = priceTable, report = productionReport) {
   return createProjectQuotePricingSnapshot({
     quotedOn: "2026-11-19",
-    productionReport,
+    productionReport: report,
     consumptionPriceTable: prices,
     workItems: [],
     tariffTable: [],
@@ -163,6 +166,99 @@ test("exact edge-band ID/unit pricing keeps Part provenance through quote revisi
   assert.equal(roundTripLine.sourceReference, "edge-band-catalog:v1");
   assert.deepEqual(roundTripSource.sourcePartIds, ["cab-cost-1-left-side"]);
   assert.equal(Object.isFrozen(roundTripRevision.pricingSnapshot), true);
+});
+
+test("directional edge-band quote lines preserve edge, exact unit, price source, and Part provenance through immutable revision round-trip", () => {
+  const directionalReport = createEdgeBandingReport({
+    leftSideEdges: { top: true, right: true },
+    edgeBandingAssignments: [
+      { partId: "cab-cost-1-left-side", edge: "top", edgeBandingId: "pvc-directional", unit: "m" },
+      { partId: "cab-cost-1-left-side", edge: "right", edgeBandingId: "pvc-directional", unit: "mm" }
+    ]
+  });
+  assert.equal(directionalReport.status, "ready");
+  const edgeSummaries = calculateProjectEdgeBandingConsumptionSummary(directionalReport.result);
+  const topSummary = edgeSummaries.find((summary) => summary.edge === "top");
+  const rightSummary = edgeSummaries.find((summary) => summary.edge === "right");
+  assert.ok(topSummary);
+  assert.ok(rightSummary);
+  assert.equal(topSummary.edgeBandingId, "pvc-directional");
+  assert.equal(topSummary.unit, "m");
+  assert.deepEqual(topSummary.partIds, ["cab-cost-1-left-side"]);
+  assert.equal(rightSummary.edgeBandingId, "pvc-directional");
+  assert.equal(rightSummary.unit, "mm");
+  assert.deepEqual(rightSummary.partIds, ["cab-cost-1-left-side"]);
+
+  const directionalPrices = [
+    priceTable[0],
+    {
+      resourceType: "edge-banding",
+      resourceId: "pvc-directional",
+      unit: "m",
+      unitPriceMinor: 25,
+      currencyCode: "TRY",
+      sourceReference: "edge-band-catalog:meter"
+    },
+    {
+      resourceType: "edge-banding",
+      resourceId: "pvc-directional",
+      unit: "mm",
+      unitPriceMinor: 2,
+      currencyCode: "TRY",
+      sourceReference: "edge-band-catalog:millimeter"
+    }
+  ];
+  const priced = calculateProjectPricedConsumptionSummary(directionalReport, directionalPrices);
+  assert.equal(priced.status, "ready");
+  assert.ok(priced.costSummary);
+
+  const snapshotResult = createSnapshot(directionalPrices, directionalReport);
+  assert.equal(snapshotResult.status, "ready");
+  assert.ok(snapshotResult.snapshot);
+  const revisionResult = createProjectQuoteRevision({
+    projectId: "project-42",
+    revisionId: "quote-directional-r1",
+    revisionNumber: 1,
+    createdAt: "2026-11-19T19:30:00Z",
+    previousRevision: null,
+    pricingSnapshot: snapshotResult.snapshot
+  });
+  assert.equal(revisionResult.status, "ready");
+  assert.ok(revisionResult.revision);
+
+  const historyFile = serializeProjectQuoteRevisionHistoryFile({
+    projectId: "project-42",
+    revisions: [revisionResult.revision]
+  });
+  assert.equal(historyFile.status, "ready");
+  assert.ok(historyFile.json);
+  const parsed = parseProjectQuoteRevisionHistoryFile(historyFile.json);
+  assert.equal(parsed.status, "ready");
+  const roundTripSnapshot = parsed.history.revisions[0].pricingSnapshot;
+
+  const expectedLines = [
+    { edge: "top", label: "üst", unit: "m", unitPriceMinor: 25, sourceReference: "edge-band-catalog:meter", summary: topSummary },
+    { edge: "right", label: "sağ", unit: "mm", unitPriceMinor: 2, sourceReference: "edge-band-catalog:millimeter", summary: rightSummary }
+  ];
+  for (const expected of expectedLines) {
+    const description = "Kenar bandı pvc-directional (" + expected.label + " kenar)";
+    const originalLine = snapshotResult.snapshot.quoteSummary.costSummary.lines.find((line) => line.description === description);
+    const originalSource = snapshotResult.snapshot.quoteSummary.lineSources.find((source) => source.costLineId === originalLine.id);
+    const roundTripLine = roundTripSnapshot.quoteSummary.costSummary.lines.find((line) => line.description === description);
+    const roundTripSource = roundTripSnapshot.quoteSummary.lineSources.find((source) => source.costLineId === roundTripLine.id);
+    assert.ok(originalLine);
+    assert.ok(originalSource);
+    assert.ok(roundTripLine);
+    assert.ok(roundTripSource);
+    assert.equal(originalLine.unit, expected.unit);
+    assert.equal(originalLine.quantity, expected.summary.totalQuantity);
+    assert.equal(originalLine.unitPriceMinor, expected.unitPriceMinor);
+    assert.equal(originalLine.sourceReference, expected.sourceReference);
+    assert.deepEqual(originalSource.sourcePartIds, expected.summary.partIds);
+    assert.deepEqual(roundTripLine, originalLine);
+    assert.deepEqual(roundTripSource, originalSource);
+  }
+  assert.equal(Object.isFrozen(roundTripSnapshot), true);
 });
 
 test("edge-band price with the wrong unit cannot complete the quote snapshot", () => {
