@@ -504,10 +504,12 @@ function createProjectQuoteRevisionWithSourceIntegrity(value: unknown): ProjectQ
 
   try {
     requireOnlyKeys(value, inputKeys, "Teklif revizyon girdisi");
-    const sourceIntegrityVersion = value.sourceIntegrityVersion;
-    if (sourceIntegrityVersion !== undefined && sourceIntegrityVersion !== 1) {
+    const rawSourceIntegrityVersion = value.sourceIntegrityVersion;
+    if (rawSourceIntegrityVersion !== undefined && rawSourceIntegrityVersion !== 1) {
       throw new Error("Teklif revizyon girdisi desteklenen sourceIntegrityVersion değerini kullanmalıdır.");
     }
+    const sourceIntegrityVersion: 1 | undefined =
+      rawSourceIntegrityVersion === 1 ? 1 : undefined;
     if (!Object.prototype.hasOwnProperty.call(value, "previousRevision")) {
       throw new Error("Önceki revizyon alanı ilk revizyonda null olarak açıkça sağlanmalıdır.");
     }

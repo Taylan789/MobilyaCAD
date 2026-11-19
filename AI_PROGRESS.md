@@ -1537,3 +1537,9 @@
 - Değişen ek test dosyası: `domain/production/projectQuoteSourcePartIds.test.mjs`. İlk failure testleri gevşetilmedi; yeni/legacy davranış ayrımı explicit.
 - CI [#44596679998](https://github.com/Taylan789/MobilyaCAD/actions/runs/44596679998) passed; QA [#44596680124](https://github.com/Taylan789/MobilyaCAD/actions/runs/44596680124) failed 441/443 domain tests; correction commit SHA/Actions pending.
 - Next: DOM-060 strict + legacy tests pass, then finalize DOM-060 status and move DOM-061 to READY.
+
+
+## 19 Kasım 2026 22:30 TRT — DOM-060 strict TypeScript düzeltmesi (Actions pending)
+- Legacy davranış düzeltmesinden sonra domain testleri 443/443 geçti; QA strict TypeScript TS2322 verdi: `sourceIntegrityVersion` tipi `number | undefined` inferred, revision interface `1 | undefined` bekliyor.
+- Literal version narrowing, açık `1 | undefined` tipiyle düzeltildi; runtime davranış veya test koşulları gevşetilmedi.
+- Fix commit SHA ve Actions sonucu bekleniyor; ilk commit CI passed/QA failed, ikinci commit CI passed/QA failed, test suite full passed (443/443).
