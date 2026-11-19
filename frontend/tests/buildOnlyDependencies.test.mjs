@@ -16,3 +16,16 @@ test("Vite and CSS tooling stay in the build dependency graph", () => {
 
   assert.equal(manifest.devDependencies.vite, "^8.3.6");
 });
+test("picomatch stays out of the production dependency graph", () => {
+  assert.equal(manifest.dependencies?.picomatch, undefined, "picomatch must not be a runtime dependency");
+  assert.equal(manifest.devDependencies?.picomatch, undefined, "picomatch is transitive build tooling, not a direct runtime dependency");
+
+  const picomatchEntries = Object.entries(lock.packages).filter(([path]) =>
+    path.endsWith("/node_modules/picomatch")
+  );
+  assert.ok(picomatchEntries.length > 0, "the lockfile should contain the resolved picomatch packages");
+
+  for (const [path, packageInfo] of picomatchEntries) {
+    assert.equal(packageInfo.dev, true, `${path} must remain development-only`);
+  }
+});
