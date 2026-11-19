@@ -902,3 +902,10 @@ Kaynak test: domain/production/projectBathroomVanityPanelPricing.test.mjs.
 - `totalLengthMm` is quantity-weighted measured length in millimetres. `totalQuantity` expresses that length in the selected unit: mm rounded to 0.1, or m rounded to 0.0001; it is not Part count. `edgeCount` is quantity-weighted, `partLineCount` counts source Part rows, and sorted `partIds`/`furnitureIds` preserve provenance.
 - Legacy Parts without an explicit edge-band ID or unit stay in `edgeBandingId: null, unit: "mm"`; Parts with no banded edges are omitted. Duplicate Part IDs are rejected.
 - The test proves summary arithmetic only; it does not verify catalogue existence, band thickness, waste/roll allowance, pricing, CNC, or physical manufacturing.
+
+## DOM-050 — edge-band exact pricing and quote Part provenance round-trip
+
+- domain/production/projectEdgeBandingQuoteRevision.test.mjs uses a real project production report with an explicit edge-band assignment. The same catalogue ID is priced separately in m and mm; only the required m key is applied, with its source reference preserved.
+- The priced consumption line maps to sorted source Part IDs. The quote snapshot and revision history v1 JSON serializer/parser round-trip preserve sourcePartIds, cost-line unit, unit price and sourceReference.
+- When the only price uses the wrong unit (mm for an m requirement), the quote stays incomplete, lists the available unit and returns no pricing snapshot. No unit conversion, partial total or fallback price is inferred.
+- Price values are deterministic test fixtures only; catalogue availability, supplier pricing, waste/roll allowance, CNC and physical manufacturing are not validated.
