@@ -20,7 +20,7 @@ test("axis fields expose axis identity, units, and precise numeric input steps",
   assert.match(component, /data-axis=\{axis\.key\}/);
   assert.match(component, /cad-transform-fields__axis-input/);
   assert.match(component, /step="0\.1"/);
-  assert.match(component, /Konum, milimetre/);
+  assert.match(component, /ekseni konumu, milimetre/);
   assert.match(component, /Dönüş açısı, derece/);
 });
 
