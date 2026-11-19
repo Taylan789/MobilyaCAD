@@ -271,7 +271,7 @@ test("directional edge-band plans remain blocked at the JSON export gate with pr
     freshness: freshnessRequest(saved, report)
   });
   assert.equal(result.status, "blocked");
-  assert.equal(result.freshnessStatus, "fresh");
+  assert.equal(result.freshnessStatus, "blocked");
   assert.equal(result.result, null);
   assert.equal(result.json, null);
   assert.ok(result.diagnostics.some((message) => /edgeBandingByEdge/.test(message)));
