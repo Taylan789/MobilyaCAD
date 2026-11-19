@@ -945,3 +945,11 @@ Kaynak test: domain/production/projectBathroomVanityPanelPricing.test.mjs.
 - Persisted lines keep direction in the existing description, exact unit (m or mm), quantity, unit price, sourceReference, and lineSources.sourcePartIds. No unit conversion or pricing inference is introduced.
 - Legacy project JSON v1 is read as legacy and revision append is blocked. Unsupported history versions and unknown pricing-snapshot fields are blocked with null history/project; no partial data is returned.
 - The test is domain-level only. Frontend project parser/import/export integration is not implied, and per-edge direction is still not a structured quote-line field. CNC or physical workshop validation is not provided.
+
+
+## DOM-059 — Yönsel teklif revizyon satır karşılaştırması
+
+- `compareProjectQuoteRevisions` artık `lineChanges` alanını döndürür; satır kimliği cost-line ID'sine bağlı değildir. Eşleşme yalnızca tam kaynak türü/kimliği, kategori, açıklama (kenar yön etiketi dahil), birim, tarife kimliği ve sıralı kaynak Part ID'leriyle yapılır.
+- Aynı eşleşen satırın miktar, birim fiyat, satır toplamı veya `sourceReference` değişirse `changed` olarak iki snapshot'ı birlikte verir. Yön, birim, kaynak kimliği veya Part provenance değişirse eski/yeni satır ayrı `removed`/`added` olarak kalır; mm↔m dönüşümü, fiyat veya kaynak tahmini yapılmaz.
+- Her satır snapshot'ı immutable comparison sonucuna dahil edilir. Bozuk history veya farklı para birimleri önceki fail-closed karşılaştırma kapısını kullanır.
+- UI entegrasyon sözleşmesi: `lineChanges` yalnızca doğrulanmış quote snapshot'lardan gelen delta listesidir; frontend'in bunu revision paneline bağlaması ayrı frontend sahipliğindedir. Direction hâlâ description text'te; DOM-061 structured field işi ayrı.

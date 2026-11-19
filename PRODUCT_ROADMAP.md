@@ -524,3 +524,10 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 1. DOM-059 READY — compare directional quote line deltas (edge label, unit, quantity, price, source) without unit conversion or inference.
 2. DOM-060 PLANNED — strict source-line and Part provenance integrity in revision history.
 3. DOM-061 PLANNED — introduce an optional structured edge-direction field with backward-compatible validation.
+
+
+## 19 Kasım 2026 21:21 TRT — DOM-059 teklif revizyon satır karşılaştırması
+
+- `compareProjectQuoteRevisions` artık toplam/kategori farklarına ek olarak `lineChanges` döndürür. Maliyet satırı kimlikleri değişken olabileceğinden eşleşme line ID yerine exact sourceType/sourceId, category, description, unit, tariffId ve sorted sourcePartIds tuple'ına dayanır.
+- Yön açıklaması ve birim değişiklikleri birim dönüştürmeden ayrı added/removed; miktar, birim fiyat, satır toplamı ve fiyat kaynağı değişiklikleri matched line üzerinde changed olarak gösterilir. Kaynak Part ID değişikliği ayrı added/removed olur.
+- DOM-060: quote history source-line/Part provenance integrity. DOM-061: description parsing bağımlılığını azaltan structured direction metadata, backward-compatible strict schema.

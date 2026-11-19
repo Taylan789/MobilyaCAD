@@ -1503,3 +1503,12 @@
 - Actions on corrected SHA: CI [#44576735505](https://github.com/Taylan789/MobilyaCAD/actions/runs/44576735505) success; QA [#44576735471](https://github.com/Taylan789/MobilyaCAD/actions/runs/44576735471) success — 124 frontend + 438 domain tests, 0 failures, strict domain TypeScript, lint 32 warnings/0 errors, production build, audit 0 vulnerabilities; Pages [#44576735561](https://github.com/Taylan789/MobilyaCAD/actions/runs/44576735561) success.
 - AI Developer run [#44572846832](https://github.com/Taylan789/MobilyaCAD/actions/runs/44572846832) failed because OpenRouter free-model daily quota was exhausted (429); no rerun, credit, secret, or setting change. No active workflows at documentation update.
 - Next: DOM-059 compare directional quote line deltas without unit or price inference; DOM-060 source integrity; DOM-061 structured direction metadata compatibility.
+
+
+## 19 Kasım 2026 21:21 TRT — DOM-059 teklif revizyon satır karşılaştırması (commit doğrulaması bekliyor)
+
+- `compareProjectQuoteRevisions` toplam/kategori farklarına ek olarak exact eşleşmeli `lineChanges` döndürecek: description (direction), unit, source type/id, tariff ID ve sorted Part provenance kimlikte; quantity, unit price, line total ve sourceReference değişiklikleri `changed` olarak taşınır. Direction/unit/source-Part değişimleri conversion/inference olmadan removed/added çiftleri.
+- Otomatik regresyon fixture'ı aynı üst kenar satırında quantity/price/sourceReference değişimini; sağ→sol yön, mm→m unit ve Part provenance değişimlerini ayrı delta olarak kontrol eder. Immutable result testleri eklendi.
+- Kod commit SHA ve CI/QA/Pages run linkleri commit sonrası doğrulama ekinde tamamlanacak; bu aşamada Actions sonucu henüz yok.
+- Known limitation: yön hâlâ description text'te; frontend adapter/persistence/CSV entegrasyonu, CNC ve fiziksel atölye doğrulaması kapsam dışı. `frontend/**` dosyaları değiştirilmedi.
+- Next: DOM-060 — revision history source-line/Part mapping integrity; then DOM-061 structured direction field with legacy compatibility.

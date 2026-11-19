@@ -96,6 +96,77 @@ function createSnapshot() {
   return structuredClone(snapshotResult.snapshot);
 }
 
+
+function createSnapshotWithQuoteLines(entries) {
+  const snapshot = createSnapshot();
+  const quoteSummary = snapshot.quoteSummary;
+  const costSummary = quoteSummary.costSummary;
+  assert.ok(costSummary);
+  let additionalTotalMinor = 0;
+  for (const entry of entries) {
+    const lineTotalMinor = calculateProjectCostLineTotalMinor(
+      entry.line.quantity,
+      entry.line.unitPriceMinor
+    );
+    costSummary.lines.push({ ...entry.line, lineTotalMinor });
+    quoteSummary.lineSources.push({ ...entry.source, sourcePartIds: [...entry.source.sourcePartIds] });
+    additionalTotalMinor += lineTotalMinor;
+  }
+  costSummary.lineCount = costSummary.lines.length;
+  costSummary.categoryTotalsMinor.material += additionalTotalMinor;
+  costSummary.grandTotalMinor += additionalTotalMinor;
+  quoteSummary.requiredLineCount += entries.length;
+  quoteSummary.pricedLineCount += entries.length;
+  return snapshot;
+}
+
+function createEdgeQuoteLine({
+  id,
+  edge,
+  quantity,
+  unit,
+  unitPriceMinor,
+  sourceReference,
+  sourceId,
+  sourcePartIds
+}) {
+  return {
+    line: {
+      id,
+      category: "material",
+      description: "Kenar bandı pvc-directional (" + edge + " kenar)",
+      quantity,
+      unit,
+      unitPriceMinor,
+      currencyCode: "TRY",
+      sourceReference
+    },
+    source: {
+      costLineId: id,
+      sourceType: "production-consumption",
+      sourceId,
+      sourcePartIds
+    }
+  };
+}
+
+function createHistoryWithSnapshots(fromSnapshot, toSnapshot) {
+  return {
+    projectId: "project-42",
+    revisions: [
+      createHistoryRevision({ pricingSnapshot: fromSnapshot }),
+      createHistoryRevision({
+        revisionId: "quote-r2",
+        revisionNumber: 2,
+        createdAt: "2026-11-17T11:00:00Z",
+        previousRevisionId: "quote-r1",
+        pricingSnapshot: toSnapshot
+      })
+    ]
+  };
+}
+
+
 function createFirstRevision(overrides = {}) {
   return {
     projectId: "project-42",
@@ -639,6 +710,166 @@ function createSnapshotWithMaterialPriceDelta(deltaMinor, currencyCode = "TRY") 
   }
   return snapshot;
 }
+
+test("revizyon karşılaştırması yön, birim, miktar, fiyat ve kaynak değişimlerini tam satır olarak ayırır", () => {
+  const fromSnapshot = createSnapshotWithQuoteLines([
+    createEdgeQuoteLine({
+      id: "edge-top-r1",
+      edge: "üst",
+      quantity: 0.42,
+      unit: "m",
+      unitPriceMinor: 25,
+      sourceReference: "edge-band-catalog:meter:v1",
+      sourceId: "edge-top",
+      sourcePartIds: ["part-top"]
+    }),
+    createEdgeQuoteLine({
+      id: "edge-side-r1",
+      edge: "sağ",
+      quantity: 420,
+      unit: "mm",
+      unitPriceMinor: 2,
+      sourceReference: "edge-band-catalog:mm:v1",
+      sourceId: "edge-side",
+      sourcePartIds: ["part-side"]
+    }),
+    createEdgeQuoteLine({
+      id: "edge-bottom-r1",
+      edge: "alt",
+      quantity: 0.35,
+      unit: "m",
+      unitPriceMinor: 22,
+      sourceReference: "edge-band-catalog:meter:v1",
+      sourceId: "edge-bottom",
+      sourcePartIds: ["part-bottom"]
+    }),
+    createEdgeQuoteLine({
+      id: "edge-front-r1",
+      edge: "ön",
+      quantity: 300,
+      unit: "mm",
+      unitPriceMinor: 1,
+      sourceReference: "edge-band-catalog:front",
+      sourceId: "edge-front",
+      sourcePartIds: ["part-front"]
+    })
+  ]);
+  const toSnapshot = createSnapshotWithQuoteLines([
+    createEdgeQuoteLine({
+      id: "edge-top-r2",
+      edge: "üst",
+      quantity: 0.5,
+      unit: "m",
+      unitPriceMinor: 30,
+      sourceReference: "edge-band-catalog:meter:v2",
+      sourceId: "edge-top",
+      sourcePartIds: ["part-top"]
+    }),
+    createEdgeQuoteLine({
+      id: "edge-side-r2",
+      edge: "sol",
+      quantity: 420,
+      unit: "mm",
+      unitPriceMinor: 2,
+      sourceReference: "edge-band-catalog:mm:v1",
+      sourceId: "edge-side",
+      sourcePartIds: ["part-side"]
+    }),
+    createEdgeQuoteLine({
+      id: "edge-bottom-r2",
+      edge: "alt",
+      quantity: 0.35,
+      unit: "m",
+      unitPriceMinor: 22,
+      sourceReference: "edge-band-catalog:meter:v1",
+      sourceId: "edge-bottom",
+      sourcePartIds: ["part-bottom-2"]
+    }),
+    createEdgeQuoteLine({
+      id: "edge-front-r2",
+      edge: "ön",
+      quantity: 300,
+      unit: "m",
+      unitPriceMinor: 1,
+      sourceReference: "edge-band-catalog:front",
+      sourceId: "edge-front",
+      sourcePartIds: ["part-front"]
+    })
+  ]);
+  const history = createHistoryWithSnapshots(fromSnapshot, toSnapshot);
+
+  const result = compareProjectQuoteRevisions(history, "quote-r1", "quote-r2");
+
+  assert.equal(result.status, "ready");
+  const changes = result.comparison.lineChanges;
+  assert.equal(changes.length, 7);
+  assert.deepEqual(
+    changes.reduce((counts, change) => {
+      counts[change.type] += 1;
+      return counts;
+    }, { added: 0, removed: 0, changed: 0 }),
+    { added: 3, removed: 3, changed: 1 }
+  );
+
+  const topChange = changes.find(
+    (change) => change.type === "changed" && change.from.description === "Kenar bandı pvc-directional (üst kenar)"
+  );
+  assert.ok(topChange);
+  assert.equal(topChange.from.quantity, 0.42);
+  assert.equal(topChange.to.quantity, 0.5);
+  assert.equal(topChange.from.unitPriceMinor, 25);
+  assert.equal(topChange.to.unitPriceMinor, 30);
+  assert.equal(topChange.from.sourceReference, "edge-band-catalog:meter:v1");
+  assert.equal(topChange.to.sourceReference, "edge-band-catalog:meter:v2");
+  assert.equal(
+    topChange.from.lineTotalMinor,
+    calculateProjectCostLineTotalMinor(0.42, 25)
+  );
+  assert.equal(
+    topChange.to.lineTotalMinor,
+    calculateProjectCostLineTotalMinor(0.5, 30)
+  );
+
+  const directionRemoved = changes.find(
+    (change) => change.type === "removed" && change.from.description === "Kenar bandı pvc-directional (sağ kenar)"
+  );
+  const directionAdded = changes.find(
+    (change) => change.type === "added" && change.to.description === "Kenar bandı pvc-directional (sol kenar)"
+  );
+  assert.ok(directionRemoved);
+  assert.ok(directionAdded);
+  assert.equal(directionRemoved.from.unit, "mm");
+  assert.equal(directionAdded.to.unit, "mm");
+
+  const unitRemoved = changes.find(
+    (change) => change.type === "removed" &&
+      change.from.description === "Kenar bandı pvc-directional (ön kenar)" &&
+      change.from.unit === "mm"
+  );
+  const unitAdded = changes.find(
+    (change) => change.type === "added" &&
+      change.to.description === "Kenar bandı pvc-directional (ön kenar)" &&
+      change.to.unit === "m"
+  );
+  assert.ok(unitRemoved);
+  assert.ok(unitAdded);
+  assert.equal(unitRemoved.from.quantity, 300);
+  assert.equal(unitAdded.to.quantity, 300);
+
+  const sourceRemoved = changes.find(
+    (change) => change.type === "removed" && change.from.description === "Kenar bandı pvc-directional (alt kenar)"
+  );
+  const sourceAdded = changes.find(
+    (change) => change.type === "added" && change.to.description === "Kenar bandı pvc-directional (alt kenar)"
+  );
+  assert.ok(sourceRemoved);
+  assert.ok(sourceAdded);
+  assert.deepEqual(sourceRemoved.from.sourcePartIds, ["part-bottom"]);
+  assert.deepEqual(sourceAdded.to.sourcePartIds, ["part-bottom-2"]);
+  assert.equal(Object.isFrozen(changes), true);
+  assert.equal(Object.isFrozen(topChange.from), true);
+  assert.equal(Object.isFrozen(topChange.to), true);
+});
 
 test("teklif revizyonları aynı para biriminde kategori ve genel toplam farkını verir", () => {
   const history = createTwoRevisionHistory({

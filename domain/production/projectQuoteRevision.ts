@@ -1,4 +1,6 @@
 import { calculateProjectCostLineTotalMinor } from "./projectCostSummary.ts";
+import type { ProjectCostLine } from "./projectCostSummary.ts";
+import type { ProjectQuoteLineSource } from "./projectQuoteSummary.ts";
 import type { ProjectQuotePricingSnapshot } from "./projectQuotePricingSnapshot.ts";
 
 type DeepReadonly<T> =
@@ -674,6 +676,27 @@ export type ProjectQuoteCostCategory =
   | "waste"
   | "profit";
 
+export interface ProjectQuoteRevisionCostLineSnapshot {
+  category: ProjectQuoteCostCategory;
+  description: string;
+  quantity: number;
+  unit: string;
+  unitPriceMinor: number;
+  lineTotalMinor: number;
+  currencyCode: string;
+  sourceReference?: string;
+  sourceType: ProjectQuoteLineSource["sourceType"];
+  sourceId: string;
+  tariffId?: string;
+  sourcePartIds?: readonly string[];
+}
+
+export interface ProjectQuoteRevisionLineChange {
+  type: "added" | "removed" | "changed";
+  from: ProjectQuoteRevisionCostLineSnapshot | null;
+  to: ProjectQuoteRevisionCostLineSnapshot | null;
+}
+
 export interface ProjectQuoteRevisionComparison {
   schemaVersion: 1;
   projectId: string;
@@ -688,12 +711,119 @@ export interface ProjectQuoteRevisionComparison {
   grandTotalDeltaMinor: number;
   /** Category totals are compared in the same currency and minor unit. */
   categoryDeltasMinor: Record<ProjectQuoteCostCategory, number>;
+  /** Exact line-level differences; unit/direction/source identity changes are add/remove pairs. */
+  lineChanges: readonly ProjectQuoteRevisionLineChange[];
 }
 
 export interface ProjectQuoteRevisionComparisonResult {
   status: "ready" | "blocked";
   comparison: DeepReadonly<ProjectQuoteRevisionComparison> | null;
   diagnostics: readonly string[];
+}
+
+function createRevisionComparisonLineSnapshot(
+  line: ProjectCostLine,
+  source: ProjectQuoteLineSource
+): ProjectQuoteRevisionCostLineSnapshot {
+  return {
+    category: line.category,
+    description: line.description,
+    quantity: line.quantity,
+    unit: line.unit,
+    unitPriceMinor: line.unitPriceMinor,
+    lineTotalMinor: line.lineTotalMinor,
+    currencyCode: line.currencyCode,
+    ...(line.sourceReference === undefined ? {} : { sourceReference: line.sourceReference }),
+    sourceType: source.sourceType,
+    sourceId: source.sourceId,
+    ...(source.tariffId === undefined ? {} : { tariffId: source.tariffId }),
+    ...(source.sourcePartIds === undefined ? {} : { sourcePartIds: [...source.sourcePartIds] })
+  };
+}
+
+function revisionComparisonLineIdentity(line: ProjectQuoteRevisionCostLineSnapshot): string {
+  return JSON.stringify([
+    line.category,
+    line.description,
+    line.unit,
+    line.sourceType,
+    line.sourceId,
+    line.tariffId ?? null,
+    line.sourcePartIds ?? []
+  ]);
+}
+
+function revisionComparisonLineValue(line: ProjectQuoteRevisionCostLineSnapshot): string {
+  return JSON.stringify([
+    line.quantity,
+    line.unitPriceMinor,
+    line.lineTotalMinor,
+    line.sourceReference ?? null
+  ]);
+}
+
+function revisionComparisonLines(revision: ProjectQuoteRevision): ProjectQuoteRevisionCostLineSnapshot[] {
+  const quoteSummary = revision.pricingSnapshot.quoteSummary;
+  const costSummary = quoteSummary.costSummary;
+  if (costSummary === null) {
+    throw new Error("Teklif revizyonunda karşılaştırılacak maliyet satırları bulunmuyor.");
+  }
+  const sourcesByLineId = new Map(quoteSummary.lineSources.map((source) => [source.costLineId, source]));
+  return costSummary.lines.map((line) => {
+    const source = sourcesByLineId.get(line.id);
+    if (source === undefined) {
+      throw new Error("Teklif maliyet satırı doğrulanmış kaynak eşlemesine sahip değil: " + line.id + ".");
+    }
+    return createRevisionComparisonLineSnapshot(line, source);
+  });
+}
+
+function groupRevisionComparisonLines(
+  lines: readonly ProjectQuoteRevisionCostLineSnapshot[]
+): Map<string, ProjectQuoteRevisionCostLineSnapshot[]> {
+  const groups = new Map<string, ProjectQuoteRevisionCostLineSnapshot[]>();
+  for (const line of lines) {
+    const key = revisionComparisonLineIdentity(line);
+    const group = groups.get(key) ?? [];
+    group.push(line);
+    groups.set(key, group);
+  }
+  for (const group of groups.values()) {
+    group.sort((left, right) => {
+      const leftValue = revisionComparisonLineValue(left);
+      const rightValue = revisionComparisonLineValue(right);
+      return leftValue < rightValue ? -1 : leftValue > rightValue ? 1 : 0;
+    });
+  }
+  return groups;
+}
+
+function compareRevisionCostLines(
+  fromRevision: ProjectQuoteRevision,
+  toRevision: ProjectQuoteRevision
+): ProjectQuoteRevisionLineChange[] {
+  const fromGroups = groupRevisionComparisonLines(revisionComparisonLines(fromRevision));
+  const toGroups = groupRevisionComparisonLines(revisionComparisonLines(toRevision));
+  const identityKeys = [...new Set([...fromGroups.keys(), ...toGroups.keys()])].sort();
+  const changes: ProjectQuoteRevisionLineChange[] = [];
+
+  for (const identity of identityKeys) {
+    const fromLines = fromGroups.get(identity) ?? [];
+    const toLines = toGroups.get(identity) ?? [];
+    const matchedCount = Math.min(fromLines.length, toLines.length);
+    for (let index = 0; index < matchedCount; index += 1) {
+      if (revisionComparisonLineValue(fromLines[index]) !== revisionComparisonLineValue(toLines[index])) {
+        changes.push({ type: "changed", from: fromLines[index], to: toLines[index] });
+      }
+    }
+    for (let index = matchedCount; index < fromLines.length; index += 1) {
+      changes.push({ type: "removed", from: fromLines[index], to: null });
+    }
+    for (let index = matchedCount; index < toLines.length; index += 1) {
+      changes.push({ type: "added", from: null, to: toLines[index] });
+    }
+  }
+  return changes;
 }
 
 function blockedComparison(message: string): ProjectQuoteRevisionComparisonResult {
@@ -707,7 +837,8 @@ function blockedComparison(message: string): ProjectQuoteRevisionComparisonResul
 /**
  * Compares two revisions from one fully validated history.
  * The later revision must have a greater sequence number and both snapshots
- * must use the same currency. No FX rate or line-level identity is inferred.
+ * must use the same currency. Lines match only by exact source, category, description,
+ * unit, tariff and Part provenance; changed units/directions are add/remove pairs.
  */
 export function compareProjectQuoteRevisions(
   historyValue: unknown,
@@ -791,7 +922,8 @@ export function compareProjectQuoteRevisions(
         fromGrandTotalMinor,
         toGrandTotalMinor,
         grandTotalDeltaMinor,
-        categoryDeltasMinor
+        categoryDeltasMinor,
+        lineChanges: compareRevisionCostLines(fromRevision, toRevision)
       },
       diagnostics: []
     });
