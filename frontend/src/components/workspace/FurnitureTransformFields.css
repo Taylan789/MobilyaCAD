@@ -1,0 +1,138 @@
+/* Transform inspector: compact, legible numeric controls for CAD axes. */
+.cad-transform-fields {
+  display: grid;
+  gap: 12px;
+}
+
+.cad-transform-fields__axes {
+  gap: 7px !important;
+}
+
+.cad-transform-fields__axis {
+  display: grid;
+  min-width: 0;
+  gap: 6px;
+  padding: 8px 7px;
+  border: 1px solid rgba(129, 160, 180, 0.22);
+  border-radius: 7px;
+  background: linear-gradient(155deg, rgba(34, 50, 61, 0.72), rgba(18, 29, 37, 0.9));
+}
+
+.cad-transform-fields__axis-label {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 5px;
+  color: #a5b6c0;
+  font-size: 8px;
+  line-height: 1.25;
+  letter-spacing: 0.04em;
+}
+
+.cad-transform-fields__axis-mark {
+  display: inline-grid;
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid currentColor;
+  border-radius: 4px;
+  background: rgba(7, 13, 18, 0.42);
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.cad-transform-fields__axis-mark[data-axis="x"] { color: #e28f98; }
+.cad-transform-fields__axis-mark[data-axis="y"] { color: #91c5a6; }
+.cad-transform-fields__axis-mark[data-axis="z"] { color: #91b8d5; }
+
+.cad-transform-fields__axis .cad-input-with-unit {
+  min-width: 0;
+  gap: 4px;
+}
+
+.cad-transform-fields__axis-input {
+  min-width: 0 !important;
+  min-height: 32px !important;
+  padding-inline: 6px !important;
+  border-color: rgba(125, 156, 177, 0.28) !important;
+  border-radius: 5px !important;
+  background: #0e1820 !important;
+  font-size: 10px !important;
+  text-align: right;
+}
+
+.cad-transform-fields__axis-input:focus-visible {
+  border-color: #a9c7d8 !important;
+  outline: 2px solid #a9c7d8 !important;
+  outline-offset: 2px !important;
+}
+
+.cad-transform-fields__axis .cad-input-with-unit > span {
+  color: #8296a3;
+  font-size: 8px;
+}
+
+.cad-transform-fields__rotation {
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid rgba(129, 160, 180, 0.18);
+  border-radius: 7px;
+  background: rgba(15, 24, 31, 0.58);
+}
+
+.cad-transform-fields__rotation-label {
+  color: #b5c5ce !important;
+}
+
+.cad-transform-fields__rotation .cad-input-with-unit {
+  min-width: 0;
+  gap: 6px;
+}
+
+.cad-transform-fields__rotation .cad-input-with-unit > span {
+  color: #8296a3;
+  font-size: 9px;
+}
+
+.cad-transform-fields__note {
+  margin: 0 !important;
+  padding-left: 8px;
+  border-left: 2px solid rgba(145, 180, 202, 0.28);
+  color: #8fa2ad !important;
+  font-size: 9px !important;
+  line-height: 1.5 !important;
+}
+
+@media (max-width: 420px) {
+  .cad-transform-fields__axes {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .cad-transform-fields__axis {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 8px 9px;
+  }
+}
+
+@media (forced-colors: active) {
+  .cad-transform-fields__axis,
+  .cad-transform-fields__rotation {
+    color: CanvasText;
+    border-color: CanvasText;
+    background: Canvas;
+  }
+
+  .cad-transform-fields__axis-mark {
+    color: CanvasText !important;
+    border-color: ButtonText;
+    background: Canvas;
+  }
+
+  .cad-transform-fields__axis-input {
+    color: FieldText !important;
+    border-color: FieldText !important;
+    background: Field !important;
+  }
+}
