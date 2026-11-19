@@ -1386,3 +1386,9 @@
 - Bilinen sınır: hardware BOM satırları furnitureId ile ilişkilidir; Part ID tahmin edilmez. Fiziksel/CNC doğrulaması yapılmadı.
 - Roadmap/coordination/progress commit'i [352c0753](https://github.com/Taylan789/MobilyaCAD/commit/352c075334ec22f7101f5951600382464066f01f) ile DOM-046 DONE ve DOM-047 READY kaydedildi. Bu docs commit'i için CI [#44466247180](https://github.com/Taylan789/MobilyaCAD/actions/runs/44466247180), QA [#44466247160](https://github.com/Taylan789/MobilyaCAD/actions/runs/44466247160), Pages [#44466247163](https://github.com/Taylan789/MobilyaCAD/actions/runs/44466247163) başarılı.
 - Sıradaki görev: DOM-047 — kitaplık panel grubu kalınlık override'ları, katalog doğrulaması ve legacy ortak kalınlık uyumluluğu.
+
+## 19 Kasım 2026 09:25 TRT — DOM-047 legacy kalınlık fallback testi (doğrulama bekliyor)
+
+- Mevcut kitaplık konstrüksiyon motoru panel grubu kalınlık override, katalog exact-thickness validation ve legacy shared-thickness fallback davranışını uyguluyor. Bu turda eksik acceptance coverage eklendi: override edilmeyen yan/alt paneller 18 mm ortak kalınlığını korurken üst panel 25 mm ve raf 16 mm katalog override ile çözülür; raf quantity 3 korunur.
+- Değişen dosya: domain/production/bookshelfConstruction.test.mjs. Runtime/domain source, frontend, adapter, benchmark, workflow, package/lockfile veya secrets değiştirilmedi.
+- Commit SHA/Actions doğrulaması: commit sonrası kayıt edilecek.

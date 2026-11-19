@@ -264,4 +264,8 @@ Bu dosya dört geliştirme/denetim rolünün ortak görev panosu ve entegrasyon 
 - Gerçek proje üretim agregatörüyle gardırop/TV özel raf ve bölücülerinin tam Part snapshot'ında korunması doğrulandı. Yalnızca raflar nesting'e seçildi; bölücüler hariç tutulmasına rağmen JSON v2 snapshot'ında tüm malzeme/kalınlık/adet/kenar/damar/yerleşim alanları korundu. Runtime üretim kodu değişikliği gerekmedi.
 - DOM-042 tamamlandı: [7d66017c](https://github.com/Taylan789/MobilyaCAD/commit/7d66017c2d6b41ed19aba673a4ceea3a1324c346); CI #44419258580, QA #44419258622 ve Pages #44419258581 başarılı. 12 özel Part değişiklik senaryosu stale, değişmeyen plan fresh; sonraki görev DOM-043.
 
-| DOM-047 | Kitaplık panel grubu kalınlık override'larını katalog doğrulaması ve eski ortak kalınlık uyumluluğuyla ekle | Ürün Geliştirme | READY | kitaplık panel grubu kalınlığı için exact katalog kalınlığı, geçersiz override block ve legacy request testleri |
+| DOM-047 | Kitaplık panel grubu kalınlık override'larını katalog doğrulaması ve eski ortak kalınlık uyumluluğuyla ekle | Ürün Geliştirme | VERIFYING | kitaplık panel grubu kalınlığı exact katalog kalınlığı, geçersiz override block ve legacy fallback testleri |
+
+| DOM-048 | Proje üretiminde explicit kenar bandı Part atamalarını doğrula; unknown/duplicate/no-banded-edge durumlarında export blocker ve kısmi sonuç yok | Ürün Geliştirme | READY | partId→edgeBandingId/unit eşleşmesi, invalid diagnostics ve export-block regression testleri |
+| DOM-049 | Proje kenar bandı tüketim özetini assigned Part ID, mobilya, quantity, edgeCount ve mm/m birimleriyle doğrula | Ürün Geliştirme | READY | mixed family, quantity ve mm↔m summary testleri; atamasız legacy Part'larda boş davranış |
+| DOM-050 | Kenar bandı fiyatlandırma ve teklif Part kaynak izi için exact resource/unit eşleşmesini doğrula | Ürün Geliştirme | READY | missing price fail-closed, grouped linePartSources ve quote sourcePartIds round-trip testleri |

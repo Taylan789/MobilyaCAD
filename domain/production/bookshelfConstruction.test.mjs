@@ -67,6 +67,24 @@ test("açık kitaplık ortak gövde ölçülerini kullanır ve raf adedini korur
   assert.equal(result.parts.find((part) => part.id === "book-1-shelf")?.quantity, 3);
   assert.equal(result.parts.some((part) => part.id.includes("-door")), false);
   assert.equal(result.parts.every((part) => part.furnitureId === "book-1"), true);
+  assert.equal(result.parts.every((part) => part.thickness === 18), true);
+});
+
+test("eski ortak kalınlık, yalnız override verilen panel gruplarında değişir", () => {
+  const result = calculateBookshelfConstruction(createRequest({
+    profile: { panelThicknessMmByGroup: { top: 25, shelf: 16 } },
+    panelMaterialOverrides: { top: "mdf-25", shelf: "ply-16" }
+  }));
+  const part = (id) => result.parts.find((item) => item.id === id);
+
+  assert.equal(part("book-1-left-side")?.thickness, 18);
+  assert.equal(part("book-1-right-side")?.thickness, 18);
+  assert.equal(part("book-1-top")?.thickness, 25);
+  assert.equal(part("book-1-bottom")?.thickness, 18);
+  assert.equal(part("book-1-shelf")?.thickness, 16);
+  assert.equal(part("book-1-top")?.materialId, "mdf-25");
+  assert.equal(part("book-1-shelf")?.materialId, "ply-16");
+  assert.equal(part("book-1-shelf")?.quantity, 3);
 });
 
 test("arkalık montajı ve panel grubu malzeme override'ı gerçek parça kalınlığıyla çözülür", () => {

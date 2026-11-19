@@ -412,11 +412,11 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 
 ### Sıradaki küçük domain dilimleri
 
-1. DOM-047 — kitaplık panel grubu kalınlık override'larını katalog doğrulaması ve eski ortak kalınlık uyumluluğuyla ekle (READY).
-2. DOM-048 — masa konstrüksiyonunu tabla/ayak ve açık ölçü parametreleriyle testli dikey dilimlere genişlet; bağlantı standardı uydurma.
-3. DOM-049 — proje agregatöründe aile bazlı destek/engelleme tanılarını eksik aileler için otomatik testle sabitle.
-4. DOM-050 — domain üretim parça kimliği ve family sözleşmesini JSON/CSV entegrasyon testleriyle genişlet.
-5. DOM-051 — export/quote kesim listesi ve malzeme tüketim kaynak izi için CSV/JSON contract round-trip testlerini genişlet.
+1. DOM-047 — kitaplık panel kalınlık override ve legacy ortak kalınlık uyumluluğu (VERIFYING; mevcut motor/testler doğrulanıyor).
+2. DOM-048 — proje kenar bandı Part atamalarının doğrulanması ve export blocker davranışı (READY).
+3. DOM-049 — atanmış kenar bandı tüketim özetinin mixed-family quantity ve mm/m birimleriyle doğrulanması (READY).
+4. DOM-050 — kenar bandı fiyatlandırması ve teklif Part kaynak izi round-trip (READY).
+5. DOM-051 — family bazlı üretim raporu, JSON/CSV export blocker ve kesitli Part kaybı için contract regression tests (READY).
 
 ## DOM-046 kabul ve entegrasyon kriterleri
 
@@ -431,3 +431,11 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 - Fresh plan exact JSON stringini ve grup provenance metadata'sını döndürmeli; Part snapshot değişırsa stale, result/json=null ve Part ID tanısı olmalı. Orijinal kayıt metadata'sı korunur.
 - Runtime, frontend, adapter/benchmark, workflow, package/lockfile veya secrets değişikliği hedeflenmiyor.
 - Commit ve CI/QA sonuçları doğrulama tamamlandığında kaydedilecek.
+
+
+## 19 Kasım 2026 09:25 TRT — DOM-047 legacy kalınlık uyumluluğu test genişletmesi (Actions bekliyor)
+
+- Mevcut kitaplık domain motorunda grup bazlı kalınlık override ve exact katalog doğrulaması zaten vardı; task board READY durumu uygulamanın gerisinde kalmıştı.
+- Ek regresyon testi, panelThicknessMmByGroup olmadan legacy ortak 18 mm kalınlığın tüm üretilen parçalarda korunmasını ve yalnız top/shelf override verilen grupların 25/16 mm olarak, exact katalog materialId ile çözülmesini doğrular.
+- Değişen dosya: domain/production/bookshelfConstruction.test.mjs; runtime üretim kodu değiştirilmedi.
+- Test/CI sonucu commit sonrası bekleniyor.
