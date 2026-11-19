@@ -4,6 +4,7 @@ import {
   calculateProjectHardwareConsumptionSummary,
   calculateProjectMaterialConsumptionSummary,
   type ProjectEdgeBandingConsumptionSummary,
+  type ProjectEdgeBandingEdge,
   type ProjectHardwareConsumptionSummary,
   type ProjectMaterialConsumptionSummary
 } from "./projectMaterialSummary.ts";
@@ -29,6 +30,7 @@ export interface ProjectCostCoverageIssue {
   code: "missing-resource-id" | "missing-price" | "unit-mismatch" | "unpriced-edge-banding";
   resourceType: "material" | "hardware" | "edge-banding";
   resourceId: string | null;
+  edge?: ProjectEdgeBandingEdge;
   description: string;
   requiredUnit: string;
   quantity: number;
@@ -174,6 +176,13 @@ function validatePriceTable(value: unknown): Map<string, ProjectConsumptionPrice
   return prices;
 }
 
+const edgeLabelByDirection: Record<ProjectEdgeBandingEdge, string> = {
+  top: "üst",
+  bottom: "alt",
+  left: "sol",
+  right: "sağ"
+};
+
 function emptySummary(): ProjectPricedConsumptionSummary {
   return {
     status: "empty",
@@ -212,7 +221,8 @@ function findMissingPrice(
   requiredUnit: string,
   quantity: number,
   prices: Map<string, ProjectConsumptionPriceInput>,
-  thicknessMm?: number
+  thicknessMm?: number,
+  edge?: ProjectEdgeBandingEdge
 ): ProjectCostCoverageIssue {
   const resourcePrices = [...prices.values()].filter(
     (price) => price.resourceType === resourceType && price.resourceId === resourceId
@@ -239,7 +249,8 @@ function findMissingPrice(
         ...(availableThicknessesMm.length === 0 ? {} : { availableThicknessesMm }),
         ...(sameUnitPrices.some((price) => price.thicknessMm === undefined)
           ? { legacyPriceAvailable: true }
-          : {})
+          : {}),
+        ...(edge === undefined ? {} : { edge })
       };
     }
   }
@@ -252,7 +263,8 @@ function findMissingPrice(
       description,
       requiredUnit,
       quantity,
-      availableUnits
+      availableUnits,
+      ...(edge === undefined ? {} : { edge })
     };
   }
 
@@ -263,7 +275,8 @@ function findMissingPrice(
     description,
     requiredUnit,
     quantity,
-    ...(thicknessMm === undefined ? {} : { thicknessMm })
+    ...(thicknessMm === undefined ? {} : { thicknessMm }),
+    ...(edge === undefined ? {} : { edge })
   };
 }
 
@@ -443,9 +456,12 @@ export function calculateProjectPricedConsumptionSummary(
   }
 
   for (const edgeBanding of edgeBandingSummaries) {
+    const directionLabel = edgeBanding.edge === undefined
+      ? ""
+      : " (" + edgeLabelByDirection[edgeBanding.edge] + " kenar)";
     const description = edgeBanding.edgeBandingId === null
-      ? "Katalog kimliği atanmamış kenar bandı (" + edgeBanding.partLineCount + " parça)"
-      : "Kenar bandı " + edgeBanding.edgeBandingId;
+      ? "Katalog kimliği atanmamış kenar bandı (" + edgeBanding.partLineCount + " parça)" + directionLabel
+      : "Kenar bandı " + edgeBanding.edgeBandingId + directionLabel;
     if (edgeBanding.edgeBandingId === null) {
       missingPrices.push({
         code: "unpriced-edge-banding",
@@ -453,7 +469,8 @@ export function calculateProjectPricedConsumptionSummary(
         resourceId: null,
         description,
         requiredUnit: edgeBanding.unit,
-        quantity: edgeBanding.totalQuantity
+        quantity: edgeBanding.totalQuantity,
+        ...(edgeBanding.edge === undefined ? {} : { edge: edgeBanding.edge })
       });
       continue;
     }
@@ -466,7 +483,9 @@ export function calculateProjectPricedConsumptionSummary(
         description,
         edgeBanding.unit,
         edgeBanding.totalQuantity,
-        prices
+        prices,
+        undefined,
+        edgeBanding.edge
       ));
     } else {
       edgeBandingLineNumber += 1;

@@ -477,3 +477,62 @@ test("maliyet motorunun altı ondalık miktar sınırını aşan donanım miktar
   assert.equal(summary.costSummary, null);
   assert.match(summary.diagnostics[0], /en fazla 6/);
 });
+
+test("directional edge-band costs retain direction, exact unit, quantity and Part provenance", () => {
+  const report = createReport({
+    banded: true,
+    edgeBandingAssignments: [{
+      partId: "cab-cost-1-left-side",
+      edge: "top",
+      edgeBandingId: "pvc-top",
+      unit: "m"
+    }]
+  });
+  assert.equal(report.status, "ready");
+  const summary = calculateProjectEdgeBandingConsumptionSummary(report.result);
+  assert.deepEqual(summary.map(({ edgeBandingId, unit, edge, totalLengthMm, totalQuantity, edgeCount, partIds }) =>
+    [edgeBandingId, unit, edge, totalLengthMm, totalQuantity, edgeCount, partIds]
+  ), [
+    ["pvc-top", "m", "top", 560, 0.56, 1, ["cab-cost-1-left-side"]]
+  ]);
+
+  const pricedSummary = calculateProjectPricedConsumptionSummary(report, [
+    price("material", "mdf-18", "m2", 1250, "TRY"),
+    price("edge-banding", "pvc-top", "m", 18, "TRY", "edge-band-catalog:v1")
+  ]);
+  assert.equal(pricedSummary.status, "ready");
+  assert.equal(pricedSummary.requiredLineCount, 2);
+  const line = pricedSummary.costSummary.lines.find((item) => item.description === "Kenar bandı pvc-top (üst kenar)");
+  assert.ok(line);
+  assert.equal(line.unit, "m");
+  assert.equal(line.quantity, 0.56);
+  assert.equal(line.unitPriceMinor, 18);
+  assert.deepEqual(
+    pricedSummary.linePartSources.find((source) => source.costLineId === line.id)?.sourcePartIds,
+    ["cab-cost-1-left-side"]
+  );
+});
+
+test("directional edge-band missing price issues retain the edge and reject unit mismatch", () => {
+  const report = createReport({
+    banded: true,
+    edgeBandingAssignments: [{
+      partId: "cab-cost-1-left-side",
+      edge: "top",
+      edgeBandingId: "pvc-top",
+      unit: "m"
+    }]
+  });
+  const summary = calculateProjectPricedConsumptionSummary(report, [
+    price("material", "mdf-18", "m2", 1250, "TRY"),
+    price("edge-banding", "pvc-top", "mm", 1, "TRY")
+  ]);
+  assert.equal(summary.status, "incomplete");
+  assert.equal(summary.costSummary, null);
+  const issue = summary.missingPrices.find((item) => item.resourceId === "pvc-top");
+  assert.ok(issue);
+  assert.equal(issue.edge, "top");
+  assert.equal(issue.requiredUnit, "m");
+  assert.deepEqual(issue.availableUnits, ["mm"]);
+  assert.match(issue.description, /üst kenar/);
+});

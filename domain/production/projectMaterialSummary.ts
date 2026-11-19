@@ -3,6 +3,7 @@ import { calculatePanelCutoutGeometry } from "./panelCutoutGeometry.ts";
 
 const EDGE_KEYS = ["top", "bottom", "left", "right"] as const;
 type EdgeKey = (typeof EDGE_KEYS)[number];
+export type ProjectEdgeBandingEdge = EdgeKey;
 const materialIdPattern = /^[a-z0-9][a-z0-9._-]{0,63}$/;
 
 export interface ProjectEdgeBandingSummaryMm {
@@ -39,6 +40,8 @@ export interface ProjectMaterialConsumptionSummary {
 export interface ProjectEdgeBandingConsumptionSummary {
   edgeBandingId: string | null;
   unit: "mm" | "m";
+  /** Present when consumption comes from an explicit directional override. */
+  edge?: EdgeKey;
   partLineCount: number;
   totalQuantity: number;
   totalLengthMm: number;
@@ -50,6 +53,7 @@ export interface ProjectEdgeBandingConsumptionSummary {
 interface EdgeBandingAccumulator {
   edgeBandingId: string | null;
   unit: "mm" | "m";
+  edge?: EdgeKey;
   partLineCount: number;
   totalLengthMm: number;
   edgeCount: number;
@@ -82,7 +86,10 @@ interface ValidatedPart {
   materialId?: string;
   edgeBandingMaterialId?: string;
   edgeBandingUnit?: "mm" | "m";
+  edgeBandingByEdge?: Partial<Record<EdgeKey, { edgeBandingId: string; unit: "mm" | "m" }>>;
   edgeBanding: Record<EdgeKey, boolean>;
+  edgeLengthsMm: Record<EdgeKey, number>;
+  edgeCountsByEdge: Record<EdgeKey, number>;
   panelAreaMm2: number;
   volumeMm3: number;
   widthEdgesLengthMm: number;
@@ -137,6 +144,45 @@ function validateEdgeBanding(value: unknown, label: string): Record<EdgeKey, boo
   return result;
 }
 
+function validateDirectionalEdgeBanding(
+  value: unknown,
+  edgeCountsByEdge: Record<EdgeKey, number>,
+  label: string
+): Partial<Record<EdgeKey, { edgeBandingId: string; unit: "mm" | "m" }>> | undefined {
+  if (value === undefined) return undefined;
+  const source = requireRecord(value, label);
+  const keys = Object.keys(source);
+  if (keys.length === 0) throw new Error(label + " en az bir yönsel atama içermelidir.");
+  for (const key of keys) {
+    if (!(EDGE_KEYS as readonly string[]).includes(key)) {
+      throw new Error(label + " için desteklenmeyen kenar: " + key + ".");
+    }
+  }
+
+  const result: Partial<Record<EdgeKey, { edgeBandingId: string; unit: "mm" | "m" }>> = {};
+  for (const edge of EDGE_KEYS) {
+    if (!(edge in source)) continue;
+    const entry = requireRecord(source[edge], label + " " + edge + " ataması");
+    const unknownKey = Object.keys(entry).find((key) => key !== "edgeBandingId" && key !== "unit");
+    if (unknownKey !== undefined) {
+      throw new Error(label + " " + edge + " atamasında desteklenmeyen alan: " + unknownKey + ".");
+    }
+    const edgeBandingId = entry.edgeBandingId;
+    if (typeof edgeBandingId !== "string" || edgeBandingId.trim() !== edgeBandingId ||
+        !materialIdPattern.test(edgeBandingId)) {
+      throw new Error(label + " " + edge + " kenar bandı katalog kimliği geçersiz.");
+    }
+    if (entry.unit !== "mm" && entry.unit !== "m") {
+      throw new Error(label + " " + edge + " kenar bandı birimi yalnızca mm veya m olabilir.");
+    }
+    if (edgeCountsByEdge[edge] === 0) {
+      throw new Error(label + " " + edge + " yönünde bantlanmış kenar bulunmuyor.");
+    }
+    result[edge] = { edgeBandingId, unit: entry.unit };
+  }
+  return result;
+}
+
 function validatePart(value: unknown, index: number): ValidatedPart {
   const part = requireRecord(value, "Proje üretim listesinin " + (index + 1) + ". parçası");
   const id = requireIdentifier(part.id, "Üretim parçası kimliği");
@@ -171,6 +217,18 @@ function validatePart(value: unknown, index: number): ValidatedPart {
   let widthEdgesLengthMm = width * outerWidthEdgeCount;
   let lengthEdgesLengthMm = length * outerLengthEdgeCount;
   let edgeCount = outerWidthEdgeCount + outerLengthEdgeCount;
+  const edgeLengthsMm: Record<EdgeKey, number> = {
+    top: edgeBanding.top ? width : 0,
+    bottom: edgeBanding.bottom ? width : 0,
+    left: edgeBanding.left ? length : 0,
+    right: edgeBanding.right ? length : 0
+  };
+  const edgeCountsByEdge: Record<EdgeKey, number> = {
+    top: Number(edgeBanding.top),
+    bottom: Number(edgeBanding.bottom),
+    left: Number(edgeBanding.left),
+    right: Number(edgeBanding.right)
+  };
 
   if (part.panelGeometry !== undefined) {
     const rawGeometry = requireRecord(part.panelGeometry, name + " panel kesit geometrisi");
@@ -202,6 +260,13 @@ function validatePart(value: unknown, index: number): ValidatedPart {
       widthEdgesLengthMm += opening.widthMm * openingWidthEdgeCount;
       lengthEdgesLengthMm += opening.lengthMm * openingLengthEdgeCount;
       edgeCount += openingWidthEdgeCount + openingLengthEdgeCount;
+      for (const edge of EDGE_KEYS) {
+        if (!opening.edgeBanding[edge]) continue;
+        edgeLengthsMm[edge] += edge === "top" || edge === "bottom"
+          ? opening.widthMm
+          : opening.lengthMm;
+        edgeCountsByEdge[edge] += 1;
+      }
     }
   }
 
@@ -224,6 +289,11 @@ function validatePart(value: unknown, index: number): ValidatedPart {
   if (edgeBandingMaterialId !== undefined && edgeCount === 0) {
     throw new Error(name + " bantlanmış kenarı olmadığı halde kenar bandı katalog kimliği taşıyor.");
   }
+  const edgeBandingByEdge = validateDirectionalEdgeBanding(
+    part.edgeBandingByEdge,
+    edgeCountsByEdge,
+    name + " yönsel kenar bandı ataması"
+  );
 
   return {
     id,
@@ -236,7 +306,10 @@ function validatePart(value: unknown, index: number): ValidatedPart {
     ...(materialId === undefined ? {} : { materialId: materialId as string }),
     ...(edgeBandingMaterialId === undefined ? {} : { edgeBandingMaterialId }),
     ...(edgeBandingUnit === undefined ? {} : { edgeBandingUnit }),
+    ...(edgeBandingByEdge === undefined ? {} : { edgeBandingByEdge }),
     edgeBanding,
+    edgeLengthsMm,
+    edgeCountsByEdge,
     panelAreaMm2,
     volumeMm3,
     widthEdgesLengthMm,
@@ -397,15 +470,9 @@ export function calculateProjectEdgeBandingConsumptionSummary(
   value: CabinetProjectProductionResult
 ): ProjectEdgeBandingConsumptionSummary[] {
   const project = requireRecord(value, "Proje üretim sonucu");
-  if (project.schemaVersion !== 1) {
-    throw new Error("Desteklenmeyen proje üretim sonucu şema sürümü.");
-  }
-  if (!Array.isArray(project.furniture)) {
-    throw new Error("Proje mobilya sonuçları bir liste olmalıdır.");
-  }
-  if (!Array.isArray(project.parts)) {
-    throw new Error("Proje üretim parçaları bir liste olmalıdır.");
-  }
+  if (project.schemaVersion !== 1) throw new Error("Desteklenmeyen proje üretim sonucu şema sürümü.");
+  if (!Array.isArray(project.furniture)) throw new Error("Proje mobilya sonuçları bir liste olmalıdır.");
+  if (!Array.isArray(project.parts)) throw new Error("Proje üretim parçaları bir liste olmalıdır.");
 
   const furnitureIds = new Set<string>();
   for (const [index, entry] of project.furniture.entries()) {
@@ -419,6 +486,41 @@ export function calculateProjectEdgeBandingConsumptionSummary(
 
   const groups = new Map<string, EdgeBandingAccumulator>();
   const seenPartIds = new Set<string>();
+  const addContribution = (
+    part: ValidatedPart,
+    edgeBandingId: string | null,
+    unit: "mm" | "m",
+    edge: EdgeKey | undefined,
+    lengthMm: number,
+    edgeCount: number
+  ): void => {
+    if (edgeCount === 0) return;
+    const key = JSON.stringify([edgeBandingId, unit, edge ?? null]);
+    let group = groups.get(key);
+    if (!group) {
+      group = {
+        edgeBandingId,
+        unit,
+        ...(edge === undefined ? {} : { edge }),
+        partLineCount: 0,
+        totalLengthMm: 0,
+        edgeCount: 0,
+        partIds: new Set<string>(),
+        furnitureIds: new Set<string>()
+      };
+      groups.set(key, group);
+    }
+    if (!group.partIds.has(part.id)) group.partLineCount += 1;
+    group.totalLengthMm += lengthMm;
+    group.edgeCount += edgeCount;
+    group.partIds.add(part.id);
+    group.furnitureIds.add(part.furnitureId);
+    if (!Number.isSafeInteger(group.partLineCount) || !Number.isFinite(group.totalLengthMm) ||
+        !Number.isSafeInteger(group.edgeCount)) {
+      throw new Error("Proje kenar bandı tüketimi toplamı güvenli aralıkta hesaplanamadı.");
+    }
+  };
+
   for (const [index, rawPart] of project.parts.entries()) {
     const part = validatePart(rawPart, index);
     if (!furnitureIds.has(part.furnitureId)) {
@@ -430,48 +532,44 @@ export function calculateProjectEdgeBandingConsumptionSummary(
     seenPartIds.add(part.id);
     if (part.edgeCount === 0) continue;
 
-    const edgeBandingId = part.edgeBandingMaterialId ?? null;
-    const unit = part.edgeBandingUnit ?? "mm";
-    const key = JSON.stringify([edgeBandingId, unit]);
-    let group = groups.get(key);
-    if (!group) {
-      group = {
-        edgeBandingId,
-        unit,
-        partLineCount: 0,
-        totalLengthMm: 0,
-        edgeCount: 0,
-        partIds: new Set<string>(),
-        furnitureIds: new Set<string>()
-      };
-      groups.set(key, group);
+    if (part.edgeBandingByEdge === undefined) {
+      addContribution(
+        part,
+        part.edgeBandingMaterialId ?? null,
+        part.edgeBandingUnit ?? "mm",
+        undefined,
+        (part.widthEdgesLengthMm + part.lengthEdgesLengthMm) * part.quantity,
+        part.edgeCount * part.quantity
+      );
+      continue;
     }
 
-    const lengthContribution = (part.widthEdgesLengthMm + part.lengthEdgesLengthMm) * part.quantity;
-    const edgeCountContribution = part.edgeCount * part.quantity;
-    group.partLineCount += 1;
-    group.totalLengthMm += lengthContribution;
-    group.edgeCount += edgeCountContribution;
-    group.partIds.add(part.id);
-    group.furnitureIds.add(part.furnitureId);
-
-    if (
-      !Number.isSafeInteger(group.partLineCount) ||
-      !Number.isFinite(group.totalLengthMm) ||
-      !Number.isSafeInteger(group.edgeCount)
-    ) {
-      throw new Error("Proje kenar bandı tüketimi toplamı güvenli aralıkta hesaplanamadı.");
+    for (const edge of EDGE_KEYS) {
+      const edgeCountContribution = part.edgeCountsByEdge[edge] * part.quantity;
+      if (edgeCountContribution === 0) continue;
+      const override = part.edgeBandingByEdge[edge];
+      addContribution(
+        part,
+        override?.edgeBandingId ?? part.edgeBandingMaterialId ?? null,
+        override?.unit ?? part.edgeBandingUnit ?? "mm",
+        override === undefined ? undefined : edge,
+        part.edgeLengthsMm[edge] * part.quantity,
+        edgeCountContribution
+      );
     }
   }
 
   return [...groups.values()]
     .sort((first, second) =>
       (first.edgeBandingId ?? "").localeCompare(second.edgeBandingId ?? "") ||
-      first.unit.localeCompare(second.unit)
+      first.unit.localeCompare(second.unit) ||
+      (first.edge === undefined ? -1 : EDGE_KEYS.indexOf(first.edge)) -
+        (second.edge === undefined ? -1 : EDGE_KEYS.indexOf(second.edge))
     )
     .map((group) => ({
       edgeBandingId: group.edgeBandingId,
       unit: group.unit,
+      ...(group.edge === undefined ? {} : { edge: group.edge }),
       partLineCount: group.partLineCount,
       totalQuantity: group.unit === "mm"
         ? roundTo(group.totalLengthMm, 1)
