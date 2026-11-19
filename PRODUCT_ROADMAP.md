@@ -521,9 +521,9 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 - Known boundary: project-file API round-trip is domain-level; frontend project import/export integration is not claimed. Direction remains encoded in quote-line description rather than a separate machine-readable field; CNC and workshop validation are not covered.
 
 ### Next domain slices
-1. DOM-059 READY — compare directional quote line deltas (edge label, unit, quantity, price, source) without unit conversion or inference.
-2. DOM-060 PLANNED — strict source-line and Part provenance integrity in revision history.
-3. DOM-061 PLANNED — introduce an optional structured edge-direction field with backward-compatible validation.
+1. DOM-060 READY — strict source-line and Part provenance integrity in revision history, malformed/missing/duplicate mapping fail-closed.
+2. DOM-061 PLANNED — optional structured edge-direction field with backward-compatible strict validation.
+3. DOM-062 PLANNED — revision comparison JSON export contract, exact line deltas/currency/source, no unit conversion.
 
 
 ## 19 Kasım 2026 21:21 TRT — DOM-059 teklif revizyon satır karşılaştırması
@@ -536,3 +536,9 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 ## DOM-059 Actions correction note — 19 Kasım 2026
 
 - İlk kod commit'inde CI ve Pages başarılı, domain testleri 439/439 başarılı; QA strict TypeScript `ProjectQuoteLineSource` readonly-array uyumsuzluğu nedeniyle fail oldu. Kaynak parametresi DeepReadonly ile düzeltildi; final doğrulama pending.
+
+
+## DOM-059 final verification — 19 Kasım 2026
+
+- [Fix commit 95eeb4c](https://github.com/Taylan789/MobilyaCAD/commit/95eeb4c1f8a34922100fc29d3a96f0d0ebfc51e8) passed [CI #44588617458](https://github.com/Taylan789/MobilyaCAD/actions/runs/44588617458), [QA #44588617424](https://github.com/Taylan789/MobilyaCAD/actions/runs/44588617424) (124 frontend + 439 domain tests, strict TypeScript, lint, build, production audit 0 high vulnerabilities), and [Pages #44588617414](https://github.com/Taylan789/MobilyaCAD/actions/runs/44588617414).
+- Initial QA failure was only a readonly source-mapping type mismatch; the corrected type was verified on the final SHA. No manual test was requested or needed.

@@ -1511,3 +1511,12 @@
 - DOM-059 kabulü henüz final değil; bu düzeltme commit'i ve Actions sonucu bekleniyor. Frontend, adapter/performance agent alanı, main, workflow ve secrets değişmedi.
 - AI Developer ve Integration agent run'ları OpenRouter free-model günlük kota 429 nedeniyle başarısız; rerun güvenli/yararlı olmadığından yapılmadı, aktif run yok.
 - Next: strict TypeScript düzeltmesini doğrulamak, ardından DOM-060 quote history source-line/Part provenance integrity.
+
+
+## 19 Kasım 2026 21:21 TRT — DOM-059 tamamlandı (Actions doğrulandı)
+
+- Fix commit [95eeb4c](https://github.com/Taylan789/MobilyaCAD/commit/95eeb4c1f8a34922100fc29d3a96f0d0ebfc51e8) readonly source mapping tipini DeepReadonly ile uyumlu hale getirdi; ilk testler gevşetilmedi. İlk commit [1363995](https://github.com/Taylan789/MobilyaCAD/commit/136399599256ba8ef0f254dcf3efebb6c380fdba) strict TypeScript'te fail olmuştu.
+- Son Actions: CI [#44588617458](https://github.com/Taylan789/MobilyaCAD/actions/runs/44588617458) success; QA [#44588617424](https://github.com/Taylan789/MobilyaCAD/actions/runs/44588617424) success — **124/124 frontend + 439/439 domain test, 0 fail**, strict domain TypeScript, lint, production build ve production dependency audit (**0 high-level vulnerability**); Pages [#44588617414](https://github.com/Taylan789/MobilyaCAD/actions/runs/44588617414) successful.
+- Değişen kod/test alanı: domain/production/projectQuoteRevision.ts ve projectQuoteRevision.test.mjs; ayrıca AI_COORDINATION.md, PRODUCT_ROADMAP.md, AI_PROGRESS.md, docs/production-domain-contract.md. Frontend, adapter/performance-agent dosyaları, main, workflow ve secrets değişmedi.
+- Known limitation: 4 moderate dev dependency audit uyarısı mevcut (production audit 0); direction description text'te kalıyor; UI/export/CNC/atölye entegrasyonu kapsam dışı.
+- Next: DOM-060 READY — revision source-line/Part provenance integrity; DOM-061 structured direction field; DOM-062 comparison JSON export contract.
