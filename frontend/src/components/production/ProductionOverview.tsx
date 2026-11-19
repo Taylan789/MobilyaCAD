@@ -43,6 +43,11 @@ export function ProductionOverview({
     0
   );
   const isEmpty = furnitureCount === 0;
+  const exportBlockers = production.exportBlockers.length > 0
+    ? production.exportBlockers
+    : production.exportBlockReason
+      ? [production.exportBlockReason]
+      : [];
   const isBlocked = production.exportBlockReason !== null;
   const isPartial = production.unsupportedFurniture.length > 0;
   const status = isEmpty ? "empty" : isBlocked ? "blocked" : isPartial ? "partial" : "ready";
@@ -115,12 +120,20 @@ export function ProductionOverview({
         </article>
       </section>
 
-      {production.exportBlockReason && (
+      {exportBlockers.length > 0 && (
         <section className="mc-production__notice mc-production__notice--danger" role="alert">
           <AlertTriangle />
           <div>
             <strong>Kesim listesi dışa aktarılamıyor</strong>
-            <p>{production.exportBlockReason}</p>
+            {exportBlockers.length === 1 ? (
+              <p>{exportBlockers[0]}</p>
+            ) : (
+              <ul className="mc-production__export-blockers" aria-label="Dışa aktarım engelleri">
+                {exportBlockers.map((blocker, index) => (
+                  <li key={index}>{blocker}</li>
+                ))}
+              </ul>
+            )}
           </div>
         </section>
       )}
