@@ -312,3 +312,38 @@ test("plan dışındaki Part ID için grain override verilmesi reddedilir", () =
   assertNotFresh(result, "blocked");
   assert.match(result.diagnostics.join(" "), /bulunmayan Part ID/);
 });
+
+
+test("JSON v3 stock-sheet provenance is preserved when fresh and export is blocked when stale", () => {
+  const parts = [part()];
+  const envelope = JSON.parse(savedPlanV2(parts));
+  assert.equal(envelope.formatVersion, 2);
+  assert.ok(envelope.result.projectPartSnapshot);
+  const stockSheetSource = { sourceId: "stock-sheet-source-01", revision: "rev-2026-11" };
+  envelope.formatVersion = 3;
+  envelope.result.groups[0].stockSheetSource = stockSheetSource;
+  const jsonV3 = JSON.stringify(envelope);
+
+  const fresh = validateProjectSheetCutPlanFreshness({
+    schemaVersion: 1,
+    savedPlanJson: jsonV3,
+    productionReport: productionReport(parts),
+    currentSelectedPartIds: ["part-1"]
+  });
+  assert.equal(fresh.status, "fresh");
+  assert.equal(fresh.json, jsonV3);
+  assert.deepEqual(fresh.result?.groups[0]?.stockSheetSource, stockSheetSource);
+
+  const stale = validateProjectSheetCutPlanFreshness({
+    schemaVersion: 1,
+    savedPlanJson: jsonV3,
+    productionReport: productionReport([part({ quantity: 3 })]),
+    currentSelectedPartIds: ["part-1"]
+  });
+  assertNotFresh(stale, "stale");
+  assert.deepEqual(stale.sourcePartIds, ["part-1"]);
+  assert.match(stale.diagnostics.join(" "), /part-1/);
+  // Stale validation intentionally returns no partial export; the original saved v3
+  // envelope remains unchanged and retains the user-provided source/revision metadata.
+  assert.deepEqual(JSON.parse(jsonV3).result.groups[0].stockSheetSource, stockSheetSource);
+});

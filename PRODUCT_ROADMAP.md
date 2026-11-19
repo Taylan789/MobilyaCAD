@@ -412,6 +412,14 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 
 ### Sıradaki küçük domain dilimleri
 
-1. DOM-045 — JSON v3 stockSheetSource provenance metadata'sını fresh/stale plan doğrulaması boyunca koru.
+1. DOM-045 — JSON v3 stockSheetSource provenance metadata'sını fresh/stale plan doğrulaması boyunca koru (IN_PROGRESS; Actions doğrulaması bekleniyor).
 2. DOM-046 — gruplanmış malzeme teklif satırlarında katkı veren üretim Part kimliklerini geriye uyumlu kaynak alanıyla koru.
 3. DOM-047 — kesitli panel net alan/hacim ve exact fiyat verisinin teklif snapshot/revizyon JSON round-trip sadakatini doğrula.
+
+
+## 19 Kasım 2026 07:32 TRT — DOM-045 v3 levha kaynak izi freshness kabul testi
+
+- Fresh/stale freshness API'si JSON v3 stockSheetSource.sourceId ve revision metadata'sını koruma sözleşmesi için otomatik test ekleniyor.
+- Fresh plan exact JSON stringini ve grup provenance metadata'sını döndürmeli; Part snapshot değişırsa stale, result/json=null ve Part ID tanısı olmalı. Orijinal kayıt metadata'sı korunur.
+- Runtime, frontend, adapter/benchmark, workflow, package/lockfile veya secrets değişikliği hedeflenmiyor.
+- Commit ve CI/QA sonuçları doğrulama tamamlandığında kaydedilecek.

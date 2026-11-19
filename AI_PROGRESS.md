@@ -1368,3 +1368,12 @@
 - Bilinen sınırlar: panelGeometry nedeniyle JSON v1/CSV export hâlâ engellidir; test fiyatları fixture'dır; CNC, lavabo/armatür standardı ve fiziksel üretim doğrulaması yoktur.
 - AI Developer run #44431694679, OpenRouter free-model daily quota 429 (50 limit / 0 remaining) nedeniyle başarısızdır; reset 20 Kasım 2026 03:00 TRT. Kota sıfırlanmadan rerun yapılmadı; secrets/kredi/ayar değiştirilmedi.
 - Sonraki görev: DOM-044 tamamlandı; sıradaki domain dilimi DOM-045 — JSON v3 stockSheetSource provenance bilgisini fresh/stale kesim planı doğrulamasında korumak.
+
+
+## 19 Kasım 2026 07:32 TRT — DOM-045 JSON v3 stock-sheet provenance freshness testi (doğrulama bekliyor)
+
+- Başlangıç HEAD: 4051f14a5eb591337be36cdc1eaeac31bfe536a4.
+- Yeni kabul testi domain/production/projectSheetCutPlanFreshness.test.mjs: JSON v3 stockSheetSource.sourceId/revision metadata'sı değişmeyen Part snapshot'ında fresh sonuç ve exact JSON round-trip içinde korunmalı; quantity değişiminde stale sonuç result/json=null ve Part ID tanısı döndürmeli, orijinal v3 envelope metadata'sı değişmemeli.
+- docs/production-domain-contract.md, AI_COORDINATION.md, PRODUCT_ROADMAP.md güncellendi. Runtime/freshness üretim kodu, frontend/**, adapter/benchmark, workflow, package/lockfile ve secrets değişmedi.
+- Commit SHA ve CI/QA/Pages kanıtı sonraki doğrulama adımında eklenecek; bu commit için test sonucu henüz görülmedi.
+- Sıradaki domain dilimi: DOM-046 — grouped material quote lines'ına katkı veren sorted/unique Part IDs kaynak izi, legacy snapshot v1 ve quote revision round-trip uyumluluğu.

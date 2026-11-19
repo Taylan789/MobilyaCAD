@@ -869,3 +869,11 @@ Kaynak test: domain/production/projectBathroomVanityPanelPricing.test.mjs.
 - 8 mm fiyatı kaldırıldığında mevcut 18 mm fiyatı 8 mm üst paneli karşılamaz. Üretim tüketim fiyatı ve birleşik teklif incomplete, costSummary null döner; kısmi parasal toplam gösterilmez.
 - Geçerli panelGeometry, JSON v1/CSV adapter'ı geometriyi kayıpsız taşımadığı için canExport false durumunu korur. Bu test dışa aktarım, nesting, CNC veya fiziksel üretim onayı sağlamaz.
 - Fiyatlar yalnızca deterministik test fixture'larıdır; gerçek tedarikçi fiyatı, vergi, kur, fire/yield veya stok varsayımı değildir. Lavabo/armatür standardı ve fiziksel uygunluk atölye/üretici tarafından doğrulanmalıdır.
+
+
+## DOM-045 — JSON v3 levha kaynağı provenance ve freshness
+
+- projectSheetCutPlanFreshness.test.mjs, JSON v3 planındaki kullanıcı/atölye stockSheetSource.sourceId ve revision metadata'sını doğrulama akışına taşır.
+- Part snapshot değişmediğinde freshness sonucu fresh kalır, exact kayıtlı JSON stringini döndürür ve doğrulanmış result.groups[].stockSheetSource alanını korur.
+- Part snapshot değiştiğinde (örnekte quantity), sonuç stale; result/json null, tanı kaynak Part ID'sini içerir. Kısmi/eskimiş export açılmaz; orijinal kaydedilmiş JSON v3 metadata'sı değiştirilmez.
+- Mevcut runtime davranışı zaten parse edilmiş doğrulanmış planı fresh sonuçta döndürdüğünden değişmedi; test bu sözleşmeyi sabitler. Metadata gerçek tedarikçi/levha doğrulaması değildir.
