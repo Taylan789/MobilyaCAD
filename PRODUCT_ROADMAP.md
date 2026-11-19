@@ -563,7 +563,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 
 ## 20 Kasım 2026 — DOM-062 teklif karşılaştırması JSON sözleşmesi
 
-- **Durum:** uygulandı; ilk QA optional metadata doğrulamasında başarısız oldu, fail-closed parser/serializer düzeltmesi eklendi; yeni Actions doğrulaması bekleniyor.
+- **Durum:** DONE — [kod c5491e4](https://github.com/Taylan789/MobilyaCAD/commit/c5491e47bdc79f2cf9afa2cc86138e8c48a06034), [düzeltme e4dcc985](https://github.com/Taylan789/MobilyaCAD/commit/e4dcc98599196f984cd0ff1b19171ff3f23967e5). CI [#44632874056](https://github.com/Taylan789/MobilyaCAD/actions/runs/44632874056), QA [#44632874051](https://github.com/Taylan789/MobilyaCAD/actions/runs/44632874051) ve Pages [#44632874042](https://github.com/Taylan789/MobilyaCAD/actions/runs/44632874042) başarılı — 124 frontend + 451 domain test, strict TypeScript/lint/build, production audit 0 vulnerability.
 - **Teslim:** `mobilyacad-quote-revision-comparison` v1 strict JSON zarfı; hazır revision comparison sonuçlarını exact currency, unit, line delta, source metadata, Part ID, tariff ve structured edge direction ile serileştirir/parses.
 - **Fail-closed:** unsupported fields/version, malformed JSON, blocked input, satır toplamı/quantity-price uyuşmazlığı, kategori/genel delta tutarsızlığı veya line-change shape hatasında kısmi JSON döndürmez.
 - **Kabul:** domain otomatik test round-trip, metadata ve mm/m ayrımını; tam kategori ve grand-total delta tutarlılığını doğrular. Fiziksel üretim veya frontend dosya indirme entegrasyonu iddia edilmez.
