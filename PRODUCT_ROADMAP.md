@@ -503,8 +503,9 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 - Sıradaki: DOM-057 — teklif revizyonunda yön, exact edge-band ID/unit ve kaynak Part provenance.
 
 
-## 19 Kasım 2026 19:36 TRT — DOM-057 teklif revizyonu yönsel kenar bandı doğrulaması
+## 19 Kasım 2026 19:36 TRT — DOM-057 teklif revizyonu yönsel kenar bandı doğrulaması (DONE)
 
-- DOM-057, aynı katalog kimliği için farklı kenar yönleri ve `mm`/`m` birimleriyle oluşturulan fiyat satırlarının teklif revizyonu JSON round-trip'inde açıklama (yön), birim, birim fiyat, fiyat kaynağı ve Part provenance alanlarını korumasını test eder.
-- Bu slice mevcut domain davranışına regresyon testi ekler; yeni runtime davranış iddia etmez. Actions doğrulaması bekleniyor.
-- Sıradaki 3 küçük görev: DOM-058 (proje JSON v2 quote-history extension round-trip + v1 blocker), DOM-059 (revizyon karşılaştırmasında yönsel kenar bandı satır değişikliklerinin ayrıştırılması), DOM-060 (quote revision kaynak eşlemesi ve Part provenance doğrulaması).
+- DOM-057 [test commit 8fe1fb0](https://github.com/Taylan789/MobilyaCAD/commit/8fe1fb0d064797af528c4d2170b785801cfedf41) ile tamamlandı. Aynı katalog kimliği için üst kenar `m`, sağ kenar `mm` fiyat satırları; teklif snapshot ve immutable revision JSON round-trip'inde yön açıklaması, exact unit, birim fiyat, fiyat kaynağı ve Part ID'lerini koruyor.
+- Actions: [CI #44569030384](https://github.com/Taylan789/MobilyaCAD/actions/runs/44569030384) success; [QA #44569030417](https://github.com/Taylan789/MobilyaCAD/actions/runs/44569030417) success — 124/124 frontend + 435/435 domain, 0 fail; strict domain TypeScript, lint 32 warning/0 error, production build ve production dependency audit 0 vulnerability; [Pages #44569030375](https://github.com/Taylan789/MobilyaCAD/actions/runs/44569030375) successful.
+- Runtime kodu değişmedi; mevcut snapshot şemasında direction line description içindedir, ayrı structured edge field değildir. Frontend ve adapter sahipliği korunur; JSON v1/CSV directional export hâlâ fail-closed. Fiziksel CNC/atölye doğrulaması yapılmadı.
+- Sıradaki 3 küçük görev: DOM-058 READY — project JSON v2 quote-history extension round-trip ve legacy v1 blocker; DOM-059 PLANNED — revision comparison directional edge-band line delta; DOM-060 PLANNED — source-line/Part provenance strict integrity regressions.
