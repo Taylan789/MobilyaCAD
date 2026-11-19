@@ -15,8 +15,9 @@ test("viewport camera toolbar uses roving focus and keyboard navigation", () => 
   assert.match(scene, /querySelectorAll<HTMLButtonElement>\("button:not\(:disabled\)"\)/);
   assert.match(scene, /buttons\[nextIndex\]\?\.focus\(\)/);
   assert.match(scene, /event\.preventDefault\(\)/);
+  assert.match(scene, /key !== "ArrowLeft" && key !== "ArrowRight" && key !== "Home" && key !== "End"/);
   for (const key of ["ArrowLeft", "ArrowRight", "Home", "End"]) {
-    assert.ok(scene.includes('key === "' + key + '"' + '), "missing keyboard support for " + key);
+    assert.ok(scene.includes(key), "missing keyboard support for " + key);
   }
   assert.match(toolbar, /onKeyDown=\{handleCameraToolbarKeyDown\}/);
 });
