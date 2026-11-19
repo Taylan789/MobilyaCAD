@@ -26,6 +26,8 @@ test("axis fields expose axis identity, units, and precise numeric input steps",
 
 test("axis inspector styling includes responsive and high-contrast states", () => {
   assert.match(styles, /grid-template-columns:\s*minmax\(0, 1fr\) !important;/);
+  assert.match(styles, /\.cad-transform-fields\s*\{\s*display:\s*grid;\s*gap:\s*12px;/);
+  assert.doesNotMatch(component, /cad-transform-fields[^"]*space-y-3/);
   assert.match(styles, /\.cad-transform-fields__axis-input:focus-visible/);
   assert.match(styles, /@media \(max-width:\s*420px\)/);
   assert.match(styles, /@media \(forced-colors:\s*active\)/);
