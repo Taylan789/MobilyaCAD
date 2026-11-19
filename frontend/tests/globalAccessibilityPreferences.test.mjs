@@ -13,8 +13,8 @@ test("reduced-motion preference disables global animations and transitions", () 
 });
 
 test("reduced-motion overrides are scoped to the user preference", () => {
-  assert.match(css, /@media \(prefers-reduced-motion: reduce\)/);
-  assert.doesNotMatch(css, /animation:\s*none\s*!important/);
+  const beforePreference = css.split("@media (prefers-reduced-motion: reduce)")[0];
+  assert.doesNotMatch(beforePreference, /animation:\s*none\s*!important/);
 });
 
 test("forced-colors mode uses system focus color and disabled text", () => {
