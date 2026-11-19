@@ -19,6 +19,8 @@ export interface ProjectQuoteRevisionReference {
 
 export interface ProjectQuoteRevision {
   schemaVersion: 1;
+  /** Present on new revisions; absent on legacy v1 records. */
+  sourceIntegrityVersion?: 1;
   projectId: string;
   revisionId: string;
   revisionNumber: number;
@@ -61,7 +63,8 @@ const revisionEnvelopeKeys = new Set([
   "revisionNumber",
   "createdAt",
   "previousRevisionId",
-  "pricingSnapshot"
+  "pricingSnapshot",
+  "sourceIntegrityVersion"
 ]);
 const referenceKeys = new Set(["projectId", "revisionId", "revisionNumber", "createdAt"]);
 const snapshotKeys = new Set([
@@ -209,7 +212,7 @@ function validateCatalogVersion(
   }
 }
 
-function validateQuoteSummary(value: unknown): asserts value is Record<string, unknown> {
+function validateQuoteSummary(value: unknown, strictSourceIntegrity = false): asserts value is Record<string, unknown> {
   if (!isRecord(value)) {
     throw new Error("Teklif snapshot özeti geçerli bir nesne olmalıdır.");
   }
@@ -266,6 +269,7 @@ function validateQuoteSummary(value: unknown): asserts value is Record<string, u
 
   const categorySums = new Map<string, bigint>(costCategories.map((category) => [category, 0n]));
   const lineIds = new Set<string>();
+  const sourceIdentities = new Set<string>();
   let lineTotalSum = 0n;
 
   for (let index = 0; index < requiredLineCount; index += 1) {
@@ -314,9 +318,27 @@ function validateQuoteSummary(value: unknown): asserts value is Record<string, u
     if (source.costLineId !== lineId) {
       throw new Error("Teklif kaynak eşlemesi maliyet satırı kimliğiyle uyuşmuyor.");
     }
-    requireIdentifier(source.sourceId, "Teklif kaynak kimliği");
+    const sourceId = requireIdentifier(source.sourceId, "Teklif kaynak kimliği");
     if (source.sourceType !== "production-consumption" && source.sourceType !== "labor-operation" && source.sourceType !== "quote-adjustment") {
       throw new Error("Teklif kaynak türü desteklenmiyor.");
+    }
+    if (strictSourceIntegrity) {
+      const allowedCategories = source.sourceType === "production-consumption"
+        ? ["material", "hardware"]
+        : source.sourceType === "labor-operation"
+          ? ["labor", "operation"]
+          : ["waste", "profit"];
+      if (!allowedCategories.includes(line.category)) {
+        throw new Error("Teklif kaynak türü maliyet kategorisiyle uyuşmuyor.");
+      }
+      const sourceIdentity = JSON.stringify([source.sourceType, sourceId]);
+      if (sourceIdentities.has(sourceIdentity)) {
+        throw new Error("Teklif snapshot kaynak satırı eşlemesi yinelenemez: " + sourceIdentity + ".");
+      }
+      sourceIdentities.add(sourceIdentity);
+      if (source.sourceType === "production-consumption" && line.category === "material" && source.sourcePartIds === undefined) {
+        throw new Error("Üretim tüketimi malzeme satırı kaynak Part kimlikleriyle eşleşmelidir.");
+      }
     }
     if (source.sourcePartIds !== undefined) {
       if (source.sourceType !== "production-consumption") {
@@ -366,7 +388,7 @@ function validateQuoteSummary(value: unknown): asserts value is Record<string, u
   }
 }
 
-function validatePricingSnapshot(value: unknown): asserts value is ProjectQuotePricingSnapshot {
+function validatePricingSnapshot(value: unknown, strictSourceIntegrity = false): asserts value is ProjectQuotePricingSnapshot {
   if (!isRecord(value)) {
     throw new Error("Teklif fiyat snapshot'ı geçerli bir nesne olmalıdır.");
   }
@@ -376,7 +398,7 @@ function validatePricingSnapshot(value: unknown): asserts value is ProjectQuoteP
   }
   const quotedOn = requireDateOnly(value.quotedOn, "Teklif tarihi");
   const quoteSummary = value.quoteSummary;
-  validateQuoteSummary(quoteSummary);
+  validateQuoteSummary(quoteSummary, strictSourceIntegrity);
   const lineSources = quoteSummary.lineSources as Array<Record<string, unknown>>;
 
   if (value.consumptionPriceList === null) {
@@ -474,7 +496,10 @@ function blocked(message: string): ProjectQuoteRevisionResult {
  * The caller supplies all identifiers and timestamps; no ID, date, price,
  * currency conversion or catalogue version is inferred.
  */
-export function createProjectQuoteRevision(value: unknown): ProjectQuoteRevisionResult {
+function createProjectQuoteRevisionWithSourceIntegrity(
+  value: unknown,
+  sourceIntegrityVersion: 1 | undefined
+): ProjectQuoteRevisionResult {
   if (!isRecord(value)) {
     return blocked("Teklif revizyon girdisi geçerli bir nesne olmalıdır.");
   }
@@ -518,10 +543,11 @@ export function createProjectQuoteRevision(value: unknown): ProjectQuoteRevision
       previousRevisionId = previousRevision.revisionId;
     }
 
-    validatePricingSnapshot(value.pricingSnapshot);
+    validatePricingSnapshot(value.pricingSnapshot, sourceIntegrityVersion === 1);
     const clonedSnapshot = cloneJsonValue(value.pricingSnapshot) as ProjectQuotePricingSnapshot;
     const revision = deepFreeze({
       schemaVersion: 1 as const,
+      ...(sourceIntegrityVersion === undefined ? {} : { sourceIntegrityVersion }),
       projectId,
       revisionId,
       revisionNumber,
@@ -539,6 +565,11 @@ export function createProjectQuoteRevision(value: unknown): ProjectQuoteRevision
     return blocked(error instanceof Error ? error.message : String(error));
   }
 }
+
+export function createProjectQuoteRevision(value: unknown): ProjectQuoteRevisionResult {
+  return createProjectQuoteRevisionWithSourceIntegrity(value, 1);
+}
+
 function blockedHistory(message: string): ProjectQuoteRevisionHistoryResult {
   return deepFreeze({ status: "blocked" as const, history: null, diagnostics: [message] });
 }
@@ -571,6 +602,10 @@ export function validateProjectQuoteRevisionHistory(value: unknown): ProjectQuot
       if (!isRecord(candidate)) throw new Error(label + " geçerli bir nesne olmalıdır.");
       requireOnlyKeys(candidate, revisionEnvelopeKeys, label);
       if (candidate.schemaVersion !== 1) throw new Error(label + " desteklenen revizyon şemasını kullanmalıdır.");
+      const sourceIntegrityVersion = candidate.sourceIntegrityVersion;
+      if (sourceIntegrityVersion !== undefined && sourceIntegrityVersion !== 1) {
+        throw new Error(label + " desteklenen sourceIntegrityVersion değerini kullanmalıdır.");
+      }
       const candidateProjectId = requireIdentifier(candidate.projectId, label + " proje kimliği");
       if (candidateProjectId !== projectId) throw new Error(label + " aynı proje kimliğine ait olmalıdır.");
       const revisionId = requireIdentifier(candidate.revisionId, label + " kimliği");
@@ -585,14 +620,14 @@ export function validateProjectQuoteRevisionHistory(value: unknown): ProjectQuot
       if (candidate.previousRevisionId !== expectedPreviousRevisionId) {
         throw new Error(label + " previousRevisionId alanı önceki kayıtla kesintisiz bir zincir oluşturmalıdır.");
       }
-      const result = createProjectQuoteRevision({
+      const result = createProjectQuoteRevisionWithSourceIntegrity({
         projectId: candidateProjectId, revisionId, revisionNumber, createdAt: candidate.createdAt,
         previousRevision: previous === null ? null : {
           projectId: previous.projectId, revisionId: previous.revisionId,
           revisionNumber: previous.revisionNumber, createdAt: previous.createdAt
         },
         pricingSnapshot: candidate.pricingSnapshot
-      });
+      }, sourceIntegrityVersion);
       if (result.status !== "ready" || result.revision === null) {
         throw new Error(label + ": " + (result.diagnostics[0] ?? "revizyon doğrulanamadı."));
       }

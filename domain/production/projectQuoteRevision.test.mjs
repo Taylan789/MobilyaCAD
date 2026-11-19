@@ -184,6 +184,7 @@ test("ilk teklif revizyonu hazır snapshot ile oluşturulur ve zincir başlangı
 
   assert.equal(result.status, "ready");
   assert.equal(result.revision?.schemaVersion, 1);
+  assert.equal(result.revision?.sourceIntegrityVersion, 1);
   assert.equal(result.revision?.projectId, "project-42");
   assert.equal(result.revision?.revisionId, "quote-r1");
   assert.equal(result.revision?.revisionNumber, 1);
@@ -1011,4 +1012,97 @@ test("bozuk JSON, yanlış dosya türü, bilinmeyen alan ve desteklenmeyen sür�
   assert.equal(unsupportedVersion.status, "blocked");
   assert.match(unsupportedVersion.diagnostics[0], /sürümü/);
   assert.equal(nonText.status, "blocked");
+});
+
+
+test("DOM-060 yeni revizyonlarda kaynak satır eşlemesi eksik veya yinelenen olamaz", () => {
+  const missingLineMapping = createSnapshot();
+  missingLineMapping.quoteSummary.lineSources.pop();
+  const missingMappingResult = createProjectQuoteRevision(createFirstRevision({
+    pricingSnapshot: missingLineMapping
+  }));
+  assert.equal(missingMappingResult.status, "blocked");
+  assert.match(missingMappingResult.diagnostics[0], /kaynak eşlemesi satır sayısı/);
+
+  const duplicateSourceSnapshot = createSnapshot();
+  const duplicateSummary = duplicateSourceSnapshot.quoteSummary;
+  const duplicateCost = duplicateSummary.costSummary;
+  assert.ok(duplicateCost);
+  const materialIndex = duplicateCost.lines.findIndex((line) => line.category === "material");
+  assert.ok(materialIndex >= 0);
+  const materialLine = duplicateCost.lines[materialIndex];
+  const materialSource = duplicateSummary.lineSources[materialIndex];
+  const duplicateLine = { ...materialLine, id: "duplicate-material-source-line" };
+  duplicateCost.lines.push(duplicateLine);
+  duplicateSummary.lineSources.push({
+    ...materialSource,
+    costLineId: duplicateLine.id,
+    ...(materialSource.sourcePartIds === undefined ? {} : { sourcePartIds: [...materialSource.sourcePartIds] })
+  });
+  duplicateCost.lineCount += 1;
+  duplicateCost.categoryTotalsMinor[duplicateLine.category] += duplicateLine.lineTotalMinor;
+  duplicateCost.grandTotalMinor += duplicateLine.lineTotalMinor;
+  duplicateSummary.requiredLineCount += 1;
+  duplicateSummary.pricedLineCount += 1;
+  const duplicateSourceResult = createProjectQuoteRevision(createFirstRevision({
+    pricingSnapshot: duplicateSourceSnapshot
+  }));
+  assert.equal(duplicateSourceResult.status, "blocked");
+  assert.match(duplicateSourceResult.diagnostics[0], /kaynak satırı eşlemesi yinelenemez/);
+
+  const duplicateCostLineMapping = structuredClone(duplicateSourceSnapshot);
+  duplicateCostLineMapping.quoteSummary.lineSources[1].costLineId =
+    duplicateCostLineMapping.quoteSummary.lineSources[0].costLineId;
+  const duplicateCostLineResult = createProjectQuoteRevision(createFirstRevision({
+    pricingSnapshot: duplicateCostLineMapping
+  }));
+  assert.equal(duplicateCostLineResult.status, "blocked");
+  assert.match(duplicateCostLineResult.diagnostics[0], /kaynak eşlemesi maliyet satırı kimliğiyle uyuşmuyor/);
+});
+
+test("DOM-060 yeni material tüketim satırları Part provenance olmadan revizyona alınmaz", () => {
+  const snapshot = createSnapshot();
+  const materialIndex = snapshot.quoteSummary.costSummary.lines.findIndex((line) => line.category === "material");
+  assert.ok(materialIndex >= 0);
+  delete snapshot.quoteSummary.lineSources[materialIndex].sourcePartIds;
+  const result = createProjectQuoteRevision(createFirstRevision({ pricingSnapshot: snapshot }));
+  assert.equal(result.status, "blocked");
+  assert.equal(result.revision, null);
+  assert.match(result.diagnostics[0], /kaynak Part kimlikleriyle eşleşmelidir/);
+});
+
+test("DOM-060 yeni revizyonlarda kaynak türü ve maliyet kategorisi uyumsuzluğu fail-closed", () => {
+  const snapshot = createSnapshot();
+  const materialIndex = snapshot.quoteSummary.costSummary.lines.findIndex((line) => line.category === "material");
+  assert.ok(materialIndex >= 0);
+  const cost = snapshot.quoteSummary.costSummary;
+  const line = cost.lines[materialIndex];
+  cost.categoryTotalsMinor.material -= line.lineTotalMinor;
+  cost.categoryTotalsMinor.labor += line.lineTotalMinor;
+  line.category = "labor";
+  const result = createProjectQuoteRevision(createFirstRevision({ pricingSnapshot: snapshot }));
+  assert.equal(result.status, "blocked");
+  assert.match(result.diagnostics[0], /kaynak türü maliyet kategorisiyle uyuşmuyor/);
+});
+
+test("DOM-060 legacy revision v1 provenance marker olmadan uyumlu kalır; strict marker eksik Part ID'leri engeller", () => {
+  const history = createTwoRevisionHistory();
+  for (const revision of history.revisions) {
+    const quote = revision.pricingSnapshot.quoteSummary;
+    const cost = quote.costSummary;
+    for (let index = 0; index < cost.lines.length; index += 1) {
+      if (cost.lines[index].category === "material") {
+        delete quote.lineSources[index].sourcePartIds;
+      }
+    }
+  }
+  const legacyResult = validateProjectQuoteRevisionHistory(history);
+  assert.equal(legacyResult.status, "ready");
+
+  const strictHistory = structuredClone(history);
+  strictHistory.revisions[1].sourceIntegrityVersion = 1;
+  const strictResult = validateProjectQuoteRevisionHistory(strictHistory);
+  assert.equal(strictResult.status, "blocked");
+  assert.equal(strictResult.history, null);
+  assert.match(strictResult.diagnostics[0], /kaynak Part kimlikleriyle eşleşmelidir/);
 });

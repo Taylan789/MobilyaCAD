@@ -1520,3 +1520,12 @@
 - Değişen kod/test alanı: domain/production/projectQuoteRevision.ts ve projectQuoteRevision.test.mjs; ayrıca AI_COORDINATION.md, PRODUCT_ROADMAP.md, AI_PROGRESS.md, docs/production-domain-contract.md. Frontend, adapter/performance-agent dosyaları, main, workflow ve secrets değişmedi.
 - Known limitation: 4 moderate dev dependency audit uyarısı mevcut (production audit 0); direction description text'te kalıyor; UI/export/CNC/atölye entegrasyonu kapsam dışı.
 - Next: DOM-060 READY — revision source-line/Part provenance integrity; DOM-061 structured direction field; DOM-062 comparison JSON export contract.
+
+
+## 19 Kasım 2026 22:10 TRT — DOM-060 kaynak bütünlüğü (ilk Actions bekleniyor)
+- Yeni teklif revizyonları için additive `sourceIntegrityVersion: 1` marker; geçmiş ve snapshot schemaVersion değişmedi. Yeni revision'da maliyet satırı/kaynak eşleşmesi, kaynak kimliği tekilliği, kaynak türü/kategori uyumu ve material tüketim Part ID zorunluluğu strict.
+- Legacy v1 revizyon marker olmadan eski doğrulama kurallarıyla okunur; strict marker'lı eski/bozuk kaynak Part mapping fail-closed. Hardware tüketimi furniture-scoped kalabilir, labor/operation tarife kimliği ve waste/profit sourceReference korunur.
+- Kod/test değişiklikleri: `domain/production/projectQuoteRevision.ts`, `domain/production/projectQuoteRevision.test.mjs`; sözleşme, roadmap ve koordinasyon panosu da aynı committe güncellendi.
+- Commit ve Actions sonuçları final doğrulamadan sonra kaydedilecek; bu ilk turda lokal test çalıştırılamadı (container internet erişimi yok ve repo clone başarısız). GitHub Actions kanıtı bekleniyor.
+- Bilinen sınırlar: frontend adapter, proje import/export ve CNC/atölye doğrulaması bu dilimde yok; AI Developer workflow'u OpenRouter free-model daily quota 429 ile bloklu.
+- Sonraki: DOM-061 — structured edge-direction alanı, eski description metni uyumluluğu.
