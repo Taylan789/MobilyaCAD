@@ -454,13 +454,6 @@ export default function Scene3D({
   }
 
   useEffect(() => {
-    if (!selectedFurnitureId && cameraToolbarFocusIndex === 7) {
-      setCameraToolbarFocusIndex(0);
-    }
-  }, [selectedFurnitureId, cameraToolbarFocusIndex]);
-
-
-  useEffect(() => {
     const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
     const syncPreference = () => setReducedMotion(mediaQuery.matches);
 
@@ -661,12 +654,17 @@ export default function Scene3D({
         />
       </GizmoHelper>
     </Canvas>
-      <div className="cad-viewport-camera-tools" role="toolbar" aria-label="Kamera görünüşleri" onKeyDown={handleCameraToolbarKeyDown}>
+      <div
+        className="cad-viewport-camera-tools"
+        role="toolbar"
+        aria-label="Kamera görünüşleri"
+        onKeyDown={handleCameraToolbarKeyDown}
+      >
         <span className="cad-viewport-camera-tools__label">GÖRÜNÜŞ</span>
         <button
           type="button"
           className={activeView === "perspective" ? "is-active" : ""}
-          tabIndex={cameraToolbarFocusIndex === 0 ? 0 : -1}
+          tabIndex={cameraToolbarFocusIndex === 0 || (!selectedFurnitureId && cameraToolbarFocusIndex === 7) ? 0 : -1}
           onFocus={() => setCameraToolbarFocusIndex(0)}
           aria-label="Perspektif görünüş"
           aria-pressed={activeView === "perspective"}
