@@ -139,7 +139,7 @@ test("gruplu malzeme teklif satırları sorted unique Part ID kaynak izini üret
   const materialSources = quote.lineSources.filter((source) => source.sourceType === "production-consumption");
   assert.equal(materialSources.length, 2);
   for (const source of materialSources) {
-    const costLine = quote.costSummary.lines.find((line) => line.id === source.sourceId);
+    const costLine = quote.costSummary.lines.find((line) => line.id === source.costLineId);
     assert.ok(costLine);
     const thicknessMm = costLine.description.includes("(8 mm") ? 8 : 18;
     const expectedPartIds = sourceIdsForThickness(materialSummaries, thicknessMm);
