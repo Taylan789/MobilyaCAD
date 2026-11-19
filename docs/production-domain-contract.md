@@ -970,3 +970,12 @@ Kaynak test: domain/production/projectBathroomVanityPanelPricing.test.mjs.
 - Direction metadata is validated as a material / production-consumption line and requires non-empty source Part IDs. Unknown direction values and metadata on non-material or non-consumption lines fail closed. No unit conversion or cost changes are implied.
 - Revision comparisons use structured direction as identity when present; display description is still retained and compared as a value. Legacy v1 lines without the field remain valid and continue to use their description-based identity, so no migration is required.
 - The field is additive in the existing JSON v1 quote-history envelope. Frontend/export integration and physical workshop/CNC verification remain separate.
+
+
+## DOM-062 — Teklif revizyon karşılaştırması JSON dışa aktarım sözleşmesi
+
+- Yeni `domain/production/projectQuoteRevisionComparisonFile.ts`, yalnızca `compareProjectQuoteRevisions` tarafından hazır olarak dönen karşılaştırmayı sürümlü `mobilyacad-quote-revision-comparison` JSON zarfına serileştirir; parser zarfı ve karşılaştırma alanlarını strict doğrular.
+- Satır farkları `added/removed/changed` biçiminde, kategori, açıklama, mikt, exact unit, birim fiyat, satır toplamı, currency, sourceType/sourceId, sourceReference, tariffId, kaynak Part ID'leri ve edgeDirection (varsa) ile korunur. mm↔m dönüşümü veya kur/fiyat tahmini yapılmaz.
+- Genel toplam farkı revizyon toplamlarıyla; kategori farkları satır değişimlerinin kategori bazlı toplamıyla; tüm kategori delta'ları genel delta ile tutarlı olmalıdır. Satır toplamı quantity × unitPriceMinor hesaplamasıyla doğrulanır.
+- Bilinmeyen alan/sürüm, bozuk JSON, tutarsız toplam, eksik satır uçları, geçersiz metadata veya blocked karşılaştırma export/parse için fail-closed: `json/file/comparison=null`.
+- Otomatik kabul: round-trip, TRY/currency, kaynak Part/tarife/edgeDirection, mm ve m'yi ayrı satır farkı olarak koruma, bozuk totals, unsupported fields/version ve blocked input. UI adapter ve gerçek dosya indirme entegrasyonu bu domain sözleşmesinin dışında.

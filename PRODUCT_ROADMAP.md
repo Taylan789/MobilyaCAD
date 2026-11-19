@@ -559,3 +559,12 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 - Kod/test commit: [1ef583d](https://github.com/Taylan789/MobilyaCAD/commit/1ef583d6a1b52d257c4a3879b58ebe913f2d5bb1). Structured `edgeDirection` artık per-edge tüketim fiyatından teklif satırı ve immutable revizyon JSON round-trip'ine taşınır; karşılaştırmada yön, açıklama metni yerine kimlik olarak kullanılır.
 - CI [#44606647153](https://github.com/Taylan789/MobilyaCAD/actions/runs/44606647153) success; QA [#44606647019](https://github.com/Taylan789/MobilyaCAD/actions/runs/44606647019) success — 124 frontend + 446 domain tests, strict domain TS, lint (32 warning/0 error), build ve production audit 0 vulnerability. Pages [#44606646888](https://github.com/Taylan789/MobilyaCAD/actions/runs/44606646888) successful.
 - Bilinen sınırlar: UI adapter/CNC/atölye fiziksel doğrulaması ayrı; yön sadece explicit edge-banding satırlarında, legacy v1 kayıtları migrate edilmez.
+
+
+## 20 Kasım 2026 — DOM-062 teklif karşılaştırması JSON sözleşmesi
+
+- **Durum:** uygulandı; GitHub Actions doğrulaması bekleniyor.
+- **Teslim:** `mobilyacad-quote-revision-comparison` v1 strict JSON zarfı; hazır revision comparison sonuçlarını exact currency, unit, line delta, source metadata, Part ID, tariff ve structured edge direction ile serileştirir/parses.
+- **Fail-closed:** unsupported fields/version, malformed JSON, blocked input, satır toplamı/quantity-price uyuşmazlığı, kategori/genel delta tutarsızlığı veya line-change shape hatasında kısmi JSON döndürmez.
+- **Kabul:** domain otomatik test round-trip, metadata ve mm/m ayrımını; tam kategori ve grand-total delta tutarlılığını doğrular. Fiziksel üretim veya frontend dosya indirme entegrasyonu iddia edilmez.
+- **Sonraki 3 dilim:** DOM-063 stable-column CSV export/escaping ve exact source/currency/unit; DOM-064 explicit waste/profit quote adjustment provenance; DOM-065 frontend revision-comparison export wiring (frontend sahibiyle sözleşme).

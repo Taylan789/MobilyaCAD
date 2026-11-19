@@ -1540,3 +1540,12 @@
 - Known limitations: no frontend adapter/CNC or physical workshop validation; legacy v1 quote lines without `edgeDirection` still use description-based comparison. GitHub Actions is the verification source.
 - AI Developer run [#44572846832](https://github.com/Taylan789/MobilyaCAD/actions/runs/44572846832) and integration/performance job failed due OpenRouter free-model daily 429 quota; no rerun because quota exhaustion is non-transient, no active run, and no secrets/settings/credits touched.
 - Next: DOM-062 — versioned comparison JSON export, exact line delta/currency/source metadata, no unit conversions; fail closed unsupported formats.
+
+
+## 20 Kasım 2026 01:49 TRT — DOM-062 uygulama dilimi (Actions bekleniyor)
+- Başlangıç HEAD: `53a8de7547e6f74488180f55287ecdeffa35d566`; kod commit SHA ve gerçek Actions sonuçları post-commit güncellemede kaydedilecek.
+- Yeni `domain/production/projectQuoteRevisionComparisonFile.ts` ve test dosyası: strict versioned JSON comparison export/parser, exact unit/currency/source/Part/tariff/direction metadata, line/category/grand-total consistency validation, fail-closed unsupported fields/versions and malformed data.
+- QA workflow shared-domain strict TypeScript listesine yeni modül eklendi. Dokümantasyon ve roadmap güncellendi; frontend/**, adapter/performance-agent sahipliğindeki testler, main ve secrets değiştirilmedi.
+- Kabul kriterleri: serializer yalnızca hazır comparison kabul eder; parser exact v1 envelope; satır total quantity×unit-price doğrulanır; kategori farkı line delta toplamı, genel fark kategori toplamı ve revizyon toplamlarıyla uyuşur; mm/m exact string olarak korunur.
+- Otomatik testler commit sonrası GitHub Actions tarafından çalıştırılacak; local runtime test bu turda yapılmadı.
+- Sonraki: Actions loglarını incele; başarısızlığı düzelt, başarı kanıtını ve commit SHA'sını kaydet; ardından DOM-063 quote CSV contract.
