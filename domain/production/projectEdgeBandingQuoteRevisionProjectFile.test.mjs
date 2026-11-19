@@ -5,7 +5,6 @@ import { BODY_PANEL_GROUPS } from "./bodyPanelMaterials.ts";
 import { calculateCabinetProjectProductionWithDiagnostics } from "./projectProduction.ts";
 import { calculateProjectEdgeBandingConsumptionSummary } from "./projectMaterialSummary.ts";
 import { createProjectQuotePricingSnapshot } from "./projectQuotePricingSnapshot.ts";
-import { createProjectQuoteRevision } from "./projectQuoteRevision.ts";
 import {
   appendProjectQuoteRevisionToProjectFile,
   PROJECT_QUOTE_REVISION_HISTORY_FIELD,
@@ -102,16 +101,11 @@ const snapshotResult = createProjectQuotePricingSnapshot({
 assert.equal(snapshotResult.status, "ready");
 assert.ok(snapshotResult.snapshot);
 
-const revisionResult = createProjectQuoteRevision({
-  projectId: "project-42",
+const revisionInput = {
   revisionId: "quote-directional-project-r1",
-  revisionNumber: 1,
   createdAt: "2026-11-19T20:00:00+03:00",
-  previousRevision: null,
   pricingSnapshot: snapshotResult.snapshot
-});
-assert.equal(revisionResult.status, "ready");
-assert.ok(revisionResult.revision);
+};
 
 function createV2Project(overrides = {}) {
   return {
@@ -127,7 +121,7 @@ function createV2Project(overrides = {}) {
 
 test("DOM-058 directional quote revision survives versioned project JSON persistence", () => {
   const project = createV2Project();
-  const appended = appendProjectQuoteRevisionToProjectFile(project, revisionResult.revision);
+  const appended = appendProjectQuoteRevisionToProjectFile(project, revisionInput);
 
   assert.equal(appended.status, "ready");
   assert.ok(appended.project);
@@ -179,7 +173,7 @@ test("DOM-058 legacy project v1 cannot append directional quote history", () => 
     furniture: []
   };
   const read = readProjectQuoteRevisionHistoryFromProjectFile(legacy);
-  const append = appendProjectQuoteRevisionToProjectFile(legacy, revisionResult.revision);
+  const append = appendProjectQuoteRevisionToProjectFile(legacy, revisionInput);
 
   assert.equal(read.status, "legacy");
   assert.equal(append.status, "blocked");
@@ -190,7 +184,7 @@ test("DOM-058 legacy project v1 cannot append directional quote history", () => 
 test("DOM-058 unsupported history version and unknown snapshot fields fail closed", () => {
   const persistedProject = appendProjectQuoteRevisionToProjectFile(
     createV2Project(),
-    revisionResult.revision
+    revisionInput
   );
   assert.equal(persistedProject.status, "ready");
   assert.ok(persistedProject.project);
@@ -204,7 +198,7 @@ test("DOM-058 unsupported history version and unknown snapshot fields fail close
   const blockedRead = readProjectQuoteRevisionHistoryFromProjectFile(unknownSnapshotField);
   const blockedAppend = appendProjectQuoteRevisionToProjectFile(
     unknownSnapshotField,
-    revisionResult.revision
+    revisionInput
   );
   assert.equal(blockedRead.status, "blocked");
   assert.equal(blockedRead.history, null);
