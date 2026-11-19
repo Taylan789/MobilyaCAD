@@ -937,3 +937,11 @@ Kaynak test: domain/production/projectBathroomVanityPanelPricing.test.mjs.
 - JSON v2, kararlı `projectId` zorunluluğu ile legacy default atama ve `top/bottom/left/right` override'larını birlikte korur. Atama anahtarı Part+edge (legacy default için Part) olup duplicate kayıtlar blocked/null döner.
 - Unknown alan, invalid Part ID/katalog ID/unit/direction, bozuk envelope, unsupported version ve 10000 kayıt sınırı fail-closed doğrulanır. Geometri, Part existence ve gerçekten bantlı edge kontrolü hâlâ `calculateCabinetProjectProductionWithDiagnostics` sorumluluğundadır.
 - Kabul testleri v1/v2 JSON round-trip, v1 directional blocker, v2 default+override, empty extension, duplicate/invalid/unknown fields, projectId/version ve input immutability koşullarını kapsar. Frontend proje parser/adapter entegrasyonu ayrı sahiplikte; bu domain API tek başına UI/CSV export blocker'ını kaldırmaz.
+
+
+## DOM-058 — Directional quote revision project-file persistence
+
+- appendProjectQuoteRevisionToProjectFile and readProjectQuoteRevisionHistoryFromProjectFile support the versioned MobilyaCAD project JSON v2 envelope with a stable projectId; quoteRevisionHistory is a v1 history extension. DOM-058 adds a regression proving per-edge quote line data survives project-object JSON stringify/parse and domain read validation.
+- Persisted lines keep direction in the existing description, exact unit (m or mm), quantity, unit price, sourceReference, and lineSources.sourcePartIds. No unit conversion or pricing inference is introduced.
+- Legacy project JSON v1 is read as legacy and revision append is blocked. Unsupported history versions and unknown pricing-snapshot fields are blocked with null history/project; no partial data is returned.
+- The test is domain-level only. Frontend project parser/import/export integration is not implied, and per-edge direction is still not a structured quote-line field. CNC or physical workshop validation is not provided.

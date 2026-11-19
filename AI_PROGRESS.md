@@ -1492,3 +1492,14 @@
 - Bilinen sınır: direction ayrı machine-readable edge alanı değil, mevcut quote line description içinde tutuluyor. JSON v1/CSV directional export fail-closed; CNC/atölye doğrulaması yapılmadı.
 - AI Developer'ın son bilinen run'ı [#44483736288](https://github.com/Taylan789/MobilyaCAD/actions/runs/44483736288) OpenRouter free-model daily 429 kotasıyla başarısız; yeni workflow dispatch aracı yok, rerun/secret/ayar/ücretli kredi değişikliği yapılmadı.
 - Sonraki: DOM-058 — directional quote revision project-file versioned extension, legacy-safe blocker, unknown-field validation ve round-trip.
+
+
+## 19 Kasım 2026 20:20 TRT — DOM-058 directional quote revision project JSON persistence (Actions doğrulandı)
+
+- Regression slice: domain/production/projectEdgeBandingQuoteRevisionProjectFile.test.mjs verifies project JSON v2 quoteRevisionHistory v1 round-trip for per-edge edge-band quote lines; exact edge description, m/mm, quantity, unit price, sourceReference, and source Part IDs remain identical, and snapshots stay immutable.
+- Fail-closed acceptance: legacy project JSON v1 append remains blocked; unsupported history schema version and unknown snapshot fields block read/append with no partial project/history.
+- First test commit [6127f4c](https://github.com/Taylan789/MobilyaCAD/commit/6127f4c1dbce0fa4887797130d2eb0780958b504) failed QA because the project-file append API expects revisionId, createdAt, and pricingSnapshot (not the complete revision envelope). The test was corrected in [ffc89fd](https://github.com/Taylan789/MobilyaCAD/commit/ffc89fd657fb932d88b40452627f905667406df4); assertions were not relaxed.
+- Files: new test only for the code slice; no runtime domain/engine, frontend, adapter/performance-agent files, workflow, dependency, secrets, or main changes.
+- Actions on corrected SHA: CI [#44576735505](https://github.com/Taylan789/MobilyaCAD/actions/runs/44576735505) success; QA [#44576735471](https://github.com/Taylan789/MobilyaCAD/actions/runs/44576735471) success — 124 frontend + 438 domain tests, 0 failures, strict domain TypeScript, lint 32 warnings/0 errors, production build, audit 0 vulnerabilities; Pages [#44576735561](https://github.com/Taylan789/MobilyaCAD/actions/runs/44576735561) success.
+- AI Developer run [#44572846832](https://github.com/Taylan789/MobilyaCAD/actions/runs/44572846832) failed because OpenRouter free-model daily quota was exhausted (429); no rerun, credit, secret, or setting change. No active workflows at documentation update.
+- Next: DOM-059 compare directional quote line deltas without unit or price inference; DOM-060 source integrity; DOM-061 structured direction metadata compatibility.

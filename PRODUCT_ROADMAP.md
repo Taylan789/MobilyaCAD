@@ -426,8 +426,8 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 - DOM-054 **DONE** — yönsel tüketim/fiyat, quantity, edgeCount ve Part provenance; CI/QA doğrulandı.
 - DOM-055 **DONE** — [domain JSON v1/v2 extension commit](https://github.com/Taylan789/MobilyaCAD/commit/82c73f4c6f98649ff42ccdc9cbabce96e1fc1caf); [CI #44547140802](https://github.com/Taylan789/MobilyaCAD/actions/runs/44547140802), [QA #44547140762](https://github.com/Taylan789/MobilyaCAD/actions/runs/44547140762) (124/124 frontend + 432/432 domain), [Pages #44547141174](https://github.com/Taylan789/MobilyaCAD/actions/runs/44547141174) all successful.
 - DOM-056 **DONE** — [directional freshness regression commit](https://github.com/Taylan789/MobilyaCAD/commit/77e653291c7986258675bf0b7d3af6ffdc0ee6fe); [CI](https://github.com/Taylan789/MobilyaCAD/actions/runs/44552227836), [QA 124/124 frontend + 434/434 domain](https://github.com/Taylan789/MobilyaCAD/actions/runs/44552227917), [Pages](https://github.com/Taylan789/MobilyaCAD/actions/runs/44552227834) başarılı.
-- DOM-057 **READY** — quote revision directional edge-band cost snapshot/provenance.
-- DOM-058 **READY** — per-edge quote revision project-file persistence, legacy-safe versioned round-trip (DOM-057 dependency).
+- DOM-057 **DONE** — [directional quote snapshot/provenance test](https://github.com/Taylan789/MobilyaCAD/commit/8fe1fb0d064797af528c4d2170b785801cfedf41); [CI/QA](https://github.com/Taylan789/MobilyaCAD/actions/runs/44569030417) passed.
+- DOM-058 **DONE** — [versioned project JSON persistence test](https://github.com/Taylan789/MobilyaCAD/commit/ffc89fd657fb932d88b40452627f905667406df4); [CI #44576735505](https://github.com/Taylan789/MobilyaCAD/actions/runs/44576735505), [QA #44576735471](https://github.com/Taylan789/MobilyaCAD/actions/runs/44576735471), [Pages #44576735561](https://github.com/Taylan789/MobilyaCAD/actions/runs/44576735561) successful (124 frontend + 438 domain).
 
 
 ## DOM-046 kabul ve entegrasyon kriterleri
@@ -509,3 +509,18 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 - Actions: [CI #44569030384](https://github.com/Taylan789/MobilyaCAD/actions/runs/44569030384) success; [QA #44569030417](https://github.com/Taylan789/MobilyaCAD/actions/runs/44569030417) success — 124/124 frontend + 435/435 domain, 0 fail; strict domain TypeScript, lint 32 warning/0 error, production build ve production dependency audit 0 vulnerability; [Pages #44569030375](https://github.com/Taylan789/MobilyaCAD/actions/runs/44569030375) successful.
 - Runtime kodu değişmedi; mevcut snapshot şemasında direction line description içindedir, ayrı structured edge field değildir. Frontend ve adapter sahipliği korunur; JSON v1/CSV directional export hâlâ fail-closed. Fiziksel CNC/atölye doğrulaması yapılmadı.
 - Sıradaki 3 küçük görev: DOM-058 READY — project JSON v2 quote-history extension round-trip ve legacy v1 blocker; DOM-059 PLANNED — revision comparison directional edge-band line delta; DOM-060 PLANNED — source-line/Part provenance strict integrity regressions.
+
+
+## DOM-058 — Directional edge-band quote revision persistence (19 Kasım 2026)
+
+- Domain project-file APIs already append/read quoteRevisionHistory on project JSON v2 (projectId required) with history schemaVersion 1; DOM-058 adds acceptance coverage for directional edge-band revisions rather than duplicate runtime persistence code.
+- The round-trip preserves direction labels in cost-line descriptions, exact m/mm unit, quantity, unit price, source reference, and source Part IDs. Snapshot remains immutable after reading.
+- Project JSON v1 stays legacy and append is blocked. Unsupported history versions and unknown snapshot fields block reads/appends with no partial project result.
+- Test-only change: domain/production/projectEdgeBandingQuoteRevisionProjectFile.test.mjs. First attempt [6127f4c](https://github.com/Taylan789/MobilyaCAD/commit/6127f4c1dbce0fa4887797130d2eb0780958b504) failed QA because the append API requires the compact revision input, not a complete revision; corrected [ffc89fd](https://github.com/Taylan789/MobilyaCAD/commit/ffc89fd657fb932d88b40452627f905667406df4) without weakening checks.
+- Actions on the corrected commit: CI [#44576735505](https://github.com/Taylan789/MobilyaCAD/actions/runs/44576735505) success; QA [#44576735471](https://github.com/Taylan789/MobilyaCAD/actions/runs/44576735471) success — 124 frontend + 438 domain tests, 0 fail, strict domain TypeScript, lint 32 warning/0 error, production build and audit 0 vulnerabilities; Pages [#44576735561](https://github.com/Taylan789/MobilyaCAD/actions/runs/44576735561) success.
+- Known boundary: project-file API round-trip is domain-level; frontend project import/export integration is not claimed. Direction remains encoded in quote-line description rather than a separate machine-readable field; CNC and workshop validation are not covered.
+
+### Next domain slices
+1. DOM-059 READY — compare directional quote line deltas (edge label, unit, quantity, price, source) without unit conversion or inference.
+2. DOM-060 PLANNED — strict source-line and Part provenance integrity in revision history.
+3. DOM-061 PLANNED — introduce an optional structured edge-direction field with backward-compatible validation.
