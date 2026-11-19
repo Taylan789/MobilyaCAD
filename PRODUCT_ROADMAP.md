@@ -403,12 +403,12 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 - Sonraki görevler: DOM-042 özel Part freshness; DOM-043 teklif fiyat snapshot/revizyon izi; DOM-044 kesitli banyo paneli tüketim/fiyat doğrulaması.
 
 
-## 19 Kasım 2026 05:12 TRT — DOM-044 banyo üst paneli net tüketim/fiyat doğrulaması (Actions bekleniyor)
+## 19 Kasım 2026 05:12 TRT — DOM-044 banyo üst paneli net tüketim/fiyat doğrulaması (Actions doğrulandı)
 
 - Yeni domain kabul testi: domain/production/projectBathroomVanityPanelPricing.test.mjs. Gerçek bathroom-vanity proje agregatöründen açıklıklı üst panel üretir; net alan/hacim değerlerinin malzeme özetine ve m² fiyat satırına taşınmasını doğrular.
 - Aynı materialId altında 8 mm üst panel ve 18 mm diğer gövde panelleri ayrı exact fiyat anahtarlarıyla sınanır. 8 mm fiyatı eksikse 18 mm fiyatı fallback olmaz; tüketim ve birleşik teklif incomplete/null toplam üretir.
 - Kesitli panelin mevcut JSON/CSV export blocker'ı korunur; frontend, runtime üretim kodu, adapter, workflow, bağımlılık ve secrets değiştirilmez.
-- CI/QA sonucu bu kayıt oluşturulurken bekleniyor; Actions tamamlanmadan başarı iddiası yoktur.
+- Kod/test commit'i: [441945f](https://github.com/Taylan789/MobilyaCAD/commit/441945f43e9cf7b13fe83b21cee23ddfbe9d87ef). CI [#44442862028](https://github.com/Taylan789/MobilyaCAD/actions/runs/44442862028) ve QA [#44442862160](https://github.com/Taylan789/MobilyaCAD/actions/runs/44442862160) başarılı — 124/124 frontend + 400/400 domain, strict TS/build/lint ve production audit 0 vulnerability. Pages [#44442862060](https://github.com/Taylan789/MobilyaCAD/actions/runs/44442862060) başarılı.
 
 ### Sıradaki küçük domain dilimleri
 
