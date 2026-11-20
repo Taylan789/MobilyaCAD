@@ -13,11 +13,13 @@ export const PROJECT_QUOTE_SUMMARY_FILE_UNITS = Object.freeze({
   purchasedLengthMm: "mm"
 } as const);
 
+type ExportableProjectQuoteSummary = ProjectQuoteSummary & { status: "ready" | "empty" };
+
 export interface ProjectQuoteSummaryFile {
   fileType: typeof PROJECT_QUOTE_SUMMARY_FILE_TYPE;
   schemaVersion: 1;
   units: typeof PROJECT_QUOTE_SUMMARY_FILE_UNITS;
-  summary: ProjectQuoteSummary;
+  summary: ExportableProjectQuoteSummary;
 }
 
 export interface ProjectQuoteSummaryFileSerializationResult {
@@ -29,7 +31,7 @@ export interface ProjectQuoteSummaryFileSerializationResult {
 export interface ProjectQuoteSummaryFileParseResult {
   status: "ready" | "empty" | "blocked";
   file: ProjectQuoteSummaryFile | null;
-  summary: ProjectQuoteSummary | null;
+  summary: ExportableProjectQuoteSummary | null;
   diagnostics: readonly string[];
 }
 
@@ -273,7 +275,7 @@ function validateLineSource(
   return result;
 }
 
-function validateQuoteSummary(value: unknown): ProjectQuoteSummary {
+function validateQuoteSummary(value: unknown): ExportableProjectQuoteSummary {
   if (!isRecord(value)) throw new Error("Teklif özeti geçerli bir nesne olmalıdır.");
   requireExactKeys(value, summaryKeys, "Teklif özeti");
   if (value.status !== "ready" && value.status !== "empty") throw new Error("Yalnızca tamamlanmış veya boş teklif özeti dışa aktarılabilir.");
