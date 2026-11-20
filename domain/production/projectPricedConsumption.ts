@@ -320,10 +320,26 @@ function addPriceLine(
  * inferred. A monetary summary is returned only when every required input is
  * covered by one consistent currency.
  */
+export interface ProjectPricedConsumptionOptions {
+  edgeBandingPricingMode?: "length" | "roll";
+}
+
+function resolveEdgeBandingPricingMode(value: unknown): "length" | "roll" {
+  if (!isRecord(value)) throw new Error("Fiyatlı tüketim seçenekleri geçerli bir nesne olmalıdır.");
+  for (const key of Object.keys(value)) if (key !== "edgeBandingPricingMode") throw new Error("Fiyatlı tüketim seçenekleri desteklenmeyen alan içeriyor: " + key + ".");
+  const mode = value.edgeBandingPricingMode ?? "length";
+  if (mode !== "length" && mode !== "roll") throw new Error("Kenar bandı fiyatlama modu length veya roll olmalıdır.");
+  return mode;
+}
+
 export function calculateProjectPricedConsumptionSummary(
   productionReport: unknown,
-  priceTable: unknown
+  priceTable: unknown,
+  options: unknown = {}
 ): ProjectPricedConsumptionSummary {
+  let edgeBandingPricingMode: "length" | "roll";
+  try { edgeBandingPricingMode = resolveEdgeBandingPricingMode(options); }
+  catch (error) { return blockedSummary([diagnosticMessage(error)]); }
   let prices: Map<string, ProjectConsumptionPriceInput>;
   try {
     prices = validatePriceTable(priceTable);
@@ -463,6 +479,7 @@ export function calculateProjectPricedConsumptionSummary(
   }
 
   for (const edgeBanding of edgeBandingSummaries) {
+    if (edgeBandingPricingMode === "roll") continue;
     const directionLabel = edgeBanding.edge === undefined
       ? ""
       : " (" + edgeLabelByDirection[edgeBanding.edge] + " kenar)";
@@ -518,7 +535,8 @@ export function calculateProjectPricedConsumptionSummary(
     }
   }
 
-  const requiredLineCount = materialSummaries.length + hardwareSummaries.length + edgeBandingSummaries.length;
+  const requiredLineCount = materialSummaries.length + hardwareSummaries.length +
+    (edgeBandingPricingMode === "length" ? edgeBandingSummaries.length : 0);
   const pricedLineCount = costLines.length;
   const currencies = [...new Set(costLines.map((line) => line.currencyCode))];
   if (currencies.length > 1) {

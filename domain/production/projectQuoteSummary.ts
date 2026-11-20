@@ -14,6 +14,13 @@ import {
   type ProjectCostLineInput,
   type ProjectCostSummary
 } from "./projectCostSummary.ts";
+import { calculateProjectEdgeBandingConsumptionSummary } from "./projectMaterialSummary.ts";
+import type { CabinetProjectProductionResult } from "./projectProduction.ts";
+import { calculateProjectEdgeBandingRollPlan } from "./projectEdgeBandingRollPlan.ts";
+import {
+  calculateProjectEdgeBandingRollCostSummary,
+  type ProjectEdgeBandingRollCostSummary
+} from "./projectEdgeBandingRollCostSummary.ts;
 
 export interface ProjectQuoteLineSource {
   costLineId: string;
@@ -27,6 +34,12 @@ export interface ProjectQuoteLineSource {
   resourceId?: string;
   unit?: string;
   edgeDirection?: ProjectCostLineEdgeDirection;
+  rollCount?: number;
+  rollLengthMm?: number;
+  purchasedLengthMm?: number;
+  furnitureIds?: string[];
+  planSourceReference?: string;
+  priceSourceReference?: string;
 }
 
 export interface ProjectQuoteSummary {
@@ -42,6 +55,30 @@ export interface ProjectQuoteSummary {
   costSummary: ProjectCostSummary | null;
 }
 
+export interface ProjectQuoteEdgeBandingRollOptions {
+  edgeBandingPricingMode?: "length" | "roll";
+  edgeBandingRollSpecs?: unknown;
+  edgeBandingRollPriceTable?: unknown;
+}
+interface ResolvedQuoteOptions {
+  edgeBandingPricingMode: "length" | "roll";
+  edgeBandingRollSpecs?: unknown;
+  edgeBandingRollPriceTable?: unknown;
+}
+function resolveQuoteOptions(value: unknown): ResolvedQuoteOptions {
+  if (value === undefined) return { edgeBandingPricingMode: "length" };
+  if (!isRecord(value)) throw new Error("Teklif fiyatlama seçenekleri geçerli bir nesne olmalıdır.");
+  const allowed = new Set(["edgeBandingPricingMode", "edgeBandingRollSpecs", "edgeBandingRollPriceTable"]);
+  for (const key of Object.keys(value)) if (!allowed.has(key)) throw new Error("Teklif fiyatlama seçenekleri desteklenmeyen alan içeriyor: " + key + ".");
+  const mode = value.edgeBandingPricingMode ?? "length";
+  if (mode !== "length" && mode !== "roll") throw new Error("Kenar bandı fiyatlama modu length veya roll olmalıdır.");
+  if (mode === "length") {
+    if ("edgeBandingRollSpecs" in value || "edgeBandingRollPriceTable" in value) throw new Error("Rulo girdileri yalnızca roll fiyatlama modunda kullanılabilir.");
+    return { edgeBandingPricingMode: "length" };
+  }
+  if (!Array.isArray(value.edgeBandingRollSpecs) || !Array.isArray(value.edgeBandingRollPriceTable)) throw new Error("Roll modu açık rulo ölçüleri ve rulo fiyat tablosu listelerini gerektirir.");
+  return { edgeBandingPricingMode: "roll", edgeBandingRollSpecs: value.edgeBandingRollSpecs, edgeBandingRollPriceTable: value.edgeBandingRollPriceTable };
+}
 function diagnosticMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
@@ -79,19 +116,37 @@ export function calculateProjectQuoteSummary(
   consumptionPriceTable: unknown,
   workItems: unknown,
   tariffTable: unknown,
-  quoteAdjustments: unknown = []
+  quoteAdjustments: unknown = [],
+  options: unknown = {}
 ): ProjectQuoteSummary {
-  const consumption: ProjectPricedConsumptionSummary =
-    calculateProjectPricedConsumptionSummary(productionReport, consumptionPriceTable);
-  const laborOperation: ProjectLaborOperationPricingSummary =
-    calculateProjectLaborOperationPricingSummary(workItems, tariffTable);
-
+  let resolvedOptions: ResolvedQuoteOptions;
+  try { resolvedOptions = resolveQuoteOptions(options); }
+  catch (error) {
+    return { status:"blocked", currencyCode:null, requiredLineCount:0, pricedLineCount:0, missingPrices:[], missingTariffs:[], diagnostics:[diagnosticMessage(error)], lineSources:[], costSummary:null };
+  }
+  const consumption: ProjectPricedConsumptionSummary = calculateProjectPricedConsumptionSummary(productionReport, consumptionPriceTable, { edgeBandingPricingMode: resolvedOptions.edgeBandingPricingMode });
+  const laborOperation: ProjectLaborOperationPricingSummary = calculateProjectLaborOperationPricingSummary(workItems, tariffTable);
+  let rollCostSummary: ProjectEdgeBandingRollCostSummary | null = null;
+  if (resolvedOptions.edgeBandingPricingMode === "roll") {
+    let rollPlan: unknown = { status:"blocked", plans:null, missingRollSpecs:[], diagnostics:["Rulo planı üretim tüketiminden oluşturulamadı."] };
+    try {
+      if (!isRecord(productionReport) || !isRecord(productionReport.result)) throw new Error("Rulo planı için doğrulanmış proje üretim sonucu bulunmalıdır.");
+      const groups = calculateProjectEdgeBandingConsumptionSummary(productionReport.result as unknown as CabinetProjectProductionResult);
+      rollPlan = calculateProjectEdgeBandingRollPlan(groups, resolvedOptions.edgeBandingRollSpecs);
+    } catch (error) { rollPlan = { status:"blocked", plans:null, missingRollSpecs:[], diagnostics:[diagnosticMessage(error)] }; }
+    rollCostSummary = calculateProjectEdgeBandingRollCostSummary(rollPlan, resolvedOptions.edgeBandingRollPriceTable);
+  }
   const missingPrices = consumption.missingPrices;
   const missingTariffs = laborOperation.missingTariffs;
   const diagnostics = [
     ...consumption.diagnostics.map((message) => "Üretim tüketimi: " + message),
     ...laborOperation.diagnostics.map((message) => "İşçilik/operasyon: " + message)
   ];
+  if (rollCostSummary !== null && rollCostSummary.status !== "ready" && rollCostSummary.status !== "empty") {
+    diagnostics.push(...rollCostSummary.diagnostics.map((message) => "Kenar bandı rulo: " + message));
+    if (rollCostSummary.missingRollSpecs.length) diagnostics.push("Kenar bandı rulo ölçüsü eksik: " + rollCostSummary.missingRollSpecs.join(", ") + ".");
+    if (rollCostSummary.missingPrices.length) diagnostics.push("Kenar bandı rulo fiyatı eksik: " + rollCostSummary.missingPrices.join(", ") + ".");
+  }
   let adjustmentSummary: ProjectCostSummary;
   try {
     if (!Array.isArray(quoteAdjustments)) {
@@ -123,16 +178,18 @@ export function calculateProjectQuoteSummary(
     };
   }
   const adjustmentCount = adjustmentSummary.lines.length;
-  const requiredLineCount =
-    consumption.requiredLineCount + laborOperation.requiredLineCount + adjustmentCount;
-  const pricedLineCount =
-    consumption.pricedLineCount + laborOperation.pricedLineCount + adjustmentCount;
+  const rollRequiredLineCount = rollCostSummary?.requiredLineCount ?? 0;
+  const rollPricedLineCount = rollCostSummary?.pricedLineCount ?? 0;
+  const requiredLineCount = consumption.requiredLineCount + laborOperation.requiredLineCount + adjustmentCount + rollRequiredLineCount;
+  const pricedLineCount = consumption.pricedLineCount + laborOperation.pricedLineCount + adjustmentCount + rollPricedLineCount;
 
   const invalidCounts = !Number.isSafeInteger(requiredLineCount) ||
     !Number.isSafeInteger(pricedLineCount) ||
     requiredLineCount < 0 ||
     pricedLineCount < 0 ||
-    pricedLineCount > requiredLineCount;
+    pricedLineCount > requiredLineCount ||
+    !Number.isSafeInteger(rollRequiredLineCount) || !Number.isSafeInteger(rollPricedLineCount) ||
+    rollRequiredLineCount < 0 || rollPricedLineCount < 0 || rollPricedLineCount > rollRequiredLineCount;
   if (invalidCounts) {
     return {
       status: "blocked",
@@ -147,7 +204,7 @@ export function calculateProjectQuoteSummary(
     };
   }
 
-  if (consumption.status === "blocked" || laborOperation.status === "blocked") {
+  if (consumption.status === "blocked" || laborOperation.status === "blocked" || rollCostSummary?.status === "blocked") {
     return {
       status: "blocked",
       currencyCode: null,
@@ -161,7 +218,7 @@ export function calculateProjectQuoteSummary(
     };
   }
 
-  if (consumption.status === "incomplete" || laborOperation.status === "incomplete") {
+  if (consumption.status === "incomplete" || laborOperation.status === "incomplete" || rollCostSummary?.status === "incomplete") {
     return {
       status: "incomplete",
       currencyCode: null,
@@ -175,7 +232,7 @@ export function calculateProjectQuoteSummary(
     };
   }
 
-  if (consumption.status === "empty" && laborOperation.status === "empty" && adjustmentCount === 0) {
+  if (consumption.status === "empty" && laborOperation.status === "empty" && adjustmentCount === 0 && (rollCostSummary === null || rollCostSummary.status === "empty")) {
     return {
       status: "empty",
       currencyCode: null,
@@ -191,9 +248,8 @@ export function calculateProjectQuoteSummary(
 
   if (
     (consumption.status === "ready" && consumption.costSummary === null) ||
-    (laborOperation.status === "ready" &&
-      (laborOperation.costSummary === null ||
-        laborOperation.lines.length !== laborOperation.requiredLineCount))
+    (laborOperation.status === "ready" && (laborOperation.costSummary === null || laborOperation.lines.length !== laborOperation.requiredLineCount)) ||
+    (rollCostSummary?.status === "ready" && (rollCostSummary.costSummary === null || rollCostSummary.costSummary.lineCount !== rollRequiredLineCount || rollCostSummary.lineSources.length !== rollRequiredLineCount))
   ) {
     return {
       status: "blocked",
@@ -246,12 +302,23 @@ export function calculateProjectQuoteSummary(
   adjustmentSummary.lines.forEach((line, index) => {
     const costLineId = quoteLineId("adjustment", index);
     costLines.push(toCostLine(line, costLineId));
-    lineSources.push({
-      costLineId,
-      sourceType: "quote-adjustment",
-      sourceId: line.id
-    });
+    lineSources.push({ costLineId, sourceType: "quote-adjustment", sourceId: line.id });
   });
+
+  if (rollCostSummary?.status === "ready") {
+    rollCostSummary.costSummary!.lines.forEach((line, index) => {
+      const source = rollCostSummary!.lineSources[index];
+      costLines.push(toCostLine(line, line.id));
+      lineSources.push({
+        costLineId: line.id, sourceType: "production-consumption", sourceId: line.id,
+        sourcePartIds: [...source.partIds], resourceType: "edge-banding", resourceId: source.edgeBandingId,
+        unit: "rulo", rollCount: source.rollCount, rollLengthMm: source.rollLengthMm,
+        purchasedLengthMm: source.purchasedLengthMm, furnitureIds: [...source.furnitureIds],
+        ...(source.planSourceReference === undefined ? {} : { planSourceReference: source.planSourceReference }),
+        ...(source.priceSourceReference === undefined ? {} : { priceSourceReference: source.priceSourceReference })
+      });
+    });
+  }
 
   if (costLines.length !== requiredLineCount || lineSources.length !== costLines.length) {
     return {

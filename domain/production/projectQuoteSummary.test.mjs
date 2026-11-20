@@ -5,8 +5,13 @@ import { BODY_PANEL_GROUPS } from "./bodyPanelMaterials.ts";
 import { calculateCabinetProjectProductionWithDiagnostics } from "./projectProduction.ts";
 import { calculateProjectLaborOperationPricingSummary } from "./projectLaborOperationPricing.ts";
 import { calculateProjectPricedConsumptionSummary } from "./projectPricedConsumption.ts";
-import { calculateProjectMaterialConsumptionSummary } from "./projectMaterialSummary.ts";
-import { calculateProjectQuoteSummary } from "./projectQuoteSummary.ts";
+import {
+  calculateProjectEdgeBandingConsumptionSummary,
+  calculateProjectMaterialConsumptionSummary
+} from "./projectMaterialSummary.ts;
+import { calculateProjectEdgeBandingRollPlan } from "./projectEdgeBandingRollPlan.ts";
+import { calculateProjectEdgeBandingRollCostSummary } from "./projectEdgeBandingRollCostSummary.ts";
+import { calculateProjectQuoteSummary } from "./projectQuoteSummary.ts;
 
 const noBanding = { top: false, bottom: false, left: false, right: false };
 
@@ -386,4 +391,76 @@ test("üretim ve işçilik kapsamı boş olsa da açık fire/kâr satırları te
   assert.equal(quote.requiredLineCount, 1);
   assert.equal(quote.costSummary.categoryTotalsMinor.profit, 2500);
   assert.equal(quote.costSummary.grandTotalMinor, 2500);
+});
+
+test("roll mode replaces length-based edge-band lines and preserves explicit roll provenance", () => {
+  const report = createReport();
+  const part = report.result.parts[0];
+  part.edgeBanding = { top: true, bottom: false, left: false, right: false };
+  part.edgeBandingMaterialId = "pvc-a";
+  part.edgeBandingUnit = "mm";
+  const rollSpecs = [{ edgeBandingId: "pvc-a", rollLengthMm: 100000, sourceReference: "roll-spec:v1" }];
+  const rollPrices = [{ edgeBandingId: "pvc-a", unit: "rulo", unitPriceMinor: 15000, currencyCode: "TRY", sourceReference: "roll-prices:v1" }];
+  const rollPlan = calculateProjectEdgeBandingRollPlan(calculateProjectEdgeBandingConsumptionSummary(report.result), rollSpecs);
+  const rollCost = calculateProjectEdgeBandingRollCostSummary(rollPlan, rollPrices);
+  const baseConsumption = calculateProjectPricedConsumptionSummary(report, consumptionPrices, { edgeBandingPricingMode: "roll" });
+  const quote = calculateProjectQuoteSummary(report, consumptionPrices, [], [], [], { edgeBandingPricingMode: "roll", edgeBandingRollSpecs: rollSpecs, edgeBandingRollPriceTable: rollPrices });
+  assert.equal(rollCost.status, "ready");
+  assert.equal(baseConsumption.status, "ready");
+  assert.equal(quote.status, "ready");
+  assert.equal(quote.requiredLineCount, baseConsumption.requiredLineCount + rollCost.requiredLineCount);
+  assert.equal(quote.pricedLineCount, quote.requiredLineCount);
+  assert.equal(quote.costSummary.lines.filter(line => line.unit === "rulo").length, 1);
+  assert.equal(quote.costSummary.lines.some(line => line.unit === "mm" || line.unit === "m"), false);
+  assert.equal(quote.costSummary.grandTotalMinor, baseConsumption.costSummary.grandTotalMinor + rollCost.costSummary.grandTotalMinor);
+  const rollSource = quote.lineSources.find(source => source.unit === "rulo");
+  assert.ok(rollSource);
+  assert.equal(rollSource.resourceType, "edge-banding");
+  assert.equal(rollSource.resourceId, "pvc-a");
+  assert.equal(rollSource.rollCount, quote.costSummary.lines.find(line => line.unit === "rulo").quantity);
+  assert.equal(rollSource.rollLengthMm, rollCost.lineSources[0].rollLengthMm);
+  assert.equal(rollSource.purchasedLengthMm, rollCost.lineSources[0].purchasedLengthMm);
+  assert.deepEqual(rollSource.sourcePartIds, rollCost.lineSources[0].partIds);
+  assert.deepEqual(rollSource.furnitureIds, rollCost.lineSources[0].furnitureIds);
+  assert.equal(rollSource.planSourceReference, "roll-spec:v1");
+  assert.equal(rollSource.priceSourceReference, "roll-prices:v1");
+});
+
+test("roll mode fails closed when roll specifications or prices are incomplete", () => {
+  const report = createReport();
+  const part = report.result.parts[0];
+  part.edgeBanding = { top: true, bottom: false, left: false, right: false };
+  part.edgeBandingMaterialId = "pvc-a";
+  part.edgeBandingUnit = "mm";
+  const specs = [{ edgeBandingId: "pvc-a", rollLengthMm: 100000 }];
+  const missingSpec = calculateProjectQuoteSummary(report, consumptionPrices, [], [], [], { edgeBandingPricingMode: "roll", edgeBandingRollSpecs: [], edgeBandingRollPriceTable: [{ edgeBandingId: "pvc-a", unit: "rulo", unitPriceMinor: 15000, currencyCode: "TRY" }] });
+  const missingPrice = calculateProjectQuoteSummary(report, consumptionPrices, [], [], [], { edgeBandingPricingMode: "roll", edgeBandingRollSpecs: specs, edgeBandingRollPriceTable: [] });
+  assert.equal(missingSpec.status, "incomplete");
+  assert.equal(missingSpec.costSummary, null);
+  assert.match(missingSpec.diagnostics.join(" "), /pvc-a/);
+  assert.equal(missingPrice.status, "incomplete");
+  assert.equal(missingPrice.costSummary, null);
+  assert.match(missingPrice.diagnostics.join(" "), /pvc-a/);
+});
+
+test("roll and board prices in different currencies block the full quote", () => {
+  const report = createReport();
+  const part = report.result.parts[0];
+  part.edgeBanding = { top: true, bottom: false, left: false, right: false };
+  part.edgeBandingMaterialId = "pvc-a";
+  part.edgeBandingUnit = "mm";
+  const quote = calculateProjectQuoteSummary(report, consumptionPrices, [], [], [], { edgeBandingPricingMode: "roll", edgeBandingRollSpecs: [{ edgeBandingId: "pvc-a", rollLengthMm: 100000 }], edgeBandingRollPriceTable: [{ edgeBandingId: "pvc-a", unit: "rulo", unitPriceMinor: 15000, currencyCode: "USD" }] });
+  assert.equal(quote.status, "blocked");
+  assert.equal(quote.costSummary, null);
+  assert.match(quote.diagnostics.at(-1), /farklı para birimleri/);
+});
+
+test("roll mode options must be explicit and length mode cannot receive roll inputs", () => {
+  const report = createReport();
+  const missing = calculateProjectQuoteSummary(report, consumptionPrices, [], [], [], { edgeBandingPricingMode: "roll" });
+  const mixed = calculateProjectQuoteSummary(report, consumptionPrices, [], [], [], { edgeBandingPricingMode: "length", edgeBandingRollSpecs: [], edgeBandingRollPriceTable: [] });
+  assert.equal(missing.status, "blocked");
+  assert.match(missing.diagnostics[0], /listelerini gerektirir/);
+  assert.equal(mixed.status, "blocked");
+  assert.match(mixed.diagnostics[0], /yalnızca roll/);
 });
