@@ -726,15 +726,15 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - Files: \`domain/production/projectEdgeBandingRollCostCsv.ts\`, \`domain/production/projectEdgeBandingRollCostCsv.test.mjs\`, QA strict domain type-check list. Frontend files remain untouched.
 - Acceptance: 15 automated cases cover ready/empty round-trip, incomplete/blocked, schema/version, totals, roll arithmetic, order/identity, provenance, quoting, immutability and size limits.
 - **Verified code SHA:** [ed7a8acd](https://github.com/Taylan789/MobilyaCAD/commit/ed7a8acd749cf7c702500b931a8bd00dd36830d1). [CI #582](https://github.com/Taylan789/MobilyaCAD/actions/runs/44775913609), [QA #582](https://github.com/Taylan789/MobilyaCAD/actions/runs/44775913687) and [Pages #409](https://github.com/Taylan789/MobilyaCAD/actions/runs/44775913803) succeeded. QA: **124/124 frontend + 551/551 domain tests**, strict domain TypeScript, lint 32 warnings/0 errors, production build and audit 0 vulnerabilities. Local tests were not run.
-- Next: DOM-075 project quote-summary CSV v1 (all cost categories, strict round-trip and source mapping); frontend download integration remains UI-owned.
+- **DOM-075 verified:** project quote-summary CSV v1; strict ready/empty round-trip and source mapping. Next is DOM-076 material-consumption CSV; frontend download integration remains UI-owned.
 
 
-## DOM-075 — Project quote-summary CSV v1 (code delivered; Actions pending)
+## DOM-075 — Project quote-summary CSV v1 (verified)
 
 - Strict CSV v1 exports only complete `ready` or genuinely `empty` quote summaries. Incomplete/blocked quotes never emit partial totals.
 - All six cost categories, exact line units, currency, quantity, unit/minor-unit price, line totals, category totals and grand total are retained; source IDs, Part/furniture provenance, edge direction, tariff, and roll metadata are carried where present.
 - Import reconstructs the existing strict quote-summary JSON v1 and reuses its validator/recalculation, so line/category/grand totals, source mappings and roll arithmetic are checked rather than trusted. CSV is BOM + CRLF with RFC 4180 quoting; 5 MB and 10,000-line caps.
-- Files: `domain/production/projectQuoteSummaryCsv.ts`, `domain/production/projectQuoteSummaryCsv.test.mjs`, QA strict-domain type-check list, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`, `AI_COORDINATION.md`. **19 regression cases**. Local test execution unavailable; Actions pending.
+- Files: `domain/production/projectQuoteSummaryCsv.ts`, `domain/production/projectQuoteSummaryCsv.test.mjs`, QA strict-domain type-check list and roadmap/progress/coordination. **19 new regression cases**. [Code commit](https://github.com/Taylan789/MobilyaCAD/commit/e6e0e3e24463e2a77e2e37f2206433f1a73b574d). [CI](https://github.com/Taylan789/MobilyaCAD/actions/runs/44789821509), [QA](https://github.com/Taylan789/MobilyaCAD/actions/runs/44789821617), [Pages](https://github.com/Taylan789/MobilyaCAD/actions/runs/44789821636) all succeeded. QA: **570/570 domain tests**, strict domain TypeScript, lint 32 warnings/0 errors, production build and audit 0 vulnerabilities. Frontend unit-test step also passed. Local tests not run.
 - No prices, conversions, missing categories, or machine standards are inferred; frontend download/import wiring remains UI-owned.
 
 
@@ -742,8 +742,8 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 
 | ID | Sahip | Kabul kriteri | Bağımlılık |
 |---|---|---|---|
-| DOM-075 | Ürün Geliştirme | **DONE — Actions pending**: Project quote-summary CSV v1; all categories, exact unit/currency/source, ready/empty-only, strict arithmetic round-trip, no partial totals | DOM-073 |
-| DOM-076 | Ürün Geliştirme | Project material consumption CSV v1; m²/m³/mm, quantity, catalog/Part/furniture provenance, no partial output | DOM-067/068 |
-| DOM-077 | Ürün Geliştirme | Quote-summary/revision snapshot comparison import/export reconciliation; stable source IDs and legacy-safe blockers | DOM-072/073/075 |
+| DOM-076 | Ürün Geliştirme | Project material-consumption CSV v1; exact mm/m²/m³ units, quantities, catalog/Part/furniture provenance, strict round-trip; no partial output | DOM-067/068 |
+| DOM-077 | Ürün Geliştirme | Quote-summary CSV/JSON ↔ immutable revision snapshot reconciliation; stable source IDs, currency/unit checks and legacy-safe blockers | DOM-072/073/075 |
 | INT-001 | Arayüz + Ürün | Frontend adapter consumes domain reports and blocks unsupported geometry exports; round-trip tests | Current production-domain contract |
+| INT-002 | Entegrasyon/Performans | Adapter round-trip tests for geometry, quantities and JSON/CSV losslessness; isolated specialist branch | INT-001 contract |
 | PERF-001 | Entegrasyon/Performans | Repeatable CAD scene/render baseline, profiling and measured optimization with regression tests | Isolated specialist branch |

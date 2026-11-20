@@ -1793,10 +1793,10 @@
 - **Next 5:** DOM-075 quote-summary CSV v1; DOM-076 material-consumption CSV v1; DOM-077 quote-summary/revision snapshot reconciliation; INT-001 domain/frontend export contract; PERF-001 repeatable CAD scene baseline. UI, integration/performance and QA ownership remain isolated.
 
 
-## 20 Kasım 2026 20:47 TRT — DOM-075 project quote-summary CSV v1 (code commit; Actions pending)
+## 20 Kasım 2026 21:08 TRT — DOM-075 project quote-summary CSV v1 (verified)
 
 - **Deliverable:** strict project quote-summary CSV v1 serializer/parser for ready and empty summaries only; incomplete/blocked quotes never export partial totals. All six categories, exact units, currency, quantities, minor-unit prices, line totals, category totals and grand total are retained; source IDs, Part/furniture provenance, edge direction, tariffs and roll metadata are preserved where present.
 - **Validation:** CSV import reconstructs the existing strict quote-summary JSON v1 envelope and reuses domain arithmetic/source/provenance validation. RFC 4180 quoting, UTF-8 BOM + CRLF, 5 MB cap and 10,000-line cap; 19 regression tests. QA type-check list includes the new module.
 - **Files:** `domain/production/projectQuoteSummaryCsv.ts`, `domain/production/projectQuoteSummaryCsv.test.mjs`, `.github/workflows/qa-test.yml`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`, `AI_COORDINATION.md`.
-- **Local tests:** not run (remote Actions is the validation source); **CI/QA pending**.
+- **Verified code commit:** [e6e0e3e24463e2a77e2e37f2206433f1a73b574d](https://github.com/Taylan789/MobilyaCAD/commit/e6e0e3e24463e2a77e2e37f2206433f1a73b574d). [CI #44789821509](https://github.com/Taylan789/MobilyaCAD/actions/runs/44789821509), [QA #44789821617](https://github.com/Taylan789/MobilyaCAD/actions/runs/44789821617), and [Pages #44789821636](https://github.com/Taylan789/MobilyaCAD/actions/runs/44789821636) succeeded. QA: **570/570 domain tests**, strict domain TypeScript, lint **32 warnings/0 errors**, production build and audit **0 vulnerabilities**; frontend unit-test step passed. Local tests not run.
 - **Next:** DOM-076 material consumption CSV v1; DOM-077 quote-summary/revision snapshot reconciliation; frontend export integration remains UI-owned; INT-001/INT-002 and PERF-001 remain separate-agent tasks.
