@@ -757,7 +757,9 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 
 | ID | Sahip | Durum / kabul kriteri | Bağımlılık |
 |---|---|---|---|
-| DOM-078 | Ürün Geliştirme | READY — material catalog resource identity preserved through quote source mapping, revision snapshots and strict JSON/CSV comparisons | DOM-077 |
+| DOM-078 | Ürün Geliştirme | IN_PROGRESS — 078A material provenance and 078B comparison matching verified; 078C comparison JSON/CSV metadata export remains | DOM-077 |
+| DOM-078B | Ürün Geliştirme | DONE — comparison grouping now includes catalog resource type/ID/unit; resource swaps yield add/remove pairs; export schema unchanged | DOM-078A | |
+| DOM-078C | Ürün Geliştirme | READY — strict comparison JSON v2/CSV v3 resource metadata, legacy JSON v1/CSV v1-v2 readers, partial metadata rejection and round-trip tests | DOM-078B | |
 | DOM-079 | Ürün Geliştirme | READY — standalone revision-history import into project v2 with strict projectId match and no silent overwrite; legacy v1 blocked | DOM-077 |
 | INT-001 | Arayüz + Ürün | READY — frontend adapter consumes domain reports and blocks unsupported geometry export; round-trip tests | Production-domain contract |
 | INT-002 | Entegrasyon/Performans | READY — adapter round-trip integration tests, isolated specialist branch | INT-001 contract |
@@ -783,4 +785,11 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - Quote-summary line sources preserve that identity. Strict quote JSON v1 and existing CSV v1 columns validate and round-trip the metadata without changing monetary calculations or the file schema.
 - Revision snapshot validation accepts only material source identity matching material category, m2 cost/source unit, no edge direction or roll fields, and non-empty Part provenance.
 - Tests cover material IDs across catalog entries/thicknesses, JSON/CSV round-trip, and invalid metadata. CI/QA/Pages all verified on `6963a635a22d26f5e7f725c6167f9b785032d89a`: 130 frontend tests, 585 domain tests, production build and security audit (0 vulnerabilities) passed. Initial QA failures were fixed in the follow-up commit.
-- Next: DOM-078B add catalog resource type/ID/unit to revision comparison line snapshots and strict comparison JSON/CSV, preserving legacy compatibility.
+- Next: DOM-078C export resource metadata in strict comparison JSON v2/CSV v3 while accepting legacy JSON v1 and CSV v1/v2.
+
+
+## DOM-078B — Catalog-aware revision comparison matching (VERIFIED)
+
+- Revision comparison now uses catalog resource type, ID and unit as part of its internal line identity. Changing a catalog resource for otherwise identical material produces separate added/removed lines instead of a misleading price-only change.
+- Public comparison snapshots and JSON/CSV schemas remain unchanged in this slice; resource metadata export is DOM-078C. This keeps current exporters compatible and avoids silently dropping new fields.
+- Code [5e8689b3](https://github.com/Taylan789/MobilyaCAD/commit/5e8689b35116fbed8f5fb82158782434ae641910); CI [#44830602066](https://github.com/Taylan789/MobilyaCAD/actions/runs/44830602066), QA [#44830602034](https://github.com/Taylan789/MobilyaCAD/actions/runs/44830602034), Pages [#44830602182](https://github.com/Taylan789/MobilyaCAD/actions/runs/44830602182) all successful.

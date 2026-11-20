@@ -1877,6 +1877,16 @@
 - Code commit: `3971f1047d03162cd5469f4455a8ab8681d876cb`; legacy uyumluluk/test düzeltme commit: `6963a635a22d26f5e7f725c6167f9b785032d89a`.
 - CI `44826893722` ve QA `44826893709` başarılı: 130/130 frontend test, 585/585 domain test; TypeScript, production build, lint, shared-domain type-check ve production audit (0 vulnerabilities) başarılı. Pages deployment `44826893909` başarılı; test sitesi güncellendi.
 - İlk QA turu 6 test hatası gösterdi (CSV syntax, material provenance/legacy test beklentileri); bunlar fix commitinde düzeltildi ve final QA başarıyla tekrarlandı.
-- Known gap: revision comparison JSON/CSV line snapshots material resource identity henüz taşımıyor; DOM-078B.
+- Known gap: revision comparison grouping now uses catalog resource identity, but line snapshots and strict JSON/CSV exports still omit the catalog type/ID/unit; DOM-078C.
 - AI Developer #44814337311 failed with OpenRouter free-model daily limit 429 (limit 50, remaining 0; reset 21 Nov 2026 00:00 UTC / 03:00 TRT). No active run; rerun deferred until limit reset.
-- Next: DOM-078B comparison JSON/CSV resource identity; then DOM-079 revision history import.
+- Next: DOM-078C comparison export metadata (strict JSON v2/CSV v3 with legacy readers), then DOM-079 revision-history import.
+
+
+## 21 Kasım 2026 — DOM-078B comparison identity (VERIFIED)
+
+- Internal revision-comparison matching now includes material catalog resource type, resource ID and unit. A catalog change is emitted as an added/removed pair, not treated as a simple price-only change; existing exported line snapshots remain unchanged in this slice.
+- **Code commit:** [5e8689b35116fbed8f5fb82158782434ae641910](https://github.com/Taylan789/MobilyaCAD/commit/5e8689b35116fbed8f5fb82158782434ae641910). Files: `domain/production/projectQuoteRevision.ts`, `domain/production/projectQuoteRevision.test.mjs`.
+- **Actions:** CI [#44830602066](https://github.com/Taylan789/MobilyaCAD/actions/runs/44830602066) and QA [#44830602034](https://github.com/Taylan789/MobilyaCAD/actions/runs/44830602034) passed; QA reports **130 frontend + 586 domain tests**, shared-domain TypeScript, lint (**32 warnings / 0 errors**), production build and production audit (**0 vulnerabilities**). `npm ci` also surfaced 4 moderate development-dependency advisories; production audit remained clean.
+- **Test site:** Pages [#44830602182](https://github.com/Taylan789/MobilyaCAD/actions/runs/44830602182) successful; deployment completed for this code SHA. [Live test site](https://taylan789.github.io/MobilyaCAD/). This domain-only change does not visually redesign the frontend.
+- **AI Developer:** run [#44814337311](https://github.com/Taylan789/MobilyaCAD/actions/runs/44814337311) failed with OpenRouter free-model daily 429. No active run; rerun is deferred until the daily limit resets (03:00 TRT). Integration/performance specialist job was skipped; no active specialist branch/PR was evidenced.
+- **Next:** DOM-078C strict comparison JSON v2/CSV v3 resource metadata and legacy parsing; then DOM-079 safe revision-history import. UI and integration/performance ownership remains isolated.
