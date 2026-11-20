@@ -3,7 +3,7 @@ import test from "node:test";
 import { calculateProjectEdgeBandingRollPlan } from "./projectEdgeBandingRollPlan.ts";
 
 const groups = () => [
-  { edgeBandingId: "pvc-18", unit: "m", edge: "left", partLineCount: 2, totalQuantity: 0.9, totalLengthMm: 900, edgeCount: 1, partIds: ["part-a", "part-b"], furnitureIds: ["cab-a"] },
+  { edgeBandingId: "pvc-18", unit: "m", edge: "left", partLineCount: 2, totalQuantity: 0.9, totalLengthMm: 900, edgeCount: 2, partIds: ["part-a", "part-b"], furnitureIds: ["cab-a"] },
   { edgeBandingId: "pvc-18", unit: "mm", edge: "top", partLineCount: 1, totalQuantity: 1200, totalLengthMm: 1200, edgeCount: 2, partIds: ["part-c"], furnitureIds: ["cab-b"] }
 ];
 

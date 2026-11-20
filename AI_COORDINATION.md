@@ -309,3 +309,7 @@ Bu dosya dört geliştirme/denetim rolünün ortak görev panosu ve entegrasyon 
 
 ## DOM-070A QA correction note
 - Initial QA run [#44688505009](https://github.com/Taylan789/MobilyaCAD/actions/runs/44688505009) failed one fixture because its Part-line count was 1 while two Part IDs were supplied. The validator correctly blocked it; production logic was unchanged. Test fixture correction is being committed, then QA will rerun.
+
+
+## DOM-070A QA correction 2
+- QA #521 found the remaining fixture mismatch: two Part lines require `edgeCount >= 2`. The test input now sets `edgeCount: 2`; strict production validation remains unchanged. New Actions pending.

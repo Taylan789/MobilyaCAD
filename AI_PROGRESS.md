@@ -1640,3 +1640,8 @@
 ## 20 Kasım 2026 09:32 TRT — DOM-070A QA fixture correction (Actions pending)
 - Initial code commit `3b0d550f098080672ed8a5ee036957ee90be875d`: CI #534 succeeded, QA #520 failed 1/481 domain tests. Failure was a fixture validation mismatch: the first summary group had two Part IDs but `partLineCount: 1`; the strict validator correctly blocked it. No production logic or validation was loosened.
 - Corrected only that fixture to `partLineCount: 2`. CI/QA for the correction are pending; Pages #361 for the prior SHA is still in progress at this check.
+
+
+## 20 Kasım 2026 09:35 TRT — DOM-070A fixture edge-count correction (Actions pending)
+- QA #521 on `b865667fa1b9a04646a2c2b911e1f81a1ea88207` failed the roll-plan aggregate test because its fixture had 2 Part IDs/lines but `edgeCount: 1`; the strict JSON summary correctly rejected the input. This is the second fixture contract mismatch, not a production calculation failure.
+- Corrected the fixture to `edgeCount: 2` alongside `partLineCount: 2`; no production code or validation weakened. CI #535 and Pages #362 on the previous SHA both passed. Actions pending for this correction.
