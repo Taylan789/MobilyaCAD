@@ -529,7 +529,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 6. DOM-066 PLANNED — frontend-owned revision-comparison download wiring; not this branch's file ownership.
 7. DOM-067 DONE — strict material-consumption JSON v1; Actions verified.
 8. DOM-068 DONE — strict directional edge-band consumption JSON v1; Actions verified (124 frontend + 468 domain tests; strict TS/build/audit).
-9. DOM-069 IN PROGRESS — strict directional edge-band consumption CSV v1 with exact mm/m, edge, provenance, UTF-8 BOM/CRLF and RFC 4180 escaping.
+9. DOM-069 DONE — strict directional edge-band consumption CSV v1 verified by CI/QA/Pages.
 10. DOM-070 PLANNED — configurable edge-band catalog cost and optional user-supplied roll/waste inputs; no inferred price or yield.
 
 ## 19 Kasım 2026 21:21 TRT — DOM-059 teklif revizyon satır karşılaştırması
@@ -576,11 +576,11 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 
 
 ## Next 5 small tasks
-1. DOM-069 IN PROGRESS — strict directional edge-band consumption CSV v1, exact mm/m, edge and source IDs; Actions verification pending.
-2. DOM-070 PLANNED — user-configurable edge-band price and optional roll/waste inputs with explicit provenance; no inferred rate.
-3. DOM-066 PLANNED — frontend-owned quote comparison JSON/CSV download integration; blocked results must not download.
-4. INT-001 READY — shared production report/export round-trip or unsupported-geometry blocker; contract remains shared.
-5. INT-002/PERF-001 READY — adapter fidelity and measured viewport baseline; specialist workflow currently disabled.
+1. DOM-070 PLANNED — user-configurable edge-band price and optional roll/waste inputs with explicit provenance; no inferred rate.
+2. DOM-066 PLANNED — frontend-owned quote comparison JSON/CSV download integration; blocked results must not download.
+3. INT-001 READY — shared production report/export round-trip or unsupported-geometry blocker; contract remains shared.
+4. INT-002/PERF-001 READY — adapter fidelity and measured viewport baseline; specialist workflow currently disabled.
+5. QA-003 BLOCKED — waits for INT-001/INT-002 evidence and integration validation.
 
 ## 10/10 ölçülebilir kalite kapıları (20 Kasım 2026 baseline)
 
