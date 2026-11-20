@@ -24,7 +24,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 | Malzeme kataloğu | UI CRUD; mobilya varsayılan materialId ve çekmece grubunda varsayılan + dört panel grubu override; domain gövde/kitaplık motorları altı gövde panel grubu için malzeme override'ını doğrular | Gövde panel override'ları henüz frontend JSON v1/CSV ve UI akışına bağlanmadı; fiyat, tedarikçi ve fire henüz yok |
 | Proje dosyası | Yerel JSON v1 indirme/yükleme; saf serializer/parser; round-trip ve eski v1 uyumluluk; mm, mobilya ve çekmece grubu katalog referansları ile dört çekmece panel kalınlığının doğrulanması | Şema migrasyonu, otomatik kayıt ve kurtarma yok |
 | Teklif/maliyet | Kullanıcı fiyat tablosu malzeme tüketimini materialId + m2, donanımı hardwareId + özgün BOM birimi, kenar bandını edgeBandingId + açık mm/m birimi ile fiyatlandırır; kullanıcı girdili işçilik/operasyon tarifesi, tek para birimli birleşik teklif ve tarihli fiyat/tarife katalog snapshot'ı, DOM-014 doğrulanmış immutable append ve DOM-015 ortak satır aritmetiği doğrulaması vardır | Frontend/UI ve JSON v1/CSV kalıcı revizyon geçmişi entegrasyonu ayrı sahibindedir; tüm geçmişte ID tekilliği depolama katmanında doğrulanmalıdır; vergi, kur, iskonto, otomatik fire/kâr yüzdesi ve üretim onayı yok |
-| Test/CI | Current verified code SHA [e6e0e3e](https://github.com/Taylan789/MobilyaCAD/commit/e6e0e3e24463e2a77e2e37f2206433f1a73b574d): [CI #44789821509](https://github.com/Taylan789/MobilyaCAD/actions/runs/44789821509), [QA #44789821617](https://github.com/Taylan789/MobilyaCAD/actions/runs/44789821617), [Pages #44789821636](https://github.com/Taylan789/MobilyaCAD/actions/runs/44789821636) successful | QA 124/124 frontend + 570/570 domain tests, strict shared-domain TS, lint 32 warnings/0 errors, production build and production audit 0 vulnerabilities |
+| Test/CI | Verified code SHA [67d462fa](https://github.com/Taylan789/MobilyaCAD/commit/67d462fa26df55b8f717067d73dd654dd7075d0e): [CI #44793078331](https://github.com/Taylan789/MobilyaCAD/actions/runs/44793078331), [QA #44793078386](https://github.com/Taylan789/MobilyaCAD/actions/runs/44793078386), [Pages #44793078458](https://github.com/Taylan789/MobilyaCAD/actions/runs/44793078458) success | QA 124/124 frontend + 579/579 domain tests, strict shared-domain TS, lint 32 warnings/0 errors, production build and audit 0 vulnerabilities |
 
 ### Bilinen mimari ve veri boşlukları
 
@@ -592,7 +592,7 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 | Üretim | Her Part için kaynak ID, quantity, mm ölçü, malzeme/kalınlık; unsupported geometri/export kısmi sonuç üretmeden blocker | Domain konstrüksiyon, tüketim, nesting freshness, teklif/revizyon ve JSON/CSV sözleşmeleri var; frontend adapter/CNC postprocessor eksik |
 | UX | Ana akışlarda işlevsel kontroller; klavye/focus, erişilebilirlik, responsive, boş/hata durumları otomatik doğrulanır | Frontend ayrı ajan alanında; gerçek tarayıcı görsel kabulü NOT MEASURED |
 | Performans | Referans sahnede p95 frame-time hedefi 16,7 ms (60 FPS), scene update p95 <100 ms, bellek ölçümü ve CI regression threshold | Referans sahne/benchmark NOT MEASURED; bu kontrolde aktif Integration/Performance run veya PR bulunmadı; PERF-001 ve INT-002 READY, QA-003 INT-001/INT-002'ye bağlı |
-| Güvenilirlik | Strict TS, test, build, audit; import/export round-trip 0 alan kaybı; invalid input 0 partial output | 20 Nov 2026 verified SHA [e6e0e3e](https://github.com/Taylan789/MobilyaCAD/commit/e6e0e3e24463e2a77e2e37f2206433f1a73b574d): QA 124/124 frontend + 570/570 domain; strict TS, lint 32 warnings/0 errors, production build and audit 0 vulnerabilities. DOM-076 Actions pending. |
+| Güvenilirlik | Strict TS, test, build, audit; import/export round-trip 0 alan kaybı; invalid input 0 partial output | 20 Nov 2026 verified SHA [67d462fa](https://github.com/Taylan789/MobilyaCAD/commit/67d462fa26df55b8f717067d73dd654dd7075d0e): QA 124/124 frontend + 579/579 domain; strict TS, lint (32 warnings/0 errors), production build and audit 0 vulnerabilities. DOM-076 strict CSV round-trip passed; JSON v1 schema unchanged. |
 | Edge-band export | Direction, catalog ID, mm/m, Part/furniture provenance and strict JSON round-trip; malformed/unsupported input blocked | DOM-068 verified: 124 frontend + 468 domain tests, strict type-check, build and audit; see Actions |
 
 
@@ -738,25 +738,26 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - No prices, conversions, missing categories, or machine standards are inferred; frontend download/import wiring remains UI-owned.
 
 
-## DOM-076 — Project material-consumption CSV v1 (implementation; Actions pending)
+## DOM-076 — Project material-consumption CSV v1 (DONE; Actions verified)
 
 - Strict CSV v1 preserves material/catalog identity, mm thickness, m2 area, m3 volume, mm directional edge-band totals, Part line count/quantity, Part IDs and furniture IDs.
-- Calculated material groups now include sorted furniture provenance. JSON v1 export deliberately omits runtime furniture IDs, keeping its strict legacy schema unchanged; CSV carries the IDs.
-- CSV uses exact metadata/header, UTF-8 BOM, quoted RFC 4180 cells and CRLF; 5 MB and 1,000 group caps. Import reuses the strict JSON v1 validator for arithmetic, canonical ordering and ID checks; malformed files never return partial groups.
-- Files: `domain/production/projectMaterialSummary.ts`, `projectMaterialSummaryFile.ts`, `projectMaterialSummaryCsv.ts`, regression tests, QA strict-domain type-check list, roadmap/progress/coordination.
-- Actions pending; local Node/TypeScript execution unavailable. No pricing, waste/yield, CNC/machine standard or frontend download wiring is implied.
-- Next: DOM-077 quote-summary/revision snapshot reconciliation; INT-001/INT-002 and PERF-001 stay in separate ownership lanes.
+- Calculated material groups carry sorted furniture provenance. JSON v1 export deliberately omits runtime furniture IDs, keeping its strict legacy schema unchanged; CSV carries the IDs.
+- Exact metadata/header, UTF-8 BOM, quoted cells, CRLF, 5 MB and 1,000 group limits; import reuses strict JSON v1 arithmetic/order/ID validation and never returns partial groups.
+- Acceptance: CSV round-trip, quoting, empty/legacy files, invalid totals/IDs, wrong version/units/header/numeric fields, truncated/extra rows, immutability and size bounds covered by tests.
+- **Verified code commit:** [67d462fa](https://github.com/Taylan789/MobilyaCAD/commit/67d462fa26df55b8f717067d73dd654dd7075d0e). [CI #44793078331](https://github.com/Taylan789/MobilyaCAD/actions/runs/44793078331), [QA #44793078386](https://github.com/Taylan789/MobilyaCAD/actions/runs/44793078386) and [Pages #44793078458](https://github.com/Taylan789/MobilyaCAD/actions/runs/44793078458) succeeded. QA: **579/579 domain tests**, strict domain TS, lint **32 warnings/0 errors**, build and audit **0 vulnerabilities**.
+- No price, waste/yield, CNC/machine standard or frontend download wiring is implied. Local Node/TS was unavailable; GitHub Actions is the verification source.
+- Next: DOM-077 quote-summary/revision snapshot reconciliation; INT-001/INT-002 and PERF-001 remain separately owned.
 
-### DOM-076 first QA correction — 20 November 2026
+### DOM-076 first QA correction — VERIFIED
 
-- CI [#44792604286](https://github.com/Taylan789/MobilyaCAD/actions/runs/44792604286) passed. QA [#44792604194](https://github.com/Taylan789/MobilyaCAD/actions/runs/44792604194) failed the domain suite: 568/579 passed, 11 failed. Root causes were a missing CSV ID-limit constant and expected material-summary fixtures not yet including the new runtime furniture IDs; strict calculation/validation was not loosened.
-- Pages [#44792605215](https://github.com/Taylan789/MobilyaCAD/actions/runs/44792605215) passed. The correction is pending Actions; no success claim for DOM-076.
+- First QA [#44792604194](https://github.com/Taylan789/MobilyaCAD/actions/runs/44792604194) exposed 11 failures: missing CSV ID-limit constant and outdated calculated-summary/JSON fixture expectations. These were corrected without relaxing arithmetic or strict validation.
+- Correction commit [67d462fa](https://github.com/Taylan789/MobilyaCAD/commit/67d462fa26df55b8f717067d73dd654dd7075d0e) passed [CI #44793078331](https://github.com/Taylan789/MobilyaCAD/actions/runs/44793078331), [QA #44793078386](https://github.com/Taylan789/MobilyaCAD/actions/runs/44793078386) and [Pages #44793078458](https://github.com/Taylan789/MobilyaCAD/actions/runs/44793078458). QA: 579/579 domain tests, type-check, lint, production build and audit (0 vulnerabilities) all successful.
 
 ### Sonraki 5 küçük teslimat
 
 | ID | Sahip | Durum / kabul kriteri | Bağımlılık |
 |---|---|---|---|
-| DOM-076 | Ürün Geliştirme | IN_PROGRESS — strict material-consumption CSV v1; mm/m²/m³, quantity, catalog/Part/furniture provenance, fail-closed round-trip | DOM-067/068 |
+| DOM-076 | Ürün Geliştirme | DONE — strict material-consumption CSV v1; unit/quantity/catalog/Part/furniture provenance; fail-closed round-trip; 579/579 QA tests | DOM-067/068 |
 | DOM-077 | Ürün Geliştirme | READY — quote-summary CSV/JSON ↔ immutable revision reconciliation; source IDs, currency/unit checks and legacy-safe blockers | DOM-072/073/075 |
 | INT-001 | Arayüz + Ürün | READY — frontend adapter consumes domain reports and blocks unsupported geometry export; round-trip tests | Production-domain contract |
 | INT-002 | Entegrasyon/Performans | READY — adapter round-trip integration tests, isolated specialist branch | INT-001 contract |

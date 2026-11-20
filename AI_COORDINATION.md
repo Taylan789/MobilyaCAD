@@ -300,7 +300,7 @@ Bu dosya dört geliştirme/denetim rolünün ortak görev panosu ve entegrasyon 
 | DOM-073 | Strict current project quote-summary JSON v1 export/import; exact line units, currency and source metadata, fail-closed totals | Product Development | DONE | Code [4180cced](https://github.com/Taylan789/MobilyaCAD/commit/4180ccedd7e7e075afb5e4cbcff7812ec8e168c8); CI [#44762193235](https://github.com/Taylan789/MobilyaCAD/actions/runs/44762193235), QA [#44762193376](https://github.com/Taylan789/MobilyaCAD/actions/runs/44762193376), Pages [#44762193338](https://github.com/Taylan789/MobilyaCAD/actions/runs/44762193338) successful — 124/124 frontend + 536/536 domain, strict TS, lint/build, audit 0 |
 | DOM-074 | Per-roll edge-band quote-cost CSV v1; exact roll count/length, unit, currency, price totals and Part/furniture/plan/price provenance | Product Development | DONE | [commit ed7a8acd](https://github.com/Taylan789/MobilyaCAD/commit/ed7a8acd749cf7c702500b931a8bd00dd36830d1); [CI #582](https://github.com/Taylan789/MobilyaCAD/actions/runs/44775913609), [QA #582](https://github.com/Taylan789/MobilyaCAD/actions/runs/44775913687), [Pages #409](https://github.com/Taylan789/MobilyaCAD/actions/runs/44775913803) successful — 124 frontend + 551 domain, strict TypeScript, lint/build/audit; 15 CSV tests |
 | DOM-075 | Strict project quote-summary CSV v1 for all cost categories, preserving units/currency/line source mapping and recomputed totals | Product Development | DONE | [code commit e6e0e3e24463e2a77e2e37f2206433f1a73b574d](https://github.com/Taylan789/MobilyaCAD/commit/e6e0e3e24463e2a77e2e37f2206433f1a73b574d); [CI](https://github.com/Taylan789/MobilyaCAD/actions/runs/44789821509), [QA](https://github.com/Taylan789/MobilyaCAD/actions/runs/44789821617), [Pages](https://github.com/Taylan789/MobilyaCAD/actions/runs/44789821636) all success; 570/570 tests, strict TS, build, audit 0 vulnerabilities, lint 32 warnings/0 errors |
-| DOM-076 | Strict material-consumption CSV v1 with mm/m²/m³, quantity, catalog/Part/furniture provenance and fail-closed round-trip | Product Development | IN_PROGRESS | DOM-067/068 JSON contracts; CSV serializer/parser + automated tests |
+| DOM-076 | Strict material-consumption CSV v1 with mm/m²/m³, quantity, catalog/Part/furniture provenance and fail-closed round-trip | Product Development | DONE | DOM-067/068 JSON contracts; CSV serializer/parser + 579/579 QA tests, CI/QA/Pages verified |
 | DOM-077 | Reconcile current quote-summary CSV/JSON with immutable quote revision snapshot import/export; preserve source IDs and legacy-safe blockers | Product Development | READY | DOM-072/073/075; exact source mapping and currency/unit checks; regression tests |
 
 
@@ -341,13 +341,9 @@ Bu dosya dört geliştirme/denetim rolünün ortak görev panosu ve entegrasyon 
 - Sonraki: DOM-070C phase 2 — açık uzunluk/rulo fiyatlama modu, rulo alım satırlarının metre bazlı satırları değiştirmesi (çift sayım olmaması), tek para birimi ve kaynak/Part bütünlüğü.
 
 
-## DOM-076 — material-consumption CSV v1 (Actions pending, 20 November 2026)
-- Calculated material groups now carry sorted furniture IDs; JSON v1 export omits runtime furniture IDs to preserve its strict legacy schema; CSV carries them.
-- Strict CSV v1 preserves catalog ID, units (mm/m2/m3), quantity, Part/furniture IDs and directional edge-band totals. JSON validation is reused for arithmetic, ordering and fail-closed behavior.
-- Code/tests and the QA strict-type-check list are committed together on `dev/github-work`. Frontend, integration/performance-owned files and read-only QA scope remain untouched.
-- Next domain task: DOM-077 quote-summary/revision snapshot reconciliation.
+## DOM-076 VERIFIED — 20 November 2026
 
-
-## DOM-076 QA correction — 20 November 2026
-- CI [#44792604286](https://github.com/Taylan789/MobilyaCAD/actions/runs/44792604286) and Pages [#44792605215](https://github.com/Taylan789/MobilyaCAD/actions/runs/44792605215) passed; QA [#44792604194](https://github.com/Taylan789/MobilyaCAD/actions/runs/44792604194) failed at domain tests (568/579, 11 failures).
-- Fixing missing CSV ID limit and material-summary fixture expectations; no production arithmetic or tests are being weakened. Actions rerun pending.
+- Commit [67d462fa](https://github.com/Taylan789/MobilyaCAD/commit/67d462fa26df55b8f717067d73dd654dd7075d0e); [CI #44793078331](https://github.com/Taylan789/MobilyaCAD/actions/runs/44793078331), [QA #44793078386](https://github.com/Taylan789/MobilyaCAD/actions/runs/44793078386), [Pages #44793078458](https://github.com/Taylan789/MobilyaCAD/actions/runs/44793078458) all succeeded.
+- QA: 579/579 domain tests, strict domain type-check, lint 32 warnings/0 errors, production build and audit 0 vulnerabilities.
+- First QA had 11 failures (missing ID-limit constant and fixture expectations); correction did not loosen validation.
+- Next: DOM-077 quote-summary/revision snapshot reconciliation. UI and integration/performance lanes remain isolated.

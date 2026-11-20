@@ -1802,18 +1802,17 @@
 - **Next:** DOM-076 material consumption CSV v1; DOM-077 quote-summary/revision snapshot reconciliation; frontend export integration remains UI-owned; INT-001/INT-002 and PERF-001 remain separate-agent tasks.
 
 
-## 20 Kasım 2026 21:12 TRT — DOM-076 material-consumption CSV v1 (implementation; Actions pending)
+## 20 Kasım 2026 21:12 TRT — DOM-076 material-consumption CSV v1 — VERIFIED
 
-- Added strict CSV v1 for net material consumption. It preserves mm thickness, m2 area, m3 volume, mm edge-band totals, quantity, catalog IDs, Part IDs and furniture IDs.
-- Calculated summaries include sorted furniture provenance; the strict JSON v1 file schema remains unchanged and omits runtime furniture IDs; CSV carries the IDs.
-- CSV import/export reuses strict JSON v1 validation for arithmetic, canonical group order, IDs and fail-closed behavior. Exact metadata/header, BOM/CRLF, 5 MB and 1,000-group bounds are enforced; malformed input returns no partial groups.
-- Changed files: domain/production/projectMaterialSummary.ts, projectMaterialSummaryFile.ts, projectMaterialSummaryCsv.ts + tests, projectMaterialSummary.test.mjs, projectMaterialSummaryFile.test.mjs, .github/workflows/qa-test.yml, PRODUCT_ROADMAP.md, AI_COORDINATION.md.
-- Commit and Actions evidence pending; local Node/TypeScript runner unavailable in this runtime. No frontend, adapter/performance-owned files or CNC/machine standards changed.
-- Next: DOM-077 quote-summary/revision snapshot reconciliation; INT-001, INT-002 and PERF-001 remain separate owner lanes.
+- **Initial commit:** [7382518f](https://github.com/Taylan789/MobilyaCAD/commit/7382518f602e10a337cc9379562e9f53d1a73703). **Correction/verified commit:** [67d462fa](https://github.com/Taylan789/MobilyaCAD/commit/67d462fa26df55b8f717067d73dd654dd7075d0e).
+- Added strict CSV v1 for net material consumption: mm thickness, m2 area, m3 volume, mm directional edge-band totals, quantity, catalog IDs, Part IDs and sorted furniture IDs. Calculated summaries include runtime furniture provenance; strict JSON v1 export omits it to preserve the existing schema.
+- CSV import/export reuses strict JSON v1 arithmetic and canonical-order checks. Exact metadata/header, BOM/CRLF, quoting, 5 MB/1,000-group caps, malformed-row fail-closed behavior and legacy/empty round-trips are tested.
+- **Actions:** [CI #44793078331](https://github.com/Taylan789/MobilyaCAD/actions/runs/44793078331), [QA #44793078386](https://github.com/Taylan789/MobilyaCAD/actions/runs/44793078386), [Pages #44793078458](https://github.com/Taylan789/MobilyaCAD/actions/runs/44793078458) all success. QA: **579/579 domain tests**, strict domain TypeScript, lint 32 warnings/0 errors, production build and security audit 0 vulnerabilities.
+- First QA [#44792604194](https://github.com/Taylan789/MobilyaCAD/actions/runs/44792604194) failed 11 tests; correction fixed the missing limit constant and fixture provenance expectations without weakening validation. Local tests were not run.
+- **Files:** `domain/production/projectMaterialSummary.ts`, `projectMaterialSummaryFile.ts`, `projectMaterialSummaryCsv.ts`, their tests, `projectProduction.test.mjs`, `.github/workflows/qa-test.yml`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`, `AI_COORDINATION.md`.
+- **Next:** DOM-077 quote-summary/revision snapshot reconciliation; UI download wiring remains UI-owned; INT-001/INT-002 and PERF-001 remain separate ownership tasks.
 
+### DOM-076 first QA correction — VERIFIED
 
-## 20 Kasım 2026 21:25 TRT — DOM-076 first QA correction
-
-- CI #44792604286 passed; Pages #44792605215 passed. QA #44792604194 failed: 568/579 domain tests passed, 11 failed.
-- Root cause: missing `maxPartIds` limit constant in CSV validation, plus existing material-summary and JSON fixture expectations that needed the calculated furniture IDs. No arithmetic or strict validation was relaxed.
-- Correction commit and rerun Actions pending. Frontend and other-agent-owned files remain untouched.
+- First QA [#44792604194](https://github.com/Taylan789/MobilyaCAD/actions/runs/44792604194) exposed 11 failures: missing CSV ID-limit constant and outdated calculated-summary/JSON fixture expectations. These were corrected without relaxing arithmetic or strict validation.
+- Correction commit [67d462fa](https://github.com/Taylan789/MobilyaCAD/commit/67d462fa26df55b8f717067d73dd654dd7075d0e) passed [CI #44793078331](https://github.com/Taylan789/MobilyaCAD/actions/runs/44793078331), [QA #44793078386](https://github.com/Taylan789/MobilyaCAD/actions/runs/44793078386) and [Pages #44793078458](https://github.com/Taylan789/MobilyaCAD/actions/runs/44793078458). QA: 579/579 domain tests, type-check, lint, production build and audit (0 vulnerabilities) all successful.
