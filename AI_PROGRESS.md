@@ -1650,3 +1650,11 @@
 ## 20 Kasım 2026 09:38 TRT — DOM-070A strict TypeScript fix (Actions pending)
 - QA #522 confirmed the domain test suite passed after the fixture corrections, but strict type-check failed with TS2345 (unknown input at the validator boundary) and TS2322 (optional waste allowance in the validated map). Both are type-model issues; runtime validation remains fail-closed.
 - Corrected the serializer call's typed boundary assertion and introduced an explicit validated roll-spec type where waste allowance is required. No runtime calculation/validation rules changed. CI #536 succeeded; Pages #363 is still running at this check. New Actions pending.
+
+
+## 20 Kasım 2026 09:42 TRT — DOM-070A verified complete
+- Final implementation commit [15e126e](https://github.com/Taylan789/MobilyaCAD/commit/15e126e551462b4229847f28a751f2aa6bc5bd1f) includes the typed fail-closed roll planner. Test fixture fixes: [b865667](https://github.com/Taylan789/MobilyaCAD/commit/b865667fa1b9a04646a2c2b911e1f81a1ea88207) corrected Part-line count, [b4b7339](https://github.com/Taylan789/MobilyaCAD/commit/b4b7339a7b4d555bb76b49b6f94f4bbec0bb81ca) corrected minimum edge count. Production validation was not weakened.
+- Final Actions: [CI #537](https://github.com/Taylan789/MobilyaCAD/actions/runs/44688842588), [QA #523](https://github.com/Taylan789/MobilyaCAD/actions/runs/44688842631), [Pages #364](https://github.com/Taylan789/MobilyaCAD/actions/runs/44688842430) succeeded. QA **124/124 frontend + 481/481 domain tests**, strict shared-domain TS, lint **32 warnings / 0 errors**, production build and production audit **0 vulnerabilities**.
+- The roll plan sums edge-band IDs across direction/unit groups; explicit roll length and optional fixed waste allowance are in mm; result contains roll count, purchased/leftover length and source IDs. Missing specs are incomplete; legacy/invalid/unused data blocks without partial results. No inferred waste percentage, per-roll price or workshop standard.
+- Local tests were not run; GitHub Actions is the verification source. Frontend/download wiring, DOM-070B per-roll pricing, CNC and physical workshop validation remain separate.
+- Next: DOM-070B per-roll pricing/quote integration; DOM-066 remains frontend-owned. INT-001/INT-002/PERF-001 specialist tasks are not active.

@@ -292,7 +292,7 @@ Bu dosya dört geliştirme/denetim rolünün ortak görev panosu ve entegrasyon 
 | DOM-068 | Strict directional edge-band JSON v1 (exact mm/m, edge, Part/furniture provenance, no partial parse) | DONE | Commit 0fb6e8b04a11251431cc2379d0c1137da10d72a3; CI https://github.com/Taylan789/MobilyaCAD/actions/runs/44684106913; QA https://github.com/Taylan789/MobilyaCAD/actions/runs/44684106780; 124 frontend + 468 domain tests passed. |
 | DOM-069 | Yönsel kenar bandı tüketim CSV v1; mm/m, edge, provenance, RFC 4180 | Ürün Geliştirme | DONE | Code [7be0d8a](https://github.com/Taylan789/MobilyaCAD/commit/7be0d8a31db5c4b2436ce948279d2f41815eee2b); test correction [51fd537](https://github.com/Taylan789/MobilyaCAD/commit/51fd537e74c8493613ac701720d94f85bae08b1d); CI #44685799599, QA #44685799531, Pages #44685799545 success — 124/124 frontend + 474/474 domain, strict TS/build, audit 0
 | DOM-070 | User-configured edge-band pricing and optional roll/waste inputs with exact source/unit; no inferred price/yield | Ürün Geliştirme | PLANNED | configurable inputs and validation; user/catalog values only |
-| DOM-070A | Explicit edge-band roll planning: aggregate mm/m consumption by catalog ID; use actual roll length and optional fixed waste allowance in mm; report roll count and remainder | Product Development | IN PROGRESS | deterministic 0.1 mm arithmetic; no partial output; tests and Actions pending |
+| DOM-070A | Explicit edge-band roll planning aggregates mm/m consumption by catalog ID; uses user roll length and optional fixed waste allowance in mm; calculates rolls/purchase/leftover | Product Development | DONE | [commit 15e126e](https://github.com/Taylan789/MobilyaCAD/commit/15e126e551462b4229847f28a751f2aa6bc5bd1f); CI #537, QA #523 (124 frontend + 481 domain), Pages #364 successful |
 
 
 ## DOM-069 — directional edge-band CSV v1 (verified)
@@ -317,3 +317,8 @@ Bu dosya dört geliştirme/denetim rolünün ortak görev panosu ve entegrasyon 
 
 ## DOM-070A Type-check correction note
 - QA #522 domain tests passed, then strict type-check reported two TS issues: the summary validator call needed an explicit typed-array assertion at its boundary, and the validated roll-spec map needed a required waste allowance type. These are corrected in the production module without loosening runtime checks. Actions pending.
+
+
+## DOM-070A final verification
+- Final implementation SHA `15e126e551462b4229847f28a751f2aa6bc5bd1f`. Fixture corrections were test-only and strict production checks were preserved.
+- [CI #537](https://github.com/Taylan789/MobilyaCAD/actions/runs/44688842588), [QA #523](https://github.com/Taylan789/MobilyaCAD/actions/runs/44688842631) and [Pages #364](https://github.com/Taylan789/MobilyaCAD/actions/runs/44688842430) succeeded. QA: 124 frontend + 481 domain tests, strict shared-domain TypeScript, lint 32 warnings/0 errors, production build and production audit 0 vulnerabilities.

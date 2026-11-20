@@ -576,8 +576,8 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 
 
 ## Next 5 small tasks
-1. DOM-070A IN PROGRESS — roll quantity plan from user-entered roll length and optional fixed waste allowance (mm), grouped by catalog ID.
-2. DOM-070B PLANNED — explicit per-roll pricing and quote integration with currency/source provenance; never infer price.
+1. DOM-070A DONE — roll quantity plan from user-entered roll length and optional fixed waste allowance (mm), grouped by catalog ID.
+2. DOM-070B READY — explicit per-roll pricing and quote integration with currency/source provenance; never infer price.
 3. DOM-066 PLANNED — frontend-owned quote comparison JSON/CSV download integration, including blocked-state handling.
 4. INT-001 READY — shared production report/export round-trip or unsupported-geometry blocker; contract remains shared.
 5. INT-002/PERF-001 READY — adapter fidelity and measured viewport baseline; specialist workflow currently disabled.
@@ -593,7 +593,7 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 | Üretim | Her Part için kaynak ID, quantity, mm ölçü, malzeme/kalınlık; unsupported geometri/export kısmi sonuç üretmeden blocker | Domain konstrüksiyon, tüketim, nesting freshness, teklif/revizyon ve JSON/CSV sözleşmeleri var; frontend adapter/CNC postprocessor eksik |
 | UX | Ana akışlarda işlevsel kontroller; klavye/focus, erişilebilirlik, responsive, boş/hata durumları otomatik doğrulanır | Frontend ayrı ajan alanında; gerçek tarayıcı görsel kabulü NOT MEASURED |
 | Performans | Referans sahnede p95 frame-time hedefi 16,7 ms (60 FPS), scene update p95 <100 ms, bellek ölçümü ve CI regression threshold | Referans sahne/benchmark NOT MEASURED; Integration/Performance job PR #103 ile disabled, ayrı branch/PR yok |
-| Güvenilirlik | Strict TS, test, build, audit; import/export round-trip 0 alan kaybı; invalid input 0 partial output | Son doğrulanmış QA: 124/124 frontend + 463/463 domain; strict TS, lint (32 warning/0 error), build ve audit 0 vulnerability |
+| Güvenilirlik | Strict TS, test, build, audit; import/export round-trip 0 alan kaybı; invalid input 0 partial output | Son doğrulanmış QA: 124/124 frontend + 481/481 domain; strict TS, lint (32 warning/0 error), build ve audit 0 vulnerability |
 | Edge-band export | Direction, catalog ID, mm/m, Part/furniture provenance and strict JSON round-trip; malformed/unsupported input blocked | DOM-068 verified: 124 frontend + 468 domain tests, strict type-check, build and audit; see Actions |
 
 
@@ -650,10 +650,10 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - The CSV parser delegates arithmetic, canonical order, duplicate and provenance limits to the strict JSON v1 contract to avoid validation drift. No price, roll size, waste/yield or CNC standard is inferred.
 
 
-## DOM-070A — Explicit edge-band roll quantity planning (Actions pending)
+## DOM-070A — Explicit edge-band roll quantity planning (Actions verified — 20 November 2026)
 
 - **User flow:** supply measured edge-band consumption, then enter actual roll length per catalog ID and optional fixed waste allowance in mm. Omitted allowance means 0 mm; no percentage or workshop standard is inferred.
 - **Acceptance:** groups sharing catalog ID aggregate across directions and mm/m; roll count is ceiling of explicit required length divided by roll length; purchased length and leftover are reported to 0.1 mm; Part/furniture IDs are sorted and deduplicated. Missing definitions are `incomplete`; legacy unassigned groups, invalid inputs and unused specs block the complete plan with no partial results. Empty input remains empty.
 - **Boundary:** pure domain calculation only. No UI/download adapter, price per roll, supplier catalog, CNC or physical workshop validation. Existing price-per-meter inputs remain separate.
 - **Files:** `domain/production/projectEdgeBandingRollPlan.ts`, its test, QA strict TypeScript list, coordination/progress.
-- **Actions:** CI #534 passed; QA #520 caught a test-fixture Part-line-count mismatch (1 line vs 2 IDs), not a production calculation error. A second fixture-only correction sets `edgeCount: 2` (the summary contract requires edge count at least the Part-line count); new QA pending. **Next:** DOM-070B explicit per-roll price/currency/source quote integration; DOM-066 frontend-owned.
+- **Actions:** final implementation SHA `15e126e551462b4229847f28a751f2aa6bc5bd1f`. [CI #537](https://github.com/Taylan789/MobilyaCAD/actions/runs/44688842588), [QA #523](https://github.com/Taylan789/MobilyaCAD/actions/runs/44688842631) and [Pages #364](https://github.com/Taylan789/MobilyaCAD/actions/runs/44688842430) all succeeded: 124/124 frontend + 481/481 domain, strict domain TypeScript, lint 32 warnings/0 errors, production build and audit 0 vulnerabilities. Earlier fixture failures were corrected without relaxing validation. **Next:** DOM-070B explicit per-roll price/currency/source quote integration; DOM-066 frontend-owned.
