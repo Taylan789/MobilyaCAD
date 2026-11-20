@@ -1771,3 +1771,13 @@
 - **QA history:** first two commits failed only strict type-check because serializer/parser result status still included `incomplete`; narrowed the validated return type in final SHA `4180cced`. No test or runtime validation was weakened. Local test runner was not executed.
 - **Limitations:** standalone JSON only; UI import/download adapter is not connected. No CNC/machine-specific output or physical workshop validation. UI PRs remain isolated; integration/performance specialist branch/PR is not evidenced in recent checks; AI Developer's last documented run was quota-limited (429), with no active run found.
 - **Next:** DOM-074 per-roll edge-band quote-cost CSV v1 with exact currency/unit and provenance, strict round-trip and no partial output.
+
+
+## 20 Kasım 2026 19:32 TRT — DOM-074 per-roll edge-band quote-cost CSV v1 (code delivery; Actions pending)
+
+- **Code commit:** SHA is recorded after the atomic code/documentation commit; CI/QA links will be added after remote Actions finish.
+- **Files:** \`domain/production/projectEdgeBandingRollCostCsv.ts\`, \`domain/production/projectEdgeBandingRollCostCsv.test.mjs\`, \`.github/workflows/qa-test.yml\`, \`PRODUCT_ROADMAP.md\`, \`AI_COORDINATION.md\`.
+- **Capability:** strict CSV v1 export/import for complete or empty per-roll quote-cost summaries; stable BOM/CRLF/RFC 4180 quoting, roll count, rulo unit, roll/purchased lengths in mm, currency, price, recomputed line/grand totals, catalog ID, Part/furniture IDs, and plan/price references. Invalid/unsupported/missing rows fail closed; incomplete/blocked summaries emit no CSV.
+- **Acceptance:** 15 tests cover ready/empty round-trip, blocked/incomplete, header/version/row type, missing/extra rows, arithmetic, roll-length/count/unit, sort/identity, provenance lists, multiline quoting, unknown metadata, immutability and 5 MB limit. QA type-check includes the new module. Local Node/TypeScript runner was unavailable; Actions are pending.
+- **Known boundary:** consumed length and waste are not exported because the quote-cost summary does not carry them; no values are inferred. No UI adapter or CNC/machine output is added.
+- **Next:** DOM-075 strict project quote-summary CSV v1; frontend download wiring remains UI-owned. Integration/performance agent has no evidenced active branch/PR; INT-002/PERF-001 remain separate.

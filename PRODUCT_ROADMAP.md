@@ -576,7 +576,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 
 
 ## Next 5 small tasks
-1. DOM-074 READY — strict per-roll edge-band quote-cost CSV export/import; exact rulo count/length, currency, Part/furniture/source provenance, fail-closed.
+1. DOM-074 IN PROGRESS — strict per-roll edge-band quote-cost CSV v1; exact roll count/length, currency, price/unit and Part/furniture/plan/price provenance, fail-closed parser.
 2. DOM-066 FRONTEND-OWNED — integrate quote revision comparison JSON/CSV downloads without touching its PR/branch.
 3. INT-001 SHARED/READY — stable quote output contract and integration requirements; UI-owned implementation remains isolated.
 4. INT-002/PERF-001 INTEGRATION-OWNED — adapter tests and profiling/benchmark evidence; no specialist agent/PR currently evidenced.
@@ -715,3 +715,14 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - **Actions:** CI [#44762193235](https://github.com/Taylan789/MobilyaCAD/actions/runs/44762193235) success; QA [#44762193376](https://github.com/Taylan789/MobilyaCAD/actions/runs/44762193376) success — 124/124 frontend + 536/536 domain tests, strict type-check, lint 32 warnings/0 errors, production build, audit 0 vulnerabilities; Pages [#44762193338](https://github.com/Taylan789/MobilyaCAD/actions/runs/44762193338) success.
 - **Boundary:** standalone JSON contract only; frontend download/import wiring is not implemented. Currency conversion, pricing, CNC standards and physical workshop validation are not inferred.
 - **Next:** DOM-074 strict per-roll edge-band quote-cost CSV; DOM-066 remains frontend-owned.
+
+
+## DOM-074 — Per-roll edge-band quote-cost CSV v1 (implementation; Actions pending)
+
+- A new strict CSV v1 contract exports only complete per-roll cost summaries or truly empty summaries. Incomplete/blocked totals never produce a partial file.
+- Stable quoted columns and row types preserve roll count, explicit unit (rulo), roll length and purchased length in mm, price in smallest currency unit, exact line totals/currency, edge-band catalog ID, Part/furniture provenance and plan/price source references.
+- Import recomputes cost line arithmetic and grand total, verifies roll-count × roll-length, row IDs/order, currency, 0.1 mm precision, source arrays and CSV schema/version. Invalid or unsupported rows fail closed.
+- CSV uses UTF-8 BOM, CRLF and RFC 4180 quoting; parser cap is 5 MB / 1,000 cost rows. Consumed length and waste allowance are intentionally not invented because the existing quote-cost summary does not expose them.
+- Files: \`domain/production/projectEdgeBandingRollCostCsv.ts\`, \`domain/production/projectEdgeBandingRollCostCsv.test.mjs\`, QA strict domain type-check list. Frontend files remain untouched.
+- Acceptance: 15 automated cases cover ready/empty round-trip, incomplete/blocked, schema/version, totals, roll arithmetic, order/identity, provenance, quoting, immutability and size limits. Local tests are unavailable; Actions pending.
+- Next: DOM-075 project quote-summary CSV v1 (all cost categories, strict round-trip and source mapping); frontend download integration remains UI-owned.
