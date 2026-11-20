@@ -528,7 +528,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 5. DOM-065 DONE — revision comparator and JSON/CSV round-trip for adjustment-line provenance.
 6. DOM-066 PLANNED — frontend-owned revision-comparison download wiring; not this branch's file ownership.
 7. DOM-067 DONE — strict material-consumption JSON v1; Actions verified.
-8. DOM-068 DONE — strict directional edge-band consumption JSON v1; code complete, Actions pending.
+8. DOM-068 DONE — strict directional edge-band consumption JSON v1; Actions verified (124 frontend + 468 domain tests; strict TS/build/audit).
 9. DOM-069 PLANNED — strict directional edge-band consumption CSV v1 with exact mm/m, edge, provenance, UTF-8 BOM/CRLF and RFC 4180 escaping.
 10. DOM-070 PLANNED — configurable edge-band catalog cost and optional user-supplied roll/waste inputs; no inferred price or yield.
 
@@ -597,7 +597,7 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 | UX | Ana akışlarda işlevsel kontroller; klavye/focus, erişilebilirlik, responsive, boş/hata durumları otomatik doğrulanır | Frontend ayrı ajan alanında; gerçek tarayıcı görsel kabulü NOT MEASURED |
 | Performans | Referans sahnede p95 frame-time hedefi 16,7 ms (60 FPS), scene update p95 <100 ms, bellek ölçümü ve CI regression threshold | Referans sahne/benchmark NOT MEASURED; Integration/Performance job PR #103 ile disabled, ayrı branch/PR yok |
 | Güvenilirlik | Strict TS, test, build, audit; import/export round-trip 0 alan kaybı; invalid input 0 partial output | Son doğrulanmış QA: 124/124 frontend + 463/463 domain; strict TS, lint (32 warning/0 error), build ve audit 0 vulnerability |
-| Edge-band export | Direction, catalog ID, mm/m, Part/furniture provenance and strict JSON round-trip; malformed/unsupported input blocked | DOM-068 code/test pending Actions verification |
+| Edge-band export | Direction, catalog ID, mm/m, Part/furniture provenance and strict JSON round-trip; malformed/unsupported input blocked | DOM-068 verified: 124 frontend + 468 domain tests, strict type-check, build and audit; see Actions |
 
 
 ## DOM-063 — Teklif revizyon karşılaştırması CSV v1 (20 Kasım 2026, verified)
@@ -645,4 +645,4 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - Adds strict versioned JSON for measured edge-band demand. Directional groups retain edge, catalog ID, unit (mm/m), mm length, edge count, Part IDs and furniture IDs; legacy unassigned edge-banding remains a null-catalog mm group without an invented direction.
 - Exact fields/schema/units, group identity, canonical order, provenance IDs, length/quantity conversion and edge/Part counts are validated. Shared Part IDs across distinct groups are allowed; parser returns no partial output on failure.
 - No roll size, waste/yield, price, CNC operation or workshop standard is inferred. Download wiring remains frontend-owned.
-- Actions verification pending; local execution unavailable in this remote GitHub-only environment.
+- Actions verified on commit 0fb6e8b04a11251431cc2379d0c1137da10d72a3: CI https://github.com/Taylan789/MobilyaCAD/actions/runs/44684106913; QA https://github.com/Taylan789/MobilyaCAD/actions/runs/44684106780; Pages https://github.com/Taylan789/MobilyaCAD/actions/runs/44684106800. Domain tests 468/468, frontend 124/124; strict type-check, build and audit successful. Lint 32 warnings, 0 errors; no local run.

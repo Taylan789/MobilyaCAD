@@ -1606,7 +1606,9 @@
 - Next: DOM-068 — directional edge-band consumption JSON v1 preserving exact mm/m, edge, Part and furniture provenance; DOM-066 remains frontend-owned.
 
 
-## 20 Kasım 2026 08:32 TRT — DOM-068 directional edge-band JSON v1 (Actions pending)
+## 20 Kasım 2026 08:32 TRT — DOM-068 directional edge-band JSON v1 (Actions verified)
 - Added `domain/production/projectEdgeBandingConsumptionFile.ts` strict JSON v1 serializer/parser and `projectEdgeBandingConsumptionFile.test.mjs` production-driven round-trip tests for legacy mm, directional top mm/left m, shared Part provenance, empty summaries, malformed/unknown/unsupported input, arithmetic/order/duplicate blockers, 10,000-ID and 5 MB limits.
-- Added strict QA type-check wiring; updated roadmap and coordination. Commit/Actions pending. Local tests unavailable; Actions is the verification source.
+- Added strict QA type-check wiring; updated roadmap and coordination. Commit 0fb6e8b04a11251431cc2379d0c1137da10d72a3. CI https://github.com/Taylan789/MobilyaCAD/actions/runs/44684106913; QA https://github.com/Taylan789/MobilyaCAD/actions/runs/44684106780; Pages https://github.com/Taylan789/MobilyaCAD/actions/runs/44684106800. QA: 124/124 frontend and 468/468 domain tests, strict TypeScript, lint (32 warnings/0 errors), build, audit (0 vulnerabilities).
 - Boundaries: no roll/waste/price/CNC inference; frontend-owned download controls unchanged. Next: DOM-069 strict CSV v1.
+
+- AI Developer run #16 failed at the free-model daily rate limit; no rerun was issued because the reported quota is exhausted. Prior run #15 was not for this new SHA.
