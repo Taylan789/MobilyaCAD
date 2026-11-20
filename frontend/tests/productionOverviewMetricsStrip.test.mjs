@@ -28,7 +28,7 @@ test("production overview keeps four live values in a compact non-card strip", (
 
 test("metric values stay tabular and hover remains free of card lift", () => {
   assert.match(styles, /font-variant-numeric: tabular-nums/);
-  const hover = styles.match(/\\.mc-production__metric:hover\\s*\\{([^}]*)\\}/);
+  const hover = styles.match(/\.mc-production__metric:hover\s*\{([^}]*)\}/);
   assert.ok(hover, "metric hover treatment should be scoped");
   assert.match(hover[1], /transform: none/);
   assert.match(hover[1], /box-shadow: none/);
