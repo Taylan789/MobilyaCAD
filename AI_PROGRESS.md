@@ -1840,3 +1840,5 @@
 - CI [#44805760178](https://github.com/Taylan789/MobilyaCAD/actions/runs/44805760178) passed. Pages [#44805760151](https://github.com/Taylan789/MobilyaCAD/actions/runs/44805760151) deployed despite failed QA; frontend source was unchanged, but the workflow was not fail-closed.
 - OPS-001 adds a Pages verification job that waits for the exact SHA's CI and QA success (workflow IDs 417991874/419079561); deployment depends on both build and verification. Timeout/failure blocks deployment.
 - The corrected test commit is `e2dbfb00ba1213568c4c519b1a45f675937b21f3`. Pages gate commit and Actions verification pending. Next: DOM-078 material catalog resource identity in quote-line provenance.
+
+- Contents-API push trigger for Actions: documentation SHA and workflow commit are recorded in the preceding section; verification run pending.
