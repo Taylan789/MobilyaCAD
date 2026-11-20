@@ -4,7 +4,6 @@ import {
   ArrowLeft,
   CheckCircle2,
   ClipboardList,
-  Factory,
   Package,
 } from "lucide-react";
 
@@ -61,7 +60,20 @@ export function ProductionWorkspace({
       <header className="mc-production-studio__topbar">
         <div className="mc-production-studio__brand">
           <span className="mc-production-studio__brand-mark" aria-hidden="true">
-            <Factory />
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.65"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <path d="M4 6.25 12 3l8 3.25v11.5L12 21l-8-3.25z" />
+              <path d="M12 9.5 4 6.25M12 9.5l8-3.25M12 9.5V21" />
+              <path d="M8 7.9v8.3l4 1.6 4-1.6V7.9M12 9.5v8.3" />
+            </svg>
           </span>
           <span className="mc-production-studio__brand-copy">
             <small>MOBİLYACAD / WORKSPACE</small>
