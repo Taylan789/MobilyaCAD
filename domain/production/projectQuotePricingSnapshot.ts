@@ -1,5 +1,6 @@
 import {
   calculateProjectQuoteSummary,
+  type ProjectQuoteEdgeBandingRollOptions,
   type ProjectQuoteSummary
 } from "./projectQuoteSummary.ts";
 
@@ -34,6 +35,9 @@ export interface ProjectQuotePricingSnapshotInput {
   consumptionPriceList?: ProjectQuoteCatalogVersionInput | null;
   laborOperationTariffList?: ProjectQuoteCatalogVersionInput | null;
   quoteAdjustments?: unknown;
+  edgeBandingPricingMode?: "length" | "roll";
+  edgeBandingRollSpecs?: unknown;
+  edgeBandingRollPriceTable?: unknown;
 }
 
 export interface ProjectQuotePricingSnapshotResult {
@@ -51,7 +55,10 @@ const inputKeys = new Set([
   "tariffTable",
   "consumptionPriceList",
   "laborOperationTariffList",
-  "quoteAdjustments"
+  "quoteAdjustments",
+  "edgeBandingPricingMode",
+  "edgeBandingRollSpecs",
+  "edgeBandingRollPriceTable"
 ]);
 const catalogVersionKeys = new Set([
   "catalogId",
@@ -173,12 +180,22 @@ export function createProjectQuotePricingSnapshot(
 
   let quoteSummary: ProjectQuoteSummary;
   try {
+    const quoteOptions: ProjectQuoteEdgeBandingRollOptions = {};
+    if (value.edgeBandingPricingMode !== undefined) {
+      if (value.edgeBandingPricingMode !== "length" && value.edgeBandingPricingMode !== "roll") {
+        throw new Error("Teklif kenar bandı fiyatlama modu length veya roll olmalıdır.");
+      }
+      quoteOptions.edgeBandingPricingMode = value.edgeBandingPricingMode;
+    }
+    if (value.edgeBandingRollSpecs !== undefined) quoteOptions.edgeBandingRollSpecs = value.edgeBandingRollSpecs;
+    if (value.edgeBandingRollPriceTable !== undefined) quoteOptions.edgeBandingRollPriceTable = value.edgeBandingRollPriceTable;
     quoteSummary = calculateProjectQuoteSummary(
       value.productionReport,
       value.consumptionPriceTable,
       value.workItems,
       value.tariffTable,
-      value.quoteAdjustments
+      value.quoteAdjustments,
+      quoteOptions
     );
   } catch (error) {
     return blocked(error instanceof Error ? error.message : String(error));

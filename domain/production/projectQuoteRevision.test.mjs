@@ -193,6 +193,36 @@ function createHistoryWithSnapshots(fromSnapshot, toSnapshot) {
 }
 
 
+
+function createRollSnapshot() {
+  const snapshot = createSnapshotWithQuoteLines([
+    createEdgeQuoteLine({
+      id: "edge-roll-pvc-a",
+      edge: "rulo",
+      quantity: 2,
+      unit: "rulo",
+      unitPriceMinor: 15000,
+      sourceReference: "roll-prices:v1",
+      sourceId: "edge-roll-pvc-a",
+      sourcePartIds: ["part-a", "part-b"],
+      description: "PVC rulo satın alımı"
+    })
+  ]);
+  const source = snapshot.quoteSummary.lineSources.at(-1);
+  Object.assign(source, {
+    resourceType: "edge-banding",
+    resourceId: "pvc-a",
+    unit: "rulo",
+    rollCount: 2,
+    rollLengthMm: 100000,
+    purchasedLengthMm: 200000,
+    furnitureIds: ["cabinet-a"],
+    planSourceReference: "roll-spec:v1",
+    priceSourceReference: "roll-prices:v1"
+  });
+  return snapshot;
+}
+
 function createFirstRevision(overrides = {}) {
   return {
     projectId: "project-42",
@@ -1226,4 +1256,36 @@ test("DOM-065 revision comparison preserves waste/profit added, removed and chan
   const profitRemoved = find("profit-remove");
   assert.equal(profitRemoved.type, "removed");
   assert.equal(profitRemoved.from.sourceReference, "profit:remove:v1");
+});
+test("roll purchase lines retain source metadata in immutable quote revisions", () => {
+  const result = createProjectQuoteRevision(createFirstRevision({
+    pricingSnapshot: createRollSnapshot()
+  }));
+
+  assert.equal(result.status, "ready");
+  assert.ok(result.revision);
+  const summary = result.revision.pricingSnapshot.quoteSummary;
+  const rollLine = summary.costSummary.lines.find(line => line.unit === "rulo");
+  const rollSource = summary.lineSources.find(source => source.unit === "rulo");
+  assert.ok(rollLine);
+  assert.ok(rollSource);
+  assert.equal(rollLine.quantity, 2);
+  assert.equal(rollSource.rollCount, 2);
+  assert.equal(rollSource.rollLengthMm, 100000);
+  assert.equal(rollSource.purchasedLengthMm, 200000);
+  assert.deepEqual(rollSource.sourcePartIds, ["part-a", "part-b"]);
+  assert.deepEqual(rollSource.furnitureIds, ["cabinet-a"]);
+  assert.equal(rollSource.planSourceReference, "roll-spec:v1");
+  assert.equal(rollSource.priceSourceReference, "roll-prices:v1");
+});
+
+test("roll count and purchased length must reconcile with the roll cost line", () => {
+  const snapshot = createRollSnapshot();
+  const source = snapshot.quoteSummary.lineSources.find(item => item.unit === "rulo");
+  assert.ok(source);
+  source.rollCount = 1;
+
+  const result = createProjectQuoteRevision(createFirstRevision({ pricingSnapshot: snapshot }));
+  assert.equal(result.status, "blocked");
+  assert.match(result.diagnostics.join(" "), /rulo adedi.*quantity/);
 });

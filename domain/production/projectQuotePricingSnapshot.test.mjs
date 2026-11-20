@@ -78,6 +78,45 @@ const laborOperationTariffList = {
   effectiveFrom: "2026-11-01"
 };
 
+
+function createEdgeBandingReport() {
+  const edgeBandingByGroup = Object.fromEntries(
+    BODY_PANEL_GROUPS.map((group) => [group, { ...noBanding }])
+  );
+  edgeBandingByGroup.leftSide = { ...noBanding, top: true };
+  return calculateCabinetProjectProductionWithDiagnostics({
+    schemaVersion: 1,
+    furniture: [{
+      schemaVersion: 1,
+      furniture: {
+        id: "snapshot-cabinet-1",
+        widthMm: 800,
+        heightMm: 720,
+        depthMm: 560,
+        material: "MDF Lam 18",
+        materialId: "mdf-18",
+        family: "cabinet"
+      },
+      profile: {
+        panelThicknessMm: 18,
+        carcassStyle: "between-sides",
+        backPanel: { enabled: false },
+        shelfCount: 0,
+        doors: { enabled: false, count: 0 },
+        edgeBandingByGroup
+      },
+      materials: [
+        { id: "mdf-18", name: "MDF Lam 18", category: "panel", thicknessesMm: [18], unit: "mm" }
+      ]
+    }],
+    edgeBandingAssignments: [{
+      partId: "snapshot-cabinet-1-left-side",
+      edgeBandingId: "pvc-a",
+      unit: "mm"
+    }]
+  });
+}
+
 function createInput(overrides = {}) {
   return {
     quotedOn: "2026-11-30",
@@ -222,4 +261,51 @@ test("açık fire/kâr satırları teklif fiyat snapshot'ında maliyet ve kaynak
   assert.equal(result.snapshot?.quoteSummary.lineSources.at(-1).sourceId, "waste-board-cut");
   assert.equal(result.snapshot?.quoteSummary.costSummary?.lines.at(-1).sourceReference, "atolye-fire-hesabi:v1");
   assert.ok(Object.isFrozen(result.snapshot?.quoteSummary.costSummary?.lines.at(-1)));
+});
+test("roll pricing options are included in the immutable quote snapshot with provenance", () => {
+  const result = createProjectQuotePricingSnapshot({
+    quotedOn: "2026-11-30",
+    productionReport: createEdgeBandingReport(),
+    consumptionPriceTable: [{
+      resourceType: "material",
+      resourceId: "mdf-18",
+      unit: "m2",
+      unitPriceMinor: 1250,
+      currencyCode: "TRY",
+      sourceReference: "material-list:v1"
+    }],
+    workItems: [],
+    tariffTable: [],
+    consumptionPriceList,
+    laborOperationTariffList: null,
+    edgeBandingPricingMode: "roll",
+    edgeBandingRollSpecs: [{
+      edgeBandingId: "pvc-a",
+      rollLengthMm: 100000,
+      sourceReference: "roll-spec:v1"
+    }],
+    edgeBandingRollPriceTable: [{
+      edgeBandingId: "pvc-a",
+      unit: "rulo",
+      unitPriceMinor: 15000,
+      currencyCode: "TRY",
+      sourceReference: "roll-prices:v1"
+    }]
+  });
+
+  assert.equal(result.status, "ready");
+  assert.ok(result.snapshot);
+  const rollLine = result.snapshot.quoteSummary.costSummary.lines.find(line => line.unit === "rulo");
+  const rollSource = result.snapshot.quoteSummary.lineSources.find(source => source.unit === "rulo");
+  assert.ok(rollLine);
+  assert.ok(rollSource);
+  assert.equal(rollLine.quantity, rollSource.rollCount);
+  assert.equal(rollSource.resourceId, "pvc-a");
+  assert.equal(rollSource.rollLengthMm, 100000);
+  assert.equal(rollSource.purchasedLengthMm, rollSource.rollCount * 100000);
+  assert.deepEqual(rollSource.sourcePartIds, ["snapshot-cabinet-1-left-side"]);
+  assert.deepEqual(rollSource.furnitureIds, ["snapshot-cabinet-1"]);
+  assert.equal(rollSource.planSourceReference, "roll-spec:v1");
+  assert.equal(rollSource.priceSourceReference, "roll-prices:v1");
+  assert.equal(result.snapshot.quoteSummary.costSummary.lines.some(line => line.unit === "mm" || line.unit === "m"), false);
 });

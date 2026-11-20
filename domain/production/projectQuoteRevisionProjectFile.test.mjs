@@ -67,6 +67,48 @@ function createRevision(overrides = {}) {
   };
 }
 
+
+function createRollSnapshot() {
+  const snapshot = structuredClone(snapshotResult.snapshot);
+  const quoteSummary = snapshot.quoteSummary;
+  const costSummary = quoteSummary.costSummary;
+  assert.ok(costSummary);
+  const lineTotalMinor = 30000;
+  const line = {
+    id: "edge-roll-pvc-a",
+    category: "material",
+    description: "PVC rulo satın alımı",
+    quantity: 2,
+    unit: "rulo",
+    unitPriceMinor: 15000,
+    lineTotalMinor,
+    currencyCode: "TRY",
+    sourceReference: "roll-prices:v1"
+  };
+  costSummary.lines.push(line);
+  costSummary.lineCount = costSummary.lines.length;
+  costSummary.categoryTotalsMinor.material += lineTotalMinor;
+  costSummary.grandTotalMinor += lineTotalMinor;
+  quoteSummary.requiredLineCount += 1;
+  quoteSummary.pricedLineCount += 1;
+  quoteSummary.lineSources.push({
+    costLineId: line.id,
+    sourceType: "production-consumption",
+    sourceId: line.id,
+    sourcePartIds: ["part-a", "part-b"],
+    resourceType: "edge-banding",
+    resourceId: "pvc-a",
+    unit: "rulo",
+    rollCount: 2,
+    rollLengthMm: 100000,
+    purchasedLengthMm: 200000,
+    furnitureIds: ["cabinet-a"],
+    planSourceReference: "roll-spec:v1",
+    priceSourceReference: "roll-prices:v1"
+  });
+  return snapshot;
+}
+
 test("JSON v1 geçmiş alanı olmadan legacy kalır ve v1'e append engellenir", () => {
   const legacy = {
     format: "MobilyaCAD",
@@ -275,4 +317,32 @@ test("yinelenen revizyon kimliği veya geçersiz snapshot append'i bloklar ve ka
   assert.equal(invalidSnapshot.status, "blocked");
   assert.equal(invalidSnapshot.project, null);
   assert.equal(first.history?.revisions.length, 1);
+});
+test("roll purchase metadata survives JSON v2 quote-history append/read round-trip", () => {
+  const result = appendProjectQuoteRevisionToProjectFile(
+    createV2Project(),
+    createRevision({ pricingSnapshot: createRollSnapshot() })
+  );
+  assert.equal(result.status, "ready");
+  assert.ok(result.project);
+
+  const read = readProjectQuoteRevisionHistoryFromProjectFile(result.project);
+  assert.equal(read.status, "ready");
+  const revision = read.history?.revisions[0];
+  assert.ok(revision);
+  const summary = revision.pricingSnapshot.quoteSummary;
+  const rollLine = summary.costSummary.lines.find(line => line.unit === "rulo");
+  const rollSource = summary.lineSources.find(source => source.unit === "rulo");
+  assert.ok(rollLine);
+  assert.ok(rollSource);
+  assert.equal(rollLine.quantity, 2);
+  assert.equal(rollLine.unitPriceMinor, 15000);
+  assert.equal(rollLine.lineTotalMinor, 30000);
+  assert.equal(rollSource.rollCount, 2);
+  assert.equal(rollSource.rollLengthMm, 100000);
+  assert.equal(rollSource.purchasedLengthMm, 200000);
+  assert.deepEqual(rollSource.sourcePartIds, ["part-a", "part-b"]);
+  assert.deepEqual(rollSource.furnitureIds, ["cabinet-a"]);
+  assert.equal(rollSource.planSourceReference, "roll-spec:v1");
+  assert.equal(rollSource.priceSourceReference, "roll-prices:v1");
 });

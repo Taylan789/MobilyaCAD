@@ -109,7 +109,12 @@ const costLineKeys = new Set([
 ]);
 const sourceKeys = new Set([
   "costLineId", "sourceType", "sourceId", "tariffId", "sourcePartIds",
-  "resourceType", "resourceId", "unit", "edgeDirection"
+  "resourceType", "resourceId", "unit", "edgeDirection", "rollCount", "rollLengthMm",
+  "purchasedLengthMm", "furnitureIds", "planSourceReference", "priceSourceReference"
+]);
+const rollMetadataKeys = new Set([
+  "rollCount", "rollLengthMm", "purchasedLengthMm", "furnitureIds",
+  "planSourceReference", "priceSourceReference"
 ]);
 const costCategories = ["material", "hardware", "labor", "operation", "waste", "profit"];
 const identifierPattern = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
@@ -162,6 +167,30 @@ function requireSafeInteger(value: unknown, label: string, minimum: number): num
     throw new Error(label + " en az " + minimum + " olan güvenli bir tam sayı olmalıdır.");
   }
   return value;
+}
+
+
+function requireRollLengthTenths(value: unknown, label: string, maxMm?: number): number {
+  if (typeof value !== "number" || !Number.isFinite(value) || value <= 0 || (maxMm !== undefined && value > maxMm)) {
+    throw new Error(label + " pozitif, sonlu ve izin verilen mm sınırında olmalıdır.");
+  }
+  const tenths = Math.round(value * 10);
+  if (!Number.isSafeInteger(tenths) || Math.abs(tenths / 10 - value) > 1e-8) {
+    throw new Error(label + " en fazla 0.1 mm hassasiyetinde olmalıdır.");
+  }
+  return tenths;
+}
+
+function validateSortedIdentifiers(value: unknown, label: string): void {
+  if (!Array.isArray(value) || value.length === 0 || value.length > 10000) {
+    throw new Error(label + " 1-10.000 arası kimlik içeren bir liste olmalıdır.");
+  }
+  let previous: string | undefined;
+  for (const raw of value) {
+    const id = requireIdentifier(raw, label + " kimliği");
+    if (previous !== undefined && previous >= id) throw new Error(label + " sıralı ve benzersiz olmalıdır.");
+    previous = id;
+  }
 }
 
 function requireDateOnly(value: unknown, label: string): string {
@@ -362,17 +391,46 @@ function validateQuoteSummary(value: unknown, strictSourceIntegrity = false): as
       const sourceEdgeDirection = source.edgeDirection === undefined
         ? undefined
         : requireEdgeDirection(source.edgeDirection, "Teklif kaynak kenar yönü");
-      if (
-        line.category !== "material" ||
-        (unit !== "mm" && unit !== "m") ||
-        sourceEdgeDirection !== edgeDirection
-      ) {
-        throw new Error("Teklif kenar bandı kaynak kimliği, birim veya yön alanları tutarsız.");
+      const hasRollMetadata = [...rollMetadataKeys].some(key =>
+        Object.prototype.hasOwnProperty.call(source, key)
+      );
+      if (unit === "rulo") {
+        if (line.category !== "material" || edgeDirection !== undefined || sourceEdgeDirection !== undefined) {
+          throw new Error("Rulo kenar bandı satırı yön taşımayan material maliyet satırı olmalıdır.");
+        }
+        const rollCount = requireSafeInteger(source.rollCount, "Kenar bandı rulo adedi", 1);
+        const rollLengthTenths = requireRollLengthTenths(source.rollLengthMm, "Kenar bandı rulo uzunluğu", 10_000_000);
+        const purchasedLengthTenths = requireRollLengthTenths(source.purchasedLengthMm, "Kenar bandı satın alınan uzunluğu");
+        if (line.quantity !== rollCount) {
+          throw new Error("Kenar bandı rulo adedi maliyet satırı quantity değeriyle uyuşmuyor.");
+        }
+        const expectedPurchasedLengthTenths = rollLengthTenths * rollCount;
+        if (!Number.isSafeInteger(expectedPurchasedLengthTenths) || purchasedLengthTenths !== expectedPurchasedLengthTenths) {
+          throw new Error("Kenar bandı satın alınan uzunluğu rulo adedi ve rulo uzunluğuyla uyuşmuyor.");
+        }
+        if (!Array.isArray(source.sourcePartIds) || source.sourcePartIds.length === 0) {
+          throw new Error("Rulo kenar bandı kaynak Part kimlikleriyle eşleşmelidir.");
+        }
+        validateSortedIdentifiers(source.furnitureIds, "Rulo kenar bandı mobilya kimlikleri");
+        if (source.planSourceReference !== undefined) requireText(source.planSourceReference, "Rulo plan kaynak referansı", 256);
+        if (source.priceSourceReference !== undefined) requireText(source.priceSourceReference, "Rulo fiyat kaynak referansı", 256);
+      } else {
+        if (
+          line.category !== "material" ||
+          (unit !== "mm" && unit !== "m") ||
+          sourceEdgeDirection !== edgeDirection
+        ) {
+          throw new Error("Teklif kenar bandı kaynak kimliği, birim veya yön alanları tutarsız.");
+        }
+        if (hasRollMetadata) {
+          throw new Error("Rulo metadata yalnızca rulo birimli kenar bandı satırlarında kullanılabilir.");
+        }
       }
     } else if (
       source.resourceId !== undefined ||
       source.unit !== undefined ||
-      source.edgeDirection !== undefined
+      source.edgeDirection !== undefined ||
+      [...rollMetadataKeys].some(key => Object.prototype.hasOwnProperty.call(source, key))
     ) {
       throw new Error("Teklif kaynak metadata alanları resourceType ile birlikte kullanılmalıdır.");
     }
