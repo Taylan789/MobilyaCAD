@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from "react";
 import type { ChangeEvent } from "react";
-import { ArrowDownToLine, FileJson, FileSpreadsheet, History, AlertTriangle, CheckCircle2 } from "lucide-react";
+import { ArrowDownToLine, FileJson, FileSpreadsheet, History, AlertTriangle, CheckCircle2, LoaderCircle } from "lucide-react";
 
 import { Button } from "../ui/button";
 import {
@@ -65,7 +65,7 @@ function downloadText(filename: string, content: string, mimeType: string): void
   document.body.appendChild(anchor);
   anchor.click();
   anchor.remove();
-  URL.revokeObjectURL(url);
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 function revisionLabel(revision: ProjectQuoteRevisionHistory["revisions"][number]): string {
@@ -76,17 +76,23 @@ function revisionLabel(revision: ProjectQuoteRevisionHistory["revisions"][number
   return "Rev. " + revision.revisionNumber + " · " + dateLabel;
 }
 
+const sourceTypeLabels: Record<string, string> = {
+  "production-consumption": "Üretim tüketimi",
+  "labor-operation": "İşçilik / operasyon",
+  "quote-adjustment": "Teklif düzeltmesi",
+};
+
 function sourceTypeLabel(value: string): string {
-  return {
-    "production-consumption": "Üretim tüketimi",
-    "labor-operation": "İşçilik / operasyon",
-    "quote-adjustment": "Teklif düzeltmesi",
-  }[value] ?? value;
+  return sourceTypeLabels[value] ?? value;
 }
+
+const edgeDirectionLabels: Record<string, string> = {
+  top: "Üst", bottom: "Alt", left: "Sol", right: "Sağ",
+};
 
 function edgeDirectionLabel(value: string | undefined): string {
   if (!value) return "—";
-  return { top: "Üst", bottom: "Alt", left: "Sol", right: "Sağ" }[value] ?? value;
+  return edgeDirectionLabels[value] ?? value;
 }
 
 function SourceMetadata({ line, side }: {
@@ -119,6 +125,7 @@ export function QuoteRevisionComparisonPanel() {
   const [fileName, setFileName] = useState("");
   const [diagnostics, setDiagnostics] = useState<string[]>([]);
   const [exportDiagnostics, setExportDiagnostics] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   const historyComparison = useMemo(() => {
     if (!history || !fromRevisionId || !toRevisionId) return null;
@@ -146,6 +153,7 @@ export function QuoteRevisionComparisonPanel() {
     resetImportedState();
     setFileName(file.name);
     setDiagnostics([]);
+    setIsLoading(true);
     try {
       const text = await file.text();
       const standalone = parseProjectQuoteRevisionHistoryFile(text);
@@ -181,8 +189,11 @@ export function QuoteRevisionComparisonPanel() {
       setDiagnostics(projectHistory.diagnostics.length > 0 ? projectHistory.diagnostics : standalone.diagnostics);
     } catch (error) {
       setDiagnostics([error instanceof Error ? error.message : "Dosya okunamadı."]);
+    } finally {
+      setIsLoading(false);
     }
   }
+
 
   async function handleComparisonImport(event: ChangeEvent<HTMLInputElement>) {
     const file = event.currentTarget.files?.[0];
@@ -191,6 +202,7 @@ export function QuoteRevisionComparisonPanel() {
     resetImportedState();
     setFileName(file.name);
     setDiagnostics([]);
+    setIsLoading(true);
     try {
       const text = await file.text();
       const parsed = file.name.toLocaleLowerCase("tr-TR").endsWith(".csv")
@@ -278,6 +290,7 @@ export function QuoteRevisionComparisonPanel() {
           </div>
 
           {fileName && <p className="qrc-file-name">Yüklenen dosya: <strong>{fileName}</strong></p>}
+          {isLoading && <div className="qrc-message qrc-message--loading" role="status"><LoaderCircle aria-hidden="true" /><span>Dosya doğrulanıyor…</span></div>}
 
           {history && history.revisions.length > 0 && (
             <div className="qrc-revision-selectors">
