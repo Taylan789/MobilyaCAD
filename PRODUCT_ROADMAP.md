@@ -729,11 +729,20 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - Next: DOM-075 project quote-summary CSV v1 (all cost categories, strict round-trip and source mapping); frontend download integration remains UI-owned.
 
 
+## DOM-075 — Project quote-summary CSV v1 (code delivered; Actions pending)
+
+- Strict CSV v1 exports only complete `ready` or genuinely `empty` quote summaries. Incomplete/blocked quotes never emit partial totals.
+- All six cost categories, exact line units, currency, quantity, unit/minor-unit price, line totals, category totals and grand total are retained; source IDs, Part/furniture provenance, edge direction, tariff, and roll metadata are carried where present.
+- Import reconstructs the existing strict quote-summary JSON v1 and reuses its validator/recalculation, so line/category/grand totals, source mappings and roll arithmetic are checked rather than trusted. CSV is BOM + CRLF with RFC 4180 quoting; 5 MB and 10,000-line caps.
+- Files: `domain/production/projectQuoteSummaryCsv.ts`, `domain/production/projectQuoteSummaryCsv.test.mjs`, QA strict-domain type-check list, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`, `AI_COORDINATION.md`. **19 regression cases**. Local test execution unavailable; Actions pending.
+- No prices, conversions, missing categories, or machine standards are inferred; frontend download/import wiring remains UI-owned.
+
+
 ### Sonraki 5 küçük teslimat
 
 | ID | Sahip | Kabul kriteri | Bağımlılık |
 |---|---|---|---|
-| DOM-075 | Ürün Geliştirme | Project quote-summary CSV v1; all categories, exact unit/currency/source, ready/empty-only, strict arithmetic round-trip | DOM-073 |
+| DOM-075 | Ürün Geliştirme | **DONE — Actions pending**: Project quote-summary CSV v1; all categories, exact unit/currency/source, ready/empty-only, strict arithmetic round-trip, no partial totals | DOM-073 |
 | DOM-076 | Ürün Geliştirme | Project material consumption CSV v1; m²/m³/mm, quantity, catalog/Part/furniture provenance, no partial output | DOM-067/068 |
 | DOM-077 | Ürün Geliştirme | Quote-summary/revision snapshot comparison import/export reconciliation; stable source IDs and legacy-safe blockers | DOM-072/073/075 |
 | INT-001 | Arayüz + Ürün | Frontend adapter consumes domain reports and blocks unsupported geometry exports; round-trip tests | Current production-domain contract |
