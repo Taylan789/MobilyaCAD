@@ -1816,3 +1816,12 @@
 
 - First QA [#44792604194](https://github.com/Taylan789/MobilyaCAD/actions/runs/44792604194) exposed 11 failures: missing CSV ID-limit constant and outdated calculated-summary/JSON fixture expectations. These were corrected without relaxing arithmetic or strict validation.
 - Correction commit [67d462fa](https://github.com/Taylan789/MobilyaCAD/commit/67d462fa26df55b8f717067d73dd654dd7075d0e) passed [CI #44793078331](https://github.com/Taylan789/MobilyaCAD/actions/runs/44793078331), [QA #44793078386](https://github.com/Taylan789/MobilyaCAD/actions/runs/44793078386) and [Pages #44793078458](https://github.com/Taylan789/MobilyaCAD/actions/runs/44793078458). QA: 579/579 domain tests, type-check, lint, production build and audit (0 vulnerabilities) all successful.
+
+
+## 20 Kasım 2026 22:44 TRT — DOM-077 cross-format revision/export contract (code delivery; Actions pending)
+
+- Added a domain integration regression test that builds a cabinet production/material-consumption + labor pricing snapshot, appends it to project JSON v2, reads it back, serializes/parses standalone revision-history JSON, then round-trips the quote summary through strict JSON v1 and CSV v1.
+- Assertions preserve exact revision/history and quote summary, material catalog source ID, sorted unique Part provenance, labor tariff ID, TRY currency, m² and h units, source mappings and grand total. Fail-closed checks cover incomplete quote JSON/CSV, legacy project v1 append and a currency mismatch inside the immutable revision snapshot.
+- Changed files: `domain/production/projectQuoteRevisionExports.test.mjs`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`. No frontend, integration/performance-owned adapter, or domain calculation source was changed.
+- Code commit SHA and CI/QA/Pages outcomes pending. Local Node runner unavailable; GitHub Actions is the verification source.
+- Next: DOM-078 safe import of standalone quote revision history into project JSON v2 with strict project identity and no silent overwrite; frontend import/download wiring remains UI-owned.

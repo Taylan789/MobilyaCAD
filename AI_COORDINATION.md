@@ -301,7 +301,8 @@ Bu dosya dört geliştirme/denetim rolünün ortak görev panosu ve entegrasyon 
 | DOM-074 | Per-roll edge-band quote-cost CSV v1; exact roll count/length, unit, currency, price totals and Part/furniture/plan/price provenance | Product Development | DONE | [commit ed7a8acd](https://github.com/Taylan789/MobilyaCAD/commit/ed7a8acd749cf7c702500b931a8bd00dd36830d1); [CI #582](https://github.com/Taylan789/MobilyaCAD/actions/runs/44775913609), [QA #582](https://github.com/Taylan789/MobilyaCAD/actions/runs/44775913687), [Pages #409](https://github.com/Taylan789/MobilyaCAD/actions/runs/44775913803) successful — 124 frontend + 551 domain, strict TypeScript, lint/build/audit; 15 CSV tests |
 | DOM-075 | Strict project quote-summary CSV v1 for all cost categories, preserving units/currency/line source mapping and recomputed totals | Product Development | DONE | [code commit e6e0e3e24463e2a77e2e37f2206433f1a73b574d](https://github.com/Taylan789/MobilyaCAD/commit/e6e0e3e24463e2a77e2e37f2206433f1a73b574d); [CI](https://github.com/Taylan789/MobilyaCAD/actions/runs/44789821509), [QA](https://github.com/Taylan789/MobilyaCAD/actions/runs/44789821617), [Pages](https://github.com/Taylan789/MobilyaCAD/actions/runs/44789821636) all success; 570/570 tests, strict TS, build, audit 0 vulnerabilities, lint 32 warnings/0 errors |
 | DOM-076 | Strict material-consumption CSV v1 with mm/m²/m³, quantity, catalog/Part/furniture provenance and fail-closed round-trip | Product Development | DONE | DOM-067/068 JSON contracts; CSV serializer/parser + 579/579 QA tests, CI/QA/Pages verified |
-| DOM-077 | Reconcile current quote-summary CSV/JSON with immutable quote revision snapshot import/export; preserve source IDs and legacy-safe blockers | Product Development | READY | DOM-072/073/075; exact source mapping and currency/unit checks; regression tests |
+| DOM-077 | Reconcile current quote-summary CSV/JSON with immutable quote revision snapshot import/export; preserve source IDs and legacy-safe blockers | Product Development | IN_PROGRESS | Cross-format regression contract; commit/Actions verification pending |
+| DOM-078 | Import standalone revision-history JSON into project v2 with strict projectId match and safe no-overwrite behavior; legacy v1 remains blocked | Product Development | READY | import contract tests; immutable revision chain preserved |
 
 
 ## DOM-069 — directional edge-band CSV v1 (verified)
@@ -347,3 +348,9 @@ Bu dosya dört geliştirme/denetim rolünün ortak görev panosu ve entegrasyon 
 - QA: 579/579 domain tests, strict domain type-check, lint 32 warnings/0 errors, production build and audit 0 vulnerabilities.
 - First QA had 11 failures (missing ID-limit constant and fixture expectations); correction did not loosen validation.
 - Next: DOM-077 quote-summary/revision snapshot reconciliation. UI and integration/performance lanes remain isolated.
+
+
+## DOM-077 IN_PROGRESS — 20 November 2026 22:44 TRT
+- Cross-format acceptance tests connect project JSON v2 history, standalone quote revision JSON, and quote-summary JSON/CSV. Assertions require exact snapshot/source mapping round-trip, material Part provenance, TRY currency, m² and labor units, totals, and fail-closed behavior.
+- Code SHA and CI/QA/Pages outcomes pending. No frontend, adapter/performance-owned files, or other agent branch was changed.
+- Next: DOM-078 safe import of standalone revision history into project JSON v2 with strict project identity and no silent overwrite.

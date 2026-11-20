@@ -757,8 +757,17 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 
 | ID | Sahip | Durum / kabul kriteri | Bağımlılık |
 |---|---|---|---|
-| DOM-076 | Ürün Geliştirme | DONE — strict material-consumption CSV v1; unit/quantity/catalog/Part/furniture provenance; fail-closed round-trip; 579/579 QA tests | DOM-067/068 |
-| DOM-077 | Ürün Geliştirme | READY — quote-summary CSV/JSON ↔ immutable revision reconciliation; source IDs, currency/unit checks and legacy-safe blockers | DOM-072/073/075 |
+| DOM-077 | Ürün Geliştirme | IN_PROGRESS — quote-summary JSON/CSV ↔ immutable revision snapshot cross-format round-trip; provenance, currency/unit and legacy blockers | DOM-072/073/075 |
+| DOM-078 | Ürün Geliştirme | READY — standalone revision-history import into project v2, strict projectId match and no silent overwrite | DOM-077 |
 | INT-001 | Arayüz + Ürün | READY — frontend adapter consumes domain reports and blocks unsupported geometry export; round-trip tests | Production-domain contract |
 | INT-002 | Entegrasyon/Performans | READY — adapter round-trip integration tests, isolated specialist branch | INT-001 contract |
 | PERF-001 | Entegrasyon/Performans | READY — repeatable CAD scene/render baseline and measured regression optimization | Separate specialist ownership |
+
+## DOM-077 — Quote summary / immutable revision cross-format reconciliation (IN_PROGRESS)
+
+- Acceptance: one generated cabinet production + priced labor snapshot is appended to project JSON v2, read back, serialized to standalone quote-revision JSON, then its quote summary is exported/imported through strict quote-summary JSON v1 and CSV v1. Round-tripped summary and revision history must match exactly.
+- Provenance: material source ID, sorted unique Part IDs, labor tariff ID, line IDs, currency, exact units and totals must survive each boundary; strict serializers recompute arithmetic.
+- Fail-closed: incomplete summaries emit no partial JSON/CSV; project JSON v1 revision append is blocked; a cost line whose currency disagrees with its quote summary is rejected.
+- Files: `domain/production/projectQuoteRevisionExports.test.mjs`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`. No frontend or domain calculation implementation changed in this contract-test slice.
+- Code commit SHA and remote CI/QA/Pages results pending; local test runner unavailable in this environment.
+
