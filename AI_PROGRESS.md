@@ -1751,3 +1751,12 @@
 - QA history: latest completed SHA 85cd8f4 had CI success, QA failure (2 new tests: CSV roll export and JSON comparison serialization; diagnostic showed `quantity is not defined`). Fix applied in 5016a7966166ac83505183a2a95bb190fd6e9bfd. CI/QA/Pages on final documentation SHA pending; local tests not run.
 - Known constraints: roll length precision 0.1 mm; prices/currency and machine rules are not inferred; physical CNC/workshop validation is out of scope. AI Developer run remains quota-limited (429) and no rerun is appropriate before quota reset.
 - Next: verify Actions on final SHA, then DOM-073 strict quote-summary JSON v1; DOM-066 is frontend-owned.
+
+
+## DOM-072 verification — 20 Kasım 2026 17:42 TRT
+
+- Fixed the comparison validator to read roll quantity from the validated line object (the previous guard referenced an undefined `quantity`).
+- **Code SHA:** 5016a7966166ac83505183a2a95bb190fd6e9bfd — CI https://github.com/Taylan789/MobilyaCAD/actions/runs/44759170614 **success**, QA https://github.com/Taylan789/MobilyaCAD/actions/runs/44759170909 **success**.
+- **Documentation SHA verified:** 70511ca2ecd94645056fab8bae6a69628dc46feb — CI https://github.com/Taylan789/MobilyaCAD/actions/runs/44759254570 **success**, QA https://github.com/Taylan789/MobilyaCAD/actions/runs/44759254617 **success**. Test-site build succeeded; deploy job is still running: https://github.com/Taylan789/MobilyaCAD/actions/runs/44759255711.
+- The earlier QA failures on CSV roll round-trip and JSON revision serialization are resolved on the verified code SHA. Local tests were not run; verification is GitHub Actions evidence.
+- Next: DOM-073 strict quote-summary JSON v1; DOM-074 roll purchase-cost CSV. DOM-066 remains frontend-owned; INT-002/PERF-001 have no active specialist branch/PR evidence.
