@@ -13,7 +13,7 @@ test("production dock tabs have linked tab-panel semantics and a single roving t
 
   assert.match(
     app,
-    /id="cad-bottom-dock-panel" role="tabpanel" aria-labelledby=\{\`cad-bottom-tab-\$\{bottomPanelTab\}\`\} tabIndex=\{0\}/,
+    /id="cad-bottom-dock-panel" role="tabpanel" aria-labelledby=\{`cad-bottom-tab-\$\{bottomPanelTab\}`\} tabIndex=\{0\}/,
   );
 });
 
