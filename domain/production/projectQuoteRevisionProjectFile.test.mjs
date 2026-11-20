@@ -76,8 +76,6 @@ function createRollSnapshot() {
     effectiveFrom: "2026-11-01",
     effectiveTo: "2026-11-30"
   };
-
-  const snapshot = structuredClone(snapshotResult.snapshot);
   const quoteSummary = snapshot.quoteSummary;
   const costSummary = quoteSummary.costSummary;
   assert.ok(costSummary);
