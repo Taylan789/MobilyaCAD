@@ -1,0 +1,275 @@
+/* MobilyaCAD — compact industrial drawer configuration surface.
+   Presentation only: all dimensions, validation and production calculations remain in the component. */
+
+.cad-drawer-configurator {
+  --drawer-surface: #192832;
+  --drawer-surface-raised: #22343f;
+  --drawer-line: #3a5260;
+  --drawer-text: #e4edf2;
+  --drawer-muted: #9eafb9;
+  --drawer-accent: #9abbd1;
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 10px;
+  color: var(--drawer-text);
+}
+
+.cad-drawer-configurator .cad-production-summary {
+  min-width: 0;
+  gap: 12px;
+  padding: 10px 12px;
+  background: linear-gradient(135deg, #243945, #192832);
+  border: 1px solid var(--drawer-line);
+  border-radius: 7px;
+  box-shadow: inset 0 1px rgba(255, 255, 255, .035);
+}
+
+.cad-drawer-configurator .cad-production-summary span {
+  color: #b4c2ca;
+  font-size: 9px;
+  font-weight: 650;
+  letter-spacing: .045em;
+}
+
+.cad-drawer-configurator .cad-production-summary strong {
+  flex: 0 0 auto;
+  padding: 4px 8px;
+  color: #e8f1f6;
+  background: rgba(145, 180, 202, .12);
+  border: 1px solid rgba(145, 180, 202, .34);
+  border-radius: 5px;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: .025em;
+}
+
+.cad-drawer-configurator .cad-drawer-config-note {
+  padding: 8px 10px;
+  color: var(--drawer-muted);
+  background: rgba(145, 180, 202, .055);
+  border: 1px solid rgba(145, 180, 202, .13);
+  border-left: 2px solid #789db5;
+  border-radius: 0 5px 5px 0;
+  font-size: 9px;
+  line-height: 1.55;
+}
+
+.cad-drawer-configurator .cad-production-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 7px 10px;
+  padding: 10px 11px;
+  background: linear-gradient(145deg, #202f39, #19262f);
+  border: 1px solid #3b505c;
+  border-radius: 7px;
+}
+
+.cad-drawer-configurator .cad-production-card > strong {
+  min-width: 0;
+  color: #e7eef2;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.cad-drawer-configurator .cad-production-card > span {
+  color: #b8cbd6;
+  font-size: 9px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.cad-drawer-configurator .cad-production-card > small {
+  grid-column: 1 / -1;
+  color: #9abbd1;
+  font-size: 9px;
+  line-height: 1.45;
+}
+
+.cad-drawer-configurator .cad-drawer-config-actions {
+  grid-column: 1 / -1;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.cad-drawer-configurator .cad-drawer-config-actions > button {
+  min-width: 72px;
+  min-height: 31px;
+  padding-inline: 10px;
+  border-color: #455e6c;
+  border-radius: 5px;
+  color: #c5d2d9;
+  background: #1a2932;
+  font-size: 9px;
+}
+
+.cad-drawer-configurator .cad-drawer-config-actions > button:hover:not(:disabled) {
+  color: #f0f5f7;
+  border-color: #789db5;
+  background: #293d49;
+}
+
+.cad-drawer-configurator .cad-drawer-config-form {
+  gap: 11px;
+}
+
+.cad-drawer-configurator .cad-drawer-config-grid,
+.cad-drawer-configurator .cad-drawer-option-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 9px;
+}
+
+.cad-drawer-configurator .cad-field {
+  min-width: 0;
+  gap: 5px;
+}
+
+.cad-drawer-configurator .cad-field label {
+  color: #aebdc6;
+  font-size: 9px;
+  font-weight: 620;
+  line-height: 1.35;
+}
+
+.cad-drawer-configurator input,
+.cad-drawer-configurator select.cad-native-select {
+  min-width: 0;
+  min-height: 34px;
+  height: 34px;
+  padding-inline: 9px;
+  color: #e4edf2;
+  background: #111d25;
+  border: 1px solid #3b515e;
+  border-radius: 5px;
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+.cad-drawer-configurator input::placeholder {
+  color: #718590;
+}
+
+.cad-drawer-configurator input:disabled {
+  color: #81939e;
+  background: #1a2730;
+  opacity: .8;
+}
+
+.cad-drawer-configurator input:focus-visible,
+.cad-drawer-configurator select.cad-native-select:focus-visible,
+.cad-drawer-configurator button:focus-visible {
+  outline: 2px solid #a6c9df;
+  outline-offset: 2px;
+  border-color: #91b4ca;
+}
+
+.cad-drawer-configurator .cad-drawer-config-panel {
+  min-width: 0;
+  gap: 10px;
+  padding: 11px;
+  background: linear-gradient(155deg, #202f39, #19262f);
+  border: 1px solid #3a505d;
+  border-radius: 7px;
+}
+
+.cad-drawer-configurator .cad-drawer-config-panel > strong,
+.cad-drawer-configurator .cad-drawer-panel-group > strong {
+  color: #dbe6ec;
+  font-size: 9px;
+  font-weight: 740;
+  letter-spacing: .075em;
+  line-height: 1.4;
+}
+
+.cad-drawer-configurator .cad-drawer-panel-group {
+  min-width: 0;
+  gap: 8px;
+  padding-top: 9px;
+  border-top: 1px solid rgba(145, 180, 202, .16);
+}
+
+.cad-drawer-configurator .cad-drawer-config-panel > .cad-drawer-config-note {
+  margin: 0;
+}
+
+.cad-drawer-configurator .cad-drawer-config-error {
+  padding: 9px 10px;
+  color: #f0b2ad;
+  background: rgba(177, 78, 73, .12);
+  border: 1px solid rgba(199, 127, 123, .38);
+  border-left: 2px solid #c77f7b;
+  border-radius: 0 5px 5px 0;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.cad-drawer-configurator .cad-full-button {
+  min-height: 36px;
+  border-color: #58788d;
+  border-radius: 6px;
+  color: #dce9f0;
+  background: #263c49;
+  font-size: 10px;
+  font-weight: 680;
+}
+
+.cad-drawer-configurator .cad-full-button:hover:not(:disabled) {
+  border-color: #91b4ca;
+  background: #304b5a;
+}
+
+.cad-drawer-configurator .cad-full-button:disabled {
+  color: #82939d;
+  opacity: .58;
+}
+
+.cad-drawer-configurator .cad-drawer-config-form > .cad-drawer-config-actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+  padding: 9px 0 2px;
+  background: linear-gradient(180deg, transparent, #18252e 22%);
+}
+
+.cad-drawer-configurator .cad-drawer-config-form > .cad-drawer-config-actions button[type="submit"] {
+  color: #f0f6f9;
+  background: #4b6b80;
+  border: 1px solid #7898ad;
+}
+
+.cad-drawer-configurator .cad-drawer-config-form > .cad-drawer-config-actions button[type="submit"]:hover {
+  background: #5b7d93;
+}
+
+@media (max-width: 560px) {
+  .cad-drawer-configurator .cad-drawer-config-grid,
+  .cad-drawer-configurator .cad-drawer-option-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .cad-drawer-configurator .cad-production-card {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .cad-drawer-configurator .cad-production-card > span,
+  .cad-drawer-configurator .cad-production-card > small,
+  .cad-drawer-configurator .cad-drawer-config-actions {
+    grid-column: 1;
+  }
+
+  .cad-drawer-configurator .cad-production-card > span {
+    white-space: normal;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cad-drawer-configurator *,
+  .cad-drawer-configurator *::before,
+  .cad-drawer-configurator *::after {
+    scroll-behavior: auto !important;
+    animation: none !important;
+    transition: none !important;
+  }
+}
