@@ -12,6 +12,7 @@ permissions:
   contents: write
   pull-requests: write
   issues: write
+  actions: write
 
 concurrency:
   group: mobilyacad-ai-developer
@@ -74,7 +75,15 @@ jobs:
             USER-SUPPLIED TASK:
             ${{ inputs.task }}
 
+            CONTINUOUS MODE:
+            This run was started by the user or chained from the previous successful run.
+            Work one small, unclaimed, testable task only. If free-model/API quota is
+            exhausted, stop honestly and do not use paid models. Avoid unnecessary repeated
+            scans/builds. Finish with a concise evidence report.
+
+  # Disabled until its first-run failure is diagnosed from job logs.
   integration-performance-agent:
+    if: false
     name: OpenCode integration and performance specialist
     runs-on: ubuntu-latest
     timeout-minutes: 360
@@ -156,3 +165,18 @@ jobs:
             --head "agent/integration-performance-${GITHUB_RUN_ID}" \
             --title "Entegrasyon ve performans iyileştirmeleri" \
             --body "Otonom Entegrasyon ve Performans agent'ının izole çalışma dalı. Test ve ölçüm kanıtları PR açıklamasına eklenmelidir."
+
+  continue-agent-loop:
+    name: Queue next cloud agent run
+    needs: ai-developer
+    if: success()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Dispatch next bounded run on dev/github-work
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          gh workflow run ai-developer.yml --repo "$REPOSITORY" --ref dev/github-work \
+            -f task="Continuous autonomous MobilyaCAD development: inspect current dev/github-work, coordination board, open PRs and recent CI. Pick one small, unclaimed task in your ownership, implement and test it, commit safely on dev/github-work only, never touch main, and report evidence. If quota is exhausted, stop without paid fallback."
