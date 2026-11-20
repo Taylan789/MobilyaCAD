@@ -18,7 +18,7 @@ function readySummary() {
     missingTariffs: [],
     diagnostics: [],
     lineSources: [
-      { costLineId: "consumption-0001", sourceType: "production-consumption", sourceId: "mdf-18", sourcePartIds: ["part-a", "part-b"] },
+      { costLineId: "consumption-0001", sourceType: "production-consumption", sourceId: "mdf-18", sourcePartIds: ["part-a", "part-b"], resourceType: "material", resourceId: "mdf-18", unit: "m2" },
       { costLineId: "roll-pvc-a", sourceType: "production-consumption", sourceId: "roll-pvc-a", sourcePartIds: ["part-a"], resourceType: "edge-banding", resourceId: "pvc-a", unit: "rulo", rollCount: 2, rollLengthMm: 100000, purchasedLengthMm: 200000, furnitureIds: ["cabinet-a"], planSourceReference: "roll-plan:v1", priceSourceReference: "roll-price:v1" },
       { costLineId: "work-0001", sourceType: "labor-operation", sourceId: "installation", tariffId: "labor-hourly" }
     ],
@@ -83,9 +83,26 @@ test("ready quote JSON v1 round-trips exact line units, currency and source prov
   assert.equal(parsed.summary.costSummary.lines[1].unit, "rulo");
   assert.equal(parsed.summary.costSummary.lines[2].unit, "h");
   assert.equal(parsed.summary.currencyCode, "TRY");
+  assert.equal(parsed.summary.lineSources[0].resourceType, "material");
+  assert.equal(parsed.summary.lineSources[0].resourceId, "mdf-18");
+  assert.equal(parsed.summary.lineSources[0].unit, "m2");
   assert.equal(parsed.summary.lineSources[1].planSourceReference, "roll-plan:v1");
   assert.equal(parsed.summary.lineSources[1].priceSourceReference, "roll-price:v1");
   assert.deepEqual(parse(serialize(parsed.summary).json), parsed);
+});
+
+test("panel malzeme kaynak metadata katalog kimliği ve m2/Part eşleşmesini zorunlu kılar", () => {
+  const missingParts = fileFor(readySummary());
+  delete missingParts.summary.lineSources[0].sourcePartIds;
+  assert.match(parse(JSON.stringify(missingParts)).diagnostics[0], /panel malzeme kaynak Part kimlikleri/);
+
+  const wrongUnit = fileFor(readySummary());
+  wrongUnit.summary.lineSources[0].unit = "mm";
+  assert.match(parse(JSON.stringify(wrongUnit)).diagnostics[0], /m2 birimiyle/);
+
+  const wrongResourceType = fileFor(readySummary());
+  wrongResourceType.summary.lineSources[0].resourceType = "edge-banding";
+  assert.match(parse(JSON.stringify(wrongResourceType)).diagnostics[0], /kenar bandı tüketim birimi/);
 });
 
 test("empty quote JSON v1 round-trips without inventing currency or totals", () => {

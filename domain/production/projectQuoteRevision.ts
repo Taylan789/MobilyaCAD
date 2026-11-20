@@ -383,7 +383,7 @@ function validateQuoteSummary(value: unknown, strictSourceIntegrity = false): as
       if (source.sourceType !== "production-consumption") {
         throw new Error("Kaynak malzeme/kenar bandı kimliği yalnızca üretim tüketimi satırlarında kullanılabilir.");
       }
-      if (source.resourceType !== "edge-banding") {
+      if (source.resourceType !== "material" && source.resourceType !== "edge-banding") {
         throw new Error("Teklif kaynak malzeme türü desteklenmiyor.");
       }
       requireIdentifier(source.resourceId, "Teklif kaynak malzeme kimliği");
@@ -397,7 +397,14 @@ function validateQuoteSummary(value: unknown, strictSourceIntegrity = false): as
       const hasRollMetadata = [...rollMetadataKeys].some(key =>
         Object.prototype.hasOwnProperty.call(source, key)
       );
-      if (unit === "rulo") {
+      if (source.resourceType === "material") {
+        if (line.category !== "material" || unit !== "m2" || edgeDirection !== undefined || sourceEdgeDirection !== undefined || hasRollMetadata) {
+          throw new Error("Panel malzeme kaynak kimliği m2 birimiyle, yön ve rulo metadata olmadan eşleşmelidir.");
+        }
+        if (!Array.isArray(source.sourcePartIds) || source.sourcePartIds.length === 0) {
+          throw new Error("Panel malzeme kaynak Part kimlikleriyle eşleşmelidir.");
+        }
+      } else if (unit === "rulo") {
         if (line.category !== "material" || edgeDirection !== undefined || sourceEdgeDirection !== undefined) {
           throw new Error("Rulo kenar bandı satırı yön taşımayan material maliyet satırı olmalıdır.");
         }
@@ -405,7 +412,7 @@ function validateQuoteSummary(value: unknown, strictSourceIntegrity = false): as
         const rollLengthTenths = requireRollLengthTenths(source.rollLengthMm, "Kenar bandı rulo uzunluğu", 10_000_000);
         const purchasedLengthTenths = requireRollLengthTenths(source.purchasedLengthMm, "Kenar bandı satın alınan uzunluğu");
         if (line.quantity !== rollCount) {
-          throw new Error("Kenar bandı rulo adedi maliyet satırı quantity değeriyle uyuşmuyor.");
+          throw new Error("Kenar bandı rulo adedi maliyet satırı quantity değeriyle uyuşmalıdır.");
         }
         const expectedPurchasedLengthTenths = rollLengthTenths * rollCount;
         if (!Number.isSafeInteger(expectedPurchasedLengthTenths) || purchasedLengthTenths !== expectedPurchasedLengthTenths) {
@@ -426,7 +433,7 @@ function validateQuoteSummary(value: unknown, strictSourceIntegrity = false): as
           throw new Error("Teklif kenar bandı kaynak kimliği, birim veya yön alanları tutarsız.");
         }
         if (hasRollMetadata) {
-          throw new Error("Rulo metadata yalnızca rulo birimli kenar bandı satırlarında kullanılabilir.");
+          throw new Error("Rulo metadata yalnızca rulo birimli kenar bandı satırlarında kullanılmalıdır.");
         }
       }
     } else if (

@@ -24,7 +24,7 @@ function readySummary() {
     { id: "roll-pvc-1", category: "material", description: "PVC rulo alımı", quantity: 2, unit: "rulo", unitPriceMinor: 10000, currencyCode: "TRY", sourceReference: "roll-price:v1", lineTotalMinor: 20000 }
   ];
   const lineSources = [
-    { costLineId: "material-mdf", sourceType: "production-consumption", sourceId: "mdf-18", sourcePartIds: ["part-a", "part-b"] },
+    { costLineId: "material-mdf", sourceType: "production-consumption", sourceId: "mdf-18", sourcePartIds: ["part-a", "part-b"], resourceType: "material", resourceId: "mdf-18", unit: "m2" },
     { costLineId: "material-edge", sourceType: "production-consumption", sourceId: "pvc-edge", sourcePartIds: ["part-a", "part-b"], resourceType: "edge-banding", resourceId: "pvc-edge", unit: "mm", edgeDirection: "right" },
     { costLineId: "hardware-hinge", sourceType: "production-consumption", sourceId: "hinge-01", sourcePartIds: ["part-hinge"] },
     { costLineId: "labor-install", sourceType: "labor-operation", sourceId: "installation", tariffId: "labor-hourly" },
@@ -154,10 +154,22 @@ test("ready CSV v1 round-trips all cost categories, units, line IDs and provenan
   assert.equal(parsed.summary?.costSummary?.grandTotalMinor, 29850);
   assert.deepEqual(Object.keys(parsed.summary?.costSummary?.categoryTotalsMinor ?? {}).sort(), [...PROJECT_COST_CATEGORIES].sort());
   assert.equal(parsed.summary?.costSummary?.lines.find((line) => line.id === "material-edge")?.edgeDirection, "right");
+  const material = parsed.summary?.lineSources.find((source) => source.costLineId === "material-mdf");
+  assert.equal(material?.resourceType, "material");
+  assert.equal(material?.resourceId, "mdf-18");
+  assert.equal(material?.unit, "m2");
   const roll = parsed.summary?.lineSources.find((source) => source.costLineId === "roll-pvc-1");
   assert.equal(roll?.rollCount, 2);
   assert.equal(roll?.purchasedLengthMm, 200000);
   assert.equal(roll?.priceSourceReference, "roll-price:v1");
+});
+
+test("CSV panel malzeme katalog kimliği yalnızca m2 kaynak satırında kabul edilir", () => {
+  const valid = serializeProjectQuoteSummaryCsv(readySummary()).csv;
+  const row = lineRowIndex(valid, "material-mdf");
+  assert.ok(row > 0);
+  assert.equal(parseProjectQuoteSummaryCsv(setCell(valid, row, "unit", "mm")).status, "blocked");
+  assert.equal(parseProjectQuoteSummaryCsv(setCell(valid, row, "resourceType", "edge-banding")).status, "blocked);
 });
 
 test("empty quote CSV preserves zero totals without inventing currency", () => {

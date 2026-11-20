@@ -1867,3 +1867,14 @@
 - Four QA iterations exposed only test assertion/escaping mistakes; final test is green. Material catalog resource ID is still missing from quote line source metadata, so DOM-078 is the next domain slice.
 - **OPS-001:** Pages same-SHA gate was verified by SHA 0374ba7c: CI passed, QA failed, deployment skipped. Workflow commit in the verified code history prevents unverified deployment.
 - Next: DOM-078 resource identity provenance, DOM-079 safe revision-history import, then INT-001/INT-002 and PERF-001 in their separate ownership lanes.
+
+
+## 21 Kasım 2026 01:00 TRT — DOM-078A (Actions pending)
+
+- Panel malzeme tüketim satırları artık katalog kimliğini ayrı `resourceType: material`, `resourceId` ve `unit: m2` metadata alanlarıyla taşıyor; generated cost/source IDs katalog ID ile karıştırılmıyor.
+- Quote summary üretimi metadata'yı line-source mapping'e aktarıyor; strict JSON v1 ve mevcut CSV v1 sütunları round-trip için kullanılıyor. Revizyon snapshot doğrulaması metadata'yı kabul ediyor ve m2/Part/yön/rulo tutarlılığını fail-closed doğruluyor.
+- Regresyon testleri farklı material catalog IDs/thickness groups, JSON/CSV round-trip ve invalid unit/resource metadata içeriyor.
+- Commit SHA ve Actions kanıtı verification follow-up içinde kaydedilecek. GitHub Actions doğrulaması bekleniyor; local Node/TS çalıştırılmadı.
+- Known gap: revision comparison JSON/CSV line snapshots material resource identity henüz taşımıyor; DOM-078B.
+- AI Developer #44814337311 failed with OpenRouter free-model daily limit 429 (limit 50, remaining 0; reset 21 Nov 2026 00:00 UTC / 03:00 TRT). No active run; rerun deferred until limit reset.
+- Next: DOM-078B comparison JSON/CSV resource identity; then DOM-079 revision history import.

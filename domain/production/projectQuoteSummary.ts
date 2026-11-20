@@ -30,7 +30,7 @@ export interface ProjectQuoteLineSource {
   /** Sorted unique production Part IDs for grouped consumption rows, when available. */
   sourcePartIds?: string[];
   /** Resource identity and units are machine-readable; descriptions are display-only. */
-  resourceType?: "edge-banding";
+  resourceType?: "material" | "edge-banding";
   resourceId?: string;
   unit?: string;
   edgeDirection?: ProjectCostLineEdgeDirection;

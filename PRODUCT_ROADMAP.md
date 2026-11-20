@@ -775,3 +775,12 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - Pages waits up to 20 minutes for CI and QA on the exact SHA; failed/missing/timeout blocks deployment.
 - On SHA 0374ba7c, CI passed and QA failed; Pages build succeeded, verify failed, deploy skipped. The gate was verified fail-closed.
 
+
+
+## DOM-078A — Panel material resource provenance (implementation; Actions pending)
+
+- Production priced-consumption material lines now carry catalog `resourceType=material`, `resourceId`, `unit=m2`, and sorted Part IDs independently from generated quote/cost-line identifiers.
+- Quote-summary line sources preserve that identity. Strict quote JSON v1 and existing CSV v1 columns validate and round-trip the metadata without changing monetary calculations or the file schema.
+- Revision snapshot validation accepts only material source identity matching material category, m2 cost/source unit, no edge direction or roll fields, and non-empty Part provenance.
+- Tests cover material IDs across different catalog entries/thicknesses, JSON/CSV round-trip, and invalid metadata. Actions pending; local Node/TS not run.
+- Next: DOM-078B add catalog resource type/ID/unit to revision comparison line snapshots and strict comparison JSON/CSV, preserving legacy compatibility.

@@ -246,6 +246,10 @@ test("ilk teklif revizyonu hazır snapshot ile oluşturulur ve zincir başlangı
   assert.equal(result.revision?.revisionId, "quote-r1");
   assert.equal(result.revision?.revisionNumber, 1);
   assert.equal(result.revision?.previousRevisionId, null);
+  const materialSource = result.revision?.pricingSnapshot.quoteSummary.lineSources.find((source) => source.resourceType === "material");
+  assert.equal(materialSource?.resourceId, "mdf-18");
+  assert.equal(materialSource?.unit, "m2");
+  assert.ok(materialSource?.sourcePartIds?.length > 0);
   assert.equal(
     result.revision?.pricingSnapshot.quoteSummary.costSummary?.grandTotalMinor,
     snapshotResult.snapshot?.quoteSummary.costSummary?.grandTotalMinor
@@ -253,6 +257,16 @@ test("ilk teklif revizyonu hazır snapshot ile oluşturulur ve zincir başlangı
   assert.ok(Object.isFrozen(result.revision));
   assert.ok(Object.isFrozen(result.revision?.pricingSnapshot));
   assert.ok(Object.isFrozen(result.revision?.pricingSnapshot.quoteSummary.costSummary?.lines));
+});
+
+test("revizyon panel malzeme katalog metadata’sı m2/Part sözleşmesini zorunlu kılar", () => {
+  const snapshot = createSnapshot();
+  const materialSource = snapshot.quoteSummary.lineSources.find((source) => source.resourceType === "material");
+  assert.ok(materialSource);
+  materialSource.unit = "mm";
+  const result = createProjectQuoteRevision(createFirstRevision({ pricingSnapshot: snapshot }));
+  assert.equal(result.status, "blocked");
+  assert.match(result.diagnostics[0], /m2 birimiyle/);
 });
 
 test("revizyon maliyet snapshot'ını girdiden ayırır ve sonradan değiştirilemez yapar", () => {

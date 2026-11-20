@@ -225,41 +225,53 @@ function validateLineSource(
   const resourceFieldsPresent = ["resourceType", "resourceId", "unit", "edgeDirection"].some(key => hasOwn(value, key));
   const rollFieldsPresent = ["rollCount", "rollLengthMm", "purchasedLengthMm", "furnitureIds", "planSourceReference", "priceSourceReference"].some(key => hasOwn(value, key));
   if (hasOwn(value, "resourceType")) {
-    if (sourceType !== "production-consumption" || value.resourceType !== "edge-banding" || costLine.category !== "material") {
+    if (sourceType !== "production-consumption" || costLine.category !== "material") {
       throw new Error(label + " kaynak malzeme türü desteklenmiyor.");
     }
-    result.resourceType = "edge-banding";
+    if (value.resourceType !== "material" && value.resourceType !== "edge-banding") {
+      throw new Error(label + " kaynak malzeme türü desteklenmiyor.");
+    }
+    result.resourceType = value.resourceType;
     result.resourceId = requireIdentifier(value.resourceId, label + " malzeme kimliği");
     const unit = requireText(value.unit, label + " kaynak birimi", 32);
     result.unit = unit;
-    if (hasOwn(value, "edgeDirection")) {
-      if (!(edgeDirections as readonly unknown[]).includes(value.edgeDirection)) throw new Error(label + " kenar yönü geçersiz.");
-      if (unit === "rulo") throw new Error(label + " rulo satın alımında kenar yönü kullanılmaz.");
-      result.edgeDirection = value.edgeDirection as ProjectQuoteLineSource["edgeDirection"];
-    }
-    if (unit === "rulo") {
-      const rollCount = requireSafeInteger(value.rollCount, label + " rulo adedi", 1);
-      const rollLengthMm = requireFinite(value.rollLengthMm, label + " rulo uzunluğu (mm)", 0);
-      const purchasedLengthMm = requireFinite(value.purchasedLengthMm, label + " satın alınan uzunluk (mm)", 0);
-      if (rollLengthMm === 0 || purchasedLengthMm === 0) throw new Error(label + " rulo uzunlukları sıfırdan büyük olmalıdır.");
-      if (Math.abs(rollLengthMm * 10 - Math.round(rollLengthMm * 10)) > 1e-8 || Math.abs(purchasedLengthMm * 10 - Math.round(purchasedLengthMm * 10)) > 1e-8) {
-        throw new Error(label + " rulo uzunlukları 0,1 mm hassasiyetinde olmalıdır.");
+    if (value.resourceType === "material") {
+      if (unit !== "m2" || costLine.unit !== "m2" || hasOwn(value, "edgeDirection") || rollFieldsPresent) {
+        throw new Error(label + " panel malzeme kaynağı m2 birimiyle, yön ve rulo metadata olmadan eşleşmelidir.");
       }
-      if (!Number.isSafeInteger(costLine.quantity) || costLine.quantity !== rollCount) throw new Error(label + " rulo adedi teklif satır miktarıyla uyuşmalıdır.");
-      const expectedPurchasedLengthMm = roundToTenth(rollCount * rollLengthMm);
-      if (!Number.isFinite(expectedPurchasedLengthMm) || expectedPurchasedLengthMm > Number.MAX_SAFE_INTEGER || Math.abs(purchasedLengthMm - expectedPurchasedLengthMm) > 1e-8) {
-        throw new Error(label + " satın alınan uzunluk rulo adedi ve uzunluğuyla uyuşmuyor.");
+      if (sourcePartIds === undefined || sourcePartIds.length === 0) {
+        throw new Error(label + " panel malzeme kaynak Part kimlikleriyle eşleşmelidir.");
       }
-      if (sourcePartIds === undefined || sourcePartIds.length === 0) throw new Error(label + " rulo kaynağı Part kimlikleri içermelidir.");
-      result.rollCount = rollCount;
-      result.rollLengthMm = rollLengthMm;
-      result.purchasedLengthMm = purchasedLengthMm;
-      result.furnitureIds = validateSortedTextArray(value.furnitureIds, label + " mobilya kimlikleri", true);
-      if (hasOwn(value, "planSourceReference")) result.planSourceReference = requireText(value.planSourceReference, label + " plan kaynak referansı", 256);
-      if (hasOwn(value, "priceSourceReference")) result.priceSourceReference = requireText(value.priceSourceReference, label + " fiyat kaynak referansı", 256);
     } else {
-      if (unit !== "mm" && unit !== "m") throw new Error(label + " kenar bandı tüketim birimi mm veya m olmalıdır.");
-      if (rollFieldsPresent) throw new Error(label + " rulo metadata'sı yalnızca rulo biriminde kullanılabilir.");
+      if (hasOwn(value, "edgeDirection")) {
+        if (!(edgeDirections as readonly unknown[]).includes(value.edgeDirection)) throw new Error(label + " kenar yönü geçersiz.");
+        if (unit === "rulo") throw new Error(label + " rulo satın alımında kenar yönü kullanılmaz.");
+        result.edgeDirection = value.edgeDirection as ProjectQuoteLineSource["edgeDirection"];
+      }
+      if (unit === "rulo") {
+        const rollCount = requireSafeInteger(value.rollCount, label + " rulo adedi", 1);
+        const rollLengthMm = requireFinite(value.rollLengthMm, label + " rulo uzunluğu (mm)", 0);
+        const purchasedLengthMm = requireFinite(value.purchasedLengthMm, label + " satın alınan uzunluk (mm)", 0);
+        if (rollLengthMm === 0 || purchasedLengthMm === 0) throw new Error(label + " rulo uzunlukları sıfırdan büyük olmalıdır.");
+        if (Math.abs(rollLengthMm * 10 - Math.round(rollLengthMm * 10)) > 1e-8 || Math.abs(purchasedLengthMm * 10 - Math.round(purchasedLengthMm * 10)) > 1e-8) {
+          throw new Error(label + " rulo uzunlukları 0,1 mm hassasiyetinde olmalıdır.");
+        }
+        if (!Number.isSafeInteger(costLine.quantity) || costLine.quantity !== rollCount) throw new Error(label + " rulo adedi teklif satır miktarıyla uyuşmalıdır.");
+        const expectedPurchasedLengthMm = roundToTenth(rollCount * rollLengthMm);
+        if (!Number.isFinite(expectedPurchasedLengthMm) || expectedPurchasedLengthMm > Number.MAX_SAFE_INTEGER || Math.abs(purchasedLengthMm - expectedPurchasedLengthMm) > 1e-8) {
+          throw new Error(label + " satın alınan uzunluk rulo adedi ve uzunluğuyla uyuşmuyor.");
+        }
+        if (sourcePartIds === undefined || sourcePartIds.length === 0) throw new Error(label + " rulo kaynağı Part kimlikleri içermelidir.");
+        result.rollCount = rollCount;
+        result.rollLengthMm = rollLengthMm;
+        result.purchasedLengthMm = purchasedLengthMm;
+        result.furnitureIds = validateSortedTextArray(value.furnitureIds, label + " mobilya kimlikleri", true);
+        if (hasOwn(value, "planSourceReference")) result.planSourceReference = requireText(value.planSourceReference, label + " plan kaynak referansı", 256);
+        if (hasOwn(value, "priceSourceReference")) result.priceSourceReference = requireText(value.priceSourceReference, label + " fiyat kaynak referansı", 256);
+      } else {
+        if (unit !== "mm" && unit !== "m") throw new Error(label + " kenar bandı tüketim birimi mm veya m olmalıdır.");
+        if (rollFieldsPresent) throw new Error(label + " rulo metadata'sı yalnızca rulo biriminde kullanılmalıdır.");
+      }
     }
   } else if (resourceFieldsPresent || rollFieldsPresent) {
     throw new Error(label + " kaynak birim/metadata alanları kaynak türüyle birlikte kullanılmalıdır.");

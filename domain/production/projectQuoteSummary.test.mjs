@@ -140,7 +140,10 @@ test("malzeme tüketimi ile işçilik/operasyon satırlarını tek para birimind
       costLineId: "consumption-0001",
       sourceType: "production-consumption",
       sourceId: consumption.costSummary.lines[0].id,
-      sourcePartIds: calculateProjectMaterialConsumptionSummary(report.result)[0].partIds
+      sourcePartIds: calculateProjectMaterialConsumptionSummary(report.result)[0].partIds,
+      resourceType: "material",
+      resourceId: "mdf-18",
+      unit: "m2"
     },
     {
       costLineId: "work-0001",
@@ -191,6 +194,10 @@ test("gövde panel fiyatları aynı katalog kimliğinde gerçek mm kalınlığa 
       ["consumption-0002", "production-consumption"]
     ]
   );
+  assert.deepEqual(quote.lineSources.map((source) => [source.resourceType, source.resourceId, source.unit]), [
+    ["material", "mdf-shared", "m2"],
+    ["material", "mdf-shared", "m2"]
+  ]);
 });
 
 test("gövde panel kalınlıklarından birinin fiyatı eksikse birleşik teklif toplamı hazır olmaz", () => {

@@ -177,6 +177,10 @@ test("aynı malzeme adı farklı katalog kimliği veya kalınlıkta ayrı fiyat 
 
   assert.equal(summary.status, "ready");
   assert.equal(summary.requiredLineCount, 4);
+  assert.deepEqual(
+    summary.linePartSources.map((source) => [source.resourceType, source.resourceId, source.unit]),
+    [["material", "mdf-a", "m2"], ["material", "mdf-b", "m2"], ["material", "mdf-shared", "m2"], ["material", "mdf-shared", "m2"]]
+  );
   assert.equal(summary.pricedLineCount, 4);
   assert.deepEqual(
     summary.costSummary.lines.map((line) => [line.description, line.unitPriceMinor]),

@@ -44,7 +44,7 @@ export interface ProjectCostCoverageIssue {
 export interface ProjectConsumptionLinePartSource {
   costLineId: string;
   sourcePartIds: string[];
-  resourceType?: "edge-banding";
+  resourceType?: "material" | "edge-banding";
   resourceId?: string;
   unit?: string;
   edgeDirection?: ProjectEdgeBandingEdge;
@@ -446,7 +446,10 @@ export function calculateProjectPricedConsumptionSummary(
         );
         linePartSources.push({
           costLineId,
-          sourcePartIds: [...material.partIds].sort()
+          sourcePartIds: [...material.partIds].sort(),
+          resourceType: "material",
+          resourceId: material.materialId,
+          unit: "m2"
         });
       }
     }
