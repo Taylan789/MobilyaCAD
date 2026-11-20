@@ -41,7 +41,7 @@ export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorB
           <p className="mc-app-error__eyebrow">ÇALIŞMA ALANI DURDURULDU</p>
           <h1 id="mc-app-error-title">Arayüz beklenmeyen bir hatayla karşılaştı.</h1>
           <p className="mc-app-error__message">
-            Açık modelin verilerine müdahale edilmedi. Uygulamayı yeniden yükleyerek tekrar deneyebilirsin.
+            Çizim katmanı durduruldu. Bu ekran yeniden yüklenene kadar model üzerinde yeni bir işlem yapılmaz.
           </p>
           <button
             className="mc-app-error__reload"
