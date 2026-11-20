@@ -525,7 +525,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 2. DOM-062 DONE — revision comparison JSON export contract, exact line deltas/currency/source, no unit conversion.
 3. DOM-063 DONE — stable quote comparison CSV v1 serializer/parser, exact currency/unit/source and RFC 4180 escaping; Actions verified.
 4. DOM-064 DONE — explicit waste/profit line provenance and source IDs/references verified through JSON v2 project-history round-trip; no inferred percentages.
-5. DOM-065 IN_PROGRESS — revision comparator and JSON/CSV round-trip for waste/profit adjustment provenance; Actions pending.
+5. DOM-065 DONE — revision comparator and JSON/CSV round-trip for waste/profit adjustment provenance verified.
 6. DOM-066 PLANNED — frontend-owned revision-comparison download wiring after the domain export contract is complete.
 
 
@@ -569,11 +569,11 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 - **Teslim:** `mobilyacad-quote-revision-comparison` v1 strict JSON zarfı; hazır revision comparison sonuçlarını exact currency, unit, line delta, source metadata, Part ID, tariff ve structured edge direction ile serileştirir/parses.
 - **Fail-closed:** unsupported fields/version, malformed JSON, blocked input, satır toplamı/quantity-price uyuşmazlığı, kategori/genel delta tutarsızlığı veya line-change shape hatasında kısmi JSON döndürmez.
 - **Kabul:** domain otomatik test round-trip, metadata ve mm/m ayrımını; tam kategori ve grand-total delta tutarlılığını doğrular. Fiziksel üretim veya frontend dosya indirme entegrasyonu iddia edilmez.
-- **Sonraki 3 dilim:** DOM-064 DONE — waste/profit provenance project JSON v2 history round-trip verified; DOM-065 in progress — comparison JSON/CSV adjustment-line provenance and delta reconciliation; DOM-066 planned — frontend-owned revision-comparison download wiring.
+- **Sonraki 3 dilim:** DOM-064 DONE — waste/profit provenance project JSON v2 history round-trip verified; DOM-065 DONE — comparison JSON/CSV adjustment-line provenance and delta reconciliation verified; DOM-066 planned — frontend-owned revision-comparison download wiring.
 
 
 ## Next 5 small tasks
-1. DOM-065 IN_PROGRESS — test revision comparator plus JSON/CSV round-trip for added/removed/changed waste and profit lines; Actions verification pending.
+1. DOM-065 DONE — test revision comparator and JSON/CSV round-trip for added/removed/changed waste/profit lines; Actions passed.
 2. DOM-066 PLANNED — frontend-owned comparison JSON/CSV download wiring with ready/blocked behavior, after DOM-065 is verified.
 3. INT-001 READY — production-report/export contract round-trip or explicit export-block regression tests (domain + UI owner).
 4. INT-002 READY — adapter JSON/CSV round-trip and geometry/quantity fidelity tests (Integration/Performance owner; agent currently disabled).
@@ -589,7 +589,7 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 | Üretim | Her Part için kaynak ID, quantity, mm ölçü, malzeme/kalınlık; unsupported geometri/export kısmi sonuç üretmeden blocker | Domain konstrüksiyon, tüketim, nesting freshness, teklif/revizyon ve JSON/CSV sözleşmeleri var; frontend adapter/CNC postprocessor eksik |
 | UX | Ana akışlarda işlevsel kontroller; klavye/focus, erişilebilirlik, responsive, boş/hata durumları otomatik doğrulanır | Frontend ayrı ajan alanında; gerçek tarayıcı görsel kabulü NOT MEASURED |
 | Performans | Referans sahnede p95 frame-time hedefi 16,7 ms (60 FPS), scene update p95 <100 ms, bellek ölçümü ve CI regression threshold | Referans sahne/benchmark NOT MEASURED; Integration/Performance job PR #103 ile disabled, ayrı branch/PR yok |
-| Güvenilirlik | Strict TS, test, build, audit; import/export round-trip 0 alan kaybı; invalid input 0 partial output | Son doğrulanmış QA: 124 frontend + 458 domain, strict TS/lint/build/audit başarılı; production audit 0 vulnerability |
+| Güvenilirlik | Strict TS, test, build, audit; import/export round-trip 0 alan kaybı; invalid input 0 partial output | Son doğrulanmış QA: 124 frontend + 459 domain, strict TS/lint/build/audit başarılı; production audit 0 vulnerability |
 
 
 ## DOM-063 — Teklif revizyon karşılaştırması CSV v1 (20 Kasım 2026, verified)
@@ -607,3 +607,9 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - Test commit [dc16d4e](https://github.com/Taylan789/MobilyaCAD/commit/dc16d4ee0562f38149f7ed4920e3502dd30b16d2) adds explicit waste + profit fixture and project JSON v2 append/read assertions for category, source type/ID/reference, quantity, unit, unit price, line total, and category/grand totals.
 - Actions: [CI #44656515213](https://github.com/Taylan789/MobilyaCAD/actions/runs/44656515213), [QA #44656515208](https://github.com/Taylan789/MobilyaCAD/actions/runs/44656515208), and [Pages #44656515137](https://github.com/Taylan789/MobilyaCAD/actions/runs/44656515137) passed. QA: 124 frontend + 458 domain tests; strict TS, lint (32 warnings/0 errors), production build and production audit (0 vulnerabilities).
 - Next domain task: DOM-065 — comparison JSON/CSV adjustment-line provenance round-trip. No UI adapter or physical CNC/workshop validation is implied.
+
+## DOM-065 — Revision-comparison adjustment-line provenance (20 November 2026, verified)
+
+- Test commit [58cd6aa](https://github.com/Taylan789/MobilyaCAD/commit/58cd6aa1588341a9a9df124c6dd81627c93e8b90) covers actual revision comparison plus JSON/CSV v1 round-trip for waste/profit added, removed, and changed adjustment lines. Exact source IDs/references, units, currency and line totals are preserved; waste delta +125, profit +200, grand delta +325 minor currency units.
+- CI [#44661291150](https://github.com/Taylan789/MobilyaCAD/actions/runs/44661291150), QA [#44661291069](https://github.com/Taylan789/MobilyaCAD/actions/runs/44661291069) and Pages [#44661291112](https://github.com/Taylan789/MobilyaCAD/actions/runs/44661291112) successful. QA: 124/124 frontend + 459/459 domain, strict domain TS, lint 32 warnings/0 errors, build and production audit 0 vulnerabilities.
+- Boundary: frontend download controls remain DOM-066; no inferred rate, unit/currency conversion, CNC or physical workshop validation.

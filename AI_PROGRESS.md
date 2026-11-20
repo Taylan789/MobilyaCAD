@@ -1586,13 +1586,13 @@
 ## 20 Kasım 2026 04:52 TRT — DOM-064 roadmap/progress synchronization
 - Documentation commit [b9ada4f](https://github.com/Taylan789/MobilyaCAD/commit/b9ada4f537b2443b3a0d4158dbf78d0b59759695) marks DOM-064 DONE and records CI/QA/Pages [#44656659559](https://github.com/Taylan789/MobilyaCAD/actions/runs/44656659559), [#44656659611](https://github.com/Taylan789/MobilyaCAD/actions/runs/44656659611), [#44656659549](https://github.com/Taylan789/MobilyaCAD/actions/runs/44656659549) as successful; 124 frontend + 458 domain tests.
 - Updated the stale DOM-063 next-slices note and the 10/10 reliability checklist's latest test count. The docs-only commit itself has no code changes.
-- Next: DOM-065 comparison JSON/CSV adjustment-line provenance and delta reconciliation.
+- Next: DOM-066 frontend-owned comparison download wiring; DOM-065 verified.
 
 
-## 20 Kasım 2026 05:20 TRT — DOM-065 comparison adjustment provenance (Actions pending)
-- Başlangıç HEAD: `dae72c7434b987215da7461537a953dd13e7ebfc`. Test dilimi; runtime serializer kodu değiştirilmedi, çünkü JSON/CSV v1 mevcut strict sourceType/sourceId/sourceReference alanlarını zaten taşıyor.
-- `projectQuoteRevision.test.mjs`: gerçek revision comparator için waste/profit kategorilerinde added/removed/changed kaynak satırı test edildi; beklenen delta waste +125, profit +200, genel +325 (minor currency unit), tüm sourceReference ve line totals korunur.
-- JSON ve CSV round-trip fixtures altı adjustment change shape'i (2 added, 2 removed, 2 changed) ve exact source ID/reference/unit/currency; category/grand total reconciliation assertions eklendi.
-- Commit SHA ve Actions (CI/QA/Pages) pending; local test çalıştırılmadı, otomatik GitHub Actions doğrulaması bekleniyor.
-- Sınırlar: UI dosya indirme bağlantısı DOM-066/frontend agent alanı; fiyat/kur/fire oranı ve CNC/atölye doğrulaması yok.
-- Next: Actions sonuçlarını incele, test başarısızsa düzelt; doğrulanırsa DOM-066 frontend export wiring için contract handoff.
+## 20 Kasım 2026 05:20 TRT — DOM-065 comparison adjustment provenance (verified)
+- Başlangıç HEAD: `dae72c7434b987215da7461537a953dd13e7ebfc`; test commit [58cd6aa](https://github.com/Taylan789/MobilyaCAD/commit/58cd6aa1588341a9a9df124c6dd81627c93e8b90). Runtime serializer kodu değişmedi; mevcut JSON/CSV v1 source metadata alanları zaten destekliyordu.
+- `projectQuoteRevision.test.mjs`: gerçek revision comparator için waste/profit kategorilerinde added/removed/changed kaynak satırları; waste +125, profit +200, grand +325 minor currency unit; source ID/reference ve satır toplamları doğrulandı.
+- JSON/CSV export round-trip fixtures altı adjustment change shape'i (2 added, 2 removed, 2 changed) ve exact source ID/reference/unit/currency; category/grand total reconciliation assertions.
+- GitHub Actions: CI [#44661291150](https://github.com/Taylan789/MobilyaCAD/actions/runs/44661291150), QA [#44661291069](https://github.com/Taylan789/MobilyaCAD/actions/runs/44661291069), Pages [#44661291112](https://github.com/Taylan789/MobilyaCAD/actions/runs/44661291112) success. QA **124/124 frontend + 459/459 domain**, strict domain TS, lint **32 warnings/0 errors**, production build, audit **0 vulnerability**.
+- Local tests not run; Actions is verification source. UI download integration remains DOM-066/frontend ownership; no inferred price/FX/waste rate or CNC/workshop validation.
+- Next: DOM-066 — frontend-owned comparison JSON/CSV download wiring with ready/blocked handling.
