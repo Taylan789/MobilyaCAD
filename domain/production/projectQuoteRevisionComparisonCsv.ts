@@ -339,7 +339,7 @@ export function serializeProjectQuoteRevisionComparisonCsv(
   });
 }
 
-/** Parse strict v1 CSV and accept the reconstructed comparison only if domain JSON validation succeeds. */
+/** Parse strict v1/v2 CSV; reconstructed comparisons must pass the domain JSON validator. */
 export function parseProjectQuoteRevisionComparisonCsv(
   csvValue: unknown
 ): ProjectQuoteRevisionComparisonCsvParseResult {
@@ -347,23 +347,28 @@ export function parseProjectQuoteRevisionComparisonCsv(
   try {
     const records = parseCsvRecords(csvValue);
     if (records.length < 8) throw new Error("CSV genel toplam ve altı kategori satırını içermelidir.");
-    if (records[0].length !== columns.length || records[0].some((value, index) => value !== columns[index])) {
-      throw new Error("Teklif karşılaştırma CSV sütun başlığı desteklenen v1 sözleşmesiyle uyuşmuyor.");
-    }
+    const header = records[0];
+    const version: 1 | 2 = header.length === legacyColumnsV1.length && header.every((value, index) => value === legacyColumnsV1[index])
+      ? 1
+      : header.length === columns.length && header.every((value, index) => value === columns[index])
+        ? 2
+        : (() => { throw new Error("Teklif karşılaştırma CSV sütun başlığı desteklenen v1/v2 sözleşmesiyle uyuşmuyor."); })();
+    const indexMap = version === 1 ? legacyColumnIndex : columnIndex;
+    const lineColumnsForVersion = header.slice(15);
     for (const row of records.slice(1)) {
-      if (row.length !== columns.length) throw new Error("CSV satır sütun sayısı sözleşmeyle uyuşmuyor.");
-      if (cell(row, "format") !== PROJECT_QUOTE_REVISION_COMPARISON_CSV_FORMAT ||
-          cell(row, "formatVersion") !== String(PROJECT_QUOTE_REVISION_COMPARISON_CSV_VERSION)) {
+      if (row.length !== header.length) throw new Error("CSV satır sütun sayısı sözleşmeyle uyuşmuyor.");
+      if (cell(row, "format", indexMap) !== PROJECT_QUOTE_REVISION_COMPARISON_CSV_FORMAT ||
+          cell(row, "formatVersion", indexMap) !== String(version)) {
         throw new Error("Teklif karşılaştırma CSV biçimi veya sürümü desteklenmiyor.");
       }
     }
     const total = records[1];
-    if (cell(total, "rowType") !== "total") throw new Error("CSV ilk veri satırı genel toplam olmalıdır.");
-    requireBlank(total, ["category", "categoryDeltaMinor", "changeType", ...lineColumns], "CSV genel toplam satırı");
-    const metaNames = columns.slice(0, 12).filter((name) => name !== "rowType");
+    if (cell(total, "rowType", indexMap) !== "total") throw new Error("CSV ilk veri satırı genel toplam olmalıdır.");
+    requireBlank(total, ["category", "categoryDeltaMinor", "changeType", ...lineColumnsForVersion], "CSV genel toplam satırı", indexMap);
+    const metaNames = header.slice(0, 12).filter((name) => name !== "rowType");
     for (const row of records.slice(2)) {
       for (const name of metaNames) {
-        if (cell(row, name) !== cell(total, name)) throw new Error("CSV satır metadata'sı genel toplam satırıyla uyuşmuyor.");
+        if (cell(row, name, indexMap) !== cell(total, name, indexMap)) throw new Error("CSV satır metadata'sı genel toplam satırıyla uyuşmuyor.");
       }
     }
     const projectId = cell(total, "projectId", indexMap);
