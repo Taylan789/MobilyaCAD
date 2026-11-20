@@ -576,12 +576,13 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 
 
 ## Next 5 small tasks
-1. DOM-070A DONE — explicit roll quantity planning from user-entered roll length and optional fixed waste allowance (mm), grouped by catalog ID.
-2. DOM-070B DONE — per-roll purchase cost summary with explicit currency/source and no partial totals.
-3. DOM-070C DONE — roll pricing integrated into quote snapshots, strict immutable revision validation, and JSON v2 append/read provenance round-trip. [Code commit 023156bb](https://github.com/Taylan789/MobilyaCAD/commit/023156bb1d0d1f8172444766ae2015c5d4364105); CI #44738166332, QA #44738166417 (502/502 domain tests), Pages #44738166308 succeeded.
-4. DOM-071 DONE — strict project JSON v2 persistence for roll specs and per-roll price/currency/source inputs; v1 remains legacy-safe.
-5. DOM-072 PLANNED — quote revision comparison and CSV/JSON outputs preserve roll purchase-cost provenance; frontend integration remains UI-owned.
-6. DOM-073 PLANNED — strict project quote-summary JSON v1 export/import with exact units/currency/source provenance and fail-closed totals.
+1. DOM-070A DONE — explicit edge-band roll quantity planning from user inputs.
+2. DOM-070B DONE — per-roll purchase-cost summary, source provenance and no partial totals.
+3. DOM-070C DONE — roll pricing in project quote and immutable revision JSON v2.
+4. DOM-071 DONE — roll specs, fixed waste and per-roll price/currency/source persistence in project JSON v2.
+5. DOM-072 IN_PROGRESS — quote revision snapshots/comparison JSON and CSV preserve roll purchase provenance; legacy CSV v1 stays readable.
+6. DOM-073 PLANNED — strict current quote-summary JSON v1 export/import with exact units/currency/source and fail-closed totals.
+7. DOM-074 PLANNED — per-roll edge-band quote-cost CSV contract/export, exact rulo units and provenance.
 
 **Parallel lanes:** DOM-066 quote-comparison download integration remains frontend-owned; INT-001 remains shared/READY; INT-002/PERF-001 remain integration/performance-owned/READY (no active specialist run evidenced).
 
@@ -692,3 +693,10 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - JSON v1 remains legacy read-only. Price-only entries are allowed for later configuration; quote calculation remains responsible for missing/unused input blockers.
 - **Actions:** [CI #44744750518](https://github.com/Taylan789/MobilyaCAD/actions/runs/44744750518), [QA #44744750584](https://github.com/Taylan789/MobilyaCAD/actions/runs/44744750584) successful — 124/124 frontend + 518/518 domain tests; strict TypeScript, lint (32 warnings/0 errors), production build, audit 0 vulnerabilities. [Pages #44744750516](https://github.com/Taylan789/MobilyaCAD/actions/runs/44744750516) deployed.
 - No frontend, adapter/performance-owned, or machine-specific output files changed. Next: DOM-072 revision-comparison roll-line provenance; DOM-073 standalone quote-summary JSON; DOM-066 remains frontend-owned.
+
+## DOM-072 — Roll purchase provenance in immutable revision comparisons (implementation; Actions pending)
+
+- Quote revision snapshots now carry roll count, roll length, purchased length, furniture provenance and plan/price source references. Comparison identity/value reconciliation distinguishes source metadata changes while preserving exact price/currency/quantity units.
+- Strict comparison JSON v1 retains existing optional metadata for non-roll lines. CSV export is v2 with structured roll fields and a legacy v1 parser; rulo lines must reconcile quantity/count and purchased length, and require sorted unique Part/furniture IDs.
+- Acceptance: actual immutable revision comparison, JSON/CSV round-trip, malformed metadata rejection and legacy CSV v1 read. No physical CNC/workshop validation is implied. Actions pending.
+- Next: DOM-073 current quote-summary JSON v1 export/import, DOM-074 per-roll cost CSV; DOM-066 and INT-001/INT-002 remain separate agent-owned tasks.
