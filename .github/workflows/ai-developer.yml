@@ -74,7 +74,9 @@ jobs:
             USER-SUPPLIED TASK:
             ${{ inputs.task }}
 
+  # Temporarily disabled: the first live run failed; re-enable after log-based diagnosis.
   integration-performance-agent:
+    if: false
     name: OpenCode integration and performance specialist
     runs-on: ubuntu-latest
     timeout-minutes: 360
