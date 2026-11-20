@@ -1858,3 +1858,12 @@
 - CI [#44806661040](https://github.com/Taylan789/MobilyaCAD/actions/runs/44806661040) passed; Pages [#44806661004](https://github.com/Taylan789/MobilyaCAD/actions/runs/44806661004) build passed, verify failed, deploy skipped.
 - Material catalog ID is still absent from the quote-line source mapping; DOM-078 will add it through the strict provenance schema.
 - Fourth correction SHA and Actions pending. No frontend, integration/performance-owned or production calculation files touched.
+
+
+## 20 Kasım 2026 23:04 TRT — DOM-077 VERIFIED / OPS-001 VERIFIED
+
+- **DOM-077 code commit:** [7205c95d6b583cceffc7398085a29e413dd70917](https://github.com/Taylan789/MobilyaCAD/commit/7205c95d6b583cceffc7398085a29e413dd70917). The test verifies project v2 history, standalone revision JSON, quote-summary JSON/CSV round-trip, exact IDs/Part provenance/units/currency/totals and fail-closed cases.
+- **Actions:** CI [#44806905679](https://github.com/Taylan789/MobilyaCAD/actions/runs/44806905679) success; QA [#44806905649](https://github.com/Taylan789/MobilyaCAD/actions/runs/44806905649) success — **127/127 frontend + 582/582 domain tests**, strict domain TS, lint, build, production audit (0 vulnerabilities); Pages [#44806905713](https://github.com/Taylan789/MobilyaCAD/actions/runs/44806905713) success. Test site deployed to current verified SHA; frontend files were unchanged.
+- Four QA iterations exposed only test assertion/escaping mistakes; final test is green. Material catalog resource ID is still missing from quote line source metadata, so DOM-078 is the next domain slice.
+- **OPS-001:** Pages same-SHA gate was verified by SHA 0374ba7c: CI passed, QA failed, deployment skipped. Workflow commit in the verified code history prevents unverified deployment.
+- Next: DOM-078 resource identity provenance, DOM-079 safe revision-history import, then INT-001/INT-002 and PERF-001 in their separate ownership lanes.
