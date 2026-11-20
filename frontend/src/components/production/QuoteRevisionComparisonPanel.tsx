@@ -215,6 +215,8 @@ export function QuoteRevisionComparisonPanel() {
       }
     } catch (error) {
       setDiagnostics([error instanceof Error ? error.message : "Karşılaştırma dosyası okunamadı."]);
+    } finally {
+      setIsLoading(false);
     }
   }
 
