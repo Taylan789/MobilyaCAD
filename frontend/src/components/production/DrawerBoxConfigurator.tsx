@@ -471,7 +471,7 @@ export function DrawerBoxConfigurator({
                 </div>
               </div>
 
-<details className="cad-drawer-config-disclosure cad-drawer-config-disclosure--materials">
+              <details className="cad-drawer-config-disclosure cad-drawer-config-disclosure--materials">
                 <summary>Panel grubu malzeme atamaları</summary>
                 <p className="cad-drawer-config-note">
                   Her panel grubu için ayrı katalog malzemesi seçebilirsin.
@@ -517,7 +517,7 @@ export function DrawerBoxConfigurator({
                 </p>
               </div>
 
-<details className="cad-drawer-config-disclosure cad-drawer-config-disclosure--edges">
+              <details className="cad-drawer-config-disclosure cad-drawer-config-disclosure--edges">
                 <summary>Kenar bantlama</summary>
                 {panelGroups.map((group) => (
                   <div className="cad-drawer-panel-group" key={group.key}>
@@ -557,7 +557,7 @@ export function DrawerBoxConfigurator({
                 ))}
               </details>
 
-<details className="cad-drawer-config-disclosure cad-drawer-config-disclosure--grain">
+              <details className="cad-drawer-config-disclosure cad-drawer-config-disclosure--grain">
                 <summary>Damar yönü</summary>
                 {panelGroups.map((group) => {
                   const id = "drawer-grain-" + group.key;
