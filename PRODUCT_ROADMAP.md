@@ -530,7 +530,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 7. DOM-067 DONE — strict material-consumption JSON v1; Actions verified.
 8. DOM-068 DONE — strict directional edge-band consumption JSON v1; Actions verified (124 frontend + 468 domain tests; strict TS/build/audit).
 9. DOM-069 DONE — strict directional edge-band consumption CSV v1 verified by CI/QA/Pages.
-10. DOM-070 PLANNED — configurable edge-band catalog cost and optional user-supplied roll/waste inputs; no inferred price or yield.
+10. DOM-070 IN_PROGRESS — configurable edge-band purchase cost with explicit user prices and roll/waste inputs; no inferred price or yield.
 
 ## 19 Kasım 2026 21:21 TRT — DOM-059 teklif revizyon satır karşılaştırması
 
@@ -577,7 +577,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 
 ## Next 5 small tasks
 1. DOM-070A DONE — roll quantity plan from user-entered roll length and optional fixed waste allowance (mm), grouped by catalog ID.
-2. DOM-070B READY — explicit per-roll pricing and quote integration with currency/source provenance; never infer price.
+2. DOM-070B IN_PROGRESS — per-roll purchase-cost summary with explicit currency/source, quote-ready material lines and no partial totals; DOM-070C owns full quote/revision integration.
 3. DOM-066 PLANNED — frontend-owned quote comparison JSON/CSV download integration, including blocked-state handling.
 4. INT-001 READY — shared production report/export round-trip or unsupported-geometry blocker; contract remains shared.
 5. INT-002/PERF-001 READY — adapter fidelity and measured viewport baseline; specialist workflow currently disabled.
@@ -656,4 +656,14 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - **Acceptance:** groups sharing catalog ID aggregate across directions and mm/m; roll count is ceiling of explicit required length divided by roll length; purchased length and leftover are reported to 0.1 mm; Part/furniture IDs are sorted and deduplicated. Missing definitions are `incomplete`; legacy unassigned groups, invalid inputs and unused specs block the complete plan with no partial results. Empty input remains empty.
 - **Boundary:** pure domain calculation only. No UI/download adapter, price per roll, supplier catalog, CNC or physical workshop validation. Existing price-per-meter inputs remain separate.
 - **Files:** `domain/production/projectEdgeBandingRollPlan.ts`, its test, QA strict TypeScript list, coordination/progress.
-- **Actions:** final implementation SHA `15e126e551462b4229847f28a751f2aa6bc5bd1f`. [CI #537](https://github.com/Taylan789/MobilyaCAD/actions/runs/44688842588), [QA #523](https://github.com/Taylan789/MobilyaCAD/actions/runs/44688842631) and [Pages #364](https://github.com/Taylan789/MobilyaCAD/actions/runs/44688842430) all succeeded: 124/124 frontend + 481/481 domain, strict domain TypeScript, lint 32 warnings/0 errors, production build and audit 0 vulnerabilities. Earlier fixture failures were corrected without relaxing validation. **Next:** DOM-070B explicit per-roll price/currency/source quote integration; DOM-066 frontend-owned.
+- **Actions:** final implementation SHA `15e126e551462b4229847f28a751f2aa6bc5bd1f`. [CI #537](https://github.com/Taylan789/MobilyaCAD/actions/runs/44688842588), [QA #523](https://github.com/Taylan789/MobilyaCAD/actions/runs/44688842631) and [Pages #364](https://github.com/Taylan789/MobilyaCAD/actions/runs/44688842430) all succeeded: 124/124 frontend + 481/481 domain, strict domain TypeScript, lint 32 warnings/0 errors, production build and audit 0 vulnerabilities. Earlier fixture failures were corrected without relaxing validation. **Next:** DOM-070B explicit per-roll price/currency/source quote-ready cost summary; DOM-066 frontend-owned.
+
+
+## DOM-070B — Per-roll edge-band purchase cost summary (implementation, Actions pending)
+
+- Uses the verified roll plan and explicit catalog-ID pricing inputs: unit must be \`rulo\`, price is a non-negative safe integer in the supplied currency's minor unit, and currency/source reference are user supplied.
+- Emits one deterministic material cost line per edge-band catalog ID using purchased roll count (not consumed meters); retains roll length, purchased length, Part/furniture IDs and plan/price provenance in the quote-ready source map.
+- Missing prices return \`incomplete\` with no monetary summary; mixed currencies, unused/duplicate prices, malformed roll arithmetic, unsupported fields or invalid source IDs block the entire result. An explicit zero price is accepted. No price, currency conversion, roll standard or waste/yield is inferred.
+- **Acceptance:** domain tests cover deterministic sorting, roll-count cost arithmetic, provenance, zero prices, missing-price/no-partial behavior, mixed currencies, unused/duplicate/invalid prices, malformed roll-plan arithmetic and blocked/empty inputs. QA strict TypeScript list includes the new module.
+- **Boundary:** this is a quote-ready material cost summary, not yet merged into the full quote/revision snapshot or project JSON; that integration is DOM-070C.
+- **Next:** DOM-070C full quote/revision integration with an explicit mode that avoids double-counting length-priced edge-band consumption; DOM-071 roll price/plan project-file persistence; DOM-066 remains frontend-owned.
