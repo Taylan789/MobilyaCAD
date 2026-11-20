@@ -1741,3 +1741,13 @@
 - Changed files: domain/production/projectQuoteRevision.ts, projectQuoteRevisionComparisonFile.ts, projectQuoteRevisionComparisonCsv.ts, projectQuoteRevisionComparisonFile.test.mjs, projectQuoteRevisionComparisonCsv.test.mjs. No frontend or integration/performance-owned adapter files.
 - Automatic checks: pending. Local tests were not run. Git Data API branch updates did not create Actions runs; this documentation update uses the Contents API to trigger push workflows. Known constraints: no inferred prices/lengths, 0.1 mm roll length precision, and no physical CNC validation.
 - Next: verify CI/QA/Pages on the resulting SHA, then DOM-073 strict quote-summary JSON v1; DOM-066 stays frontend-owned.
+
+
+## 20 Kasım 2026 17:42 TRT — DOM-072 roll purchase-cost provenance in revision comparisons
+
+- Implementation commits: 82998fe2fc5f98d7a1853d2f824fd3a0a4b759a5, b1b9b47fd1c2102ab7aacbfabb1ea0968366fc51, 5016a7966166ac83505183a2a95bb190fd6e9bfd. Roll metadata is copied into immutable revision comparisons and compared as value data; furniture IDs also affect line identity.
+- Strict comparison JSON v1 preserves roll count/length/purchased length, furniture IDs and plan/price references. Comparison CSV is v2 with explicit roll fields and accepts legacy v1 files without roll metadata.
+- Changed files: domain/production/projectQuoteRevision.ts, projectQuoteRevisionComparisonFile.ts, projectQuoteRevisionComparisonCsv.ts, projectQuoteRevisionComparisonFile.test.mjs, projectQuoteRevisionComparisonCsv.test.mjs. No frontend or adapter/benchmark ownership files.
+- QA history: latest completed SHA 85cd8f4 had CI success, QA failure (2 new tests: CSV roll export and JSON comparison serialization; diagnostic showed `quantity is not defined`). Fix applied in 5016a7966166ac83505183a2a95bb190fd6e9bfd. CI/QA/Pages on final documentation SHA pending; local tests not run.
+- Known constraints: roll length precision 0.1 mm; prices/currency and machine rules are not inferred; physical CNC/workshop validation is out of scope. AI Developer run remains quota-limited (429) and no rerun is appropriate before quota reset.
+- Next: verify Actions on final SHA, then DOM-073 strict quote-summary JSON v1; DOM-066 is frontend-owned.
