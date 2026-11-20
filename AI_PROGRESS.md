@@ -1604,3 +1604,9 @@
 - GitHub Actions on final code SHA: CI [#44672158622](https://github.com/Taylan789/MobilyaCAD/actions/runs/44672158622) success; QA [#44672158633](https://github.com/Taylan789/MobilyaCAD/actions/runs/44672158633) success — **124/124 frontend + 463/463 domain tests, 0 fail**, strict domain TS, lint **32 warnings / 0 errors**, production build, audit **0 vulnerabilities; Pages [#44672158703](https://github.com/Taylan789/MobilyaCAD/actions/runs/44672158703) successful.
 - Local tests not run; Actions is the verification source. No frontend, adapter/performance-owned files, CNC standard, secrets or main branch touched.
 - Next: DOM-068 — directional edge-band consumption JSON v1 preserving exact mm/m, edge, Part and furniture provenance; DOM-066 remains frontend-owned.
+
+
+## 20 Kasım 2026 08:32 TRT — DOM-068 directional edge-band JSON v1 (Actions pending)
+- Added `domain/production/projectEdgeBandingConsumptionFile.ts` strict JSON v1 serializer/parser and `projectEdgeBandingConsumptionFile.test.mjs` production-driven round-trip tests for legacy mm, directional top mm/left m, shared Part provenance, empty summaries, malformed/unknown/unsupported input, arithmetic/order/duplicate blockers, 10,000-ID and 5 MB limits.
+- Added strict QA type-check wiring; updated roadmap and coordination. Commit/Actions pending. Local tests unavailable; Actions is the verification source.
+- Boundaries: no roll/waste/price/CNC inference; frontend-owned download controls unchanged. Next: DOM-069 strict CSV v1.
