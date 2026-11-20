@@ -1571,3 +1571,12 @@
 - Final Actions: [CI #44646343900](https://github.com/Taylan789/MobilyaCAD/actions/runs/44646343900) success; [QA #44646343994](https://github.com/Taylan789/MobilyaCAD/actions/runs/44646343994) success — **124/124 frontend + 457/457 domain test, 0 fail**, strict domain TS, lint **32 warning/0 error**, production build, production dependency audit **0 vulnerability**; [Pages #44646343887](https://github.com/Taylan789/MobilyaCAD/actions/runs/44646343887) successful.
 - Değişen domain/test/QA alanı: CSV serializer/parser ve test, QA strict TypeScript listesi; frontend/**, adapter/performance agent dosyaları, CNC/makine standardı, main ve secrets değişmedi. UI download integration ve fiziksel üretim doğrulaması yok.
 - Sonraki: DOM-064 — explicit waste/profit quote adjustment provenance; UI-owned CSV/JSON download wiring için frontend agent ile contract-only not.
+
+
+
+## 20 Kasım 2026 04:46 TRT — DOM-064 proje geçmişi kaynak izi testi (IN_PROGRESS)
+- Başlangıç HEAD: `4c0219e489578566f11f5b7b903b6c38bf56834d`. Quote-adjustment fixture'ı yalnızca kâr yerine açık fire + kâr satırlarını içeriyor; yeni regresyon testinde JSON v2 proje geçmişi append/read round-trip sırasında her iki satırın kategori, sourceType/sourceId, sourceReference, mikt, birim, fiyat, satır toplamı ve kategori/genel toplamları korunuyor.
+- İlk commit ve Actions doğrulaması bekleniyor; local test çalıştırılmadı. Testler gevşetilmedi.
+- Son HEAD Actions: CI #44647787672, QA #44647787615, Pages #44647787684 başarılı (124 frontend + 457 domain; strict TS, lint, build, production audit). Bu test SHA'sı için sonuç henüz yok.
+- AI Developer #44647787500 push event'inde `opencode github run` tarafından `Unsupported event type: push` hatasıyla durdu; aynı event'i rerun etmek sonuç değiştirmeyeceğinden rerun yapılmadı. PR #102 açık, PR #103 zaten merged; workflow sahibi/branch sınırları korunuyor. Integration/performance job `if: false` ile devre dışı, INT-002/PERF-001 hazır görevler sahipsiz.
+- Sonraki: DOM-065 — revision comparison JSON/CSV export'unda waste/profit added/removed/changed source-line provenance ve delta reconciliation testleri.

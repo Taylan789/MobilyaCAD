@@ -23,6 +23,15 @@ const snapshotResult = createProjectQuotePricingSnapshot({
   consumptionPriceList: null,
   laborOperationTariffList: null,
   quoteAdjustments: [{
+    id: "waste-project-file",
+    category: "waste",
+    description: "Kullanıcı tarafından girilen fire payı",
+    quantity: 0.5,
+    unit: "m2",
+    unitPriceMinor: 1000,
+    currencyCode: "TRY",
+    sourceReference: "atolye-fire-hesabi:v1"
+  }, {
     id: "profit-project-file",
     category: "profit",
     description: "Kullanıcı tarafından girilen teklif kârı",
@@ -119,6 +128,69 @@ test("ilk revizyon v2 proje dosyasına eklenir, input değiştirilmez ve tekrar 
   assert.equal(read.history?.revisions[0].previousRevisionId, null);
   assert.equal(read.history?.revisions[0].revisionNumber, 1);
   assert.ok(Object.isFrozen(read.history));
+});
+
+test("fire ve kâr satırlarının kaynak izi JSON v2 proje geçmişi round-trip'inde korunur", () => {
+  const result = appendProjectQuoteRevisionToProjectFile(createV2Project(), createRevision());
+  assert.equal(result.status, "ready");
+  assert.ok(result.project);
+
+  const read = readProjectQuoteRevisionHistoryFromProjectFile(result.project);
+  assert.equal(read.status, "ready");
+  const revision = read.history?.revisions[0];
+  assert.ok(revision);
+  assert.equal(revision.sourceIntegrityVersion, 1);
+
+  const quoteSummary = revision.pricingSnapshot.quoteSummary;
+  const costSummary = quoteSummary.costSummary;
+  assert.ok(costSummary);
+  assert.equal(costSummary.categoryTotalsMinor.waste, 500);
+  assert.equal(costSummary.categoryTotalsMinor.profit, 2500);
+  assert.equal(costSummary.grandTotalMinor, 3000);
+
+  assert.deepEqual(costSummary.lines.map((line) => ({
+    id: line.id,
+    category: line.category,
+    quantity: line.quantity,
+    unit: line.unit,
+    unitPriceMinor: line.unitPriceMinor,
+    lineTotalMinor: line.lineTotalMinor,
+    currencyCode: line.currencyCode,
+    sourceReference: line.sourceReference
+  })), [
+    {
+      id: "adjustment-0001",
+      category: "waste",
+      quantity: 0.5,
+      unit: "m2",
+      unitPriceMinor: 1000,
+      lineTotalMinor: 500,
+      currencyCode: "TRY",
+      sourceReference: "atolye-fire-hesabi:v1"
+    },
+    {
+      id: "adjustment-0002",
+      category: "profit",
+      quantity: 1,
+      unit: "adet",
+      unitPriceMinor: 2500,
+      lineTotalMinor: 2500,
+      currencyCode: "TRY",
+      sourceReference: "teklif-kalemleri:rev1"
+    }
+  ]);
+  assert.deepEqual(quoteSummary.lineSources, [
+    {
+      costLineId: "adjustment-0001",
+      sourceType: "quote-adjustment",
+      sourceId: "waste-project-file"
+    },
+    {
+      costLineId: "adjustment-0002",
+      sourceType: "quote-adjustment",
+      sourceId: "profit-project-file"
+    }
+  ]);
 });
 
 test("ikinci revizyon önceki kayda bağlanır ve eski proje snapshot'ı değişmez", () => {

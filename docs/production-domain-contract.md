@@ -998,3 +998,11 @@ Kaynak test: domain/production/projectBathroomVanityPanelPricing.test.mjs.
 - Bütün hücreler çift tırnaklanır, iç tırnaklar ikiye katlanır, CRLF ve UTF-8 BOM kullanılır. Parser sabit header/version, satır sırası, metadata tutarlılığı, kategori tamlığı ve mevcut strict JSON domain validation kapısını kullanır; 5 MB ve 10.000 satır fark sınırı vardır.
 - Round-trip, Türkçe metin, comma/quote/multiline, mm/m, optional metadata, empty comparison, malformed quoting, unknown header ve inconsistent delta testleri. Final QA 124/124 frontend + 457/457 domain; strict TS/lint/build/audit geçti (0 production vulnerability).
 - UI download adapter ve gerçek dosya indirme entegrasyonu ayrı frontend sahipliğinde; CNC veya fiziksel atölye doğrulaması bu sözleşmeye dahil değildir.
+
+
+
+## DOM-064 — Explicit waste/profit adjustment provenance in project quote history
+
+- Quote adjustments remain explicit cost lines in the existing `waste` or `profit` category. Quantity, unit, unit price, currency and a non-empty user-supplied source reference are required; percentage-based defaults or inferred pricing are not added.
+- Each revision snapshot keeps the generated cost-line ID and the `quote-adjustment` source type with the adjustment's original line ID as `sourceId`; the cost line retains its exact `sourceReference`. Strict revision validation rejects adjustment categories outside waste/profit, duplicate source identities, missing references and partial totals.
+- JSON v2 project-history append/read must preserve both adjustment categories, their source IDs/references, units, prices, line totals and reconciled category/grand totals. This is domain persistence only; frontend import/export adapters and physical workshop/CNC verification are separate.

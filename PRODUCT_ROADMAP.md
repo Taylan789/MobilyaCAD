@@ -524,7 +524,9 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 1. DOM-061 DONE — structured edge direction is carried as `edgeDirection` through consumption, quote summaries, revision snapshots, and JSON round-trip; legacy v1 descriptions remain supported.
 2. DOM-062 DONE — revision comparison JSON export contract, exact line deltas/currency/source, no unit conversion.
 3. DOM-063 DONE — stable quote comparison CSV v1 serializer/parser, exact currency/unit/source and RFC 4180 escaping; Actions verified.
-4. DOM-064 PLANNED — strict quote adjustment provenance for explicit waste/profit lines; no inferred percentages.
+4. DOM-064 IN_PROGRESS — verify explicit waste/profit provenance through JSON v2 project-history round-trip; no inferred percentages.
+5. DOM-065 PLANNED — quote-comparison JSON/CSV added/removed/changed waste/profit source-line round-trip and delta reconciliation.
+6. DOM-066 PLANNED — frontend-owned revision-comparison download wiring after the domain export contract is complete.
 
 
 ## 19 Kasım 2026 21:21 TRT — DOM-059 teklif revizyon satır karşılaştırması
