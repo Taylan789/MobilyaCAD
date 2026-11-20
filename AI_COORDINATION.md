@@ -305,3 +305,7 @@ Bu dosya dört geliştirme/denetim rolünün ortak görev panosu ve entegrasyon 
 - Domain slice aggregates measured directional consumption by catalog ID across mm/m groups. Each ID requires an actual user roll length in mm; optional fixed waste allowance is user-supplied mm and defaults to zero only when omitted.
 - Output includes consumed/required/purchased/leftover lengths, integer roll count and sorted Part/furniture provenance. Missing specs return incomplete; legacy unassigned groups and invalid/duplicate/unused specs block the complete plan. No partial output or inferred yield.
 - Actions verification pending; UI/download integration, roll pricing and physical workshop validation are outside this slice.
+
+
+## DOM-070A QA correction note
+- Initial QA run [#44688505009](https://github.com/Taylan789/MobilyaCAD/actions/runs/44688505009) failed one fixture because its Part-line count was 1 while two Part IDs were supplied. The validator correctly blocked it; production logic was unchanged. Test fixture correction is being committed, then QA will rerun.

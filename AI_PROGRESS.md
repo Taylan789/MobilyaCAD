@@ -1635,3 +1635,8 @@
 - Files: `domain/production/projectEdgeBandingRollPlan.ts`, `.test.mjs`, QA strict TypeScript list, AI_COORDINATION.md and PRODUCT_ROADMAP.md. Frontend/** and integration/performance-owned files unchanged.
 - Acceptance tests cover mixed units/directions, aggregation, explicit allowance, exact fit, missing/legacy, empty, invalid specs and tenth-mm arithmetic. GitHub Actions pending; local tests not run.
 - Next: DOM-070B per-roll pricing/quote integration; DOM-066 remains frontend-owned; INT-001/INT-002/PERF-001 remain specialist/contract tasks.
+
+
+## 20 Kasım 2026 09:32 TRT — DOM-070A QA fixture correction (Actions pending)
+- Initial code commit `3b0d550f098080672ed8a5ee036957ee90be875d`: CI #534 succeeded, QA #520 failed 1/481 domain tests. Failure was a fixture validation mismatch: the first summary group had two Part IDs but `partLineCount: 1`; the strict validator correctly blocked it. No production logic or validation was loosened.
+- Corrected only that fixture to `partLineCount: 2`. CI/QA for the correction are pending; Pages #361 for the prior SHA is still in progress at this check.
