@@ -670,3 +670,10 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - Test coverage: [QA #44697406838](https://github.com/Taylan789/MobilyaCAD/actions/runs/44697406838) 124/124 frontend + 491/491 domain tests, 0 failures; strict shared-domain TypeScript, lint 32 warnings/0 errors, production build and audit 0 vulnerabilities. [CI #44697406818](https://github.com/Taylan789/MobilyaCAD/actions/runs/44697406818) and [Pages #44697406803](https://github.com/Taylan789/MobilyaCAD/actions/runs/44697406803) also succeeded.
 - Boundary: quote-ready material cost summary only; full quote/revision snapshot integration and project JSON persistence are not implemented.
 - Next: DOM-070C full quote integration with explicit pricing mode and no double-counting; DOM-071 roll plan/price project-file persistence; DOM-072 quote-revision provenance. DOM-066 remains frontend-owned.
+
+## 20 Kasım 2026 13:30 TRT — DOM-070C önkoşulu: rulo adedi hata tanısı
+
+- QA Run #542, SHA `3aeddf19c23b707debf92a0f11495f8d0a97fadf` üzerinde 493 domain testinden 492'si geçti; yalnızca mevcut minimum-rulo-adedi regresyon testi, doğrulamanın doğru bloklamasına rağmen genel aritmetik hata mesajını beklenen açık tanıyla eşleştiremedi.
+- Düzeltme: gereken uzunluk tutarlılığı, minimum tam rulo adedi ve satın alınan uzunluk güvenli sayı sınırı ayrı kontroller/diagnostics olarak ayrıştırıldı. Rulo sayısı veya hesap kuralları gevşetilmedi; mevcut testin beklediği açık hata mesajı sağlandı.
+- Kapsam: yalnızca domain/production hesap modülü, koordinasyon ve roadmap. Frontend, adapter/performance dosyaları değişmedi. Actions doğrulaması bu commit için bekleniyor.
+- Sonraki: DOM-070C phase 2 — açık uzunluk/rulo fiyatlama modu, rulo alım satırlarının metre bazlı satırları değiştirmesi (çift sayım olmaması), tek para birimi ve kaynak/Part bütünlüğü.

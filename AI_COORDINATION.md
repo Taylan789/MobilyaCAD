@@ -326,3 +326,11 @@ Bu dosya dört geliştirme/denetim rolünün ortak görev panosu ve entegrasyon 
 ## DOM-070A final verification
 - Final implementation SHA `15e126e551462b4229847f28a751f2aa6bc5bd1f`. Fixture corrections were test-only and strict production checks were preserved.
 - [CI #537](https://github.com/Taylan789/MobilyaCAD/actions/runs/44688842588), [QA #523](https://github.com/Taylan789/MobilyaCAD/actions/runs/44688842631) and [Pages #364](https://github.com/Taylan789/MobilyaCAD/actions/runs/44688842430) succeeded. QA: 124 frontend + 481 domain tests, strict shared-domain TypeScript, lint 32 warnings/0 errors, production build and production audit 0 vulnerabilities.
+
+
+## 20 Kasım 2026 13:30 TRT — DOM-070C önkoşulu: rulo adedi hata tanısı
+
+- QA Run #542, SHA `3aeddf19c23b707debf92a0f11495f8d0a97fadf` üzerinde 493 domain testinden 492'si geçti; yalnızca mevcut minimum-rulo-adedi regresyon testi, doğrulamanın doğru bloklamasına rağmen genel aritmetik hata mesajını beklenen açık tanıyla eşleştiremedi.
+- Düzeltme: gereken uzunluk tutarlılığı, minimum tam rulo adedi ve satın alınan uzunluk güvenli sayı sınırı ayrı kontroller/diagnostics olarak ayrıştırıldı. Rulo sayısı veya hesap kuralları gevşetilmedi; mevcut testin beklediği açık hata mesajı sağlandı.
+- Kapsam: yalnızca domain/production hesap modülü, koordinasyon ve roadmap. Frontend, adapter/performance dosyaları değişmedi. Actions doğrulaması bu commit için bekleniyor.
+- Sonraki: DOM-070C phase 2 — açık uzunluk/rulo fiyatlama modu, rulo alım satırlarının metre bazlı satırları değiştirmesi (çift sayım olmaması), tek para birimi ve kaynak/Part bütünlüğü.

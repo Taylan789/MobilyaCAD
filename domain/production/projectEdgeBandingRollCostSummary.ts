@@ -199,13 +199,14 @@ function validateRollPlan(value: unknown): {
       ? 0n
       : (BigInt(requiredTenths) + BigInt(rollLengthTenths) - 1n) / BigInt(rollLengthTenths);
     const expectedPurchasedBig = BigInt(rawPlan.rollCount) * BigInt(rollLengthTenths);
-    if (
-      !Number.isSafeInteger(expectedRequired) ||
-      expectedRequired !== requiredTenths ||
-      BigInt(rawPlan.rollCount) !== expectedRollCountBig ||
-      expectedPurchasedBig > BigInt(Number.MAX_SAFE_INTEGER)
-    ) {
-      throw new Error(label + " gereken/rulo/satın alınan uzunluk aritmetiği tutarsız.");
+    if (!Number.isSafeInteger(expectedRequired) || expectedRequired !== requiredTenths) {
+      throw new Error(label + " gereken uzunluk tüketim ve ek pay ile tutarlı olmalıdır.");
+    }
+    if (BigInt(rawPlan.rollCount) !== expectedRollCountBig) {
+      throw new Error(label + " rulo adedi gerekli uzunluk için en düşük tam rulo adedi olmalıdır.");
+    }
+    if (expectedPurchasedBig > BigInt(Number.MAX_SAFE_INTEGER)) {
+      throw new Error(label + " satın alınan uzunluk güvenli sayı sınırını aşmamalıdır.");
     }
     const expectedPurchased = Number(expectedPurchasedBig);
     const expectedLeftover = expectedPurchased - requiredTenths;
