@@ -1596,3 +1596,11 @@
 - GitHub Actions: CI [#44661291150](https://github.com/Taylan789/MobilyaCAD/actions/runs/44661291150), QA [#44661291069](https://github.com/Taylan789/MobilyaCAD/actions/runs/44661291069), Pages [#44661291112](https://github.com/Taylan789/MobilyaCAD/actions/runs/44661291112) success. QA **124/124 frontend + 459/459 domain**, strict domain TS, lint **32 warnings/0 errors**, production build, audit **0 vulnerability**.
 - Local tests not run; Actions is verification source. UI download integration remains DOM-066/frontend ownership; no inferred price/FX/waste rate or CNC/workshop validation.
 - Next: DOM-066 — frontend-owned comparison JSON/CSV download wiring with ready/blocked handling.
+
+
+## 20 Kasım 2026 06:59 TRT — DOM-067 malzeme tüketim JSON v1 (Actions pending)
+- Başlangıç HEAD: `957d597faea1f2f5ab67b0eca968c107f8362d54`; yalnızca frontend dışı domain/export contract alanı kullanıldı.
+- Yeni `projectMaterialSummaryFile.ts` strict v1 JSON zarfı ve parser/serializer: mm/m²/m³ birim sözleşmesi, malzeme kimliği/kalınlığı, sorted Part provenance, satır/adet, net alan/hacim, kenar bantlama alt toplamları. Unknown fields, unsupported units/version, duplicate group/Part ID, canonical order ve aritmetik tutarsızlıkları fail-closed.
+- Yeni `projectMaterialSummaryFile.test.mjs`: domain hesap round-trip, empty/legacy, invalid totals/IDs/fields, malformed/version/unit ve 5 MB limit; QA shared-domain strict TypeScript listesine eklendi. Contract/roadmap/coordination güncellendi.
+- Commit SHA ve CI/QA/Pages sonuçları post-commit doğrulama sonrası eklenecek. Yerel test çalıştırılmadı; GitHub Actions doğrulaması bekleniyor.
+- Sonraki: DOM-068 yönsel kenar bandı tüketim JSON v1 sözleşmesi; DOM-066 frontend export wiring ayrı UI sahibinde.

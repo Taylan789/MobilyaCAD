@@ -1014,3 +1014,14 @@ Kaynak test: domain/production/projectBathroomVanityPanelPricing.test.mjs.
 - Comparison validation reconciles line deltas to the waste/profit category delta and category deltas to the grand-total delta. The tests also verify the revision comparator emits all six adjustment change shapes; JSON/CSV use the same strict validation gate and reject partial results.
 - No inferred waste percentage, profit rate, currency conversion, or unit conversion is introduced. This is a domain serialization contract; frontend download wiring and physical workshop/CNC validation remain separate.
 - DOM-065 verification: [test commit 58cd6aa](https://github.com/Taylan789/MobilyaCAD/commit/58cd6aa1588341a9a9df124c6dd81627c93e8b90), CI [#44661291150](https://github.com/Taylan789/MobilyaCAD/actions/runs/44661291150), QA [#44661291069](https://github.com/Taylan789/MobilyaCAD/actions/runs/44661291069), Pages [#44661291112](https://github.com/Taylan789/MobilyaCAD/actions/runs/44661291112) successful; 459/459 domain tests.
+
+
+## 8. Malzeme tüketim özeti JSON v1
+
+Kaynak: `domain/production/projectMaterialSummaryFile.ts`.
+
+- `serializeProjectMaterialConsumptionSummaryFile` ve `parseProjectMaterialConsumptionSummaryFile`, hesaplanmış malzeme gruplarını `mobilyacad-material-consumption-summary` JSON v1 zarfında taşır.
+- Birimler açık ve sabittir: panel kalınlığı mm, net alan m², net hacim m³, kenar bant uzunluğu mm. Material ID (varsa), kalınlık, grup Part kimlikleri, Part satır sayısı, quantity, alan/hacim ve yönsel bant alt toplamları korunur.
+- Parser/serializer unknown key, unsupported schema/unit, duplicate grup/Part ID, sırasız kimlik, Part sayısı/adet tutarsızlığı, alan-kalınlık-hacim uyuşmazlığı veya bant uzunluğu/edgeCount tutarsızlığında fail-closed çalışır; kısmi JSON üretmez. JSON 5 MB, grup 1.000 ve Part ID toplamı 10.000 ile sınırlandırılır.
+- Boş özet ve katalog kimliği olmayan legacy material groups geçerlidir. Bu dosya yalnızca net tüketimi taşır; fire, levha verimi, fiyat, kerf, CNC veya atölye standardı eklemez.
+- Kabul: gerçek domain hesap çıktısı JSON round-trip; boş/legacy; invalid totals, unknown fields, duplicate IDs ve oversized input otomatik testlerle kapsanır. Frontend indirme entegrasyonu ayrıca yapılmalıdır.
