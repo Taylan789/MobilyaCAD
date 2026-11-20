@@ -11,6 +11,7 @@ import {
 } from "../../engine/drawerBoxProject";
 import type { DrawerBoxProjectConfig } from "../../engine/drawerBoxProject";
 import type { MaterialCatalogEntry } from "../../engine/materialCatalog";
+import "./DrawerBoxConfigurator.css";
 
 const panelGroups = [
   { key: "sidePanels", label: "Yan paneller" },
@@ -470,8 +471,8 @@ export function DrawerBoxConfigurator({
                 </div>
               </div>
 
-              <div className="cad-drawer-config-panel">
-                <strong>Panel grubu malzeme atamaları</strong>
+<details className="cad-drawer-config-disclosure cad-drawer-config-disclosure--materials">
+                <summary>Panel grubu malzeme atamaları</summary>
                 <p className="cad-drawer-config-note">
                   Her panel grubu için ayrı katalog malzemesi seçebilirsin.
                   Boş bırakılan gruplar varsayılan malzemeyi kullanır.
@@ -507,7 +508,7 @@ export function DrawerBoxConfigurator({
                     );
                   })}
                 </div>
-              </div>
+              </details>
 
               <div className="cad-drawer-config-panel">
                 <strong>Taban konstrüksiyonu</strong>
@@ -516,8 +517,8 @@ export function DrawerBoxConfigurator({
                 </p>
               </div>
 
-              <div className="cad-drawer-config-panel">
-                <strong>Kenar bantlama</strong>
+<details className="cad-drawer-config-disclosure cad-drawer-config-disclosure--edges">
+                <summary>Kenar bantlama</summary>
                 {panelGroups.map((group) => (
                   <div className="cad-drawer-panel-group" key={group.key}>
                     <strong>{group.label}</strong>
@@ -554,10 +555,10 @@ export function DrawerBoxConfigurator({
                     </div>
                   </div>
                 ))}
-              </div>
+              </details>
 
-              <div className="cad-drawer-config-panel">
-                <strong>Damar yönü</strong>
+<details className="cad-drawer-config-disclosure cad-drawer-config-disclosure--grain">
+                <summary>Damar yönü</summary>
                 {panelGroups.map((group) => {
                   const id = "drawer-grain-" + group.key;
                   return (
@@ -585,7 +586,7 @@ export function DrawerBoxConfigurator({
                     </div>
                   );
                 })}
-              </div>
+              </details>
 
               {error && <p className="cad-drawer-config-error" role="alert">{error}</p>}
 
