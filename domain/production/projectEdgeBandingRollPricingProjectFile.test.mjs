@@ -72,6 +72,7 @@ test("roll spec IDs must be valid and unique", () => {
     assert.equal(setProjectEdgeBandingRollPricingInProjectFile(project(),pricing({rollSpecs})).status,"blocked");
   }
 });
+test("roll spec rows reject unknown fields", () => { const result=setProjectEdgeBandingRollPricingInProjectFile(project(),pricing({rollSpecs:[{edgeBandingId:"pvc-a",rollLengthMm:1000,extra:true}]})); assert.equal(result.status,"blocked"); assert.equal(result.project,null); });
 test("roll lengths and fixed allowances validate 0.1 mm precision and bounds", () => {
   for(const rollLengthMm of [0,-1,0.05,10_000_000.1]) assert.equal(setProjectEdgeBandingRollPricingInProjectFile(project(),pricing({rollSpecs:[{edgeBandingId:"pvc-a",rollLengthMm}]})).status,"blocked");
   for(const wasteAllowanceMm of [-0.1,0.05]) assert.equal(setProjectEdgeBandingRollPricingInProjectFile(project(),pricing({rollSpecs:[{edgeBandingId:"pvc-a",rollLengthMm:1000,wasteAllowanceMm}]})).status,"blocked");

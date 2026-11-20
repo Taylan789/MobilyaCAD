@@ -1721,3 +1721,6 @@
 - QA #44744418391 reported a syntax error in the newly added roll-input persistence test file (`missing ) after argument list`); the domain suite stopped at 502 passed + 1 failed file-level test.
 - Corrected the malformed `repeat(257)` test-array delimiter. Test count in the progress entry corrected to 16. No production code or assertions were weakened.
 - CI #44744418497 and Pages #44744418277 succeeded on the initial commit; rerun QA after the test-only fix is pending.
+## DOM-071 test coverage follow-up — 20 Kasım 2026 16:22 TRT
+
+- Added an explicit regression for unknown fields inside individual roll-spec rows (not only the pricing envelope/price rows), bringing the new test file to 16 tests. Previous corrected run passed 517/517; new test awaits Actions.
