@@ -323,7 +323,7 @@ test("roll purchase metadata survives JSON v2 quote-history append/read round-tr
     createV2Project(),
     createRevision({ pricingSnapshot: createRollSnapshot() })
   );
-  assert.equal(result.status, "ready");
+  assert.equal(result.status, "ready", result.diagnostics.join(" | "));
   assert.ok(result.project);
 
   const read = readProjectQuoteRevisionHistoryFromProjectFile(result.project);
