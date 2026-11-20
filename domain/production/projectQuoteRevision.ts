@@ -370,6 +370,9 @@ function validateQuoteSummary(value: unknown, strictSourceIntegrity = false): as
     if (source.sourceType !== "production-consumption" && source.sourceType !== "labor-operation" && source.sourceType !== "quote-adjustment") {
       throw new Error("Teklif kaynak türü desteklenmiyor.");
     }
+    if (line.unit === "rulo" && source.resourceType !== "edge-banding") {
+      throw new Error("Rulo birimi yalnızca edge-banding kaynaklı material satırlarında kullanılabilir.");
+    }
     if (edgeDirection !== undefined && source.sourceType !== "production-consumption") {
       throw new Error("Kenar yönü yalnızca üretim tüketimi satırlarında kullanılabilir.");
     }

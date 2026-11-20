@@ -1280,12 +1280,38 @@ test("roll purchase lines retain source metadata in immutable quote revisions", 
 });
 
 test("roll count and purchased length must reconcile with the roll cost line", () => {
-  const snapshot = createRollSnapshot();
-  const source = snapshot.quoteSummary.lineSources.find(item => item.unit === "rulo");
-  assert.ok(source);
-  source.rollCount = 1;
+  const countSnapshot = createRollSnapshot();
+  const countSource = countSnapshot.quoteSummary.lineSources.find(item => item.unit === "rulo");
+  assert.ok(countSource);
+  countSource.rollCount = 1;
+  const countResult = createProjectQuoteRevision(createFirstRevision({ pricingSnapshot: countSnapshot }));
+  assert.equal(countResult.status, "blocked");
+  assert.match(countResult.diagnostics.join(" "), /rulo adedi.*quantity/);
 
+  const lengthSnapshot = createRollSnapshot();
+  const lengthSource = lengthSnapshot.quoteSummary.lineSources.find(item => item.unit === "rulo");
+  assert.ok(lengthSource);
+  lengthSource.purchasedLengthMm = 100000;
+  const lengthResult = createProjectQuoteRevision(createFirstRevision({ pricingSnapshot: lengthSnapshot }));
+  assert.equal(lengthResult.status, "blocked");
+  assert.match(lengthResult.diagnostics.join(" "), /satın alınan uzunluğu rulo adedi ve rulo uzunluğuyla uyuşmuyor/);
+});
+
+test("rulo unit without edge-band source metadata is rejected", () => {
+  const snapshot = createSnapshotWithQuoteLines([
+    createEdgeQuoteLine({
+      id: "edge-roll-untracked",
+      edge: "rulo",
+      quantity: 1,
+      unit: "rulo",
+      unitPriceMinor: 1,
+      sourceReference: "roll-price:v1",
+      sourceId: "edge-roll-untracked",
+      sourcePartIds: ["part-a"],
+      description: "Untracked roll line"
+    })
+  ]);
   const result = createProjectQuoteRevision(createFirstRevision({ pricingSnapshot: snapshot }));
   assert.equal(result.status, "blocked");
-  assert.match(result.diagnostics.join(" "), /rulo adedi.*quantity/);
+  assert.match(result.diagnostics.join(" "), /Rulo birimi yalnızca edge-banding/);
 });
