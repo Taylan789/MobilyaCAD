@@ -136,6 +136,20 @@ test("roll plan arithmetic and source IDs are revalidated before pricing", () =>
   assert.equal(calculateProjectEdgeBandingRollCostSummary(invalidSource, []).status, "blocked");
 });
 
+test("minimum roll count is enforced even when purchased length and leftover are consistent", () => {
+  const plan = readyRollPlan();
+  plan.plans[0].rollCount = 2;
+  plan.plans[0].purchasedLengthMm = 2000;
+  plan.plans[0].leftoverLengthMm = 1000;
+  const result = calculateProjectEdgeBandingRollCostSummary(plan, [
+    price(),
+    price({ edgeBandingId: "pvc-b", unitPriceMinor: 12000 })
+  ]);
+  assert.equal(result.status, "blocked");
+  assert.equal(result.costSummary, null);
+  assert.match(result.diagnostics[0], /rulo adedi gerekli uzunluk için en düşük tam rulo adedi olmalıdır/);
+});
+
 test("incomplete roll quantity plan propagates missing roll specifications", () => {
   const result = calculateProjectEdgeBandingRollCostSummary({
     status: "incomplete",
