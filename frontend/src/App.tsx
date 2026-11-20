@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import type { ChangeEvent, CSSProperties, KeyboardEvent } from "react";
+import type { ChangeEvent, CSSProperties, KeyboardEvent as ReactKeyboardEvent } from "react";
 import {
   Box,
   ArrowLeft,
@@ -919,7 +919,7 @@ function App() {
   }
 
   function handleBottomPanelKeyDown(
-    event: KeyboardEvent<HTMLButtonElement>,
+    event: ReactKeyboardEvent<HTMLButtonElement>,
     currentTab: "parts" | "materials" | "issues"
   ) {
     const tabs = ["parts", "materials", "issues"] as const;
