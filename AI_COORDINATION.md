@@ -303,7 +303,7 @@ Bu dosya dört geliştirme/denetim rolünün ortak görev panosu ve entegrasyon 
 | DOM-076 | Strict material-consumption CSV v1 with mm/m²/m³, quantity, catalog/Part/furniture provenance and fail-closed round-trip | Product Development | DONE | DOM-067/068 JSON contracts; CSV serializer/parser + 579/579 QA tests, CI/QA/Pages verified |
 | DOM-077 | Reconcile current quote-summary CSV/JSON with immutable quote revision snapshot import/export; preserve source IDs and legacy-safe blockers | Product Development | IN_PROGRESS | Cross-format regression contract; commit/Actions verification pending |
 | DOM-078 | Preserve material catalog resource identity in quote line source mappings and immutable revision JSON/CSV/comparison | Product Development | READY | exact resourceType/resourceId, sourcePartIds, currency/unit and round-trip tests |
-| OPS-001 | Gate test-site deployment on successful CI and QA for the exact commit SHA | Product Development / CI | READY | fail-closed same-SHA check; no deploy after failed or missing verification |
+| OPS-001 | Gate test-site deployment on successful CI and QA for the exact commit SHA | Product Development / CI | IN_PROGRESS | Pages verify job waits for CI #417991874 and QA #419079561 to succeed on same SHA; fail-closed timeout/failure |
 
 
 ## DOM-069 — directional edge-band CSV v1 (verified)
@@ -361,3 +361,9 @@ Bu dosya dört geliştirme/denetim rolünün ortak görev panosu ve entegrasyon 
 - QA #600 found one contract-test expectation: material quote `sourceId` is the generated cost-line ID (`material-0001`), not the catalog material ID. The assertion now checks the line ID against its source mapping and verifies the explicit price source reference instead; validation was not relaxed.
 - CI #598 succeeded. Pages #425 succeeded even though QA #600 failed; the frontend was unchanged in this test slice, but the independent Pages workflow is a policy gap. OPS-001 is added to gate deployment on successful CI and QA for the exact SHA.
 - DOM-077 correction Actions are pending. Next priority: OPS-001 deployment gate, then DOM-078 catalog identity provenance.
+
+
+## OPS-001 deployment gate — 20 November 2026
+- Observed Pages run #44805760151 deploy successfully on SHA 24cb62f6 while QA #44805760153 failed; this commit changed tests/docs only, so frontend source was unchanged, but the workflow did not enforce the requested gate.
+- Pages workflow now has a verification job that waits up to 20 minutes for the exact SHA's CI workflow (417991874) and QA workflow (419079561) to succeed; deploy depends on both site build and verification. Failed/missing/rate-limited checks fail closed.
+- The workflow/docs commit and Actions results are pending. The correction test commit e2dbfb00ba1213568c4c519b1a45f675937b21f3 is included in the next push-triggered verification.

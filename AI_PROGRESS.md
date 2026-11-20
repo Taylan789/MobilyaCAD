@@ -1832,3 +1832,11 @@
 - QA [#44805760153](https://github.com/Taylan789/MobilyaCAD/actions/runs/44805760153) ran 582 domain tests; 581 passed and one new cross-format assertion failed because material quote sourceId is generated `material-0001`, not the catalog ID `mdf-18`. The test now checks `sourceId === costLine.id` and the explicit price-source reference; no validation was loosened.
 - CI [#44805760178](https://github.com/Taylan789/MobilyaCAD/actions/runs/44805760178) succeeded. Pages [#44805760151](https://github.com/Taylan789/MobilyaCAD/actions/runs/44805760151) succeeded although QA failed, because Pages runs independently. The frontend code was unchanged; OPS-001 added to coordinate a same-SHA CI/QA deployment gate.
 - Correction commit SHA and Actions results pending. Next: OPS-001 safe deployment gate; then DOM-078 catalog resource identity in quote line source mappings.
+
+
+## 20 Kasım 2026 22:52 TRT — DOM-077 test correction + OPS-001 deployment gate (Actions pending)
+
+- QA [#44805760153](https://github.com/Taylan789/MobilyaCAD/actions/runs/44805760153) failed one assertion: quote-line `sourceId` is generated (`material-0001`), not the catalog material ID. Corrected the assertion to match the generated cost-line ID and check its price-source reference; no validation was loosened.
+- CI [#44805760178](https://github.com/Taylan789/MobilyaCAD/actions/runs/44805760178) passed. Pages [#44805760151](https://github.com/Taylan789/MobilyaCAD/actions/runs/44805760151) deployed despite failed QA; frontend source was unchanged, but the workflow was not fail-closed.
+- OPS-001 adds a Pages verification job that waits for the exact SHA's CI and QA success (workflow IDs 417991874/419079561); deployment depends on both build and verification. Timeout/failure blocks deployment.
+- The corrected test commit is `e2dbfb00ba1213568c4c519b1a45f675937b21f3`. Pages gate commit and Actions verification pending. Next: DOM-078 material catalog resource identity in quote-line provenance.

@@ -758,16 +758,22 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 | ID | Sahip | Durum / kabul kriteri | Bağımlılık |
 |---|---|---|---|
 | DOM-077 | Ürün Geliştirme | IN_PROGRESS — quote-summary JSON/CSV ↔ immutable revision snapshot round-trip; provenance, currency/unit and legacy blockers | DOM-072/073/075 |
-| OPS-001 | Ürün Geliştirme / CI | READY — Pages deployment requires same-SHA CI + QA success; failed/missing runs fail closed | Workflow run API |
-| DOM-078 | Ürün Geliştirme | READY — material catalog resource identity is retained through quote source mapping, revision snapshot and strict JSON/CSV comparison | DOM-077 |
+| OPS-001 | Ürün Geliştirme / CI | IN_PROGRESS — Pages deploy waits for same-SHA CI + QA success; failure or missing run blocks | Workflow API |
+| DOM-078 | Ürün Geliştirme | READY — preserve material catalog resource identity through quote line sources, revision snapshots and strict JSON/CSV comparisons | DOM-077 |
 | INT-001 | Arayüz + Ürün | READY — frontend adapter consumes domain reports and blocks unsupported geometry export; round-trip tests | Production-domain contract |
 | PERF-001 | Entegrasyon/Performans | READY — repeatable CAD scene/render baseline and measured regression optimization | Separate specialist ownership |
 
 ## DOM-077 — Quote summary / immutable revision cross-format reconciliation (IN_PROGRESS)
 
-- Acceptance: a generated cabinet production + priced labor snapshot is appended to project JSON v2, read back, serialized to standalone revision-history JSON, and its quote summary round-trips through strict JSON v1 and CSV v1. History and summary must match exactly.
-- Provenance: source cost-line IDs, sorted unique Part IDs, labor tariff ID, currency, exact units and totals survive each boundary; serializers recompute arithmetic.
+- Acceptance: generated cabinet production + priced labor snapshot is appended to project JSON v2, read back, serialized to standalone revision-history JSON, and its quote summary round-trips through strict JSON v1 and CSV v1. History and summary must match exactly.
+- Provenance: source cost-line IDs, sorted unique Part IDs, labor tariff ID, currency, exact units and totals survive each boundary; strict serializers recompute arithmetic.
 - Fail-closed: incomplete summaries emit no partial JSON/CSV; project JSON v1 revision append is blocked; a currency mismatch in a revision snapshot is rejected.
-- First QA attempt [#44805760153](https://github.com/Taylan789/MobilyaCAD/actions/runs/44805760153) failed only one assertion expecting catalog ID in `sourceId`; actual `sourceId` is the generated cost-line ID. Correction commit and verification pending. CI [#44805760178](https://github.com/Taylan789/MobilyaCAD/actions/runs/44805760178) passed; Pages [#44805760151](https://github.com/Taylan789/MobilyaCAD/actions/runs/44805760151) deployed the unchanged frontend, but deployment ran despite QA failure; OPS-001 tracks the workflow gate.
+- First QA attempt [#44805760153](https://github.com/Taylan789/MobilyaCAD/actions/runs/44805760153) failed one assertion expecting a catalog ID in material `sourceId`; actual `sourceId` is generated cost-line ID. Corrected assertion checks source line identity and price reference. CI [#44805760178](https://github.com/Taylan789/MobilyaCAD/actions/runs/44805760178) passed; Pages [#44805760151](https://github.com/Taylan789/MobilyaCAD/actions/runs/44805760151) deployed unchanged frontend despite QA failure. OPS-001 is now a deployment safety task.
 - Files: `domain/production/projectQuoteRevisionExports.test.mjs`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`. No frontend/domain calculation implementation changed.
+
+## OPS-001 — Exact-SHA test-site deployment gate (IN_PROGRESS)
+
+- Pages workflow adds a verification job that waits up to 20 minutes for CI and QA runs on the exact push SHA; both must conclude `success`. Failed, missing or timed-out checks fail closed, and deploy depends on both the site build and verification.
+- Previous Pages run #425 deployed SHA 24cb62f6 while QA failed; this slice fixes the gate before further verified deployments.
+- Workflow commit and remote Actions results pending.
 
