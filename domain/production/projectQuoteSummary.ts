@@ -20,7 +20,7 @@ import { calculateProjectEdgeBandingRollPlan } from "./projectEdgeBandingRollPla
 import {
   calculateProjectEdgeBandingRollCostSummary,
   type ProjectEdgeBandingRollCostSummary
-} from "./projectEdgeBandingRollCostSummary.ts;
+} from "./projectEdgeBandingRollCostSummary.ts";
 
 export interface ProjectQuoteLineSource {
   costLineId: string;

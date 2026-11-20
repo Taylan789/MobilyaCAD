@@ -578,7 +578,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 ## Next 5 small tasks
 1. DOM-070A DONE — roll quantity plan from user-entered roll length and optional fixed waste allowance (mm), grouped by catalog ID.
 2. DOM-070B DONE — per-roll purchase-cost summary with explicit currency/source, quote-ready material lines and no partial totals; Actions verified. DOM-070C owns full quote/revision integration.
-3. DOM-070C IN PROGRESS — phase 2 quote-summary roll mode, roll/length replacement and source metadata implemented; Actions pending. Next phase: snapshot/revision JSON round-trip for roll metadata and `rulo` unit.
+3. DOM-070C IN PROGRESS — phase 2 quote-summary roll mode implemented in e775429, but QA #44726611849 failed on malformed import strings; correction committed next, Actions pending. Next phase: snapshot/revision JSON round-trip for roll metadata and `rulo` unit.
 4. DOM-071 PLANNED — persist roll quantity specs and per-roll prices/currency/source in versioned project JSON.
 5. DOM-072 PLANNED — immutable quote revision and comparison provenance for roll purchase costs.
 3. DOM-066 PLANNED — frontend-owned quote comparison JSON/CSV download integration, including blocked-state handling.

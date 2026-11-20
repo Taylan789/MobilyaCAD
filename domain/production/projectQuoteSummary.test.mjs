@@ -8,10 +8,10 @@ import { calculateProjectPricedConsumptionSummary } from "./projectPricedConsump
 import {
   calculateProjectEdgeBandingConsumptionSummary,
   calculateProjectMaterialConsumptionSummary
-} from "./projectMaterialSummary.ts;
+} from "./projectMaterialSummary.ts";
 import { calculateProjectEdgeBandingRollPlan } from "./projectEdgeBandingRollPlan.ts";
 import { calculateProjectEdgeBandingRollCostSummary } from "./projectEdgeBandingRollCostSummary.ts";
-import { calculateProjectQuoteSummary } from "./projectQuoteSummary.ts;
+import { calculateProjectQuoteSummary } from "./projectQuoteSummary.ts";
 
 const noBanding = { top: false, bottom: false, left: false, right: false };
 
