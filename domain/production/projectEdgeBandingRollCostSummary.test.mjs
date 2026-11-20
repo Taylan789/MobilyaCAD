@@ -148,6 +148,18 @@ test("incomplete roll quantity plan propagates missing roll specifications", () 
   assert.equal(result.costSummary, null);
 });
 
+test("invalid roll price inputs are blocked even when the quantity plan is incomplete", () => {
+  const result = calculateProjectEdgeBandingRollCostSummary({
+    status: "incomplete",
+    plans: null,
+    missingRollSpecs: ["pvc-a"],
+    diagnostics: ["Rulo uzunluğu tanımlanmalı."]
+  }, [price({ currencyCode: "try" })]);
+  assert.equal(result.status, "blocked");
+  assert.match(result.diagnostics[0], /üç büyük harfli kod/);
+  assert.equal(result.costSummary, null);
+});
+
 test("empty plan stays empty; unused prices are rejected", () => {
   const empty = calculateProjectEdgeBandingRollCostSummary({
     status: "empty", plans: [], missingRollSpecs: [], diagnostics: []

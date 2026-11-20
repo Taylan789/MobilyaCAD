@@ -281,6 +281,7 @@ export function calculateProjectEdgeBandingRollCostSummary(
     const rollPlan = validateRollPlan(rollPlanInput);
     if (rollPlan.status === "blocked") return blockedResult(rollPlan.diagnostics, 0);
     if (rollPlan.status === "incomplete") {
+      validatePriceTable(rollPriceTable);
       return {
         status: "incomplete",
         currencyCode: null,
