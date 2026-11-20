@@ -1035,3 +1035,11 @@ DOM-070C phase 3 — Snapshot/revision JSON v2 round-trip (Actions verified)
 `createProjectQuotePricingSnapshot` açık `edgeBandingPricingMode`, `edgeBandingRollSpecs` ve `edgeBandingRollPriceTable` seçeneklerini kabul eder; aynı üretim raporundan hesaplanan rulo satın alım satırları ve kaynak metadata immutable fiyat snapshot'ına taşınır. Strict revision validator `rulo` birimini yalnızca edge-banding kaynaklı material satırlarında kabul eder; roll count, quantity, roll length, purchased length, sorted unique Part/furniture ID'leri ve opsiyonel plan/fiyat referanslarını doğrular. JSON v2 project-file append/read round-trip bu metadata'yı kayıpsız korur. Kod SHA `023156bb`; CI #44738166332, QA #44738166417 (502/502), Pages #44738166308 başarılı.
 
 **Sınır:** Roll specs ve fiyat girdileri proje JSON v2'de ayrı, düzenlenebilir girişler olarak henüz saklanmaz; DOM-071 bunu strict validation ve legacy-safe persistence ile ele alır. Revision comparison roll provenance (DOM-072) sonraki iştir. UI/frontend, adapter ve fiziksel CNC üretim doğrulaması bu domain diliminde yapılmamıştır.
+
+## DOM-071 — Editable roll inputs in project JSON v2
+
+The domain-only project-file extension `edgeBandingRollPricing` schema v1 stores `rollSpecs` and `rollPriceTable` independently. Roll specs retain catalog ID, explicit roll length (0.1 mm precision), fixed waste allowance (0.1 mm precision; omitted means zero), and optional source reference. Price rows retain catalog ID, `rulo` unit, non-negative safe-integer price in minor currency units, uppercase three-letter currency code, and optional source reference.
+
+Each table is limited to 1,000 rows, rejects duplicate catalog IDs and unknown fields, and is canonicalized by catalog ID. Price-only inputs can be saved for later configuration; quote calculation still rejects missing or unused data. Empty inputs remove the extension. The writer is immutable and refuses to replace an invalid saved extension.
+
+Project JSON v1 remains legacy/read-only for this extension; an extension on v1 is blocked rather than silently discarded. v2 requires a stable projectId. This stores user inputs only: no prices, roll lengths, waste rates, currency conversion, yield, CNC standard, or workshop approval is inferred. Frontend controls/download wiring remain UI-owned.

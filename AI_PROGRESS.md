@@ -1707,3 +1707,12 @@
 - **QA correction history:** #44737405962 initially failed because the project-file roll fixture lacked a consumption price-list version; #44737617138 then exposed a duplicate fixture declaration; #44737762518 caught the duplicate helper declaration. Fixed without weakening tests; final run #44738166417 passed 502/502.
 - **Parallel roles:** UI agent's open PRs remain isolated (including #105 DOM-066); no PR was merged. Integration/performance specialist was skipped in latest AI Developer run; no separate active integration/performance run is evidenced. AI Developer #44672855927 failed OpenRouter free-model daily 429; successful run #44672574982 exists on an earlier SHA; quota-limited failure was not rerun.
 - **Next:** DOM-071 persist editable roll specs, fixed waste, per-roll price/currency/source inputs in JSON v2 with strict validation and backward-compatible v1 behavior; DOM-072 comparison provenance after that.
+
+## 20 Kasım 2026 16:20 TRT — DOM-071 project JSON v2 roll input persistence (Actions pending)
+
+- Added domain read/write extension `edgeBandingRollPricing` schema v1 for explicit roll lengths/fixed allowances and per-roll prices/currency/source references. Strict validation uses 0.1 mm precision, safe non-negative integer prices, `rulo` unit, unique IDs, canonical sorting, and 1,000-row caps.
+- JSON v2 operations are immutable; missing extension reads empty, clearing removes it, malformed existing data cannot be overwritten, and legacy v1 remains read-only. Price-only inputs can be saved for later; quote calculation still validates missing/unused entries.
+- Files: `domain/production/projectEdgeBandingRollPricingProjectFile.ts`, 20 acceptance tests, QA strict type-check list, production-domain contract, coordination, roadmap and progress. Frontend, adapter/performance and CNC-specific files were not touched.
+- Commit SHA: pending branch update. CI/QA/Pages: pending; local tests were not run.
+- Boundary: persistence is not connected to frontend controls or downloads; no price, roll standard, waste/yield, currency conversion, CNC or physical workshop validation is inferred.
+- Next: DOM-072 strict revision-comparison JSON/CSV provenance for roll purchase lines. AI Developer run #44738883306 failed due OpenRouter free-model daily 429 and was not retried; no active dev/QA run was found.

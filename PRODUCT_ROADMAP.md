@@ -579,7 +579,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 1. DOM-070A DONE — explicit roll quantity planning from user-entered roll length and optional fixed waste allowance (mm), grouped by catalog ID.
 2. DOM-070B DONE — per-roll purchase cost summary with explicit currency/source and no partial totals.
 3. DOM-070C DONE — roll pricing integrated into quote snapshots, strict immutable revision validation, and JSON v2 append/read provenance round-trip. [Code commit 023156bb](https://github.com/Taylan789/MobilyaCAD/commit/023156bb1d0d1f8172444766ae2015c5d4364105); CI #44738166332, QA #44738166417 (502/502 domain tests), Pages #44738166308 succeeded.
-4. DOM-071 PLANNED — persist editable roll quantity specs and per-roll price/currency/source inputs in project JSON v2 with strict validation and legacy-safe behavior.
+4. DOM-071 VERIFYING — persist editable roll quantity specs and per-roll price/currency/source inputs in project JSON v2 with strict validation and legacy-safe behavior.
 5. DOM-072 PLANNED — quote revision comparison and CSV/JSON outputs preserve roll purchase-cost provenance; frontend integration remains UI-owned.
 
 **Parallel lanes:** DOM-066 quote-comparison download integration remains frontend-owned; INT-001 remains shared/READY; INT-002/PERF-001 remain integration/performance-owned/READY (no active specialist run evidenced).
@@ -677,3 +677,10 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - Sonraki: DOM-070C phase 2 — açık uzunluk/rulo fiyatlama modu, rulo alım satırlarının metre bazlı satırları değiştirmesi (çift sayım olmaması), tek para birimi ve kaynak/Part bütünlüğü.
 
 \n## DOM-070C phase 2 — birleşik teklif rulo fiyatlama modu (Actions verified)\n\n- `calculateProjectQuoteSummary` için altıncı `options` parametresi; mevcut `length` varsayılanı geriye dönük uyumludur.\n- `roll` modunda kenar bandı uzunluk fiyatları baz tüketim özetinden çıkarılır; plan, aynı üretim raporunun kenar bandı tüketiminden ve kullanıcı rulo ölçülerinden üretilir.\n- Rulo fiyat satırları uzunluk satırlarını **yerine** geçer; Part/furniture kimlikleri, rulo adedi/uzunluğu, satın alınan uzunluk ve plan/fiyat kaynak referansları metadata olarak taşınır.\n- Eksik rulo ölçüsü/fiyatı, yanlış seçenekler ve para birimi uyuşmazlığı partial total oluşturmaz.\n- Otomatik doğrulama: CI #44726936464, QA #44726936496 (124 frontend + 497 domain), Pages #44726936449 başarılı; snapshot/revision JSON round-trip henüz bu dilimde değil.\n
+## DOM-071 — Roll inputs project JSON persistence (Actions pending)
+
+- Adds strict v2 project-file persistence for roll-length/fixed-waste inputs and per-roll price, currency, and source references under `edgeBandingRollPricing` schema v1.
+- Read/write are immutable; tables are independently capped at 1,000 entries, IDs must be unique, and canonical order is by catalog ID. Invalid data fails closed.
+- Missing extension reads as empty; clearing inputs removes the extension; malformed saved data cannot be silently overwritten. Project JSON v1 stays legacy/read-only.
+- Acceptance tests cover round-trip, update/clear, sorting, source preservation, invalid IDs/units/amounts/references, duplicates, schema/unknown fields, limits, malformed saved data, immutability, and unrelated extension preservation.
+- Actions are pending; frontend, adapter/performance, and machine-specific output files are untouched.
