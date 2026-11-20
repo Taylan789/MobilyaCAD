@@ -77,7 +77,7 @@ test("roll lengths and fixed allowances validate 0.1 mm precision and bounds", (
   for(const wasteAllowanceMm of [-0.1,0.05]) assert.equal(setProjectEdgeBandingRollPricingInProjectFile(project(),pricing({rollSpecs:[{edgeBandingId:"pvc-a",rollLengthMm:1000,wasteAllowanceMm}]})).status,"blocked");
 });
 test("roll spec source reference must be bounded trimmed text", () => {
-  for(const sourceReference of ["","  supplier  ","x".repeat(257]) assert.equal(setProjectEdgeBandingRollPricingInProjectFile(project(),pricing({rollSpecs:[{edgeBandingId:"pvc-a",rollLengthMm:1000,sourceReference}]})).status,"blocked");
+  for(const sourceReference of ["","  supplier  ","x".repeat(257)]) assert.equal(setProjectEdgeBandingRollPricingInProjectFile(project(),pricing({rollSpecs:[{edgeBandingId:"pvc-a",rollLengthMm:1000,sourceReference}]})).status,"blocked");
 });
 test("roll price rows require unique IDs and the rulo unit", () => {
   const duplicate=[{edgeBandingId:"pvc-a",unit:"rulo",unitPriceMinor:1,currencyCode:"TRY"},{edgeBandingId:"pvc-a",unit:"rulo",unitPriceMinor:2,currencyCode:"TRY"}];

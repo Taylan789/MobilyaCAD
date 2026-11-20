@@ -1712,7 +1712,12 @@
 
 - Added domain read/write extension `edgeBandingRollPricing` schema v1 for explicit roll lengths/fixed allowances and per-roll prices/currency/source references. Strict validation uses 0.1 mm precision, safe non-negative integer prices, `rulo` unit, unique IDs, canonical sorting, and 1,000-row caps.
 - JSON v2 operations are immutable; missing extension reads empty, clearing removes it, malformed existing data cannot be overwritten, and legacy v1 remains read-only. Price-only inputs can be saved for later; quote calculation still validates missing/unused entries.
-- Files: `domain/production/projectEdgeBandingRollPricingProjectFile.ts`, 20 acceptance tests, QA strict type-check list, production-domain contract, coordination, roadmap and progress. Frontend, adapter/performance and CNC-specific files were not touched.
+- Files: `domain/production/projectEdgeBandingRollPricingProjectFile.ts`, 16 acceptance tests, QA strict type-check list, production-domain contract, coordination, roadmap and progress. Frontend, adapter/performance and CNC-specific files were not touched.
 - Commit SHA: pending branch update. CI/QA/Pages: pending; local tests were not run.
 - Boundary: persistence is not connected to frontend controls or downloads; no price, roll standard, waste/yield, currency conversion, CNC or physical workshop validation is inferred.
 - Next: DOM-072 strict revision-comparison JSON/CSV provenance for roll purchase lines. AI Developer run #44738883306 failed due OpenRouter free-model daily 429 and was not retried; no active dev/QA run was found.
+## DOM-071 QA syntax correction — 20 Kasım 2026 16:21 TRT
+
+- QA #44744418391 reported a syntax error in the newly added roll-input persistence test file (`missing ) after argument list`); the domain suite stopped at 502 passed + 1 failed file-level test.
+- Corrected the malformed `repeat(257)` test-array delimiter. Test count in the progress entry corrected to 16. No production code or assertions were weakened.
+- CI #44744418497 and Pages #44744418277 succeeded on the initial commit; rerun QA after the test-only fix is pending.
