@@ -5,7 +5,7 @@ import {
   appendProjectQuoteRevision,
   compareProjectQuoteRevisions,
   createProjectQuoteRevision
-}from "./projectQuoteRevision.ts";
+} from "./projectQuoteRevision.ts";
 import {
   parseProjectQuoteRevisionComparisonFile,
   PROJECT_QUOTE_REVISION_COMPARISON_FILE_TYPE,
@@ -230,7 +230,7 @@ test("comparison JSON preserves mm and m as distinct added/removed lines without
     }
   };
   const serialized = serializeProjectQuoteRevisionComparisonFile(result);
-  assert.equal(serialized.status, "ready");
+  assert.equal(serialized.status, "ready", serialized.diagnostics.join("; "));
   const parsed = parseProjectQuoteRevisionComparisonFile(serialized.json);
   assert.equal(parsed.status, "ready");
   assert.deepEqual(parsed.comparison?.lineChanges.map((change) => change.type), ["removed", "added"]);
