@@ -102,6 +102,10 @@ test("CSV quoting round-trip preserves Turkish text, commas, quotes and embedded
 
 test("CSV preserves mm and m as separate line changes without conversion", () => {
   const original = readyComparisonResult();
+  original.comparison.fromGrandTotalMinor = 10000;
+  original.comparison.toGrandTotalMinor = 10000;
+  original.comparison.grandTotalDeltaMinor = 0;
+  original.comparison.categoryDeltasMinor = { material: 0, hardware: 0, labor: 0, operation: 0, waste: 0, profit: 0 };
   original.comparison.lineChanges = [
     {
       type: "removed",
@@ -129,7 +133,7 @@ test("CSV preserves mm and m as separate line changes without conversion", () =>
   assert.deepEqual(parsed.comparison.lineChanges.map((line) => line.type), ["removed", "added"]);
   assert.equal(parsed.comparison.lineChanges[0].from.unit, "mm");
   assert.equal(parsed.comparison.lineChanges[1].to.unit, "m");
-  assert.equal(parsed.comparison.grandTotalDeltaMinor, 750);
+  assert.equal(parsed.comparison.grandTotalDeltaMinor, 0);
 });
 
 test("CSV rejects inconsistent category deltas, malformed quoting and unknown headers", () => {
