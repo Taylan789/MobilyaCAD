@@ -61,8 +61,10 @@ test("CSV quoting preserves commas and quotes inside provenance IDs", () => {
   assert.ok(original);
   const changed = [{ ...original, partLineCount: 1, totalQuantity: 100, totalLengthMm: 100, edgeCount: 1, partIds: ['part, "A"'], furnitureIds: ['cab,"B"'] }];
   const { parsed, serialized } = roundTrip(changed);
-  assert.ok(serialized.csv.includes('""A""'));
-  assert.ok(serialized.csv.includes('""B""'));
+  const expectedPartCell = '"' + JSON.stringify(changed[0].partIds).replace(/"/g, '""') + '"';
+  const expectedFurnitureCell = '"' + JSON.stringify(changed[0].furnitureIds).replace(/"/g, '""') + '"';
+  assert.ok(serialized.csv.includes(expectedPartCell));
+  assert.ok(serialized.csv.includes(expectedFurnitureCell));
   assert.deepEqual(parsed.groups, changed);
 });
 
