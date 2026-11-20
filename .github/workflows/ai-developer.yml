@@ -178,5 +178,5 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPOSITORY: ${{ github.repository }}
         run: |
-          gh workflow run ai-developer.yml --repo "$REPOSITORY" --ref dev/github-work \\
+          gh workflow run ai-developer.yml --repo "$REPOSITORY" --ref dev/github-work \
             -f task="Continuous autonomous MobilyaCAD development: inspect current dev/github-work, coordination board, open PRs and recent CI. Pick one small, unclaimed task in your ownership, implement and test it, commit safely on dev/github-work only, never touch main, and report evidence. If quota is exhausted, stop without paid fallback."
