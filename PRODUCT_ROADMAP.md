@@ -579,8 +579,9 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 1. DOM-070A DONE — explicit roll quantity planning from user-entered roll length and optional fixed waste allowance (mm), grouped by catalog ID.
 2. DOM-070B DONE — per-roll purchase cost summary with explicit currency/source and no partial totals.
 3. DOM-070C DONE — roll pricing integrated into quote snapshots, strict immutable revision validation, and JSON v2 append/read provenance round-trip. [Code commit 023156bb](https://github.com/Taylan789/MobilyaCAD/commit/023156bb1d0d1f8172444766ae2015c5d4364105); CI #44738166332, QA #44738166417 (502/502 domain tests), Pages #44738166308 succeeded.
-4. DOM-071 VERIFYING — persist editable roll quantity specs and per-roll price/currency/source inputs in project JSON v2 with strict validation and legacy-safe behavior.
+4. DOM-071 DONE — strict project JSON v2 persistence for roll specs and per-roll price/currency/source inputs; v1 remains legacy-safe.
 5. DOM-072 PLANNED — quote revision comparison and CSV/JSON outputs preserve roll purchase-cost provenance; frontend integration remains UI-owned.
+6. DOM-073 PLANNED — strict project quote-summary JSON v1 export/import with exact units/currency/source provenance and fail-closed totals.
 
 **Parallel lanes:** DOM-066 quote-comparison download integration remains frontend-owned; INT-001 remains shared/READY; INT-002/PERF-001 remain integration/performance-owned/READY (no active specialist run evidenced).
 
@@ -594,7 +595,7 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 | Üretim | Her Part için kaynak ID, quantity, mm ölçü, malzeme/kalınlık; unsupported geometri/export kısmi sonuç üretmeden blocker | Domain konstrüksiyon, tüketim, nesting freshness, teklif/revizyon ve JSON/CSV sözleşmeleri var; frontend adapter/CNC postprocessor eksik |
 | UX | Ana akışlarda işlevsel kontroller; klavye/focus, erişilebilirlik, responsive, boş/hata durumları otomatik doğrulanır | Frontend ayrı ajan alanında; gerçek tarayıcı görsel kabulü NOT MEASURED |
 | Performans | Referans sahnede p95 frame-time hedefi 16,7 ms (60 FPS), scene update p95 <100 ms, bellek ölçümü ve CI regression threshold | Referans sahne/benchmark NOT MEASURED; bu kontrolde aktif Integration/Performance run veya PR bulunmadı; PERF-001 ve INT-002 READY, QA-003 INT-001/INT-002'ye bağlı |
-| Güvenilirlik | Strict TS, test, build, audit; import/export round-trip 0 alan kaybı; invalid input 0 partial output | 20 Kasım 2026 code SHA [8ad209d](https://github.com/Taylan789/MobilyaCAD/commit/8ad209d30b35dc48bea2f35c4f449126018c7963): QA 124/124 frontend + 491/491 domain; strict TS, lint (32 warning/0 error), build ve audit 0 vulnerability; quote-ready roll cost validation tested, full quote persistence not measured |
+| Güvenilirlik | Strict TS, test, build, audit; import/export round-trip 0 alan kaybı; invalid input 0 partial output | 20 Kasım 2026 verified code SHA [a2655afe](https://github.com/Taylan789/MobilyaCAD/commit/a2655afe9db8ebe18ed4c39c29a6d805eb007401): QA 124/124 frontend + 518/518 domain; strict TS, lint (32 warnings/0 errors), production build and audit 0 vulnerabilities. DOM-071 project-file persistence is verified; frontend integration remains unmeasured. |
 | Edge-band export | Direction, catalog ID, mm/m, Part/furniture provenance and strict JSON round-trip; malformed/unsupported input blocked | DOM-068 verified: 124 frontend + 468 domain tests, strict type-check, build and audit; see Actions |
 
 
@@ -684,3 +685,10 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - Missing extension reads as empty; clearing inputs removes the extension; malformed saved data cannot be silently overwritten. Project JSON v1 stays legacy/read-only.
 - Acceptance tests cover round-trip, update/clear, sorting, source preservation, invalid IDs/units/amounts/references, duplicates, schema/unknown fields, limits, malformed saved data, immutability, and unrelated extension preservation.
 - Actions are pending; frontend, adapter/performance, and machine-specific output files are untouched.
+## DOM-071 — Roll-input project JSON v2 persistence (verified 20 November 2026)
+
+- `edgeBandingRollPricing` schema v1 stores explicit roll specs (length/fixed allowance/source) and price rows (rulo unit, safe integer price, currency, source) in separate tables.
+- Read/write are immutable; unique catalog IDs, unknown fields, invalid units/currency/amounts, 0.1 mm precision, 1,000-row bounds and canonical order are enforced. Empty inputs remove the extension; invalid saved data cannot be overwritten.
+- JSON v1 remains legacy read-only. Price-only entries are allowed for later configuration; quote calculation remains responsible for missing/unused input blockers.
+- **Actions:** [CI #44744750518](https://github.com/Taylan789/MobilyaCAD/actions/runs/44744750518), [QA #44744750584](https://github.com/Taylan789/MobilyaCAD/actions/runs/44744750584) successful — 124/124 frontend + 518/518 domain tests; strict TypeScript, lint (32 warnings/0 errors), production build, audit 0 vulnerabilities. [Pages #44744750516](https://github.com/Taylan789/MobilyaCAD/actions/runs/44744750516) deployed.
+- No frontend, adapter/performance-owned, or machine-specific output files changed. Next: DOM-072 revision-comparison roll-line provenance; DOM-073 standalone quote-summary JSON; DOM-066 remains frontend-owned.

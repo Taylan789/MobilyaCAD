@@ -1724,3 +1724,12 @@
 ## DOM-071 test coverage follow-up — 20 Kasım 2026 16:22 TRT
 
 - Added an explicit regression for unknown fields inside individual roll-spec rows (not only the pricing envelope/price rows), bringing the new test file to 16 tests. Previous corrected run passed 517/517; new test awaits Actions.
+## 20 Kasım 2026 16:23 TRT — DOM-071 tamamlandı (Actions verified)
+
+- Final code/test commit: [a2655afe](https://github.com/Taylan789/MobilyaCAD/commit/a2655afe9db8ebe18ed4c39c29a6d805eb007401). Project JSON v2 `edgeBandingRollPricing` schema v1 persists explicit roll specs, fixed waste allowances, per-roll prices, currency and source references. Read/write immutable; empty removes extension; v1 legacy-safe; strict unknown-field, duplicate-ID, unit, currency, amount, precision and 1,000-row validation.
+- Acceptance coverage: 16 tests including canonical round-trip, update/clear, legacy v1, malformed existing extension, schema/project envelope, bounds, immutable data, price-only inputs and preservation of quote history.
+- Actions: [CI #44744750518](https://github.com/Taylan789/MobilyaCAD/actions/runs/44744750518) success; [QA #44744750584](https://github.com/Taylan789/MobilyaCAD/actions/runs/44744750584) success — **124/124 frontend + 518/518 domain tests**, strict shared-domain TypeScript, lint 32 warnings/0 errors, production build and production audit 0 vulnerabilities; [Pages #44744750516](https://github.com/Taylan789/MobilyaCAD/actions/runs/44744750516) deployed successfully.
+- QA initially caught a test syntax typo after the first implementation; fixed in [e6676d03](https://github.com/Taylan789/MobilyaCAD/commit/e6676d036ee664e4a42b700a92466644721cf4b9), then added individual roll-spec unknown-field coverage. No tests or validation rules were weakened. Initial CI #44744418497 passed; QA #44744418391 failed only the test file parse; Pages #44744418277 succeeded.
+- Scope: module/test, QA type-check list and contract/roadmap/coordination docs. Frontend, adapter/performance, and CNC files untouched; no physical workshop validation implied.
+- Parallel status: AI Developer #44738883306 failed OpenRouter free-model daily 429 and was not rerun; integration/performance job skipped and no separate active run evidenced; open UI PR #113 remains isolated.
+- Next: DOM-072 strict quote revision comparison JSON/CSV roll provenance; DOM-073 standalone quote-summary JSON v1; frontend DOM-066 and INT-001/INT-002 remain separate owner lanes.
