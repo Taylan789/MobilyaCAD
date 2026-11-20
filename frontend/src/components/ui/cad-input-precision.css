@@ -1,0 +1,53 @@
+/* Shared CAD input surface: subtle depth, clear focus and aligned numeric values. */
+.cad-input-control {
+  border-color: color-mix(in srgb, var(--input) 88%, var(--foreground) 12%);
+  background-color: color-mix(in srgb, var(--background) 90%, var(--muted) 10%);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, currentColor 4%, transparent);
+  transition: border-color 140ms ease, box-shadow 140ms ease, background-color 140ms ease;
+}
+
+.cad-input-control[type="number"] {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-variant-numeric: tabular-nums lining-nums;
+  text-align: right;
+  letter-spacing: 0.01em;
+}
+
+.cad-input-control[type="number"]::-webkit-inner-spin-button {
+  opacity: 0.5;
+  margin-inline-start: 0.35rem;
+}
+
+.cad-input-control[type="number"]:focus-visible::-webkit-inner-spin-button {
+  opacity: 0.85;
+}
+
+.cad-input-control:hover:not(:disabled):not([aria-invalid="true"]) {
+  border-color: color-mix(in srgb, var(--input) 65%, var(--foreground) 35%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cad-input-control {
+    transition: none !important;
+  }
+}
+
+@media (forced-colors: active) {
+  .cad-input-control {
+    border-color: ButtonBorder;
+    background: Canvas;
+    box-shadow: none;
+    color: CanvasText;
+  }
+
+  .cad-input-control:hover:not(:disabled) {
+    border-color: ButtonText;
+  }
+
+  .cad-input-control:focus-visible {
+    border-color: Highlight;
+    outline: 2px solid Highlight;
+    outline-offset: 2px;
+    box-shadow: none;
+  }
+}
