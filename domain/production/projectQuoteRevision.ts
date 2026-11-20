@@ -845,6 +845,12 @@ export interface ProjectQuoteRevisionCostLineSnapshot {
   tariffId?: string;
   sourcePartIds?: readonly string[];
   edgeDirection?: ProjectCostLineEdgeDirection;
+  rollCount?: number;
+  rollLengthMm?: number;
+  purchasedLengthMm?: number;
+  furnitureIds?: readonly string[];
+  planSourceReference?: string;
+  priceSourceReference?: string;
 }
 
 export interface ProjectQuoteRevisionLineChange {
@@ -894,7 +900,13 @@ function createRevisionComparisonLineSnapshot(
     sourceId: source.sourceId,
     ...(source.tariffId === undefined ? {} : { tariffId: source.tariffId }),
     ...(source.sourcePartIds === undefined ? {} : { sourcePartIds: [...source.sourcePartIds] }),
-    ...(line.edgeDirection === undefined ? {} : { edgeDirection: line.edgeDirection })
+    ...(line.edgeDirection === undefined ? {} : { edgeDirection: line.edgeDirection }),
+    ...(source.rollCount === undefined ? {} : { rollCount: source.rollCount }),
+    ...(source.rollLengthMm === undefined ? {} : { rollLengthMm: source.rollLengthMm }),
+    ...(source.purchasedLengthMm === undefined ? {} : { purchasedLengthMm: source.purchasedLengthMm }),
+    ...(source.furnitureIds === undefined ? {} : { furnitureIds: [...source.furnitureIds] }),
+    ...(source.planSourceReference === undefined ? {} : { planSourceReference: source.planSourceReference }),
+    ...(source.priceSourceReference === undefined ? {} : { priceSourceReference: source.priceSourceReference })
   };
 }
 
@@ -907,7 +919,8 @@ function revisionComparisonLineIdentity(line: ProjectQuoteRevisionCostLineSnapsh
     line.sourceType,
     line.sourceId,
     line.tariffId ?? null,
-    line.sourcePartIds ?? []
+    line.sourcePartIds ?? [],
+    line.furnitureIds ?? []
   ]);
 }
 
@@ -917,7 +930,13 @@ function revisionComparisonLineValue(line: ProjectQuoteRevisionCostLineSnapshot)
     line.quantity,
     line.unitPriceMinor,
     line.lineTotalMinor,
-    line.sourceReference ?? null
+    line.sourceReference ?? null,
+    line.rollCount ?? null,
+    line.rollLengthMm ?? null,
+    line.purchasedLengthMm ?? null,
+    line.furnitureIds ?? [],
+    line.planSourceReference ?? null,
+    line.priceSourceReference ?? null
   ]);
 }
 

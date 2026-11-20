@@ -2,6 +2,11 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  appendProjectQuoteRevision,
+  compareProjectQuoteRevisions,
+  createProjectQuoteRevision
+}from "./projectQuoteRevision.ts";
+import {
   parseProjectQuoteRevisionComparisonFile,
   PROJECT_QUOTE_REVISION_COMPARISON_FILE_TYPE,
   serializeProjectQuoteRevisionComparisonFile
@@ -279,4 +284,103 @@ test("blocked comparison and malformed JSON do not produce export data", () => {
   const nonString = parseProjectQuoteRevisionComparisonFile({ fileType: "wrong" });
   assert.equal(nonString.status, "blocked");
   assert.equal(nonString.file, null);
+});
+
+
+function createRollPricingSnapshot({ rollCount, rollLengthMm, unitPriceMinor, planSourceReference, priceSourceReference }) {
+  const lineTotalMinor = rollCount * unitPriceMinor;
+  return {
+    schemaVersion: 1,
+    quotedOn: "2026-11-20",
+    consumptionPriceList: { catalogId: "edge-roll-price-list", version: "2026-11", effectiveFrom: "2026-11-01" },
+    laborOperationTariffList: null,
+    quoteSummary: {
+      status: "ready", currencyCode: "TRY", requiredLineCount: 1, pricedLineCount: 1,
+      missingPrices: [], missingTariffs: [], diagnostics: [],
+      lineSources: [{
+        costLineId: "roll-cost-1", sourceType: "production-consumption", sourceId: "pvc-roll",
+        sourcePartIds: ["part-a", "part-b"], resourceType: "edge-banding", resourceId: "pvc-a",
+        unit: "rulo", rollCount, rollLengthMm, purchasedLengthMm: rollCount * rollLengthMm,
+        furnitureIds: ["cabinet-a"], planSourceReference, priceSourceReference
+      }],
+      costSummary: {
+        status: "ready", currencyCode: "TRY", lineCount: 1,
+        lines: [{
+          id: "roll-cost-1", category: "material", description: "PVC rulo satın alımı",
+          quantity: rollCount, unit: "rulo", unitPriceMinor, lineTotalMinor, currencyCode: "TRY",
+          sourceReference: priceSourceReference
+        }],
+        categoryTotalsMinor: { material: lineTotalMinor, hardware: 0, labor: 0, operation: 0, waste: 0, profit: 0 },
+        grandTotalMinor: lineTotalMinor
+      }
+    }
+  };
+}
+
+function createRealRollComparison() {
+  const first = createProjectQuoteRevision({
+    projectId: "project-42", revisionId: "quote-r1", revisionNumber: 1,
+    createdAt: "2026-11-20T10:00:00Z", previousRevision: null, sourceIntegrityVersion: 1,
+    pricingSnapshot: createRollPricingSnapshot({
+      rollCount: 2, rollLengthMm: 100000, unitPriceMinor: 15000,
+      planSourceReference: "roll-spec:v1", priceSourceReference: "roll-prices:v1"
+    })
+  });
+  assert.equal(first.status, "ready");
+  const history = { schemaVersion: 1, projectId: "project-42", revisions: [first.revision] };
+  const appended = appendProjectQuoteRevision(history, {
+    revisionId: "quote-r2", createdAt: "2026-11-20T11:00:00Z",
+    pricingSnapshot: createRollPricingSnapshot({
+      rollCount: 3, rollLengthMm: 80000, unitPriceMinor: 16000,
+      planSourceReference: "roll-spec:v2", priceSourceReference: "roll-prices:v2"
+    })
+  });
+  assert.equal(appended.status, "ready");
+  const comparison = compareProjectQuoteRevisions(appended.history, "quote-r1", "quote-r2");
+  assert.equal(comparison.status, "ready");
+  assert.ok(comparison.comparison);
+  return comparison;
+}
+
+test("DOM-072 immutable revision comparison carries roll purchase provenance and JSON round-trips", () => {
+  const result = createRealRollComparison();
+  const rollChange = result.comparison.lineChanges.find(change => (change.from ?? change.to)?.unit === "rulo");
+  assert.ok(rollChange);
+  assert.equal(rollChange.type, "changed");
+  assert.equal(rollChange.from.rollCount, 2);
+  assert.equal(rollChange.from.rollLengthMm, 100000);
+  assert.equal(rollChange.from.purchasedLengthMm, 200000);
+  assert.deepEqual(rollChange.from.furnitureIds, ["cabinet-a"]);
+  assert.equal(rollChange.from.planSourceReference, "roll-spec:v1");
+  assert.equal(rollChange.from.priceSourceReference, "roll-prices:v1");
+  assert.equal(rollChange.to.rollCount, 3);
+  assert.equal(rollChange.to.rollLengthMm, 80000);
+  assert.equal(rollChange.to.purchasedLengthMm, 240000);
+  assert.equal(rollChange.to.planSourceReference, "roll-spec:v2");
+  assert.equal(rollChange.to.priceSourceReference, "roll-prices:v2");
+
+  const serialized = serializeProjectQuoteRevisionComparisonFile(result);
+  assert.equal(serialized.status, "ready");
+  const parsed = parseProjectQuoteRevisionComparisonFile(serialized.json);
+  assert.equal(parsed.status, "ready");
+  assert.deepEqual(parsed.comparison, result.comparison);
+  assert.ok(Object.isFrozen(parsed.comparison.lineChanges.find(change => (change.from ?? change.to)?.unit === "rulo").from));
+});
+
+test("DOM-072 JSON comparison blocks partial or inconsistent roll metadata", () => {
+  const result = createRealRollComparison();
+  const rollChange = result.comparison.lineChanges.find(change => (change.from ?? change.to)?.unit === "rulo");
+  assert.ok(rollChange);
+  for (const invalid of [
+    { ...rollChange.to, rollCount: 2 },
+    { ...rollChange.to, purchasedLengthMm: 100000 },
+    { ...rollChange.to, furnitureIds: ["cabinet-a", "cabinet-a"] },
+    { ...rollChange.to, rollLengthMm: 80000.05 },
+    { ...rollChange.to, planSourceReference: " " }
+  ]) {
+    const candidate = structuredClone(result);
+    const target = candidate.comparison.lineChanges.find(change => (change.from ?? change.to)?.unit === "rulo");
+    target.to = invalid;
+    assert.equal(serializeProjectQuoteRevisionComparisonFile(candidate).status, "blocked");
+  }
 });

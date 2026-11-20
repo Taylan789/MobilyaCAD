@@ -37,7 +37,9 @@ const lineChangeKeys = new Set(["type", "from", "to"]);
 const lineKeys = new Set([
   "category", "description", "quantity", "unit", "unitPriceMinor",
   "lineTotalMinor", "currencyCode", "sourceReference", "sourceType",
-  "sourceId", "tariffId", "sourcePartIds", "edgeDirection"
+  "sourceId", "tariffId", "sourcePartIds", "edgeDirection",
+  "rollCount", "rollLengthMm", "purchasedLengthMm", "furnitureIds",
+  "planSourceReference", "priceSourceReference"
 ]);
 const categories: readonly ProjectQuoteCostCategory[] = [
   "material", "hardware", "labor", "operation", "waste", "profit"
@@ -47,6 +49,10 @@ const identifierPattern = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
 const currencyPattern = /^[A-Z]{3}$/;
 const sourceTypes = new Set(["production-consumption", "labor-operation", "quote-adjustment"]);
 const edgeDirections = new Set(["top", "bottom", "left", "right"]);
+const rollMetadataKeys = new Set([
+  "rollCount", "rollLengthMm", "purchasedLengthMm", "furnitureIds",
+  "planSourceReference", "priceSourceReference"
+]);
 
 type DeepReadonly<T> =
   T extends readonly (infer U)[]
@@ -117,6 +123,28 @@ function deepFreeze<T>(value: T): DeepReadonly<T> {
   return value as DeepReadonly<T>;
 }
 
+function requireSortedIdentifiers(value: unknown, label: string): string[] {
+  if (!Array.isArray(value) || value.length === 0 || value.length > 10_000) {
+    throw new Error(label + " 1-10.000 arası kimlik içeren bir liste olmalıdır.");
+  }
+  const identifiers = value.map((item, index) => requireIdentifier(item, label + " " + (index + 1)));
+  if (identifiers.some((id, index) => index > 0 && identifiers[index - 1] >= id)) {
+    throw new Error(label + " sıralı ve benzersiz olmalıdır.");
+  }
+  return identifiers;
+}
+
+function requireRollLengthTenths(value: unknown, label: string, maximumMm?: number): number {
+  if (typeof value !== "number" || !Number.isFinite(value) || value <= 0 || (maximumMm !== undefined && value > maximumMm)) {
+    throw new Error(label + " pozitif, sonlu ve izin verilen mm sınırında olmalıdır.");
+  }
+  const tenths = Math.round(value * 10);
+  if (!Number.isSafeInteger(tenths) || Math.abs(tenths / 10 - value) > 1e-8) {
+    throw new Error(label + " en fazla 0.1 mm hassasiyetinde olmalıdır.");
+  }
+  return tenths;
+}
+
 function validateLine(value: unknown, currencyCode: string): ProjectQuoteRevisionCostLineSnapshot {
   if (!isRecord(value)) throw new Error("Teklif fark satırı geçerli bir nesne olmalıdır.");
   requireAllowedKeys(value, lineKeys, "Teklif fark satırı");
@@ -162,6 +190,42 @@ function validateLine(value: unknown, currencyCode: string): ProjectQuoteRevisio
   if (edgeDirection !== undefined && (!edgeDirections.has(edgeDirection) || category !== "material")) {
     throw new Error("Kenar yönü yalnızca desteklenen material satırlarında kullanılabilir.");
   }
+
+  const hasRollMetadata = [...rollMetadataKeys].some(key => Object.prototype.hasOwnProperty.call(value, key));
+  let rollCount: number | undefined;
+  let rollLengthMm: number | undefined;
+  let purchasedLengthMm: number | undefined;
+  let furnitureIds: string[] | undefined;
+  let planSourceReference: string | undefined;
+  let priceSourceReference: string | undefined;
+  if (unit === "rulo") {
+    if (category !== "material" || sourceType !== "production-consumption" || edgeDirection !== undefined) {
+      throw new Error("Rulo maliyet satırı yön taşımayan production-consumption material satırı olmalıdır.");
+    }
+    if (sourcePartIds === undefined || sourcePartIds.length === 0) {
+      throw new Error("Rulo maliyet satırı kaynak Part kimlikleriyle eşleşmelidir.");
+    }
+    rollCount = requireSafeInteger(value.rollCount, "Kenar bandı rulo adedi", 1);
+    if (quantity !== rollCount) throw new Error("Kenar bandı rulo adedi quantity ile uyuşmalıdır.");
+    const rollLengthTenths = requireRollLengthTenths(value.rollLengthMm, "Kenar bandı rulo uzunluğu", 10_000_000);
+    const purchasedLengthTenths = requireRollLengthTenths(value.purchasedLengthMm, "Kenar bandı satın alınan uzunluğu");
+    const expectedPurchasedLengthTenths = rollLengthTenths * rollCount;
+    if (!Number.isSafeInteger(expectedPurchasedLengthTenths) || purchasedLengthTenths !== expectedPurchasedLengthTenths) {
+      throw new Error("Kenar bandı satın alınan uzunluğu rulo adedi ve rulo uzunluğuyla uyuşmuyor.");
+    }
+    rollLengthMm = rollLengthTenths / 10;
+    purchasedLengthMm = purchasedLengthTenths / 10;
+    furnitureIds = requireSortedIdentifiers(value.furnitureIds, "Rulo mobilya kimlikleri");
+    planSourceReference = value.planSourceReference === undefined
+      ? undefined
+      : requireText(value.planSourceReference, "Rulo plan kaynak referansı", 256);
+    priceSourceReference = value.priceSourceReference === undefined
+      ? undefined
+      : requireText(value.priceSourceReference, "Rulo fiyat kaynak referansı", 256);
+  } else if (hasRollMetadata) {
+    throw new Error("Rulo metadata yalnızca rulo birimli maliyet satırlarında kullanılabilir.");
+  }
+
   const calculated = calculateProjectCostLineTotalMinor(value.quantity, unitPriceMinor, "Teklif fark satırı");
   if (calculated !== lineTotalMinor) throw new Error("Satır toplamı miktar ve birim fiyatla uyuşmuyor.");
 
@@ -178,7 +242,13 @@ function validateLine(value: unknown, currencyCode: string): ProjectQuoteRevisio
     sourceId,
     ...(tariffId === undefined ? {} : { tariffId }),
     ...(sourcePartIds === undefined ? {} : { sourcePartIds }),
-    ...(edgeDirection === undefined ? {} : { edgeDirection: edgeDirection as ProjectQuoteRevisionCostLineSnapshot["edgeDirection"] })
+    ...(edgeDirection === undefined ? {} : { edgeDirection: edgeDirection as ProjectQuoteRevisionCostLineSnapshot["edgeDirection"] }),
+    ...(rollCount === undefined ? {} : { rollCount }),
+    ...(rollLengthMm === undefined ? {} : { rollLengthMm }),
+    ...(purchasedLengthMm === undefined ? {} : { purchasedLengthMm }),
+    ...(furnitureIds === undefined ? {} : { furnitureIds }),
+    ...(planSourceReference === undefined ? {} : { planSourceReference }),
+    ...(priceSourceReference === undefined ? {} : { priceSourceReference })
   };
 }
 
@@ -198,6 +268,7 @@ function sameChangedLineIdentity(
     from.tariffId === to.tariffId &&
     sameOptionalArray(from.sourcePartIds, to.sourcePartIds) &&
     from.edgeDirection === to.edgeDirection &&
+    sameOptionalArray(from.furnitureIds, to.furnitureIds) &&
     (from.edgeDirection !== undefined || from.description === to.description)
   );
 }

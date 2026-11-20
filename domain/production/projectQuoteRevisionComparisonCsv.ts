@@ -10,9 +10,9 @@ import type {
 } from "./projectQuoteRevision.ts";
 
 export const PROJECT_QUOTE_REVISION_COMPARISON_CSV_FORMAT = "MobilyaCADQuoteRevisionComparisonCsv" as const;
-export const PROJECT_QUOTE_REVISION_COMPARISON_CSV_VERSION = 1 as const;
+export const PROJECT_QUOTE_REVISION_COMPARISON_CSV_VERSION = 2 as const;
 
-export const PROJECT_QUOTE_REVISION_COMPARISON_CSV_COLUMNS = [
+const legacyColumnsV1 = [
   "format", "formatVersion", "rowType", "projectId",
   "fromRevisionId", "fromRevisionNumber", "toRevisionId", "toRevisionNumber",
   "currencyCode", "fromGrandTotalMinor", "toGrandTotalMinor", "grandTotalDeltaMinor",
@@ -23,6 +23,13 @@ export const PROJECT_QUOTE_REVISION_COMPARISON_CSV_COLUMNS = [
   "fromSourceReference", "toSourceReference", "fromSourceType", "toSourceType",
   "fromSourceId", "toSourceId", "fromTariffId", "toTariffId",
   "fromSourcePartIds", "toSourcePartIds", "fromEdgeDirection", "toEdgeDirection"
+] as const;
+
+export const PROJECT_QUOTE_REVISION_COMPARISON_CSV_COLUMNS = [
+  ...legacyColumnsV1,
+  "fromRollCount", "toRollCount", "fromRollLengthMm", "toRollLengthMm",
+  "fromPurchasedLengthMm", "toPurchasedLengthMm", "fromFurnitureIds", "toFurnitureIds",
+  "fromPlanSourceReference", "toPlanSourceReference", "fromPriceSourceReference", "toPriceSourceReference"
 ] as const;
 
 export interface ProjectQuoteRevisionComparisonCsvSerializationResult {
@@ -42,6 +49,7 @@ const categories: readonly ProjectQuoteCostCategory[] = [
 ];
 const columns = PROJECT_QUOTE_REVISION_COMPARISON_CSV_COLUMNS;
 const columnIndex = new Map<string, number>(columns.map((column, index) => [column, index] as const));
+const legacyColumnIndex = new Map<string, number>(legacyColumnsV1.map((column, index) => [column, index] as const));
 const lineColumns = columns.slice(15);
 const sideRequiredFields = [
   "Description", "Quantity", "Unit", "UnitPriceMinor", "LineTotalMinor",
@@ -92,17 +100,21 @@ function lineChangeValues(
   from: ProjectQuoteRevisionCostLineSnapshot | null,
   to: ProjectQuoteRevisionCostLineSnapshot | null
 ): unknown[] {
-  const fromValues = from === null ? Array(12).fill("") : [
+  const fromValues = from === null ? Array(18).fill("") : [
     from.description, from.quantity, from.unit, from.unitPriceMinor, from.lineTotalMinor,
     from.currencyCode, from.sourceReference ?? "", from.sourceType, from.sourceId,
     from.tariffId ?? "", from.sourcePartIds === undefined ? "" : JSON.stringify(from.sourcePartIds),
-    from.edgeDirection ?? ""
+    from.edgeDirection ?? "", from.rollCount ?? "", from.rollLengthMm ?? "",
+    from.purchasedLengthMm ?? "", from.furnitureIds === undefined ? "" : JSON.stringify(from.furnitureIds),
+    from.planSourceReference ?? "", from.priceSourceReference ?? ""
   ];
-  const toValues = to === null ? Array(12).fill("") : [
+  const toValues = to === null ? Array(18).fill("") : [
     to.description, to.quantity, to.unit, to.unitPriceMinor, to.lineTotalMinor,
     to.currencyCode, to.sourceReference ?? "", to.sourceType, to.sourceId,
     to.tariffId ?? "", to.sourcePartIds === undefined ? "" : JSON.stringify(to.sourcePartIds),
-    to.edgeDirection ?? ""
+    to.edgeDirection ?? "", to.rollCount ?? "", to.rollLengthMm ?? "",
+    to.purchasedLengthMm ?? "", to.furnitureIds === undefined ? "" : JSON.stringify(to.furnitureIds),
+    to.planSourceReference ?? "", to.priceSourceReference ?? ""
   ];
   return [
     fromValues[0], toValues[0],
@@ -116,13 +128,19 @@ function lineChangeValues(
     fromValues[8], toValues[8],
     fromValues[9], toValues[9],
     fromValues[10], toValues[10],
-    fromValues[11], toValues[11]
+    fromValues[11], toValues[11],
+    fromValues[12], toValues[12],
+    fromValues[13], toValues[13],
+    fromValues[14], toValues[14],
+    fromValues[15], toValues[15],
+    fromValues[16], toValues[16],
+    fromValues[17], toValues[17]
   ];
 }
 
-function requireBlank(row: readonly string[], names: readonly string[], label: string): void {
+function requireBlank(row: readonly string[], names: readonly string[], label: string, indexMap = columnIndex): void {
   for (const name of names) {
-    const index = columnIndex.get(name);
+    const index = indexMap.get(name);
     if (index === undefined || row[index] !== "") throw new Error(label + " desteklenmeyen satır verisi içeriyor.");
   }
 }
@@ -186,8 +204,8 @@ function parseCsvRecords(csv: string): string[][] {
   return records;
 }
 
-function cell(row: readonly string[], name: string): string {
-  const index = columnIndex.get(name);
+function cell(row: readonly string[], name: string, indexMap = columnIndex): string {
+  const index = indexMap.get(name);
   if (index === undefined) throw new Error("CSV sözleşme sütunu bulunamadı: " + name + ".");
   return row[index] ?? "";
 }
@@ -208,20 +226,39 @@ function parseQuantityCell(value: string, label: string): number {
   return number;
 }
 
-function parseLineSide(row: readonly string[], side: "from" | "to", category: ProjectQuoteCostCategory): ProjectQuoteRevisionCostLineSnapshot | null {
+function parseRollLengthCell(value: string, label: string): number {
+  const length = parseQuantityCell(value, label);
+  const tenths = Math.round(length * 10);
+  if (!Number.isSafeInteger(tenths) || Math.abs(tenths / 10 - length) > 1e-8) {
+    throw new Error(label + " en fazla 0.1 mm hassasiyetinde olmalıdır.");
+  }
+  return tenths / 10;
+}
+
+function parseLineSide(
+  row: readonly string[],
+  side: "from" | "to",
+  category: ProjectQuoteCostCategory,
+  indexMap: Map<string, number>,
+  version: 1 | 2
+): ProjectQuoteRevisionCostLineSnapshot | null {
   const names = [
     side + "Description", side + "Quantity", side + "Unit", side + "UnitPriceMinor",
     side + "LineTotalMinor", side + "LineCurrencyCode", side + "SourceReference",
     side + "SourceType", side + "SourceId", side + "TariffId",
-    side + "SourcePartIds", side + "EdgeDirection"
+    side + "SourcePartIds", side + "EdgeDirection",
+    ...(version === 2 ? [
+      side + "RollCount", side + "RollLengthMm", side + "PurchasedLengthMm",
+      side + "FurnitureIds", side + "PlanSourceReference", side + "PriceSourceReference"
+    ] : [])
   ] as const;
-  const values = names.map((name) => cell(row, name));
+  const values = names.map((name) => cell(row, name, indexMap));
   if (values.every((value) => value === "")) return null;
   const required = sideRequiredFields.map((suffix) => side + suffix);
   for (const name of required) {
-    if (cell(row, name) === "") throw new Error("Teklif CSV satırında " + name + " zorunludur.");
+    if (cell(row, name, indexMap) === "") throw new Error("Teklif CSV satırında " + name + " zorunludur.");
   }
-  const sourcePartIdsCell = cell(row, side + "SourcePartIds");
+  const sourcePartIdsCell = cell(row, side + "SourcePartIds", indexMap);
   let sourcePartIds: string[] | undefined;
   if (sourcePartIdsCell !== "") {
     const parsed: unknown = JSON.parse(sourcePartIdsCell);
@@ -230,23 +267,43 @@ function parseLineSide(row: readonly string[], side: "from" | "to", category: Pr
     }
     sourcePartIds = parsed as string[];
   }
-  const sourceReference = cell(row, side + "SourceReference");
-  const tariffId = cell(row, side + "TariffId");
-  const edgeDirection = cell(row, side + "EdgeDirection");
+  const sourceReference = cell(row, side + "SourceReference", indexMap);
+  const tariffId = cell(row, side + "TariffId", indexMap);
+  const edgeDirection = cell(row, side + "EdgeDirection", indexMap);
+  const rollCountCell = version === 2 ? cell(row, side + "RollCount", indexMap) : "";
+  const rollLengthCell = version === 2 ? cell(row, side + "RollLengthMm", indexMap) : "";
+  const purchasedLengthCell = version === 2 ? cell(row, side + "PurchasedLengthMm", indexMap) : "";
+  const furnitureIdsCell = version === 2 ? cell(row, side + "FurnitureIds", indexMap) : "";
+  const planSourceReference = version === 2 ? cell(row, side + "PlanSourceReference", indexMap) : "";
+  const priceSourceReference = version === 2 ? cell(row, side + "PriceSourceReference", indexMap) : "";
+  let furnitureIds: string[] | undefined;
+  if (furnitureIdsCell !== "") {
+    const parsed: unknown = JSON.parse(furnitureIdsCell);
+    if (!Array.isArray(parsed) || parsed.some((id) => typeof id !== "string")) {
+      throw new Error("CSV rulo mobilya ID alanı JSON string listesi olmalıdır.");
+    }
+    furnitureIds = parsed as string[];
+  }
   return {
     category,
-    description: cell(row, side + "Description"),
-    quantity: parseQuantityCell(cell(row, side + "Quantity"), "CSV miktarı"),
-    unit: cell(row, side + "Unit"),
-    unitPriceMinor: parseIntegerCell(cell(row, side + "UnitPriceMinor"), "CSV birim fiyatı", 0),
-    lineTotalMinor: parseIntegerCell(cell(row, side + "LineTotalMinor"), "CSV satır toplamı", 0),
-    currencyCode: cell(row, side + "LineCurrencyCode"),
+    description: cell(row, side + "Description", indexMap),
+    quantity: parseQuantityCell(cell(row, side + "Quantity", indexMap), "CSV miktarı"),
+    unit: cell(row, side + "Unit", indexMap),
+    unitPriceMinor: parseIntegerCell(cell(row, side + "UnitPriceMinor", indexMap), "CSV birim fiyatı", 0),
+    lineTotalMinor: parseIntegerCell(cell(row, side + "LineTotalMinor", indexMap), "CSV satır toplamı", 0),
+    currencyCode: cell(row, side + "LineCurrencyCode", indexMap),
     ...(sourceReference === "" ? {} : { sourceReference }),
-    sourceType: cell(row, side + "SourceType") as ProjectQuoteRevisionCostLineSnapshot["sourceType"],
-    sourceId: cell(row, side + "SourceId"),
+    sourceType: cell(row, side + "SourceType", indexMap) as ProjectQuoteRevisionCostLineSnapshot["sourceType"],
+    sourceId: cell(row, side + "SourceId", indexMap),
     ...(tariffId === "" ? {} : { tariffId }),
     ...(sourcePartIds === undefined ? {} : { sourcePartIds }),
-    ...(edgeDirection === "" ? {} : { edgeDirection: edgeDirection as ProjectQuoteRevisionCostLineSnapshot["edgeDirection"] })
+    ...(edgeDirection === "" ? {} : { edgeDirection: edgeDirection as ProjectQuoteRevisionCostLineSnapshot["edgeDirection"] }),
+    ...(rollCountCell === "" ? {} : { rollCount: parseIntegerCell(rollCountCell, "CSV rulo adedi", 1) }),
+    ...(rollLengthCell === "" ? {} : { rollLengthMm: parseRollLengthCell(rollLengthCell, "CSV rulo uzunluğu") }),
+    ...(purchasedLengthCell === "" ? {} : { purchasedLengthMm: parseRollLengthCell(purchasedLengthCell, "CSV satın alınan rulo uzunluğu") }),
+    ...(furnitureIds === undefined ? {} : { furnitureIds }),
+    ...(planSourceReference === "" ? {} : { planSourceReference }),
+    ...(priceSourceReference === "" ? {} : { priceSourceReference })
   };
 }
 
@@ -309,36 +366,36 @@ export function parseProjectQuoteRevisionComparisonCsv(
         if (cell(row, name) !== cell(total, name)) throw new Error("CSV satır metadata'sı genel toplam satırıyla uyuşmuyor.");
       }
     }
-    const projectId = cell(total, "projectId");
-    const fromRevisionId = cell(total, "fromRevisionId");
-    const fromRevisionNumber = parseIntegerCell(cell(total, "fromRevisionNumber"), "Başlangıç revizyon numarası", 1);
-    const toRevisionId = cell(total, "toRevisionId");
-    const toRevisionNumber = parseIntegerCell(cell(total, "toRevisionNumber"), "Hedef revizyon numarası", 1);
-    const currencyCode = cell(total, "currencyCode");
-    const fromGrandTotalMinor = parseIntegerCell(cell(total, "fromGrandTotalMinor"), "Başlangıç toplamı", 0);
-    const toGrandTotalMinor = parseIntegerCell(cell(total, "toGrandTotalMinor"), "Hedef toplamı", 0);
-    const grandTotalDeltaMinor = parseIntegerCell(cell(total, "grandTotalDeltaMinor"), "Toplam farkı");
+    const projectId = cell(total, "projectId", indexMap);
+    const fromRevisionId = cell(total, "fromRevisionId", indexMap);
+    const fromRevisionNumber = parseIntegerCell(cell(total, "fromRevisionNumber", indexMap), "Başlangıç revizyon numarası", 1);
+    const toRevisionId = cell(total, "toRevisionId", indexMap);
+    const toRevisionNumber = parseIntegerCell(cell(total, "toRevisionNumber", indexMap), "Hedef revizyon numarası", 1);
+    const currencyCode = cell(total, "currencyCode", indexMap);
+    const fromGrandTotalMinor = parseIntegerCell(cell(total, "fromGrandTotalMinor", indexMap), "Başlangıç toplamı", 0);
+    const toGrandTotalMinor = parseIntegerCell(cell(total, "toGrandTotalMinor", indexMap), "Hedef toplamı", 0);
+    const grandTotalDeltaMinor = parseIntegerCell(cell(total, "grandTotalDeltaMinor", indexMap), "Toplam farkı");
 
     const categoryRows = records.slice(2, 8);
     const categoryDeltasMinor = {} as Record<ProjectQuoteCostCategory, number>;
     for (let index = 0; index < categories.length; index += 1) {
       const row = categoryRows[index];
-      if (row === undefined || cell(row, "rowType") !== "category" || cell(row, "category") !== categories[index]) {
+      if (row === undefined || cell(row, "rowType", indexMap) !== "category" || cell(row, "category", indexMap) !== categories[index]) {
         throw new Error("CSV kategori satırları sabit sıralı ve eksiksiz olmalıdır.");
       }
-      requireBlank(row, ["changeType", ...lineColumns], "CSV kategori satırı");
-      categoryDeltasMinor[categories[index]] = parseIntegerCell(cell(row, "categoryDeltaMinor"), categories[index] + " kategori farkı");
+      requireBlank(row, ["changeType", ...lineColumnsForVersion], "CSV kategori satırı", indexMap);
+      categoryDeltasMinor[categories[index]] = parseIntegerCell(cell(row, "categoryDeltaMinor", indexMap), categories[index] + " kategori farkı");
     }
     const lineRows = records.slice(8);
     if (lineRows.length > 10_000) throw new Error("CSV teklif satırı farkı sınırını aşıyor.");
     const lineChanges: ProjectQuoteRevisionLineChange[] = lineRows.map((row) => {
-      if (cell(row, "rowType") !== "line") throw new Error("CSV kategori satırlarından sonra yalnızca teklif fark satırları bulunabilir.");
-      requireBlank(row, ["categoryDeltaMinor"], "CSV teklif fark satırı");
-      const category = cell(row, "category") as ProjectQuoteCostCategory;
-      const type = cell(row, "changeType");
+      if (cell(row, "rowType", indexMap) !== "line") throw new Error("CSV kategori satırlarından sonra yalnızca teklif fark satırları bulunabilir.");
+      requireBlank(row, ["categoryDeltaMinor"], "CSV teklif fark satırı", indexMap);
+      const category = cell(row, "category", indexMap) as ProjectQuoteCostCategory;
+      const type = cell(row, "changeType", indexMap);
       if (type !== "added" && type !== "removed" && type !== "changed") throw new Error("CSV satır fark türü desteklenmiyor.");
-      const from = parseLineSide(row, "from", category);
-      const to = parseLineSide(row, "to", category);
+      const from = parseLineSide(row, "from", category, indexMap, version);
+      const to = parseLineSide(row, "to", category, indexMap, version);
       return { type: type as ProjectQuoteRevisionLineChange["type"], from, to };
     });
 

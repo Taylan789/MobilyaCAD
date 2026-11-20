@@ -126,7 +126,7 @@ function readyComparisonResult() {
   };
 }
 
-test("CSV v1 has stable columns and round-trips exact comparison metadata", () => {
+test("CSV v2 has stable columns and round-trips exact comparison metadata", () => {
   const original = readyComparisonResult();
   const serialized = serializeProjectQuoteRevisionComparisonCsv(original);
   assert.equal(serialized.status, "ready");
@@ -134,7 +134,7 @@ test("CSV v1 has stable columns and round-trips exact comparison metadata", () =
   assert.ok(serialized.csv.startsWith("\uFEFF"));
   const header = PROJECT_QUOTE_REVISION_COMPARISON_CSV_COLUMNS.map((column => '"' + column + '"')).join(",");
   assert.ok(serialized.csv.slice(1).startsWith(header + "\r\n"));
-  assert.equal(serialized.csv.split('"MobilyaCADQuoteRevisionComparisonCsv","1","line"').length - 1, 9);
+  assert.equal(serialized.csv.split('"MobilyaCADQuoteRevisionComparisonCsv","2","line"').length - 1, 9);
 
   const parsed = parseProjectQuoteRevisionComparisonCsv(serialized.csv);
   assert.equal(parsed.status, "ready");
@@ -240,4 +240,86 @@ test("CSV represents an empty comparison with total and category rows only", () 
   const parsed = parseProjectQuoteRevisionComparisonCsv(serialized.csv);
   assert.equal(parsed.status, "ready");
   assert.deepEqual(parsed.comparison.lineChanges, []);
+});
+
+
+function emptyComparisonResult() {
+  const result = readyComparisonResult();
+  result.comparison.fromGrandTotalMinor = 10000;
+  result.comparison.toGrandTotalMinor = 10000;
+  result.comparison.grandTotalDeltaMinor = 0;
+  result.comparison.categoryDeltasMinor = { material: 0, hardware: 0, labor: 0, operation: 0, waste: 0, profit: 0 };
+  result.comparison.lineChanges = [];
+  return result;
+}
+
+function toLegacyV1Csv(csv) {
+  const records = csv.slice(1).trimEnd().split("\r\n").map(row => row.split(",").map(cell => cell.slice(1, -1)));
+  const legacyColumnCount = PROJECT_QUOTE_REVISION_COMPARISON_CSV_COLUMNS.length - 12;
+  return records.map((row, index) => {
+    if (index > 0) row[1] = "1";
+    return row.slice(0, legacyColumnCount).map(value => '"' + value.replace(/"/g, '""') + '"').join(",");
+  }).join("\r\n") + "\r\n";
+}
+
+test("DOM-072 CSV v2 round-trip preserves roll count, lengths and source references", () => {
+  const original = readyComparisonResult();
+  const from = {
+    category: "material", description: "PVC rulo satın alımı", quantity: 1, unit: "rulo",
+    unitPriceMinor: 15000, lineTotalMinor: 15000, currencyCode: "TRY",
+    sourceReference: "roll-prices:v1", sourceType: "production-consumption", sourceId: "pvc-roll",
+    sourcePartIds: ["part-a", "part-b"], rollCount: 1, rollLengthMm: 100000,
+    purchasedLengthMm: 100000, furnitureIds: ["cabinet-a"],
+    planSourceReference: "roll-spec:v1", priceSourceReference: "roll-prices:v1"
+  };
+  const to = { ...from, quantity: 2, unitPriceMinor: 18000, lineTotalMinor: 36000,
+    sourceReference: "roll-prices:v2", rollCount: 2, purchasedLengthMm: 200000,
+    planSourceReference: "roll-spec:v2", priceSourceReference: "roll-prices:v2" };
+  original.comparison.lineChanges.push({ type: "changed", from, to });
+  original.comparison.fromGrandTotalMinor += from.lineTotalMinor;
+  original.comparison.toGrandTotalMinor += to.lineTotalMinor;
+  original.comparison.grandTotalDeltaMinor = original.comparison.toGrandTotalMinor - original.comparison.fromGrandTotalMinor;
+  original.comparison.categoryDeltasMinor.material += to.lineTotalMinor - from.lineTotalMinor;
+
+  const serialized = serializeProjectQuoteRevisionComparisonCsv(original);
+  assert.equal(serialized.status, "ready");
+  assert.ok(serialized.csv);
+  assert.match(serialized.csv, /"fromRollCount","toRollCount"/);
+  assert.match(serialized.csv, /"fromPlanSourceReference","toPlanSourceReference"/);
+  const parsed = parseProjectQuoteRevisionComparisonCsv(serialized.csv);
+  assert.equal(parsed.status, "ready");
+  const rollChange = parsed.comparison.lineChanges.find(change => (change.from ?? change.to)?.unit === "rulo");
+  assert.ok(rollChange);
+  assert.deepEqual(rollChange.from, from);
+  assert.deepEqual(rollChange.to, to);
+});
+
+test("DOM-072 CSV v2 blocks inconsistent roll metadata instead of partial export", () => {
+  const candidate = emptyComparisonResult();
+  candidate.comparison.lineChanges = [{
+    type: "added", from: null, to: {
+      category: "material", description: "PVC rulo", quantity: 2, unit: "rulo",
+      unitPriceMinor: 10000, lineTotalMinor: 20000, currencyCode: "TRY",
+      sourceType: "production-consumption", sourceId: "pvc-roll", sourcePartIds: ["part-a"],
+      rollCount: 2, rollLengthMm: 100000, purchasedLengthMm: 100000, furnitureIds: ["cabinet-a"]
+    }
+  }];
+  candidate.comparison.fromGrandTotalMinor = 0;
+  candidate.comparison.toGrandTotalMinor = 20000;
+  candidate.comparison.grandTotalDeltaMinor = 20000;
+  candidate.comparison.categoryDeltasMinor.material = 20000;
+  const serialized = serializeProjectQuoteRevisionComparisonCsv(candidate);
+  assert.equal(serialized.status, "blocked");
+  assert.equal(serialized.csv, null);
+});
+
+test("DOM-072 legacy CSV v1 without roll metadata remains readable", () => {
+  const original = emptyComparisonResult();
+  const current = serializeProjectQuoteRevisionComparisonCsv(original);
+  assert.equal(current.status, "ready");
+  const legacy = toLegacyV1Csv(current.csv);
+  const parsed = parseProjectQuoteRevisionComparisonCsv(legacy);
+  assert.equal(parsed.status, "ready");
+  assert.deepEqual(parsed.comparison, original.comparison);
+  assert.equal(parsed.comparison.lineChanges.length, 0);
 });
