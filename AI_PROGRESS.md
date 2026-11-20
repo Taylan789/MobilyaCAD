@@ -1850,3 +1850,11 @@
 - Material catalog resource identity is not currently carried in quote line source mapping; DOM-078 is READY to add that provenance through summary/revision JSON/CSV/comparison contracts without changing generated identifiers.
 - OPS-001 verified: Pages #428 on SHA 0374ba7c built, CI #601 succeeded, QA #603 failed; verify failed and deploy skipped. The gate prevented deployment.
 - Third correction commit SHA and Actions pending. No frontend, integration/performance-owned files touched.
+
+
+## 20 Kasım 2026 23:03 TRT — DOM-077 assertion correction 4 (Actions pending)
+
+- QA [#44806661035](https://github.com/Taylan789/MobilyaCAD/actions/runs/44806661035) failed because the third correction's regex had an extra escaped backslash and did not match observed `material-0001`. The assertion now uses `startsWith("material-")`; costLineId and price-reference checks remain.
+- CI [#44806661040](https://github.com/Taylan789/MobilyaCAD/actions/runs/44806661040) passed; Pages [#44806661004](https://github.com/Taylan789/MobilyaCAD/actions/runs/44806661004) build passed, verify failed, deploy skipped.
+- Material catalog ID is still absent from the quote-line source mapping; DOM-078 will add it through the strict provenance schema.
+- Fourth correction SHA and Actions pending. No frontend, integration/performance-owned or production calculation files touched.
