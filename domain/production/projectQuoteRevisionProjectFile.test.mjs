@@ -70,6 +70,14 @@ function createRevision(overrides = {}) {
 
 function createRollSnapshot() {
   const snapshot = structuredClone(snapshotResult.snapshot);
+  snapshot.consumptionPriceList = {
+    catalogId: "workshop-materials",
+    version: "2026-11",
+    effectiveFrom: "2026-11-01",
+    effectiveTo: "2026-11-30"
+  };
+
+  const snapshot = structuredClone(snapshotResult.snapshot);
   const quoteSummary = snapshot.quoteSummary;
   const costSummary = quoteSummary.costSummary;
   assert.ok(costSummary);
