@@ -1,0 +1,374 @@
+import {
+  parseProjectQuoteRevisionComparisonFile,
+  serializeProjectQuoteRevisionComparisonFile
+} from "./projectQuoteRevisionComparisonFile.ts";
+import type {
+  ProjectQuoteCostCategory,
+  ProjectQuoteRevisionComparison,
+  ProjectQuoteRevisionCostLineSnapshot
+} from "./projectQuoteRevision.ts";
+
+export const PROJECT_QUOTE_REVISION_COMPARISON_CSV_FORMAT = "MobilyaCADQuoteRevisionComparisonCsv" as const;
+export const PROJECT_QUOTE_REVISION_COMPARISON_CSV_VERSION = 1 as const;
+
+export const PROJECT_QUOTE_REVISION_COMPARISON_CSV_COLUMNS = [
+  "format", "formatVersion", "rowType", "projectId",
+  "fromRevisionId", "fromRevisionNumber", "toRevisionId", "toRevisionNumber",
+  "currencyCode", "fromGrandTotalMinor", "toGrandTotalMinor", "grandTotalDeltaMinor",
+  "category", "categoryDeltaMinor", "changeType",
+  "fromDescription", "toDescription", "fromQuantity", "toQuantity",
+  "fromUnit", "toUnit", "fromUnitPriceMinor", "toUnitPriceMinor",
+  "fromLineTotalMinor", "toLineTotalMinor", "fromLineCurrencyCode", "toLineCurrencyCode",
+  "fromSourceReference", "toSourceReference", "fromSourceType", "toSourceType",
+  "fromSourceId", "toSourceId", "fromTariffId", "toTariffId",
+  "fromSourcePartIds", "toSourcePartIds", "fromEdgeDirection", "toEdgeDirection"
+] as const;
+
+export interface ProjectQuoteRevisionComparisonCsvSerializationResult {
+  status: "ready" | "blocked";
+  csv: string | null;
+  diagnostics: readonly string[];
+}
+
+export interface ProjectQuoteRevisionComparisonCsvParseResult {
+  status: "ready" | "blocked";
+  comparison: ProjectQuoteRevisionComparison | null;
+  diagnostics: readonly string[];
+}
+
+const categories: readonly ProjectQuoteCostCategory[] = [
+  "material", "hardware", "labor", "operation", "waste", "profit"
+];
+const columns = PROJECT_QUOTE_REVISION_COMPARISON_CSV_COLUMNS;
+const columnIndex = new Map(columns.map((column, index) => [column, index]));
+const lineColumns = columns.slice(15);
+const sideRequiredFields = [
+  "Description", "Quantity", "Unit", "UnitPriceMinor", "LineTotalMinor",
+  "LineCurrencyCode", "SourceType", "SourceId"
+] as const;
+
+type CsvRowType = "total" | "category" | "line";
+
+function blockedSerialization(message: string): ProjectQuoteRevisionComparisonCsvSerializationResult {
+  return Object.freeze({ status: "blocked" as const, csv: null, diagnostics: Object.freeze([message]) });
+}
+
+function blockedParse(message: string): ProjectQuoteRevisionComparisonCsvParseResult {
+  return Object.freeze({ status: "blocked" as const, comparison: null, diagnostics: Object.freeze([message]) });
+}
+
+function csvCell(value: unknown): string {
+  const text = value === null || value === undefined ? "" : String(value);
+  return '"' + text.replace(/"/g, '""') + '"';
+}
+
+function csvRow(values: readonly unknown[]): string {
+  return values.map(csvCell).join(",");
+}
+
+function metaValues(comparison: ProjectQuoteRevisionComparison, rowType: CsvRowType): unknown[] {
+  return [
+    PROJECT_QUOTE_REVISION_COMPARISON_CSV_FORMAT,
+    PROJECT_QUOTE_REVISION_COMPARISON_CSV_VERSION,
+    rowType,
+    comparison.projectId,
+    comparison.fromRevisionId,
+    comparison.fromRevisionNumber,
+    comparison.toRevisionId,
+    comparison.toRevisionNumber,
+    comparison.currencyCode,
+    comparison.fromGrandTotalMinor,
+    comparison.toGrandTotalMinor,
+    comparison.grandTotalDeltaMinor
+  ];
+}
+
+function blankLineValues(): unknown[] {
+  return lineColumns.map(() => "");
+}
+
+function lineChangeValues(
+  from: ProjectQuoteRevisionCostLineSnapshot | null,
+  to: ProjectQuoteRevisionCostLineSnapshot | null
+): unknown[] {
+  const fromValues = from === null ? Array(12).fill("") : [
+    from.description, from.quantity, from.unit, from.unitPriceMinor, from.lineTotalMinor,
+    from.currencyCode, from.sourceReference ?? "", from.sourceType, from.sourceId,
+    from.tariffId ?? "", from.sourcePartIds === undefined ? "" : JSON.stringify(from.sourcePartIds),
+    from.edgeDirection ?? ""
+  ];
+  const toValues = to === null ? Array(12).fill("") : [
+    to.description, to.quantity, to.unit, to.unitPriceMinor, to.lineTotalMinor,
+    to.currencyCode, to.sourceReference ?? "", to.sourceType, to.sourceId,
+    to.tariffId ?? "", to.sourcePartIds === undefined ? "" : JSON.stringify(to.sourcePartIds),
+    to.edgeDirection ?? ""
+  ];
+  return [
+    fromValues[0], toValues[0],
+    fromValues[1], toValues[1],
+    fromValues[2], toValues[2],
+    fromValues[3], toValues[3],
+    fromValues[4], toValues[4],
+    fromValues[5], toValues[5],
+    fromValues[6], toValues[6],
+    fromValues[7], toValues[7],
+    fromValues[8], toValues[8],
+    fromValues[9], toValues[9],
+    fromValues[10], toValues[10],
+    fromValues[11], toValues[11]
+  ];
+}
+
+function requireBlank(row: readonly string[], names: readonly string[], label: string): void {
+  for (const name of names) {
+    const index = columnIndex.get(name);
+    if (index === undefined || row[index] !== "") throw new Error(label + " desteklenmeyen satır verisi içeriyor.");
+  }
+}
+
+function parseCsvRecords(csv: string): string[][] {
+  if (csv.length > 5_000_000) throw new Error("CSV dosyası 5 MB sınırını aşıyor.");
+  const text = csv.charCodeAt(0) === 0xfeff ? csv.slice(1) : csv;
+  const records: string[][] = [];
+  let row: string[] = [];
+  let field = "";
+  let inQuotes = false;
+  let afterQuote = false;
+
+  for (let index = 0; index < text.length; index += 1) {
+    const char = text[index];
+    if (inQuotes) {
+      if (char === '"') {
+        if (text[index + 1] === '"') {
+          field += '"';
+          index += 1;
+        } else {
+          inQuotes = false;
+          afterQuote = true;
+        }
+      } else {
+        field += char;
+      }
+      continue;
+    }
+    if (afterQuote && char !== "," && char !== "\n" && char !== "\r") {
+      throw new Error("CSV tırnaklı alan sonrasında beklenmeyen karakter içeriyor.");
+    }
+    if (char === '"' && field === "" && !afterQuote) {
+      inQuotes = true;
+      continue;
+    }
+    if (char === '"') throw new Error("CSV tırnak kullanımı geçersiz.");
+    if (char === ",") {
+      row.push(field);
+      field = "";
+      afterQuote = false;
+      continue;
+    }
+    if (char === "\n" || char === "\r") {
+      if (char === "\r" && text[index + 1] === "\n") index += 1;
+      row.push(field);
+      records.push(row);
+      row = [];
+      field = "";
+      afterQuote = false;
+      if (records.length > 10_007) throw new Error("CSV satır sınırı aşılıyor.");
+      continue;
+    }
+    field += char;
+  }
+  if (inQuotes) throw new Error("CSV tırnaklı alan kapanmamış.");
+  if (field.length > 0 || row.length > 0 || afterQuote) {
+    row.push(field);
+    records.push(row);
+  }
+  return records;
+}
+
+function cell(row: readonly string[], name: string): string {
+  const index = columnIndex.get(name);
+  if (index === undefined) throw new Error("CSV sözleşme sütunu bulunamadı: " + name + ".");
+  return row[index] ?? "";
+}
+
+function parseIntegerCell(value: string, label: string, minimum = Number.MIN_SAFE_INTEGER): number {
+  if (!/^-?(?:0|[1-9]\d*)$/.test(value)) throw new Error(label + " tam sayı olmalıdır.");
+  const number = Number(value);
+  if (!Number.isSafeInteger(number) || number < minimum) throw new Error(label + " güvenli tam sayı aralığında olmalıdır.");
+  return number;
+}
+
+function parseQuantityCell(value: string, label: string): number {
+  if (!/^(?:0|[1-9]\d*)(?:\.\d+)?(?:e[+-]?\d+)?$/i.test(value)) {
+    throw new Error(label + " geçerli sayı olmalıdır.");
+  }
+  const number = Number(value);
+  if (!Number.isFinite(number) || number <= 0) throw new Error(label + " pozitif ve sonlu olmalıdır.");
+  return number;
+}
+
+function parseLineSide(row: readonly string[], side: "from" | "to", category: ProjectQuoteCostCategory): ProjectQuoteRevisionCostLineSnapshot | null {
+  const names = [
+    side + "Description", side + "Quantity", side + "Unit", side + "UnitPriceMinor",
+    side + "LineTotalMinor", side + "LineCurrencyCode", side + "SourceReference",
+    side + "SourceType", side + "SourceId", side + "TariffId",
+    side + "SourcePartIds", side + "EdgeDirection"
+  ] as const;
+  const values = names.map((name) => cell(row, name));
+  if (values.every((value) => value === "")) return null;
+  const required = sideRequiredFields.map((suffix) => side + suffix);
+  for (const name of required) {
+    if (cell(row, name) === "") throw new Error("Teklif CSV satırında " + name + " zorunludur.");
+  }
+  const sourcePartIdsCell = cell(row, side + "SourcePartIds");
+  let sourcePartIds: string[] | undefined;
+  if (sourcePartIdsCell !== "") {
+    const parsed: unknown = JSON.parse(sourcePartIdsCell);
+    if (!Array.isArray(parsed) || parsed.some((id) => typeof id !== "string")) {
+      throw new Error("CSV kaynak Part ID alanı JSON string listesi olmalıdır.");
+    }
+    sourcePartIds = parsed as string[];
+  }
+  const sourceReference = cell(row, side + "SourceReference");
+  const tariffId = cell(row, side + "TariffId");
+  const edgeDirection = cell(row, side + "EdgeDirection");
+  return {
+    category,
+    description: cell(row, side + "Description"),
+    quantity: parseQuantityCell(cell(row, side + "Quantity"), "CSV miktarı"),
+    unit: cell(row, side + "Unit"),
+    unitPriceMinor: parseIntegerCell(cell(row, side + "UnitPriceMinor"), "CSV birim fiyatı", 0),
+    lineTotalMinor: parseIntegerCell(cell(row, side + "LineTotalMinor"), "CSV satır toplamı", 0),
+    currencyCode: cell(row, side + "LineCurrencyCode"),
+    ...(sourceReference === "" ? {} : { sourceReference }),
+    sourceType: cell(row, side + "SourceType") as ProjectQuoteRevisionCostLineSnapshot["sourceType"],
+    sourceId: cell(row, side + "SourceId"),
+    ...(tariffId === "" ? {} : { tariffId }),
+    ...(sourcePartIds === undefined ? {} : { sourcePartIds }),
+    ...(edgeDirection === "" ? {} : { edgeDirection: edgeDirection as ProjectQuoteRevisionCostLineSnapshot["edgeDirection"] })
+  };
+}
+
+/** Export a validated comparison as stable UTF-8 CSV; units and currency remain exact. */
+export function serializeProjectQuoteRevisionComparisonCsv(
+  resultValue: unknown
+): ProjectQuoteRevisionComparisonCsvSerializationResult {
+  const validatedFile = serializeProjectQuoteRevisionComparisonFile(resultValue);
+  if (validatedFile.status !== "ready" || validatedFile.json === null) {
+    return blockedSerialization(validatedFile.diagnostics[0] ?? "Yalnızca doğrulanmış teklif karşılaştırmaları CSV'ye aktarılabilir.");
+  }
+  const parsedFile = parseProjectQuoteRevisionComparisonFile(validatedFile.json);
+  if (parsedFile.status !== "ready" || parsedFile.comparison === null) {
+    return blockedSerialization(parsedFile.diagnostics[0] ?? "Teklif karşılaştırması CSV için doğrulanamadı.");
+  }
+  const comparison = parsedFile.comparison;
+  const records: unknown[][] = [
+    [...columns],
+    [...metaValues(comparison, "total"), "", "", "", ...blankLineValues()]
+  ];
+  for (const category of categories) {
+    records.push([...metaValues(comparison, "category"), category, comparison.categoryDeltasMinor[category], "", ...blankLineValues()]);
+  }
+  for (const change of comparison.lineChanges) {
+    const category = (change.from ?? change.to)?.category;
+    if (category === undefined) return blockedSerialization("Teklif satır farkı kategorisi bulunmuyor.");
+    records.push([...metaValues(comparison, "line"), category, "", change.type, ...lineChangeValues(change.from, change.to)]);
+  }
+  return Object.freeze({
+    status: "ready" as const,
+    csv: "\uFEFF" + records.map(csvRow).join("\r\n") + "\r\n",
+    diagnostics: Object.freeze([])
+  });
+}
+
+/** Parse strict v1 CSV and accept the reconstructed comparison only if domain JSON validation succeeds. */
+export function parseProjectQuoteRevisionComparisonCsv(
+  csvValue: unknown
+): ProjectQuoteRevisionComparisonCsvParseResult {
+  if (typeof csvValue !== "string") return blockedParse("Teklif karşılaştırma CSV dosyası metin olmalıdır.");
+  try {
+    const records = parseCsvRecords(csvValue);
+    if (records.length < 8) throw new Error("CSV genel toplam ve altı kategori satırını içermelidir.");
+    if (records[0].length !== columns.length || records[0].some((value, index) => value !== columns[index])) {
+      throw new Error("Teklif karşılaştırma CSV sütun başlığı desteklenen v1 sözleşmesiyle uyuşmuyor.");
+    }
+    for (const row of records.slice(1)) {
+      if (row.length !== columns.length) throw new Error("CSV satır sütun sayısı sözleşmeyle uyuşmuyor.");
+      if (cell(row, "format") !== PROJECT_QUOTE_REVISION_COMPARISON_CSV_FORMAT ||
+          cell(row, "formatVersion") !== String(PROJECT_QUOTE_REVISION_COMPARISON_CSV_VERSION)) {
+        throw new Error("Teklif karşılaştırma CSV biçimi veya sürümü desteklenmiyor.");
+      }
+    }
+    const total = records[1];
+    if (cell(total, "rowType") !== "total") throw new Error("CSV ilk veri satırı genel toplam olmalıdır.");
+    requireBlank(total, ["category", "categoryDeltaMinor", "changeType", ...lineColumns], "CSV genel toplam satırı");
+    const metaNames = columns.slice(0, 12).filter((name) => name !== "rowType");
+    for (const row of records.slice(2)) {
+      for (const name of metaNames) {
+        if (cell(row, name) !== cell(total, name)) throw new Error("CSV satır metadata'sı genel toplam satırıyla uyuşmuyor.");
+      }
+    }
+    const projectId = cell(total, "projectId");
+    const fromRevisionId = cell(total, "fromRevisionId");
+    const fromRevisionNumber = parseIntegerCell(cell(total, "fromRevisionNumber"), "Başlangıç revizyon numarası", 1);
+    const toRevisionId = cell(total, "toRevisionId");
+    const toRevisionNumber = parseIntegerCell(cell(total, "toRevisionNumber"), "Hedef revizyon numarası", 1);
+    const currencyCode = cell(total, "currencyCode");
+    const fromGrandTotalMinor = parseIntegerCell(cell(total, "fromGrandTotalMinor"), "Başlangıç toplamı", 0);
+    const toGrandTotalMinor = parseIntegerCell(cell(total, "toGrandTotalMinor"), "Hedef toplamı", 0);
+    const grandTotalDeltaMinor = parseIntegerCell(cell(total, "grandTotalDeltaMinor"), "Toplam farkı");
+
+    const categoryRows = records.slice(2, 8);
+    const categoryDeltasMinor = {} as Record<ProjectQuoteCostCategory, number>;
+    for (let index = 0; index < categories.length; index += 1) {
+      const row = categoryRows[index];
+      if (row === undefined || cell(row, "rowType") !== "category" || cell(row, "category") !== categories[index]) {
+        throw new Error("CSV kategori satırları sabit sıralı ve eksiksiz olmalıdır.");
+      }
+      requireBlank(row, ["changeType", ...lineColumns], "CSV kategori satırı");
+      categoryDeltasMinor[categories[index]] = parseIntegerCell(cell(row, "categoryDeltaMinor"), categories[index] + " kategori farkı");
+    }
+    const lineRows = records.slice(8);
+    if (lineRows.length > 10_000) throw new Error("CSV teklif satırı farkı sınırını aşıyor.");
+    const lineChanges = lineRows.map((row) => {
+      if (cell(row, "rowType") !== "line") throw new Error("CSV kategori satırlarından sonra yalnızca teklif fark satırları bulunabilir.");
+      requireBlank(row, ["categoryDeltaMinor"], "CSV teklif fark satırı");
+      const category = cell(row, "category") as ProjectQuoteCostCategory;
+      const type = cell(row, "changeType");
+      if (type !== "added" && type !== "removed" && type !== "changed") throw new Error("CSV satır fark türü desteklenmiyor.");
+      const from = parseLineSide(row, "from", category);
+      const to = parseLineSide(row, "to", category);
+      return { type, from, to };
+    });
+
+    const comparison: ProjectQuoteRevisionComparison = {
+      schemaVersion: 1,
+      projectId,
+      fromRevisionId,
+      fromRevisionNumber,
+      toRevisionId,
+      toRevisionNumber,
+      currencyCode,
+      fromGrandTotalMinor,
+      toGrandTotalMinor,
+      grandTotalDeltaMinor,
+      categoryDeltasMinor,
+      lineChanges
+    };
+    const jsonValidation = serializeProjectQuoteRevisionComparisonFile({
+      status: "ready",
+      comparison,
+      diagnostics: []
+    });
+    if (jsonValidation.status !== "ready" || jsonValidation.json === null) {
+      throw new Error(jsonValidation.diagnostics[0] ?? "CSV karşılaştırması domain doğrulamasından geçmedi.");
+    }
+    const normalized = parseProjectQuoteRevisionComparisonFile(jsonValidation.json);
+    if (normalized.status !== "ready" || normalized.comparison === null) {
+      throw new Error(normalized.diagnostics[0] ?? "CSV karşılaştırması doğrulanmış JSON'a dönüştürülemedi.");
+    }
+    return Object.freeze({ status: "ready" as const, comparison: normalized.comparison, diagnostics: Object.freeze([]) });
+  } catch (error) {
+    return blockedParse(error instanceof Error ? error.message : String(error));
+  }
+}
