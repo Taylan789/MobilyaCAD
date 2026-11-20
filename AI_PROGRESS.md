@@ -1612,3 +1612,10 @@
 - Boundaries: no roll/waste/price/CNC inference; frontend-owned download controls unchanged. Next: DOM-069 strict CSV v1.
 
 - AI Developer run #16 failed at the free-model daily rate limit; no rerun was issued because the reported quota is exhausted. Prior run #15 was not for this new SHA.
+
+
+## 20 Kasım 2026 09:00 TRT — DOM-069 directional edge-band consumption CSV v1 (Actions pending)
+- Starting HEAD: `bdda59f657cb8c7e57ea172ef6137d2ee6179d32`. Added strict domain CSV v1 serializer/parser and production-summary round-trip tests; CI type-check includes the module. Metadata preamble, stable header, exact mm/m, edge, catalog ID, quantity/length/count and Part/furniture provenance are preserved. Output uses UTF-8 BOM and CRLF with RFC 4180 quoting; empty summary is valid; malformed/unsupported/inconsistent input returns blocked and no partial groups. Size/group caps: 5 MB/1,000 groups.
+- Files: `domain/production/projectEdgeBandingConsumptionCsv.ts`, `domain/production/projectEdgeBandingConsumptionCsv.test.mjs`, `.github/workflows/qa-test.yml`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`. Frontend/**, adapter/performance-owned files, main and secrets remain untouched.
+- Commit SHA and GitHub Actions verification are pending; local tests were not run. The 10/10 edge-band export gate remains pending Actions evidence.
+- Next: DOM-070 user-configurable edge-band price and optional roll/waste inputs with exact source/unit and no inferred rates; DOM-066 is frontend-owned.

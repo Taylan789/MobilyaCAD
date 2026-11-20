@@ -529,7 +529,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 6. DOM-066 PLANNED — frontend-owned revision-comparison download wiring; not this branch's file ownership.
 7. DOM-067 DONE — strict material-consumption JSON v1; Actions verified.
 8. DOM-068 DONE — strict directional edge-band consumption JSON v1; Actions verified (124 frontend + 468 domain tests; strict TS/build/audit).
-9. DOM-069 PLANNED — strict directional edge-band consumption CSV v1 with exact mm/m, edge, provenance, UTF-8 BOM/CRLF and RFC 4180 escaping.
+9. DOM-069 IN PROGRESS — strict directional edge-band consumption CSV v1 with exact mm/m, edge, provenance, UTF-8 BOM/CRLF and RFC 4180 escaping.
 10. DOM-070 PLANNED — configurable edge-band catalog cost and optional user-supplied roll/waste inputs; no inferred price or yield.
 
 ## 19 Kasım 2026 21:21 TRT — DOM-059 teklif revizyon satır karşılaştırması
@@ -576,15 +576,11 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 
 
 ## Next 5 small tasks
-1. DOM-066 PLANNED — frontend-owned revision-comparison JSON/CSV download wiring; ready/blocked gate and source metadata.
-
-2. DOM-067 DONE — material-consumption JSON v1 domain contract; strict round-trip, provenance and arithmetic validation (Actions verified).
-
-3. DOM-068 PLANNED — explicit edge-band consumption JSON contract with exact mm/m, directional assignments, Part and furniture IDs; no inferred roll/waste allowance.
-
-4. INT-001 READY — production report/export round-trip or explicit unsupported-geometry export blocker; frontend/domain integration remains shared.
-
-5. INT-002 and PERF-001 READY — adapter fidelity tests and measured viewport/scene baseline; specialist workflow currently disabled.
+1. DOM-069 IN PROGRESS — strict directional edge-band consumption CSV v1, exact mm/m, edge and source IDs; Actions verification pending.
+2. DOM-070 PLANNED — user-configurable edge-band price and optional roll/waste inputs with explicit provenance; no inferred rate.
+3. DOM-066 PLANNED — frontend-owned quote comparison JSON/CSV download integration; blocked results must not download.
+4. INT-001 READY — shared production report/export round-trip or unsupported-geometry blocker; contract remains shared.
+5. INT-002/PERF-001 READY — adapter fidelity and measured viewport baseline; specialist workflow currently disabled.
 
 ## 10/10 ölçülebilir kalite kapıları (20 Kasım 2026 baseline)
 
@@ -646,3 +642,8 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - Exact fields/schema/units, group identity, canonical order, provenance IDs, length/quantity conversion and edge/Part counts are validated. Shared Part IDs across distinct groups are allowed; parser returns no partial output on failure.
 - No roll size, waste/yield, price, CNC operation or workshop standard is inferred. Download wiring remains frontend-owned.
 - Actions verified on commit 0fb6e8b04a11251431cc2379d0c1137da10d72a3: CI https://github.com/Taylan789/MobilyaCAD/actions/runs/44684106913; QA https://github.com/Taylan789/MobilyaCAD/actions/runs/44684106780; Pages https://github.com/Taylan789/MobilyaCAD/actions/runs/44684106800. Domain tests 468/468, frontend 124/124; strict type-check, build and audit successful. Lint 32 warnings, 0 errors; no local run.
+
+
+## DOM-069 — Directional edge-band consumption CSV v1 (implementation in progress)
+- Acceptance: exact metadata/header contract; one row per measured group; preserves catalog ID, direction, exact mm/m, quantities, mm totals, edge count, sorted Part/furniture provenance; UTF-8 BOM, CRLF, RFC 4180 escaped cells; empty summary supported; malformed, unsupported, inconsistent or oversized input blocks with no partial data.
+- The CSV parser delegates arithmetic, canonical order, duplicate and provenance limits to the strict JSON v1 contract to avoid validation drift. No price, roll size, waste/yield or CNC standard is inferred.
