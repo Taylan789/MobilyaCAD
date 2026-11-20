@@ -524,7 +524,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 1. DOM-061 DONE — structured edge direction is carried as `edgeDirection` through consumption, quote summaries, revision snapshots, and JSON round-trip; legacy v1 descriptions remain supported.
 2. DOM-062 DONE — revision comparison JSON export contract, exact line deltas/currency/source, no unit conversion.
 3. DOM-063 DONE — stable quote comparison CSV v1 serializer/parser, exact currency/unit/source and RFC 4180 escaping; Actions verified.
-4. DOM-064 IN_PROGRESS — verify explicit waste/profit provenance through JSON v2 project-history round-trip; no inferred percentages.
+4. DOM-064 DONE — explicit waste/profit line provenance and source IDs/references verified through JSON v2 project-history round-trip; no inferred percentages.
 5. DOM-065 PLANNED — quote-comparison JSON/CSV added/removed/changed waste/profit source-line round-trip and delta reconciliation.
 6. DOM-066 PLANNED — frontend-owned revision-comparison download wiring after the domain export contract is complete.
 
@@ -593,3 +593,10 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - Kabul testleri round-trip, Türkçe/virgül/quote/embedded CRLF, mm/m ayrımı, optional metadata, empty comparison, malformed CSV, unknown header ve tutarsız kategori toplamlarını kapsar.
 - Final Actions [CI #44646343900](https://github.com/Taylan789/MobilyaCAD/actions/runs/44646343900), [QA #44646343994](https://github.com/Taylan789/MobilyaCAD/actions/runs/44646343994), [Pages #44646343887](https://github.com/Taylan789/MobilyaCAD/actions/runs/44646343887) başarılı. QA: 124/124 frontend + 457/457 domain; strict TS, lint (32 warning/0 error), production build ve audit (0 vulnerability).
 - **Boundary:** domain contract only; frontend download adapter/UI wiring is not implemented. CNC/physical workshop validation is not implied.
+
+
+### DOM-064 — verified project-history provenance (20 November 2026)
+
+- Test commit [dc16d4e](https://github.com/Taylan789/MobilyaCAD/commit/dc16d4ee0562f38149f7ed4920e3502dd30b16d2) adds explicit waste + profit fixture and project JSON v2 append/read assertions for category, source type/ID/reference, quantity, unit, unit price, line total, and category/grand totals.
+- Actions: [CI #44656515213](https://github.com/Taylan789/MobilyaCAD/actions/runs/44656515213), [QA #44656515208](https://github.com/Taylan789/MobilyaCAD/actions/runs/44656515208), and [Pages #44656515137](https://github.com/Taylan789/MobilyaCAD/actions/runs/44656515137) passed. QA: 124 frontend + 458 domain tests; strict TS, lint (32 warnings/0 errors), production build and production audit (0 vulnerabilities).
+- Next domain task: DOM-065 — comparison JSON/CSV adjustment-line provenance round-trip. No UI adapter or physical CNC/workshop validation is implied.

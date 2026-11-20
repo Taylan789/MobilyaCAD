@@ -1574,9 +1574,9 @@
 
 
 
-## 20 Kasım 2026 04:46 TRT — DOM-064 proje geçmişi kaynak izi testi (IN_PROGRESS)
-- Başlangıç HEAD: `4c0219e489578566f11f5b7b903b6c38bf56834d`. Quote-adjustment fixture'ı yalnızca kâr yerine açık fire + kâr satırlarını içeriyor; yeni regresyon testinde JSON v2 proje geçmişi append/read round-trip sırasında her iki satırın kategori, sourceType/sourceId, sourceReference, mikt, birim, fiyat, satır toplamı ve kategori/genel toplamları korunuyor.
-- İlk commit ve Actions doğrulaması bekleniyor; local test çalıştırılmadı. Testler gevşetilmedi.
-- Son HEAD Actions: CI #44647787672, QA #44647787615, Pages #44647787684 başarılı (124 frontend + 457 domain; strict TS, lint, build, production audit). Bu test SHA'sı için sonuç henüz yok.
-- AI Developer #44647787500 push event'inde `opencode github run` tarafından `Unsupported event type: push` hatasıyla durdu; aynı event'i rerun etmek sonuç değiştirmeyeceğinden rerun yapılmadı. PR #102 açık, PR #103 zaten merged; workflow sahibi/branch sınırları korunuyor. Integration/performance job `if: false` ile devre dışı, INT-002/PERF-001 hazır görevler sahipsiz.
-- Sonraki: DOM-065 — revision comparison JSON/CSV export'unda waste/profit added/removed/changed source-line provenance ve delta reconciliation testleri.
+## 20 Kasım 2026 04:46 TRT — DOM-064 proje geçmişi kaynak izi testi (DONE)
+- Başlangıç HEAD: `4c0219e489578566f11f5b7b903b6c38bf56834d`; test commit: [dc16d4ee](https://github.com/Taylan789/MobilyaCAD/commit/dc16d4ee0562f38149f7ed4920e3502dd30b16d2). Proje JSON v2 quote history append/read round-trip, hem waste hem profit adjustment line'larının category, sourceType/sourceId, sourceReference, quantity, unit, unitPriceMinor, lineTotalMinor ve kategori/genel toplamlarını korudu.
+- Actions: CI [#44656515213](https://github.com/Taylan789/MobilyaCAD/actions/runs/44656515213), QA [#44656515208](https://github.com/Taylan789/MobilyaCAD/actions/runs/44656515208), Pages [#44656515137](https://github.com/Taylan789/MobilyaCAD/actions/runs/44656515137) successful. QA **124/124 frontend + 458/458 domain test**, strict domain TS, lint **32 warning / 0 error**, production build and audit **0 vulnerability**.
+- Local tests not run; GitHub Actions is the verification source. No frontend files, adapter/performance-owned files, CNC standard, workflow, secrets or main branch touched.
+- AI Developer [#44647787500](https://github.com/Taylan789/MobilyaCAD/actions/runs/44647787500) failed at `opencode github run` with `Unsupported event type: push`; same-event rerun was not attempted. PR #102 remains open, PR #103 merged; integration/performance job is disabled (`if: false`), so INT-002/PERF-001 have no active specialist.
+- Next: DOM-065 — revision-comparison JSON/CSV added/removed/changed waste/profit source-line provenance and exact delta reconciliation.
