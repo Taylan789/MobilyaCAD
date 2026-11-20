@@ -1,6 +1,11 @@
 name: MobilyaCAD AI Developer
 
 on:
+  push:
+    branches:
+      - dev/github-work
+    paths:
+      - .github/workflows/ai-developer.yml
   workflow_dispatch:
     inputs:
       task:
