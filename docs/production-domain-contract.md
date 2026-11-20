@@ -1006,3 +1006,10 @@ Kaynak test: domain/production/projectBathroomVanityPanelPricing.test.mjs.
 - Quote adjustments remain explicit cost lines in the existing `waste` or `profit` category. Quantity, unit, unit price, currency and a non-empty user-supplied source reference are required; percentage-based defaults or inferred pricing are not added.
 - Each revision snapshot keeps the generated cost-line ID and the `quote-adjustment` source type with the adjustment's original line ID as `sourceId`; the cost line retains its exact `sourceReference`. Strict revision validation rejects adjustment categories outside waste/profit, duplicate source identities, missing references and partial totals.
 - JSON v2 project-history append/read must preserve both adjustment categories, their source IDs/references, units, prices, line totals and reconciled category/grand totals. This is domain persistence only; frontend import/export adapters and physical workshop/CNC verification are separate.
+
+
+## DOM-065 — Revision-comparison adjustment-line provenance
+
+- Quote comparison JSON v1 and CSV v1 round-trip added, removed, and changed `quote-adjustment` lines for both `waste` and `profit`, retaining the exact source ID/reference, quantity, unit, unit price, line total and currency on each side.
+- Comparison validation reconciles line deltas to the waste/profit category delta and category deltas to the grand-total delta. The tests also verify the revision comparator emits all six adjustment change shapes; JSON/CSV use the same strict validation gate and reject partial results.
+- No inferred waste percentage, profit rate, currency conversion, or unit conversion is introduced. This is a domain serialization contract; frontend download wiring and physical workshop/CNC validation remain separate.

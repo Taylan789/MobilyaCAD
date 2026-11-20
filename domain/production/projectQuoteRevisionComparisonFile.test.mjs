@@ -7,6 +7,66 @@ import {
   serializeProjectQuoteRevisionComparisonFile
 } from "./projectQuoteRevisionComparisonFile.ts";
 
+
+function quoteAdjustmentLine(category, description, sourceId, sourceReference, amount) {
+  return { category, description, quantity: 1, unit: "kalem", unitPriceMinor: amount, lineTotalMinor: amount,
+    currencyCode: "TRY", sourceReference, sourceType: "quote-adjustment", sourceId };
+}
+function quoteAdjustmentChanges() {
+  return [
+    { type: "changed", from: quoteAdjustmentLine("waste", "Manuel fire", "waste-adjustment-changed", "fire:v1", 100),
+      to: quoteAdjustmentLine("waste", "Manuel fire", "waste-adjustment-changed", "fire:v2", 150) },
+    { type: "added", from: null, to: quoteAdjustmentLine("waste", "Eklenen fire", "waste-adjustment-added", "fire:add:v1", 100) },
+    { type: "removed", from: quoteAdjustmentLine("waste", "Eski fire", "waste-adjustment-removed", "fire:remove:v1", 25), to: null },
+    { type: "changed", from: quoteAdjustmentLine("profit", "Manuel kâr", "profit-adjustment-changed", "profit:v1", 300),
+      to: quoteAdjustmentLine("profit", "Manuel kâr", "profit-adjustment-changed", "profit:v2", 350) },
+    { type: "added", from: null, to: quoteAdjustmentLine("profit", "Eklenen kâr", "profit-adjustment-added", "profit:add:v1", 200) },
+    { type: "removed", from: quoteAdjustmentLine("profit", "Eski kâr", "profit-adjustment-removed", "profit:remove:v1", 50), to: null }
+  ];
+}
+function assertQuoteAdjustmentProvenance(comparison) {
+  const changes = comparison.lineChanges.filter(change => (change.from ?? change.to)?.sourceType === "quote-adjustment");
+  assert.equal(changes.length, 6);
+  assert.deepEqual(changes.reduce((counts, change) => { counts[change.type] += 1; return counts; }, { added: 0, removed: 0, changed: 0 }),
+    { added: 2, removed: 2, changed: 2 });
+  const summarize = line => line === null ? null : {
+    sourceReference: line.sourceReference, lineTotalMinor: line.lineTotalMinor, category: line.category,
+    sourceType: line.sourceType, unit: line.unit, currencyCode: line.currencyCode, quantity: line.quantity
+  };
+  const actual = changes.map(change => ({
+    sourceId: (change.from ?? change.to).sourceId, type: change.type,
+    from: summarize(change.from), to: summarize(change.to)
+  })).sort((a, b) => a.sourceId < b.sourceId ? -1 : a.sourceId > b.sourceId ? 1 : 0);
+  assert.deepEqual(actual, [
+    { sourceId: "profit-adjustment-added", type: "added", from: null, to: {
+      sourceReference: "profit:add:v1", lineTotalMinor: 200, category: "profit", sourceType: "quote-adjustment", unit: "kalem", currencyCode: "TRY", quantity: 1
+    } },
+    { sourceId: "profit-adjustment-changed", type: "changed", from: {
+      sourceReference: "profit:v1", lineTotalMinor: 300, category: "profit", sourceType: "quote-adjustment", unit: "kalem", currencyCode: "TRY", quantity: 1
+    }, to: {
+      sourceReference: "profit:v2", lineTotalMinor: 350, category: "profit", sourceType: "quote-adjustment", unit: "kalem", currencyCode: "TRY", quantity: 1
+    } },
+    { sourceId: "profit-adjustment-removed", type: "removed", from: {
+      sourceReference: "profit:remove:v1", lineTotalMinor: 50, category: "profit", sourceType: "quote-adjustment", unit: "kalem", currencyCode: "TRY", quantity: 1
+    }, to: null },
+    { sourceId: "waste-adjustment-added", type: "added", from: null, to: {
+      sourceReference: "fire:add:v1", lineTotalMinor: 100, category: "waste", sourceType: "quote-adjustment", unit: "kalem", currencyCode: "TRY", quantity: 1
+    } },
+    { sourceId: "waste-adjustment-changed", type: "changed", from: {
+      sourceReference: "fire:v1", lineTotalMinor: 100, category: "waste", sourceType: "quote-adjustment", unit: "kalem", currencyCode: "TRY", quantity: 1
+    }, to: {
+      sourceReference: "fire:v2", lineTotalMinor: 150, category: "waste", sourceType: "quote-adjustment", unit: "kalem", currencyCode: "TRY", quantity: 1
+    } },
+    { sourceId: "waste-adjustment-removed", type: "removed", from: {
+      sourceReference: "fire:remove:v1", lineTotalMinor: 25, category: "waste", sourceType: "quote-adjustment", unit: "kalem", currencyCode: "TRY", quantity: 1
+    }, to: null }
+  ]);
+  assert.equal(comparison.categoryDeltasMinor.waste, 125);
+  assert.equal(comparison.categoryDeltasMinor.profit, 200);
+  assert.equal(comparison.grandTotalDeltaMinor, 1075);
+  assert.equal(comparison.toGrandTotalMinor, 11075);
+}
+
 function readyComparisonResult() {
   return {
     status: "ready",
@@ -20,15 +80,15 @@ function readyComparisonResult() {
       toRevisionNumber: 2,
       currencyCode: "TRY",
       fromGrandTotalMinor: 10000,
-      toGrandTotalMinor: 10750,
-      grandTotalDeltaMinor: 750,
+      toGrandTotalMinor: 11075,
+      grandTotalDeltaMinor: 1075,
       categoryDeltasMinor: {
         material: 1250,
         hardware: 0,
         labor: -500,
         operation: 0,
-        waste: 0,
-        profit: 0
+        waste: 125,
+        profit: 200
       },
       lineChanges: [
         {
@@ -96,7 +156,8 @@ function readyComparisonResult() {
             tariffId: "labor-hourly"
           },
           to: null
-        }
+        },
+        ...quoteAdjustmentChanges()
       ]
     }
   };
@@ -122,6 +183,7 @@ test("comparison JSON export round-trip exact currency, source, Part IDs and edg
   assert.deepEqual(parsed.comparison?.lineChanges[0].to.sourcePartIds, ["part-a", "part-b"]);
   assert.equal(parsed.comparison?.lineChanges[1].to.edgeDirection, "right");
   assert.equal(parsed.comparison?.lineChanges[2].from.tariffId, "labor-hourly");
+  assertQuoteAdjustmentProvenance(parsed.comparison);
 });
 
 test("comparison JSON preserves mm and m as distinct added/removed lines without conversion", () => {

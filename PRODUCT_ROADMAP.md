@@ -525,7 +525,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 2. DOM-062 DONE — revision comparison JSON export contract, exact line deltas/currency/source, no unit conversion.
 3. DOM-063 DONE — stable quote comparison CSV v1 serializer/parser, exact currency/unit/source and RFC 4180 escaping; Actions verified.
 4. DOM-064 DONE — explicit waste/profit line provenance and source IDs/references verified through JSON v2 project-history round-trip; no inferred percentages.
-5. DOM-065 PLANNED — quote-comparison JSON/CSV added/removed/changed waste/profit source-line round-trip and delta reconciliation.
+5. DOM-065 IN_PROGRESS — revision comparator and JSON/CSV round-trip for waste/profit adjustment provenance; Actions pending.
 6. DOM-066 PLANNED — frontend-owned revision-comparison download wiring after the domain export contract is complete.
 
 
@@ -569,8 +569,15 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 - **Teslim:** `mobilyacad-quote-revision-comparison` v1 strict JSON zarfı; hazır revision comparison sonuçlarını exact currency, unit, line delta, source metadata, Part ID, tariff ve structured edge direction ile serileştirir/parses.
 - **Fail-closed:** unsupported fields/version, malformed JSON, blocked input, satır toplamı/quantity-price uyuşmazlığı, kategori/genel delta tutarsızlığı veya line-change shape hatasında kısmi JSON döndürmez.
 - **Kabul:** domain otomatik test round-trip, metadata ve mm/m ayrımını; tam kategori ve grand-total delta tutarlılığını doğrular. Fiziksel üretim veya frontend dosya indirme entegrasyonu iddia edilmez.
-- **Sonraki 3 dilim:** DOM-064 DONE — waste/profit provenance project JSON v2 history round-trip verified; DOM-065 planned — comparison JSON/CSV adjustment-line provenance and delta reconciliation; DOM-066 planned — frontend-owned revision-comparison download wiring.
+- **Sonraki 3 dilim:** DOM-064 DONE — waste/profit provenance project JSON v2 history round-trip verified; DOM-065 in progress — comparison JSON/CSV adjustment-line provenance and delta reconciliation; DOM-066 planned — frontend-owned revision-comparison download wiring.
 
+
+## Next 5 small tasks
+1. DOM-065 IN_PROGRESS — test revision comparator plus JSON/CSV round-trip for added/removed/changed waste and profit lines; Actions verification pending.
+2. DOM-066 PLANNED — frontend-owned comparison JSON/CSV download wiring with ready/blocked behavior, after DOM-065 is verified.
+3. INT-001 READY — production-report/export contract round-trip or explicit export-block regression tests (domain + UI owner).
+4. INT-002 READY — adapter JSON/CSV round-trip and geometry/quantity fidelity tests (Integration/Performance owner; agent currently disabled).
+5. PERF-001 READY — measurable viewport/scene profiling baseline and CI regression threshold (Integration/Performance owner; agent currently disabled).
 
 ## 10/10 ölçülebilir kalite kapıları (20 Kasım 2026 baseline)
 

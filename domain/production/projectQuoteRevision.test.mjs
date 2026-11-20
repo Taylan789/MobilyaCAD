@@ -120,6 +120,29 @@ function createSnapshotWithQuoteLines(entries) {
   return snapshot;
 }
 
+
+function createSnapshotWithQuoteAdjustmentLines(entries) {
+  const snapshot = createSnapshot();
+  const quoteSummary = snapshot.quoteSummary;
+  const costSummary = quoteSummary.costSummary;
+  assert.ok(costSummary);
+  for (const entry of entries) {
+    const lineTotalMinor = calculateProjectCostLineTotalMinor(1, entry.unitPriceMinor);
+    costSummary.lines.push({
+      id: entry.id, category: entry.category, description: entry.description, quantity: 1,
+      unit: "kalem", unitPriceMinor: entry.unitPriceMinor, lineTotalMinor, currencyCode: "TRY",
+      sourceReference: entry.sourceReference
+    });
+    quoteSummary.lineSources.push({ costLineId: entry.id, sourceType: "quote-adjustment", sourceId: entry.sourceId });
+    costSummary.categoryTotalsMinor[entry.category] += lineTotalMinor;
+    costSummary.grandTotalMinor += lineTotalMinor;
+  }
+  costSummary.lineCount = costSummary.lines.length;
+  quoteSummary.requiredLineCount += entries.length;
+  quoteSummary.pricedLineCount += entries.length;
+  return snapshot;
+}
+
 function createEdgeQuoteLine({
   id,
   edge,
@@ -1153,4 +1176,54 @@ test("DOM-061 structured edge direction rejects unknown values and non-material 
   const nonMaterial = createProjectQuoteRevision(createFirstRevision({ pricingSnapshot: nonMaterialSnapshot }));
   assert.equal(nonMaterial.status, "blocked");
   assert.match(nonMaterial.diagnostics[0], /yalnızca material maliyet satırlarında/);
+});
+
+
+test("DOM-065 revision comparison preserves waste/profit added, removed and changed source provenance and reconciles deltas", () => {
+  const fromSnapshot = createSnapshotWithQuoteAdjustmentLines([
+    { id: "waste-change", category: "waste", description: "Fire", sourceId: "waste-change", sourceReference: "fire:v1", unitPriceMinor: 100 },
+    { id: "waste-remove", category: "waste", description: "Eski fire", sourceId: "waste-remove", sourceReference: "fire:remove:v1", unitPriceMinor: 25 },
+    { id: "profit-change", category: "profit", description: "Kâr", sourceId: "profit-change", sourceReference: "profit:v1", unitPriceMinor: 300 },
+    { id: "profit-remove", category: "profit", description: "Eski kâr", sourceId: "profit-remove", sourceReference: "profit:remove:v1", unitPriceMinor: 50 }
+  ]);
+  const toSnapshot = createSnapshotWithQuoteAdjustmentLines([
+    { id: "waste-change", category: "waste", description: "Fire", sourceId: "waste-change", sourceReference: "fire:v2", unitPriceMinor: 150 },
+    { id: "waste-add", category: "waste", description: "Yeni fire", sourceId: "waste-add", sourceReference: "fire:add:v1", unitPriceMinor: 100 },
+    { id: "profit-change", category: "profit", description: "Kâr", sourceId: "profit-change", sourceReference: "profit:v2", unitPriceMinor: 350 },
+    { id: "profit-add", category: "profit", description: "Yeni kâr", sourceId: "profit-add", sourceReference: "profit:add:v1", unitPriceMinor: 200 }
+  ]);
+  const comparison = compareProjectQuoteRevisions(createHistoryWithSnapshots(fromSnapshot, toSnapshot), "quote-r1", "quote-r2");
+  assert.equal(comparison.status, "ready");
+  assert.equal(comparison.comparison.lineChanges.length, 6);
+  assert.deepEqual(
+    comparison.comparison.lineChanges.reduce((counts, change) => { counts[change.type] += 1; return counts; }, { added: 0, removed: 0, changed: 0 }),
+    { added: 2, removed: 2, changed: 2 }
+  );
+  assert.deepEqual(comparison.comparison.categoryDeltasMinor, {
+    material: 0, hardware: 0, labor: 0, operation: 0, waste: 125, profit: 200
+  });
+  assert.equal(comparison.comparison.grandTotalDeltaMinor, 325);
+  const find = sourceId => comparison.comparison.lineChanges.find(change => (change.from ?? change.to)?.sourceId === sourceId);
+  const wasteChanged = find("waste-change");
+  assert.equal(wasteChanged.type, "changed");
+  assert.equal(wasteChanged.from.sourceReference, "fire:v1");
+  assert.equal(wasteChanged.to.sourceReference, "fire:v2");
+  assert.equal(wasteChanged.from.lineTotalMinor, 100);
+  assert.equal(wasteChanged.to.lineTotalMinor, 150);
+  const wasteAdded = find("waste-add");
+  assert.equal(wasteAdded.type, "added");
+  assert.equal(wasteAdded.to.sourceReference, "fire:add:v1");
+  const wasteRemoved = find("waste-remove");
+  assert.equal(wasteRemoved.type, "removed");
+  assert.equal(wasteRemoved.from.sourceReference, "fire:remove:v1");
+  const profitChanged = find("profit-change");
+  assert.equal(profitChanged.type, "changed");
+  assert.equal(profitChanged.from.sourceReference, "profit:v1");
+  assert.equal(profitChanged.to.sourceReference, "profit:v2");
+  const profitAdded = find("profit-add");
+  assert.equal(profitAdded.type, "added");
+  assert.equal(profitAdded.to.sourceReference, "profit:add:v1");
+  const profitRemoved = find("profit-remove");
+  assert.equal(profitRemoved.type, "removed");
+  assert.equal(profitRemoved.from.sourceReference, "profit:remove:v1");
 });
