@@ -8,7 +8,7 @@ const styles = readFileSync(new URL("../src/App.css", import.meta.url), "utf8");
 test("production dock tabs retain tab semantics and visible focus", () => {
   assert.match(app, /className="cad-bottom-dock-tabs" role="tablist" aria-label="Alt panel sekmeleri"/);
   for (const tab of ["parts", "materials", "issues"]) {
-    assert.match(app, new RegExp(String.raw\`role="tab" aria-selected=\\{bottomPanelTab === "\${tab}"\\}\`));
+    assert.match(app, new RegExp("role=\\"tab\\" aria-selected=\\\\{bottomPanelTab === \\"" + tab + "\\"\\\\}"));
   }
   assert.match(styles, /\.cad-bottom-dock-tabs button:focus-visible\s*\{[^}]*outline-color:[^}]*outline-offset:/s);
 });
