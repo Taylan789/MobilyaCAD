@@ -640,7 +640,7 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - Frontend download integration, CSV, waste/yield, price, CNC and workshop validation remain separate. Local tests were not run; Actions is the verification source.
 
 
-## DOM-068 — Directional edge-band consumption JSON v1 (Actions pending)
+## DOM-068 — Directional edge-band consumption JSON v1 (Actions verified — code commit 0fb6e8b04a11251431cc2379d0c1137da10d72a3)
 
 - Adds strict versioned JSON for measured edge-band demand. Directional groups retain edge, catalog ID, unit (mm/m), mm length, edge count, Part IDs and furniture IDs; legacy unassigned edge-banding remains a null-catalog mm group without an invented direction.
 - Exact fields/schema/units, group identity, canonical order, provenance IDs, length/quantity conversion and edge/Part counts are validated. Shared Part IDs across distinct groups are allowed; parser returns no partial output on failure.
