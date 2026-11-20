@@ -522,8 +522,8 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 
 ### Next domain slices
 1. DOM-061 DONE — structured edge direction is carried as `edgeDirection` through consumption, quote summaries, revision snapshots, and JSON round-trip; legacy v1 descriptions remain supported.
-2. DOM-062 READY — revision comparison JSON export contract, exact line deltas/currency/source, no unit conversion.
-3. DOM-063 PLANNED — stable quote CSV export with exact units, currency, source and escaping validation.
+2. DOM-062 DONE — revision comparison JSON export contract, exact line deltas/currency/source, no unit conversion.
+3. DOM-063 DONE — stable quote comparison CSV v1 serializer/parser, exact currency/unit/source and RFC 4180 escaping; Actions verified.
 4. DOM-064 PLANNED — strict quote adjustment provenance for explicit waste/profit lines; no inferred percentages.
 
 
@@ -568,3 +568,26 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 - **Fail-closed:** unsupported fields/version, malformed JSON, blocked input, satır toplamı/quantity-price uyuşmazlığı, kategori/genel delta tutarsızlığı veya line-change shape hatasında kısmi JSON döndürmez.
 - **Kabul:** domain otomatik test round-trip, metadata ve mm/m ayrımını; tam kategori ve grand-total delta tutarlılığını doğrular. Fiziksel üretim veya frontend dosya indirme entegrasyonu iddia edilmez.
 - **Sonraki 3 dilim:** DOM-063 stable-column CSV export/escaping ve exact source/currency/unit; DOM-064 explicit waste/profit quote adjustment provenance; DOM-065 frontend revision-comparison export wiring (frontend sahibiyle sözleşme).
+
+
+## 10/10 ölçülebilir kalite kapıları (20 Kasım 2026 baseline)
+
+Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ürün 10/10 kabul edilmez.
+
+| Alan | 10/10 kabul ölçütü | Baseline / durum |
+|---|---|---|
+| CAD Core | Geometri/transform/snap/seçim/undo-redo/save-load için deterministik test; 2D ve 3D aynı mm kaynak verisini kullanır | Temel 3D yerleşim ve transform var; tam 2D çizim, snap, undo-redo ve senkron contract eksik |
+| Üretim | Her Part için kaynak ID, quantity, mm ölçü, malzeme/kalınlık; unsupported geometri/export kısmi sonuç üretmeden blocker | Domain konstrüksiyon, tüketim, nesting freshness, teklif/revizyon ve JSON/CSV sözleşmeleri var; frontend adapter/CNC postprocessor eksik |
+| UX | Ana akışlarda işlevsel kontroller; klavye/focus, erişilebilirlik, responsive, boş/hata durumları otomatik doğrulanır | Frontend ayrı ajan alanında; gerçek tarayıcı görsel kabulü NOT MEASURED |
+| Performans | Referans sahnede p95 frame-time hedefi 16,7 ms (60 FPS), scene update p95 <100 ms, bellek ölçümü ve CI regression threshold | Referans sahne/benchmark NOT MEASURED; Integration/Performance job PR #103 ile disabled, ayrı branch/PR yok |
+| Güvenilirlik | Strict TS, test, build, audit; import/export round-trip 0 alan kaybı; invalid input 0 partial output | Son doğrulanmış QA: 124 frontend + 457 domain, strict TS/lint/build/audit başarılı; production audit 0 vulnerability |
+
+
+## DOM-063 — Teklif revizyon karşılaştırması CSV v1 (20 Kasım 2026, verified)
+
+- `domain/production/projectQuoteRevisionComparisonCsv.ts` sabit kolon sıralı CSV v1 serializer/parser sağlar. Proje/revizyon/para birimi/toplam metadata, genel toplam satırı, altı kategori delta satırı ve satır farkları ayrı rowType değerleriyle taşınır; metadata tüm satırlarda aynı karşılaştırmaya bağlıdır.
+- Satır farkları added/removed/changed için from/to alanlarıyla açıklama, quantity, exact unit, unitPriceMinor, lineTotalMinor, currency, sourceReference, sourceType/sourceId, tariffId, sorted sourcePartIds ve edgeDirection (varsa) saklar. mm↔m dönüşümü veya fiyat/kur tahmini yapılmaz.
+- CSV bütün alanları çift tırnak içine alır, iç tırnakları ikiye katlar ve CRLF satır sonu kullanır; UTF-8 BOM Excel/Türkçe karakter uyumluluğu için eklenir. Parser exact header/version/row order/row shape/meta consistency ve domain toplam doğrulaması yapar. 5 MB ve 10.000 line-change sınırı vardır.
+- Kabul testleri round-trip, Türkçe/virgül/quote/embedded CRLF, mm/m ayrımı, optional metadata, empty comparison, malformed CSV, unknown header ve tutarsız kategori toplamlarını kapsar.
+- Final Actions [CI #44646343900](https://github.com/Taylan789/MobilyaCAD/actions/runs/44646343900), [QA #44646343994](https://github.com/Taylan789/MobilyaCAD/actions/runs/44646343994), [Pages #44646343887](https://github.com/Taylan789/MobilyaCAD/actions/runs/44646343887) başarılı. QA: 124/124 frontend + 457/457 domain; strict TS, lint (32 warning/0 error), production build ve audit (0 vulnerability).
+- **Boundary:** domain contract only; frontend download adapter/UI wiring is not implemented. CNC/physical workshop validation is not implied.

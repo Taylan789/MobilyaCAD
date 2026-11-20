@@ -989,3 +989,12 @@ Kaynak test: domain/production/projectBathroomVanityPanelPricing.test.mjs.
 ### DOM-062 final QA (20 Kasım 2026)
 - Implementation \`c5491e4\` and optional-field correction \`e4dcc985\` verified by [CI #44632874056](https://github.com/Taylan789/MobilyaCAD/actions/runs/44632874056), [QA #44632874051](https://github.com/Taylan789/MobilyaCAD/actions/runs/44632874051), [Pages #44632874042](https://github.com/Taylan789/MobilyaCAD/actions/runs/44632874042).
 - Final QA: 124/124 frontend tests and 451/451 domain tests, strict domain TypeScript, lint, production build and production dependency audit (0 vulnerabilities) passed. Initial four export tests failed because optional source metadata was incorrectly required; allowed/required validation was separated and the corrected SHA passed.
+
+
+## DOM-063 — Teklif revizyon karşılaştırması CSV v1
+
+- `domain/production/projectQuoteRevisionComparisonCsv.ts` sabit kolon sıralı CSV v1 serializer/parser sağlar. Proje/revizyon/para birimi/toplam metadata, genel toplam satırı, altı kategori delta satırı ve satır farkları ayrı rowType değerleriyle taşınır; metadata tüm satırlarda aynı karşılaştırmaya bağlıdır.
+- Satır farkları added/removed/changed için from/to alanlarıyla açıklama, quantity, exact unit, unitPriceMinor, lineTotalMinor, currency, sourceReference, sourceType/sourceId, tariffId, sorted sourcePartIds ve edgeDirection (varsa) saklar. mm↔m dönüşümü veya fiyat/kur tahmini yapılmaz.
+- Bütün hücreler çift tırnaklanır, iç tırnaklar ikiye katlanır, CRLF ve UTF-8 BOM kullanılır. Parser sabit header/version, satır sırası, metadata tutarlılığı, kategori tamlığı ve mevcut strict JSON domain validation kapısını kullanır; 5 MB ve 10.000 satır fark sınırı vardır.
+- Round-trip, Türkçe metin, comma/quote/multiline, mm/m, optional metadata, empty comparison, malformed quoting, unknown header ve inconsistent delta testleri. Final QA 124/124 frontend + 457/457 domain; strict TS/lint/build/audit geçti (0 production vulnerability).
+- UI download adapter ve gerçek dosya indirme entegrasyonu ayrı frontend sahipliğinde; CNC veya fiziksel atölye doğrulaması bu sözleşmeye dahil değildir.
