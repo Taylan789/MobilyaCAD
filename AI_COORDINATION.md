@@ -313,3 +313,7 @@ Bu dosya dört geliştirme/denetim rolünün ortak görev panosu ve entegrasyon 
 
 ## DOM-070A QA correction 2
 - QA #521 found the remaining fixture mismatch: two Part lines require `edgeCount >= 2`. The test input now sets `edgeCount: 2`; strict production validation remains unchanged. New Actions pending.
+
+
+## DOM-070A Type-check correction note
+- QA #522 domain tests passed, then strict type-check reported two TS issues: the summary validator call needed an explicit typed-array assertion at its boundary, and the validated roll-spec map needed a required waste allowance type. These are corrected in the production module without loosening runtime checks. Actions pending.

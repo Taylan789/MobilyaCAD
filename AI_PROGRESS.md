@@ -1645,3 +1645,8 @@
 ## 20 Kasım 2026 09:35 TRT — DOM-070A fixture edge-count correction (Actions pending)
 - QA #521 on `b865667fa1b9a04646a2c2b911e1f81a1ea88207` failed the roll-plan aggregate test because its fixture had 2 Part IDs/lines but `edgeCount: 1`; the strict JSON summary correctly rejected the input. This is the second fixture contract mismatch, not a production calculation failure.
 - Corrected the fixture to `edgeCount: 2` alongside `partLineCount: 2`; no production code or validation weakened. CI #535 and Pages #362 on the previous SHA both passed. Actions pending for this correction.
+
+
+## 20 Kasım 2026 09:38 TRT — DOM-070A strict TypeScript fix (Actions pending)
+- QA #522 confirmed the domain test suite passed after the fixture corrections, but strict type-check failed with TS2345 (unknown input at the validator boundary) and TS2322 (optional waste allowance in the validated map). Both are type-model issues; runtime validation remains fail-closed.
+- Corrected the serializer call's typed boundary assertion and introduced an explicit validated roll-spec type where waste allowance is required. No runtime calculation/validation rules changed. CI #536 succeeded; Pages #363 is still running at this check. New Actions pending.

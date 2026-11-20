@@ -79,7 +79,7 @@ export function calculateProjectEdgeBandingRollPlan(
   rollSpecs: unknown
 ): ProjectEdgeBandingRollPlanResult {
   try {
-    const validatedSummary = serializeProjectEdgeBandingConsumptionFile(consumption);
+    const validatedSummary = serializeProjectEdgeBandingConsumptionFile(consumption as readonly ProjectEdgeBandingConsumptionSummary[]);
     if (validatedSummary.status !== "ready") {
       return blocked(validatedSummary.diagnostics.join("; ") || "Kenar bantlama tüketim özeti doğrulanamadı.");
     }
@@ -111,7 +111,8 @@ export function calculateProjectEdgeBandingRollPlan(
       aggregates.set(group.edgeBandingId, aggregate);
     }
 
-    const specs = new Map<string, ProjectEdgeBandingRollPlanSpec & { rollLengthTenths: number; wasteAllowanceTenths: number }>();
+    interface ValidatedRollSpec { edgeBandingId: string; rollLengthMm: number; wasteAllowanceMm: number; rollLengthTenths: number; wasteAllowanceTenths: number; sourceReference?: string; }
+    const specs = new Map<string, ValidatedRollSpec>();
     for (const [index, rawSpec] of rollSpecs.entries()) {
       const label = "Rulo tanımının " + (index + 1) + ". satırı";
       if (!isRecord(rawSpec)) return blocked(label + " nesne olmalıdır.");
