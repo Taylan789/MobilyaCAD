@@ -172,7 +172,7 @@ export function QuoteRevisionComparisonPanel() {
       try {
         projectValue = JSON.parse(text) as unknown;
       } catch {
-        setDiagnostics(standalone.diagnostics);
+        setDiagnostics([...standalone.diagnostics]);
         return;
       }
       const projectHistory = readProjectQuoteRevisionHistoryFromProjectFile(projectValue);
@@ -186,7 +186,7 @@ export function QuoteRevisionComparisonPanel() {
         }
         return;
       }
-      setDiagnostics(projectHistory.diagnostics.length > 0 ? projectHistory.diagnostics : standalone.diagnostics);
+      setDiagnostics([...(projectHistory.diagnostics.length > 0 ? projectHistory.diagnostics : standalone.diagnostics)]);
     } catch (error) {
       setDiagnostics([error instanceof Error ? error.message : "Dosya okunamadı."]);
     } finally {
@@ -211,7 +211,7 @@ export function QuoteRevisionComparisonPanel() {
       if (parsed.status === "ready" && parsed.comparison) {
         setImportedComparison({ status: "ready", comparison: parsed.comparison, diagnostics: [] });
       } else {
-        setDiagnostics(parsed.diagnostics);
+        setDiagnostics([...parsed.diagnostics]);
       }
     } catch (error) {
       setDiagnostics([error instanceof Error ? error.message : "Karşılaştırma dosyası okunamadı."]);
@@ -224,7 +224,7 @@ export function QuoteRevisionComparisonPanel() {
     if (!activeResult || !canExport) return;
     const result = serializeProjectQuoteRevisionComparisonFile(activeResult);
     if (result.status !== "ready" || result.json === null) {
-      setExportDiagnostics(result.diagnostics);
+      setExportDiagnostics([...result.diagnostics]);
       return;
     }
     setExportDiagnostics([]);
