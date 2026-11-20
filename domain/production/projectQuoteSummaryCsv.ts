@@ -40,6 +40,7 @@ const lineColumns = columns.slice(9);
 const maxCsvLength = 5_000_000;
 const maxLines = 10_000;
 const currencyPattern = /^[A-Z]{3}$/;
+type ExportableQuoteSummary = ProjectQuoteSummary & { status: "ready" | "empty" };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -189,7 +190,7 @@ function blockedParse(message: string): ProjectQuoteSummaryCsvParseResult {
   return Object.freeze({ status: "blocked" as const, summary: null, diagnostics: Object.freeze([message]) });
 }
 
-function normalizeSummary(value: unknown): ProjectQuoteSummary {
+function normalizeSummary(value: unknown): ExportableQuoteSummary {
   const serialized = serializeProjectQuoteSummaryFile(value);
   if ((serialized.status !== "ready" && serialized.status !== "empty") || serialized.json === null) {
     throw new Error(serialized.diagnostics[0] ?? "Teklif özeti CSV için doğrulanamadı.");
@@ -198,7 +199,7 @@ function normalizeSummary(value: unknown): ProjectQuoteSummary {
   if ((parsed.status !== "ready" && parsed.status !== "empty") || parsed.summary === null) {
     throw new Error(parsed.diagnostics[0] ?? "Teklif özeti CSV için doğrulanmış JSON'a dönüştürülemedi.");
   }
-  return parsed.summary;
+  return parsed.summary as ExportableQuoteSummary;
 }
 
 function metadataRow(summary: ProjectQuoteSummary): string[] {
