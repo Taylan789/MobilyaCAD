@@ -1668,3 +1668,9 @@
 - Files: domain/production/projectEdgeBandingRollCostSummary.ts, domain/production/projectEdgeBandingRollCostSummary.test.mjs, .github/workflows/qa-test.yml, AI_COORDINATION.md, PRODUCT_ROADMAP.md. Follow-up commit touched the module/test only. No frontend/** files or Integration/Performance-owned adapter/benchmark files changed.
 - Boundary/next: cost summary is quote-ready but not merged into full quote/revision snapshot or project JSON. DOM-070C (full quote integration with explicit mode to prevent double-counting length-based edge-band cost) is READY; DOM-071 project-file persistence and DOM-072 revision provenance are PLANNED. DOM-066 remains UI-agent-owned.
 - Coordination: no active Integration/Performance run or PR found; PERF-001 and INT-002 remain READY, and QA-003 is blocked on INT-001/INT-002. AI Developer [#44672855927](https://github.com/Taylan789/MobilyaCAD/actions/runs/44672855927) failed on old SHA 689226b due OpenRouter free-model daily quota 429; no rerun was started because it would use the stale checkout and repeat the known quota failure.
+
+
+## 20 Kasım 2026 10:50 TRT — Roadmap/10-10 scorecard integration status correction
+
+- Documentation alignment commit [de4f17e](https://github.com/Taylan789/MobilyaCAD/commit/de4f17e71347bd8320b0af75a9e110eab4f02a54) explicitly listed DOM-070C/DOM-071/DOM-072 as the next domain slices and replaced the stale Performance baseline with NOT MEASURED; no active Integration/Performance run or PR was found in this check.
+- Actions on de4f17e: CI [#44697712693](https://github.com/Taylan789/MobilyaCAD/actions/runs/44697712693), QA [#44697712746](https://github.com/Taylan789/MobilyaCAD/actions/runs/44697712746), Pages [#44697712637](https://github.com/Taylan789/MobilyaCAD/actions/runs/44697712637) all successful. The code SHA 8ad209d remains verified at 124 frontend + 491 domain tests, strict TypeScript, lint 32 warnings/0 errors, build, audit 0.

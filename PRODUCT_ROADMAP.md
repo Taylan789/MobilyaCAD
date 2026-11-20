@@ -578,6 +578,9 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 ## Next 5 small tasks
 1. DOM-070A DONE — roll quantity plan from user-entered roll length and optional fixed waste allowance (mm), grouped by catalog ID.
 2. DOM-070B DONE — per-roll purchase-cost summary with explicit currency/source, quote-ready material lines and no partial totals; Actions verified. DOM-070C owns full quote/revision integration.
+3. DOM-070C READY — full quote integration with explicit per-roll/length pricing mode; prevent double-counting edge-band consumption.
+4. DOM-071 PLANNED — persist roll quantity specs and per-roll prices/currency/source in versioned project JSON.
+5. DOM-072 PLANNED — immutable quote revision and comparison provenance for roll purchase costs.
 3. DOM-066 PLANNED — frontend-owned quote comparison JSON/CSV download integration, including blocked-state handling.
 4. INT-001 READY — shared production report/export round-trip or unsupported-geometry blocker; contract remains shared.
 5. INT-002/PERF-001 READY — adapter fidelity and measured viewport baseline; specialist workflow currently disabled.
@@ -592,7 +595,7 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 | CAD Core | Geometri/transform/snap/seçim/undo-redo/save-load için deterministik test; 2D ve 3D aynı mm kaynak verisini kullanır | Temel 3D yerleşim ve transform var; tam 2D çizim, snap, undo-redo ve senkron contract eksik |
 | Üretim | Her Part için kaynak ID, quantity, mm ölçü, malzeme/kalınlık; unsupported geometri/export kısmi sonuç üretmeden blocker | Domain konstrüksiyon, tüketim, nesting freshness, teklif/revizyon ve JSON/CSV sözleşmeleri var; frontend adapter/CNC postprocessor eksik |
 | UX | Ana akışlarda işlevsel kontroller; klavye/focus, erişilebilirlik, responsive, boş/hata durumları otomatik doğrulanır | Frontend ayrı ajan alanında; gerçek tarayıcı görsel kabulü NOT MEASURED |
-| Performans | Referans sahnede p95 frame-time hedefi 16,7 ms (60 FPS), scene update p95 <100 ms, bellek ölçümü ve CI regression threshold | Referans sahne/benchmark NOT MEASURED; Integration/Performance job PR #103 ile disabled, ayrı branch/PR yok |
+| Performans | Referans sahnede p95 frame-time hedefi 16,7 ms (60 FPS), scene update p95 <100 ms, bellek ölçümü ve CI regression threshold | Referans sahne/benchmark NOT MEASURED; bu kontrolde aktif Integration/Performance run veya PR bulunmadı; PERF-001 ve INT-002 READY, QA-003 INT-001/INT-002'ye bağlı |
 | Güvenilirlik | Strict TS, test, build, audit; import/export round-trip 0 alan kaybı; invalid input 0 partial output | 20 Kasım 2026 code SHA [8ad209d](https://github.com/Taylan789/MobilyaCAD/commit/8ad209d30b35dc48bea2f35c4f449126018c7963): QA 124/124 frontend + 491/491 domain; strict TS, lint (32 warning/0 error), build ve audit 0 vulnerability; quote-ready roll cost validation tested, full quote persistence not measured |
 | Edge-band export | Direction, catalog ID, mm/m, Part/furniture provenance and strict JSON round-trip; malformed/unsupported input blocked | DOM-068 verified: 124 frontend + 468 domain tests, strict type-check, build and audit; see Actions |
 
