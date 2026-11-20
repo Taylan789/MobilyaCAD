@@ -386,8 +386,10 @@ Bu dosya dört geliştirme/denetim rolünün ortak görev panosu ve entegrasyon 
 - Known gap: quote material catalog ID is not yet in line-source metadata; generated source IDs and cost-line IDs are distinct. DOM-078 covers this next.
 
 
-## DOM-078A IN_PROGRESS — 21 Kasım 2026 01:00 TRT
+## DOM-078A VERIFIED — 21 Kasım 2026 01:00 TRT
 - Production material quote source mappings now keep the catalog resource ID distinct from generated cost/source IDs and carry m2 unit plus sorted Part provenance.
 - Quote summary JSON/CSV v1 and revision snapshot strict validation are updated; no frontend/**, adapter/performance-owned files, machine-specific output, or main branch touched.
-- Commit SHA/Actions evidence will be recorded after verification. The AI Developer run failed from OpenRouter free-model daily 429; no rerun before the reset.
+- Feature commit `3971f1047d03162cd5469f4455a8ab8681d876cb`; fix commit `6963a635a22d26f5e7f725c6167f9b785032d89a`.
+- CI `44826893722`, QA `44826893709`, Pages `44826893909` all successful; 130 frontend + 585 domain tests, production build and audit verified.
+- AI Developer run #44814337311 failed from OpenRouter free-model daily 429; no rerun before the rate reset.
 - DOM-078B is the next slice: revision comparison JSON/CSV catalog identity.

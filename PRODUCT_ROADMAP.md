@@ -777,10 +777,10 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 
 
 
-## DOM-078A — Panel material resource provenance (implementation; Actions pending)
+## DOM-078A — Panel material resource provenance (VERIFIED)
 
 - Production priced-consumption material lines now carry catalog `resourceType=material`, `resourceId`, `unit=m2`, and sorted Part IDs independently from generated quote/cost-line identifiers.
 - Quote-summary line sources preserve that identity. Strict quote JSON v1 and existing CSV v1 columns validate and round-trip the metadata without changing monetary calculations or the file schema.
 - Revision snapshot validation accepts only material source identity matching material category, m2 cost/source unit, no edge direction or roll fields, and non-empty Part provenance.
-- Tests cover material IDs across different catalog entries/thicknesses, JSON/CSV round-trip, and invalid metadata. Actions pending; local Node/TS not run.
+- Tests cover material IDs across catalog entries/thicknesses, JSON/CSV round-trip, and invalid metadata. CI/QA/Pages all verified on `6963a635a22d26f5e7f725c6167f9b785032d89a`: 130 frontend tests, 585 domain tests, production build and security audit (0 vulnerabilities) passed. Initial QA failures were fixed in the follow-up commit.
 - Next: DOM-078B add catalog resource type/ID/unit to revision comparison line snapshots and strict comparison JSON/CSV, preserving legacy compatibility.

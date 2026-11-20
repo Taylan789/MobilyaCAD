@@ -1869,12 +1869,14 @@
 - Next: DOM-078 resource identity provenance, DOM-079 safe revision-history import, then INT-001/INT-002 and PERF-001 in their separate ownership lanes.
 
 
-## 21 Kasım 2026 01:00 TRT — DOM-078A (Actions pending)
+## 21 Kasım 2026 01:00 TRT — DOM-078A (VERIFIED)
 
 - Panel malzeme tüketim satırları artık katalog kimliğini ayrı `resourceType: material`, `resourceId` ve `unit: m2` metadata alanlarıyla taşıyor; generated cost/source IDs katalog ID ile karıştırılmıyor.
 - Quote summary üretimi metadata'yı line-source mapping'e aktarıyor; strict JSON v1 ve mevcut CSV v1 sütunları round-trip için kullanılıyor. Revizyon snapshot doğrulaması metadata'yı kabul ediyor ve m2/Part/yön/rulo tutarlılığını fail-closed doğruluyor.
 - Regresyon testleri farklı material catalog IDs/thickness groups, JSON/CSV round-trip ve invalid unit/resource metadata içeriyor.
-- Commit SHA ve Actions kanıtı verification follow-up içinde kaydedilecek. GitHub Actions doğrulaması bekleniyor; local Node/TS çalıştırılmadı.
+- Code commit: `3971f1047d03162cd5469f4455a8ab8681d876cb`; legacy uyumluluk/test düzeltme commit: `6963a635a22d26f5e7f725c6167f9b785032d89a`.
+- CI `44826893722` ve QA `44826893709` başarılı: 130/130 frontend test, 585/585 domain test; TypeScript, production build, lint, shared-domain type-check ve production audit (0 vulnerabilities) başarılı. Pages deployment `44826893909` başarılı; test sitesi güncellendi.
+- İlk QA turu 6 test hatası gösterdi (CSV syntax, material provenance/legacy test beklentileri); bunlar fix commitinde düzeltildi ve final QA başarıyla tekrarlandı.
 - Known gap: revision comparison JSON/CSV line snapshots material resource identity henüz taşımıyor; DOM-078B.
 - AI Developer #44814337311 failed with OpenRouter free-model daily limit 429 (limit 50, remaining 0; reset 21 Nov 2026 00:00 UTC / 03:00 TRT). No active run; rerun deferred until limit reset.
 - Next: DOM-078B comparison JSON/CSV resource identity; then DOM-079 revision history import.
