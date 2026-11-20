@@ -29,8 +29,8 @@ test("disclosed controls preserve millimeter inputs and position commit handlers
   assert.match(disclosure, /id=\{\x60selected-part-position-\x24\{axis\.key\}\x60\}/);
   assert.match(disclosure, /step="0\.1"/);
   assert.match(disclosure, /onBlur=\{\(\) => commitPosition\(axis\.key, axis\.index\)\}/);
-  assert.match(disclosure, /nextPosition\[index\] = value \/ 1000/);
-  assert.match(disclosure, /onPositionChange\(nextPosition\)/);
+  assert.match(inspector, /nextPosition\[index\] = value \/ 1000/);
+  assert.match(inspector, /onPositionChange\(nextPosition\)/);
   assert.match(disclosure, /if \(event\.key === "Enter"\) event\.currentTarget\.blur\(\)/);
 });
 
