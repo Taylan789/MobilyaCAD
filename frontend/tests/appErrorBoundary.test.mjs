@@ -8,7 +8,7 @@ const styles = readFileSync(new URL("../src/components/ui/AppErrorBoundary.css",
 
 test("the root app is protected by a render-error boundary", () => {
   assert.match(entry, /<AppErrorBoundary>\s*<App\s*\/>\s*<\/AppErrorBoundary>/);
-  assert.match(entry, /import AppErrorBoundary from ['"]\.\/components\/ui\/AppErrorBoundary['"]/);
+  assert.match(entry, /import \{ AppErrorBoundary \} from ['"]\.\/components\/ui\/AppErrorBoundary['"]/);
 });
 
 test("the fallback offers a real reload action and accessible error detail disclosure", () => {
