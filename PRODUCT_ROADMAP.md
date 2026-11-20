@@ -576,11 +576,11 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 
 
 ## Next 5 small tasks
-1. DOM-073 PLANNED — strict current quote-summary JSON v1 export/import with exact units/currency/source and fail-closed totals.
-2. DOM-074 PLANNED — per-roll edge-band quote-cost CSV contract/export, exact rulo units and provenance.
-3. DOM-066 FRONTEND-OWNED — integrate quote revision comparison JSON/CSV downloads without touching its PR/branch.
-4. INT-001 SHARED/READY — stable quote output contract and integration requirements; UI-owned implementation remains isolated.
-5. INT-002/PERF-001 INTEGRATION-OWNED — adapter tests and profiling/benchmark evidence; no specialist agent/PR currently evidenced.
+1. DOM-074 READY — strict per-roll edge-band quote-cost CSV export/import; exact rulo count/length, currency, Part/furniture/source provenance, fail-closed.
+2. DOM-066 FRONTEND-OWNED — integrate quote revision comparison JSON/CSV downloads without touching its PR/branch.
+3. INT-001 SHARED/READY — stable quote output contract and integration requirements; UI-owned implementation remains isolated.
+4. INT-002/PERF-001 INTEGRATION-OWNED — adapter tests and profiling/benchmark evidence; no specialist agent/PR currently evidenced.
+5. QA-003 BLOCKED — final end-to-end export/data integrity review after INT-001/INT-002 evidence.
 
 ## 10/10 ölçülebilir kalite kapıları (20 Kasım 2026 baseline)
 
@@ -695,7 +695,7 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - Quote revision snapshots now carry roll count, roll length, purchased length, furniture provenance and plan/price source references. Comparison identity/value reconciliation distinguishes source metadata changes while preserving exact price/currency/quantity units.
 - Strict comparison JSON v1 retains existing optional metadata for non-roll lines. CSV export is v2 with structured roll fields and a legacy v1 parser; rulo lines must reconcile quantity/count and purchased length, and require sorted unique Part/furniture IDs.
 - Acceptance: actual immutable revision comparison, JSON/CSV round-trip, malformed metadata rejection and legacy CSV v1 read. No physical CNC/workshop validation is implied. Actions pending.
-- Next: DOM-073 current quote-summary JSON v1 export/import, DOM-074 per-roll cost CSV; DOM-066 and INT-001/INT-002 remain separate agent-owned tasks.
+- Next: DOM-074 per-roll quote-cost CSV; DOM-066 and INT-001/INT-002 remain separate agent-owned tasks.
 
 
 ## DOM-072 — Roll purchase provenance in immutable revision comparisons (verified 20 Nov 2026)
@@ -704,3 +704,14 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - Strict comparison JSON v1 remains backward compatible for ordinary lines. CSV output is v2 with structured roll columns and a v1 legacy parser. Roll quantities/lengths are reconciled at 0.1 mm precision; incomplete/incorrect source metadata blocks export.
 - Tests: actual immutable revision comparison and JSON round-trip, CSV roll round-trip, invalid roll metadata blocker, and legacy CSV v1 parsing. No physical CNC validation implied.
 - Implementation commits: 82998fe2fc5f98d7a1853d2f824fd3a0a4b759a5, b1b9b47fd1c2102ab7aacbfabb1ea0968366fc51, 5016a7966166ac83505183a2a95bb190fd6e9bfd. QA/Actions on the final SHA are pending.
+
+
+## DOM-073 — Strict current project quote-summary JSON v1 (verified 20 November 2026)
+
+- **Code SHA:** [4180cced](https://github.com/Taylan789/MobilyaCAD/commit/4180ccedd7e7e075afb5e4cbcff7812ec8e168c8). A standalone strict JSON envelope carries only a complete `ready` quote or a genuinely `empty` summary; `incomplete` and `blocked` states never emit JSON or partial totals.
+- **Contract:** exact envelope keys and version; explicit monetary minor-unit and roll-length mm units; each cost line retains its exact unit, quantity, currency, source reference and line total. Roll metadata retains count, roll/purchased lengths, Part/furniture IDs, plan and price source references.
+- **Validation:** import revalidates cost lines through the existing cost engine and reconciles line totals, currency, category totals, grand total and source mapping. Unknown fields, malformed/oversized files, unsorted/duplicate provenance and inconsistent roll arithmetic are rejected. JSON cap is 5 MB; line/provenance caps are bounded.
+- **Files:** `domain/production/projectQuoteSummaryFile.ts`, `domain/production/projectQuoteSummaryFile.test.mjs`, and QA strict shared-domain type-check list. No frontend, adapter/performance-owned, or machine-specific output files changed.
+- **Actions:** CI [#44762193235](https://github.com/Taylan789/MobilyaCAD/actions/runs/44762193235) success; QA [#44762193376](https://github.com/Taylan789/MobilyaCAD/actions/runs/44762193376) success — 124/124 frontend + 536/536 domain tests, strict type-check, lint 32 warnings/0 errors, production build, audit 0 vulnerabilities; Pages [#44762193338](https://github.com/Taylan789/MobilyaCAD/actions/runs/44762193338) success.
+- **Boundary:** standalone JSON contract only; frontend download/import wiring is not implemented. Currency conversion, pricing, CNC standards and physical workshop validation are not inferred.
+- **Next:** DOM-074 strict per-roll edge-band quote-cost CSV; DOM-066 remains frontend-owned.
