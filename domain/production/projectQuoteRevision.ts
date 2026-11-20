@@ -917,37 +917,54 @@ function createRevisionComparisonLineSnapshot(
   };
 }
 
-function revisionComparisonLineIdentity(line: ProjectQuoteRevisionCostLineSnapshot): string {
+interface RevisionComparisonLine {
+  snapshot: ProjectQuoteRevisionCostLineSnapshot;
+  resourceType?: ProjectQuoteLineSource["resourceType"];
+  resourceId?: string;
+  resourceUnit?: string;
+}
+
+function revisionComparisonLineIdentity(line: RevisionComparisonLine): string {
+  const snapshot = line.snapshot;
   return JSON.stringify([
-    line.category,
-    line.edgeDirection === undefined ? line.description : null,
-    line.edgeDirection ?? null,
-    line.unit,
-    line.sourceType,
-    line.sourceId,
-    line.tariffId ?? null,
-    line.sourcePartIds ?? [],
-    line.furnitureIds ?? []
+    snapshot.category,
+    snapshot.edgeDirection === undefined ? snapshot.description : null,
+    snapshot.edgeDirection ?? null,
+    snapshot.unit,
+    snapshot.sourceType,
+    snapshot.sourceId,
+    snapshot.tariffId ?? null,
+    snapshot.sourcePartIds ?? [],
+    line.resourceType ?? null,
+    line.resourceId ?? null,
+    line.resourceUnit ?? null,
+    snapshot.furnitureIds ?? []
   ]);
 }
 
-function revisionComparisonLineValue(line: ProjectQuoteRevisionCostLineSnapshot): string {
+
+function revisionComparisonLineValue(line: RevisionComparisonLine): string {
+  const snapshot = line.snapshot;
   return JSON.stringify([
-    line.description,
-    line.quantity,
-    line.unitPriceMinor,
-    line.lineTotalMinor,
-    line.sourceReference ?? null,
-    line.rollCount ?? null,
-    line.rollLengthMm ?? null,
-    line.purchasedLengthMm ?? null,
-    line.furnitureIds ?? [],
-    line.planSourceReference ?? null,
-    line.priceSourceReference ?? null
+    snapshot.description,
+    snapshot.quantity,
+    snapshot.unitPriceMinor,
+    snapshot.lineTotalMinor,
+    snapshot.sourceReference ?? null,
+    snapshot.rollCount ?? null,
+    snapshot.rollLengthMm ?? null,
+    snapshot.purchasedLengthMm ?? null,
+    snapshot.furnitureIds ?? [],
+    snapshot.planSourceReference ?? null,
+    snapshot.priceSourceReference ?? null,
+    line.resourceType ?? null,
+    line.resourceId ?? null,
+    line.resourceUnit ?? null
   ]);
 }
 
-function revisionComparisonLines(revision: ProjectQuoteRevision): ProjectQuoteRevisionCostLineSnapshot[] {
+
+function revisionComparisonLines(revision: ProjectQuoteRevision): RevisionComparisonLine[] {
   const quoteSummary = revision.pricingSnapshot.quoteSummary;
   const costSummary = quoteSummary.costSummary;
   if (costSummary === null) {
@@ -959,14 +976,19 @@ function revisionComparisonLines(revision: ProjectQuoteRevision): ProjectQuoteRe
     if (source === undefined) {
       throw new Error("Teklif maliyet satırı doğrulanmış kaynak eşlemesine sahip değil: " + line.id + ".");
     }
-    return createRevisionComparisonLineSnapshot(line, source);
+    return {
+      snapshot: createRevisionComparisonLineSnapshot(line, source),
+      ...(source.resourceType === undefined ? {} : { resourceType: source.resourceType }),
+      ...(source.resourceId === undefined ? {} : { resourceId: source.resourceId }),
+      ...(source.unit === undefined ? {} : { resourceUnit: source.unit })
+    };
   });
 }
 
 function groupRevisionComparisonLines(
-  lines: readonly ProjectQuoteRevisionCostLineSnapshot[]
-): Map<string, ProjectQuoteRevisionCostLineSnapshot[]> {
-  const groups = new Map<string, ProjectQuoteRevisionCostLineSnapshot[]>();
+  lines: readonly RevisionComparisonLine[]
+): Map<string, RevisionComparisonLine[]> {
+  const groups = new Map<string, RevisionComparisonLine[]>();
   for (const line of lines) {
     const key = revisionComparisonLineIdentity(line);
     const group = groups.get(key) ?? [];
@@ -998,14 +1020,14 @@ function compareRevisionCostLines(
     const matchedCount = Math.min(fromLines.length, toLines.length);
     for (let index = 0; index < matchedCount; index += 1) {
       if (revisionComparisonLineValue(fromLines[index]) !== revisionComparisonLineValue(toLines[index])) {
-        changes.push({ type: "changed", from: fromLines[index], to: toLines[index] });
+        changes.push({ type: "changed", from: fromLines[index].snapshot, to: toLines[index].snapshot });
       }
     }
     for (let index = matchedCount; index < fromLines.length; index += 1) {
-      changes.push({ type: "removed", from: fromLines[index], to: null });
+      changes.push({ type: "removed", from: fromLines[index].snapshot, to: null });
     }
     for (let index = matchedCount; index < toLines.length; index += 1) {
-      changes.push({ type: "added", from: null, to: toLines[index] });
+      changes.push({ type: "added", from: null, to: toLines[index].snapshot });
     }
   }
   return changes;

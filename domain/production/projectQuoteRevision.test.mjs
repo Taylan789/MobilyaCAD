@@ -1278,6 +1278,32 @@ test("DOM-065 revision comparison preserves waste/profit added, removed and chan
   assert.equal(profitRemoved.type, "removed");
   assert.equal(profitRemoved.from.sourceReference, "profit:remove:v1");
 });
+test("DOM-078B material catalog identity changes are separate comparison lines", () => {
+  const fromSnapshot = createSnapshot();
+  const toSnapshot = createSnapshot();
+  const fromMaterialLine = fromSnapshot.quoteSummary.costSummary.lines.find(line => line.category === "material");
+  const toMaterialLine = toSnapshot.quoteSummary.costSummary.lines.find(line => line.category === "material");
+  assert.ok(fromMaterialLine);
+  assert.ok(toMaterialLine);
+  const fromSource = fromSnapshot.quoteSummary.lineSources.find(source => source.costLineId === fromMaterialLine.id);
+  const toSource = toSnapshot.quoteSummary.lineSources.find(source => source.costLineId === toMaterialLine.id);
+  assert.ok(fromSource);
+  assert.ok(toSource);
+  assert.equal(fromSource.resourceType, "material");
+  assert.equal(fromSource.resourceId, "mdf-18");
+  assert.equal(fromSource.unit, "m2");
+  toSource.resourceId = "mdf-18-alternate";
+
+  const result = compareProjectQuoteRevisions(createHistoryWithSnapshots(fromSnapshot, toSnapshot), "quote-r1", "quote-r2");
+  assert.equal(result.status, "ready");
+  const materialChanges = result.comparison.lineChanges.filter(change => (change.from ?? change.to)?.category === "material");
+  assert.equal(materialChanges.length, 2);
+  assert.deepEqual(materialChanges.reduce((counts, change) => { counts[change.type] += 1; return counts; }, { added: 0, removed: 0, changed: 0 }),
+    { added: 1, removed: 1, changed: 0 });
+  assert.equal(materialChanges.find(change => change.type === "removed").from.sourceId, fromSource.sourceId);
+  assert.equal(materialChanges.find(change => change.type === "added").to.sourceId, toSource.sourceId);
+});
+
 test("roll purchase lines retain source metadata in immutable quote revisions", () => {
   const result = createProjectQuoteRevision(createFirstRevision({
     pricingSnapshot: createRollSnapshot()
