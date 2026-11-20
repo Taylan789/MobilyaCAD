@@ -1627,3 +1627,11 @@
 - Product capability delivered and verified: strict directional edge-band consumption CSV v1, with mm/m, directional edge, catalog ID, quantity, total mm, edge count and Part/furniture provenance. Empty summaries are represented without invented rows; malformed, unknown, unsupported or inconsistent inputs fail closed.
 - The CSV schema uses metadata/header records, UTF-8 BOM, CRLF and RFC 4180 quoting. Limits are 5 MB and 1,000 groups. Existing strict JSON v1 validator is reused for arithmetic, canonical order, duplicate and provenance validation.
 - Final commit 51fd537; CI/QA/Pages all successful. Next domain task DOM-070; DOM-066 remains frontend-owned; INT-001/INT-002/PERF-001 specialist work is not active.
+
+
+## 20 Kasım 2026 09:26 TRT — DOM-070A edge-band roll quantity planning (Actions pending)
+- Starting HEAD `53ece17cdbed4ebb0f8c503450e3b30d3b6d8d76`. Added a pure domain planner aggregating directional and mixed mm/m consumption by edge-band catalog ID; roll length and optional fixed waste allowance are explicit user inputs in mm. Reports consumed/required/purchased/leftover length and integer roll count, preserving sorted Part/furniture provenance at 0.1 mm precision.
+- Fail closed: missing roll definitions are `incomplete`; legacy unassigned IDs, invalid/duplicate/unused specs and invalid measurements block all plans. Empty input stays empty. No inferred waste percentage, price or roll standard.
+- Files: `domain/production/projectEdgeBandingRollPlan.ts`, `.test.mjs`, QA strict TypeScript list, AI_COORDINATION.md and PRODUCT_ROADMAP.md. Frontend/** and integration/performance-owned files unchanged.
+- Acceptance tests cover mixed units/directions, aggregation, explicit allowance, exact fit, missing/legacy, empty, invalid specs and tenth-mm arithmetic. GitHub Actions pending; local tests not run.
+- Next: DOM-070B per-roll pricing/quote integration; DOM-066 remains frontend-owned; INT-001/INT-002/PERF-001 remain specialist/contract tasks.

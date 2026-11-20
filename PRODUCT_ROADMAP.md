@@ -576,11 +576,12 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 
 
 ## Next 5 small tasks
-1. DOM-070 PLANNED — user-configurable edge-band price and optional roll/waste inputs with explicit provenance; no inferred rate.
-2. DOM-066 PLANNED — frontend-owned quote comparison JSON/CSV download integration; blocked results must not download.
-3. INT-001 READY — shared production report/export round-trip or unsupported-geometry blocker; contract remains shared.
-4. INT-002/PERF-001 READY — adapter fidelity and measured viewport baseline; specialist workflow currently disabled.
-5. QA-003 BLOCKED — waits for INT-001/INT-002 evidence and integration validation.
+1. DOM-070A IN PROGRESS — roll quantity plan from user-entered roll length and optional fixed waste allowance (mm), grouped by catalog ID.
+2. DOM-070B PLANNED — explicit per-roll pricing and quote integration with currency/source provenance; never infer price.
+3. DOM-066 PLANNED — frontend-owned quote comparison JSON/CSV download integration, including blocked-state handling.
+4. INT-001 READY — shared production report/export round-trip or unsupported-geometry blocker; contract remains shared.
+5. INT-002/PERF-001 READY — adapter fidelity and measured viewport baseline; specialist workflow currently disabled.
+
 
 ## 10/10 ölçülebilir kalite kapıları (20 Kasım 2026 baseline)
 
@@ -647,3 +648,12 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 ## DOM-069 — Directional edge-band consumption CSV v1 (implementation in progress)
 - Acceptance: exact metadata/header contract; one row per measured group; preserves catalog ID, direction, exact mm/m, quantities, mm totals, edge count, sorted Part/furniture provenance; UTF-8 BOM, CRLF, RFC 4180 escaped cells; empty summary supported; malformed, unsupported, inconsistent or oversized input blocks with no partial data.
 - The CSV parser delegates arithmetic, canonical order, duplicate and provenance limits to the strict JSON v1 contract to avoid validation drift. No price, roll size, waste/yield or CNC standard is inferred.
+
+
+## DOM-070A — Explicit edge-band roll quantity planning (Actions pending)
+
+- **User flow:** supply measured edge-band consumption, then enter actual roll length per catalog ID and optional fixed waste allowance in mm. Omitted allowance means 0 mm; no percentage or workshop standard is inferred.
+- **Acceptance:** groups sharing catalog ID aggregate across directions and mm/m; roll count is ceiling of explicit required length divided by roll length; purchased length and leftover are reported to 0.1 mm; Part/furniture IDs are sorted and deduplicated. Missing definitions are `incomplete`; legacy unassigned groups, invalid inputs and unused specs block the complete plan with no partial results. Empty input remains empty.
+- **Boundary:** pure domain calculation only. No UI/download adapter, price per roll, supplier catalog, CNC or physical workshop validation. Existing price-per-meter inputs remain separate.
+- **Files:** `domain/production/projectEdgeBandingRollPlan.ts`, its test, QA strict TypeScript list, coordination/progress.
+- **Actions:** pending on this commit. **Next:** DOM-070B explicit per-roll price/currency/source quote integration; DOM-066 frontend-owned.

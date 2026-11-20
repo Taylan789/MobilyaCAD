@@ -292,9 +292,16 @@ Bu dosya dört geliştirme/denetim rolünün ortak görev panosu ve entegrasyon 
 | DOM-068 | Strict directional edge-band JSON v1 (exact mm/m, edge, Part/furniture provenance, no partial parse) | DONE | Commit 0fb6e8b04a11251431cc2379d0c1137da10d72a3; CI https://github.com/Taylan789/MobilyaCAD/actions/runs/44684106913; QA https://github.com/Taylan789/MobilyaCAD/actions/runs/44684106780; 124 frontend + 468 domain tests passed. |
 | DOM-069 | Yönsel kenar bandı tüketim CSV v1; mm/m, edge, provenance, RFC 4180 | Ürün Geliştirme | DONE | Code [7be0d8a](https://github.com/Taylan789/MobilyaCAD/commit/7be0d8a31db5c4b2436ce948279d2f41815eee2b); test correction [51fd537](https://github.com/Taylan789/MobilyaCAD/commit/51fd537e74c8493613ac701720d94f85bae08b1d); CI #44685799599, QA #44685799531, Pages #44685799545 success — 124/124 frontend + 474/474 domain, strict TS/build, audit 0
 | DOM-070 | User-configured edge-band pricing and optional roll/waste inputs with exact source/unit; no inferred price/yield | Ürün Geliştirme | PLANNED | configurable inputs and validation; user/catalog values only |
+| DOM-070A | Explicit edge-band roll planning: aggregate mm/m consumption by catalog ID; use actual roll length and optional fixed waste allowance in mm; report roll count and remainder | Product Development | IN PROGRESS | deterministic 0.1 mm arithmetic; no partial output; tests and Actions pending |
 
 
 ## DOM-069 — directional edge-band CSV v1 (verified)
 - Stable CSV v1 metadata/header, exact mm/m, edge, catalog ID, quantity/length/count, Part/furniture provenance, BOM/CRLF and strict quoting. Parser blocks malformed, unsupported, inconsistent and oversized files with no partial groups; JSON v1 validation is reused for arithmetic, ordering, duplicates and provenance caps.
 - Final commit [51fd537](https://github.com/Taylan789/MobilyaCAD/commit/51fd537e74c8493613ac701720d94f85bae08b1d): CI [#44685799599](https://github.com/Taylan789/MobilyaCAD/actions/runs/44685799599), QA [#44685799531](https://github.com/Taylan789/MobilyaCAD/actions/runs/44685799531), Pages [#44685799545](https://github.com/Taylan789/MobilyaCAD/actions/runs/44685799545) successful; 124/124 frontend + 474/474 domain tests, strict TypeScript, lint 32 warnings/0 errors, production build, audit 0 vulnerabilities.
 - DOM-070 remains planned: user-supplied pricing and optional roll/waste inputs; no catalogue price or yield inferred.
+
+
+## DOM-070A — Explicit edge-band roll planning (Actions pending)
+- Domain slice aggregates measured directional consumption by catalog ID across mm/m groups. Each ID requires an actual user roll length in mm; optional fixed waste allowance is user-supplied mm and defaults to zero only when omitted.
+- Output includes consumed/required/purchased/leftover lengths, integer roll count and sorted Part/furniture provenance. Missing specs return incomplete; legacy unassigned groups and invalid/duplicate/unused specs block the complete plan. No partial output or inferred yield.
+- Actions verification pending; UI/download integration, roll pricing and physical workshop validation are outside this slice.
