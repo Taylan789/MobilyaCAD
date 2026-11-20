@@ -73,6 +73,7 @@ import { ScrollArea } from "./components/ui/scroll-area";
 import { MobilyaCadLogo } from "./components/brand/MobilyaCadLogo";
 import "./components/workspace/KeyboardShortcuts.css";
 import "./styles/workbench.css";
+import "./styles/atelier-home-hero.css";
 
 import Scene3D from "./components/viewport/Scene3D";
 import { DrawerBoxConfigurator } from "./components/production/DrawerBoxConfigurator";
@@ -1167,6 +1168,44 @@ function App() {
                   <label className="atelier-open-action" htmlFor="atelier-open-project">Proje dosyası aç <span>↗</span></label>
                   <input id="atelier-open-project" type="file" accept=".json,application/json" hidden onChange={(event) => { void loadProject(event).then((loaded) => { if (loaded) startWorkspace(); }); }} />
                 </div>
+              </div>
+              <div className="atelier-feature-art" aria-hidden="true">
+                <div className="atelier-art-grid" />
+                <span className="atelier-art-index">FORM STUDY / 01</span>
+                <svg className="atelier-art-assembly" viewBox="0 0 560 320" fill="none" xmlns="http://www.w3.org/2000/svg" focusable="false">
+                  <defs>
+                    <linearGradient id="atelier-home-front" x1="170" y1="96" x2="340" y2="246" gradientUnits="userSpaceOnUse">
+                      <stop stopColor="#D8E0E2" />
+                      <stop offset="1" stopColor="#8F9FA5" />
+                    </linearGradient>
+                    <linearGradient id="atelier-home-side" x1="340" y1="82" x2="410" y2="220" gradientUnits="userSpaceOnUse">
+                      <stop stopColor="#6D8798" />
+                      <stop offset="1" stopColor="#354B59" />
+                    </linearGradient>
+                    <linearGradient id="atelier-home-top" x1="178" y1="78" x2="405" y2="98" gradientUnits="userSpaceOnUse">
+                      <stop stopColor="#D6E0E4" />
+                      <stop offset="1" stopColor="#9DB2BE" />
+                    </linearGradient>
+                  </defs>
+                  <g className="atelier-art-guide">
+                    <path d="M76 244H474M110 270H450M170 52H408M130 94L170 74M408 74L450 94" />
+                    <path d="M280 40V274" />
+                  </g>
+                  <path className="atelier-art-shadow" d="M150 250L375 250L442 216L217 216Z" />
+                  <g>
+                    <path className="atelier-art-top" d="M170 100L235 64H405L340 100Z" />
+                    <path className="atelier-art-side" d="M340 100L405 64V209L340 245Z" />
+                    <path className="atelier-art-front" d="M170 100H340V245H170Z" />
+                    <path className="atelier-art-front-panel" d="M183 112H251V232H183Z" />
+                    <path className="atelier-art-front-panel atelier-art-front-panel--accent" d="M259 112H327V232H259Z" />
+                    <path className="atelier-art-front-rail" d="M255 112V232M183 232H327M195 126H239M271 126H315" />
+                    <path className="atelier-art-front-rail" d="M244 160V188M266 160V188" />
+                    <path className="atelier-art-side" d="M170 245H340L405 209V221L340 257H170Z" />
+                    <path className="atelier-art-plinth" d="M170 257H340L405 221V230L340 266H170Z" />
+                    <path className="atelier-art-front-rail" d="M170 245H340" />
+                  </g>
+                </svg>
+                <div className="atelier-art-caption"><span>GEOMETRİ / PANEL</span><span>FORM · YÜZEY · BİRLEŞİM</span></div>
               </div>
 
             </section>
