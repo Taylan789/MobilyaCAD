@@ -1842,3 +1842,11 @@
 - The corrected test commit is `e2dbfb00ba1213568c4c519b1a45f675937b21f3`. Pages gate commit and Actions verification pending. Next: DOM-078 material catalog resource identity in quote-line provenance.
 
 - Contents-API push trigger for Actions: documentation SHA and workflow commit are recorded in the preceding section; verification run pending.
+
+
+## 20 Kasım 2026 22:58 TRT — DOM-077 assertion correction 3 (Actions pending)
+
+- QA #600 failed expecting `mdf-18`; QA #601 and #603 failed expecting `consumption-0001`. Logs show generated material sourceId `material-0001` and distinct costLineId `consumption-0001`. The new assertion checks costLineId linkage, generated sourceId pattern and price source reference instead of conflating catalog/source/cost IDs.
+- Material catalog resource identity is not currently carried in quote line source mapping; DOM-078 is READY to add that provenance through summary/revision JSON/CSV/comparison contracts without changing generated identifiers.
+- OPS-001 verified: Pages #428 on SHA 0374ba7c built, CI #601 succeeded, QA #603 failed; verify failed and deploy skipped. The gate prevented deployment.
+- Third correction commit SHA and Actions pending. No frontend, integration/performance-owned files touched.

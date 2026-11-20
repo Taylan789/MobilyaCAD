@@ -303,7 +303,7 @@ Bu dosya dört geliştirme/denetim rolünün ortak görev panosu ve entegrasyon 
 | DOM-076 | Strict material-consumption CSV v1 with mm/m²/m³, quantity, catalog/Part/furniture provenance and fail-closed round-trip | Product Development | DONE | DOM-067/068 JSON contracts; CSV serializer/parser + 579/579 QA tests, CI/QA/Pages verified |
 | DOM-077 | Reconcile current quote-summary CSV/JSON with immutable quote revision snapshot import/export; preserve source IDs and legacy-safe blockers | Product Development | IN_PROGRESS | Cross-format regression contract; commit/Actions verification pending |
 | DOM-078 | Preserve material catalog resource identity in quote line source mappings and immutable revision JSON/CSV/comparison | Product Development | READY | exact resourceType/resourceId, sourcePartIds, currency/unit and round-trip tests |
-| OPS-001 | Gate test-site deployment on successful CI and QA for the exact commit SHA | Product Development / CI | IN_PROGRESS | Pages verify job waits for CI #417991874 and QA #419079561 to succeed on same SHA; fail-closed timeout/failure |
+| OPS-001 | Gate test-site deployment on successful CI and QA for the exact commit SHA | Product Development / CI | DONE | Pages verify job waits for CI #417991874 and QA #419079561 on same SHA; verified QA-failure blocks deploy |
 
 
 ## DOM-069 — directional edge-band CSV v1 (verified)
@@ -367,3 +367,8 @@ Bu dosya dört geliştirme/denetim rolünün ortak görev panosu ve entegrasyon 
 - Observed Pages run #44805760151 deploy successfully on SHA 24cb62f6 while QA #44805760153 failed; this commit changed tests/docs only, so frontend source was unchanged, but the workflow did not enforce the requested gate.
 - Pages workflow now has a verification job that waits up to 20 minutes for the exact SHA's CI workflow (417991874) and QA workflow (419079561) to succeed; deploy depends on both site build and verification. Failed/missing/rate-limited checks fail closed.
 - The workflow/docs commit and Actions results are pending. The correction test commit e2dbfb00ba1213568c4c519b1a45f675937b21f3 is included in the next push-triggered verification.
+
+
+## OPS-001 VERIFIED — 20 November 2026
+- Pages [#44806301971](https://github.com/Taylan789/MobilyaCAD/actions/runs/44806301971) on SHA 0374ba7c built successfully; exact-SHA verification failed because QA [#44806301844](https://github.com/Taylan789/MobilyaCAD/actions/runs/44806301844) failed, and the deploy job was skipped. CI [#44806301834](https://github.com/Taylan789/MobilyaCAD/actions/runs/44806301834) succeeded.
+- Fail-closed gate behavior was demonstrated. Pages #425/#426 pre-gate deployed test-only commits despite QA failure; frontend source was unchanged in those commits.
