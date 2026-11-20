@@ -20,11 +20,11 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 | Hesap motoru | `cabinetConstruction`, `drawerBoxConstruction`, `bookshelfConstruction`, `tableConstruction`, `wardrobeConstruction`, `tvUnitConstruction` (floor-standing gövde, açık ölçülü raf ve dikey bölücü) ve `bathroom-vanity` (cabinet gövdesi + zorunlu açık ölçülü üst panel açıklığı) aile ayrımlı sürüm 1 proje agregatörü; ortak Part listesi quantity, malzeme, damar yönü ve kenar bantlamayı korur | Frontend adapter henüz domain agregatörünü çağırmıyor; duvar montajlı TV ünitesi/ayak-baza modelleri ve diğer aileler, üreticiye özel konstrüksiyonlar eksik |
 | Kesim listesi | Projedeki desteklenen düz mutfak gövdeleri ve tam tanımlı çekmece parçaları için tek Türkçe Excel uyumlu CSV; her satır kaynak mobilya adı/ID'si ve varsa katalog Malzeme ID değeriyle izlenir | Köşe/cihaz/evye konstrüksiyonları ve diğer aileler eksik |
 | Levha yerleşimi / kesim planı | Deterministik shelf yerleşimi, tek ve çoklu grup makine bağımsız kesim planı, batch→layout→atomik proje planı, kerf/çakışma doğrulaması, opsiyonel trim, JSON v1/v2/v3 round-trip, tam Part snapshot freshness, DOM-032 freshness-gated v2/v3 export API'si, kullanıcı girdili levha kaynak/revizyon provenance, DOM-034 grup bazlı provenance özeti ve DOM-035 kaynak bağlamını koruyan export tanıları | Fire/yield yüzdesi, kesim sırası/yolu ve CNC çıktısı yok |
-| Kenar bantlama / malzeme tüketimi | Domain özeti gövde, çekmece, kitaplık, masa, gardırop, TV bölücü/raf ve kesitli panellerin ortak Part listesinden quantity ağırlıklı net alan/hacim ve dış/iç kenar bantlamasını hesaplar; DOM-067 ile strict JSON v1 domain serializer/parser eklendi | JSON domain sözleşmesi otomatik round-trip doğrulandı; frontend indirme adapter'ı/CSV, fire, levha verimi, kerf, bant kalınlığı ve rulo payı yok |
+| Kenar bantlama / malzeme tüketimi | Domain summary shared Part list calculates quantity-weighted net area/volume, directional edge-banding and catalog/Part/furniture provenance; DOM-067 JSON v1 and DOM-076 strict CSV v1 contracts | JSON/CSV round-trip automatically verified; frontend download adapter, waste/yield, kerf, edge-band thickness and CNC output remain missing |
 | Malzeme kataloğu | UI CRUD; mobilya varsayılan materialId ve çekmece grubunda varsayılan + dört panel grubu override; domain gövde/kitaplık motorları altı gövde panel grubu için malzeme override'ını doğrular | Gövde panel override'ları henüz frontend JSON v1/CSV ve UI akışına bağlanmadı; fiyat, tedarikçi ve fire henüz yok |
 | Proje dosyası | Yerel JSON v1 indirme/yükleme; saf serializer/parser; round-trip ve eski v1 uyumluluk; mm, mobilya ve çekmece grubu katalog referansları ile dört çekmece panel kalınlığının doğrulanması | Şema migrasyonu, otomatik kayıt ve kurtarma yok |
 | Teklif/maliyet | Kullanıcı fiyat tablosu malzeme tüketimini materialId + m2, donanımı hardwareId + özgün BOM birimi, kenar bandını edgeBandingId + açık mm/m birimi ile fiyatlandırır; kullanıcı girdili işçilik/operasyon tarifesi, tek para birimli birleşik teklif ve tarihli fiyat/tarife katalog snapshot'ı, DOM-014 doğrulanmış immutable append ve DOM-015 ortak satır aritmetiği doğrulaması vardır | Frontend/UI ve JSON v1/CSV kalıcı revizyon geçmişi entegrasyonu ayrı sahibindedir; tüm geçmişte ID tekilliği depolama katmanında doğrulanmalıdır; vergi, kur, iskonto, otomatik fire/kâr yüzdesi ve üretim onayı yok |
-| Test/CI | Current verified code SHA [8ad209d](https://github.com/Taylan789/MobilyaCAD/commit/8ad209d30b35dc48bea2f35c4f449126018c7963): [CI #44697406818](https://github.com/Taylan789/MobilyaCAD/actions/runs/44697406818), [QA #44697406838](https://github.com/Taylan789/MobilyaCAD/actions/runs/44697406838), [Pages #44697406803](https://github.com/Taylan789/MobilyaCAD/actions/runs/44697406803) successful | QA 124/124 frontend + 491/491 domain tests, strict shared-domain TS, lint 32 warnings/0 errors, production build and production audit 0 vulnerabilities |
+| Test/CI | Current verified code SHA [e6e0e3e](https://github.com/Taylan789/MobilyaCAD/commit/e6e0e3e24463e2a77e2e37f2206433f1a73b574d): [CI #44789821509](https://github.com/Taylan789/MobilyaCAD/actions/runs/44789821509), [QA #44789821617](https://github.com/Taylan789/MobilyaCAD/actions/runs/44789821617), [Pages #44789821636](https://github.com/Taylan789/MobilyaCAD/actions/runs/44789821636) successful | QA 124/124 frontend + 570/570 domain tests, strict shared-domain TS, lint 32 warnings/0 errors, production build and production audit 0 vulnerabilities |
 
 ### Bilinen mimari ve veri boşlukları
 
@@ -592,7 +592,7 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 | Üretim | Her Part için kaynak ID, quantity, mm ölçü, malzeme/kalınlık; unsupported geometri/export kısmi sonuç üretmeden blocker | Domain konstrüksiyon, tüketim, nesting freshness, teklif/revizyon ve JSON/CSV sözleşmeleri var; frontend adapter/CNC postprocessor eksik |
 | UX | Ana akışlarda işlevsel kontroller; klavye/focus, erişilebilirlik, responsive, boş/hata durumları otomatik doğrulanır | Frontend ayrı ajan alanında; gerçek tarayıcı görsel kabulü NOT MEASURED |
 | Performans | Referans sahnede p95 frame-time hedefi 16,7 ms (60 FPS), scene update p95 <100 ms, bellek ölçümü ve CI regression threshold | Referans sahne/benchmark NOT MEASURED; bu kontrolde aktif Integration/Performance run veya PR bulunmadı; PERF-001 ve INT-002 READY, QA-003 INT-001/INT-002'ye bağlı |
-| Güvenilirlik | Strict TS, test, build, audit; import/export round-trip 0 alan kaybı; invalid input 0 partial output | 20 Kasım 2026 verified code SHA [a2655afe](https://github.com/Taylan789/MobilyaCAD/commit/a2655afe9db8ebe18ed4c39c29a6d805eb007401): QA 124/124 frontend + 518/518 domain; strict TS, lint (32 warnings/0 errors), production build and audit 0 vulnerabilities. DOM-071 project-file persistence is verified; frontend integration remains unmeasured. |
+| Güvenilirlik | Strict TS, test, build, audit; import/export round-trip 0 alan kaybı; invalid input 0 partial output | 20 Nov 2026 verified SHA [e6e0e3e](https://github.com/Taylan789/MobilyaCAD/commit/e6e0e3e24463e2a77e2e37f2206433f1a73b574d): QA 124/124 frontend + 570/570 domain; strict TS, lint 32 warnings/0 errors, production build and audit 0 vulnerabilities. DOM-076 Actions pending. |
 | Edge-band export | Direction, catalog ID, mm/m, Part/furniture provenance and strict JSON round-trip; malformed/unsupported input blocked | DOM-068 verified: 124 frontend + 468 domain tests, strict type-check, build and audit; see Actions |
 
 
@@ -738,12 +738,21 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - No prices, conversions, missing categories, or machine standards are inferred; frontend download/import wiring remains UI-owned.
 
 
+## DOM-076 — Project material-consumption CSV v1 (implementation; Actions pending)
+
+- Strict CSV v1 preserves material/catalog identity, mm thickness, m2 area, m3 volume, mm directional edge-band totals, Part line count/quantity, Part IDs and furniture IDs.
+- Calculated material groups now include sorted furniture provenance. JSON v1 export deliberately omits runtime furniture IDs, keeping its strict legacy schema unchanged; CSV carries the IDs.
+- CSV uses exact metadata/header, UTF-8 BOM, quoted RFC 4180 cells and CRLF; 5 MB and 1,000 group caps. Import reuses the strict JSON v1 validator for arithmetic, canonical ordering and ID checks; malformed files never return partial groups.
+- Files: `domain/production/projectMaterialSummary.ts`, `projectMaterialSummaryFile.ts`, `projectMaterialSummaryCsv.ts`, regression tests, QA strict-domain type-check list, roadmap/progress/coordination.
+- Actions pending; local Node/TypeScript execution unavailable. No pricing, waste/yield, CNC/machine standard or frontend download wiring is implied.
+- Next: DOM-077 quote-summary/revision snapshot reconciliation; INT-001/INT-002 and PERF-001 stay in separate ownership lanes.
+
 ### Sonraki 5 küçük teslimat
 
-| ID | Sahip | Kabul kriteri | Bağımlılık |
+| ID | Sahip | Durum / kabul kriteri | Bağımlılık |
 |---|---|---|---|
-| DOM-076 | Ürün Geliştirme | Project material-consumption CSV v1; exact mm/m²/m³ units, quantities, catalog/Part/furniture provenance, strict round-trip; no partial output | DOM-067/068 |
-| DOM-077 | Ürün Geliştirme | Quote-summary CSV/JSON ↔ immutable revision snapshot reconciliation; stable source IDs, currency/unit checks and legacy-safe blockers | DOM-072/073/075 |
-| INT-001 | Arayüz + Ürün | Frontend adapter consumes domain reports and blocks unsupported geometry exports; round-trip tests | Current production-domain contract |
-| INT-002 | Entegrasyon/Performans | Adapter round-trip tests for geometry, quantities and JSON/CSV losslessness; isolated specialist branch | INT-001 contract |
-| PERF-001 | Entegrasyon/Performans | Repeatable CAD scene/render baseline, profiling and measured optimization with regression tests | Isolated specialist branch |
+| DOM-076 | Ürün Geliştirme | IN_PROGRESS — strict material-consumption CSV v1; mm/m²/m³, quantity, catalog/Part/furniture provenance, fail-closed round-trip | DOM-067/068 |
+| DOM-077 | Ürün Geliştirme | READY — quote-summary CSV/JSON ↔ immutable revision reconciliation; source IDs, currency/unit checks and legacy-safe blockers | DOM-072/073/075 |
+| INT-001 | Arayüz + Ürün | READY — frontend adapter consumes domain reports and blocks unsupported geometry export; round-trip tests | Production-domain contract |
+| INT-002 | Entegrasyon/Performans | READY — adapter round-trip integration tests, isolated specialist branch | INT-001 contract |
+| PERF-001 | Entegrasyon/Performans | READY — repeatable CAD scene/render baseline and measured regression optimization | Separate specialist ownership |

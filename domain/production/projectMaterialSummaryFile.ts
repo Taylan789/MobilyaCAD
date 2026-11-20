@@ -199,12 +199,22 @@ function blockedParse(message: string): ProjectMaterialConsumptionSummaryFilePar
   return Object.freeze({ status: "blocked" as const, file: null, materials: null, diagnostics: Object.freeze([message]) });
 }
 
+function stripFurnitureIds(value: unknown): unknown {
+  if (!Array.isArray(value)) return value;
+  return value.map((entry) => {
+    if (!isRecord(entry)) return entry;
+    const summary = { ...entry };
+    delete summary.furnitureIds;
+    return summary;
+  });
+}
+
 /** Serializes an exact material-consumption summary; no waste, yield or prices are inferred. */
 export function serializeProjectMaterialConsumptionSummaryFile(
   value: unknown
 ): ProjectMaterialConsumptionSummaryFileSerializationResult {
   try {
-    const materials = validateMaterialSummaries(value);
+    const materials = validateMaterialSummaries(stripFurnitureIds(value));
     const file: ProjectMaterialConsumptionSummaryFile = {
       fileType: PROJECT_MATERIAL_CONSUMPTION_SUMMARY_FILE_TYPE,
       schemaVersion: 1,

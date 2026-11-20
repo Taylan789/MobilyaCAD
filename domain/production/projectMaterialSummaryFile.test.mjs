@@ -45,6 +45,11 @@ test("material summary JSON v1 round-trips calculated groups, exact units, quant
       edgeCount: 5
     }
   }]);
+  const fileMaterials = materials.map((group) => {
+    const copy = { ...group };
+    delete copy.furnitureIds;
+    return copy;
+  });
   const before = JSON.stringify(materials);
   const serialized = serializeProjectMaterialConsumptionSummaryFile(materials);
   assert.equal(serialized.status, "ready");
@@ -54,10 +59,10 @@ test("material summary JSON v1 round-trips calculated groups, exact units, quant
   assert.equal(envelope.fileType, PROJECT_MATERIAL_CONSUMPTION_SUMMARY_FILE_TYPE);
   assert.equal(envelope.schemaVersion, 1);
   assert.deepEqual(envelope.units, { thicknessMm: "mm", panelAreaM2: "m2", volumeM3: "m3", edgeBandingLengthMm: "mm" });
-  assert.deepEqual(envelope.materials, materials);
+  assert.deepEqual(envelope.materials, fileMaterials);
   const parsed = parseProjectMaterialConsumptionSummaryFile(serialized.json);
   assert.equal(parsed.status, "ready");
-  assert.deepEqual(parsed.materials, materials);
+  assert.deepEqual(parsed.materials, fileMaterials);
   assert.deepEqual(parsed.file, envelope);
   assert.equal(JSON.stringify(materials), before);
 });

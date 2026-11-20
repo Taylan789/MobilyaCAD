@@ -1800,3 +1800,13 @@
 - **Files:** `domain/production/projectQuoteSummaryCsv.ts`, `domain/production/projectQuoteSummaryCsv.test.mjs`, `.github/workflows/qa-test.yml`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`, `AI_COORDINATION.md`.
 - **Verified code commit:** [e6e0e3e24463e2a77e2e37f2206433f1a73b574d](https://github.com/Taylan789/MobilyaCAD/commit/e6e0e3e24463e2a77e2e37f2206433f1a73b574d). [CI #44789821509](https://github.com/Taylan789/MobilyaCAD/actions/runs/44789821509), [QA #44789821617](https://github.com/Taylan789/MobilyaCAD/actions/runs/44789821617), and [Pages #44789821636](https://github.com/Taylan789/MobilyaCAD/actions/runs/44789821636) succeeded. QA: **570/570 domain tests**, strict domain TypeScript, lint **32 warnings/0 errors**, production build and audit **0 vulnerabilities**; frontend unit-test step passed. Local tests not run.
 - **Next:** DOM-076 material consumption CSV v1; DOM-077 quote-summary/revision snapshot reconciliation; frontend export integration remains UI-owned; INT-001/INT-002 and PERF-001 remain separate-agent tasks.
+
+
+## 20 Kasım 2026 21:12 TRT — DOM-076 material-consumption CSV v1 (implementation; Actions pending)
+
+- Added strict CSV v1 for net material consumption. It preserves mm thickness, m2 area, m3 volume, mm edge-band totals, quantity, catalog IDs, Part IDs and furniture IDs.
+- Calculated summaries include sorted furniture provenance; the strict JSON v1 file schema remains unchanged and omits runtime furniture IDs; CSV carries the IDs.
+- CSV import/export reuses strict JSON v1 validation for arithmetic, canonical group order, IDs and fail-closed behavior. Exact metadata/header, BOM/CRLF, 5 MB and 1,000-group bounds are enforced; malformed input returns no partial groups.
+- Changed files: domain/production/projectMaterialSummary.ts, projectMaterialSummaryFile.ts, projectMaterialSummaryCsv.ts + tests, projectMaterialSummary.test.mjs, projectMaterialSummaryFile.test.mjs, .github/workflows/qa-test.yml, PRODUCT_ROADMAP.md, AI_COORDINATION.md.
+- Commit and Actions evidence pending; local Node/TypeScript runner unavailable in this runtime. No frontend, adapter/performance-owned files or CNC/machine standards changed.
+- Next: DOM-077 quote-summary/revision snapshot reconciliation; INT-001, INT-002 and PERF-001 remain separate owner lanes.
