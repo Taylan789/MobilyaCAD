@@ -40,6 +40,7 @@
   color: #25372d;
   font-size: 18px;
   line-height: 1.25;
+  font-variant-numeric: tabular-nums;
 }
 .mc-production__metric > small {
   color: #879289;
