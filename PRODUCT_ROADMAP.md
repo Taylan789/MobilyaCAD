@@ -576,15 +576,13 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 
 
 ## Next 5 small tasks
-1. DOM-070A DONE — roll quantity plan from user-entered roll length and optional fixed waste allowance (mm), grouped by catalog ID.
-2. DOM-070B DONE — per-roll purchase-cost summary with explicit currency/source, quote-ready material lines and no partial totals; Actions verified. DOM-070C owns full quote/revision integration.
-3. DOM-070C IN PROGRESS — phase 2 verified [fix commit 8878b61](https://github.com/Taylan789/MobilyaCAD/commit/8878b61cadf945a5af967ed6260d01096902fd84). CI #44726936464, QA #44726936496 (124 frontend + 497 domain), Pages #44726936449 all successful. Next phase: snapshot/revision JSON round-trip for roll metadata and `rulo` unit.
-4. DOM-071 PLANNED — persist roll quantity specs and per-roll prices/currency/source in versioned project JSON.
-5. DOM-072 PLANNED — immutable quote revision and comparison provenance for roll purchase costs.
-3. DOM-066 PLANNED — frontend-owned quote comparison JSON/CSV download integration, including blocked-state handling.
-4. INT-001 READY — shared production report/export round-trip or unsupported-geometry blocker; contract remains shared.
-5. INT-002/PERF-001 READY — adapter fidelity and measured viewport baseline; specialist workflow currently disabled.
+1. DOM-070A DONE — explicit roll quantity planning from user-entered roll length and optional fixed waste allowance (mm), grouped by catalog ID.
+2. DOM-070B DONE — per-roll purchase cost summary with explicit currency/source and no partial totals.
+3. DOM-070C DONE — roll pricing integrated into quote snapshots, strict immutable revision validation, and JSON v2 append/read provenance round-trip. [Code commit 023156bb](https://github.com/Taylan789/MobilyaCAD/commit/023156bb1d0d1f8172444766ae2015c5d4364105); CI #44738166332, QA #44738166417 (502/502 domain tests), Pages #44738166308 succeeded.
+4. DOM-071 PLANNED — persist editable roll quantity specs and per-roll price/currency/source inputs in project JSON v2 with strict validation and legacy-safe behavior.
+5. DOM-072 PLANNED — quote revision comparison and CSV/JSON outputs preserve roll purchase-cost provenance; frontend integration remains UI-owned.
 
+**Parallel lanes:** DOM-066 quote-comparison download integration remains frontend-owned; INT-001 remains shared/READY; INT-002/PERF-001 remain integration/performance-owned/READY (no active specialist run evidenced).
 
 ## 10/10 ölçülebilir kalite kapıları (20 Kasım 2026 baseline)
 
