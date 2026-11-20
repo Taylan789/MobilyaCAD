@@ -140,7 +140,7 @@ function validateCostSummary(value: unknown, quoteCurrencyCode: string | null): 
   }
   const currencyCode = value.currencyCode === null ? null : requireCurrency(value.currencyCode, "Teklif para birimi");
   if (!isRecord(value.categoryTotalsMinor)) throw new Error("Teklif kategori toplamları geçerli bir nesne olmalıdır.");
-  requireExactKeys(value.categoryTotalsMinor, new Set(PROJECT_COST_CATEGORIES), "Teklif kategori toplamları");
+  requireExactKeys(value.categoryTotalsMinor, new Set<string>(PROJECT_COST_CATEGORIES), "Teklif kategori toplamları");
   const categoryTotalsMinor: Record<string, number> = {};
   for (const category of PROJECT_COST_CATEGORIES) {
     categoryTotalsMinor[category] = requireSafeInteger(value.categoryTotalsMinor[category], category + " kategori toplamı");
