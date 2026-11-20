@@ -576,13 +576,11 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 
 
 ## Next 5 small tasks
-1. DOM-072 VERIFYING — quote revision snapshots/comparison JSON and CSV preserve roll purchase provenance; legacy CSV v1 stays readable.
-2. DOM-073 PLANNED — strict current quote-summary JSON v1 export/import with exact units/currency/source and fail-closed totals.
-3. DOM-074 PLANNED — per-roll edge-band quote-cost CSV contract/export, exact rulo units and provenance.
-4. INT-001 READY/shared — stable quote output contract and integration requirements (frontend-owned implementation excluded).
-5. INT-002/PERF-001 READY/integration-owned — adapter tests and profiling/benchmark evidence.
-
-**Parallel lanes:** DOM-066 quote-comparison download integration remains frontend-owned; no frontend files are changed here.
+1. DOM-073 PLANNED — strict current quote-summary JSON v1 export/import with exact units/currency/source and fail-closed totals.
+2. DOM-074 PLANNED — per-roll edge-band quote-cost CSV contract/export, exact rulo units and provenance.
+3. DOM-066 FRONTEND-OWNED — integrate quote revision comparison JSON/CSV downloads without touching its PR/branch.
+4. INT-001 SHARED/READY — stable quote output contract and integration requirements; UI-owned implementation remains isolated.
+5. INT-002/PERF-001 INTEGRATION-OWNED — adapter tests and profiling/benchmark evidence; no specialist agent/PR currently evidenced.
 
 ## 10/10 ölçülebilir kalite kapıları (20 Kasım 2026 baseline)
 
@@ -700,7 +698,7 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - Next: DOM-073 current quote-summary JSON v1 export/import, DOM-074 per-roll cost CSV; DOM-066 and INT-001/INT-002 remain separate agent-owned tasks.
 
 
-## DOM-072 — Roll purchase provenance in immutable revision comparisons (verification pending)
+## DOM-072 — Roll purchase provenance in immutable revision comparisons (verified 20 Nov 2026)
 
 - Revision comparison snapshots retain roll count, roll length, purchased length, furniture IDs, plan source and price source references. Metadata changes participate in comparison values; furniture provenance participates in identity.
 - Strict comparison JSON v1 remains backward compatible for ordinary lines. CSV output is v2 with structured roll columns and a v1 legacy parser. Roll quantities/lengths are reconciled at 0.1 mm precision; incomplete/incorrect source metadata blocks export.
