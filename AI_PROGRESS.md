@@ -1733,3 +1733,11 @@
 - Scope: module/test, QA type-check list and contract/roadmap/coordination docs. Frontend, adapter/performance, and CNC files untouched; no physical workshop validation implied.
 - Parallel status: AI Developer #44738883306 failed OpenRouter free-model daily 429 and was not rerun; integration/performance job skipped and no separate active run evidenced; open UI PR #113 remains isolated.
 - Next: DOM-072 strict quote revision comparison JSON/CSV roll provenance; DOM-073 standalone quote-summary JSON v1; frontend DOM-066 and INT-001/INT-002 remain separate owner lanes.
+
+## 20 Kasım 2026 17:42 TRT — DOM-072 roll purchase-cost provenance in revision comparisons (Actions pending)
+
+- Implementation commits: 82998fe2fc5f98d7a1853d2f824fd3a0a4b759a5 (roll snapshot/JSON comparison plus tests), b1b9b47fd1c2102ab7aacbfabb1ea0968366fc51 (CSV v2 structured roll metadata and legacy v1 parser).
+- Domain behavior: immutable revision comparisons retain roll count, roll length, purchased length, furniture IDs, plan/price source references; changes are included in comparison values, and furniture provenance participates in identity. Strict comparison JSON v1 stays backward-compatible for ordinary lines; CSV is v2 and reads v1.
+- Changed files: domain/production/projectQuoteRevision.ts, projectQuoteRevisionComparisonFile.ts, projectQuoteRevisionComparisonCsv.ts, projectQuoteRevisionComparisonFile.test.mjs, projectQuoteRevisionComparisonCsv.test.mjs. No frontend or integration/performance-owned adapter files.
+- Automatic checks: pending. Local tests were not run. Git Data API branch updates did not create Actions runs; this documentation update uses the Contents API to trigger push workflows. Known constraints: no inferred prices/lengths, 0.1 mm roll length precision, and no physical CNC validation.
+- Next: verify CI/QA/Pages on the resulting SHA, then DOM-073 strict quote-summary JSON v1; DOM-066 stays frontend-owned.
