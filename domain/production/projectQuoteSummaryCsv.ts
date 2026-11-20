@@ -368,7 +368,7 @@ export function parseProjectQuoteSummaryCsv(csvValue: unknown): ProjectQuoteSumm
         ...(tariffId === "" ? {} : { tariffId }),
         ...(sourcePartIds === undefined ? {} : { sourcePartIds }),
         ...(resourceType === "" ? {} : {
-          resourceType: resourceType as ProjectQuoteLineSource["resourceType",
+          resourceType: resourceType as ProjectQuoteLineSource["resourceType"],
           resourceId,
           unit,
           ...(sourceEdgeDirection === "" ? {} : { edgeDirection: sourceEdgeDirection as ProjectQuoteLineSource["edgeDirection"] })
