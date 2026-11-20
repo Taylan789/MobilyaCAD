@@ -282,12 +282,12 @@ test("DOM-072 CSV v2 round-trip preserves roll count, lengths and source referen
   original.comparison.categoryDeltasMinor.material += to.lineTotalMinor - from.lineTotalMinor;
 
   const serialized = serializeProjectQuoteRevisionComparisonCsv(original);
-  assert.equal(serialized.status, "ready");
+  assert.equal(serialized.status, "ready", serialized.diagnostics.join("; "));
   assert.ok(serialized.csv);
   assert.match(serialized.csv, /"fromRollCount","toRollCount"/);
   assert.match(serialized.csv, /"fromPlanSourceReference","toPlanSourceReference"/);
   const parsed = parseProjectQuoteRevisionComparisonCsv(serialized.csv);
-  assert.equal(parsed.status, "ready");
+  assert.equal(parsed.status, "ready", parsed.diagnostics.join("; "));
   const rollChange = parsed.comparison.lineChanges.find(change => (change.from ?? change.to)?.unit === "rulo");
   assert.ok(rollChange);
   assert.deepEqual(rollChange.from, from);
