@@ -133,7 +133,7 @@ test("parser fails closed on malformed, unsupported, non-canonical and oversized
   badUnits.units.edgeBandingLengthMm = "m";
 
   assert.equal(parseProjectMaterialConsumptionSummaryFile("{not-json").status, "blocked");
-  assert.equal(parseProjectMaterialConsumptionSummaryFile(unsupported).status, "blocked");
+  assert.equal(parseProjectMaterialConsumptionSummaryFile(JSON.stringify(unsupported)).status, "blocked");
   assert.equal(parseProjectMaterialConsumptionSummaryFile(JSON.stringify(unknownField)).status, "blocked");
   assert.equal(parseProjectMaterialConsumptionSummaryFile(JSON.stringify(badUnits)).status, "blocked");
   assert.equal(parseProjectMaterialConsumptionSummaryFile("x".repeat(5_000_001)).status, "blocked");

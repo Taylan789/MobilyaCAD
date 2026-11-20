@@ -119,6 +119,7 @@ function validateMaterialSummary(
     }
     localPartIds.add(partId);
     seenPartIds.add(partId);
+    if (seenPartIds.size > maxPartIds) throw new Error("Malzeme özetindeki toplam Part kimliği " + maxPartIds + " sınırını aşıyor.");
     partIds.push(partId);
   }
 
