@@ -747,6 +747,11 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - Actions pending; local Node/TypeScript execution unavailable. No pricing, waste/yield, CNC/machine standard or frontend download wiring is implied.
 - Next: DOM-077 quote-summary/revision snapshot reconciliation; INT-001/INT-002 and PERF-001 stay in separate ownership lanes.
 
+### DOM-076 first QA correction — 20 November 2026
+
+- CI [#44792604286](https://github.com/Taylan789/MobilyaCAD/actions/runs/44792604286) passed. QA [#44792604194](https://github.com/Taylan789/MobilyaCAD/actions/runs/44792604194) failed the domain suite: 568/579 passed, 11 failed. Root causes were a missing CSV ID-limit constant and expected material-summary fixtures not yet including the new runtime furniture IDs; strict calculation/validation was not loosened.
+- Pages [#44792605215](https://github.com/Taylan789/MobilyaCAD/actions/runs/44792605215) passed. The correction is pending Actions; no success claim for DOM-076.
+
 ### Sonraki 5 küçük teslimat
 
 | ID | Sahip | Durum / kabul kriteri | Bağımlılık |

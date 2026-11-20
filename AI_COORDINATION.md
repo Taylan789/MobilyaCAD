@@ -346,3 +346,8 @@ Bu dosya dört geliştirme/denetim rolünün ortak görev panosu ve entegrasyon 
 - Strict CSV v1 preserves catalog ID, units (mm/m2/m3), quantity, Part/furniture IDs and directional edge-band totals. JSON validation is reused for arithmetic, ordering and fail-closed behavior.
 - Code/tests and the QA strict-type-check list are committed together on `dev/github-work`. Frontend, integration/performance-owned files and read-only QA scope remain untouched.
 - Next domain task: DOM-077 quote-summary/revision snapshot reconciliation.
+
+
+## DOM-076 QA correction — 20 November 2026
+- CI [#44792604286](https://github.com/Taylan789/MobilyaCAD/actions/runs/44792604286) and Pages [#44792605215](https://github.com/Taylan789/MobilyaCAD/actions/runs/44792605215) passed; QA [#44792604194](https://github.com/Taylan789/MobilyaCAD/actions/runs/44792604194) failed at domain tests (568/579, 11 failures).
+- Fixing missing CSV ID limit and material-summary fixture expectations; no production arithmetic or tests are being weakened. Actions rerun pending.

@@ -36,6 +36,7 @@ test("material summary JSON v1 round-trips calculated groups, exact units, quant
     partLineCount: 2,
     totalQuantity: 3,
     partIds: ["part-a", "part-b"],
+    furnitureIds: ["cab-1"],
     panelAreaM2: 0.46,
     volumeM3: 0.00828,
     edgeBanding: {

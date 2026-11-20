@@ -40,6 +40,7 @@ const metadataColumns = PROJECT_MATERIAL_CONSUMPTION_CSV_METADATA_COLUMNS;
 const groupColumns = PROJECT_MATERIAL_CONSUMPTION_CSV_COLUMNS;
 const maxCsvLength = 5_000_000;
 const maxGroups = 1_000;
+const maxPartIds = 10_000;
 
 function blockedSerialization(message: string): ProjectMaterialConsumptionCsvSerializationResult {
   return Object.freeze({ status: "blocked" as const, csv: null, diagnostics: Object.freeze([message]) });

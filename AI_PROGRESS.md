@@ -1810,3 +1810,10 @@
 - Changed files: domain/production/projectMaterialSummary.ts, projectMaterialSummaryFile.ts, projectMaterialSummaryCsv.ts + tests, projectMaterialSummary.test.mjs, projectMaterialSummaryFile.test.mjs, .github/workflows/qa-test.yml, PRODUCT_ROADMAP.md, AI_COORDINATION.md.
 - Commit and Actions evidence pending; local Node/TypeScript runner unavailable in this runtime. No frontend, adapter/performance-owned files or CNC/machine standards changed.
 - Next: DOM-077 quote-summary/revision snapshot reconciliation; INT-001, INT-002 and PERF-001 remain separate owner lanes.
+
+
+## 20 Kasım 2026 21:25 TRT — DOM-076 first QA correction
+
+- CI #44792604286 passed; Pages #44792605215 passed. QA #44792604194 failed: 568/579 domain tests passed, 11 failed.
+- Root cause: missing `maxPartIds` limit constant in CSV validation, plus existing material-summary and JSON fixture expectations that needed the calculated furniture IDs. No arithmetic or strict validation was relaxed.
+- Correction commit and rerun Actions pending. Frontend and other-agent-owned files remain untouched.
