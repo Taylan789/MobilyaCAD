@@ -576,7 +576,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 
 
 ## Next 5 small tasks
-1. DOM-074 IN PROGRESS — strict per-roll edge-band quote-cost CSV v1; exact roll count/length, currency, price/unit and Part/furniture/plan/price provenance, fail-closed parser.
+1. DOM-074 DONE (Actions verified) — strict per-roll edge-band quote-cost CSV v1; exact roll count/length, currency, price/unit and Part/furniture/plan/price provenance, fail-closed parser.
 2. DOM-066 FRONTEND-OWNED — integrate quote revision comparison JSON/CSV downloads without touching its PR/branch.
 3. INT-001 SHARED/READY — stable quote output contract and integration requirements; UI-owned implementation remains isolated.
 4. INT-002/PERF-001 INTEGRATION-OWNED — adapter tests and profiling/benchmark evidence; no specialist agent/PR currently evidenced.
@@ -717,12 +717,24 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - **Next:** DOM-074 strict per-roll edge-band quote-cost CSV; DOM-066 remains frontend-owned.
 
 
-## DOM-074 — Per-roll edge-band quote-cost CSV v1 (implementation; Actions pending)
+## DOM-074 — Per-roll edge-band quote-cost CSV v1 (Actions verified)
 
 - A new strict CSV v1 contract exports only complete per-roll cost summaries or truly empty summaries. Incomplete/blocked totals never produce a partial file.
 - Stable quoted columns and row types preserve roll count, explicit unit (rulo), roll length and purchased length in mm, price in smallest currency unit, exact line totals/currency, edge-band catalog ID, Part/furniture provenance and plan/price source references.
 - Import recomputes cost line arithmetic and grand total, verifies roll-count × roll-length, row IDs/order, currency, 0.1 mm precision, source arrays and CSV schema/version. Invalid or unsupported rows fail closed.
 - CSV uses UTF-8 BOM, CRLF and RFC 4180 quoting; parser cap is 5 MB / 1,000 cost rows. Consumed length and waste allowance are intentionally not invented because the existing quote-cost summary does not expose them.
 - Files: \`domain/production/projectEdgeBandingRollCostCsv.ts\`, \`domain/production/projectEdgeBandingRollCostCsv.test.mjs\`, QA strict domain type-check list. Frontend files remain untouched.
-- Acceptance: 15 automated cases cover ready/empty round-trip, incomplete/blocked, schema/version, totals, roll arithmetic, order/identity, provenance, quoting, immutability and size limits. Local tests are unavailable; Actions pending.
+- Acceptance: 15 automated cases cover ready/empty round-trip, incomplete/blocked, schema/version, totals, roll arithmetic, order/identity, provenance, quoting, immutability and size limits.
+- **Verified code SHA:** [ed7a8acd](https://github.com/Taylan789/MobilyaCAD/commit/ed7a8acd749cf7c702500b931a8bd00dd36830d1). [CI #582](https://github.com/Taylan789/MobilyaCAD/actions/runs/44775913609), [QA #582](https://github.com/Taylan789/MobilyaCAD/actions/runs/44775913687) and [Pages #409](https://github.com/Taylan789/MobilyaCAD/actions/runs/44775913803) succeeded. QA: **124/124 frontend + 551/551 domain tests**, strict domain TypeScript, lint 32 warnings/0 errors, production build and audit 0 vulnerabilities. Local tests were not run.
 - Next: DOM-075 project quote-summary CSV v1 (all cost categories, strict round-trip and source mapping); frontend download integration remains UI-owned.
+
+
+### Sonraki 5 küçük teslimat
+
+| ID | Sahip | Kabul kriteri | Bağımlılık |
+|---|---|---|---|
+| DOM-075 | Ürün Geliştirme | Project quote-summary CSV v1; all categories, exact unit/currency/source, ready/empty-only, strict arithmetic round-trip | DOM-073 |
+| DOM-076 | Ürün Geliştirme | Project material consumption CSV v1; m²/m³/mm, quantity, catalog/Part/furniture provenance, no partial output | DOM-067/068 |
+| DOM-077 | Ürün Geliştirme | Quote-summary/revision snapshot comparison import/export reconciliation; stable source IDs and legacy-safe blockers | DOM-072/073/075 |
+| INT-001 | Arayüz + Ürün | Frontend adapter consumes domain reports and blocks unsupported geometry exports; round-trip tests | Current production-domain contract |
+| PERF-001 | Entegrasyon/Performans | Repeatable CAD scene/render baseline, profiling and measured optimization with regression tests | Isolated specialist branch |
