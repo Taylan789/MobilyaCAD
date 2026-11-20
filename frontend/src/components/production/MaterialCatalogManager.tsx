@@ -323,6 +323,12 @@ export function MaterialCatalogManager({
                 <Input
                   value={searchQuery}
                   onChange={(event) => setSearchQuery(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Escape" && searchQuery) {
+                      event.preventDefault();
+                      setSearchQuery("");
+                    }
+                  }}
                   placeholder="Malzeme, dekor, kimlik veya kalınlık ara..."
                   aria-label="Malzeme kataloğunda ara"
                 />
