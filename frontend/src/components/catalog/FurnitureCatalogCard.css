@@ -1,57 +1,69 @@
-/* Furniture library — technical specimen cards */
+/* Furniture library — dense, discoverable technical cards */
 .cad-catalog-grid {
   grid-template-columns: minmax(0, 1fr) !important;
-  gap: 9px !important;
-  padding: 2px 2px 14px !important;
+  gap: 8px !important;
+  padding: 2px 2px 12px !important;
 }
 
 .cad-catalog-card.mc-catalog-card {
   position: relative !important;
   display: grid !important;
-  grid-template-columns: 112px minmax(0, 1fr) !important;
+  grid-template-columns: 92px minmax(0, 1fr) !important;
   align-items: stretch !important;
-  min-height: 108px !important;
+  min-height: 96px !important;
   width: 100% !important;
   padding: 0 !important;
   overflow: hidden !important;
   text-align: left !important;
-  border: 1px solid #394e59 !important;
-  border-radius: 10px !important;
-  background: linear-gradient(145deg, #202f38 0%, #19262e 100%) !important;
-  box-shadow: 0 5px 15px rgba(0,0,0,.12) !important;
-  transition: transform .18s ease, border-color .18s ease, background .18s ease, box-shadow .18s ease !important;
+  border: 1px solid #3b5362 !important;
+  border-radius: 8px !important;
+  background: linear-gradient(145deg, #1e2d37 0%, #17252e 100%) !important;
+  box-shadow: inset 0 1px rgba(218, 234, 242, .035), 0 3px 10px rgba(0, 0, 0, .13) !important;
+  transform: none !important;
+  transition: border-color 140ms ease, background-color 140ms ease, box-shadow 140ms ease !important;
 }
 
 .cad-catalog-card.mc-catalog-card:hover {
-  transform: translateY(-2px) !important;
-  border-color: #7896a8 !important;
-  background: linear-gradient(145deg, #293d48 0%, #1e3039 100%) !important;
-  box-shadow: 0 12px 24px rgba(0,0,0,.24) !important;
+  border-color: #7796aa !important;
+  background: linear-gradient(145deg, #253945 0%, #1b2c36 100%) !important;
+  box-shadow: inset 2px 0 #8eacc2, 0 5px 12px rgba(0, 0, 0, .17) !important;
+  transform: none !important;
 }
 
 .cad-catalog-card.mc-catalog-card:active {
-  transform: translateY(0) scale(.995) !important;
+  background: #20333f !important;
+  transform: none !important;
 }
 
 .cad-catalog-card.mc-catalog-card:focus-visible {
   outline: 2px solid #a9c7d8 !important;
-  outline-offset: 3px !important;
+  outline-offset: 2px !important;
+  z-index: 2;
 }
 
 .mc-catalog-card__visual {
   position: relative;
   display: grid;
   min-width: 0;
-  min-height: 108px;
+  min-height: 96px;
   place-items: center;
   overflow: hidden;
-  border-right: 1px solid rgba(125,157,176,.2);
+  border-right: 1px solid rgba(125, 157, 176, .22);
   background:
-    linear-gradient(rgba(143,173,190,.07) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(143,173,190,.07) 1px, transparent 1px),
-    radial-gradient(ellipse at 50% 65%, rgba(132,164,184,.16), transparent 65%),
+    linear-gradient(rgba(143, 173, 190, .06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(143, 173, 190, .06) 1px, transparent 1px),
+    radial-gradient(ellipse at 50% 65%, rgba(132, 164, 184, .16), transparent 66%),
     #172630;
-  background-size: 16px 16px, 16px 16px, auto, auto;
+  background-size: 12px 12px, 12px 12px, auto, auto;
+}
+
+.mc-catalog-card__visual::before {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 2px;
+  content: "";
+  background: linear-gradient(180, transparent, rgba(142, 172, 194, .55), transparent);
+  pointer-events: none;
 }
 
 .mc-catalog-card__visual::after {
@@ -59,7 +71,7 @@
   inset: auto 0 0;
   height: 1px;
   content: "";
-  background: linear-gradient(90deg, transparent, rgba(168,194,209,.36), transparent);
+  background: linear-gradient(90deg, transparent, rgba(168, 194, 209, .36), transparent);
 }
 
 .mc-catalog-card__visual svg {
@@ -67,22 +79,22 @@
   z-index: 1;
   display: block;
   width: 100%;
-  max-width: 126px;
-  height: 90px;
+  max-width: 112px;
+  height: 82px;
   overflow: visible;
-  filter: drop-shadow(0 7px 8px rgba(0,0,0,.22));
-  transition: transform .22s cubic-bezier(.2,.75,.25,1);
+  filter: drop-shadow(0 5px 6px rgba(0, 0, 0, .2));
+  transition: transform 140ms ease;
 }
 
 .cad-catalog-card.mc-catalog-card:hover .mc-catalog-card__visual svg {
-  transform: translateY(-2px) scale(1.035);
+  transform: scale(1.015);
 }
 
 .mc-catalog-card__serial {
   position: absolute;
   z-index: 2;
-  top: 7px;
-  left: 9px;
+  top: 6px;
+  left: 8px;
   color: #91a8b5;
   font: 650 7px/1 "Geist Variable", sans-serif;
   letter-spacing: .13em;
@@ -93,16 +105,16 @@
   min-width: 0;
   flex-direction: column;
   justify-content: center;
-  gap: 4px;
-  padding: 9px 11px;
+  gap: 3px;
+  padding: 8px 34px 8px 10px;
 }
 
 .mc-catalog-card__category {
   overflow: hidden;
-  color: #c49b7c;
+  color: #91b4ca;
   font-size: 8px;
   font-weight: 750;
-  letter-spacing: .13em;
+  letter-spacing: .12em;
   line-height: 1.2;
   text-overflow: ellipsis;
   text-transform: uppercase;
@@ -117,7 +129,7 @@
   color: #e8eef1 !important;
   font-size: 11px !important;
   font-weight: 650 !important;
-  line-height: 1.35 !important;
+  line-height: 1.32 !important;
   text-overflow: ellipsis;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
@@ -155,30 +167,30 @@
 .mc-catalog-card__add {
   position: absolute;
   z-index: 3;
-  right: 8px;
-  bottom: 8px;
+  right: 7px;
+  bottom: 7px;
   display: grid;
-  width: 23px;
-  height: 23px;
+  width: 22px;
+  height: 22px;
   place-items: center;
-  color: #dce8ee;
-  border: 1px solid rgba(150,181,199,.36);
+  color: #e5eff5;
+  border: 1px solid rgba(150, 181, 199, .48);
   border-radius: 6px;
-  background: rgba(48,72,86,.94);
-  opacity: 0;
-  transform: translateY(3px);
-  transition: opacity .16s ease, transform .16s ease, background .16s ease;
+  background: #294555;
+  opacity: 1;
+  transform: none;
+  transition: background-color 140ms ease, border-color 140ms ease;
 }
 
 .mc-catalog-card__add svg {
-  width: 13px;
-  height: 13px;
+  width: 12px;
+  height: 12px;
 }
 
 .cad-catalog-card.mc-catalog-card:hover .mc-catalog-card__add,
 .cad-catalog-card.mc-catalog-card:focus-visible .mc-catalog-card__add {
-  opacity: 1;
-  transform: translateY(0);
+  border-color: #a9c7d8;
+  background: #36586d;
 }
 
 @media (hover: none) {
@@ -189,23 +201,58 @@
 }
 
 @media (max-width: 820px) {
-  .cad-catalog-grid { gap: 8px !important; }
+  .cad-catalog-grid { gap: 7px !important; }
   .cad-catalog-card.mc-catalog-card {
-    grid-template-columns: 104px minmax(0,1fr) !important;
-    min-height: 102px !important;
+    grid-template-columns: 86px minmax(0, 1fr) !important;
+    min-height: 92px !important;
   }
-  .mc-catalog-card__visual { min-height: 102px; }
-  .mc-catalog-card__visual svg { height: 84px; }
+  .mc-catalog-card__visual { min-height: 92px; }
+  .mc-catalog-card__visual svg { height: 78px; }
+}
+
+@media (max-width: 520px) {
+  .cad-catalog-card.mc-catalog-card {
+    grid-template-columns: 76px minmax(0, 1fr) !important;
+    min-height: 88px !important;
+  }
+  .mc-catalog-card__visual { min-height: 88px; }
+  .mc-catalog-card__visual svg { height: 72px; }
+  .mc-catalog-card__content { gap: 2px; padding: 7px 30px 7px 8px; }
+  .mc-catalog-card__add { right: 6px; bottom: 6px; width: 20px; height: 20px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .cad-catalog-card.mc-catalog-card,
   .mc-catalog-card__visual svg,
   .mc-catalog-card__add {
-    transition-duration: .01ms !important;
+    transition: none !important;
   }
   .cad-catalog-card.mc-catalog-card:hover,
-  .cad-catalog-card.mc-catalog-card:active {
+  .cad-catalog-card.mc-catalog-card:active,
+  .cad-catalog-card.mc-catalog-card:hover .mc-catalog-card__visual svg {
     transform: none !important;
+  }
+}
+
+@media (forced-colors: active) {
+  .cad-catalog-card.mc-catalog-card,
+  .mc-catalog-card__visual,
+  .mc-catalog-card__add {
+    border-color: CanvasText !important;
+    background: Canvas !important;
+    box-shadow: none !important;
+  }
+  .mc-catalog-card__category,
+  .mc-catalog-card__content strong,
+  .mc-catalog-card__dimensions,
+  .mc-catalog-card__details,
+  .mc-catalog-card__serial {
+    color: CanvasText !important;
+  }
+  .cad-catalog-card.mc-catalog-card:focus-visible {
+    outline-color: Highlight !important;
+  }
+  .mc-catalog-card__add {
+    color: ButtonText !important;
   }
 }
