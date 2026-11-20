@@ -1580,3 +1580,10 @@
 - Local tests not run; GitHub Actions is the verification source. No frontend files, adapter/performance-owned files, CNC standard, workflow, secrets or main branch touched.
 - AI Developer [#44647787500](https://github.com/Taylan789/MobilyaCAD/actions/runs/44647787500) failed at `opencode github run` with `Unsupported event type: push`; same-event rerun was not attempted. PR #102 remains open, PR #103 merged; integration/performance job is disabled (`if: false`), so INT-002/PERF-001 have no active specialist.
 - Next: DOM-065 — revision-comparison JSON/CSV added/removed/changed waste/profit source-line provenance and exact delta reconciliation.
+
+
+
+## 20 Kasım 2026 04:52 TRT — DOM-064 roadmap/progress synchronization
+- Documentation commit [b9ada4f](https://github.com/Taylan789/MobilyaCAD/commit/b9ada4f537b2443b3a0d4158dbf78d0b59759695) marks DOM-064 DONE and records CI/QA/Pages [#44656659559](https://github.com/Taylan789/MobilyaCAD/actions/runs/44656659559), [#44656659611](https://github.com/Taylan789/MobilyaCAD/actions/runs/44656659611), [#44656659549](https://github.com/Taylan789/MobilyaCAD/actions/runs/44656659549) as successful; 124 frontend + 458 domain tests.
+- Updated the stale DOM-063 next-slices note and the 10/10 reliability checklist's latest test count. The docs-only commit itself has no code changes.
+- Next: DOM-065 comparison JSON/CSV adjustment-line provenance and delta reconciliation.

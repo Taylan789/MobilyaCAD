@@ -569,7 +569,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 - **Teslim:** `mobilyacad-quote-revision-comparison` v1 strict JSON zarfı; hazır revision comparison sonuçlarını exact currency, unit, line delta, source metadata, Part ID, tariff ve structured edge direction ile serileştirir/parses.
 - **Fail-closed:** unsupported fields/version, malformed JSON, blocked input, satır toplamı/quantity-price uyuşmazlığı, kategori/genel delta tutarsızlığı veya line-change shape hatasında kısmi JSON döndürmez.
 - **Kabul:** domain otomatik test round-trip, metadata ve mm/m ayrımını; tam kategori ve grand-total delta tutarlılığını doğrular. Fiziksel üretim veya frontend dosya indirme entegrasyonu iddia edilmez.
-- **Sonraki 3 dilim:** DOM-063 stable-column CSV export/escaping ve exact source/currency/unit; DOM-064 explicit waste/profit quote adjustment provenance; DOM-065 frontend revision-comparison export wiring (frontend sahibiyle sözleşme).
+- **Sonraki 3 dilim:** DOM-064 DONE — waste/profit provenance project JSON v2 history round-trip verified; DOM-065 planned — comparison JSON/CSV adjustment-line provenance and delta reconciliation; DOM-066 planned — frontend-owned revision-comparison download wiring.
 
 
 ## 10/10 ölçülebilir kalite kapıları (20 Kasım 2026 baseline)
@@ -582,7 +582,7 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 | Üretim | Her Part için kaynak ID, quantity, mm ölçü, malzeme/kalınlık; unsupported geometri/export kısmi sonuç üretmeden blocker | Domain konstrüksiyon, tüketim, nesting freshness, teklif/revizyon ve JSON/CSV sözleşmeleri var; frontend adapter/CNC postprocessor eksik |
 | UX | Ana akışlarda işlevsel kontroller; klavye/focus, erişilebilirlik, responsive, boş/hata durumları otomatik doğrulanır | Frontend ayrı ajan alanında; gerçek tarayıcı görsel kabulü NOT MEASURED |
 | Performans | Referans sahnede p95 frame-time hedefi 16,7 ms (60 FPS), scene update p95 <100 ms, bellek ölçümü ve CI regression threshold | Referans sahne/benchmark NOT MEASURED; Integration/Performance job PR #103 ile disabled, ayrı branch/PR yok |
-| Güvenilirlik | Strict TS, test, build, audit; import/export round-trip 0 alan kaybı; invalid input 0 partial output | Son doğrulanmış QA: 124 frontend + 457 domain, strict TS/lint/build/audit başarılı; production audit 0 vulnerability |
+| Güvenilirlik | Strict TS, test, build, audit; import/export round-trip 0 alan kaybı; invalid input 0 partial output | Son doğrulanmış QA: 124 frontend + 458 domain, strict TS/lint/build/audit başarılı; production audit 0 vulnerability |
 
 
 ## DOM-063 — Teklif revizyon karşılaştırması CSV v1 (20 Kasım 2026, verified)
