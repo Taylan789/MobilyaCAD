@@ -129,8 +129,8 @@ test("gruplu malzeme teklif satırları sorted unique Part ID kaynak izini üret
   assert.equal(pricedConsumption.status, "ready");
   assert.ok(pricedConsumption.costSummary);
   assert.deepEqual(pricedConsumption.linePartSources, [
-    { costLineId: "material-0001", sourcePartIds: expected8mm },
-    { costLineId: "material-0002", sourcePartIds: expected18mm }
+    { costLineId: "material-0001", sourcePartIds: expected8mm, resourceType: "material", resourceId: "mdf-shared", unit: "m2" },
+    { costLineId: "material-0002", sourcePartIds: expected18mm, resourceType: "material", resourceId: "mdf-shared", unit: "m2" }
   ]);
 
   const quote = calculateProjectQuoteSummary(productionReport, prices, [], []);

@@ -264,6 +264,9 @@ test("revizyon panel malzeme katalog metadata’sı m2/Part sözleşmesini zorun
   const materialSource = snapshot.quoteSummary.lineSources.find((source) => source.resourceType === "material");
   assert.ok(materialSource);
   materialSource.unit = "mm";
+  const materialLine = snapshot.quoteSummary.costSummary.lines.find((line) => line.id === materialSource.costLineId);
+  assert.ok(materialLine);
+  materialLine.unit = "mm";
   const result = createProjectQuoteRevision(createFirstRevision({ pricingSnapshot: snapshot }));
   assert.equal(result.status, "blocked");
   assert.match(result.diagnostics[0], /m2 birimiyle/);
@@ -1148,6 +1151,10 @@ test("DOM-060 yeni revizyonlarda kaynak türü ve maliyet kategorisi uyumsuzluğ
   assert.ok(materialIndex >= 0);
   const cost = snapshot.quoteSummary.costSummary;
   const line = cost.lines[materialIndex];
+  const materialSource = snapshot.quoteSummary.lineSources[materialIndex];
+  delete materialSource.resourceType;
+  delete materialSource.resourceId;
+  delete materialSource.unit;
   cost.categoryTotalsMinor.material -= line.lineTotalMinor;
   cost.categoryTotalsMinor.labor += line.lineTotalMinor;
   line.category = "labor";

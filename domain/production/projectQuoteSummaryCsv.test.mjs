@@ -169,7 +169,7 @@ test("CSV panel malzeme katalog kimliği yalnızca m2 kaynak satırında kabul e
   const row = lineRowIndex(valid, "material-mdf");
   assert.ok(row > 0);
   assert.equal(parseProjectQuoteSummaryCsv(setCell(valid, row, "unit", "mm")).status, "blocked");
-  assert.equal(parseProjectQuoteSummaryCsv(setCell(valid, row, "resourceType", "edge-banding")).status, "blocked);
+  assert.equal(parseProjectQuoteSummaryCsv(setCell(valid, row, "resourceType", "edge-banding")).status, "blocked");
 });
 
 test("empty quote CSV preserves zero totals without inventing currency", () => {

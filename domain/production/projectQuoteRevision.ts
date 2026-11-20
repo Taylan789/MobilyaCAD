@@ -401,7 +401,7 @@ function validateQuoteSummary(value: unknown, strictSourceIntegrity = false): as
         if (line.category !== "material" || unit !== "m2" || edgeDirection !== undefined || sourceEdgeDirection !== undefined || hasRollMetadata) {
           throw new Error("Panel malzeme kaynak kimliği m2 birimiyle, yön ve rulo metadata olmadan eşleşmelidir.");
         }
-        if (!Array.isArray(source.sourcePartIds) || source.sourcePartIds.length === 0) {
+        if (strictSourceIntegrity && (!Array.isArray(source.sourcePartIds) || source.sourcePartIds.length === 0)) {
           throw new Error("Panel malzeme kaynak Part kimlikleriyle eşleşmelidir.");
         }
       } else if (unit === "rulo") {
