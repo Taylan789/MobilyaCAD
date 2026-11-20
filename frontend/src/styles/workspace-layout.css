@@ -200,3 +200,102 @@
     transition: none !important;
   }
 }
+
+
+/* UI-VERTICAL-COMPACT-HEIGHT-001 — reclaim viewport space on short desktop screens. */
+@media (min-width: 761px) and (max-height: 820px) {
+  .cad-app {
+    grid-template-rows: 58px minmax(0, 1fr) 24px !important;
+  }
+
+  .cad-app .cad-topbar {
+    min-height: 58px !important;
+    height: 58px !important;
+    padding-block: 0 !important;
+  }
+
+  .cad-app .cad-main-area {
+    grid-template-rows: 30px 46px minmax(150px, 1fr) 132px !important;
+  }
+
+  .cad-app .studio-workspace-heading {
+    min-height: 30px !important;
+    height: 30px !important;
+    padding-inline: 14px !important;
+  }
+
+  .cad-app .cad-viewport-toolbar {
+    min-height: 46px !important;
+    height: 46px !important;
+    padding-inline: 10px !important;
+  }
+
+  .cad-app .cad-viewport-title-icon {
+    width: 30px !important;
+    height: 30px !important;
+  }
+
+  .cad-app .cad-bottom-dock {
+    margin: 0 8px 6px !important;
+  }
+
+  .cad-app .cad-bottom-dock-header {
+    min-height: 40px !important;
+    height: 40px !important;
+    padding-inline: 10px !important;
+  }
+
+  .cad-app .cad-bottom-dock-title {
+    min-width: 132px !important;
+  }
+
+  .cad-app .cad-bottom-dock-tabs button {
+    padding-inline: 9px !important;
+    font-size: 9px !important;
+  }
+
+  .cad-app .cad-dock-table th,
+  .cad-app .cad-dock-table td {
+    padding: 5px 10px !important;
+  }
+
+  .cad-app .cad-inspector-header {
+    min-height: 48px !important;
+    height: 48px !important;
+    padding-inline: 12px !important;
+  }
+
+  .cad-app .cad-inspector-tab-list {
+    margin-top: 6px !important;
+  }
+
+  .cad-app .cad-inspector-tab-list button {
+    min-height: 31px !important;
+  }
+
+  .cad-app .cad-inspector-scroll {
+    padding-top: 6px !important;
+  }
+
+  .cad-app .cad-property-section {
+    gap: 9px !important;
+    padding-block: 10px !important;
+  }
+}
+
+/* Extra compact only when the available height is genuinely constrained. */
+@media (min-width: 761px) and (max-height: 700px) {
+  .cad-app .cad-main-area {
+    grid-template-rows: 28px 42px minmax(120px, 1fr) 108px !important;
+  }
+
+  .cad-app .cad-bottom-dock-header {
+    min-height: 36px !important;
+    height: 36px !important;
+  }
+
+  .cad-app .cad-inspector-header {
+    min-height: 44px !important;
+    height: 44px !important;
+  }
+}
