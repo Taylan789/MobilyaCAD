@@ -357,6 +357,7 @@ export function parseProjectQuoteSummaryCsv(csvValue: unknown): ProjectQuoteSumm
         quantity,
         unit,
         unitPriceMinor,
+        lineTotalMinor,
         currencyCode: lineCurrency,
         ...(sourceReference === "" ? {} : { sourceReference }),
         ...(costEdgeDirection === "" ? {} : { edgeDirection: costEdgeDirection as ProjectCostSummary["lines"][number]["edgeDirection"] })
