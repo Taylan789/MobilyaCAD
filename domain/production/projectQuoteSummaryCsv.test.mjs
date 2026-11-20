@@ -289,6 +289,6 @@ test("parser rejects inconsistent purchased roll length", () => {
   assert.equal(parseProjectQuoteSummaryCsv(setCell(valid, row, "purchasedLengthMm", 100000)).status, "blocked");
 });
 
-test("CSV parser blocks files above the five-megabyte cap", () =>
+test("CSV parser blocks files above the five-megabyte cap", () => {
   assert.equal(parseProjectQuoteSummaryCsv("x".repeat(5_000_001)).status, "blocked");
 });

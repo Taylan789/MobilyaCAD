@@ -54,10 +54,6 @@ function csvRow(values: readonly unknown[]): string {
   return values.map(csvCell).join(",");
 }
 
-function blankLineValues(): string[] {
-  return lineColumns.map(() => "");
-}
-
 function blankMetaFields(row: readonly string[], names: readonly string[], label: string): void {
   for (const name of names) {
     const index = columnIndex.get(name);
