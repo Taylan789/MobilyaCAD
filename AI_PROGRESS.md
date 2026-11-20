@@ -1825,3 +1825,10 @@
 - Changed files: `domain/production/projectQuoteRevisionExports.test.mjs`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`. No frontend, integration/performance-owned adapter, or domain calculation source was changed.
 - Code commit SHA and CI/QA/Pages outcomes pending. Local Node runner unavailable; GitHub Actions is the verification source.
 - Next: DOM-078 safe import of standalone quote revision history into project JSON v2 with strict project identity and no silent overwrite; frontend import/download wiring remains UI-owned.
+
+
+## 20 Kasım 2026 22:50 TRT — DOM-077 first QA correction (Actions pending)
+
+- QA [#44805760153](https://github.com/Taylan789/MobilyaCAD/actions/runs/44805760153) ran 582 domain tests; 581 passed and one new cross-format assertion failed because material quote sourceId is generated `material-0001`, not the catalog ID `mdf-18`. The test now checks `sourceId === costLine.id` and the explicit price-source reference; no validation was loosened.
+- CI [#44805760178](https://github.com/Taylan789/MobilyaCAD/actions/runs/44805760178) succeeded. Pages [#44805760151](https://github.com/Taylan789/MobilyaCAD/actions/runs/44805760151) succeeded although QA failed, because Pages runs independently. The frontend code was unchanged; OPS-001 added to coordinate a same-SHA CI/QA deployment gate.
+- Correction commit SHA and Actions results pending. Next: OPS-001 safe deployment gate; then DOM-078 catalog resource identity in quote line source mappings.

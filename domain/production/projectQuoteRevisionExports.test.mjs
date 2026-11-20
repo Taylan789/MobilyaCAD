@@ -77,7 +77,8 @@ test("project history, standalone revision JSON and quote-summary JSON/CSV recon
   const materialSource = summary.lineSources.find((source) => source.costLineId === materialLine.id);
   assert.ok(materialSource);
   assert.equal(materialSource.sourceType, "production-consumption");
-  assert.equal(materialSource.sourceId, "mdf-18");
+  assert.equal(materialSource.sourceId, materialLine.id);
+  assert.equal(materialLine.sourceReference, "material-prices:v1");
   assert.ok(materialSource.sourcePartIds?.length);
   assert.deepEqual(materialSource.sourcePartIds, [...materialSource.sourcePartIds].sort());
   assert.equal(new Set(materialSource.sourcePartIds).size, materialSource.sourcePartIds.length);

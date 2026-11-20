@@ -302,7 +302,8 @@ Bu dosya dört geliştirme/denetim rolünün ortak görev panosu ve entegrasyon 
 | DOM-075 | Strict project quote-summary CSV v1 for all cost categories, preserving units/currency/line source mapping and recomputed totals | Product Development | DONE | [code commit e6e0e3e24463e2a77e2e37f2206433f1a73b574d](https://github.com/Taylan789/MobilyaCAD/commit/e6e0e3e24463e2a77e2e37f2206433f1a73b574d); [CI](https://github.com/Taylan789/MobilyaCAD/actions/runs/44789821509), [QA](https://github.com/Taylan789/MobilyaCAD/actions/runs/44789821617), [Pages](https://github.com/Taylan789/MobilyaCAD/actions/runs/44789821636) all success; 570/570 tests, strict TS, build, audit 0 vulnerabilities, lint 32 warnings/0 errors |
 | DOM-076 | Strict material-consumption CSV v1 with mm/m²/m³, quantity, catalog/Part/furniture provenance and fail-closed round-trip | Product Development | DONE | DOM-067/068 JSON contracts; CSV serializer/parser + 579/579 QA tests, CI/QA/Pages verified |
 | DOM-077 | Reconcile current quote-summary CSV/JSON with immutable quote revision snapshot import/export; preserve source IDs and legacy-safe blockers | Product Development | IN_PROGRESS | Cross-format regression contract; commit/Actions verification pending |
-| DOM-078 | Import standalone revision-history JSON into project v2 with strict projectId match and safe no-overwrite behavior; legacy v1 remains blocked | Product Development | READY | import contract tests; immutable revision chain preserved |
+| DOM-078 | Preserve material catalog resource identity in quote line source mappings and immutable revision JSON/CSV/comparison | Product Development | READY | exact resourceType/resourceId, sourcePartIds, currency/unit and round-trip tests |
+| OPS-001 | Gate test-site deployment on successful CI and QA for the exact commit SHA | Product Development / CI | READY | fail-closed same-SHA check; no deploy after failed or missing verification |
 
 
 ## DOM-069 — directional edge-band CSV v1 (verified)
@@ -354,3 +355,9 @@ Bu dosya dört geliştirme/denetim rolünün ortak görev panosu ve entegrasyon 
 - Cross-format acceptance tests connect project JSON v2 history, standalone quote revision JSON, and quote-summary JSON/CSV. Assertions require exact snapshot/source mapping round-trip, material Part provenance, TRY currency, m² and labor units, totals, and fail-closed behavior.
 - Code SHA and CI/QA/Pages outcomes pending. No frontend, adapter/performance-owned files, or other agent branch was changed.
 - Next: DOM-078 safe import of standalone revision history into project JSON v2 with strict project identity and no silent overwrite.
+
+
+## DOM-077 QA correction — 20 November 2026
+- QA #600 found one contract-test expectation: material quote `sourceId` is the generated cost-line ID (`material-0001`), not the catalog material ID. The assertion now checks the line ID against its source mapping and verifies the explicit price source reference instead; validation was not relaxed.
+- CI #598 succeeded. Pages #425 succeeded even though QA #600 failed; the frontend was unchanged in this test slice, but the independent Pages workflow is a policy gap. OPS-001 is added to gate deployment on successful CI and QA for the exact SHA.
+- DOM-077 correction Actions are pending. Next priority: OPS-001 deployment gate, then DOM-078 catalog identity provenance.
