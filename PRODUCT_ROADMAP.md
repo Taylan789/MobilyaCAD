@@ -576,15 +576,13 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 
 
 ## Next 5 small tasks
-1. DOM-070A DONE — explicit edge-band roll quantity planning from user inputs.
-2. DOM-070B DONE — per-roll purchase-cost summary, source provenance and no partial totals.
-3. DOM-070C DONE — roll pricing in project quote and immutable revision JSON v2.
-4. DOM-071 DONE — roll specs, fixed waste and per-roll price/currency/source persistence in project JSON v2.
-5. DOM-072 IN_PROGRESS — quote revision snapshots/comparison JSON and CSV preserve roll purchase provenance; legacy CSV v1 stays readable.
-6. DOM-073 PLANNED — strict current quote-summary JSON v1 export/import with exact units/currency/source and fail-closed totals.
-7. DOM-074 PLANNED — per-roll edge-band quote-cost CSV contract/export, exact rulo units and provenance.
+1. DOM-072 VERIFYING — quote revision snapshots/comparison JSON and CSV preserve roll purchase provenance; legacy CSV v1 stays readable.
+2. DOM-073 PLANNED — strict current quote-summary JSON v1 export/import with exact units/currency/source and fail-closed totals.
+3. DOM-074 PLANNED — per-roll edge-band quote-cost CSV contract/export, exact rulo units and provenance.
+4. INT-001 READY/shared — stable quote output contract and integration requirements (frontend-owned implementation excluded).
+5. INT-002/PERF-001 READY/integration-owned — adapter tests and profiling/benchmark evidence.
 
-**Parallel lanes:** DOM-066 quote-comparison download integration remains frontend-owned; INT-001 remains shared/READY; INT-002/PERF-001 remain integration/performance-owned/READY (no active specialist run evidenced).
+**Parallel lanes:** DOM-066 quote-comparison download integration remains frontend-owned; no frontend files are changed here.
 
 ## 10/10 ölçülebilir kalite kapıları (20 Kasım 2026 baseline)
 
@@ -700,3 +698,11 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - Strict comparison JSON v1 retains existing optional metadata for non-roll lines. CSV export is v2 with structured roll fields and a legacy v1 parser; rulo lines must reconcile quantity/count and purchased length, and require sorted unique Part/furniture IDs.
 - Acceptance: actual immutable revision comparison, JSON/CSV round-trip, malformed metadata rejection and legacy CSV v1 read. No physical CNC/workshop validation is implied. Actions pending.
 - Next: DOM-073 current quote-summary JSON v1 export/import, DOM-074 per-roll cost CSV; DOM-066 and INT-001/INT-002 remain separate agent-owned tasks.
+
+
+## DOM-072 — Roll purchase provenance in immutable revision comparisons (verification pending)
+
+- Revision comparison snapshots retain roll count, roll length, purchased length, furniture IDs, plan source and price source references. Metadata changes participate in comparison values; furniture provenance participates in identity.
+- Strict comparison JSON v1 remains backward compatible for ordinary lines. CSV output is v2 with structured roll columns and a v1 legacy parser. Roll quantities/lengths are reconciled at 0.1 mm precision; incomplete/incorrect source metadata blocks export.
+- Tests: actual immutable revision comparison and JSON round-trip, CSV roll round-trip, invalid roll metadata blocker, and legacy CSV v1 parsing. No physical CNC validation implied.
+- Implementation commits: 82998fe2fc5f98d7a1853d2f824fd3a0a4b759a5, b1b9b47fd1c2102ab7aacbfabb1ea0968366fc51, 5016a7966166ac83505183a2a95bb190fd6e9bfd. QA/Actions on the final SHA are pending.
