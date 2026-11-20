@@ -5,7 +5,8 @@ import {
 import type {
   ProjectQuoteCostCategory,
   ProjectQuoteRevisionComparison,
-  ProjectQuoteRevisionCostLineSnapshot
+  ProjectQuoteRevisionCostLineSnapshot,
+  ProjectQuoteRevisionLineChange
 } from "./projectQuoteRevision.ts";
 
 export const PROJECT_QUOTE_REVISION_COMPARISON_CSV_FORMAT = "MobilyaCADQuoteRevisionComparisonCsv" as const;
@@ -40,7 +41,7 @@ const categories: readonly ProjectQuoteCostCategory[] = [
   "material", "hardware", "labor", "operation", "waste", "profit"
 ];
 const columns = PROJECT_QUOTE_REVISION_COMPARISON_CSV_COLUMNS;
-const columnIndex = new Map(columns.map((column, index) => [column, index]));
+const columnIndex = new Map<string, number>(columns.map((column, index) => [column, index] as const));
 const lineColumns = columns.slice(15);
 const sideRequiredFields = [
   "Description", "Quantity", "Unit", "UnitPriceMinor", "LineTotalMinor",
@@ -330,7 +331,7 @@ export function parseProjectQuoteRevisionComparisonCsv(
     }
     const lineRows = records.slice(8);
     if (lineRows.length > 10_000) throw new Error("CSV teklif satırı farkı sınırını aşıyor.");
-    const lineChanges = lineRows.map((row) => {
+    const lineChanges: ProjectQuoteRevisionLineChange[] = lineRows.map((row) => {
       if (cell(row, "rowType") !== "line") throw new Error("CSV kategori satırlarından sonra yalnızca teklif fark satırları bulunabilir.");
       requireBlank(row, ["categoryDeltaMinor"], "CSV teklif fark satırı");
       const category = cell(row, "category") as ProjectQuoteCostCategory;
@@ -338,7 +339,7 @@ export function parseProjectQuoteRevisionComparisonCsv(
       if (type !== "added" && type !== "removed" && type !== "changed") throw new Error("CSV satır fark türü desteklenmiyor.");
       const from = parseLineSide(row, "from", category);
       const to = parseLineSide(row, "to", category);
-      return { type, from, to };
+      return { type: type as ProjectQuoteRevisionLineChange["type"], from, to };
     });
 
     const comparison: ProjectQuoteRevisionComparison = {
