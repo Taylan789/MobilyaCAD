@@ -107,7 +107,10 @@ const costLineKeys = new Set([
   "lineTotalMinor",
   "edgeDirection"
 ]);
-const sourceKeys = new Set(["costLineId", "sourceType", "sourceId", "tariffId", "sourcePartIds"]);
+const sourceKeys = new Set([
+  "costLineId", "sourceType", "sourceId", "tariffId", "sourcePartIds",
+  "resourceType", "resourceId", "unit", "thicknessMm", "edgeDirection"
+]);
 const costCategories = ["material", "hardware", "labor", "operation", "waste", "profit"];
 const identifierPattern = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
 const datePattern = /^\d{4}-\d{2}-\d{2}$/;
@@ -343,6 +346,56 @@ function validateQuoteSummary(value: unknown, strictSourceIntegrity = false): as
     }
     if (edgeDirection !== undefined && (!Array.isArray(source.sourcePartIds) || source.sourcePartIds.length === 0)) {
       throw new Error("Yönlü kenar bandı satırı kaynak Part kimlikleriyle eşleşmelidir.");
+    }
+    if (source.resourceType !== undefined) {
+      if (source.sourceType !== "production-consumption") {
+        throw new Error("Kaynak malzeme/kenar bandı kimliği yalnızca üretim tüketimi satırlarında kullanılabilir.");
+      }
+      if (source.resourceType !== "material" && source.resourceType !== "edge-banding") {
+        throw new Error("Teklif kaynak malzeme türü desteklenmiyor.");
+      }
+      requireIdentifier(source.resourceId, "Teklif kaynak malzeme kimliği");
+      const unit = requireText(source.unit, "Teklif kaynak malzeme birimi", 32);
+      if (unit !== line.unit) {
+        throw new Error("Teklif kaynak malzeme birimi maliyet satırı birimiyle uyuşmuyor.");
+      }
+      if (!Array.isArray(source.sourcePartIds) || source.sourcePartIds.length === 0) {
+        throw new Error("Teklif kaynak malzeme/kenar bandı satırı Part kimlikleriyle eşleşmelidir.");
+      }
+      if (source.resourceType === "material") {
+        const thicknessMm = source.thicknessMm;
+        if (
+          line.category !== "material" ||
+          unit !== "m2" ||
+          edgeDirection !== undefined ||
+          source.edgeDirection !== undefined ||
+          typeof thicknessMm !== "number" ||
+          !Number.isFinite(thicknessMm) ||
+          thicknessMm <= 0 ||
+          Math.abs(Math.round(thicknessMm * 10) / 10 - thicknessMm) > 1e-9
+        ) {
+          throw new Error("Teklif malzeme kaynak kimliği, m2 birimi, kalınlık veya yön alanları tutarsız.");
+        }
+      } else {
+        const sourceEdgeDirection = source.edgeDirection === undefined
+          ? undefined
+          : requireEdgeDirection(source.edgeDirection, "Teklif kaynak kenar yönü");
+        if (
+          line.category !== "material" ||
+          (unit !== "mm" && unit !== "m") ||
+          source.thicknessMm !== undefined ||
+          sourceEdgeDirection !== edgeDirection
+        ) {
+          throw new Error("Teklif kenar bandı kaynak kimliği, birim veya yön alanları tutarsız.");
+        }
+      }
+    } else if (
+      source.resourceId !== undefined ||
+      source.unit !== undefined ||
+      source.thicknessMm !== undefined ||
+      source.edgeDirection !== undefined
+    ) {
+      throw new Error("Teklif kaynak metadata alanları resourceType ile birlikte kullanılmalıdır.");
     }
     if (strictSourceIntegrity) {
       const allowedCategories = source.sourceType === "production-consumption"

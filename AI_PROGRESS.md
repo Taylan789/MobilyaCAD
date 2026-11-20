@@ -1678,3 +1678,9 @@
 
 ## DOM-070B test-count correction
 - The roll purchase-cost module contains 10 acceptance tests (the follow-up adds malformed price validation for incomplete roll plans), not nine. Final verified QA total remains 124 frontend + 491 domain tests.
+
+## 20 Kasım 2026 11:25 TRT — DOM-070C phase 1 quote source metadata (Actions pending)
+- Starting branch HEAD: `4273db80176dc0e34af538474c32c363ca2e40e5`. DOM-070B per-roll cost summary was previously separate from the full quote. This slice adds stable resource identity/unit/thickness/direction metadata to material and edge-band consumption sources and forwards it to quote line sources.
+- Quote revision validation now checks metadata resource type, matching cost-line unit, material thickness, directional edge consistency, and source Part provenance; legacy source rows without additive metadata remain supported.
+- Tests cover metadata in immutable quote revision round-trip and reject mismatched edge-band units. Frontend/** and Integration/Performance-owned files remain untouched; local tests were not run.
+- Commit SHA and Actions results will be finalized after the code commit. Next: explicit length-vs-roll pricing mode and replacement of length-based edge-band quote lines without double-counting, followed by currency and revision reconciliation.

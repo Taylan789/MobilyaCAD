@@ -119,7 +119,10 @@ test("exact edge-band ID/unit pricing keeps Part provenance through quote revisi
   assert.equal(edgeLine.sourceReference, "edge-band-catalog:v1");
   assert.deepEqual(priced.linePartSources.find((source) => source.costLineId === edgeLine.id), {
     costLineId: edgeLine.id,
-    sourcePartIds: ["cab-cost-1-left-side"]
+    sourcePartIds: ["cab-cost-1-left-side"],
+    resourceType: "edge-banding",
+    resourceId: "pvc-white-1",
+    unit: "m"
   });
 
   const snapshotResult = createSnapshot();
@@ -132,6 +135,9 @@ test("exact edge-band ID/unit pricing keeps Part provenance through quote revisi
     (source) => source.costLineId === snapshotLine.id
   );
   assert.deepEqual(snapshotSource.sourcePartIds, ["cab-cost-1-left-side"]);
+  assert.equal(snapshotSource.resourceType, "edge-banding");
+  assert.equal(snapshotSource.resourceId, "pvc-white-1");
+  assert.equal(snapshotSource.unit, "m");
 
   const revisionResult = createProjectQuoteRevision({
     projectId: "project-42",
@@ -165,7 +171,33 @@ test("exact edge-band ID/unit pricing keeps Part provenance through quote revisi
   assert.equal(roundTripLine.unitPriceMinor, 18);
   assert.equal(roundTripLine.sourceReference, "edge-band-catalog:v1");
   assert.deepEqual(roundTripSource.sourcePartIds, ["cab-cost-1-left-side"]);
+  assert.equal(roundTripSource.resourceType, "edge-banding");
+  assert.equal(roundTripSource.resourceId, "pvc-white-1");
+  assert.equal(roundTripSource.unit, "m");
   assert.equal(Object.isFrozen(roundTripRevision.pricingSnapshot), true);
+});
+
+test("revision rejects edge-band source metadata whose unit disagrees with the cost line", () => {
+  const snapshotResult = createSnapshot();
+  assert.equal(snapshotResult.status, "ready");
+  const invalidSnapshot = JSON.parse(JSON.stringify(snapshotResult.snapshot));
+  const edgeLine = invalidSnapshot.quoteSummary.costSummary.lines.find(
+    (line) => line.description === "Kenar bandı pvc-white-1"
+  );
+  const edgeSource = invalidSnapshot.quoteSummary.lineSources.find(
+    (source) => source.costLineId === edgeLine.id
+  );
+  edgeSource.unit = "mm";
+  const revisionResult = createProjectQuoteRevision({
+    projectId: "project-42",
+    revisionId: "quote-edge-band-invalid-source",
+    revisionNumber: 1,
+    createdAt: "2026-11-19T10:00:00Z",
+    previousRevision: null,
+    pricingSnapshot: invalidSnapshot
+  });
+  assert.equal(revisionResult.status, "blocked");
+  assert.match(revisionResult.diagnostics.join(" "), /birimi maliyet satırı birimiyle uyuşmuyor/);
 });
 
 test("directional edge-band quote lines preserve edge, exact unit, price source, and Part provenance through immutable revision round-trip", () => {
@@ -261,6 +293,10 @@ test("directional edge-band quote lines preserve edge, exact unit, price source,
     assert.equal(originalLine.unitPriceMinor, expected.unitPriceMinor);
     assert.equal(originalLine.sourceReference, expected.sourceReference);
     assert.deepEqual(originalSource.sourcePartIds, expected.summary.partIds);
+    assert.equal(originalSource.resourceType, "edge-banding");
+    assert.equal(originalSource.resourceId, "pvc-directional");
+    assert.equal(originalSource.unit, expected.unit);
+    assert.equal(originalSource.edgeDirection, expected.edge);
     assert.deepEqual(roundTripLine, originalLine);
     assert.deepEqual(roundTripSource, originalSource);
   }

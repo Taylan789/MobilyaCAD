@@ -44,6 +44,11 @@ export interface ProjectCostCoverageIssue {
 export interface ProjectConsumptionLinePartSource {
   costLineId: string;
   sourcePartIds: string[];
+  resourceType: "material" | "edge-banding";
+  resourceId: string;
+  unit: string;
+  thicknessMm?: number;
+  edgeDirection?: ProjectEdgeBandingEdge;
 }
 
 export interface ProjectPricedConsumptionSummary {
@@ -426,7 +431,11 @@ export function calculateProjectPricedConsumptionSummary(
         );
         linePartSources.push({
           costLineId,
-          sourcePartIds: [...material.partIds].sort()
+          sourcePartIds: [...material.partIds].sort(),
+          resourceType: "material",
+          resourceId: material.materialId,
+          unit: "m2",
+          thicknessMm: material.thicknessMm
         });
       }
     }
@@ -505,7 +514,11 @@ export function calculateProjectPricedConsumptionSummary(
       );
       linePartSources.push({
         costLineId,
-        sourcePartIds: [...edgeBanding.partIds].sort()
+        sourcePartIds: [...edgeBanding.partIds].sort(),
+        resourceType: "edge-banding",
+        resourceId: edgeBanding.edgeBandingId,
+        unit: edgeBanding.unit,
+        ...(edgeBanding.edge === undefined ? {} : { edgeDirection: edgeBanding.edge })
       });
     }
   }

@@ -10,6 +10,7 @@ import {
 } from "./projectPricedConsumption.ts";
 import {
   calculateProjectCostSummary,
+  type ProjectCostLineEdgeDirection,
   type ProjectCostLineInput,
   type ProjectCostSummary
 } from "./projectCostSummary.ts";
@@ -21,6 +22,12 @@ export interface ProjectQuoteLineSource {
   tariffId?: string;
   /** Sorted unique production Part IDs for grouped consumption rows, when available. */
   sourcePartIds?: string[];
+  /** Resource identity and units are machine-readable; descriptions are display-only. */
+  resourceType?: "material" | "edge-banding";
+  resourceId?: string;
+  unit?: string;
+  thicknessMm?: number;
+  edgeDirection?: ProjectCostLineEdgeDirection;
 }
 
 export interface ProjectQuoteSummary {
@@ -214,7 +221,14 @@ export function calculateProjectQuoteSummary(
       costLineId,
       sourceType: "production-consumption",
       sourceId: line.id,
-      ...(partSource === undefined ? {} : { sourcePartIds: [...partSource.sourcePartIds] })
+      ...(partSource === undefined ? {} : {
+        sourcePartIds: [...partSource.sourcePartIds],
+        resourceType: partSource.resourceType,
+        resourceId: partSource.resourceId,
+        unit: partSource.unit,
+        ...(partSource.thicknessMm === undefined ? {} : { thicknessMm: partSource.thicknessMm }),
+        ...(partSource.edgeDirection === undefined ? {} : { edgeDirection: partSource.edgeDirection })
+      })
     });
   });
 
