@@ -574,9 +574,13 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 
 ## Next 5 small tasks
 1. DOM-066 PLANNED — frontend-owned revision-comparison JSON/CSV download wiring; ready/blocked gate and source metadata.
-2. DOM-067 IN PROGRESS — material-consumption JSON v1 domain contract; strict round-trip and quantity/area/volume/edge-band consistency.
+
+2. DOM-067 DONE — material-consumption JSON v1 domain contract; strict round-trip, provenance and arithmetic validation (Actions verified).
+
 3. DOM-068 PLANNED — explicit edge-band consumption JSON contract with exact mm/m, directional assignments, Part and furniture IDs; no inferred roll/waste allowance.
+
 4. INT-001 READY — production report/export round-trip or explicit unsupported-geometry export blocker; frontend/domain integration remains shared.
+
 5. INT-002 and PERF-001 READY — adapter fidelity tests and measured viewport/scene baseline; specialist workflow currently disabled.
 
 ## 10/10 ölçülebilir kalite kapıları (20 Kasım 2026 baseline)
@@ -589,7 +593,7 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 | Üretim | Her Part için kaynak ID, quantity, mm ölçü, malzeme/kalınlık; unsupported geometri/export kısmi sonuç üretmeden blocker | Domain konstrüksiyon, tüketim, nesting freshness, teklif/revizyon ve JSON/CSV sözleşmeleri var; frontend adapter/CNC postprocessor eksik |
 | UX | Ana akışlarda işlevsel kontroller; klavye/focus, erişilebilirlik, responsive, boş/hata durumları otomatik doğrulanır | Frontend ayrı ajan alanında; gerçek tarayıcı görsel kabulü NOT MEASURED |
 | Performans | Referans sahnede p95 frame-time hedefi 16,7 ms (60 FPS), scene update p95 <100 ms, bellek ölçümü ve CI regression threshold | Referans sahne/benchmark NOT MEASURED; Integration/Performance job PR #103 ile disabled, ayrı branch/PR yok |
-| Güvenilirlik | Strict TS, test, build, audit; import/export round-trip 0 alan kaybı; invalid input 0 partial output | Son doğrulanmış QA: 124 frontend + 459 domain, strict TS/lint/build/audit başarılı; production audit 0 vulnerability |
+| Güvenilirlik | Strict TS, test, build, audit; import/export round-trip 0 alan kaybı; invalid input 0 partial output | Son doğrulanmış QA: 124/124 frontend + 463/463 domain; strict TS, lint (32 warning/0 error), build ve audit 0 vulnerability |
 
 
 ## DOM-063 — Teklif revizyon karşılaştırması CSV v1 (20 Kasım 2026, verified)
@@ -622,3 +626,11 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - Empty summaries and legacy material groups without catalog IDs remain compatible. The JSON is net consumption only; no waste/yield, price, CNC or machine data is inferred. UI download wiring is not implemented.
 - Acceptance: domain round-trip, empty/legacy, malformed/unknown/unsupported, duplicate IDs and inconsistent arithmetic are covered in the new test file. GitHub Actions verification is pending.
 
+
+
+## DOM-067 — Material consumption summary JSON v1 (verified 20 November 2026)
+
+- Domain serializer/parser: [code commit f491c7de](https://github.com/Taylan789/MobilyaCAD/commit/f491c7de0a2b3289001fdc4a97cab27ea01467cf); [follow-up cbe6f51](https://github.com/Taylan789/MobilyaCAD/commit/cbe6f51e793c0c542bb3e3e1e63ee21e2407f003) corrected parser test inputs and enforces the 10,000-Part cap during validation.
+- Strict JSON v1 preserves material identity, thickness, sorted Part IDs, line/quantity totals, net area/volume and edge-band lengths/count with explicit units. Unknown/unsupported fields, versions, unit mismatch, duplicate IDs, arithmetic mismatch and oversized input block without partial output.
+- CI [#44672158622](https://github.com/Taylan789/MobilyaCAD/actions/runs/44672158622), QA [#44672158633](https://github.com/Taylan789/MobilyaCAD/actions/runs/44672158633), Pages [#44672158703](https://github.com/Taylan789/MobilyaCAD/actions/runs/44672158703) successful. QA: 124 frontend + 463 domain tests, strict TS, lint 32 warnings/0 errors, production build, audit 0 vulnerabilities.
+- Frontend download integration, CSV, waste/yield, price, CNC and workshop validation remain separate. Local tests were not run; Actions is the verification source.

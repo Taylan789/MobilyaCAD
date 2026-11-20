@@ -1598,9 +1598,9 @@
 - Next: DOM-066 — frontend-owned comparison JSON/CSV download wiring with ready/blocked handling.
 
 
-## 20 Kasım 2026 06:59 TRT — DOM-067 malzeme tüketim JSON v1 (Actions pending)
-- Başlangıç HEAD: `957d597faea1f2f5ab67b0eca968c107f8362d54`; yalnızca frontend dışı domain/export contract alanı kullanıldı.
-- Yeni `projectMaterialSummaryFile.ts` strict v1 JSON zarfı ve parser/serializer: mm/m²/m³ birim sözleşmesi, malzeme kimliği/kalınlığı, sorted Part provenance, satır/adet, net alan/hacim, kenar bantlama alt toplamları. Unknown fields, unsupported units/version, duplicate group/Part ID, canonical order ve aritmetik tutarsızlıkları fail-closed.
-- Yeni `projectMaterialSummaryFile.test.mjs`: domain hesap round-trip, empty/legacy, invalid totals/IDs/fields, malformed/version/unit ve 5 MB limit; QA shared-domain strict TypeScript listesine eklendi. Contract/roadmap/coordination güncellendi.
-- Commit SHA ve CI/QA/Pages sonuçları post-commit doğrulama sonrası eklenecek. Yerel test çalıştırılmadı; GitHub Actions doğrulaması bekleniyor.
-- Sonraki: DOM-068 yönsel kenar bandı tüketim JSON v1 sözleşmesi; DOM-066 frontend export wiring ayrı UI sahibinde.
+## 20 Kasım 2026 06:59 TRT — DOM-067 malzeme tüketim JSON v1 (Actions verified)
+- Code commit [f491c7de](https://github.com/Taylan789/MobilyaCAD/commit/f491c7de0a2b3289001fdc4a97cab27ea01467cf) added strict `mobilyacad-material-consumption-summary` JSON v1 serializer/parser, QA type-check wiring, and contract/roadmap/coordination entries. Follow-up [cbe6f51](https://github.com/Taylan789/MobilyaCAD/commit/cbe6f51e793c0c542bb3e3e1e63ee21e2407f003) fixed parser test inputs to JSON strings and stops validation immediately after the 10,000-Part ID limit.
+- The contract preserves exact material ID/label/thickness, sorted Part provenance, line/quantity, net m²/m³ and edge-band mm/count. Empty and legacy ID-less groups remain exportable; unsupported versions/units/fields, duplicates and arithmetic inconsistency fail closed.
+- GitHub Actions on final code SHA: CI [#44672158622](https://github.com/Taylan789/MobilyaCAD/actions/runs/44672158622) success; QA [#44672158633](https://github.com/Taylan789/MobilyaCAD/actions/runs/44672158633) success — **124/124 frontend + 463/463 domain tests, 0 fail**, strict domain TS, lint **32 warnings / 0 errors**, production build, audit **0 vulnerabilities; Pages [#44672158703](https://github.com/Taylan789/MobilyaCAD/actions/runs/44672158703) successful.
+- Local tests not run; Actions is the verification source. No frontend, adapter/performance-owned files, CNC standard, secrets or main branch touched.
+- Next: DOM-068 — directional edge-band consumption JSON v1 preserving exact mm/m, edge, Part and furniture provenance; DOM-066 remains frontend-owned.
