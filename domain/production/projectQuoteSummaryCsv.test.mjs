@@ -149,7 +149,7 @@ test("ready CSV v1 round-trips all cost categories, units, line IDs and provenan
   assert.equal(exported.status, "ready", exported.diagnostics.join(" | "));
   assert.ok(exported.csv);
   const parsed = parseProjectQuoteSummaryCsv(exported.csv);
-  assert.equal(parsed.status, "ready");
+  assert.equal(parsed.status, "ready", parsed.diagnostics.join(" | "));
   assert.deepEqual(parsed.summary, normalize(original));
   assert.equal(parsed.summary?.costSummary?.grandTotalMinor, 29850);
   assert.deepEqual(Object.keys(parsed.summary?.costSummary?.categoryTotalsMinor ?? {}).sort(), [...PROJECT_COST_CATEGORIES].sort());
@@ -189,7 +189,8 @@ test("CSV v1 has a stable quoted header, BOM and CRLF", () => {
   assert.equal(exported.status, "ready", exported.diagnostics.join(" | "));
   assert.ok(exported.csv.startsWith("\uFEFF" + PROJECT_QUOTE_SUMMARY_CSV_COLUMNS.map(csvCell).join(",") + "\r\n"));
   assert.ok(exported.csv.endsWith("\r\n"));
-  assert.equal(parseProjectQuoteSummaryCsv(exported.csv).status, "ready");
+  const parsed = parseProjectQuoteSummaryCsv(exported.csv);
+  assert.equal(parsed.status, "ready", parsed.diagnostics.join(" | "));
 });
 
 test("CSV quoting round-trip preserves commas, quotes and embedded newlines", () => {
@@ -197,7 +198,7 @@ test("CSV quoting round-trip preserves commas, quotes and embedded newlines", ()
   summary.costSummary.lines[0].description = 'MDF, "özel"\r\nlam';
   summary.costSummary.lines[0].sourceReference = 'price, "revision 2"';
   const parsed = parseProjectQuoteSummaryCsv(serializeProjectQuoteSummaryCsv(summary).csv);
-  assert.equal(parsed.status, "ready");
+  assert.equal(parsed.status, "ready", parsed.diagnostics.join(" | "));
   assert.equal(parsed.summary?.costSummary?.lines[0].description, 'MDF, "özel"\r\nlam');
   assert.equal(parsed.summary?.costSummary.lines[0].sourceReference, 'price, "revision 2"');
 });
