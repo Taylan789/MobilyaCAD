@@ -163,7 +163,7 @@ function parseCategoryTotalsCell(value: string): ProjectCostSummary["categoryTot
   const parsed: unknown = JSON.parse(value);
   if (!isRecord(parsed)) throw new Error("CSV kategori toplamları nesne olmalıdır.");
   const keys = Object.keys(parsed);
-  if (keys.length !== PROJECT_COST_CATEGORIES.length || keys.some((key) => !(PROJECT_COST_CATEGORIES as readonly string[]).includes(key))) {
+  if (keys.length !== PROJECT_COST_CATEGORIES.length || keys.some((key) => !((PROJECT_COST_CATEGORIES as readonly string[]).includes(key))) {
     throw new Error("CSV kategori toplamları altı desteklenen kategoriyi eksiksiz içermelidir.");
   }
   const totals = {} as ProjectCostSummary["categoryTotalsMinor"];

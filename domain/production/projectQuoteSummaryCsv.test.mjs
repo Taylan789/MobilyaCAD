@@ -146,7 +146,7 @@ function lineRowIndex(csv, lineId) {
 test("ready CSV v1 round-trips all cost categories, units, line IDs and provenance", () => {
   const original = readySummary();
   const exported = serializeProjectQuoteSummaryCsv(original);
-  assert.equal(exported.status, "ready");
+  assert.equal(exported.status, "ready", exported.diagnostics.join(" | "));
   assert.ok(exported.csv);
   const parsed = parseProjectQuoteSummaryCsv(exported.csv);
   assert.equal(parsed.status, "ready");
@@ -186,7 +186,7 @@ test("incomplete and blocked quote summaries never export partial CSV", () => {
 
 test("CSV v1 has a stable quoted header, BOM and CRLF", () => {
   const exported = serializeProjectQuoteSummaryCsv(readySummary());
-  assert.equal(exported.status, "ready");
+  assert.equal(exported.status, "ready", exported.diagnostics.join(" | "));
   assert.ok(exported.csv.startsWith("\uFEFF" + PROJECT_QUOTE_SUMMARY_CSV_COLUMNS.map(csvCell).join(",") + "\r\n"));
   assert.ok(exported.csv.endsWith("\r\n"));
   assert.equal(parseProjectQuoteSummaryCsv(exported.csv).status, "ready");
