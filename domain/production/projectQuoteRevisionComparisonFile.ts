@@ -206,7 +206,7 @@ function validateLine(value: unknown, currencyCode: string): ProjectQuoteRevisio
       throw new Error("Rulo maliyet satırı kaynak Part kimlikleriyle eşleşmelidir.");
     }
     rollCount = requireSafeInteger(value.rollCount, "Kenar bandı rulo adedi", 1);
-    if (quantity !== rollCount) throw new Error("Kenar bandı rulo adedi quantity ile uyuşmalıdır.");
+    if (value.quantity !== rollCount) throw new Error("Kenar bandı rulo adedi quantity ile uyuşmalıdır.");
     const rollLengthTenths = requireRollLengthTenths(value.rollLengthMm, "Kenar bandı rulo uzunluğu", 10_000_000);
     const purchasedLengthTenths = requireRollLengthTenths(value.purchasedLengthMm, "Kenar bandı satın alınan uzunluğu");
     const expectedPurchasedLengthTenths = rollLengthTenths * rollCount;

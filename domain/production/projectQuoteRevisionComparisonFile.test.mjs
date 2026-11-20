@@ -360,7 +360,7 @@ test("DOM-072 immutable revision comparison carries roll purchase provenance and
   assert.equal(rollChange.to.priceSourceReference, "roll-prices:v2");
 
   const serialized = serializeProjectQuoteRevisionComparisonFile(result);
-  assert.equal(serialized.status, "ready");
+  assert.equal(serialized.status, "ready", serialized.diagnostics.join("; "));
   const parsed = parseProjectQuoteRevisionComparisonFile(serialized.json);
   assert.equal(parsed.status, "ready");
   assert.deepEqual(parsed.comparison, result.comparison);
