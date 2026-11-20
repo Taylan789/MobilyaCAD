@@ -23,10 +23,9 @@ export interface ProjectQuoteLineSource {
   /** Sorted unique production Part IDs for grouped consumption rows, when available. */
   sourcePartIds?: string[];
   /** Resource identity and units are machine-readable; descriptions are display-only. */
-  resourceType?: "material" | "edge-banding";
+  resourceType?: "edge-banding";
   resourceId?: string;
   unit?: string;
-  thicknessMm?: number;
   edgeDirection?: ProjectCostLineEdgeDirection;
 }
 
@@ -223,11 +222,12 @@ export function calculateProjectQuoteSummary(
       sourceId: line.id,
       ...(partSource === undefined ? {} : {
         sourcePartIds: [...partSource.sourcePartIds],
-        resourceType: partSource.resourceType,
-        resourceId: partSource.resourceId,
-        unit: partSource.unit,
-        ...(partSource.thicknessMm === undefined ? {} : { thicknessMm: partSource.thicknessMm }),
-        ...(partSource.edgeDirection === undefined ? {} : { edgeDirection: partSource.edgeDirection })
+        ...(partSource.resourceType === undefined ? {} : {
+          resourceType: partSource.resourceType,
+          resourceId: partSource.resourceId,
+          unit: partSource.unit,
+          ...(partSource.edgeDirection === undefined ? {} : { edgeDirection: partSource.edgeDirection })
+        })
       })
     });
   });
