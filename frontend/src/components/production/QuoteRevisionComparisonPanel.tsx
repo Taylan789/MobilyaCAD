@@ -239,7 +239,7 @@ export function QuoteRevisionComparisonPanel() {
     if (!activeResult || !canExport) return;
     const result = serializeProjectQuoteRevisionComparisonCsv(activeResult);
     if (result.status !== "ready" || result.csv === null) {
-      setExportDiagnostics(result.diagnostics);
+      setExportDiagnostics([...result.diagnostics]);
       return;
     }
     setExportDiagnostics([]);
