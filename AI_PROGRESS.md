@@ -1900,12 +1900,10 @@
 - Test site deployed: https://taylan789.github.io/MobilyaCAD/
 - Next: DOM-078D CSV v3 resource identity export with legacy v1/v2 readers.
 
-## 21 Kasım 2026 03:45 TRT — DOM-078D CSV v3 resource identity (code delivery; Actions pending)
+## 21 Kasım 2026 03:45 TRT — DOM-078D CSV v3 resource identity (initial delivery)
 
-- **Code slice:** comparison CSV now emits strict v3 columns for resource type, catalog ID and unit on both sides. The v1/v2 headers remain strict, supported readers; v2 roll metadata parsing is retained.
-- **Acceptance:** resource identity round-trip; complete metadata required; resource type/category/unit validated by JSON domain validator; partial and mismatched metadata block; legacy CSV v1/v2 compatibility tests.
-- **Files:** domain/production/projectQuoteRevisionComparisonCsv.ts, its test, AI_COORDINATION.md, PRODUCT_ROADMAP.md, AI_PROGRESS.md. No frontend, adapter/performance-owned or machine-specific files touched.
-- **Commit SHA:** pending until commit is created; Actions pending. Local clone/test unavailable because GitHub DNS/network resolution is blocked in the runtime.
-- **Test site:** https://taylan789.github.io/MobilyaCAD/ — this domain-only CSV contract change is not a visible UI feature; deployment awaits exact-SHA CI and QA.
-- **AI Developer:** run [#44842686948](https://github.com/Taylan789/MobilyaCAD/actions/runs/44842686948) failed with OpenRouter free-model daily 429; reset is 22 November 2026 03:00 TRT. No rerun during this commit to avoid overlapping writes; next scheduled run can retry after reset.
-- **Next:** DOM-079 safe standalone revision-history import into project v2; then frontend-owned export wiring and integration/performance work.
+- **Code:** CSV v3 emits resource type/catalog ID/unit columns for both comparison sides. Strict legacy v1/v2 readers retained; v2 roll fields remain parsed.
+- **Commit:** [81a39f4c](https://github.com/Taylan789/MobilyaCAD/commit/81a39f4c421fb53cff92b117cc18112849b75f16). CI [#44846921484](https://github.com/Taylan789/MobilyaCAD/actions/runs/44846921484) succeeded; QA [#44846921437](https://github.com/Taylan789/MobilyaCAD/actions/runs/44846921437) failed 1/590 domain tests (legacy-v2 test helper quote escaping); Pages [#44846921447](https://github.com/Taylan789/MobilyaCAD/actions/runs/44846921447) failed the exact-SHA gate, deploy skipped.
+- **Test site:** https://taylan789.github.io/MobilyaCAD/ — not updated by this commit.
+- **Correction:** v2 test fixture now unescapes CSV doubled quotes before parsing its JSON-array fields; production parser/schema validation unchanged. Local clone/test remains blocked by GitHub DNS resolution.
+- **Next:** wait for corrected CI/QA/Pages and continue DOM-079 if green.

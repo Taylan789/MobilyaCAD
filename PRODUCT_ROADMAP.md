@@ -803,10 +803,10 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - Code [e6330272](https://github.com/Taylan789/MobilyaCAD/commit/e63302724ec7b8586f2733e46023c8d22e864ba4); CI [#44841432348](https://github.com/Taylan789/MobilyaCAD/actions/runs/44841432348), QA [#44841432343](https://github.com/Taylan789/MobilyaCAD/actions/runs/44841432343), Pages [#44841432370](https://github.com/Taylan789/MobilyaCAD/actions/runs/44841432370) successful — 130 frontend + 589 domain tests, type-check, lint, build and production audit (0 vulnerabilities).
 - Next: DOM-078D strict CSV v3 resource identity with legacy v1/v2 readers.
 
-## DOM-078D — Strict revision-comparison CSV v3 catalog identity (code delivered; Actions pending)
+## DOM-078D — Strict revision-comparison CSV v3 catalog identity (QA correction pending)
 
-- CSV v3 adds resource type, catalog ID and unit for both sides of each line change. Complete metadata is preserved; partial or unit/category mismatches fail through the existing strict JSON domain validator.
+- CSV v3 adds resource type, catalog ID and unit for both sides of each line change. Complete metadata is preserved; partial or unit/category mismatches fail through the strict JSON domain validator.
 - CSV v1/v2 headers remain accepted by dedicated strict readers; roll/source provenance and exact units are retained. No silent resource metadata loss or partial export is allowed.
-- Tests cover resource identity round-trip, partial/mismatched metadata blocking and legacy v1/v2 compatibility.
-- Commit SHA and CI/QA/Pages: pending. Test site: https://taylan789.github.io/MobilyaCAD/
-- Next: DOM-079 safe standalone quote revision-history import into project v2; frontend download integration remains separately owned.
+- Code [81a39f4c](https://github.com/Taylan789/MobilyaCAD/commit/81a39f4c421fb53cff92b117cc18112849b75f16); CI [#44846921484](https://github.com/Taylan789/MobilyaCAD/actions/runs/44846921484) succeeded. QA [#44846921437](https://github.com/Taylan789/MobilyaCAD/actions/runs/44846921437) failed 1 of 590 domain tests: the legacy-v2 fixture helper did not unescape doubled CSV quotes. Pages [#44846921447](https://github.com/Taylan789/MobilyaCAD/actions/runs/44846921447) built, but its exact-SHA gate failed and deployment was skipped.
+- Correction: decode doubled quotes in the legacy fixture helper, retaining roll/source fields. CI/QA/Pages pending. Test site: https://taylan789.github.io/MobilyaCAD/
+- Next: verify legacy v2 round-trip on corrected SHA, then DOM-079 safe revision-history import.

@@ -296,7 +296,7 @@ function emptyComparisonResult() {
 }
 
 function toLegacyV1Csv(csv) {
-  const records = csv.slice(1).trimEnd().split("\r\n").map(row => row.split(",").map(cell => cell.slice(1, -1)));
+  const records = csv.slice(1).trimEnd().split("\r\n").map(row => row.split(",").map(cell => cell.slice(1, -1).replace(/""/g, '"')));
   const legacyColumnCount = PROJECT_QUOTE_REVISION_COMPARISON_CSV_COLUMNS.length - 18;
   return records.map((row, index) => {
     if (index > 0) row[1] = "1";
@@ -305,7 +305,7 @@ function toLegacyV1Csv(csv) {
 }
 
 function toLegacyV2Csv(csv) {
-  const records = csv.slice(1).trimEnd().split("\r\n").map(row => row.split(",").map(cell => cell.slice(1, -1)));
+  const records = csv.slice(1).trimEnd().split("\r\n").map(row => row.split(",").map(cell => cell.slice(1, -1).replace(/""/g, '"')));
   const legacyColumnCount = PROJECT_QUOTE_REVISION_COMPARISON_CSV_COLUMNS.length - 6;
   return records.map((row, index) => {
     if (index > 0) row[1] = "2";
