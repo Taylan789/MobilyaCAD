@@ -2042,3 +2042,63 @@ test("DOM-091 repeated source-line comparison across three revisions determinist
   assert.equal(parsedCsv.status, "ready", parsedCsv.diagnostics.join("; "));
   assert.deepEqual(parsedCsv.comparison, ordered.comparison);
 });
+
+test("DOM-092 strict revisions reject duplicate source identities while legacy histories remain comparable", () => {
+  const repeatedMaterialLines = (revision, quantities) => quantities.map((quantity, index) => {
+    const id = "dom-092-" + revision + "-material-" + (index + 1);
+    return {
+      line: {
+        id,
+        category: "material",
+        description: "DOM-092 repeated material source",
+        quantity,
+        unit: "m2",
+        unitPriceMinor: 1000,
+        currencyCode: "TRY",
+        sourceReference: "materials:dom-092"
+      },
+      source: {
+        costLineId: id,
+        sourceType: "production-consumption",
+        sourceId: "dom-092-duplicate-source",
+        resourceType: "material",
+        resourceId: "mdf-18",
+        unit: "m2",
+        sourcePartIds: ["dom-092-part-a"]
+      }
+    };
+  });
+
+  const strictSnapshot = createSnapshotWithQuoteLines(repeatedMaterialLines("strict", [1, 2]));
+  const strictResult = createProjectQuoteRevision(createFirstRevision({
+    pricingSnapshot: strictSnapshot
+  }));
+  assert.equal(strictResult.status, "blocked");
+  assert.equal(strictResult.revision, null);
+  assert.match(strictResult.diagnostics[0], /kaynak satırı eşlemesi yinelenemez/);
+
+  const legacyHistory = {
+    projectId: "project-42",
+    revisions: [
+      createHistoryRevision({
+        pricingSnapshot: createSnapshotWithQuoteLines(repeatedMaterialLines("r1", [1, 2]))
+      }),
+      createHistoryRevision({
+        revisionId: "quote-r2",
+        revisionNumber: 2,
+        createdAt: "2026-11-17T11:00:00Z",
+        previousRevisionId: "quote-r1",
+        pricingSnapshot: createSnapshotWithQuoteLines(repeatedMaterialLines("r2", [2, 1]))
+      })
+    ]
+  };
+  const legacyValidation = validateProjectQuoteRevisionHistory(legacyHistory);
+  assert.equal(legacyValidation.status, "ready", legacyValidation.diagnostics.join("; "));
+  assert.equal(legacyValidation.history?.revisions.length, 2);
+
+  const comparison = compareProjectQuoteRevisions(legacyValidation.history, "quote-r1", "quote-r2");
+  assert.equal(comparison.status, "ready", comparison.diagnostics.join("; "));
+  assert.ok(comparison.comparison);
+  assert.deepEqual(comparison.comparison.lineChanges, []);
+});
+

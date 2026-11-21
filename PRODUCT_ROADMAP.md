@@ -904,3 +904,13 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 1. **DOM-092:** strict source-integrity duplicate source-ID rejection vs legacy duplicate-row backward compatibility.
 2. **DOM-093:** three-revision Part-provenance isolation when only one line's Part scope changes.
 3. **DOM-094:** three-revision price reductions and fractional quantities reconcile rounded line totals with category/grand-total deltas.
+
+
+## DOM-092 — strict source-integrity / legacy comparison boundary (IMPLEMENTED, Actions pending)
+
+- Regression fixture creates two material cost lines with distinct cost-line IDs but the same production source identity.
+- Strict revision creation (sourceIntegrityVersion=1) must fail closed with no revision and a duplicate-source diagnostic.
+- Legacy history without the integrity marker remains valid and compares reordered duplicate source lines without spurious changes.
+- Changed files: `domain/production/projectQuoteRevision.test.mjs`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`.
+- Exact-SHA CI, QA and test-site deployment are pending; no local tests are claimed.
+- Next: DOM-093 Part-provenance isolation across three revisions, then DOM-094 fractional quantities and rounded price-reduction reconciliation.

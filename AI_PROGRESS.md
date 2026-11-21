@@ -2020,3 +2020,14 @@
 - **Test site:** https://taylan789.github.io/MobilyaCAD/ deployment verified. No frontend/domain runtime changes; local tests unavailable in this runtime.
 - **Other lanes:** AI Developer [#44886646460](https://github.com/Taylan789/MobilyaCAD/actions/runs/44886646460) remains failed from OpenRouter free-model daily 429; no rerun, paid credits, quota or secrets changes. Integration/performance specialist job skipped. UI PRs remain separate/unmerged; this regression slice does not constitute the visible frontend redesign.
 - **Next:** DOM-092 strict-integrity vs legacy duplicate-source boundary; DOM-093 three-revision Part provenance isolation; DOM-094 arithmetic reconciliation with reductions and fractional quantities.
+
+
+## 21 Kasım 2026 18:50 TRT — DOM-092 regression slice (Actions pending)
+
+- **Deliverable:** strict quote revisions reject two material lines that share the same source identity, while legacy histories without `sourceIntegrityVersion` continue to accept repeated source IDs and compare the same lines after order reversal without false changes.
+- **Test:** `domain/production/projectQuoteRevision.test.mjs` — DOM-092. The existing strict validator is covered at the revision boundary; legacy validation and comparison are covered at the history boundary.
+- **Documentation/coordination:** `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, this progress file.
+- **Commit SHA:** pending confirmation after GitHub commit object creation; exact-SHA CI/QA/Pages outcomes are pending. Local tests were not run in this runtime.
+- **Pre-change state:** branch HEAD `b936a875ccba7fadf622dbda7b90bbd9c70d1563`; CI, QA and Pages succeeded on that SHA. No active dev/github-work workflow run was detected before this change.
+- **Known limits:** frontend and adapter/performance-owned files are untouched. AI Developer run [#44886646460](https://github.com/Taylan789/MobilyaCAD/actions/runs/44886646460) failed on OpenRouter free-model HTTP 429; specialist job is disabled/skipped. This test-only slice does not deliver the visible frontend redesign.
+- **Next:** DOM-093 — isolate a single Part-provenance change across three revisions; then DOM-094 quantity/rounded price delta reconciliation.
