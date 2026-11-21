@@ -853,8 +853,9 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - Test site deployed: https://taylan789.github.io/MobilyaCAD/
 - Next small slices: DOM-083 embedded project-v2 history ↔ standalone two-revision equivalence; DOM-084 quote comparison source/resource provenance cross-check; INT-001 frontend-owned adapter/export wiring and INT-002/PERF-001 specialist-owned integration/performance tasks remain isolated.
 
-## DOM-083 — Embedded project-v2 ↔ standalone quote-history equivalence (IN PROGRESS)
-- New automated domain contract test appends two dated revisions into project JSON v2, reads the embedded chain, and compares it exactly to the validated source history.
-- The same embedded history is serialized to the standalone quote-history JSON and compared byte-for-byte with the standalone export path; parse results are also compared. The fixture verifies project envelope identity and non-mutation.
-- Exact-SHA CI/QA/Pages results are pending. No frontend, adapter/performance-owned files, or machine-specific output changed.
-- Next: DOM-084 quote comparison source/resource provenance cross-check; INT-001 frontend adapter remains UI-owned and INT-002/PERF-001 remain specialist-owned.
+## DOM-083 — Embedded project-v2 ↔ standalone quote-history equivalence (VERIFIED, 21 November 2026)
+- Automated domain test appends two dated revisions into project JSON v2, reads the embedded chain, and compares it exactly to the validated source history.
+- The same embedded history is serialized to standalone quote-history JSON and compared byte-for-byte with the standalone export path; parsed histories match, project identity stays v2, and the original project input is unchanged.
+- Code/test [commit 191a0f1d](https://github.com/Taylan789/MobilyaCAD/commit/191a0f1d884ce9a6fe363bb19a65884163ec571f). Verification SHA f598cf7a: [CI #44881090457](https://github.com/Taylan789/MobilyaCAD/actions/runs/44881090457), [QA #44881090447](https://github.com/Taylan789/MobilyaCAD/actions/runs/44881090447), [Pages #44881090459](https://github.com/Taylan789/MobilyaCAD/actions/runs/44881090459) all succeeded. QA: 139 frontend + 602 domain tests, strict domain type-check, lint 32 warnings / 0 errors, production build, audit 0 production vulnerabilities.
+- Test site deployment verified: https://taylan789.github.io/MobilyaCAD/
+- Next: DOM-084 quote comparison source/resource provenance cross-check; INT-001 frontend adapter remains UI-owned and INT-002/PERF-001 remain specialist-owned. No frontend, adapter/performance-owned files, or machine-specific output changed.
