@@ -1,0 +1,38 @@
+/* Scene selection feedback: make the active CAD target unmistakable without changing selection behavior. */
+.studio-tree-object-select.selected {
+  color: #f5f9fb !important;
+  background: linear-gradient(90deg, rgba(78, 120, 145, .34), rgba(37, 61, 74, .96)) !important;
+  border-color: #8eb6cc !important;
+  box-shadow: inset 3px 0 0 #a7cadb, inset 0 0 0 1px rgba(167, 202, 219, .1) !important;
+}
+
+.studio-tree-part.selected {
+  color: #f4f8fa !important;
+  background: linear-gradient(90deg, rgba(73, 111, 134, .28), rgba(35, 57, 69, .92)) !important;
+  box-shadow: inset 2px 0 0 #93b8ce !important;
+}
+
+.studio-tree-room:focus-visible,
+.studio-tree-object-select:focus-visible,
+.studio-tree-part:focus-visible {
+  position: relative;
+  z-index: 1;
+  outline: 2px solid #b0d0e0 !important;
+  outline-offset: 2px !important;
+}
+
+@media (forced-colors: active) {
+  .studio-tree-room:focus-visible,
+  .studio-tree-object-select:focus-visible,
+  .studio-tree-part:focus-visible {
+    outline: 2px solid Highlight !important;
+  }
+
+  .studio-tree-object-select.selected,
+  .studio-tree-part.selected {
+    color: HighlightText !important;
+    background: Highlight !important;
+    border-color: Highlight !important;
+    box-shadow: none !important;
+  }
+}
