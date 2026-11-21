@@ -2298,3 +2298,174 @@ test("DOM-094 three-revision comparison reconciles fractional quantity rounding 
   assert.deepEqual(parsedCsv.comparison, result.comparison);
 });
 
+
+test("DOM-095 three-revision mixed-category comparison reconciles changes, removals and additions", () => {
+  const materialLine = (id, sourceId, partId, quantity, unitPriceMinor, description) => ({
+    line: {
+      id,
+      category: "material",
+      description,
+      quantity,
+      unit: "m2",
+      unitPriceMinor,
+      currencyCode: "TRY",
+      sourceReference: "materials:dom-095"
+    },
+    source: {
+      costLineId: id,
+      sourceType: "production-consumption",
+      sourceId,
+      resourceType: "material",
+      resourceId: "mdf-18",
+      unit: "m2",
+      sourcePartIds: [partId]
+    }
+  });
+  const adjustment = (id, category, description, sourceId, unitPriceMinor) => ({
+    id,
+    category,
+    description,
+    sourceId,
+    sourceReference: "dom-095:" + category,
+    unitPriceMinor
+  });
+  const revisionSnapshot = (materials, adjustments) => {
+    const snapshot = createSnapshotWithQuoteLines(materials);
+    const quoteSummary = snapshot.quoteSummary;
+    const costSummary = quoteSummary.costSummary;
+    assert.ok(costSummary);
+    for (const entry of adjustments) {
+      const lineTotalMinor = calculateProjectCostLineTotalMinor(1, entry.unitPriceMinor);
+      costSummary.lines.push({
+        id: entry.id,
+        category: entry.category,
+        description: entry.description,
+        quantity: 1,
+        unit: "kalem",
+        unitPriceMinor: entry.unitPriceMinor,
+        lineTotalMinor,
+        currencyCode: "TRY",
+        sourceReference: entry.sourceReference
+      });
+      quoteSummary.lineSources.push({
+        costLineId: entry.id,
+        sourceType: "quote-adjustment",
+        sourceId: entry.sourceId
+      });
+      costSummary.categoryTotalsMinor[entry.category] += lineTotalMinor;
+      costSummary.grandTotalMinor += lineTotalMinor;
+    }
+    costSummary.lineCount = costSummary.lines.length;
+    quoteSummary.requiredLineCount += adjustments.length;
+    quoteSummary.pricedLineCount += adjustments.length;
+    return snapshot;
+  };
+
+  const panel = materialLine(
+    "dom-095-panel-line", "dom-095-panel-source", "dom-095-panel-part",
+    1.25, 1000, "DOM-095 panel price change"
+  );
+  const addedPanel = materialLine(
+    "dom-095-extra-line", "dom-095-extra-source", "dom-095-extra-part",
+    0.5, 600, "DOM-095 additional panel"
+  );
+  const fromSnapshot = revisionSnapshot([panel], [
+    adjustment("dom-095-hardware", "hardware", "DOM-095 hardware", "dom-095-hardware", 500),
+    adjustment("dom-095-labor", "labor", "DOM-095 labor", "dom-095-labor", 200),
+    adjustment("dom-095-operation-remove", "operation", "DOM-095 operation removed", "dom-095-operation", 400),
+    adjustment("dom-095-waste", "waste", "DOM-095 waste", "dom-095-waste", 300),
+    adjustment("dom-095-profit-stable", "profit", "DOM-095 stable profit", "dom-095-profit", 150)
+  ]);
+  const toSnapshot = revisionSnapshot([{
+    ...panel,
+    line: { ...panel.line, unitPriceMinor: 800 }
+  }, addedPanel], [
+    adjustment("dom-095-hardware", "hardware", "DOM-095 hardware", "dom-095-hardware", 600),
+    adjustment("dom-095-labor", "labor", "DOM-095 labor", "dom-095-labor", 250),
+    adjustment("dom-095-waste", "waste", "DOM-095 waste", "dom-095-waste", 100),
+    adjustment("dom-095-profit-stable", "profit", "DOM-095 stable profit", "dom-095-profit", 150)
+  ]);
+  const middleSnapshot = createSnapshotWithQuoteAdjustmentLines([
+    adjustment("dom-095-middle-only", "operation", "DOM-095 intermediate-only operation", "dom-095-middle-only", 9999)
+  ]);
+  const history = {
+    projectId: "project-42",
+    revisions: [
+      createHistoryRevision({ pricingSnapshot: fromSnapshot }),
+      createHistoryRevision({
+        revisionId: "quote-r2",
+        revisionNumber: 2,
+        createdAt: "2026-11-17T11:00:00Z",
+        previousRevisionId: "quote-r1",
+        pricingSnapshot: middleSnapshot
+      }),
+      createHistoryRevision({
+        revisionId: "quote-r3",
+        revisionNumber: 3,
+        createdAt: "2026-11-17T12:00:00Z",
+        previousRevisionId: "quote-r2",
+        pricingSnapshot: toSnapshot
+      })
+    ]
+  };
+
+  const result = compareProjectQuoteRevisions(history, "quote-r1", "quote-r3");
+  assert.equal(result.status, "ready", result.diagnostics.join("; "));
+  assert.ok(result.comparison);
+  assert.deepEqual(result.comparison.categoryDeltasMinor, {
+    material: 50, hardware: 100, labor: 50, operation: -400, waste: -200, profit: 0
+  });
+  assert.equal(result.comparison.grandTotalDeltaMinor, -400);
+  assert.equal(
+    Object.values(result.comparison.categoryDeltasMinor).reduce((sum, delta) => sum + delta, 0),
+    result.comparison.grandTotalDeltaMinor
+  );
+  assert.deepEqual(
+    result.comparison.lineChanges.reduce((counts, change) => {
+      counts[change.type] += 1;
+      return counts;
+    }, { added: 0, removed: 0, changed: 0 }),
+    { added: 1, removed: 1, changed: 4 }
+  );
+
+  const findChanges = sourceId => result.comparison.lineChanges.filter(
+    change => (change.from ?? change.to)?.sourceId === sourceId
+  );
+  const panelChange = findChanges("dom-095-panel-source");
+  assert.equal(panelChange.length, 1);
+  assert.equal(panelChange[0].type, "changed");
+  assert.equal(panelChange[0].from.lineTotalMinor, 1250);
+  assert.equal(panelChange[0].to.lineTotalMinor, 1000);
+  assert.equal(panelChange[0].from.unitPriceMinor, 1000);
+  assert.equal(panelChange[0].to.unitPriceMinor, 800);
+  assert.deepEqual(panelChange[0].from.sourcePartIds, ["dom-095-panel-part"]);
+  assert.deepEqual(panelChange[0].to.sourcePartIds, ["dom-095-panel-part"]);
+
+  const extraMaterial = findChanges("dom-095-extra-source");
+  assert.equal(extraMaterial.length, 1);
+  assert.equal(extraMaterial[0].type, "added");
+  assert.equal(extraMaterial[0].from, null);
+  assert.equal(extraMaterial[0].to.lineTotalMinor, 300);
+  assert.deepEqual(extraMaterial[0].to.sourcePartIds, ["dom-095-extra-part"]);
+  assert.equal(findChanges("dom-095-hardware")[0].to.lineTotalMinor, 600);
+  assert.equal(findChanges("dom-095-labor")[0].to.lineTotalMinor, 250);
+  assert.equal(findChanges("dom-095-operation")[0].type, "removed");
+  assert.equal(findChanges("dom-095-operation")[0].from.lineTotalMinor, 400);
+  assert.equal(findChanges("dom-095-waste")[0].to.lineTotalMinor, 100);
+  assert.equal(findChanges("dom-095-profit").length, 0);
+  assert.equal(findChanges("dom-095-middle-only").length, 0);
+
+  const json = serializeProjectQuoteRevisionComparisonFile(result);
+  assert.equal(json.status, "ready", json.diagnostics.join("; "));
+  assert.equal(JSON.parse(json.json).schemaVersion, 2);
+  const parsedJson = parseProjectQuoteRevisionComparisonFile(json.json);
+  assert.equal(parsedJson.status, "ready", parsedJson.diagnostics.join("; "));
+  assert.deepEqual(parsedJson.comparison, result.comparison);
+
+  const csv = serializeProjectQuoteRevisionComparisonCsv(result);
+  assert.equal(csv.status, "ready", csv.diagnostics.join("; "));
+  assert.equal(PROJECT_QUOTE_REVISION_COMPARISON_CSV_VERSION, 3);
+  const parsedCsv = parseProjectQuoteRevisionComparisonCsv(csv.csv);
+  assert.equal(parsedCsv.status, "ready", parsedCsv.diagnostics.join("; "));
+  assert.deepEqual(parsedCsv.comparison, result.comparison);
+});
