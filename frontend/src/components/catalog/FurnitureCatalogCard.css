@@ -78,16 +78,6 @@
   transform: translateY(-2px) scale(1.035);
 }
 
-.mc-catalog-card__serial {
-  position: absolute;
-  z-index: 2;
-  top: 7px;
-  left: 9px;
-  color: #91a8b5;
-  font: 650 7px/1 "Geist Variable", sans-serif;
-  letter-spacing: .13em;
-}
-
 .mc-catalog-card__content {
   display: flex;
   min-width: 0;
