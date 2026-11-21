@@ -901,16 +901,21 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - Test site deployed: https://taylan789.github.io/MobilyaCAD/. No frontend, production calculations, adapter/performance-owned files, or machine-specific output changed.
 
 ### Next small slices
-1. **DOM-092:** strict source-integrity duplicate source-ID rejection vs legacy duplicate-row backward compatibility.
-2. **DOM-093:** three-revision Part-provenance isolation when only one line's Part scope changes.
-3. **DOM-094:** three-revision price reductions and fractional quantities reconcile rounded line totals with category/grand-total deltas.
+1. **DOM-093 (IN_PROGRESS):** three-revision Part-provenance isolation when only one line's Part scope changes; preserve exact JSON v2/CSV v3 exports and zero total deltas.
+2. **DOM-094 (READY):** price reductions and fractional quantities reconcile rounded line totals with category/grand-total deltas.
+3. **DOM-095 (READY):** mixed-category three-revision quote comparison reconciles category and grand-total deltas for reductions/additions, with exact JSON/CSV export.
 
 
-## DOM-092 — strict source-integrity / legacy comparison boundary (IMPLEMENTED, Actions pending)
+## DOM-092 — strict source-integrity / legacy comparison boundary (VERIFIED, 21 November 2026)
 
-- Regression fixture creates two material cost lines with distinct cost-line IDs but the same production source identity.
-- Strict revision creation (sourceIntegrityVersion=1) must fail closed with no revision and a duplicate-source diagnostic.
-- Legacy history without the integrity marker remains valid and compares reordered duplicate source lines without spurious changes.
-- Changed files: `domain/production/projectQuoteRevision.test.mjs`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`.
-- Exact-SHA CI, QA and test-site deployment are pending; no local tests are claimed.
-- Next: DOM-093 Part-provenance isolation across three revisions, then DOM-094 fractional quantities and rounded price-reduction reconciliation.
+- Strict revisions reject duplicate material source identities while legacy two-revision history accepts reordered duplicate source rows and compares them without false changes.
+- Test commit [8005e9ab](https://github.com/Taylan789/MobilyaCAD/commit/8005e9ab1ec42b29ec9e0985f337e0f7cae16566); exact-SHA CI [#44921550797](https://github.com/Taylan789/MobilyaCAD/actions/runs/44921550797), QA [#44921550733](https://github.com/Taylan789/MobilyaCAD/actions/runs/44921550733) and Pages [#44921550778](https://github.com/Taylan789/MobilyaCAD/actions/runs/44921550778) succeeded.
+- QA: **142 frontend + 611 domain tests**, DOM-092 passed; strict shared-domain type-check, lint **32 warnings / 0 errors**, production build, production audit **0 vulnerabilities**. Local tests were not run in this runtime.
+- Test site deployment succeeded: https://taylan789.github.io/MobilyaCAD/. AI Developer run [#44924539196](https://github.com/Taylan789/MobilyaCAD/actions/runs/44924539196) failed on OpenRouter free-model daily 429; no paid retry or quota change. Integration/performance specialist remains skipped.
+
+## DOM-093 — Three-revision Part-provenance isolation (IMPLEMENTED, Actions pending)
+
+- Added a regression fixture comparing r1 directly to r3: an intermediate r2 quantity change is intentionally ignored, one material's Part scope changes, and a second Part-scoped material remains unchanged.
+- The changed Part scope must produce exactly one removed/added pair with exact source Part IDs, while material/grand-total deltas remain zero; comparison JSON v2 and CSV v3 must round-trip exactly.
+- Test file: `domain/production/projectQuoteRevision.test.mjs`. Local tests were not run in this runtime; exact-SHA CI, QA and Pages are pending.
+- Next: DOM-094 price reductions/fractional quantities and rounded total reconciliation.

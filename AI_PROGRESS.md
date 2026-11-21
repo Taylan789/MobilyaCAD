@@ -2022,12 +2022,19 @@
 - **Next:** DOM-092 strict-integrity vs legacy duplicate-source boundary; DOM-093 three-revision Part provenance isolation; DOM-094 arithmetic reconciliation with reductions and fractional quantities.
 
 
-## 21 Kasım 2026 18:50 TRT — DOM-092 regression slice (Actions pending)
+## 21 Kasım 2026 18:50 TRT — DOM-092 VERIFIED
 
-- **Deliverable:** strict quote revisions reject two material lines that share the same source identity, while legacy histories without `sourceIntegrityVersion` continue to accept repeated source IDs and compare the same lines after order reversal without false changes.
-- **Test:** `domain/production/projectQuoteRevision.test.mjs` — DOM-092. The existing strict validator is covered at the revision boundary; legacy validation and comparison are covered at the history boundary.
-- **Documentation/coordination:** `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, this progress file.
-- **Commit SHA:** pending confirmation after GitHub commit object creation; exact-SHA CI/QA/Pages outcomes are pending. Local tests were not run in this runtime.
-- **Pre-change state:** branch HEAD `b936a875ccba7fadf622dbda7b90bbd9c70d1563`; CI, QA and Pages succeeded on that SHA. No active dev/github-work workflow run was detected before this change.
-- **Known limits:** frontend and adapter/performance-owned files are untouched. AI Developer run [#44886646460](https://github.com/Taylan789/MobilyaCAD/actions/runs/44886646460) failed on OpenRouter free-model HTTP 429; specialist job is disabled/skipped. This test-only slice does not deliver the visible frontend redesign.
-- **Next:** DOM-093 — isolate a single Part-provenance change across three revisions; then DOM-094 quantity/rounded price delta reconciliation.
+- **Code/test commit:** [8005e9ab](https://github.com/Taylan789/MobilyaCAD/commit/8005e9ab1ec42b29ec9e0985f337e0f7cae16566); changed test: `domain/production/projectQuoteRevision.test.mjs`.
+- **Behavior:** strict revisions block repeated source identities; legacy histories without the strict-integrity marker preserve repeated source rows and compare them without false changes.
+- Exact-SHA CI [#44921550797](https://github.com/Taylan789/MobilyaCAD/actions/runs/44921550797), QA [#44921550733](https://github.com/Taylan789/MobilyaCAD/actions/runs/44921550733), and Pages [#44921550778](https://github.com/Taylan789/MobilyaCAD/actions/runs/44921550778) succeeded. QA: **142 frontend + 611 domain tests**, strict domain type-check, lint **32 warnings / 0 errors**, production build, audit **0 production vulnerabilities**.
+- **Test site:** https://taylan789.github.io/MobilyaCAD/. Local tests were not run; exact-SHA Actions supplied verification.
+- **Limits:** AI Developer [#44924539196](https://github.com/Taylan789/MobilyaCAD/actions/runs/44924539196) failed due OpenRouter free-model daily 429; no paid retry, quota/secrets changes. Integration/performance job skipped; frontend redesign PR remains separate/unmerged.
+- **Next:** DOM-093 three-revision Part-provenance isolation, then DOM-094 quantity/rounded price reductions.
+
+## 21 Kasım 2026 19:27 TRT — DOM-093 regression slice (Actions pending)
+
+- **Deliverable:** compare r1 directly with r3 across three quote revisions. r2 changes a quantity temporarily; r3 restores the quantity but changes one material's Part scope, while a second Part-scoped material remains unchanged.
+- **Acceptance:** only the affected source emits a removed/added pair with exact Part IDs; material/grand-total deltas stay zero; comparison JSON v2 and CSV v3 round-trip exactly.
+- **Code/test commit SHA:** pending GitHub commit creation; exact-SHA CI/QA/Pages are pending. Local tests were not run in this runtime.
+- **Files:** `domain/production/projectQuoteRevision.test.mjs`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`.
+- **Next:** DOM-094 price reductions, fractional quantities and rounded total reconciliation.

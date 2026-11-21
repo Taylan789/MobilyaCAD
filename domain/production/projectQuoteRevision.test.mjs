@@ -2102,3 +2102,97 @@ test("DOM-092 strict revisions reject duplicate source identities while legacy h
   assert.deepEqual(comparison.comparison.lineChanges, []);
 });
 
+
+
+test("DOM-093 three-revision comparison isolates a single Part-provenance change and preserves zero-total exports", () => {
+  const materialLine = (id, sourceId, sourcePartIds, quantity, unitPriceMinor) => ({
+    line: {
+      id,
+      category: "material",
+      description: "DOM-093 MDF panel",
+      quantity,
+      unit: "m2",
+      unitPriceMinor,
+      currencyCode: "TRY",
+      sourceReference: "materials:dom-093"
+    },
+    source: {
+      costLineId: id,
+      sourceType: "production-consumption",
+      sourceId,
+      resourceType: "material",
+      resourceId: "mdf-18",
+      unit: "m2",
+      sourcePartIds
+    }
+  });
+  const revisionSnapshot = (revision, partA, quantityA) => createSnapshotWithQuoteLines([
+    materialLine("dom-093-" + revision + "-part-a", "dom-093-source-a", [partA], quantityA, 1000),
+    materialLine("dom-093-" + revision + "-part-b", "dom-093-source-b", ["dom-093-part-b"], 2, 500)
+  ]);
+  const revisionOneSnapshot = revisionSnapshot("r1", "dom-093-part-a", 1);
+  const revisionTwoSnapshot = revisionSnapshot("r2", "dom-093-part-a", 1.5);
+  const revisionThreeSnapshot = revisionSnapshot("r3", "dom-093-part-a-replaced", 1);
+  const history = {
+    projectId: "project-42",
+    revisions: [
+      createHistoryRevision({ pricingSnapshot: revisionOneSnapshot }),
+      createHistoryRevision({
+        revisionId: "quote-r2",
+        revisionNumber: 2,
+        createdAt: "2026-11-17T11:00:00Z",
+        previousRevisionId: "quote-r1",
+        pricingSnapshot: revisionTwoSnapshot
+      }),
+      createHistoryRevision({
+        revisionId: "quote-r3",
+        revisionNumber: 3,
+        createdAt: "2026-11-17T12:00:00Z",
+        previousRevisionId: "quote-r2",
+        pricingSnapshot: revisionThreeSnapshot
+      })
+    ]
+  };
+
+  const result = compareProjectQuoteRevisions(history, "quote-r1", "quote-r3");
+  assert.equal(result.status, "ready", result.diagnostics.join("; "));
+  assert.ok(result.comparison);
+  assert.equal(result.comparison.fromRevisionNumber, 1);
+  assert.equal(result.comparison.toRevisionNumber, 3);
+  assert.equal(result.comparison.categoryDeltasMinor.material, 0);
+  assert.equal(result.comparison.grandTotalDeltaMinor, 0);
+  assert.equal(result.comparison.lineChanges.length, 2);
+
+  const changedPartLines = result.comparison.lineChanges.filter(
+    change => (change.from ?? change.to)?.sourceId === "dom-093-source-a"
+  );
+  assert.equal(changedPartLines.length, 2);
+  const removed = changedPartLines.find(change => change.type === "removed");
+  const added = changedPartLines.find(change => change.type === "added");
+  assert.ok(removed);
+  assert.ok(added);
+  assert.equal(removed.to, null);
+  assert.equal(added.from, null);
+  assert.deepEqual(removed.from.sourcePartIds, ["dom-093-part-a"]);
+  assert.deepEqual(added.to.sourcePartIds, ["dom-093-part-a-replaced"]);
+  assert.equal(removed.from.lineTotalMinor, added.to.lineTotalMinor);
+
+  const unchangedPartLines = result.comparison.lineChanges.filter(
+    change => (change.from ?? change.to)?.sourceId === "dom-093-source-b"
+  );
+  assert.equal(unchangedPartLines.length, 0);
+
+  const json = serializeProjectQuoteRevisionComparisonFile(result);
+  assert.equal(json.status, "ready", json.diagnostics.join("; "));
+  assert.equal(JSON.parse(json.json).schemaVersion, 2);
+  const parsedJson = parseProjectQuoteRevisionComparisonFile(json.json);
+  assert.equal(parsedJson.status, "ready", parsedJson.diagnostics.join("; "));
+  assert.deepEqual(parsedJson.comparison, result.comparison);
+
+  const csv = serializeProjectQuoteRevisionComparisonCsv(result);
+  assert.equal(csv.status, "ready", csv.diagnostics.join("; "));
+  assert.equal(PROJECT_QUOTE_REVISION_COMPARISON_CSV_VERSION, 3);
+  const parsedCsv = parseProjectQuoteRevisionComparisonCsv(csv.csv);
+  assert.equal(parsedCsv.status, "ready", parsedCsv.diagnostics.join("; "));
+  assert.deepEqual(parsedCsv.comparison, result.comparison);
+});
