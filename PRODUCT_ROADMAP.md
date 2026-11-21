@@ -761,7 +761,7 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 
 | ID | Sahip | Durum / kabul kriteri | Bağımlılık |
 |---|---|---|---|
-| DOM-085 | Ürün Geliştirme | IN_PROGRESS — fiyat kaynağı referansı değiştiğinde aynı katalog kaynağı/Part kapsamı için tek `changed` satırı; JSON v2 ve CSV v3 round-trip exact | DOM-084 |
+| DOM-085 | Ürün Geliştirme | VERIFIED — kaynak referansı değişimi aynı katalog kaynağı ve Part kapsamı için tek `changed` satırı; JSON v2 ve CSV v3 exact round-trip, 139 frontend + 604 domain test, build/audit passed | DOM-084 |
 | DOM-086 | Ürün Geliştirme | READY — Part provenance değişimi aynı katalog kaynağında `removed` + `added` olarak ayrılır, yeni/önceki Part ID'ler exact korunur, JSON/CSV round-trip | DOM-085 |
 | INT-001 | Arayüz + Ürün | READY — frontend adapter tüketimi ve desteklenmeyen geometri export'unu bloklama; round-trip testleri | Production-domain contract |
 | INT-002 | Entegrasyon/Performans | READY — adapter round-trip ve geometri/miktar sadakati testleri; uzman dalında izolasyon | INT-001 |
@@ -866,8 +866,9 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - Test site deployed: https://taylan789.github.io/MobilyaCAD/
 - Next: DOM-085 source-reference value-change cross-check on an unchanged catalog resource with exact Part provenance through JSON v2/CSV v3.
 
-## DOM-085 — Quote comparison source-reference value change (IN_PROGRESS, 21 November 2026)
-- Acceptance: changing only the price/source reference on the same catalog resource and Part scope yields one `changed` line, not added/removed; price/category/grand totals remain unchanged.
-- Automated test also checks exact source-reference and Part provenance preservation through strict comparison JSON v2 and CSV v3.
-- Test implementation commit SHA and CI/QA/Pages results pending.
-- Next: DOM-086 catalog-stable Part-provenance change should be represented as removed + added without losing either Part ID list.
+## DOM-085 — Quote comparison source-reference value change (VERIFIED, 21 November 2026)
+- Changing only the material price/source reference on the same catalog resource and Part scope produces one `changed` line (no added/removed pair), while category and grand-total deltas remain zero.
+- The regression asserts exact before/after source reference and Part IDs, plus strict comparison JSON v2 and CSV v3 round-trip equality.
+- Code/test [commit 0a14278a](https://github.com/Taylan789/MobilyaCAD/commit/0a14278a52828c47ac1809e85aa6604e9297cba0); exact-SHA [CI #44885185709](https://github.com/Taylan789/MobilyaCAD/actions/runs/44885185709), [QA #44885185708](https://github.com/Taylan789/MobilyaCAD/actions/runs/44885185708), [Pages #44885185716](https://github.com/Taylan789/MobilyaCAD/actions/runs/44885185716) all succeeded. QA: 139 frontend + 604 domain tests; strict domain type-check, lint (32 warnings / 0 errors), production build, and production audit (0 vulnerabilities).
+- Test site deployment succeeded: https://taylan789.github.io/MobilyaCAD/. No frontend files or production logic changed.
+- Next: DOM-086 — stable catalog resource but changed Part provenance must produce removed + added entries and preserve both exact Part ID lists through JSON/CSV round-trip.
