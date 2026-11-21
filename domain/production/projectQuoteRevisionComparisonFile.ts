@@ -8,6 +8,9 @@ import type {
 
 export const PROJECT_QUOTE_REVISION_COMPARISON_FILE_TYPE = "mobilyacad-quote-revision-comparison" as const;
 
+export const PROJECT_QUOTE_REVISION_COMPARISON_FILE_MAX_BYTES = 1_048_576;
+export const PROJECT_QUOTE_REVISION_COMPARISON_MAX_LINE_CHANGES = 2_000;
+
 export interface ProjectQuoteRevisionComparisonFile {
   fileType: typeof PROJECT_QUOTE_REVISION_COMPARISON_FILE_TYPE;
   schemaVersion: 1 | 2;
@@ -362,6 +365,9 @@ function validateComparison(value: unknown, allowResourceIdentity: boolean): Pro
   }
 
   if (!Array.isArray(value.lineChanges)) throw new Error("Teklif satır farkları listesi olmalıdır.");
+  if (value.lineChanges.length > PROJECT_QUOTE_REVISION_COMPARISON_MAX_LINE_CHANGES) {
+    throw new Error("Teklif satır farkları en fazla 2.000 kayıt içerebilir.");
+  }
   const fromIdentities = new Set<string>();
   const toIdentities = new Set<string>();
   const lineChanges: ProjectQuoteRevisionLineChange[] = value.lineChanges.map((entry, index) => {
@@ -443,6 +449,10 @@ export function serializeProjectQuoteRevisionComparisonFile(
     };
     const json = JSON.stringify(file);
     if (typeof json !== "string") throw new Error("Teklif karşılaştırması JSON metnine dönüştürülemedi.");
+    if (json.length > PROJECT_QUOTE_REVISION_COMPARISON_FILE_MAX_BYTES ||
+      new TextEncoder().encode(json).byteLength > PROJECT_QUOTE_REVISION_COMPARISON_FILE_MAX_BYTES) {
+      throw new Error("Teklif karşılaştırma JSON dosyası 1 MiB sınırını aşamaz.");
+    }
     return Object.freeze({ status: "ready" as const, json, diagnostics: Object.freeze([]) });
   } catch (error) {
     return blockedSerialization(error instanceof Error ? error.message : String(error));
@@ -454,6 +464,10 @@ export function parseProjectQuoteRevisionComparisonFile(
   jsonValue: unknown
 ): ProjectQuoteRevisionComparisonFileParseResult {
   if (typeof jsonValue !== "string") return blockedParse("Teklif karşılaştırma dosyası JSON metni olmalıdır.");
+  if (jsonValue.length > PROJECT_QUOTE_REVISION_COMPARISON_FILE_MAX_BYTES ||
+    new TextEncoder().encode(jsonValue).byteLength > PROJECT_QUOTE_REVISION_COMPARISON_FILE_MAX_BYTES) {
+    return blockedParse("Teklif karşılaştırma JSON dosyası 1 MiB sınırını aşamaz.");
+  }
   let parsed: unknown;
   try {
     parsed = JSON.parse(jsonValue) as unknown;

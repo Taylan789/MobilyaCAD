@@ -478,3 +478,74 @@ test("DOM-072 JSON comparison blocks partial or inconsistent roll metadata", () 
     assert.equal(serializeProjectQuoteRevisionComparisonFile(candidate).status, "blocked");
   }
 });
+
+
+test("DOM-098 comparison JSON import rejects oversized UTF-8 payloads without partial data", () => {
+  const valid = serializeProjectQuoteRevisionComparisonFile(readyComparisonResult());
+  assert.equal(valid.status, "ready");
+  const oversized = valid.json + "🙂".repeat(300_000;
+  assert.ok(oversized.length < 1_048_576);
+  const parsed = parseProjectQuoteRevisionComparisonFile(oversized);
+  assert.equal(parsed.status, "blocked");
+  assert.equal(parsed.file, null);
+  assert.equal(parsed.comparison, null);
+  assert.match(parsed.diagnostics[0], /1 MiB/);
+});
+
+test("DOM-098 comparison JSON import and export cap line changes at 2,000", () => {
+  const valid = serializeProjectQuoteRevisionComparisonFile(readyComparisonResult());
+  assert.equal(valid.status, "ready");
+  const candidate = JSON.parse(valid.json);
+  candidate.comparison.lineChanges = Array.from({ length: 2_001 }, (_, index) => ({
+    type: "added",
+    from: null,
+    to: {
+      category: "waste", description: "Fire", quantity: 1, unit: "kalem",
+      unitPriceMinor: 0, lineTotalMinor: 0, currencyCode: "TRY",
+      sourceType: "quote-adjustment", sourceId: "waste-" + index
+    }
+  }));
+  const serialized = serializeProjectQuoteRevisionComparisonFile({
+    status: "ready", comparison: candidate.comparison, diagnostics: []
+  });
+  assert.equal(serialized.status, "blocked");
+  assert.equal(serialized.json, null);
+  assert.match(serialized.diagnostics[0], /2.000 kayıt/);
+
+  const oversizedLineJson = JSON.stringify(candidate);
+  assert.ok(oversizedLineJson.length < 1_048_576);
+  const parsed = parseProjectQuoteRevisionComparisonFile(oversizedLineJson);
+  assert.equal(parsed.status, "blocked");
+  assert.equal(parsed.file, null);
+  assert.equal(parsed.comparison, null);
+  assert.match(parsed.diagnostics[0], /2.000 kayıt/);
+});
+
+test("DOM-098 JSON serializer refuses payloads above 1 MiB", () => {
+  const comparison = readyComparisonResult().comparison;
+  comparison.fromGrandTotalMinor = 0;
+  comparison.toGrandTotalMinor = 0;
+  comparison.grandTotalDeltaMinor = 0;
+  comparison.categoryDeltasMinor = { material: 0, hardware: 0, labor: 0, operation: 0, waste: 0, profit: 0 };
+  comparison.lineChanges = Array.from({ length: 2_000 }, (_, index) => ({
+    type: "added",
+    from: null,
+    to: {
+      category: "waste", description: "x".repeat(512), quantity: 1, unit: "kalem",
+      unitPriceMinor: 0, lineTotalMinor: 0, currencyCode: "TRY",
+      sourceType: "quote-adjustment", sourceId: "waste-" + index
+    }
+  }));
+  const estimatedJson = JSON.stringify({
+    fileType: PROJECT_QUOTE_REVISION_COMPARISON_FILE_TYPE,
+    schemaVersion: 2,
+    comparison
+  });
+  assert.ok(new TextEncoder().encode(estimatedJson).byteLength > 1_048_576);
+  const serialized = serializeProjectQuoteRevisionComparisonFile({
+    status: "ready", comparison, diagnostics: []
+  });
+  assert.equal(serialized.status, "blocked");
+  assert.equal(serialized.json, null);
+  assert.match(serialized.diagnostics[0], /1 MiB/);
+});
