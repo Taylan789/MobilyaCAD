@@ -409,7 +409,7 @@ export function DrawerBoxConfigurator({
           {formOpen && (
             <form className="cad-drawer-config-form" onSubmit={saveConfig}>
               {dimensionGroups.map((group) => (
-              <section
+                <section
                 className="cad-drawer-config-section"
                 key={group.key}
                 aria-labelledby={"drawer-config-section-" + group.key}
@@ -511,7 +511,9 @@ export function DrawerBoxConfigurator({
                   />
                 </div>
               </div>
-            </section><details className="cad-drawer-config-disclosure cad-drawer-config-disclosure--materials">
+            </section>
+
+            <details className="cad-drawer-config-disclosure cad-drawer-config-disclosure--materials">
                 <summary>Panel grubu malzeme atamaları</summary>
                 <p className="cad-drawer-config-note">
                   Her panel grubu için ayrı katalog malzemesi seçebilirsin.
