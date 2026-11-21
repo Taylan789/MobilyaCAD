@@ -260,18 +260,21 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 ## Sıradaki 3 küçük görev — domain sahipliği
 
 1. DOM-099 DONE — CSV import/export 1 MiB UTF-8 payload ve 2.000 satır fark limiti; eski CSV v1/v2/v3 korundu. [CI #44958138720](https://github.com/Taylan789/MobilyaCAD/actions/runs/44958138720), [QA #44958138801](https://github.com/Taylan789/MobilyaCAD/actions/runs/44958138801), [Pages #44958138729](https://github.com/Taylan789/MobilyaCAD/actions/runs/44958138729) passed.
-2. DOM-100 IMPLEMENTED — ilk QA serializer envelope'daki `file` alanı nedeniyle başarısız; düzeltme commit edildi, exact-SHA Actions pending.
-3. DOM-101 PLANNED — adversarial CSV quoting/record-boundary ve UTF-8/byte-limit kombinasyonları.
-4. INT-001 FRONTEND-OWNED — karşılaştırma download ve üretim raporu adapter sözleşmesi; frontend dosyaları ürün ajanı tarafından değiştirilmez.
+2. DOM-100 VERIFIED — JSON v2 ↔ CSV v3 exact round-trip, source/Part metadata preservation and corrupted row-version fail-closed; CI/QA/Pages successful.
+3. DOM-101 READY — adversarial CSV quoting/record-boundary and UTF-8/byte-limit combinations.
+4. DOM-102 PLANNED — JSON v1/v2 and CSV v1/v2/v3 legacy compatibility matrix; explicitly verify metadata preservation/loss.
+5. INT-001 FRONTEND-OWNED — comparison download and production report/export contract; product agent does not edit frontend files.
+6. INT-002/PERF-001 INTEGRATION-OWNED — adapter round-trip and measured CAD profiling on the specialist-owned branch.
+7. QA-003 BLOCKED — end-to-end export reconciliation after INT-001/INT-002 evidence.
 
-## DOM-100 — JSON v2 / CSV v3 çapraz format bütünlüğü (IMPLEMENTED, Actions pending)
+## DOM-100 — JSON v2 / CSV v3 çapraz format bütünlüğü (VERIFIED, 22 Kasım 2026)
 
-- JSON v2 comparison, CSV v3'e dönüştürülüp tekrar parse edilir; ardından CSV'den JSON v2'ye dönüp parse edilen comparison nesnesi kaynakla birebir karşılaştırılır.
-- Test katalog malzeme/kenar bandı kimlikleri ve birimleri ile Part/kaynak metadatasını korumayı doğrular.
-- CSV line-row sürümünün bozulması import'u blocked yapmalı ve kısmi comparison döndürmemelidir.
-- İlk commit [5f6b3b19](https://github.com/Taylan789/MobilyaCAD/commit/5f6b3b19d33a50942e61a43f5930d160dbed9d08): CI [#44962254296](https://github.com/Taylan789/MobilyaCAD/actions/runs/44962254296) başarılı; QA [#44962254281](https://github.com/Taylan789/MobilyaCAD/actions/runs/44962254281) başarısız (CSV serializer strict envelope `file` alanını reddetti); Pages [#44962254292](https://github.com/Taylan789/MobilyaCAD/actions/runs/44962254292) gate başarısız.
-- Test, JSON parser sonucu içinden serializer'ın izin verdiği alanları açıkça geçirerek düzeltildi; yeni exact-SHA CI/QA/Pages bekleniyor.
-- Next: DOM-101 adversarial CSV quoting/record-boundary tests; INT-001 frontend-owned adapter contract remains separate.
+- JSON v2 → CSV v3 import/export → JSON v2 çapraz round-trip comparison nesnesi birebir eşit; katalog malzeme/kenar bandı kimlikleri, birimler, Part ID ve kaynak metadata korunuyor.
+- CSV line-row sürümünü 3→4 bozmak parser'ı blocked yapıyor ve kısmi comparison döndürmüyor.
+- Kod/test: [f704bbd6](https://github.com/Taylan789/MobilyaCAD/commit/f704bbd6af908a1626c61c9d9aa13663ed313087). İlk deneme [5f6b3b19](https://github.com/Taylan789/MobilyaCAD/commit/5f6b3b19d33a50942e61a43f5930d160dbed9d08) serializer envelope file alanı nedeniyle QA'da başarısız oldu; düzeltildi ve yeniden doğrulandı.
+- Exact-SHA CI [#44962373022](https://github.com/Taylan789/MobilyaCAD/actions/runs/44962373022), QA [#44962373046](https://github.com/Taylan789/MobilyaCAD/actions/runs/44962373046), Pages [#44962373013](https://github.com/Taylan789/MobilyaCAD/actions/runs/44962373013) başarılı. QA: 142 frontend + 622 domain tests, strict domain type-check, lint 32 warnings/0 errors, production build, audit 0 vulnerabilities.
+- Test sitesi: https://taylan789.github.io/MobilyaCAD/ — exact-SHA Pages deployment succeeded. Bu dilim frontend görünümünü değiştirmez.
+- Next: DOM-101 adversarial CSV quoting/record-boundary tests; DOM-102 legacy-version compatibility; INT-001 frontend-owned adapter contract remains separate.
 
 ## Üretim güvenliği ve karar sınırları
 

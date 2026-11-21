@@ -1,18 +1,10 @@
-## 22 Kasım 2026 02:30 TRT — DOM-100 doğrulama düzeltmesi, Actions pending
+## 22 Kasım 2026 02:34 TRT — DOM-100 VERIFIED
 
-- İlk test commit'i [5f6b3b19](https://github.com/Taylan789/MobilyaCAD/commit/5f6b3b19d33a50942e61a43f5930d160dbed9d08): CI [#44962254296](https://github.com/Taylan789/MobilyaCAD/actions/runs/44962254296) passed; QA [#44962254281](https://github.com/Taylan789/MobilyaCAD/actions/runs/44962254281) failed at DOM-100. Root cause: strict CSV serializer rejects the JSON parser result's extra `file` envelope property. Pages [#44962254292](https://github.com/Taylan789/MobilyaCAD/actions/runs/44962254292) failed its CI/QA gate.
-- Correction now passes only `status`, `diagnostics`, and `comparison` to the CSV serializer; test logic and production behavior are not weakened.
-- Current correction commit SHA and exact-SHA Actions results will be recorded after branch update and verification. Local tests unavailable; GitHub Actions is the test source.
-- Next: exact-SHA CI/QA/Pages; if green, DOM-101 adversarial CSV quoting/record boundaries.
-
-
-## 22 Kasım 2026 02:29 TRT — DOM-100 IMPLEMENTED, Actions pending
-
-- JSON v2 comparison → CSV v3 export/import → JSON v2 export/import cross-format exact equality test added; resource/catalog identity, units and Part provenance are included.
-- Invalid CSV line-row format version must fail closed with `status=blocked`, `comparison=null`.
-- **Commit SHA:** recorded in the follow-up verification after commit creation. **Local tests:** not run in this runtime; exact-SHA GitHub Actions is the verification source.
-- Changed: `domain/production/projectQuoteRevisionComparisonCsv.test.mjs`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`, `AI_COORDINATION.md`.
-- Next: inspect exact-SHA CI/QA/Pages results; then DOM-101 adversarial CSV quoting/record boundaries.
+- Code/test commit: [f704bbd6](https://github.com/Taylan789/MobilyaCAD/commit/f704bbd6af908a1626c61c9d9aa13663ed313087). JSON v2 → CSV v3 → JSON v2 cross-format exact round-trip preserves catalog resource IDs/units, Part IDs and provenance; malformed CSV line-row version rejects with no partial comparison.
+- First attempt [5f6b3b19](https://github.com/Taylan789/MobilyaCAD/commit/5f6b3b19d33a50942e61a43f5930d160dbed9d08) failed QA because CSV serializer rejects the parser result's extra file envelope property. Correction explicitly passes only status, diagnostics, and comparison; no test was weakened.
+- Exact-SHA CI [#44962373022](https://github.com/Taylan789/MobilyaCAD/actions/runs/44962373022), QA [#44962373046](https://github.com/Taylan789/MobilyaCAD/actions/runs/44962373046), Pages [#44962373013](https://github.com/Taylan789/MobilyaCAD/actions/runs/44962373013) all succeeded. QA: 142 frontend + 622 domain tests, strict shared-domain TypeScript, lint 32 warnings/0 errors, production build and audit 0 vulnerabilities.
+- Test site: https://taylan789.github.io/MobilyaCAD/ — deployment confirmed. Local tests were not run in this runtime; exact-SHA Actions are the evidence.
+- Next: DOM-101 adversarial CSV quoting/record boundaries; DOM-102 legacy format compatibility; INT-001 remains frontend-owned.
 
 
 ## 22 Kasım 2026 00:15 TRT — DOM-097 VERIFIED
