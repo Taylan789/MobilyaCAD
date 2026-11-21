@@ -265,6 +265,19 @@
 .mc-production__notice li b {
   color: #665440;
 }
+.mc-production__export-blockers {
+  display: grid;
+  gap: 6px;
+  padding-left: 16px;
+}
+
+.mc-production__export-blockers li {
+  line-height: 1.6;
+}
+
+.mc-production__export-blockers li::marker {
+  color: #b06b43;
+}
 
 .mc-production__issues,
 .mc-production__section {
