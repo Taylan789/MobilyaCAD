@@ -1930,9 +1930,9 @@
 - **Sonraki:** DOM-081 project v2 envelope field-preservation; DOM-082 iki revizyonlu standalone import/export round-trip; ardından INT-001 export adapter contract reassessment.
 
 
-## 21 Kasım 2026 07:56 TRT — DOM-081 IN_PROGRESS
+## 21 Kasım 2026 08:02 TRT — DOM-081 QA correction
 
-- **Kapsam:** Proje JSON v2 teklif geçmişi import'unda geçmiş dışındaki alanları kayıpsız tutma, hedef proje iç içe nesnelerini kaynakla alias paylaşmayacak şekilde kopyalama ve sonucu derin dondurma; JSON dışı/döngüsel hedef zarfını fail-closed reddetme.
-- **Kod/test:** `projectQuoteRevisionProjectFile.ts` import zarfı kopyalama-güvenlik katmanı ve yeni `projectQuoteRevisionProjectFileImportImmutability.test.mjs` regresyon dosyası. Commit SHA oluşturulunca kaydedilecek.
-- **Otomatik doğrulama:** CI/QA/Pages exact-SHA sonuçları bekleniyor; bu ortamda yerel test çalıştırılmadı.
-- **Sonraki:** Actions sonuçlarını doğrula, DOM-081'i DONE olarak koordinasyon/roadmap/progress'e kanıtla; sonra DOM-082 iki-revizyon round-trip.
+- Code commit [f4bb4337](https://github.com/Taylan789/MobilyaCAD/commit/f4bb4337a6991db0e33f5f7cd01ea1d99f203f6e) adds deep JSON-envelope cloning/freezing and fail-closed malformed/cyclic data rejection; the new import-isolation test was added.
+- Exact-SHA CI [#44868896354](https://github.com/Taylan789/MobilyaCAD/actions/runs/44868896354) passed. QA [#44868896322](https://github.com/Taylan789/MobilyaCAD/actions/runs/44868896322) failed before the new assertions: the fixture expected a `ready` quote snapshot but an empty quote produced `empty`. The production code was not implicated; the fixture will include a valid explicit quote adjustment.
+- Pages [#44868896329](https://github.com/Taylan789/MobilyaCAD/actions/runs/44868896329) build succeeded, exact-SHA verification failed, and deploy was blocked/skipped. Test site was not updated by DOM-081.
+- **Correction:** add an explicit fixture quote line, keep all validation assertions intact, then rerun exact-SHA CI/QA/Pages.

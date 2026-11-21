@@ -21,7 +21,16 @@ const snapshotResult = createProjectQuotePricingSnapshot({
   tariffTable: [],
   consumptionPriceList: null,
   laborOperationTariffList: null,
-  quoteAdjustments: []
+  quoteAdjustments: [{
+    id: "dom-081-import-fixture",
+    category: "profit",
+    description: "Import fixture",
+    quantity: 1,
+    unit: "adet",
+    unitPriceMinor: 100,
+    currencyCode: "TRY",
+    sourceReference: "dom-081-test:v1"
+  }]
 });
 assert.equal(snapshotResult.status, "ready");
 assert.ok(snapshotResult.snapshot);
