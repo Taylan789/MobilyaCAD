@@ -945,3 +945,12 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - QA: **142 frontend + 616 domain tests** passed; strict domain TypeScript, production build, audit **0 vulnerabilities**, lint **32 warnings / 0 errors**. Deployment confirmed at https://taylan789.github.io/MobilyaCAD/.
 - Iteration evidence: DOM-091 repeated source identities with different snapshots were initially blocked and then explicitly preserved; CSV duplicate fixture metadata was corrected after a failed run. Only the final exact-SHA run is green.
 - Next: DOM-097 fractional hardware quantity and labor/operation revision reconciliation; INT-001 shared export contract; DOM-098 bounded JSON comparison import.
+
+## DOM-097 — Three-revision fractional hardware and labor/operation reconciliation (IMPLEMENTED, Actions pending)
+
+- Regression test: [code/test commit 56e00eef](https://github.com/Taylan789/MobilyaCAD/commit/56e00eefa5d8a29a77362bea10345a3b31586745), in `domain/production/projectQuoteRevision.test.mjs`.
+- r1→r3 test carries fractional hardware quantity and price, changes existing labor quantity/tariff, and adds a changing operation line; r2 is deliberately intermediate.
+- Acceptance assertions: category deltas hardware +1,000 / labor +1,300 / operation +384 minor units, grand total +2,684; each rounded line total and exact JSON v2/CSV v3 comparison round-trip is preserved.
+- Code/test scope is regression coverage only; no frontend, adapter/performance-owned file or production calculation changes.
+- Exact-SHA CI/QA and Pages deployment are pending verification; do not mark fully verified until real Actions results are observed.
+- **Next 3 small tasks:** DOM-098 bounded comparison JSON import (fail closed/no partial payload); INT-001 domain/frontend export contract review (joint ownership, no frontend writes); then QA-003 end-to-end export reconciliation after INT-001/INT-002.
