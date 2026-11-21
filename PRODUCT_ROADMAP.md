@@ -762,7 +762,7 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 | ID | Sahip | Durum / kabul kriteri | Bağımlılık |
 |---|---|---|---|
 
-| DOM-086 | Ürün Geliştirme | IN_PROGRESS — stable catalog/source, changed Part provenance emits removed + added; exact old/new Part IDs and zero cost deltas; JSON v2/CSV v3 round-trip | DOM-085 |
+| DOM-086 | Ürün Geliştirme | VERIFIED — stable catalog/source and cost values, changed Part provenance → removed + added; exact old/new Part ID lists; JSON v2/CSV v3 round-trip; 139 frontend + 605 domain tests, build/audit passed | DOM-085 |
 | DOM-087 | Ürün Geliştirme | READY — multiple Part-scoped material lines, only changed provenance pair changes; unaffected line remains unchanged; JSON/CSV exact round-trip | DOM-086 |
 | INT-001 | Arayüz + Ürün | READY — frontend adapter tüketimi ve desteklenmeyen geometri export'unu bloklama; round-trip testleri | Production-domain contract |
 | INT-002 | Entegrasyon/Performans | READY — adapter round-trip ve geometri/miktar sadakati testleri; uzman dalında izolasyon | INT-001 |
@@ -872,4 +872,4 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - The regression asserts exact before/after source reference and Part IDs, plus strict comparison JSON v2 and CSV v3 round-trip equality.
 - Code/test [commit 0a14278a](https://github.com/Taylan789/MobilyaCAD/commit/0a14278a52828c47ac1809e85aa6604e9297cba0); exact-SHA [CI #44885185709](https://github.com/Taylan789/MobilyaCAD/actions/runs/44885185709), [QA #44885185708](https://github.com/Taylan789/MobilyaCAD/actions/runs/44885185708), [Pages #44885185716](https://github.com/Taylan789/MobilyaCAD/actions/runs/44885185716) all succeeded. QA: 139 frontend + 604 domain tests; strict domain type-check, lint (32 warnings / 0 errors), production build, and production audit (0 vulnerabilities).
 - Test site deployment succeeded: https://taylan789.github.io/MobilyaCAD/. No frontend files or production logic changed.
-- Next: DOM-086 — stable catalog resource but changed Part provenance must produce removed + added entries and preserve both exact Part ID lists through JSON/CSV round-trip.
+- Next: DOM-087 multi-line Part-provenance isolation; only the changed provenance pair should move while unrelated material lines remain stable, with exact JSON/CSV round-trip.
