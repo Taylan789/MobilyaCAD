@@ -241,46 +241,64 @@ export function FurniturePartInspector({
         </div>
       </div>
 
-      <div className="cad-part-editor-group">
-        <div className="cad-part-editor-heading">
-          <span><Move3D /> YEREL KONUM</span>
-          <small>mm</small>
-        </div>
-        <div className="cad-part-coordinate-grid">
-          {axes.map((axis) => (
-            <div className="cad-field min-w-0" key={axis.key}>
-              <Label htmlFor={`selected-part-position-${axis.key}`}>
-                <span className={`cad-part-axis-label ${axis.color}`}>{axis.label}</span>
-                Konum
-              </Label>
-              <div className="cad-input-with-unit">
-                <Input
-                  id={`selected-part-position-${axis.key}`}
-                  type="number"
-                  inputMode="decimal"
-                  step="0.1"
-                  value={positionDraft[axis.key]}
-                  onChange={(event) =>
-                    setPositionDraft((current) => ({
-                      ...current,
-                      [axis.key]: event.target.value,
-                    }))
-                  }
-                  onBlur={() => commitPosition(axis.key, axis.index)}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter") event.currentTarget.blur();
-                  }}
-                />
-                <span>mm</span>
-              </div>
+      <details className="cad-part-position-disclosure">
+        <summary className="cad-part-position-disclosure__summary">
+          <span className="cad-part-position-disclosure__heading">
+            <span className="cad-part-position-disclosure__icon" aria-hidden="true"><Move3D /></span>
+            <span className="cad-part-position-disclosure__label">
+              <strong>YEREL KONUM</strong>
+              <small>Mobilya merkezine göre · mm</small>
+            </span>
+          </span>
+          <span className="cad-part-position-disclosure__values" aria-label="Yerel konum değerleri, milimetre">
+            <span className="cad-part-position-disclosure__axis cad-part-position-disclosure__axis--x"><b>X</b><span>{positionDraft.x}</span></span>
+            <span className="cad-part-position-disclosure__axis cad-part-position-disclosure__axis--y"><b>Y</b><span>{positionDraft.y}</span></span>
+            <span className="cad-part-position-disclosure__axis cad-part-position-disclosure__axis--z"><b>Z</b><span>{positionDraft.z}</span></span>
+          </span>
+        </summary>
+        <div className="cad-part-position-disclosure__content">
+          <div className="cad-part-editor-group">
+            <div className="cad-part-editor-heading">
+              <span><Move3D /> YEREL KONUM</span>
+              <small>mm</small>
             </div>
-          ))}
+            <div className="cad-part-coordinate-grid">
+              {axes.map((axis) => (
+                <div className="cad-field min-w-0" key={axis.key}>
+                  <Label htmlFor={`selected-part-position-${axis.key}`}>
+                    <span className={`cad-part-axis-label ${axis.color}`}>{axis.label}</span>
+                    Konum
+                  </Label>
+                  <div className="cad-input-with-unit">
+                    <Input
+                      id={`selected-part-position-${axis.key}`}
+                      type="number"
+                      inputMode="decimal"
+                      step="0.1"
+                      value={positionDraft[axis.key]}
+                      onChange={(event) =>
+                        setPositionDraft((current) => ({
+                          ...current,
+                          [axis.key]: event.target.value,
+                        }))
+                      }
+                      onBlur={() => commitPosition(axis.key, axis.index)}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter") event.currentTarget.blur();
+                      }}
+                    />
+                    <span>mm</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <p className="cad-field-note">
+              X, Y ve Z değerleri parçanın mobilya merkezine göre yerel konumudur.
+              Değişiklikler 3D önizlemeye ve proje verisine uygulanır.
+            </p>
+          </div>
         </div>
-        <p className="cad-field-note">
-          X, Y ve Z değerleri parçanın mobilya merkezine göre yerel konumudur.
-          Değişiklikler 3D önizlemeye ve proje verisine uygulanır.
-        </p>
-      </div>
+      </details>
 
       <div className="cad-part-material-group">
         <div className="cad-part-editor-heading">
