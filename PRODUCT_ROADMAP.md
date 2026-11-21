@@ -882,3 +882,11 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - Test site deployment succeeded: https://taylan789.github.io/MobilyaCAD/. No production quote logic or frontend files changed.
 - Known boundary: regression-only slice; local tests were not run in this runtime. AI Developer [#44886646460](https://github.com/Taylan789/MobilyaCAD/actions/runs/44886646460) failed with OpenRouter free-model HTTP 429 (daily limit 50/50); no paid retry or secrets/quota changes. Integration/performance job was skipped; no active specialist PR/run was evidenced. UI PRs remain unmerged, so this slice does not provide the pending visible redesign.
 - Next: DOM-088 reordered-line/source mapping determinism; INT-001 remains frontend-owned and INT-002/PERF-001 specialist-owned.
+
+
+## DOM-090 — Three-revision quote comparison r1→r3 (implementation; Actions pending)
+- A three-revision history now exercises direct r1→r3 comparison, deliberately skipping intermediate r2 changes.
+- Assertions cover Part-scoped source provenance, one changed material line, one removed line, one added line, exact category/grand-total reconciliation, and strict comparison JSON v2 / CSV v3 round-trip.
+- Reverse revision order and an unknown revision ID must return blocked with no comparison payload.
+- No production calculation or frontend behavior changed; the existing comparison API is exercised with a complete three-revision chain.
+- Next: DOM-091 repeated-source line matching across revision history and deterministic output; keep integration/UI ownership boundaries intact.

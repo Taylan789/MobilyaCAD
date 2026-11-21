@@ -1799,3 +1799,118 @@ test("DOM-089 quote revision rejects source mappings reordered independently fro
   );
 });
 
+
+
+test("DOM-090 three-revision r1-to-r3 comparison preserves Part provenance, totals and fail-closed selection", () => {
+  const materialLine = (id, description, sourceId, partId, quantity, unitPriceMinor) => ({
+    line: {
+      id,
+      category: "material",
+      description,
+      quantity,
+      unit: "m2",
+      unitPriceMinor,
+      currencyCode: "TRY",
+      sourceReference: "materials:dom-090"
+    },
+    source: {
+      costLineId: id,
+      sourceType: "production-consumption",
+      sourceId,
+      resourceType: "material",
+      resourceId: "mdf-18",
+      unit: "m2",
+      sourcePartIds: [partId]
+    }
+  });
+  const revisionOneSnapshot = createSnapshotWithQuoteLines([
+    materialLine("dom-090-line-a", "DOM-090 panel A", "dom-090-source-a", "dom-090-part-a", 1, 1000),
+    materialLine("dom-090-line-b", "DOM-090 panel B", "dom-090-source-b", "dom-090-part-b", 1, 500)
+  ]);
+  const revisionTwoSnapshot = createSnapshotWithQuoteLines([
+    materialLine("dom-090-line-a", "DOM-090 panel A", "dom-090-source-a", "dom-090-part-a", 1.5, 1000),
+    materialLine("dom-090-line-b", "DOM-090 panel B", "dom-090-source-b", "dom-090-part-b", 1, 500)
+  ]);
+  const revisionThreeSnapshot = createSnapshotWithQuoteLines([
+    materialLine("dom-090-line-a", "DOM-090 panel A", "dom-090-source-a", "dom-090-part-a", 2, 1000),
+    materialLine("dom-090-line-c", "DOM-090 panel C", "dom-090-source-c", "dom-090-part-c", 1, 300)
+  ]);
+  const history = {
+    projectId: "project-42",
+    revisions: [
+      createHistoryRevision({ pricingSnapshot: revisionOneSnapshot }),
+      createHistoryRevision({
+        revisionId: "quote-r2",
+        revisionNumber: 2,
+        createdAt: "2026-11-17T11:00:00Z",
+        previousRevisionId: "quote-r1",
+        pricingSnapshot: revisionTwoSnapshot
+      }),
+      createHistoryRevision({
+        revisionId: "quote-r3",
+        revisionNumber: 3,
+        createdAt: "2026-11-17T12:00:00Z",
+        previousRevisionId: "quote-r2",
+        pricingSnapshot: revisionThreeSnapshot
+      })
+    ]
+  };
+
+  const result = compareProjectQuoteRevisions(history, "quote-r1", "quote-r3");
+  assert.equal(result.status, "ready", result.diagnostics.join("; "));
+  assert.ok(result.comparison);
+  assert.equal(result.comparison.fromRevisionNumber, 1);
+  assert.equal(result.comparison.toRevisionNumber, 3);
+  assert.equal(result.comparison.currencyCode, "TRY");
+  assert.equal(result.comparison.categoryDeltasMinor.material, 800);
+  assert.equal(result.comparison.grandTotalDeltaMinor, 800);
+
+  const changes = result.comparison.lineChanges.filter(change =>
+    ["dom-090-source-a", "dom-090-source-b", "dom-090-source-c"].includes((change.from ?? change.to)?.sourceId)
+  );
+  assert.equal(changes.length, 3);
+  const changedA = changes.find(change => (change.from ?? change.to)?.sourceId === "dom-090-source-a");
+  assert.equal(changedA?.type, "changed");
+  assert.equal(changedA.from.quantity, 1);
+  assert.equal(changedA.to.quantity, 2);
+  assert.equal(changedA.from.lineTotalMinor, 1000);
+  assert.equal(changedA.to.lineTotalMinor, 2000);
+  assert.deepEqual(changedA.from.sourcePartIds, ["dom-090-part-a"]);
+  assert.deepEqual(changedA.to.sourcePartIds, ["dom-090-part-a"]);
+
+  const removedB = changes.find(change => (change.from ?? change.to)?.sourceId === "dom-090-source-b");
+  assert.equal(removedB?.type, "removed");
+  assert.equal(removedB.to, null);
+  assert.deepEqual(removedB.from.sourcePartIds, ["dom-090-part-b"]);
+  assert.equal(removedB.from.lineTotalMinor, 500);
+
+  const addedC = changes.find(change => (change.from ?? change.to)?.sourceId === "dom-090-source-c");
+  assert.equal(addedC?.type, "added");
+  assert.equal(addedC.from, null);
+  assert.deepEqual(addedC.to.sourcePartIds, ["dom-090-part-c"]);
+  assert.equal(addedC.to.lineTotalMinor, 300);
+
+  const json = serializeProjectQuoteRevisionComparisonFile(result);
+  assert.equal(json.status, "ready", json.diagnostics.join("; "));
+  assert.equal(JSON.parse(json.json).schemaVersion, 2);
+  const parsedJson = parseProjectQuoteRevisionComparisonFile(json.json);
+  assert.equal(parsedJson.status, "ready", parsedJson.diagnostics.join("; "));
+  assert.deepEqual(parsedJson.comparison, result.comparison);
+
+  const csv = serializeProjectQuoteRevisionComparisonCsv(result);
+  assert.equal(csv.status, "ready", csv.diagnostics.join("; "));
+  assert.equal(PROJECT_QUOTE_REVISION_COMPARISON_CSV_VERSION, 3);
+  const parsedCsv = parseProjectQuoteRevisionComparisonCsv(csv.csv);
+  assert.equal(parsedCsv.status, "ready", parsedCsv.diagnostics.join("; "));
+  assert.deepEqual(parsedCsv.comparison, result.comparison);
+
+  const reversed = compareProjectQuoteRevisions(history, "quote-r3", "quote-r1");
+  assert.equal(reversed.status, "blocked");
+  assert.equal(reversed.comparison, null);
+  assert.match(reversed.diagnostics[0], /Hedef revizyon başlangıç revizyonundan daha yeni olmalıdır/);
+
+  const unknown = compareProjectQuoteRevisions(history, "quote-r1", "quote-r9");
+  assert.equal(unknown.status, "blocked");
+  assert.equal(unknown.comparison, null);
+  assert.match(unknown.diagnostics[0], /doğrulanmış geçmişte bulunmalıdır/);
+});
