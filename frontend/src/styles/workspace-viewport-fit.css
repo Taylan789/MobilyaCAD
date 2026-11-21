@@ -11,8 +11,8 @@
     min-width: clamp(272px, calc(9.77vw + 164.4px), 352px) !important;
   }
   .cad-workspace-content {
-    gap: clamp(7px, 0.37vw, 10px) !important;
-    padding: clamp(8px, 0.42vw, 12px) !important;
+    gap: clamp(7px, 0.52vw, 10px) !important;
+    padding: clamp(8px, 0.63vw, 12px) !important;
   }
   .cad-viewport-toolbar {
     min-height: clamp(48px, calc(0.49vw + 42.6px), 52px) !important;
