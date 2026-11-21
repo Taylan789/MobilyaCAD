@@ -1978,3 +1978,10 @@
 - Test site deployment succeeded: https://taylan789.github.io/MobilyaCAD/. No production calculation or frontend files changed in this slice; local tests were not run because no checkout is available in this runtime.
 - AI Developer [#44886646460](https://github.com/Taylan789/MobilyaCAD/actions/runs/44886646460) failed with OpenRouter free daily HTTP 429 (limit 50, remaining 0); no rerun, quota/credit/secrets changes. Integration/performance specialist was skipped; no active run was found. `main`, frontend/** and other agent-owned branches remained untouched.
 - Next: DOM-087 multi-line Part-provenance isolation and exact JSON/CSV round-trip; INT-001/INT-002/PERF-001 remain separately owned.
+## 21 Kasım 2026 13:35 TRT — DOM-087 delivered (Actions pending)
+- **Slice:** multi-line Part-scoped material provenance isolation. Two material cost lines share catalog/resource and source-reference context but have distinct source IDs and Part scopes. Changing only Part A must produce exactly its removed/added pair; Part B remains unchanged and absent from the delta. Material category and grand totals remain zero-delta.
+- **Files:** `domain/production/projectQuoteRevision.test.mjs`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`.
+- **Automatic coverage added:** comparison behavior plus strict JSON v2 and CSV v3 round-trip equality; Actions results are pending and are not claimed successful. Commit SHA is recorded in the follow-up verification note after GitHub creates it.
+- **Known boundary:** this is a regression-only slice; no quote comparison production logic or frontend/adapter files changed. Local tests were not run in this runtime.
+- **Next:** DOM-088 reordered-line/source mapping determinism, then separately owned INT-001/INT-002/PERF-001 integration work.
+

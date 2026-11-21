@@ -1559,3 +1559,97 @@ test("rulo unit without edge-band source metadata is rejected", () => {
   assert.equal(result.status, "blocked");
   assert.match(result.diagnostics.join(" "), /Rulo birimi yalnızca edge-banding/);
 });
+test("DOM-087 multi-line Part provenance isolates changes to the affected material line", () => {
+  const materialLines = (partA) => [
+    {
+      line: {
+        id: "quote-material-part-a",
+        category: "material",
+        description: "MDF panel A",
+        quantity: 1.25,
+        unit: "m2",
+        unitPriceMinor: 1250,
+        currencyCode: "TRY",
+        sourceReference: "material-price-list:2026-11"
+      },
+      source: {
+        costLineId: "quote-material-part-a",
+        sourceType: "production-consumption",
+        sourceId: "material-source-part-a",
+        resourceType: "material",
+        resourceId: "mdf-18",
+        unit: "m2",
+        sourcePartIds: partA
+      }
+    },
+    {
+      line: {
+        id: "quote-material-part-b",
+        category: "material",
+        description: "MDF panel B",
+        quantity: 2,
+        unit: "m2",
+        unitPriceMinor: 1250,
+        currencyCode: "TRY",
+        sourceReference: "material-price-list:2026-11"
+      },
+      source: {
+        costLineId: "quote-material-part-b",
+        sourceType: "production-consumption",
+        sourceId: "material-source-part-b",
+        resourceType: "material",
+        resourceId: "mdf-18",
+        unit: "m2",
+        sourcePartIds: ["part-b"]
+      }
+    }
+  ];
+  const fromSnapshot = createSnapshotWithQuoteLines(materialLines(["part-a"]));
+  const toSnapshot = createSnapshotWithQuoteLines(materialLines(["part-a-v2"]));
+  const result = compareProjectQuoteRevisions(
+    createHistoryWithSnapshots(fromSnapshot, toSnapshot),
+    "quote-r1",
+    "quote-r2"
+  );
+  assert.equal(result.status, "ready");
+  assert.ok(result.comparison);
+  assert.equal(result.comparison.lineChanges.length, 2);
+
+  const changedSourceId = "material-source-part-a";
+  const changedLines = result.comparison.lineChanges.filter(
+    change => (change.from ?? change.to)?.sourceId === changedSourceId
+  );
+  assert.equal(changedLines.length, 2);
+  const removed = changedLines.find(change => change.type === "removed");
+  const added = changedLines.find(change => change.type === "added");
+  assert.ok(removed);
+  assert.ok(added);
+  assert.equal(removed.to, null);
+  assert.equal(added.from, null);
+  assert.deepEqual(removed.from.sourcePartIds, ["part-a"]);
+  assert.deepEqual(added.to.sourcePartIds, ["part-a-v2"]);
+  assert.equal(removed.from.lineTotalMinor, added.to.lineTotalMinor);
+
+  const unchangedSourceId = "material-source-part-b";
+  const unchangedLines = result.comparison.lineChanges.filter(
+    change => (change.from ?? change.to)?.sourceId === unchangedSourceId
+  );
+  assert.equal(unchangedLines.length, 0);
+  assert.equal(result.comparison.categoryDeltasMinor.material, 0);
+  assert.equal(result.comparison.grandTotalDeltaMinor, 0);
+
+  const json = serializeProjectQuoteRevisionComparisonFile(result);
+  assert.equal(json.status, "ready", json.diagnostics.join("; "));
+  assert.equal(JSON.parse(json.json).schemaVersion, 2);
+  const parsedJson = parseProjectQuoteRevisionComparisonFile(json.json);
+  assert.equal(parsedJson.status, "ready", parsedJson.diagnostics.join("; "));
+  assert.deepEqual(parsedJson.comparison, result.comparison);
+
+  const csv = serializeProjectQuoteRevisionComparisonCsv(result);
+  assert.equal(csv.status, "ready", csv.diagnostics.join("; "));
+  assert.equal(PROJECT_QUOTE_REVISION_COMPARISON_CSV_VERSION, 3);
+  const parsedCsv = parseProjectQuoteRevisionComparisonCsv(csv.csv);
+  assert.equal(parsedCsv.status, "ready", parsedCsv.diagnostics.join("; "));
+  assert.deepEqual(parsedCsv.comparison, result.comparison);
+});
+
