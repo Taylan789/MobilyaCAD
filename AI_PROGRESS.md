@@ -1940,9 +1940,10 @@
 - **Sonraki:** DOM-082 iki revizyonlu standalone import/export round-trip; INT-001 frontend adapter ve INT-002/PERF-001 entegrasyon agent sahipliğinde kalır.
 
 
-## 21 Kasım 2026 08:15 TRT — DOM-082 IN_PROGRESS
-- **İş:** İki revizyonlu bağımsız teklif geçmişi için testli serialize/parse round-trip; revision IDs/numbers/dates/previous links/source integrity, katalog ve Part kaynak izi, fiyat snapshot toplamları, değişmeyen JSON yeniden dışa aktarım.
-- **Dosya:** `domain/production/projectQuoteRevisionStandaloneRoundTrip.test.mjs` (yeni); `PRODUCT_ROADMAP.md`, `AI_COORDINATION.md`, `AI_PROGRESS.md` güncellendi.
-- **Commit SHA:** test ve doküman commit'i oluşturulduktan sonra doğrulama notunda kaydedilecek.
-- **Actions:** commit sonrası exact-SHA CI/QA/Pages bekleniyor; yerel repo checkout bulunmadığı için testler bu ortamda çalıştırılmadı.
-- **Next:** Actions kanıtı geldikten sonra DOM-082'yi doğrulanmış olarak işaretle; DOM-083 embedded v2 ↔ standalone iki revizyon eşdeğerliği.
+## 21 Kasım 2026 08:19 TRT — DOM-082 VERIFIED
+- **İş:** İki revizyonlu standalone teklif geçmişi serialize/parse round-trip test edildi; revision IDs/numbers/dates/previous links/source integrity, katalog versiyonları, material catalog ID, m², Part kaynakları, fiyat kaynak referansları ve toplamlar exact equality ile korundu; yeniden serialize edilen JSON aynı.
+- **Commit:** [6d1d267ee3db611ae26360614a046996050a64ca](https://github.com/Taylan789/MobilyaCAD/commit/6d1d267ee3db611ae26360614a046996050a64ca); [CI #44870286067](https://github.com/Taylan789/MobilyaCAD/actions/runs/44870286067), [QA #44870286066](https://github.com/Taylan789/MobilyaCAD/actions/runs/44870286066), [Pages #44870286049](https://github.com/Taylan789/MobilyaCAD/actions/runs/44870286049) all successful.
+- **QA:** 136 frontend + 601 domain tests; strict shared-domain TS, lint 32 warnings/0 errors, production build and audit 0 production vulnerabilities. DOM-082 fixture passed; local tests were not run (no repository checkout in this environment).
+- **Test sitesi:** Pages deployment başarılı — https://taylan789.github.io/MobilyaCAD/
+- **Ajanlar:** AI Developer [#44852162524](https://github.com/Taylan789/MobilyaCAD/actions/runs/44852162524) OpenRouter free-model daily limit 429; reset 22 Nov 2026 03:00 TRT, rerun yapılmadı. Integration/performance job skipped; active specialist branch/PR not evidenced. UI PRs remain unmerged, so bu domain/test commit görünür frontend yenilemesi içermez.
+- **Next:** DOM-083 embedded project-v2 ↔ standalone two-revision history equivalence, then DOM-084 source/resource provenance cross-check; INT-001/INT-002/PERF-001 ownership stays separate.

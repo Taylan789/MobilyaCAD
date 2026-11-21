@@ -846,8 +846,9 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - Next: DOM-082 two-revision standalone history import/export round-trip.
 
 
-## DOM-082 — Standalone two-revision quote-history round-trip (IN_PROGRESS)
-- Added an automated domain regression fixture with two distinct dated pricing snapshots. It checks revision IDs/numbers, `createdAt`, `previousRevisionId`, source integrity version, catalog/source/Part metadata and exact totals after standalone JSON serialize → parse.
-- Acceptance: both snapshots remain byte-for-byte equivalent at the validated object level; no cost recalculation or metadata loss; re-export produces identical JSON.
-- Dependencies: DOM-079/080/081 history validation and project import boundaries.
-- Next small slices: DOM-083 project-v2 embedded history ↔ standalone two-revision equivalence; DOM-084 quote comparison export provenance cross-check; then revisit INT-001 UI adapter contract (frontend owner) and INT-002 integration tests (specialist owner).
+## DOM-082 — Standalone two-revision quote-history round-trip (VERIFIED, 21 November 2026)
+- Automated domain regression now validates two distinct dated price snapshots through standalone JSON serialize → parse: revision IDs/numbers, dates, previous links, source-integrity version, catalog version, material resource ID/unit/Part IDs/source reference, exact snapshot totals and deterministic re-export.
+- Code/test commit [6d1d267](https://github.com/Taylan789/MobilyaCAD/commit/6d1d267ee3db611ae26360614a046996050a64ca). CI [#44870286067](https://github.com/Taylan789/MobilyaCAD/actions/runs/44870286067), QA [#44870286066](https://github.com/Taylan789/MobilyaCAD/actions/runs/44870286066), Pages [#44870286049](https://github.com/Taylan789/MobilyaCAD/actions/runs/44870286049) all successful.
+- QA: 136 frontend + 601 domain tests; strict shared-domain type-check, lint (32 warnings / 0 errors), production build and production audit (0 vulnerabilities). DOM-082 test passed.
+- Test site deployed: https://taylan789.github.io/MobilyaCAD/
+- Next small slices: DOM-083 embedded project-v2 history ↔ standalone two-revision equivalence; DOM-084 quote comparison source/resource provenance cross-check; INT-001 frontend-owned adapter/export wiring and INT-002/PERF-001 specialist-owned integration/performance tasks remain isolated.
