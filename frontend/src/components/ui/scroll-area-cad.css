@@ -1,0 +1,36 @@
+/* UI-SCROLLBAR-TECHNICAL-001 — quiet, legible rails for dense CAD panels */
+.cad-scroll-area__scrollbar[data-orientation="vertical"] {
+  width: 12px !important;
+  padding: 2px !important;
+  background: rgba(12, 20, 26, .42) !important;
+  border-left: 1px solid rgba(145, 180, 202, .12) !important;
+}
+.cad-scroll-area__scrollbar[data-orientation="horizontal"] {
+  height: 10px !important;
+  padding: 2px !important;
+  background: rgba(12, 20, 26, .42) !important;
+  border-top: 1px solid rgba(145, 180, 202, .12) !important;
+}
+.cad-scroll-area__thumb {
+  min-height: 34px !important;
+  border: 1px solid rgba(161, 189, 206, .24) !important;
+  border-radius: 4px !important;
+  background: #465e6c !important;
+  box-shadow: inset 0 1px rgba(225, 239, 246, .06) !important;
+  transition: background-color 140ms ease, border-color 140ms ease !important;
+}
+.cad-scroll-area__thumb:hover {
+  background: #6c8da2 !important;
+  border-color: rgba(177, 207, 225, .62) !important;
+}
+.cad-scroll-area__thumb[data-state="active"] {
+  background: #89afc7 !important;
+  border-color: #a9c8dc !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .cad-scroll-area__thumb { transition: none !important; }
+}
+@media (forced-colors: active) {
+  .cad-scroll-area__scrollbar { background: Canvas !important; border-color: CanvasText !important; }
+  .cad-scroll-area__thumb { background: ButtonText !important; border: 1px solid ButtonText !important; box-shadow: none !important; }
+}
