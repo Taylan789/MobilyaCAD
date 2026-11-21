@@ -114,8 +114,8 @@ export function ProductionWorkspace({
           <section className="mc-production-studio__project">
             <span className="mc-production-studio__eyebrow">PROJE KAPSAMI</span>
             <div className="mc-production-studio__project-total">
+              <span>Mobilya modülü</span>
               <strong>{furnitureCount.toLocaleString("tr-TR")}</strong>
-              <span>mobilya modülü</span>
             </div>
             <div className="mc-production-studio__project-row">
               <span>Üretim parçası</span>
