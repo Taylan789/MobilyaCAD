@@ -901,9 +901,9 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - Test site deployed: https://taylan789.github.io/MobilyaCAD/. No frontend, production calculations, adapter/performance-owned files, or machine-specific output changed.
 
 ### Next small slices
-1. **DOM-093 (IN_PROGRESS):** three-revision Part-provenance isolation when only one line's Part scope changes; preserve exact JSON v2/CSV v3 exports and zero total deltas.
-2. **DOM-094 (READY):** price reductions and fractional quantities reconcile rounded line totals with category/grand-total deltas.
-3. **DOM-095 (READY):** mixed-category three-revision quote comparison reconciles category and grand-total deltas for reductions/additions, with exact JSON/CSV export.
+1. **DOM-094 (READY):** price reductions and fractional quantities reconcile rounded line totals with category/grand-total deltas.
+2. **DOM-095 (READY):** mixed-category three-revision quote comparison reconciles category and grand-total deltas for reductions/additions, with exact JSON/CSV export.
+3. **DOM-096 (READY):** malformed quote-comparison JSON/CSV with duplicate line IDs or inconsistent totals must fail closed without partial payload; valid round-trip remains exact.
 
 
 ## DOM-092 — strict source-integrity / legacy comparison boundary (VERIFIED, 21 November 2026)
@@ -913,9 +913,11 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - QA: **142 frontend + 611 domain tests**, DOM-092 passed; strict shared-domain type-check, lint **32 warnings / 0 errors**, production build, production audit **0 vulnerabilities**. Local tests were not run in this runtime.
 - Test site deployment succeeded: https://taylan789.github.io/MobilyaCAD/. AI Developer run [#44924539196](https://github.com/Taylan789/MobilyaCAD/actions/runs/44924539196) failed on OpenRouter free-model daily 429; no paid retry or quota change. Integration/performance specialist remains skipped.
 
-## DOM-093 — Three-revision Part-provenance isolation (IMPLEMENTED, Actions pending)
+## DOM-093 — Three-revision Part-provenance isolation (VERIFIED, 21 November 2026)
 
-- Added a regression fixture comparing r1 directly to r3: an intermediate r2 quantity change is intentionally ignored, one material's Part scope changes, and a second Part-scoped material remains unchanged.
-- The changed Part scope must produce exactly one removed/added pair with exact source Part IDs, while material/grand-total deltas remain zero; comparison JSON v2 and CSV v3 must round-trip exactly.
-- Test file: `domain/production/projectQuoteRevision.test.mjs`. Local tests were not run in this runtime; exact-SHA CI, QA and Pages are pending.
-- Next: DOM-094 price reductions/fractional quantities and rounded total reconciliation.
+- Comparing r1 directly to r3 ignores an intermediate r2 quantity change. The r3 material restores quantity but changes one Part scope; a second Part-scoped material is unchanged.
+- Exactly one source emits removed + added lines with the original/replacement Part IDs; material and grand-total deltas stay **0**. JSON v2 and CSV v3 serialize/parse the full comparison exactly.
+- Code/test commit [34381ae4](https://github.com/Taylan789/MobilyaCAD/commit/34381ae4231f291c2826509fa7b3369a6e3964ff). Exact-SHA CI [#44925107973](https://github.com/Taylan789/MobilyaCAD/actions/runs/44925107973), QA [#44925108135](https://github.com/Taylan789/MobilyaCAD/actions/runs/44925108135), Pages [#44925107985](https://github.com/Taylan789/MobilyaCAD/actions/runs/44925107985) all succeeded.
+- QA: **142 frontend + 612 domain tests**; DOM-093 passed, strict domain TypeScript, lint **32 warnings / 0 errors**, production build and audit **0 production vulnerabilities**. Local tests were not run in this runtime.
+- Test site deployment verified: https://taylan789.github.io/MobilyaCAD/. No frontend or production calculation changed; AI Developer free-model quota failure and disabled specialist lane remain separate.
+- Next: DOM-094 quantity/price reductions with fractional quantities and rounding, then DOM-095 mixed-category reconciliation.
