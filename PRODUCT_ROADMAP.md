@@ -763,7 +763,7 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 |---|---|---|---|
 
 | DOM-086 | Ürün Geliştirme | VERIFIED — stable catalog/source and cost values, changed Part provenance → removed + added; exact old/new Part ID lists; JSON v2/CSV v3 round-trip; 139 frontend + 605 domain tests, build/audit passed | DOM-085 |
-| DOM-087 | Ürün Geliştirme | IN PROGRESS — multiple Part-scoped material lines; regression asserts changed provenance pair only, unchanged Part line stays absent from deltas, JSON v2/CSV v3 exact round-trip; Actions pending | DOM-086 |
+| DOM-087 | Ürün Geliştirme | VERIFIED — only changed Part A provenance yields removed/added; Part B stays unchanged; JSON v2/CSV v3 exact round-trip; 142 frontend + 606 domain tests, build/audit passed | DOM-086 |
 | DOM-088 | Ürün Geliştirme | READY — revision comparison/export determinism when cost lines and source mappings are reordered; exact JSON/CSV output and parsed equality | DOM-087 |
 | INT-001 | Arayüz + Ürün | READY — frontend adapter tüketimi ve desteklenmeyen geometri export'unu bloklama; round-trip testleri | Production-domain contract |
 | INT-002 | Entegrasyon/Performans | READY — adapter round-trip ve geometri/miktar sadakati testleri; uzman dalında izolasyon | INT-001 |
@@ -873,4 +873,13 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - The regression asserts exact before/after source reference and Part IDs, plus strict comparison JSON v2 and CSV v3 round-trip equality.
 - Code/test [commit 0a14278a](https://github.com/Taylan789/MobilyaCAD/commit/0a14278a52828c47ac1809e85aa6604e9297cba0); exact-SHA [CI #44885185709](https://github.com/Taylan789/MobilyaCAD/actions/runs/44885185709), [QA #44885185708](https://github.com/Taylan789/MobilyaCAD/actions/runs/44885185708), [Pages #44885185716](https://github.com/Taylan789/MobilyaCAD/actions/runs/44885185716) all succeeded. QA: 139 frontend + 604 domain tests; strict domain type-check, lint (32 warnings / 0 errors), production build, and production audit (0 vulnerabilities).
 - Test site deployment succeeded: https://taylan789.github.io/MobilyaCAD/. No frontend files or production logic changed.
-- Next: DOM-087 multi-line Part-provenance isolation; only the changed provenance pair should move while unrelated material lines remain stable, with exact JSON/CSV round-trip.
+- Next: DOM-088 deterministic comparison/export when quote lines and source mappings are reordered; preserve exact JSON/CSV output and parsed equality.
+
+## DOM-087 — Multi-line Part provenance isolation (VERIFIED, 21 November 2026)
+- Added two Part-scoped material quote lines sharing the catalog resource and source-reference context, with distinct source IDs. Changing only Part A provenance yields exactly one removed/added pair; the unchanged Part B line does not appear in comparison changes.
+- Category and grand-total deltas remain zero. Strict comparison JSON v2 and CSV v3 round-trip the full comparison exactly.
+- Code/test commit [`ab8bbdd6b11f3cdc38c504c3c3e6a8f0f5ea68aa`](https://github.com/Taylan789/MobilyaCAD/commit/ab8bbdd6b11f3cdc38c504c3c3e6a8f0f5ea68aa); exact-SHA [CI #44895275292](https://github.com/Taylan789/MobilyaCAD/actions/runs/44895275292), [QA #44895275286](https://github.com/Taylan789/MobilyaCAD/actions/runs/44895275286), and [Pages #44895275291](https://github.com/Taylan789/MobilyaCAD/actions/runs/44895275291) succeeded.
+- QA: **142 frontend + 606 domain tests**, DOM-087 passed; strict domain TypeScript, lint (32 warnings / 0 errors), production build, production audit (0 vulnerabilities).
+- Test site deployment succeeded: https://taylan789.github.io/MobilyaCAD/. No production quote logic or frontend files changed.
+- Known boundary: regression-only slice; local tests were not run in this runtime. AI Developer [#44886646460](https://github.com/Taylan789/MobilyaCAD/actions/runs/44886646460) failed with OpenRouter free-model HTTP 429 (daily limit 50/50); no paid retry or secrets/quota changes. Integration/performance job was skipped; no active specialist PR/run was evidenced. UI PRs remain unmerged, so this slice does not provide the pending visible redesign.
+- Next: DOM-088 reordered-line/source mapping determinism; INT-001 remains frontend-owned and INT-002/PERF-001 specialist-owned.
