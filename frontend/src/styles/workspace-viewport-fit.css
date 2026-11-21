@@ -1,70 +1,42 @@
-/* UI-WORKSPACE-VIEWPORT-FIT-001 — preserve room for the actual 3D canvas */
-@media (min-width: 1101px) and (max-width: 1360px) {
+/* UI-WORKSPACE-VIEWPORT-FIT-001 — continuous dock sizing keeps the 3D canvas stable */
+@media (min-width: 1101px) and (max-width: 1919px) {
   .cad-sidebar {
-    flex: 0 0 232px !important;
-    width: 232px !important;
-    min-width: 232px !important;
+    flex: 0 0 clamp(232px, calc(7.57vw + 148.7px), 294px) !important;
+    width: clamp(232px, calc(7.57vw + 148.7px), 294px) !important;
+    min-width: clamp(232px, calc(7.57vw + 148.7px), 294px) !important;
   }
   .cad-inspector {
-    flex-basis: 272px !important;
-    width: 272px !important;
-    min-width: 272px !important;
+    flex-basis: clamp(272px, calc(9.77vw + 164.4px), 352px) !important;
+    width: clamp(272px, calc(9.77vw + 164.4px), 352px) !important;
+    min-width: clamp(272px, calc(9.77vw + 164.4px), 352px) !important;
   }
   .cad-workspace-content {
-    gap: 7px !important;
-    padding: 8px !important;
+    gap: clamp(7px, 0.37vw, 10px) !important;
+    padding: clamp(8px, 0.42vw, 12px) !important;
   }
   .cad-viewport-toolbar {
-    min-height: 48px !important;
-    height: 48px !important;
-    padding-inline: 10px !important;
+    min-height: clamp(48px, calc(0.49vw + 42.6px), 52px) !important;
+    height: clamp(48px, calc(0.49vw + 42.6px), 52px) !important;
+    padding-inline: clamp(10px, 0.49vw + 4.6px, 14px) !important;
   }
   .cad-viewport-title-icon {
-    width: 30px !important;
-    height: 30px !important;
+    width: clamp(30px, calc(0.244vw + 27.3px), 32px) !important;
+    height: clamp(30px, calc(0.244vw + 27.3px), 32px) !important;
   }
   .cad-inspector-tab-list {
-    min-height: 38px !important;
+    min-height: clamp(38px, calc(0.244vw + 35.3px), 40px) !important;
   }
   .cad-inspector-tab-list button {
-    min-height: 31px !important;
-    height: 31px !important;
-  }
-}
-
-
-@media (min-width: 1361px) and (max-width: 1599px) {
-  .cad-sidebar {
-    flex: 0 0 270px !important;
-    width: 270px !important;
-    min-width: 270px !important;
-  }
-  .cad-inspector {
-    flex-basis: 330px !important;
-    width: 330px !important;
-    min-width: 330px !important;
-  }
-  .cad-workspace-content {
-    gap: 8px !important;
-    padding: 9px !important;
-  }
-  .cad-viewport-toolbar {
-    min-height: 50px !important;
-    height: 50px !important;
-    padding-inline: 14px !important;
-  }
-  .cad-viewport-title-icon {
-    width: 32px !important;
-    height: 32px !important;
+    min-height: clamp(31px, calc(0.244vw + 28.3px), 33px) !important;
+    height: clamp(31px, calc(0.244vw + 28.3px), 33px) !important;
   }
   .cad-viewport,
   .cad-inspector {
-    border-radius: 10px !important;
+    border-radius: clamp(9px, calc(0.366vw + 4.97px), 12px) !important;
   }
 }
 
-
-@media (min-width: 1600px) {
+@media (min-width: 1920px) {
   .cad-sidebar {
     flex-basis: 294px !important;
     width: 294px !important;
@@ -80,7 +52,6 @@
     padding: 12px !important;
   }
 }
-
 
 @media (prefers-reduced-motion: reduce) {
   .cad-sidebar,
