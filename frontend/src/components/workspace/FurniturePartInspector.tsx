@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { validateDimensionMillimeters, validatePositionMillimeters } from "./inspectorFieldValidation";
 import { Layers3, MapPin, Move3D, Palette, Ruler } from "lucide-react";
 
 import { Button } from "../ui/button";
@@ -19,6 +20,7 @@ type DimensionField = "width" | "height" | "depth";
 type Axis = "x" | "y" | "z";
 type DraftValues = Record<DimensionField, string>;
 type PositionDraft = Record<Axis, string>;
+type InspectorFieldErrors = Partial<Record<DimensionField | Axis, string>>;
 
 interface FurniturePartInspectorProps {
   part: FurniturePart;
@@ -86,10 +88,52 @@ export function FurniturePartInspector({
 }: FurniturePartInspectorProps) {
   const [dimensionDraft, setDimensionDraft] = useState(() => createDimensionDraft(part));
   const [positionDraft, setPositionDraft] = useState(() => createPositionDraft(part.position));
+  const [fieldErrors, setFieldErrors] = useState<InspectorFieldErrors>({});
+  const previousPartRef = useRef({
+    id: part.id,
+    width: part.width,
+    height: part.height,
+    depth: part.depth,
+    position: [...part.position] as [number, number, number],
+  });
 
   useEffect(() => {
-    setDimensionDraft(createDimensionDraft(part));
-    setPositionDraft(createPositionDraft(part.position));
+    const previous = previousPartRef.current;
+
+    if (previous.id !== part.id) {
+      setDimensionDraft(createDimensionDraft(part));
+      setPositionDraft(createPositionDraft(part.position));
+      setFieldErrors({});
+    } else {
+      setDimensionDraft((current) => ({
+        width: previous.width !== part.width ? String(part.width) : current.width,
+        height: previous.height !== part.height ? String(part.height) : current.height,
+        depth: previous.depth !== part.depth ? String(part.depth) : current.depth,
+      }));
+      setPositionDraft((current) => ({
+        x: previous.position[0] !== part.position[0] ? toMillimeters(part.position[0]) : current.x,
+        y: previous.position[1] !== part.position[1] ? toMillimeters(part.position[1]) : current.y,
+        z: previous.position[2] !== part.position[2] ? toMillimeters(part.position[2]) : current.z,
+      }));
+      setFieldErrors((current) => {
+        const next = { ...current };
+        if (previous.width !== part.width) delete next.width;
+        if (previous.height !== part.height) delete next.height;
+        if (previous.depth !== part.depth) delete next.depth;
+        if (previous.position[0] !== part.position[0]) delete next.x;
+        if (previous.position[1] !== part.position[1]) delete next.y;
+        if (previous.position[2] !== part.position[2]) delete next.z;
+        return next;
+      });
+    }
+
+    previousPartRef.current = {
+      id: part.id,
+      width: part.width,
+      height: part.height,
+      depth: part.depth,
+      position: [...part.position] as [number, number, number],
+    };
   }, [
     part.id,
     part.width,
@@ -140,40 +184,42 @@ export function FurniturePartInspector({
 
   function commitDimension(field: DimensionField) {
     const rawValue = dimensionDraft[field];
-    const value = Number(rawValue);
+    const error = validateDimensionMillimeters(rawValue);
 
-    if (
-      rawValue.trim() === "" ||
-      !Number.isFinite(value) ||
-      value < 1 ||
-      value > 280000
-    ) {
-      setDimensionDraft(createDimensionDraft(part));
+    if (error) {
+      setFieldErrors((current) => ({ ...current, [field]: error }));
       return;
     }
 
-    onFieldChange(field, value);
+    setFieldErrors((current) => {
+      const next = { ...current };
+      delete next[field];
+      return next;
+    });
+    onFieldChange(field, Number(rawValue));
   }
 
   function commitPosition(axis: Axis, index: number) {
     const rawValue = positionDraft[axis];
-    const value = Number(rawValue);
+    const error = validatePositionMillimeters(rawValue);
 
-    if (
-      rawValue.trim() === "" ||
-      !Number.isFinite(value) ||
-      Math.abs(value) > 280000
-    ) {
-      setPositionDraft(createPositionDraft(part.position));
+    if (error) {
+      setFieldErrors((current) => ({ ...current, [axis]: error }));
       return;
     }
+
+    setFieldErrors((current) => {
+      const next = { ...current };
+      delete next[axis];
+      return next;
+    });
 
     const nextPosition: [number, number, number] = [
       part.position[0],
       part.position[1],
       part.position[2],
     ];
-    nextPosition[index] = value / 1000;
+    nextPosition[index] = Number(rawValue) / 1000;
     onPositionChange(nextPosition);
   }
 
@@ -223,12 +269,19 @@ export function FurniturePartInspector({
                   max="280000"
                   step="1"
                   value={dimensionDraft[field]}
-                  onChange={(event) =>
+                  aria-invalid={Boolean(fieldErrors[field])}
+                  aria-describedby={fieldErrors[field] ? `selected-part-${field}-error` : undefined}
+                  onChange={(event) => {
                     setDimensionDraft((current) => ({
                       ...current,
                       [field]: event.target.value,
-                    }))
-                  }
+                    }));
+                    setFieldErrors((current) => {
+                      const next = { ...current };
+                      delete next[field];
+                      return next;
+                    });
+                  }}
                   onBlur={() => commitDimension(field)}
                   onKeyDown={(event) => {
                     if (event.key === "Enter") event.currentTarget.blur();
@@ -236,6 +289,11 @@ export function FurniturePartInspector({
                 />
                 <span>mm</span>
               </div>
+              {fieldErrors[field] && (
+                <p id={`selected-part-${field}-error`} className="cad-inspector-field-error" role="alert">
+                  {fieldErrors[field]}
+                </p>
+              )}
             </div>
           ))}
         </div>
@@ -258,14 +316,23 @@ export function FurniturePartInspector({
                   id={`selected-part-position-${axis.key}`}
                   type="number"
                   inputMode="decimal"
+                  min="-280000"
+                  max="280000"
                   step="0.1"
                   value={positionDraft[axis.key]}
-                  onChange={(event) =>
+                  aria-invalid={Boolean(fieldErrors[axis.key])}
+                  aria-describedby={fieldErrors[axis.key] ? `selected-part-position-${axis.key}-error` : undefined}
+                  onChange={(event) => {
                     setPositionDraft((current) => ({
                       ...current,
                       [axis.key]: event.target.value,
-                    }))
-                  }
+                    }));
+                    setFieldErrors((current) => {
+                      const next = { ...current };
+                      delete next[axis.key];
+                      return next;
+                    });
+                  }}
                   onBlur={() => commitPosition(axis.key, axis.index)}
                   onKeyDown={(event) => {
                     if (event.key === "Enter") event.currentTarget.blur();
@@ -273,6 +340,11 @@ export function FurniturePartInspector({
                 />
                 <span>mm</span>
               </div>
+              {fieldErrors[axis.key] && (
+                <p id={`selected-part-position-${axis.key}-error`} className="cad-inspector-field-error" role="alert">
+                  {fieldErrors[axis.key]}
+                </p>
+              )}
             </div>
           ))}
         </div>
