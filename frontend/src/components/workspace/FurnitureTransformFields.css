@@ -1,0 +1,65 @@
+/* UI-TRANSFORM-FIELDS-CAD-DENSITY-001 — precision controls in the furniture inspector */
+.cad-transform-panel { gap: 12px; }
+.cad-transform-panel__heading { padding-bottom: 7px; border-bottom: 1px solid rgba(126, 155, 173, .16); }
+.cad-transform-axis-grid {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; min-width: 0; padding: 7px;
+  border: 1px solid rgba(126, 155, 173, .18); border-radius: 8px;
+  background: linear-gradient(145deg, rgba(21, 33, 42, .88), rgba(13, 22, 29, .78));
+}
+.cad-transform-axis-field {
+  display: grid; min-width: 0; gap: 5px; padding: 6px 5px;
+  border: 1px solid rgba(126, 155, 173, .14); border-radius: 6px; background: rgba(8, 15, 20, .28);
+  transition: border-color 140ms ease, background-color 140ms ease, box-shadow 140ms ease;
+}
+.cad-transform-axis-field:focus-within {
+  border-color: rgba(142, 181, 206, .65); background: rgba(31, 49, 62, .42); box-shadow: 0 0 0 1px rgba(142, 181, 206, .12);
+}
+.cad-transform-axis-label {
+  display: flex; min-width: 0; align-items: center; justify-content: center; gap: 5px;
+  margin: 0 !important; color: #91a5b1 !important; font-size: 8px !important; letter-spacing: .04em !important; line-height: 1.2;
+}
+.cad-transform-axis-label__letter {
+  display: grid; width: 17px; height: 17px; flex: 0 0 auto; place-items: center; border: 1px solid currentColor; border-radius: 4px; font-size: 9px; font-weight: 800;
+}
+.cad-transform-axis-field--x .cad-transform-axis-label__letter { color: #d48a8b; background: rgba(186, 91, 94, .1); }
+.cad-transform-axis-field--y .cad-transform-axis-label__letter { color: #83bda2; background: rgba(83, 155, 117, .1); }
+.cad-transform-axis-field--z .cad-transform-axis-label__letter { color: #8eb5ce; background: rgba(95, 145, 177, .12); }
+.cad-transform-axis-value { display: flex; min-width: 0; align-items: center; gap: 3px; }
+.cad-transform-axis-value input {
+  min-width: 0; min-height: 31px; height: 31px; padding-inline: 3px !important; color: #e5edf2 !important;
+  border-color: rgba(126, 155, 173, .24) !important; background: #101a22 !important; text-align: center !important; font-size: 10px !important; font-weight: 650; font-variant-numeric: tabular-nums;
+}
+.cad-transform-axis-value input:focus-visible, .cad-transform-rotation__value input:focus-visible { outline: 2px solid #9fc3da !important; outline-offset: 1px; }
+.cad-transform-axis-value > span, .cad-transform-rotation__value > span { flex: 0 0 auto; color: #7f96a4; font-size: 8px; font-weight: 700; letter-spacing: .02em; }
+.cad-transform-rotation {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(100px, .78fr); align-items: center; gap: 9px;
+  margin: 0 !important; padding: 9px 10px; border: 1px solid rgba(126, 155, 173, .18); border-radius: 7px; background: rgba(22, 34, 43, .68);
+}
+.cad-transform-rotation__label { display: flex; min-width: 0; align-items: center; gap: 6px; margin: 0 !important; color: #b4c4ce !important; font-size: 9px !important; }
+.cad-transform-rotation__label svg { width: 13px; height: 13px; flex: 0 0 auto; color: #9bbbd0; }
+.cad-transform-rotation__range {
+  margin-left: auto; padding: 3px 5px; color: #879eac; border: 1px solid rgba(126, 155, 173, .18); border-radius: 4px;
+  background: rgba(8, 15, 20, .3); font-size: 7px; font-weight: 750; white-space: nowrap;
+}
+.cad-transform-rotation__value { display: flex; min-width: 0; align-items: center; gap: 5px; }
+.cad-transform-rotation__value input {
+  min-width: 0; min-height: 32px; height: 32px; padding-inline: 7px !important; color: #e5edf2 !important;
+  border-color: rgba(126, 155, 173, .26) !important; background: #101a22 !important; text-align: right !important; font-size: 10px !important; font-variant-numeric: tabular-nums;
+}
+.cad-transform-help {
+  margin: 0 !important; padding: 7px 9px; color: #91a4af !important; border-left: 2px solid rgba(142, 181, 206, .36);
+  background: rgba(15, 25, 32, .3); font-size: 9px !important; line-height: 1.5 !important;
+}
+.cad-transform-help--rotation { margin-top: -7px !important; padding-left: 10px; border-left-color: rgba(126, 155, 173, .2); background: transparent; }
+@media (max-width: 390px) {
+  .cad-transform-axis-grid { gap: 4px; padding: 5px; }
+  .cad-transform-axis-field { padding: 5px 3px; }
+  .cad-transform-axis-label { gap: 3px; font-size: 7px !important; }
+  .cad-transform-axis-value input { font-size: 9px !important; }
+  .cad-transform-rotation { grid-template-columns: minmax(0, 1fr) minmax(92px, .75fr); gap: 6px; padding: 7px; }
+}
+@media (prefers-reduced-motion: reduce) { .cad-transform-axis-field { transition: none; } }
+@media (forced-colors: active) {
+  .cad-transform-axis-grid, .cad-transform-axis-field, .cad-transform-rotation { border-color: CanvasText; }
+  .cad-transform-axis-field:focus-within { outline: 2px solid Highlight; outline-offset: 1px; }
+}
