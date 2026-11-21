@@ -5,9 +5,11 @@ import { calculateCabinetProjectProductionWithDiagnostics } from "./projectProdu
 import { createProjectQuotePricingSnapshot } from "./projectQuotePricingSnapshot.ts";
 import {
   appendProjectQuoteRevisionToProjectFile,
+  importProjectQuoteRevisionHistoryFileIntoProject,
   PROJECT_QUOTE_REVISION_HISTORY_FIELD,
   readProjectQuoteRevisionHistoryFromProjectFile
 } from "./projectQuoteRevisionProjectFile.ts";
+import { serializeProjectQuoteRevisionHistoryFile } from "./projectQuoteRevisionFile.ts";
 
 const emptyProduction = calculateCabinetProjectProductionWithDiagnostics({
   schemaVersion: 1,
@@ -351,4 +353,92 @@ test("roll purchase metadata survives JSON v2 quote-history append/read round-tr
   assert.deepEqual(rollSource.furnitureIds, ["cabinet-a"]);
   assert.equal(rollSource.planSourceReference, "roll-spec:v1");
   assert.equal(rollSource.priceSourceReference, "roll-prices:v1");
+});
+
+test("standalone revision history imports into an empty matching v2 project without mutating either input", () => {
+  const source = appendProjectQuoteRevisionToProjectFile(createV2Project(), createRevision());
+  assert.equal(source.status, "ready");
+  assert.ok(source.history);
+  const serialized = serializeProjectQuoteRevisionHistoryFile(source.history);
+  assert.equal(serialized.status, "ready");
+  assert.ok(serialized.json);
+
+  const target = createV2Project();
+  const targetBefore = structuredClone(target);
+  const imported = importProjectQuoteRevisionHistoryFileIntoProject(target, serialized.json);
+
+  assert.equal(imported.status, "ready", imported.diagnostics.join(" | "));
+  assert.ok(imported.project);
+  assert.ok(imported.history);
+  assert.deepEqual(imported.history, source.history);
+  assert.deepEqual(imported.project.quoteRevisionHistory, source.history);
+  assert.deepEqual(target, targetBefore);
+  assert.equal(PROJECT_QUOTE_REVISION_HISTORY_FIELD in target, false);
+  assert.equal(imported.history.revisions[0].previousRevisionId, null);
+  const read = readProjectQuoteRevisionHistoryFromProjectFile(imported.project);
+  assert.equal(read.status, "ready");
+  assert.deepEqual(read.history, source.history);
+});
+
+test("standalone history import rejects a foreign projectId and leaves the target unchanged", () => {
+  const source = appendProjectQuoteRevisionToProjectFile(createV2Project(), createRevision());
+  assert.ok(source.history);
+  const serialized = serializeProjectQuoteRevisionHistoryFile(source.history);
+  assert.ok(serialized.json);
+  const target = createV2Project({ projectId: "different-project" });
+  const before = structuredClone(target);
+
+  const result = importProjectQuoteRevisionHistoryFileIntoProject(target, serialized.json);
+
+  assert.equal(result.status, "blocked");
+  assert.equal(result.project, null);
+  assert.match(result.diagnostics.join(" | "), /projectId değeri.*eşleşmelidir/);
+  assert.deepEqual(target, before);
+});
+
+test("standalone history import never overwrites an existing non-empty project history", () => {
+  const targetHistory = appendProjectQuoteRevisionToProjectFile(createV2Project(), createRevision());
+  assert.ok(targetHistory.project);
+  const incoming = appendProjectQuoteRevisionToProjectFile(createV2Project(), createRevision({
+    revisionId: "incoming-r1"
+  }));
+  assert.ok(incoming.history);
+  const serialized = serializeProjectQuoteRevisionHistoryFile(incoming.history);
+  assert.ok(serialized.json);
+  const targetBefore = structuredClone(targetHistory.project);
+
+  const result = importProjectQuoteRevisionHistoryFileIntoProject(targetHistory.project, serialized.json);
+
+  assert.equal(result.status, "blocked");
+  assert.equal(result.project, null);
+  assert.match(result.diagnostics.join(" | "), /sessizce değiştiremez/);
+  assert.deepEqual(targetHistory.project, targetBefore);
+  assert.equal(targetHistory.history?.revisions.length, 1);
+});
+
+test("standalone history import rejects malformed, empty and legacy v1 project inputs", () => {
+  const emptyHistory = serializeProjectQuoteRevisionHistoryFile({
+    schemaVersion: 1,
+    projectId: "project-42",
+    revisions: []
+  });
+  assert.ok(emptyHistory.json);
+  const malformed = importProjectQuoteRevisionHistoryFileIntoProject(createV2Project(), "{bad json");
+  const empty = importProjectQuoteRevisionHistoryFileIntoProject(createV2Project(), emptyHistory.json);
+  const legacy = importProjectQuoteRevisionHistoryFileIntoProject({
+    format: "MobilyaCAD",
+    formatVersion: 1,
+    room: { width: 4000, length: 5000, height: 2800, unit: "mm" },
+    furniture: []
+  }, emptyHistory.json);
+
+  assert.equal(malformed.status, "blocked");
+  assert.equal(malformed.project, null);
+  assert.match(malformed.diagnostics.join(" | "), /JSON metni|geçerli JSON/);
+  assert.equal(empty.status, "blocked");
+  assert.equal(empty.project, null);
+  assert.match(empty.diagnostics.join(" | "), /Boş teklif revizyon geçmişi/);
+  assert.equal(legacy.status, "blocked");
+  assert.equal(legacy.project, null);
+  assert.match(legacy.diagnostics.join(" | "), /JSON v1 dosyasına aktarılamaz/);
 });

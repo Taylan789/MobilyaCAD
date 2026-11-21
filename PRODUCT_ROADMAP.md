@@ -576,7 +576,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 
 
 ## Next 5 small tasks
-1. DOM-079 READY — safe standalone revision-history JSON import into project v2 with strict projectId match and no silent overwrite; legacy v1 blocked.
+1. DOM-079 IN_PROGRESS — safe standalone revision-history JSON import into project v2 with strict projectId match and no silent overwrite; legacy v1 blocked.
 2. DOM-066 / INT-001 FRONTEND-OWNED — comparison download and production report/export integration; domain contract must preserve catalog resource identity.
 3. INT-002/PERF-001 INTEGRATION-OWNED — adapter round-trip tests and measured CAD profiling on isolated specialist branch.
 4. QA-003 BLOCKED — final end-to-end export/data integrity review after INT-001/INT-002 evidence.
@@ -760,7 +760,7 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 | DOM-078 | Ürün Geliştirme | IN_PROGRESS — 078A material provenance and 078B comparison matching verified; 078C comparison JSON/CSV metadata export remains | DOM-077 |
 | DOM-078B | Ürün Geliştirme | DONE — comparison grouping now includes catalog resource type/ID/unit; resource swaps yield add/remove pairs; export schema unchanged | DOM-078A | |
 | DOM-078C | Ürün Geliştirme | READY — strict comparison JSON v2/CSV v3 resource metadata, legacy JSON v1/CSV v1-v2 readers, partial metadata rejection and round-trip tests | DOM-078B | |
-| DOM-079 | Ürün Geliştirme | READY — standalone revision-history import into project v2 with strict projectId match and no silent overwrite; legacy v1 blocked | DOM-077 |
+| DOM-079 | Ürün Geliştirme | IN_PROGRESS — API and regression tests added; exact-SHA Actions pending | DOM-077 |
 | INT-001 | Arayüz + Ürün | READY — frontend adapter consumes domain reports and blocks unsupported geometry export; round-trip tests | Production-domain contract |
 | INT-002 | Entegrasyon/Performans | READY — adapter round-trip integration tests, isolated specialist branch | INT-001 contract |
 | PERF-001 | Entegrasyon/Performans | READY — repeatable CAD scene/render baseline and measured regression optimization | Separate specialist ownership |
@@ -810,3 +810,12 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - Code [81a39f4c](https://github.com/Taylan789/MobilyaCAD/commit/81a39f4c421fb53cff92b117cc18112849b75f16); fixture correction [573810ee](https://github.com/Taylan789/MobilyaCAD/commit/573810ee6e1fc697f1eb9693dd6ce450b2d659a9). CI [#44847105808](https://github.com/Taylan789/MobilyaCAD/actions/runs/44847105808), QA [#44847105831](https://github.com/Taylan789/MobilyaCAD/actions/runs/44847105831), Pages [#44847105832](https://github.com/Taylan789/MobilyaCAD/actions/runs/44847105832) all successful — 130 frontend + 590 domain tests, type-check, lint, production build and audit (0 vulnerabilities).
 - Test site deployed: https://taylan789.github.io/MobilyaCAD/
 - Next: DOM-079 safe standalone revision-history import into project v2 with strict projectId match and no silent overwrite.
+
+## DOM-079 — Safe standalone revision-history import into project v2 (Actions pending)
+
+- Adds an import API for the standalone quote-revision history JSON envelope. Import is permitted only for a valid project v2 target with an empty history and an exact matching projectId.
+- Existing non-empty histories are fail-closed: the import returns blocked/null and never silently replaces a revision chain. Empty history files, malformed JSON, mismatched project IDs and project v1 targets are rejected.
+- Import returns a new immutable project envelope; the source project and standalone JSON are unchanged. The project parser remains responsible for full room/furniture/material validation.
+- Regression tests cover success round-trip, input immutability, project identity mismatch, overwrite protection, malformed/empty history and legacy v1 blocking.
+- Code and exact-SHA CI/QA verification are pending; do not claim deployment until CI + QA + Pages succeed.
+- Next: DOM-080 expand import/export adversarial fixtures (duplicate revision IDs, foreign revisions, malformed metadata and version downgrade), then reassess INT-001 adapter contract.

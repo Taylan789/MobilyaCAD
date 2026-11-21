@@ -3,6 +3,7 @@ import {
   validateProjectQuoteRevisionHistory,
   type ProjectQuoteRevisionHistory
 } from "./projectQuoteRevision.ts";
+import { parseProjectQuoteRevisionHistoryFile } from "./projectQuoteRevisionFile.ts";
 
 type DeepReadonly<T> =
   T extends readonly (infer U)[]
@@ -21,6 +22,14 @@ export interface ProjectQuoteRevisionProjectFileReadResult {
 }
 
 export interface ProjectQuoteRevisionProjectFileAppendResult {
+  status: "ready" | "blocked";
+  project: Readonly<Record<string, unknown>> | null;
+  history: DeepReadonly<ProjectQuoteRevisionHistory> | null;
+  diagnostics: readonly string[];
+}
+
+
+export interface ProjectQuoteRevisionProjectFileImportResult {
   status: "ready" | "blocked";
   project: Readonly<Record<string, unknown>> | null;
   history: DeepReadonly<ProjectQuoteRevisionHistory> | null;
@@ -63,6 +72,15 @@ function blockedRead(message: string): ProjectQuoteRevisionProjectFileReadResult
 }
 
 function blockedAppend(message: string): ProjectQuoteRevisionProjectFileAppendResult {
+  return Object.freeze({
+    status: "blocked" as const,
+    project: null,
+    history: null,
+    diagnostics: Object.freeze([message])
+  });
+}
+
+function blockedImport(message: string): ProjectQuoteRevisionProjectFileImportResult {
   return Object.freeze({
     status: "blocked" as const,
     project: null,
@@ -215,6 +233,62 @@ export function appendProjectQuoteRevisionToProjectFile(
     status: "ready" as const,
     project: nextProject,
     history: appended.history,
+    diagnostics: Object.freeze([])
+  });
+}
+
+
+/**
+ * Imports a standalone validated revision-history JSON file into an empty project v2 history.
+ * Existing non-empty histories are never overwritten; project identity must match exactly.
+ */
+export function importProjectQuoteRevisionHistoryFileIntoProject(
+  projectValue: unknown,
+  historyFileJson: unknown
+): ProjectQuoteRevisionProjectFileImportResult {
+  const envelope = inspectProjectEnvelope(projectValue);
+  if (envelope.status === "blocked") return blockedImport(envelope.diagnostics[0]);
+  if (envelope.status === "legacy") {
+    return blockedImport(
+      "Teklif revizyon geçmişi proje JSON v1 dosyasına aktarılamaz; önce kararlı projectId içeren v2 proje migrasyonu gerekir."
+    );
+  }
+
+  const current = readProjectQuoteRevisionHistoryFromProjectFile(envelope.project);
+  if (current.status === "blocked" || current.history === null) {
+    return blockedImport(
+      current.diagnostics[0] ?? "Mevcut proje teklif revizyon geçmişi doğrulanamadı."
+    );
+  }
+  if (current.history.revisions.length > 0) {
+    return blockedImport(
+      "Proje zaten teklif revizyon geçmişi içeriyor; içe aktarma mevcut geçmişi sessizce değiştiremez."
+    );
+  }
+
+  const imported = parseProjectQuoteRevisionHistoryFile(historyFileJson);
+  if (imported.status === "blocked" || imported.history === null) {
+    return blockedImport(
+      imported.diagnostics[0] ?? "Dışa aktarılmış teklif revizyon geçmişi doğrulanamadı."
+    );
+  }
+  if (imported.history.revisions.length === 0) {
+    return blockedImport("Boş teklif revizyon geçmişi proje dosyasına aktarılamaz.");
+  }
+  if (imported.history.projectId !== envelope.projectId) {
+    return blockedImport(
+      "İçe aktarılan teklif revizyon geçmişinin projectId değeri hedef proje ile eşleşmelidir."
+    );
+  }
+
+  const nextProject = Object.freeze({
+    ...envelope.project,
+    [PROJECT_QUOTE_REVISION_HISTORY_FIELD]: imported.history
+  });
+  return Object.freeze({
+    status: "ready" as const,
+    project: nextProject,
+    history: imported.history,
     diagnostics: Object.freeze([])
   });
 }
