@@ -91,11 +91,7 @@ export function FurnitureTransformFields({
         <Move3D />
       </div>
 
-      <div
-        className="cad-transform-axis-grid"
-        role="group"
-        aria-label="Mobilya konumu, milimetre"
-      >
+      <div className="cad-transform-axis-grid" role="group" aria-label="Mobilya konumu, milimetre">
         {axes.map((axis) => {
           const inputId = `furniture-position-${axis.key}`;
 
