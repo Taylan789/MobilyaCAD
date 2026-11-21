@@ -859,3 +859,11 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - Code/test [commit 191a0f1d](https://github.com/Taylan789/MobilyaCAD/commit/191a0f1d884ce9a6fe363bb19a65884163ec571f). Verification SHA f598cf7a: [CI #44881090457](https://github.com/Taylan789/MobilyaCAD/actions/runs/44881090457), [QA #44881090447](https://github.com/Taylan789/MobilyaCAD/actions/runs/44881090447), [Pages #44881090459](https://github.com/Taylan789/MobilyaCAD/actions/runs/44881090459) all succeeded. QA: 139 frontend + 602 domain tests, strict domain type-check, lint 32 warnings / 0 errors, production build, audit 0 production vulnerabilities.
 - Test site deployment verified: https://taylan789.github.io/MobilyaCAD/
 - Next: DOM-084 quote comparison source/resource provenance cross-check; INT-001 frontend adapter remains UI-owned and INT-002/PERF-001 remain specialist-owned. No frontend, adapter/performance-owned files, or machine-specific output changed.
+
+
+## DOM-084 — Quote comparison catalog/source provenance cross-check (IN_PROGRESS, 21 November 2026)
+- Acceptance slice: a revision comparison where the cost-line/source ID and Part provenance stay stable but the catalog resource identity changes from panel material (m²) to edge-banding (m) must emit a removed + added pair, not a price-only changed line.
+- The test checks the exact old/new resource type, resource ID, resource unit, line unit and sorted Part provenance, plus category/grand-total delta reconciliation.
+- The resulting comparison is round-tripped through strict comparison JSON v2 and CSV v3 and must remain exactly equal.
+- Test commit: [82c5c7e1](https://github.com/Taylan789/MobilyaCAD/commit/82c5c7e1c8ea4568862ef57e6ac43b83b91d8746). Actions verification is pending/unavailable in this run; no production calculation or UI changed.
+- Next small task: DOM-085 cross-check that price-source reference changes on an unchanged catalog resource remain value changes while resource identity and Part provenance are preserved; keep legacy JSON v1/CSV v1-v2 readers covered.
