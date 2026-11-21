@@ -1475,6 +1475,12 @@ function App() {
                   aria-keyshortcuts="Control+K Meta+K"
                   value={catalogSearch}
                   onChange={(event) => setCatalogSearch(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Escape" && catalogSearch) {
+                      event.preventDefault();
+                      setCatalogSearch("");
+                    }
+                  }}
                   placeholder="Model veya mobilya ara..."
                 />
                 <kbd>Ctrl K</kbd>
@@ -1622,6 +1628,12 @@ function App() {
                     id="cad-scene-search"
                     value={sceneSearch}
                     onChange={(event) => setSceneSearch(event.target.value)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Escape" && sceneSearch) {
+                        event.preventDefault();
+                        setSceneSearch("");
+                      }
+                    }}
                     placeholder="Mobilya, parça veya malzeme ara..."
                     aria-label="Sahne ağacında mobilya, parça, malzeme veya dekor ara"
                   />
