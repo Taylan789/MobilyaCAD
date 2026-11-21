@@ -1987,10 +1987,10 @@
 - **Next:** DOM-088 deterministic comparison/export when quote lines and source mappings are reordered; INT-001/INT-002/PERF-001 remain separately owned.
 
 
-## 21 Kasım 2026 14:55 TRT — DOM-088 implement edildi (Actions bekleniyor)
-- **Kabul kriteri:** aynı teklif snapshot'ında maliyet satırları ve kaynak eşlemesi birlikte farklı sıralara alındığında karşılaştırma sonucu, JSON v2 ve CSV v3 metni byte-for-byte deterministik kalmalı; parse edilmiş karşılaştırmalar aynı olmalı.
-- **Test dilimi:** iki revizyon; değişmeyen Part A, değişen Part B ve eklenen Part C. Sıralı ve permütasyonlu girdilerin line-change listesi, JSON/CSV çıktıları ve round-trip sonuçları birebir karşılaştırılıyor.
-- **Değişiklik:** yalnızca `domain/production/projectQuoteRevision.test.mjs` test kapsamı; domain üretim hesabı veya frontend kodu değiştirilmedi. Bu commit SHA'sı ve Actions kanıtı doğrulama tamamlandıktan sonra bu kayda eklenecek (self-referential SHA yazılamaz).
-- **Doğrulama:** bu runtime'da yerel checkout/test çalıştırma yok. CI, QA ve Pages sonuçları yeni commit SHA için henüz gözlenmedi.
-- **Ajan durumu:** aktif CI/QA/AI Developer run yok; son AI Developer run [#44886646460](https://github.com/Taylan789/MobilyaCAD/actions/runs/44886646460) OpenRouter free-model daily 429 nedeniyle başarısız; ücret/secrets/quota değişikliği veya rerun yapılmadı. Integration/performance job skipped.
-- **Sonraki:** yeni commit'in exact-SHA CI/QA/Pages sonuçlarını izle; başarılıysa DOM-088'i VERIFIED yap ve DOM-089'a geç.
+## 21 Kasım 2026 15:02 TRT — DOM-088 VERIFIED
+- **Code/test commit:** [c4213ea59b72358ab903c77b1025f91660278c98](https://github.com/Taylan789/MobilyaCAD/commit/c4213ea59b72358ab903c77b1025f91660278c98); files: domain/production/projectQuoteRevision.test.mjs, PRODUCT_ROADMAP.md, AI_PROGRESS.md, AI_COORDINATION.md.
+- **Behavior:** cost lines/source mapping paired records were reversed/rotated across two snapshots. Comparison line changes remained exact (Part B changed, Part C added; Part A unchanged), the full comparison was identical, and JSON v2 / CSV v3 bytes and parsed values matched.
+- **Exact-SHA Actions:** [CI](https://github.com/Taylan789/MobilyaCAD/actions/runs/44901772791) **success**, [QA](https://github.com/Taylan789/MobilyaCAD/actions/runs/44901772751) **success**, [Pages deploy](https://github.com/Taylan789/MobilyaCAD/actions/runs/44901772717) **success** on c4213ea59b72358ab903c77b1025f91660278c98. QA: **142 frontend + 607 domain tests**, shared-domain type-check, production build, lint **32 warnings / 0 errors**, npm audit **0 vulnerabilities**. Local tests were not run in this runtime.
+- **Test site:** Pages deployment succeeded — https://taylan789.github.io/MobilyaCAD/. The web page itself could not be opened by the browser tool, so live-content inspection is unavailable; the deployment workflow is the verified evidence.
+- **Agent limits:** AI Developer [#44886646460](https://github.com/Taylan789/MobilyaCAD/actions/runs/44886646460) failed with OpenRouter free daily HTTP 429; no rerun, paid credits, secrets or quota changes. Integration/performance job skipped. UI PRs #135 (draft), #133 and #132 remain unmerged; this domain slice does not replace the visible frontend redesign.
+- **Next:** DOM-089 independently reordered source mapping fail-closed validation; INT-001 remains UI-owned and INT-002/PERF-001 specialist-owned.
