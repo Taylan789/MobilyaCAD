@@ -2457,3 +2457,149 @@ test("DOM-095 three-revision mixed-category comparison reconciles changes, remov
   assert.deepEqual(parsedCsv.comparison, result.comparison);
 });
 
+function createDom097Snapshot({ hardwareQuantity, hardwarePrice, laborQuantity, laborPrice, operationQuantity, operationPrice }) {
+  const snapshot = createSnapshot();
+  const quoteSummary = snapshot.quoteSummary;
+  const costSummary = quoteSummary.costSummary;
+  assert.ok(costSummary);
+  const laborLine = costSummary.lines.find(line => line.category === "labor");
+  assert.ok(laborLine);
+  const previousLaborTotal = laborLine.lineTotalMinor;
+  laborLine.quantity = laborQuantity;
+  laborLine.unitPriceMinor = laborPrice;
+  laborLine.lineTotalMinor = calculateProjectCostLineTotalMinor(laborQuantity, laborPrice);
+  const laborDelta = laborLine.lineTotalMinor - previousLaborTotal;
+  costSummary.categoryTotalsMinor.labor += laborDelta;
+  costSummary.grandTotalMinor += laborDelta;
+
+  const addLine = (line, source) => {
+    const lineTotalMinor = calculateProjectCostLineTotalMinor(line.quantity, line.unitPriceMinor);
+    costSummary.lines.push({ ...line, lineTotalMinor });
+    quoteSummary.lineSources.push({ ...source });
+    costSummary.categoryTotalsMinor[line.category] += lineTotalMinor;
+    costSummary.grandTotalMinor += lineTotalMinor;
+    costSummary.lineCount += 1;
+    quoteSummary.requiredLineCount += 1;
+    quoteSummary.pricedLineCount += 1;
+  };
+  addLine({
+    id: "dom-097-hardware",
+    category: "hardware",
+    description: "DOM-097 fractional hardware BOM",
+    quantity: hardwareQuantity,
+    unit: "adet",
+    unitPriceMinor: hardwarePrice,
+    currencyCode: "TRY",
+    sourceReference: "hardware-prices:dom-097"
+  }, {
+    costLineId: "dom-097-hardware",
+    sourceType: "production-consumption",
+    sourceId: "dom-097-hardware"
+  });
+  addLine({
+    id: "dom-097-operation",
+    category: "operation",
+    description: "DOM-097 workshop operation",
+    quantity: operationQuantity,
+    unit: "h",
+    unitPriceMinor: operationPrice,
+    currencyCode: "TRY",
+    sourceReference: "operation-tariffs:dom-097"
+  }, {
+    costLineId: "dom-097-operation",
+    sourceType: "labor-operation",
+    sourceId: "dom-097-operation",
+    tariffId: "dom-097-operation-hourly"
+  });
+  return snapshot;
+}
+
+test("DOM-097 three-revision fractional hardware and labor/operation changes reconcile rounded line and category totals", () => {
+  const revisionOneSnapshot = createDom097Snapshot({
+    hardwareQuantity: 1.25, hardwarePrice: 400,
+    laborQuantity: 1.5, laborPrice: 2400,
+    operationQuantity: 0.125, operationPrice: 1010
+  });
+  const revisionTwoSnapshot = createDom097Snapshot({
+    hardwareQuantity: 1.75, hardwarePrice: 500,
+    laborQuantity: 1.25, laborPrice: 2500,
+    operationQuantity: 0.375, operationPrice: 1010
+  });
+  const revisionThreeSnapshot = createDom097Snapshot({
+    hardwareQuantity: 2.5, hardwarePrice: 600,
+    laborQuantity: 1.75, laborPrice: 2800,
+    operationQuantity: 0.5, operationPrice: 1020
+  });
+  const history = {
+    projectId: "project-42",
+    revisions: [
+      createHistoryRevision({ pricingSnapshot: revisionOneSnapshot }),
+      createHistoryRevision({
+        revisionId: "quote-r2",
+        revisionNumber: 2,
+        createdAt: "2026-11-17T11:00:00Z",
+        previousRevisionId: "quote-r1",
+        pricingSnapshot: revisionTwoSnapshot
+      }),
+      createHistoryRevision({
+        revisionId: "quote-r3",
+        revisionNumber: 3,
+        createdAt: "2026-11-17T12:00:00Z",
+        previousRevisionId: "quote-r2",
+        pricingSnapshot: revisionThreeSnapshot
+      })
+    ]
+  };
+
+  const result = compareProjectQuoteRevisions(history, "quote-r1", "quote-r3");
+  assert.equal(result.status, "ready", result.diagnostics.join("; "));
+  assert.ok(result.comparison);
+  assert.equal(result.comparison.lineChanges.length, 3);
+  assert.deepEqual(result.comparison.categoryDeltasMinor, {
+    material: 0,
+    hardware: 1000,
+    labor: 1300,
+    operation: 384,
+    waste: 0,
+    profit: 0
+  });
+  assert.equal(result.comparison.grandTotalDeltaMinor, 2684);
+  assert.equal(
+    Object.values(result.comparison.categoryDeltasMinor).reduce((sum, delta) => sum + delta, 0),
+    result.comparison.grandTotalDeltaMinor
+  );
+
+  const hardware = result.comparison.lineChanges.find(change => (change.from ?? change.to)?.sourceId === "dom-097-hardware");
+  assert.equal(hardware?.type, "changed");
+  assert.equal(hardware.from.quantity, 1.25);
+  assert.equal(hardware.to.quantity, 2.5);
+  assert.equal(hardware.from.lineTotalMinor, 500);
+  assert.equal(hardware.to.lineTotalMinor, 1500);
+
+  const labor = result.comparison.lineChanges.find(change => (change.from ?? change.to)?.sourceId === "assembly-labor");
+  assert.equal(labor?.type, "changed");
+  assert.equal(labor.from.quantity, 1.5);
+  assert.equal(labor.to.quantity, 1.75);
+  assert.equal(labor.from.lineTotalMinor, 3600);
+  assert.equal(labor.to.lineTotalMinor, 4900);
+
+  const operation = result.comparison.lineChanges.find(change => (change.from ?? change.to)?.sourceId === "dom-097-operation");
+  assert.equal(operation?.type, "changed");
+  assert.equal(operation.from.lineTotalMinor, 126);
+  assert.equal(operation.to.lineTotalMinor, 510);
+  assert.equal(operation.to.quantity, 0.5);
+
+  const json = serializeProjectQuoteRevisionComparisonFile(result);
+  assert.equal(json.status, "ready", json.diagnostics.join("; "));
+  assert.equal(JSON.parse(json.json).schemaVersion, 2);
+  const parsedJson = parseProjectQuoteRevisionComparisonFile(json.json);
+  assert.equal(parsedJson.status, "ready", parsedJson.diagnostics.join("; "));
+  assert.deepEqual(parsedJson.comparison, result.comparison);
+
+  const csv = serializeProjectQuoteRevisionComparisonCsv(result);
+  assert.equal(csv.status, "ready", csv.diagnostics.join("; "));
+  assert.equal(PROJECT_QUOTE_REVISION_COMPARISON_CSV_VERSION, 3);
+  const parsedCsv = parseProjectQuoteRevisionComparisonCsv(csv.csv);
+  assert.equal(parsedCsv.status, "ready", parsedCsv.diagnostics.join("; "));
+  assert.deepEqual(parsedCsv.comparison, result.comparison);
+});
