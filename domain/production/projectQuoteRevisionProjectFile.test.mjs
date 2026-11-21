@@ -442,3 +442,98 @@ test("standalone history import rejects malformed, empty and legacy v1 project i
   assert.equal(legacy.project, null);
   assert.match(legacy.diagnostics.join(" | "), /JSON v1 dosyasına aktarılamaz/);
 });
+
+// DOM-080 import hardening fixtures: serialized files are mutated only after
+// a valid history has been generated, so the importer—not the fixture setup—
+// is exercised against adversarial payloads.
+function serializeImportFixture(history) {
+  const serialized = serializeProjectQuoteRevisionHistoryFile(history);
+  assert.equal(serialized.status, "ready");
+  assert.ok(serialized.json);
+  return serialized.json;
+}
+
+test("standalone import blocks duplicate revision IDs and preserves the target", () => {
+  const first = appendProjectQuoteRevisionToProjectFile(createV2Project(), createRevision());
+  assert.equal(first.status, "ready");
+  assert.ok(first.project);
+  const second = appendProjectQuoteRevisionToProjectFile(first.project, createRevision({
+    revisionId: "quote-r2",
+    createdAt: "2026-11-18T02:00:00+03:00"
+  }));
+  assert.equal(second.status, "ready");
+  assert.ok(second.history);
+
+  const payload = JSON.parse(serializeImportFixture(second.history));
+  payload.history.revisions[1].revisionId = payload.history.revisions[0].revisionId;
+  const target = createV2Project();
+  const before = structuredClone(target);
+  const result = importProjectQuoteRevisionHistoryFileIntoProject(target, JSON.stringify(payload));
+
+  assert.equal(result.status, "blocked");
+  assert.equal(result.project, null);
+  assert.match(result.diagnostics.join(" | "), /revisionId değerleri benzersiz/);
+  assert.deepEqual(target, before);
+});
+
+test("standalone import blocks a foreign revision inside a matching history envelope", () => {
+  const source = appendProjectQuoteRevisionToProjectFile(createV2Project(), createRevision());
+  assert.ok(source.history);
+  const payload = JSON.parse(serializeImportFixture(source.history));
+  payload.history.revisions[0].projectId = "foreign-project";
+  const target = createV2Project();
+  const before = structuredClone(target);
+  const result = importProjectQuoteRevisionHistoryFileIntoProject(target, JSON.stringify(payload));
+
+  assert.equal(result.status, "blocked");
+  assert.equal(result.project, null);
+  assert.match(result.diagnostics.join(" | "), /aynı proje kimliğine ait/);
+  assert.deepEqual(target, before);
+});
+
+test("standalone import blocks unsupported revision integrity metadata", () => {
+  const source = appendProjectQuoteRevisionToProjectFile(createV2Project(), createRevision());
+  assert.ok(source.history);
+  const payload = JSON.parse(serializeImportFixture(source.history));
+  payload.history.revisions[0].sourceIntegrityVersion = 2;
+  const target = createV2Project();
+  const before = structuredClone(target);
+  const result = importProjectQuoteRevisionHistoryFileIntoProject(target, JSON.stringify(payload));
+
+  assert.equal(result.status, "blocked");
+  assert.equal(result.project, null);
+  assert.match(result.diagnostics.join(" | "), /sourceIntegrityVersion/);
+  assert.deepEqual(target, before);
+});
+
+test("standalone and project-history import block version downgrade payloads", () => {
+  const source = appendProjectQuoteRevisionToProjectFile(createV2Project(), createRevision());
+  assert.ok(source.history);
+  const payload = JSON.parse(serializeImportFixture(source.history));
+  payload.schemaVersion = 0;
+  const target = createV2Project();
+  const before = structuredClone(target);
+  const standaloneDowngrade = importProjectQuoteRevisionHistoryFileIntoProject(target, JSON.stringify(payload));
+
+  const projectV1WithHistory = {
+    format: "MobilyaCAD",
+    formatVersion: 1,
+    quoteRevisionHistory: source.history,
+    room: { width: 4000, length: 5000, height: 2800, unit: "mm" },
+    furniture: []
+  };
+  const projectDowngrade = importProjectQuoteRevisionHistoryFileIntoProject(
+    projectV1WithHistory,
+    serializeImportFixture(source.history)
+  );
+
+  assert.equal(standaloneDowngrade.status, "blocked");
+  assert.equal(standaloneDowngrade.project, null);
+  assert.match(standaloneDowngrade.diagnostics.join(" | "), /desteklenmeyen teklif revizyon geçmişi dosya sürümü/);
+  assert.equal(projectDowngrade.status, "blocked");
+  assert.equal(projectDowngrade.project, null);
+  assert.match(projectDowngrade.diagnostics.join(" | "), /JSON v1 quoteRevisionHistory alanını desteklemez/);
+  assert.deepEqual(target, before);
+  assert.deepEqual(projectV1WithHistory.quoteRevisionHistory, source.history);
+});
+

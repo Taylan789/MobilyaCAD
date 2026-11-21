@@ -820,3 +820,10 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - Code [45410f6f](https://github.com/Taylan789/MobilyaCAD/commit/45410f6f9ef2ba8294a526eb0e5bda4435719971). CI [#44854578281](https://github.com/Taylan789/MobilyaCAD/actions/runs/44854578281), QA [#44854578278](https://github.com/Taylan789/MobilyaCAD/actions/runs/44854578278), Pages [#44854578405](https://github.com/Taylan789/MobilyaCAD/actions/runs/44854578405) all succeeded: 130 frontend + 594 domain tests, strict domain TS, lint, production build, production audit 0 vulnerabilities.
 - Test site deployed: https://taylan789.github.io/MobilyaCAD/
 - Next: DOM-080 adversarial fixtures (duplicate revision IDs, foreign revisions, malformed metadata and version downgrade), then reassess INT-001 adapter contract.
+
+## DOM-080 — Quote-history import adversarial fixtures (IN_PROGRESS)
+
+- Add import-path regression fixtures for duplicate revision IDs, a revision whose project identity differs from its envelope, unsupported source-integrity metadata, and standalone/project-history version downgrade payloads.
+- Each fixture must reject the payload without returning a partial project or mutating the target. The existing production validator remains fail-closed; this slice changes test coverage only.
+- Acceptance: exact-SHA CI/QA pass, strict TypeScript/lint/build/audit, then Pages gate verifies deployment. No CNC or pricing behavior is changed.
+- Next 3 slices: DOM-081 project quote-history JSON round-trip invariants; DOM-082 strict malformed/unknown-field import boundaries; reassess frontend-owned import/export wiring and INT-001 adapter contract.
