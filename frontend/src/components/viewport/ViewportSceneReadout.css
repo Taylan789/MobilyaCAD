@@ -1,0 +1,72 @@
+.cad-viewport-readout {
+  position: absolute;
+  z-index: 4;
+  top: 58px;
+  left: 15px;
+  display: grid;
+  width: min(306px, calc(100% - 30px));
+  grid-template-columns: 54px minmax(0, 1fr);
+  align-items: start;
+  gap: 9px;
+  padding: 8px 10px;
+  color: #dce7ed;
+  border: 1px solid rgba(103, 133, 150, 0.48);
+  border-left: 2px solid #91b4ca;
+  border-radius: 7px;
+  background: rgba(17, 27, 34, 0.93);
+  box-shadow: 0 9px 24px rgba(0, 0, 0, 0.24), inset 0 1px rgba(255, 255, 255, 0.035);
+  backdrop-filter: blur(12px);
+  pointer-events: none;
+  font-family: "Geist Variable", "Segoe UI", sans-serif;
+}
+
+.cad-viewport-readout__label {
+  padding-top: 2px;
+  color: #8ea6b4;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.cad-viewport-readout__value {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.cad-viewport-readout__value > strong {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  color: #e7eef2;
+  font-size: 10px;
+  font-weight: 680;
+  line-height: 1.45;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cad-viewport-readout__value > small {
+  overflow: hidden;
+  color: #9fb0ba;
+  font-size: 8px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.4;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 560px) {
+  .cad-viewport-readout {
+    top: 54px;
+    left: 8px;
+    width: min(270px, calc(100% - 16px));
+    grid-template-columns: 46px minmax(0, 1fr);
+    gap: 7px;
+    padding: 7px 8px;
+  }
+
+  .cad-viewport-readout__value > strong {
+    font-size: 9px;
+  }
+}
