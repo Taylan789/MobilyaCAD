@@ -15,10 +15,10 @@ interface FurnitureTransformFieldsProps {
   onRotationCommit: (rotation: number) => void;
 }
 
-const axes: { key: Axis; label: string; index: number; color: string }[] = [
-  { key: "x", label: "X", index: 0, color: "text-rose-400" },
-  { key: "y", label: "Y", index: 1, color: "text-emerald-400" },
-  { key: "z", label: "Z", index: 2, color: "text-sky-400" },
+const axes: { key: Axis; label: string; index: number; color: string; title: string }[] = [
+  { key: "x", label: "X", index: 0, color: "text-rose-400", title: "Plan konumu" },
+  { key: "z", label: "Z", index: 2, color: "text-sky-400", title: "Plan konumu" },
+  { key: "y", label: "Y", index: 1, color: "text-emerald-400", title: "Yükseklik" },
 ];
 
 function formatMillimeters(meters: number) {
@@ -105,7 +105,7 @@ export function FurnitureTransformFields({
                 className="cad-transform-axis-label mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground"
               >
                 <span className="cad-transform-axis-label__letter">{axis.label}</span>
-                Konum
+                {axis.title}
               </Label>
               <div className="cad-input-with-unit cad-transform-axis-value">
                 <Input
