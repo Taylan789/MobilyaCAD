@@ -830,3 +830,53 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 .atelier-welcome { grid-template-columns: minmax(0, 1fr) !important; }
 .atelier-welcome-copy { max-width: 760px !important; }
 .atelier-bottom-row { grid-template-columns: minmax(0, 1fr) !important; }
+
+/* Production dock disclosure — keeps tab context while returning height to the model viewport. */
+.cad-bottom-dock-toggle {
+  display: inline-flex !important;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-height: 27px;
+  margin-left: 6px;
+  padding: 0 8px;
+  color: #a9c2d0;
+  background: #172a35;
+  border: 1px solid #3b5361;
+  border-radius: 5px;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  cursor: pointer;
+}
+.cad-bottom-dock-toggle:hover { color: #edf5f9; background: #263e4b; border-color: #66859a; }
+.cad-bottom-dock-toggle:focus-visible { outline: 2px solid #a9c7d8; outline-offset: 2px; }
+.cad-bottom-dock-toggle svg { width: 13px; height: 13px; transition: transform 160ms ease; }
+.cad-bottom-dock--collapsed .cad-bottom-dock-toggle svg { transform: rotate(180deg); }
+.cad-bottom-dock--collapsed .cad-bottom-dock-header { border-bottom: 0 !important; }
+.cad-bottom-dock--collapsed .cad-bottom-dock-body { display: none !important; }
+.cad-main-area.cad-main-area--dock-collapsed {
+  grid-template-rows: 32px 52px minmax(0, 1fr) 51px !important;
+}
+@media (min-width: 761px) and (max-width: 1360px) {
+  .cad-main-area.cad-main-area--dock-collapsed {
+    grid-template-rows: 30px 49px minmax(0, 1fr) 51px !important;
+  }
+}
+@media (max-width: 900px) {
+  .cad-main-area.cad-main-area--dock-collapsed {
+    grid-template-rows: 38px 58px minmax(240px, 1fr) 51px !important;
+  }
+}
+@media (max-width: 700px) {
+  .cad-bottom-dock-toggle { min-width: 30px; min-height: 27px; padding: 0 5px; }
+  .cad-bottom-dock-toggle span { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cad-bottom-dock-toggle svg { transition: none !important; }
+}
+@media (forced-colors: active) {
+  .cad-bottom-dock-toggle { color: ButtonText; background: ButtonFace; border-color: ButtonText; }
+  .cad-bottom-dock-toggle:focus-visible { outline-color: Highlight; }
+}
