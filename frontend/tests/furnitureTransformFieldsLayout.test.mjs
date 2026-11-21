@@ -11,12 +11,16 @@ const styles = readFileSync(
   "utf8",
 );
 
-test("position inspector exposes compact, color-coded axis controls without changing the mm group", () => {
+test("position inspector groups X/Z as plan axes and Y as elevation without changing the mm group", () => {
   assert.match(component, /cad-transform-axis-grid/);
-  assert.match(component, /cad-transform-axis-field cad-transform-axis-field--\$\{axis\.key\}/);
+  assert.ok(component.includes("cad-transform-axis-field--${axis.key}"));
   assert.match(component, /cad-transform-axis-label__letter/);
   assert.match(component, /role="group" aria-label="Mobilya konumu, milimetre"/);
-  assert.match(styles, /grid-template-columns:\s*repeat\(3, minmax\(0, 1fr\)\)/);
+  assert.match(component, /key: "x", label: "X", index: 0[\s\S]*key: "z", label: "Z", index: 2[\s\S]*key: "y", label: "Y", index: 1/);
+  assert.match(component, /title: "Plan konumu"/);
+  assert.match(component, /title: "Yükseklik"/);
+  assert.match(styles, /grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)/);
+  assert.match(styles, /cad-transform-axis-field--y\s*\{[\s\S]*grid-column:\s*1\s*\/\s*-1/);
   assert.match(styles, /cad-transform-axis-field--x[\s\S]*cad-transform-axis-field--y[\s\S]*cad-transform-axis-field--z/);
   assert.match(styles, /cad-transform-axis-value > span/);
 });

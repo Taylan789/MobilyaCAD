@@ -63,3 +63,44 @@
   .cad-transform-axis-grid, .cad-transform-axis-field, .cad-transform-rotation { border-color: CanvasText; }
   .cad-transform-axis-field:focus-within { outline: 2px solid Highlight; outline-offset: 1px; }
 }
+
+
+/* UI-TRANSFORM-AXIS-CONTEXT-001 — separate plan coordinates from elevation */
+.cad-transform-axis-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: stretch;
+}
+.cad-transform-axis-field--y {
+  grid-column: 1 / -1;
+  grid-template-columns: minmax(0, 1fr) minmax(110px, .62fr);
+  align-items: center;
+  gap: 9px;
+  padding-inline: 8px;
+}
+.cad-transform-axis-field--y .cad-transform-axis-label {
+  justify-content: flex-start;
+  font-size: 9px !important;
+}
+.cad-transform-axis-field--y .cad-transform-axis-value {
+  width: 100%;
+  max-width: 190px;
+  justify-self: end;
+}
+@media (max-width: 350px) {
+  .cad-transform-axis-field--y { grid-template-columns: minmax(0, 1fr); }
+  .cad-transform-axis-field--y .cad-transform-axis-value { max-width: none; }
+}
+@media (forced-colors: active) {
+  .cad-transform-axis-value input,
+  .cad-transform-rotation__value input {
+    color: FieldText !important;
+    background: Field !important;
+    border-color: FieldText !important;
+  }
+  .cad-transform-axis-field--x .cad-transform-axis-label__letter,
+  .cad-transform-axis-field--y .cad-transform-axis-label__letter,
+  .cad-transform-axis-field--z .cad-transform-axis-label__letter {
+    color: CanvasText !important;
+    background: Canvas !important;
+  }
+}
