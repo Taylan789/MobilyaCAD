@@ -259,7 +259,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 
 ## Sıradaki 3 küçük görev — domain sahipliği
 
-1. DOM-099 READY — teklif revizyon karşılaştırması CSV import'u için 1 MiB UTF-8 payload ve 2.000 satır fark limiti; eski CSV sürümlerini koru ve kısmi payload üretme.
+1. DOM-099 IMPLEMENTED — CSV import/export 1 MiB UTF-8 payload ve 2.000 satır fark limiti; eski CSV v1/v2/v3 korundu, Actions doğrulaması bekleniyor.
 2. DOM-100 PLANNED — JSON v2/CSV v3 karşılaştırma import/export çapraz format eşitliği ve malformed payload fail-closed testleri.
 3. INT-001 FRONTEND-OWNED — karşılaştırma download ve üretim raporu adapter sözleşmesi; frontend dosyaları ürün ajanı tarafından değiştirilmez.
 
@@ -573,7 +573,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 
 1. DOM-098 DONE — bounded quote-comparison JSON v2 import/export: 1 MiB UTF-8 limit and 2,000 line-change limit; fail-closed, no partial payload. [Code/test 88bb19f + correction 2ed95db](https://github.com/Taylan789/MobilyaCAD/commit/2ed95db6639a1f9bdb70cb95c5f9e156f6136e2e); exact-SHA CI/QA/Pages successful.
 
-2. DOM-099 READY — bounded CSV comparison import (1 MiB and 2,000 line-change rows) with legacy v1/v2/v3 preservation.
+2. DOM-099 IMPLEMENTED — bounded CSV comparison import (1 MiB UTF-8 and 2,000 line-change rows), legacy v1/v2/v3 preservation; Actions verification pending
 
 3. DOM-100 PLANNED — JSON v2 ↔ CSV v3 cross-format equivalence and fail-closed adversarial fixtures.
 
@@ -959,4 +959,13 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - Exact-SHA Actions: CI [#44950880826](https://github.com/Taylan789/MobilyaCAD/actions/runs/44950880826), QA [#44950880888](https://github.com/Taylan789/MobilyaCAD/actions/runs/44950880888), Pages [#44950880938](https://github.com/Taylan789/MobilyaCAD/actions/runs/44950880938) succeeded. QA: **142 frontend + 620 domain tests**, strict domain type-check, lint 32 warnings/0 errors, production build, production audit 0 vulnerabilities.
 - Test site deployed at https://taylan789.github.io/MobilyaCAD/. No frontend or CNC/machine-specific output changed.
 - First QA attempt exposed a syntax typo in the new multibyte test fixture; it was corrected in 2ed95db and the final exact-SHA QA passed. No tests were weakened.
-- Next: DOM-099 bounded CSV import, then DOM-100 cross-format equivalence; INT-001 remains frontend-owned.
+- Next: DOM-099 implemented pending exact-SHA Actions, then DOM-100 cross-format equivalence; INT-001 remains frontend-owned.
+
+
+## DOM-099 — Bounded quote comparison CSV import/export (IMPLEMENTED, verification pending)
+
+- CSV comparison parsing now shares the JSON comparison envelope's 1 MiB UTF-8 byte ceiling and 2,000 line-change ceiling. The CSV parser rejects oversized inputs before record parsing, and caps total records to the 8 fixed rows plus the line-change maximum to prevent unbounded row accumulation.
+- CSV serialization is also capped at 1 MiB UTF-8 so generated comparison files remain within the import boundary. v1/v2/v3 header contracts are unchanged.
+- New regression coverage uses multibyte UTF-8 to distinguish code-unit count from byte count, and constructs 2,001 line rows while keeping the fixture under 1 MiB; blocked results must expose no comparison.
+- **Exact-SHA CI/QA/Pages:** pending; this implementation is not marked verified until Actions finishes.
+- **Next 3 small tasks:** DOM-100 JSON v2 ↔ CSV v3 equivalence and malformed fail-closed cross-format tests; DOM-101 adversarial CSV quoting/record boundary coverage; INT-001 frontend-owned adapter/export contract review. INT-002/PERF-001 remains integration-performance-owned; no specialist branch/PR found in this inspection.

@@ -1,6 +1,8 @@
 import {
   parseProjectQuoteRevisionComparisonFile,
-  serializeProjectQuoteRevisionComparisonFile
+  serializeProjectQuoteRevisionComparisonFile,
+  PROJECT_QUOTE_REVISION_COMPARISON_FILE_MAX_BYTES,
+  PROJECT_QUOTE_REVISION_COMPARISON_MAX_LINE_CHANGES
 } from "./projectQuoteRevisionComparisonFile.ts";
 import type {
   ProjectQuoteCostCategory,
@@ -61,6 +63,9 @@ const sideRequiredFields = [
   "Description", "Quantity", "Unit", "UnitPriceMinor", "LineTotalMinor",
   "LineCurrencyCode", "SourceType", "SourceId"
 ] as const;
+const maximumCsvRecords = 8 + PROJECT_QUOTE_REVISION_COMPARISON_MAX_LINE_CHANGES;
+const csvLineChangeLimitMessage = "CSV teklif satırı farkı " +
+  PROJECT_QUOTE_REVISION_COMPARISON_MAX_LINE_CHANGES.toLocaleString("tr-TR") + " sınırını aşıyor.";
 
 type CsvRowType = "total" | "category" | "line";
 
@@ -157,7 +162,10 @@ function requireBlank(row: readonly string[], names: readonly string[], label: s
 }
 
 function parseCsvRecords(csv: string): string[][] {
-  if (csv.length > 5_000_000) throw new Error("CSV dosyası 5 MB sınırını aşıyor.");
+  if (csv.length > PROJECT_QUOTE_REVISION_COMPARISON_FILE_MAX_BYTES ||
+      new TextEncoder().encode(csv).byteLength > PROJECT_QUOTE_REVISION_COMPARISON_FILE_MAX_BYTES) {
+    throw new Error("CSV dosyası 1 MiB sınırını aşıyor.");
+  }
   const text = csv.charCodeAt(0) === 0xfeff ? csv.slice(1) : csv;
   const records: string[][] = [];
   let row: string[] = [];
@@ -202,7 +210,7 @@ function parseCsvRecords(csv: string): string[][] {
       row = [];
       field = "";
       afterQuote = false;
-      if (records.length > 10_007) throw new Error("CSV satır sınırı aşılıyor.");
+      if (records.length > maximumCsvRecords) throw new Error(csvLineChangeLimitMessage);
       continue;
     }
     field += char;
@@ -211,6 +219,7 @@ function parseCsvRecords(csv: string): string[][] {
   if (field.length > 0 || row.length > 0 || afterQuote) {
     row.push(field);
     records.push(row);
+    if (records.length > maximumCsvRecords) throw new Error(csvLineChangeLimitMessage);
   }
   return records;
 }
@@ -352,9 +361,14 @@ export function serializeProjectQuoteRevisionComparisonCsv(
     if (category === undefined) return blockedSerialization("Teklif satır farkı kategorisi bulunmuyor.");
     records.push([...metaValues(comparison, "line"), category, "", change.type, ...lineChangeValues(change.from, change.to)]);
   }
+  const csv = "\uFEFF" + records.map(csvRow).join("\r\n") + "\r\n";
+  if (csv.length > PROJECT_QUOTE_REVISION_COMPARISON_FILE_MAX_BYTES ||
+      new TextEncoder().encode(csv).byteLength > PROJECT_QUOTE_REVISION_COMPARISON_FILE_MAX_BYTES) {
+    return blockedSerialization("CSV teklif karşılaştırma dosyası 1 MiB sınırını aşamaz.");
+  }
   return Object.freeze({
     status: "ready" as const,
-    csv: "\uFEFF" + records.map(csvRow).join("\r\n") + "\r\n",
+    csv,
     diagnostics: Object.freeze([])
   });
 }
@@ -414,7 +428,7 @@ export function parseProjectQuoteRevisionComparisonCsv(
       categoryDeltasMinor[categories[index]] = parseIntegerCell(cell(row, "categoryDeltaMinor", indexMap), categories[index] + " kategori farkı");
     }
     const lineRows = records.slice(8);
-    if (lineRows.length > 10_000) throw new Error("CSV teklif satırı farkı sınırını aşıyor.");
+    if (lineRows.length > PROJECT_QUOTE_REVISION_COMPARISON_MAX_LINE_CHANGES) throw new Error(csvLineChangeLimitMessage);
     const lineChanges: ProjectQuoteRevisionLineChange[] = lineRows.map((row) => {
       if (cell(row, "rowType", indexMap) !== "line") throw new Error("CSV kategori satırlarından sonra yalnızca teklif fark satırları bulunabilir.");
       requireBlank(row, ["categoryDeltaMinor"], "CSV teklif fark satırı", indexMap);

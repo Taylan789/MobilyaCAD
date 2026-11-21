@@ -2,6 +2,10 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  PROJECT_QUOTE_REVISION_COMPARISON_FILE_MAX_BYTES,
+  PROJECT_QUOTE_REVISION_COMPARISON_MAX_LINE_CHANGES
+} from "./projectQuoteRevisionComparisonFile.ts";
+import {
   parseProjectQuoteRevisionComparisonCsv,
   PROJECT_QUOTE_REVISION_COMPARISON_CSV_COLUMNS,
   PROJECT_QUOTE_REVISION_COMPARISON_CSV_VERSION,
@@ -327,6 +331,52 @@ test("DOM-096 CSV import/export blocks duplicate line identities without partial
   assert.equal(parsedDuplicate.status, "blocked");
   assert.equal(parsedDuplicate.comparison, null);
   assert.match(parsedDuplicate.diagnostics[0], /yineleniyor/);
+});
+
+test("DOM-099 CSV comparison import enforces UTF-8 size and line-change limits without partial data", () => {
+  const maxBytes = PROJECT_QUOTE_REVISION_COMPARISON_FILE_MAX_BYTES;
+  const oversizedUtf8 = "\uFEFF" + "é".repeat(Math.ceil((maxBytes - 3) / 2) + 1);
+  assert.ok(oversizedUtf8.length < maxBytes);
+  assert.ok(new TextEncoder().encode(oversizedUtf8).byteLength > maxBytes);
+  const oversized = parseProjectQuoteRevisionComparisonCsv(oversizedUtf8);
+  assert.equal(oversized.status, "blocked");
+  assert.equal(oversized.comparison, null);
+  assert.match(oversized.diagnostics[0], /1 MiB/);
+
+  const validEmpty = serializeProjectQuoteRevisionComparisonCsv(emptyComparisonResult());
+  assert.equal(validEmpty.status, "ready", validEmpty.diagnostics.join("; "));
+  assert.ok(new TextEncoder().encode(validEmpty.csv).byteLength <= maxBytes);
+  const records = parseCsvRecordsForTest(validEmpty.csv);
+  const header = records[0];
+  const total = records[1];
+  const index = name => header.indexOf(name);
+  const lineRow = sourceId => {
+    const row = Array(header.length).fill("");
+    for (const name of header.slice(0, 12)) {
+      row[index(name)] = total[index(name)];
+    }
+    row[index("rowType")] = "line";
+    row[index("category")] = "material";
+    row[index("changeType")] = "added";
+    row[index("toDescription")] = "Bounded CSV test";
+    row[index("toQuantity")] = "1";
+    row[index("toUnit")] = "adet";
+    row[index("toUnitPriceMinor")] = "0";
+    row[index("toLineTotalMinor")] = "0";
+    row[index("toLineCurrencyCode")] = "TRY";
+    row[index("toSourceType")] = "quote-adjustment";
+    row[index("toSourceId")] = sourceId;
+    return row;
+  };
+  for (let i = 0; i <= PROJECT_QUOTE_REVISION_COMPARISON_MAX_LINE_CHANGES; i += 1) {
+    records.push(lineRow("dom-099-line-" + i));
+  }
+  const oversizedRows = "\uFEFF" + records.map(row => row.map(encodeCsvCellForTest).join(",")).join("\r\n") + "\r\n";
+  assert.ok(new TextEncoder().encode(oversizedRows).byteLength <= maxBytes);
+  const parsedRows = parseProjectQuoteRevisionComparisonCsv(oversizedRows);
+  assert.equal(parsedRows.status, "blocked");
+  assert.equal(parsedRows.comparison, null);
+  assert.match(parsedRows.diagnostics[0], /2\.000/);
 });
 
 test("CSV rejects inconsistent category deltas, malformed quoting and unknown headers", () => {

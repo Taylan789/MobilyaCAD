@@ -61,3 +61,12 @@
 - **Files:** only `domain/production/projectQuoteRevision.test.mjs` changed for code/test; no frontend, adapter/performance-owned file, production calculation or CNC output changed.
 - **Actions:** push CI/QA are configured for `dev/github-work`; this run could not retrieve the exact-SHA workflow run list, and the current combined status was empty. CI/QA therefore remain **unverified/pending**, not green. Test site https://taylan789.github.io/MobilyaCAD/ is not claimed updated; latest known verified deployment is Pages [#44943420330](https://github.com/Taylan789/MobilyaCAD/actions/runs/44943420330) on the DOM-096 SHA.
 - **Next:** verify DOM-097 exact-SHA CI/QA and Pages deployment; then DOM-098 bounded comparison JSON import rejection.
+
+
+## 22 Kasım 2026 01:37 TRT — DOM-099 IMPLEMENTED, Actions pending
+
+- Bound the quote-revision comparison CSV parser to the JSON envelope's shared 1 MiB UTF-8 limit and 2,000 line-change limit. Total records are capped at the 8 fixed rows plus 2,000 line rows, rejecting oversized CSV before parsing and preventing unbounded record accumulation.
+- CSV serialization is also capped at 1 MiB UTF-8; CSV v1/v2/v3 headers and legacy parser paths remain unchanged.
+- Added regression coverage for multibyte UTF-8 payload size and 2,001 line rows under the byte ceiling; blocked parses must return \`comparison=null\`.
+- **Commit SHA:** pending creation; exact-SHA CI/QA/Pages pending. No local tests run in this tool runtime; GitHub Actions is the verification source.
+- **Next:** DOM-100 JSON v2 ↔ CSV v3 equivalence; DOM-101 adversarial CSV quoting/record boundary tests; INT-001 remains frontend-owned. No integration/performance specialist branch or PR found; its Actions job was skipped.
