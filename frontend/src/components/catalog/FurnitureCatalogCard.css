@@ -209,3 +209,26 @@
     transform: none !important;
   }
 }
+
+
+/* UI-DESKTOP-DENSITY-001: reduce card footprint while keeping catalog labels readable. */
+@media (min-width: 821px) and (max-width: 1360px) {
+  .cad-catalog-card.mc-catalog-card {
+    grid-template-columns: 96px minmax(0, 1fr) !important;
+    min-height: 100px !important;
+  }
+
+  .mc-catalog-card__visual {
+    min-height: 100px;
+  }
+
+  .mc-catalog-card__visual svg {
+    height: 80px;
+    max-width: 112px;
+  }
+
+  .mc-catalog-card__content {
+    gap: 3px;
+    padding: 8px 9px;
+  }
+}
