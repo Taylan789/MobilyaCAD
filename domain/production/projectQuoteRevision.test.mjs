@@ -1914,3 +1914,131 @@ test("DOM-090 three-revision r1-to-r3 comparison preserves Part provenance, tota
   assert.equal(unknown.comparison, null);
   assert.match(unknown.diagnostics[0], /doğrulanmış geçmişte bulunmalıdır/);
 });
+
+test("DOM-091 repeated source-line comparison across three revisions deterministically preserves Part provenance and exports", () => {
+  const materialLine = (id, quantity, sourceId, partId) => ({
+    line: {
+      id,
+      category: "material",
+      description: "DOM-091 repeated MDF panel",
+      quantity,
+      unit: "m2",
+      unitPriceMinor: 1000,
+      currencyCode: "TRY",
+      sourceReference: "materials:dom-091"
+    },
+    source: {
+      costLineId: id,
+      sourceType: "production-consumption",
+      sourceId,
+      resourceType: "material",
+      resourceId: "mdf-18",
+      unit: "m2",
+      sourcePartIds: [partId]
+    }
+  });
+  const revisionEntries = (revision, quantities) => [
+    ...quantities.map((quantity, index) => materialLine(
+      "dom-091-" + revision + "-repeat-" + (index + 1),
+      quantity,
+      "dom-091-repeated-source",
+      "dom-091-part-a"
+    )),
+    materialLine(
+      "dom-091-" + revision + "-stable",
+      2,
+      "dom-091-stable-source",
+      "dom-091-part-b"
+    )
+  ];
+  const reorderSnapshot = (snapshot, reorder) => {
+    const lines = snapshot.quoteSummary.costSummary.lines;
+    const sources = snapshot.quoteSummary.lineSources;
+    const paired = lines.map((line, index) => ({ line, source: sources[index] }));
+    const reordered = reorder(paired);
+    lines.splice(0, lines.length, ...reordered.map(item => item.line));
+    sources.splice(0, sources.length, ...reordered.map(item => item.source));
+  };
+  const compare = (reorderInputs) => {
+    const revisionOneSnapshot = createSnapshotWithQuoteLines(revisionEntries("r1", [1, 1]));
+    const revisionTwoSnapshot = createSnapshotWithQuoteLines(revisionEntries("r2", [1, 2]));
+    const revisionThreeSnapshot = createSnapshotWithQuoteLines(revisionEntries("r3", [1, 2.5, 3]));
+    if (reorderInputs) {
+      reorderSnapshot(revisionOneSnapshot, pairs => pairs.reverse());
+      reorderSnapshot(revisionTwoSnapshot, pairs => pairs.slice(1).concat(pairs.slice(0, 1)));
+      reorderSnapshot(revisionThreeSnapshot, pairs => pairs.reverse());
+    }
+    const history = {
+      projectId: "project-42",
+      revisions: [
+        createHistoryRevision({ pricingSnapshot: revisionOneSnapshot }),
+        createHistoryRevision({
+          revisionId: "quote-r2",
+          revisionNumber: 2,
+          createdAt: "2026-11-17T11:00:00Z",
+          previousRevisionId: "quote-r1",
+          pricingSnapshot: revisionTwoSnapshot
+        }),
+        createHistoryRevision({
+          revisionId: "quote-r3",
+          revisionNumber: 3,
+          createdAt: "2026-11-17T12:00:00Z",
+          previousRevisionId: "quote-r2",
+          pricingSnapshot: revisionThreeSnapshot
+        })
+      ]
+    };
+    const result = compareProjectQuoteRevisions(history, "quote-r1", "quote-r3");
+    assert.equal(result.status, "ready", result.diagnostics.join("; "));
+    assert.ok(result.comparison);
+    assert.equal(result.comparison.categoryDeltasMinor.material, 4500);
+    assert.equal(result.comparison.grandTotalDeltaMinor, 4500);
+    assert.deepEqual(result.comparison.lineChanges.map(change => ({
+      type: change.type,
+      fromQuantity: change.from?.quantity ?? null,
+      toQuantity: change.to?.quantity ?? null,
+      fromParts: change.from?.sourcePartIds ?? null,
+      toParts: change.to?.sourcePartIds ?? null
+    })), [
+      {
+        type: "changed",
+        fromQuantity: 1,
+        toQuantity: 2.5,
+        fromParts: ["dom-091-part-a"],
+        toParts: ["dom-091-part-a"]
+      },
+      {
+        type: "added",
+        fromQuantity: null,
+        toQuantity: 3,
+        fromParts: null,
+        toParts: ["dom-091-part-a"]
+      }
+    ]);
+    return result;
+  };
+
+  const ordered = compare(false);
+  const reordered = compare(true);
+  assert.deepEqual(reordered.comparison, ordered.comparison);
+
+  const orderedJson = serializeProjectQuoteRevisionComparisonFile(ordered);
+  const reorderedJson = serializeProjectQuoteRevisionComparisonFile(reordered);
+  assert.equal(orderedJson.status, "ready", orderedJson.diagnostics.join("; "));
+  assert.equal(reorderedJson.status, "ready", reorderedJson.diagnostics.join("; "));
+  assert.equal(JSON.parse(orderedJson.json).schemaVersion, 2);
+  assert.equal(reorderedJson.json, orderedJson.json);
+  const parsedJson = parseProjectQuoteRevisionComparisonFile(reorderedJson.json);
+  assert.equal(parsedJson.status, "ready", parsedJson.diagnostics.join("; "));
+  assert.deepEqual(parsedJson.comparison, ordered.comparison);
+
+  const orderedCsv = serializeProjectQuoteRevisionComparisonCsv(ordered);
+  const reorderedCsv = serializeProjectQuoteRevisionComparisonCsv(reordered);
+  assert.equal(orderedCsv.status, "ready", orderedCsv.diagnostics.join("; "));
+  assert.equal(reorderedCsv.status, "ready", reorderedCsv.diagnostics.join("; "));
+  assert.equal(reorderedCsv.csv, orderedCsv.csv);
+  assert.equal(PROJECT_QUOTE_REVISION_COMPARISON_CSV_VERSION, 3);
+  const parsedCsv = parseProjectQuoteRevisionComparisonCsv(reorderedCsv.csv);
+  assert.equal(parsedCsv.status, "ready", parsedCsv.diagnostics.join("; "));
+  assert.deepEqual(parsedCsv.comparison, ordered.comparison);
+});
