@@ -6,7 +6,7 @@ const css = readFileSync(new URL("../src/styles/workspace-viewport-fit.css", imp
 
 function readLinearClamp(selector, property) {
   const pattern = new RegExp(
-    selector + "\\s*\\{[^}]*" + property + ":\\s*clamp\\((\\d+)px,\\s*calc\\(([\\d.]+)vw\\s*\+\s*([\d.]+)px\),\\s*(\d+)px\)",
+    selector + "\\s*\\{[^}]*" + property + ":\\s*(?:0\\s+0\\s+)?clamp\\((\\d+)px,\\s*calc\\(([\\d.]+)vw\\s*\+\s*([\d.]+)px\),\\s*(\d+)px\)",
     "s",
   );
   const match = css.match(pattern);
