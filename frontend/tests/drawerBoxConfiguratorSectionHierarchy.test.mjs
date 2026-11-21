@@ -13,6 +13,8 @@ test("drawer inputs are grouped by dimensions, visible front, and material witho
     assert.ok(component.includes(title), `Missing section title: ${title}`);
   }
   assert.match(component, /group\.fields\.map/);
+  assert.match(component, /key={group\.key}/);
+  assert.match(component, /group\.detail/);
   assert.match(component, /aria-labelledby/);
   for (const fieldId of ["drawer-quantity", "drawer-material-catalog", "drawer-material"]) {
     assert.ok(component.includes(fieldId), `Missing existing field: ${fieldId}`);
