@@ -259,15 +259,9 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 
 ## Sıradaki 3 küçük görev — domain sahipliği
 
-1. DOM-055 — per-edge assignment'ları proje JSON v2'ye kaydet; v1 kayıtlarını koru ve unsupported export için güvenli blocker/round-trip doğrula.
-2. DOM-056 — yönsel kenar bandı değişikliklerinde saved cut-plan freshness snapshot'ını stale/blocker yap.
-3. DOM-057 — teklif revizyonlarında yönsel kenar bandı maliyet satırları, exact unit ve Part kaynak izini koru.
-
-### Sonraki adaylar
-
-- Per-edge edge-band assignments için schema/validation, tüketim/fiyat ve JSON persistence dilimlerini sırayla tamamla.
-- Adapter/export round-trip için INT-001/INT-002 sahipliğini ve mevcut UI/domain sözleşmesini takip et; adapter dosyalarını bu domain ajanı değiştirme.
-
+1. DOM-099 READY — teklif revizyon karşılaştırması CSV import'u için 1 MiB UTF-8 payload ve 2.000 satır fark limiti; eski CSV sürümlerini koru ve kısmi payload üretme.
+2. DOM-100 PLANNED — JSON v2/CSV v3 karşılaştırma import/export çapraz format eşitliği ve malformed payload fail-closed testleri.
+3. INT-001 FRONTEND-OWNED — karşılaştırma download ve üretim raporu adapter sözleşmesi; frontend dosyaları ürün ajanı tarafından değiştirilmez.
 
 ## Üretim güvenliği ve karar sınırları
 
@@ -576,15 +570,16 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 
 
 ## Next 5 small tasks
-1. DOM-081 DONE — deep project-envelope preservation/isolation and fail-closed JSON validation; exact-SHA CI/QA/Pages passed.
 
-2. DOM-082 READY — two-revision standalone history import/export round-trip preserves chain IDs, dates, previous links and snapshot/source metadata.
+1. DOM-098 DONE — bounded quote-comparison JSON v2 import/export: 1 MiB UTF-8 limit and 2,000 line-change limit; fail-closed, no partial payload. [Code/test 88bb19f + correction 2ed95db](https://github.com/Taylan789/MobilyaCAD/commit/2ed95db6639a1f9bdb70cb95c5f9e156f6136e2e); exact-SHA CI/QA/Pages successful.
 
-3. INT-001 FRONTEND-OWNED — comparison download and production report/export integration; preserve catalog resource identity.
+2. DOM-099 READY — bounded CSV comparison import (1 MiB and 2,000 line-change rows) with legacy v1/v2/v3 preservation.
 
-4. INT-002/PERF-001 INTEGRATION-OWNED — adapter round-trip tests and measured CAD profiling on the isolated specialist branch.
+3. DOM-100 PLANNED — JSON v2 ↔ CSV v3 cross-format equivalence and fail-closed adversarial fixtures.
 
-5. QA-003 BLOCKED — final end-to-end export/data integrity review after INT-001/INT-002 evidence.
+4. INT-001 FRONTEND-OWNED — comparison download and production report/export integration; preserve catalog resource identity.
+
+5. INT-002/PERF-001 INTEGRATION-OWNED — adapter round-trip tests and measured CAD profiling on the isolated specialist branch. QA-003 remains BLOCKED until INT-001/INT-002 evidence.
 
 ## 10/10 ölçülebilir kalite kapıları (20 Kasım 2026 baseline)
 
@@ -954,3 +949,14 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - Code/test scope is regression coverage only; no frontend, adapter/performance-owned file or production calculation changes.
 - Exact-SHA CI/QA and Pages deployment are pending verification; do not mark fully verified until real Actions results are observed.
 - **Next 3 small tasks:** DOM-098 bounded comparison JSON import (fail closed/no partial payload); INT-001 domain/frontend export contract review (joint ownership, no frontend writes); then QA-003 end-to-end export reconciliation after INT-001/INT-002.
+
+## DOM-098 — Bounded quote-comparison JSON import/export (VERIFIED, 22 November 2026)
+
+- Strict comparison JSON import rejects UTF-8 payloads over **1 MiB** before JSON parsing; comparison line changes are limited to **2,000** before per-line validation. Rejections return blocked status with `file=null` and `comparison=null`.
+- Serializer enforces the same 2,000-line limit and refuses output over 1 MiB, so generated files stay importable under the same resource bounds.
+- Tests cover multibyte UTF-8 expansion, line-count rejection on import and export, serializer byte-size rejection, and no partial payload.
+- Code/test commit [88bb19f](https://github.com/Taylan789/MobilyaCAD/commit/88bb19f441349563fb7c23fd858a2ba0df490755); syntax-fixture correction [2ed95db](https://github.com/Taylan789/MobilyaCAD/commit/2ed95db6639a1f9bdb70cb95c5f9e156f6136e2e).
+- Exact-SHA Actions: CI [#44950880826](https://github.com/Taylan789/MobilyaCAD/actions/runs/44950880826), QA [#44950880888](https://github.com/Taylan789/MobilyaCAD/actions/runs/44950880888), Pages [#44950880938](https://github.com/Taylan789/MobilyaCAD/actions/runs/44950880938) succeeded. QA: **142 frontend + 620 domain tests**, strict domain type-check, lint 32 warnings/0 errors, production build, production audit 0 vulnerabilities.
+- Test site deployed at https://taylan789.github.io/MobilyaCAD/. No frontend or CNC/machine-specific output changed.
+- First QA attempt exposed a syntax typo in the new multibyte test fixture; it was corrected in 2ed95db and the final exact-SHA QA passed. No tests were weakened.
+- Next: DOM-099 bounded CSV import, then DOM-100 cross-format equivalence; INT-001 remains frontend-owned.

@@ -86,6 +86,12 @@ Bu dosya dört geliştirme/denetim rolünün ortak görev panosu ve entegrasyon 
 | INT-002 | JSON/CSV adapter round-trip ve geometri/miktar sadakati için eksik entegrasyon testleri | Entegrasyon/Performans (yalnızca sahiplenilmemiş adapter/test dosyaları) | READY | test raporu ve PR |
 | QA-003 | INT-001 ve INT-002 tamamlandığında uçtan uca veri akışı ve export denetimi | Kalite Denetimi | BLOCKED: INT-001/INT-002 | SHA, PR ve gerçek Actions kanıtı |
 
+## Sıradaki 3 görev — domain sahipliği
+
+1. DOM-099 READY — karşılaştırma CSV import'u için 1 MiB UTF-8 ve 2.000 satır fark sınırı; legacy CSV sürümlerini koru, kısmi payload üretme.
+2. DOM-100 PLANNED — JSON v2/CSV v3 çapraz format round-trip ve adversarial fail-closed testleri.
+3. INT-001 FRONTEND-OWNED — domain/arayüz export sözleşmesi ve download adapter; frontend koduna domain ajanı dokunmaz.
+
 ## Son devir kayıtları
 
 - 2026-11-17 başlangıç HEAD: `ef68f2da2ebd2c18217988875c90e95f4e4383ae`
@@ -415,5 +421,5 @@ Bu dosya dört geliştirme/denetim rolünün ortak görev panosu ve entegrasyon 
 | DOM-094 | Three-revision quote comparison reconciles price reductions, fractional quantities and rounded line totals with category/grand deltas | Ürün Geliştirme | DONE — [test commit 3235df04](https://github.com/Taylan789/MobilyaCAD/commit/3235df04df6fc0d3e7c4937590f9c3ac8dd60bb5); CI [#44931241164](https://github.com/Taylan789/MobilyaCAD/actions/runs/44931241164), QA [#44931241180](https://github.com/Taylan789/MobilyaCAD/actions/runs/44931241180), Pages [#44931241155](https://github.com/Taylan789/MobilyaCAD/actions/runs/44931241155) successful — 142 frontend + 613 domain tests, strict TS, lint 32 warnings/0 errors, production build, audit 0 vulnerabilities | DOM-093 |
 | DOM-095 | Three-revision mixed-category quote comparison verifies per-category and grand-total deltas for reductions/additions with exact JSON/CSV export | Ürün Geliştirme | DONE | [test 9258473e](https://github.com/Taylan789/MobilyaCAD/commit/9258473ebe4521ee1df5143c8215e1ab4772fb0f); [CI #44934335237](https://github.com/Taylan789/MobilyaCAD/actions/runs/44934335237), [QA #44934335265](https://github.com/Taylan789/MobilyaCAD/actions/runs/44934335265), [Pages #44934335205](https://github.com/Taylan789/MobilyaCAD/actions/runs/44934335205) passed — 142 frontend + 614 domain, lint 32 warnings/0 errors, audit 0 vulnerabilities | DOM-094 |
 | DOM-096 | Comparison import/export rejects duplicate line identities and inconsistent totals without partial payload; valid JSON/CSV remains exact | Ürün Geliştirme | DONE | [commit 798e29b](https://github.com/Taylan789/MobilyaCAD/commit/798e29b84731352e8249012c16e635a6a97d28f0); [CI #44943420344](https://github.com/Taylan789/MobilyaCAD/actions/runs/44943420344), [QA #44943420373](https://github.com/Taylan789/MobilyaCAD/actions/runs/44943420373), [Pages #44943420330](https://github.com/Taylan789/MobilyaCAD/actions/runs/44943420330) successful — 142 frontend + 616 domain, 32 lint warnings/0 errors, production build and audit 0 vulnerabilities | DOM-095 |
-| DOM-097 | Fractional hardware quantity and labor/operation tariff changes reconcile line rounding, category totals and grand total across three revisions | Ürün Geliştirme | IMPLEMENTED — [code/test 56e00eef](https://github.com/Taylan789/MobilyaCAD/commit/56e00eefa5d8a29a77362bea10345a3b31586745); exact-SHA CI/QA pending | DOM-098 |
+| DOM-097 | Fractional hardware quantity and labor/operation tariff changes reconcile line rounding, category totals and grand total across three revisions | Ürün Geliştirme | DONE | [code/test 56e00eef](https://github.com/Taylan789/MobilyaCAD/commit/56e00eefa5d8a29a77362bea10345a3b31586745); exact-SHA CI #44948272866, QA #44948272895, Pages #44948272855 succeeded; verified again with DOM-098 SHA | DOM-098
 | DOM-098 | Strict JSON comparison import size/line-count limits reject oversized payloads without partial data | Ürün Geliştirme | READY | DOM-096 |

@@ -1,3 +1,18 @@
+## 22 Kasım 2026 00:15 TRT — DOM-097 VERIFIED
+
+- Fractional hardware quantity and labor/operation tariff revisions reconcile rounded line/category/grand totals over r1→r3; exact JSON v2/CSV v3 round-trip is covered.
+- DOM-097 code/test commit: [56e00eef](https://github.com/Taylan789/MobilyaCAD/commit/56e00eefa5d8a29a77362bea10345a3b31586745). Current exact-SHA CI [#44948272866](https://github.com/Taylan789/MobilyaCAD/actions/runs/44948272866), QA [#44948272895](https://github.com/Taylan789/MobilyaCAD/actions/runs/44948272895), and Pages [#44948272855](https://github.com/Taylan789/MobilyaCAD/actions/runs/44948272855) succeeded.
+- This verification was superseded by the DOM-098 exact-SHA run; no frontend, adapter/performance-owned files or CNC output changed.
+
+## 22 Kasım 2026 00:15 TRT — DOM-098 VERIFIED
+
+- **Code/test:** [feature commit 88bb19f](https://github.com/Taylan789/MobilyaCAD/commit/88bb19f441349563fb7c23fd858a2ba0df490755); [fixture correction 2ed95db](https://github.com/Taylan789/MobilyaCAD/commit/2ed95db6639a1f9bdb70cb95c5f9e156f6136e2e). Changes limited to `domain/production/projectQuoteRevisionComparisonFile.ts` and its test.
+- JSON comparison imports reject payloads above 1 MiB UTF-8 before parsing, and line-change arrays above 2,000 before mapping. Serializer applies the same line cap and byte limit; all failures return null JSON/file/comparison rather than partial data. Tests cover multibyte UTF-8, 2,001 rows and 2,000 long lines.
+- Exact-SHA CI [#44950880826](https://github.com/Taylan789/MobilyaCAD/actions/runs/44950880826), QA [#44950880888](https://github.com/Taylan789/MobilyaCAD/actions/runs/44950880888), Pages [#44950880938](https://github.com/Taylan789/MobilyaCAD/actions/runs/44950880938) all succeeded: **142 frontend + 620 domain tests**, strict domain TS, lint 32 warnings/0 errors, production build and audit 0 vulnerabilities.
+- **Test site:** https://taylan789.github.io/MobilyaCAD/ (exact-SHA Pages deployment succeeded).
+- Initial QA #44950816716 failed on a syntax typo in the multibyte fixture; corrected in 2ed95db and final QA passed. No tests weakened.
+- **Next:** DOM-099 bounded comparison CSV import; DOM-100 cross-format JSON/CSV integrity tests. INT-001 remains frontend-owned; INT-002/PERF-001 specialist-owned and no active specialist PR found.
+
 
 ## 21 Kasım 2026 21:14 TRT — DOM-095 VERIFIED
 
