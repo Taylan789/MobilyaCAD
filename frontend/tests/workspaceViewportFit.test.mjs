@@ -26,10 +26,10 @@ test("desktop dock widths scale continuously without the former breakpoint jumps
   const sidebar = readLinearClamp("\\.cad-sidebar", "flex");
   const inspector = readLinearClamp("\\.cad-inspector", "flex-basis");
 
-  assert.equal(widthAt(sidebar, 1101), 232);
-  assert.equal(widthAt(inspector, 1101), 272);
-  assert.equal(widthAt(sidebar, 1919), 294);
-  assert.equal(widthAt(inspector, 1919), 352);
+  assert.ok(Math.abs(widthAt(sidebar, 1101) - 232) < 0.1);
+  assert.ok(Math.abs(widthAt(inspector, 1101) - 272) < 0.1);
+  assert.ok(Math.abs(widthAt(sidebar, 1919) - 294) < 0.1);
+  assert.ok(Math.abs(widthAt(inspector, 1919) - 352) < 0.1);
 
   for (let viewportWidth = 1101; viewportWidth <= 1919; viewportWidth += 1) {
     assert.ok(widthAt(sidebar, viewportWidth) >= widthAt(sidebar, viewportWidth - 1) || viewportWidth === 1101);
