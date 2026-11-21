@@ -483,7 +483,7 @@ test("DOM-072 JSON comparison blocks partial or inconsistent roll metadata", () 
 test("DOM-098 comparison JSON import rejects oversized UTF-8 payloads without partial data", () => {
   const valid = serializeProjectQuoteRevisionComparisonFile(readyComparisonResult());
   assert.equal(valid.status, "ready");
-  const oversized = valid.json + "🙂".repeat(300_000;
+  const oversized = valid.json + "🙂".repeat(300_000);
   assert.ok(oversized.length < 1_048_576);
   const parsed = parseProjectQuoteRevisionComparisonFile(oversized);
   assert.equal(parsed.status, "blocked");
