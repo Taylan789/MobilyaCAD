@@ -63,10 +63,12 @@
 - **Next:** verify DOM-097 exact-SHA CI/QA and Pages deployment; then DOM-098 bounded comparison JSON import rejection.
 
 
-## 22 Kasım 2026 01:37 TRT — DOM-099 IMPLEMENTED, Actions pending
+## 22 Kasım 2026 01:37 TRT — DOM-099 VERIFIED
 
-- Bound the quote-revision comparison CSV parser to the JSON envelope's shared 1 MiB UTF-8 limit and 2,000 line-change limit. Total records are capped at the 8 fixed rows plus 2,000 line rows, rejecting oversized CSV before parsing and preventing unbounded record accumulation.
-- CSV serialization is also capped at 1 MiB UTF-8; CSV v1/v2/v3 headers and legacy parser paths remain unchanged.
-- Added regression coverage for multibyte UTF-8 payload size and 2,001 line rows under the byte ceiling; blocked parses must return \`comparison=null\`.
-- **Commit SHA:** pending creation; exact-SHA CI/QA/Pages pending. No local tests run in this tool runtime; GitHub Actions is the verification source.
-- **Next:** DOM-100 JSON v2 ↔ CSV v3 equivalence; DOM-101 adversarial CSV quoting/record boundary tests; INT-001 remains frontend-owned. No integration/performance specialist branch or PR found; its Actions job was skipped.
+- **Code/test commit:** [24f945c0](https://github.com/Taylan789/MobilyaCAD/commit/24f945c0dd05c2653daaacdba5361460f20883b6); changed \`domain/production/projectQuoteRevisionComparisonCsv.ts\` and \`domain/production/projectQuoteRevisionComparisonCsv.test.mjs\`, plus roadmap/progress/coordination.
+- CSV parser now rejects UTF-8 payloads above 1 MiB before parsing and caps records to 8 fixed rows + 2,000 line changes. CSV serializer enforces the same byte cap. v1/v2/v3 headers remain unchanged.
+- Regression tests cover a multibyte input that is under the character-count limit but over the byte limit, and 2,001 line rows in a 640,024-byte fixture; rejected imports return no comparison.
+- Exact-SHA CI [#44958138720](https://github.com/Taylan789/MobilyaCAD/actions/runs/44958138720), QA [#44958138801](https://github.com/Taylan789/MobilyaCAD/actions/runs/44958138801), and Pages [#44958138729](https://github.com/Taylan789/MobilyaCAD/actions/runs/44958138729) all succeeded. QA: **142 frontend + 621 domain tests**, strict domain TypeScript, lint 32 warnings/0 errors, production build, audit 0 vulnerabilities.
+- **Test site:** https://taylan789.github.io/MobilyaCAD/ — Pages deployment confirmed; direct browser fetch was unavailable in this runtime.
+- AI Developer [#44953172176](https://github.com/Taylan789/MobilyaCAD/actions/runs/44953172176) failed on OpenRouter free-model daily HTTP 429; integration/performance specialist job skipped and no specialist branch/PR found. No quota, paid service, or secrets changed.
+- **Next:** DOM-100 cross-format JSON v2 ↔ CSV v3 integrity tests; DOM-101 adversarial CSV quoting/record boundaries; INT-001 remains frontend-owned.
