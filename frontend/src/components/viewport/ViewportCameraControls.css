@@ -178,3 +178,72 @@
     scroll-behavior: auto;
   }
 }
+
+
+/* UI-CAMERA-TOOLBAR-FORCED-COLORS-001 — preserve camera controls in high-contrast modes. */
+@media (forced-colors: active) {
+  .cad-viewport-camera-tools {
+    color: CanvasText;
+    background: Canvas;
+    border-color: CanvasText;
+    box-shadow: none;
+    backdrop-filter: none;
+  }
+
+
+  .cad-viewport-camera-tools__label {
+    color: CanvasText;
+  }
+
+
+  .cad-viewport-camera-tools button {
+    color: ButtonText;
+    background: ButtonFace;
+    border-color: ButtonBorder;
+    box-shadow: none;
+  }
+
+
+  .cad-viewport-camera-tools button:hover:not(:disabled),
+  .cad-viewport-camera-tools button.is-active {
+    color: HighlightText;
+    background: Highlight;
+    border-color: Highlight;
+    box-shadow: none;
+  }
+
+
+  .cad-viewport-camera-tools button:disabled {
+    color: GrayText;
+    border-color: GrayText;
+    opacity: 1;
+  }
+
+
+  .cad-viewport-camera-tools button:focus-visible {
+    outline: 2px solid Highlight;
+    outline-offset: 2px;
+  }
+
+
+  .cad-viewport-camera-tools__divider {
+    background: CanvasText;
+  }
+
+
+  .cad-part-selection-callout {
+    color: CanvasText;
+    background: Canvas;
+    border-color: CanvasText;
+    border-left-color: Highlight;
+    box-shadow: none;
+    backdrop-filter: none;
+  }
+
+
+  .cad-part-selection-callout > span,
+  .cad-part-selection-callout > strong,
+  .cad-part-selection-callout > small {
+    color: CanvasText;
+  }
+}
