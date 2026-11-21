@@ -2196,3 +2196,105 @@ test("DOM-093 three-revision comparison isolates a single Part-provenance change
   assert.equal(parsedCsv.status, "ready", parsedCsv.diagnostics.join("; "));
   assert.deepEqual(parsedCsv.comparison, result.comparison);
 });
+
+test("DOM-094 three-revision comparison reconciles fractional quantity rounding after a material price reduction", () => {
+  const materialLine = (revision, sourceId, partId, quantity, unitPriceMinor, description) => {
+    const id = "dom-094-" + revision + "-" + sourceId;
+    return {
+      line: {
+        id,
+        category: "material",
+        description,
+        quantity,
+        unit: "m2",
+        unitPriceMinor,
+        currencyCode: "TRY",
+        sourceReference: "materials:dom-094"
+      },
+      source: {
+        costLineId: id,
+        sourceType: "production-consumption",
+        sourceId,
+        resourceType: "material",
+        resourceId: "mdf-18",
+        unit: "m2",
+        sourcePartIds: [partId]
+      }
+    };
+  };
+  const revisionSnapshot = (revision, panelQuantity, panelPriceMinor, roundingQuantity) =>
+    createSnapshotWithQuoteLines([
+      materialLine(revision, "panel", "dom-094-part-panel", panelQuantity, panelPriceMinor, "DOM-094 MDF panel"),
+      materialLine(revision, "rounding", "dom-094-part-rounding", roundingQuantity, 1, "DOM-094 half-minor-unit rounding")
+    ]);
+  const revisions = [
+    createHistoryRevision({
+      pricingSnapshot: revisionSnapshot("r1", 0.375, 101, 0.5)
+    }),
+    createHistoryRevision({
+      revisionId: "quote-r2",
+      revisionNumber: 2,
+      createdAt: "2026-11-17T11:00:00Z",
+      previousRevisionId: "quote-r1",
+      pricingSnapshot: revisionSnapshot("r2", 0.625, 90, 0.4)
+    }),
+    createHistoryRevision({
+      revisionId: "quote-r3",
+      revisionNumber: 3,
+      createdAt: "2026-11-17T12:00:00Z",
+      previousRevisionId: "quote-r2",
+      pricingSnapshot: revisionSnapshot("r3", 0.375, 80, 0.5)
+    })
+  ];
+  const history = { projectId: "project-42", revisions };
+  const firstCost = revisions[0].pricingSnapshot.quoteSummary.costSummary;
+  const middleCost = revisions[1].pricingSnapshot.quoteSummary.costSummary;
+  const lastCost = revisions[2].pricingSnapshot.quoteSummary.costSummary;
+  assert.ok(firstCost);
+  assert.ok(middleCost);
+  assert.ok(lastCost);
+  const panelLine = cost => cost.lines.find(line => line.description === "DOM-094 MDF panel");
+  const roundingLine = cost => cost.lines.find(line => line.description === "DOM-094 half-minor-unit rounding");
+  assert.equal(panelLine(firstCost).lineTotalMinor, 38); // 0.375 * 101 = 37.875, half-up to 38
+  assert.equal(panelLine(middleCost).lineTotalMinor, 56); // 0.625 * 90 = 56.25, half-up to 56
+  assert.equal(panelLine(lastCost).lineTotalMinor, 30); // 0.375 * 80 = 30
+  assert.equal(roundingLine(firstCost).lineTotalMinor, 1); // 0.5 * 1 rounds up
+  assert.equal(roundingLine(middleCost).lineTotalMinor, 0); // 0.4 * 1 rounds down
+  assert.equal(roundingLine(lastCost).lineTotalMinor, 1);
+
+  const result = compareProjectQuoteRevisions(history, "quote-r1", "quote-r3");
+  assert.equal(result.status, "ready", result.diagnostics.join("; "));
+  assert.ok(result.comparison);
+  assert.equal(result.comparison.fromRevisionNumber, 1);
+  assert.equal(result.comparison.toRevisionNumber, 3);
+  assert.deepEqual(result.comparison.categoryDeltasMinor, {
+    material: -8, hardware: 0, labor: 0, operation: 0, waste: 0, profit: 0
+  });
+  assert.equal(result.comparison.grandTotalDeltaMinor, -8);
+  assert.equal(result.comparison.lineChanges.length, 1);
+  const changed = result.comparison.lineChanges[0];
+  assert.equal(changed.type, "changed");
+  assert.equal(changed.from.sourceId, "dom-094-panel");
+  assert.equal(changed.to.sourceId, "dom-094-panel");
+  assert.equal(changed.from.quantity, 0.375);
+  assert.equal(changed.to.quantity, 0.375);
+  assert.equal(changed.from.unitPriceMinor, 101);
+  assert.equal(changed.to.unitPriceMinor, 80);
+  assert.equal(changed.from.lineTotalMinor, 38);
+  assert.equal(changed.to.lineTotalMinor, 30);
+
+  const json = serializeProjectQuoteRevisionComparisonFile(result);
+  assert.equal(json.status, "ready", json.diagnostics.join("; "));
+  assert.equal(JSON.parse(json.json).schemaVersion, 2);
+  const parsedJson = parseProjectQuoteRevisionComparisonFile(json.json);
+  assert.equal(parsedJson.status, "ready", parsedJson.diagnostics.join("; "));
+  assert.deepEqual(parsedJson.comparison, result.comparison);
+
+  const csv = serializeProjectQuoteRevisionComparisonCsv(result);
+  assert.equal(csv.status, "ready", csv.diagnostics.join("; "));
+  assert.equal(PROJECT_QUOTE_REVISION_COMPARISON_CSV_VERSION, 3);
+  const parsedCsv = parseProjectQuoteRevisionComparisonCsv(csv.csv);
+  assert.equal(parsedCsv.status, "ready", parsedCsv.diagnostics.join("; "));
+  assert.deepEqual(parsedCsv.comparison, result.comparison);
+});
+
