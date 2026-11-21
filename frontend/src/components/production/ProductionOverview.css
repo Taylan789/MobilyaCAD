@@ -690,3 +690,325 @@
 }
 
 @media (prefers-reduced-motion: reduce) { .mc-production__cut-focus { transition: none; } }
+
+
+/* UI-PRODUCTION-READINESS-HIERARCHY-001 — clear status and material hierarchy */
+.mc-production__header {
+  align-items: center;
+  padding-bottom: 11px;
+  border-bottom: 1px solid rgba(138, 167, 185, .18);
+}
+.mc-production__header h3 {
+  color: #e7edf1;
+  font-size: 20px;
+  letter-spacing: -.45px;
+}
+.mc-production__header p {
+  color: #9eacb6;
+  font-size: 11px;
+}
+.mc-production__eyebrow,
+.mc-production__section-heading > div > span {
+  color: #91a5b2;
+  letter-spacing: .13em;
+}
+.mc-production__status {
+  border-radius: 6px;
+  background: #1c2b35;
+  color: #c4d2db;
+  border-color: rgba(145, 180, 202, .24);
+}
+.mc-production__status--ready {
+  color: #a9d1bb;
+  background: rgba(51, 95, 74, .2);
+  border-color: rgba(118, 172, 143, .3);
+}
+.mc-production__status--partial,
+.mc-production__status--blocked {
+  color: #e0b67e;
+  background: rgba(128, 91, 47, .2);
+  border-color: rgba(198, 151, 91, .32);
+}
+.mc-production__status--empty {
+  color: #aab8c2;
+  background: rgba(65, 87, 101, .18);
+  border-color: rgba(145, 180, 202, .18);
+}
+.mc-production__readiness {
+  position: relative;
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  overflow: hidden;
+  padding: 12px 14px 12px 16px;
+  background: linear-gradient(110deg, #202f39, #192730);
+  border-color: #3b4c58;
+  border-radius: 8px;
+}
+.mc-production__readiness::before {
+  content: "";
+  position: absolute;
+  inset: 8px auto 8px 0;
+  width: 2px;
+  background: #789db8;
+}
+.mc-production__readiness--ready {
+  background: linear-gradient(110deg, rgba(44, 83, 66, .36), #192730 68%);
+  border-color: rgba(112, 158, 137, .34);
+}
+.mc-production__readiness--ready::before {
+  background: #7fbaa0;
+}
+.mc-production__readiness--partial,
+.mc-production__readiness--blocked {
+  background: linear-gradient(110deg, rgba(107, 79, 46, .28), #192730 68%);
+  border-color: rgba(185, 142, 87, .35);
+}
+.mc-production__readiness--partial::before,
+.mc-production__readiness--blocked::before {
+  background: #c69a62;
+}
+.mc-production__readiness--empty {
+  background: linear-gradient(110deg, rgba(65, 86, 101, .24), #192730 68%);
+  border-color: rgba(129, 160, 180, .24);
+}
+.mc-production__readiness--empty::before {
+  background: #789db8;
+}
+.mc-production__readiness-icon {
+  width: 32px;
+  height: 32px;
+  color: #b6d1e1;
+  background: #263945;
+  border-color: rgba(145, 180, 202, .2);
+  border-radius: 7px;
+}
+.mc-production__readiness--ready .mc-production__readiness-icon {
+  color: #a9d1bb;
+  background: rgba(56, 95, 75, .34);
+  border-color: rgba(118, 172, 143, .24);
+}
+.mc-production__readiness--partial .mc-production__readiness-icon,
+.mc-production__readiness--blocked .mc-production__readiness-icon {
+  color: #e0b67e;
+  background: rgba(107, 79, 46, .28);
+  border-color: rgba(185, 142, 87, .26);
+}
+.mc-production__readiness strong {
+  color: #e1eaf0;
+  font-size: 11px;
+  font-weight: 700;
+}
+.mc-production__readiness span {
+  color: #a4b4bf;
+}
+.mc-production__notice {
+  border-radius: 7px;
+  background: #1c2932;
+  border-color: #3a4b57;
+}
+.mc-production__notice--warning {
+  color: #dfb77e;
+  background: rgba(105, 78, 44, .18);
+  border-color: rgba(187, 143, 88, .32);
+}
+.mc-production__notice--danger {
+  color: #e2a49d;
+  background: rgba(104, 56, 53, .2);
+  border-color: rgba(180, 111, 102, .32);
+}
+.mc-production__notice p,
+.mc-production__notice ul {
+  color: #a6b3bc;
+}
+.mc-production__notice li b {
+  color: #d2c1a7;
+}
+.mc-production__section,
+.mc-production__issues {
+  background: #182630;
+  border-color: #344550;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, .12);
+}
+.mc-production__section-heading {
+  border-bottom-color: #2c3d48;
+}
+.mc-production__section-heading > div > strong {
+  color: #dce6ec;
+}
+.mc-production__section-heading > svg {
+  color: #91a8b7;
+}
+.mc-production__issues {
+  background: #1e2a31;
+  border-color: #4a4037;
+}
+.mc-production__issues .mc-production__section-heading {
+  border-bottom-color: #3d3730;
+}
+.mc-production__issues .mc-production__section-heading > svg {
+  color: #c69a62;
+}
+.mc-production__issue {
+  background: #202c34;
+  border-color: #3e4a50;
+}
+.mc-production__issue span {
+  color: #d2c1a7;
+}
+.mc-production__issue p {
+  color: #a7b1b8;
+}
+.mc-production__material {
+  background: #1b2a33;
+  border-color: #344651;
+}
+.mc-production__material:hover {
+  background: #21323c;
+  border-color: #496171;
+}
+.mc-production__material-heading > div:nth-child(2) strong {
+  color: #dce7ed;
+}
+.mc-production__material-heading > div:nth-child(2) span,
+.mc-production__material-heading > b small {
+  color: #9aaab5;
+}
+.mc-production__material-heading > b {
+  color: #a9d1bb;
+}
+.mc-production__material-stats {
+  border-top-color: #30414b;
+}
+.mc-production__material-stats span {
+  color: #8fa0ad;
+}
+.mc-production__material-stats strong {
+  color: #c9d5dc;
+}
+.mc-production__material-foot {
+  color: #96a5b0;
+}
+.mc-production__cut-row {
+  background: #1b2932;
+  border-color: #334550;
+}
+.mc-production__cut-main strong {
+  color: #dce7ed;
+}
+.mc-production__cut-main span,
+.mc-production__cut-main small {
+  color: #9aaab5;
+}
+.mc-production__cut-side b {
+  color: #a9d1bb;
+}
+.mc-production__cut-side span,
+.mc-production__cut-side small {
+  color: #97a7b2;
+}
+.mc-production__empty {
+  background: #1b2932;
+  border-color: #3a4b57;
+}
+.mc-production__empty svg {
+  color: #91a8b7;
+}
+.mc-production__empty strong {
+  color: #c8d6df;
+}
+.mc-production__empty span {
+  color: #97a7b2;
+}
+.mc-production__scope-note {
+  background: #1c2932;
+  border-color: #3a4b57;
+}
+.mc-production__scope-note svg {
+  color: #c69a62;
+}
+.mc-production__scope-note p {
+  color: #a2b0ba;
+}
+.mc-production__export {
+  background: #355b75 !important;
+  border-color: #426e8d !important;
+  box-shadow: 0 3px 10px rgba(12, 30, 43, .28);
+}
+.mc-production__export:hover:not(:disabled) {
+  background: #426e8d !important;
+  box-shadow: 0 5px 14px rgba(12, 30, 43, .34);
+}
+.mc-production__export:disabled {
+  color: #8998a2 !important;
+  background: #26343d !important;
+  border-color: #374650 !important;
+}
+.mc-production__export-help {
+  color: #91a2ae;
+}
+@media (max-width: 700px) {
+  .mc-production__header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .mc-production__status {
+    align-self: flex-start;
+  }
+  .mc-production__readiness {
+    grid-template-columns: 32px minmax(0, 1fr);
+    padding: 11px 12px 11px 14px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mc-production__header,
+  .mc-production__readiness,
+  .mc-production__notice,
+  .mc-production__section,
+  .mc-production__issues,
+  .mc-production__material,
+  .mc-production__cut-row,
+  .mc-production__export {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+@media (forced-colors: active) {
+  .mc-production__header,
+  .mc-production__status,
+  .mc-production__readiness,
+  .mc-production__notice,
+  .mc-production__section,
+  .mc-production__issues,
+  .mc-production__material,
+  .mc-production__cut-row,
+  .mc-production__empty,
+  .mc-production__scope-note,
+  .mc-production__export {
+    border-color: CanvasText !important;
+  }
+  .mc-production__readiness::before {
+    background: CanvasText !important;
+  }
+  .mc-production__readiness strong,
+  .mc-production__readiness span,
+  .mc-production__notice p,
+  .mc-production__notice ul,
+  .mc-production__section-heading > div > strong,
+  .mc-production__issue span,
+  .mc-production__issue p,
+  .mc-production__material-heading > div:nth-child(2) strong,
+  .mc-production__material-heading > div:nth-child(2) span,
+  .mc-production__material-stats span,
+  .mc-production__material-stats strong,
+  .mc-production__cut-main strong,
+  .mc-production__cut-main span,
+  .mc-production__cut-main small,
+  .mc-production__empty strong,
+  .mc-production__empty span,
+  .mc-production__scope-note p,
+  .mc-production__export-help {
+    color: CanvasText !important;
+  }
+}
