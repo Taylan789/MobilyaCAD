@@ -5590,3 +5590,49 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 @media(max-width:1200px){.cad-workspace{grid-template-columns:238px minmax(0,1fr)!important}.cad-sidebar{width:238px!important;min-width:238px!important}.cad-workspace-content{grid-template-columns:minmax(0,1fr) 300px!important}.cad-bottom-dock-metrics{display:none}}
 @media(max-width:900px){.cad-main-area{grid-template-rows:38px 58px minmax(240px,1fr) 170px!important}.cad-workspace-content{grid-template-columns:minmax(0,1fr) 270px!important;padding:7px!important}.cad-bottom-dock{margin:0 7px 7px}.cad-bottom-dock-header{gap:8px;padding:0 9px}.cad-bottom-dock-title{min-width:120px}.cad-bottom-dock-tabs button{padding:0 7px}}
 @media(max-width:700px){.cad-main-area{grid-template-rows:48px 1fr 150px!important}.cad-workspace-content{display:flex!important}.cad-inspector{display:none!important}.cad-bottom-dock-title small,.cad-bottom-dock-metrics{display:none}.cad-bottom-dock-title{min-width:0}}
+
+
+/* UI-BOTTOM-DOCK-RESPONSIVE-001: keep production tabs usable at compact widths and in high-contrast mode. */
+.cad-bottom-dock-tabs button:focus-visible {
+  outline-color: #8bb8d8 !important;
+  outline-offset: -2px !important;
+  border-radius: 6px;
+}
+
+@media (max-width: 700px) {
+  .cad-bottom-dock-header {
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: thin;
+    overscroll-behavior-x: contain;
+  }
+  .cad-bottom-dock-title,
+  .cad-bottom-dock-tabs {
+    flex: 0 0 auto;
+  }
+  .cad-bottom-dock-tabs button {
+    flex: 0 0 auto;
+    min-height: 40px;
+  }
+}
+@media (forced-colors: active) {
+  .cad-bottom-dock-tabs button:focus-visible {
+    outline-color: Highlight !important;
+    outline-offset: -2px !important;
+  }
+  .cad-bottom-dock-tabs button.active {
+    color: HighlightText !important;
+    background: Highlight !important;
+    border-bottom-color: Highlight !important;
+  }
+  .cad-bottom-dock-tabs button b {
+    color: ButtonText !important;
+    background: Canvas !important;
+    border: 1px solid ButtonText !important;
+  }
+  .cad-bottom-dock-tabs button.active b {
+    color: HighlightText !important;
+    background: Highlight !important;
+    border-color: HighlightText !important;
+  }
+}
