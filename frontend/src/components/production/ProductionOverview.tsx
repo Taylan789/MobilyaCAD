@@ -3,17 +3,14 @@ import {
   ArrowDownToLine,
   CheckCircle2,
   ClipboardList,
-  Crosshair,
-  Layers3,
-  Package,
-  Ruler,
-} from "lucide-react";
+  Crosshair,  Package,} from "lucide-react";
 
 import { Button } from "../ui/button";
 import type { EdgeBandingSummary } from "../../engine/edgeBanding";
 import type { MaterialConsumptionSummary } from "../../engine/materialConsumption";
 import type { ProjectProductionResult } from "../../engine/projectProduction";
 import "./ProductionOverview.css";
+import "./ProductionOverviewMetrics.css";
 
 interface ProductionOverviewProps {
   furnitureCount: number;
@@ -90,25 +87,21 @@ export function ProductionOverview({
 
       <section className="mc-production__metrics" aria-label="Üretim ölçütleri">
         <article className="mc-production__metric">
-          <span className="mc-production__metric-icon"><Layers3 /></span>
           <span className="mc-production__metric-label">Parça satırı</span>
           <strong>{formatNumber(production.parts.length, 0)}</strong>
           <small>farklı parça kaydı</small>
         </article>
         <article className="mc-production__metric">
-          <span className="mc-production__metric-icon"><Package /></span>
           <span className="mc-production__metric-label">Toplam adet</span>
           <strong>{formatNumber(totalPieceCount, 0)}</strong>
           <small>kesilecek parça</small>
         </article>
         <article className="mc-production__metric">
-          <span className="mc-production__metric-icon"><Ruler /></span>
           <span className="mc-production__metric-label">Kenar bantlama</span>
           <strong>{formatNumber(edgeBanding.totalLength, 1)}</strong>
           <small>toplam mm</small>
         </article>
         <article className="mc-production__metric">
-          <span className="mc-production__metric-icon"><ClipboardList /></span>
           <span className="mc-production__metric-label">Malzeme grubu</span>
           <strong>{formatNumber(materialConsumption.length, 0)}</strong>
           <small>malzeme / kalınlık</small>
