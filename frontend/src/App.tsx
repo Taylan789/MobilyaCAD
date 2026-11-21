@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { ChangeEvent, CSSProperties } from "react";
 import {
   Box,
@@ -188,6 +188,15 @@ function App() {
   const [leftDockCollapsed, setLeftDockCollapsed] = useState(false);
   const [inspectorCollapsed, setInspectorCollapsed] = useState(false);
   const [showShortcuts, setShowShortcuts] = useState(false);
+  const shortcutsWasOpen = useRef(false);
+  useEffect(() => {
+    if (showShortcuts) {
+      document.getElementById("cad-shortcuts-close")?.focus();
+    } else if (shortcutsWasOpen.current) {
+      document.getElementById("cad-shortcut-trigger")?.focus();
+    }
+    shortcutsWasOpen.current = showShortcuts;
+  }, [showShortcuts]);
   const [leftPanelMode, setLeftPanelMode] = useState<"catalog" | "scene">("catalog");
   const [sceneSearch, setSceneSearch] = useState("");
   const [collapsedSceneFurnitureIds, setCollapsedSceneFurnitureIds] = useState<string[]>([]);
@@ -1329,6 +1338,7 @@ function App() {
                       variant="ghost"
                       size="icon"
                       className="cad-shortcut-trigger"
+                      id="cad-shortcut-trigger"
                       aria-label="Klavye kısayollarını göster"
                       aria-haspopup="dialog"
                       aria-expanded={showShortcuts}
@@ -1358,6 +1368,7 @@ function App() {
                       type="button"
                       variant="ghost"
                       size="icon-sm"
+                      id="cad-shortcuts-close"
                       aria-label="Kısayol penceresini kapat"
                       onClick={() => setShowShortcuts(false)}
                     >
