@@ -209,3 +209,66 @@
     transform: none !important;
   }
 }
+
+
+/* UI-CATALOG-DENSITY-001 — compact desktop library cards without hiding dimensions */
+@media (min-width: 821px) {
+  .cad-catalog-card.mc-catalog-card {
+    grid-template-columns: 96px minmax(0, 1fr) !important;
+    min-height: 98px !important;
+  }
+
+  .mc-catalog-card__visual {
+    min-height: 98px;
+    background-size: 14px 14px, 14px 14px, auto, auto;
+  }
+
+  .mc-catalog-card__visual svg {
+    height: 82px;
+    max-width: 112px;
+  }
+
+  .mc-catalog-card__content {
+    gap: 3px;
+    padding: 8px 10px;
+  }
+
+  .mc-catalog-card__dimensions {
+    gap: 5px;
+    font-size: 9.5px;
+  }
+
+  .mc-catalog-card__details {
+    font-size: 8.5px;
+  }
+}
+
+
+@media (forced-colors: active) {
+  .cad-catalog-card.mc-catalog-card {
+    border-color: CanvasText !important;
+    background: Canvas !important;
+  }
+
+
+  .mc-catalog-card__visual {
+    border-right-color: CanvasText;
+    background: Canvas;
+  }
+
+  .mc-catalog-card__category,
+  .mc-catalog-card__dimensions,
+  .mc-catalog-card__details {
+    color: CanvasText;
+  }
+
+  .mc-catalog-card__add {
+    color: ButtonText;
+    border-color: ButtonText;
+    background: ButtonFace;
+  }
+
+  .cad-catalog-card.mc-catalog-card:focus-visible {
+    outline-color: Highlight !important;
+  }
+}
