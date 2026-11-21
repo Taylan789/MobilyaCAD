@@ -1928,3 +1928,11 @@
 - **Test sitesi:** [MobilyaCAD test](https://taylan789.github.io/MobilyaCAD/) Pages deploy başarıyla tamamlandı.
 - **Ajanlar:** AI Developer [#44852162524](https://github.com/Taylan789/MobilyaCAD/actions/runs/44852162524) OpenRouter free daily 429. Log reset zamanını 22 Kasım 2026 00:00 UTC / 03:00 TRT gösteriyor; bu tur yeniden çalıştırılmadı, quota/credits/secrets değişmedi. Integration/Performance job skipped, aktif specialist branch/PR kanıtı yok. UI PR [#126](https://github.com/Taylan789/MobilyaCAD/pull/126) draft, birleştirilmedi; frontend değişmedi.
 - **Sonraki:** DOM-081 project v2 envelope field-preservation; DOM-082 iki revizyonlu standalone import/export round-trip; ardından INT-001 export adapter contract reassessment.
+
+
+## 21 Kasım 2026 07:56 TRT — DOM-081 IN_PROGRESS
+
+- **Kapsam:** Proje JSON v2 teklif geçmişi import'unda geçmiş dışındaki alanları kayıpsız tutma, hedef proje iç içe nesnelerini kaynakla alias paylaşmayacak şekilde kopyalama ve sonucu derin dondurma; JSON dışı/döngüsel hedef zarfını fail-closed reddetme.
+- **Kod/test:** `projectQuoteRevisionProjectFile.ts` import zarfı kopyalama-güvenlik katmanı ve yeni `projectQuoteRevisionProjectFileImportImmutability.test.mjs` regresyon dosyası. Commit SHA oluşturulunca kaydedilecek.
+- **Otomatik doğrulama:** CI/QA/Pages exact-SHA sonuçları bekleniyor; bu ortamda yerel test çalıştırılmadı.
+- **Sonraki:** Actions sonuçlarını doğrula, DOM-081'i DONE olarak koordinasyon/roadmap/progress'e kanıtla; sonra DOM-082 iki-revizyon round-trip.

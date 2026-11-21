@@ -62,6 +62,71 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
+function cloneAndFreezeJsonValue(value: unknown, ancestors: WeakSet<object>): unknown {
+  if (value === null || typeof value === "string" || typeof value === "boolean") return value;
+  if (typeof value === "number") {
+    if (!Number.isFinite(value)) throw new Error("Proje zarfı JSON uyumlu olmayan sayısal değer içeriyor.");
+    return value;
+  }
+  if (typeof value !== "object") throw new Error("Proje zarfı JSON uyumlu olmayan değer içeriyor.");
+  if (ancestors.has(value)) throw new Error("Proje zarfı döngüsel veri içeriyor.");
+  ancestors.add(value);
+
+  let cloned: unknown;
+  if (Array.isArray(value)) {
+    const ownNames = Object.getOwnPropertyNames(value);
+    if (
+      Object.getOwnPropertySymbols(value).length !== 0 ||
+      Object.keys(value).length !== value.length ||
+      ownNames.length !== value.length + 1
+    ) {
+      throw new Error("Proje zarfı JSON dışı dizi alanı içeriyor.");
+    }
+    const copy: unknown[] = [];
+    for (let index = 0; index < value.length; index += 1) {
+      const descriptor = Object.getOwnPropertyDescriptor(value, String(index));
+      if (!descriptor || !descriptor.enumerable || !("value" in descriptor)) {
+        throw new Error("Proje zarfı JSON dışı dizi alanı içeriyor.");
+      }
+      copy.push(cloneAndFreezeJsonValue(descriptor.value, ancestors));
+    }
+    cloned = copy;
+  } else {
+    const prototype = Object.getPrototypeOf(value);
+    if (!isRecord(value) || (prototype !== Object.prototype && prototype !== null)) {
+      throw new Error("Proje zarfı düz JSON nesnesi içermelidir.");
+    }
+    const keys = Object.keys(value);
+    if (
+      Object.getOwnPropertyNames(value).length !== keys.length ||
+      Object.getOwnPropertySymbols(value).length !== 0
+    ) {
+      throw new Error("Proje zarfı JSON dışı nesne alanı içeriyor.");
+    }
+    const copy: Record<string, unknown> = {};
+    for (const key of keys) {
+      const descriptor = Object.getOwnPropertyDescriptor(value, key);
+      if (!descriptor || !descriptor.enumerable || !("value" in descriptor)) {
+        throw new Error("Proje zarfı JSON dışı nesne alanı içeriyor.");
+      }
+      Object.defineProperty(copy, key, {
+        value: cloneAndFreezeJsonValue(descriptor.value, ancestors),
+        enumerable: true,
+        configurable: true,
+        writable: true
+      });
+    }
+    cloned = copy;
+  }
+
+  ancestors.delete(value);
+  return Object.freeze(cloned);
+}
+
+function cloneAndFreezeProjectEnvelope(value: Record<string, unknown>): Readonly<Record<string, unknown>> {
+  return cloneAndFreezeJsonValue(value, new WeakSet<object>()) as Readonly<Record<string, unknown>>;
+}
+
 function blockedRead(message: string): ProjectQuoteRevisionProjectFileReadResult {
   return Object.freeze({
     status: "blocked" as const,
@@ -281,8 +346,17 @@ export function importProjectQuoteRevisionHistoryFileIntoProject(
     );
   }
 
+  let preservedProject: Readonly<Record<string, unknown>>;
+  try {
+    preservedProject = cloneAndFreezeProjectEnvelope(envelope.project);
+  } catch (error) {
+    return blockedImport(
+      error instanceof Error ? error.message : "Proje zarfı güvenli biçimde kopyalanamadı."
+    );
+  }
+
   const nextProject = Object.freeze({
-    ...envelope.project,
+    ...preservedProject,
     [PROJECT_QUOTE_REVISION_HISTORY_FIELD]: imported.history
   });
   return Object.freeze({

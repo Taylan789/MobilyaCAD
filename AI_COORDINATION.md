@@ -399,5 +399,5 @@ Bu dosya dört geliştirme/denetim rolünün ortak görev panosu ve entegrasyon 
 - DOM-078C and DOM-078D are verified with exact-SHA CI/QA/Pages. DOM-078D CI [#44847105808](https://github.com/Taylan789/MobilyaCAD/actions/runs/44847105808), QA [#44847105831](https://github.com/Taylan789/MobilyaCAD/actions/runs/44847105831), Pages [#44847105832](https://github.com/Taylan789/MobilyaCAD/actions/runs/44847105832) succeeded; 130 frontend + 590 domain tests, production build and audit passed. UI and integration/performance lanes remain isolated.
 
 
-| DOM-081 | Project v2 quote-history import preserves unrelated envelope fields and target immutability | Product Development | READY | Exact non-history fields preserved; no mutation; malformed targets fail closed |
+| DOM-081 | Project v2 quote-history import preserves unrelated envelope fields and target immutability | Ürün Geliştirme | IN_PROGRESS | Deep-copy/freeze and fail-closed JSON envelope tests; exact-SHA Actions pending |
 | DOM-082 | Two-revision standalone history export/import round-trip preserves chain IDs, dates, previous links and snapshot/source metadata | Product Development | READY | Exact validated history equality after serialize/import/read; no price recalculation |

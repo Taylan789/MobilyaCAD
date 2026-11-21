@@ -575,12 +575,16 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 - **Sonraki 3 dilim:** DOM-064 DONE — waste/profit provenance project JSON v2 history round-trip verified; DOM-065 DONE — comparison JSON/CSV adjustment-line provenance and delta reconciliation verified; DOM-066 planned — frontend-owned revision-comparison download wiring.
 
 
-## Next 4 small tasks
-1. DOM-080 READY — adversarial quote-history import/export fixtures: malformed, duplicate, foreign-project and version-downgrade payloads.
+## Next 5 small tasks
+1. DOM-081 IN_PROGRESS — project v2 quote-history import preserves unrelated envelope data, deep target isolation and fail-closed malformed JSON values; exact-SHA Actions pending.
 
-2. INT-001 FRONTEND-OWNED — comparison download and production report/export integration; preserve catalog resource identity.
-3. INT-002/PERF-001 INTEGRATION-OWNED — adapter round-trip tests and measured CAD profiling on the isolated specialist branch.
-4. QA-003 BLOCKED — final end-to-end export/data integrity review after INT-001/INT-002 evidence.
+2. DOM-082 READY — two-revision standalone history import/export round-trip preserves chain IDs, dates, previous links and snapshot/source metadata.
+
+3. INT-001 FRONTEND-OWNED — comparison download and production report/export integration; preserve catalog resource identity.
+
+4. INT-002/PERF-001 INTEGRATION-OWNED — adapter round-trip tests and measured CAD profiling on the isolated specialist branch.
+
+5. QA-003 BLOCKED — final end-to-end export/data integrity review after INT-001/INT-002 evidence.
 
 ## 10/10 ölçülebilir kalite kapıları (20 Kasım 2026 baseline)
 
