@@ -296,8 +296,8 @@ function requireUniqueComparisonLineIdentity(
   identities: Set<string>,
   label: string
 ): void {
-  const identity = comparisonLineIdentity(line);
-  if (identities.has(identity)) throw new Error(label + " teklif satır kimliği yineleniyor.");
+  const identity = comparisonLineIdentity(line) + JSON.stringify(line);
+  if (identities.has(identity)) throw new Error(label + " aynı teklif satır snapshot'ı yineleniyor.");
   identities.add(identity);
 }
 

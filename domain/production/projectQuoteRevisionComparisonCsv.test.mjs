@@ -289,11 +289,10 @@ test("CSV preserves mm and m as separate line changes without conversion", () =>
 test("DOM-096 CSV import/export blocks duplicate line identities without partial payload", () => {
   const duplicateResult = readyComparisonResult();
   const duplicate = structuredClone(duplicateResult.comparison.lineChanges[0]);
-  for (const line of [duplicate.from, duplicate.to]) {
-    line.unitPriceMinor = 0;
-    line.lineTotalMinor = 0;
-  }
   duplicateResult.comparison.lineChanges.push(duplicate);
+  duplicateResult.comparison.categoryDeltasMinor.material += 1000;
+  duplicateResult.comparison.grandTotalDeltaMinor += 1000;
+  duplicateResult.comparison.toGrandTotalMinor += 1000;
   const serializedDuplicate = serializeProjectQuoteRevisionComparisonCsv(duplicateResult);
   assert.equal(serializedDuplicate.status, "blocked");
   assert.equal(serializedDuplicate.csv, null);
@@ -309,11 +308,16 @@ test("DOM-096 CSV import/export blocks duplicate line identities without partial
   );
   assert.ok(lineRow);
   const repeated = lineRow.slice();
-  for (const side of ["from", "to"]) {
-    repeated[header.indexOf(side + "UnitPriceMinor")] = "0";
-    repeated[header.indexOf(side + "LineTotalMinor")] = "0";
-  }
   records.push(repeated);
+  const totalRow = records[1];
+  totalRow[header.indexOf("toGrandTotalMinor")] = "12075";
+  totalRow[header.indexOf("grandTotalDeltaMinor")] = "2075";
+  const materialRow = records.find(row =>
+    row[header.indexOf("rowType")] === "category" &&
+    row[header.indexOf("category")] === "material"
+  );
+  assert.ok(materialRow);
+  materialRow[header.indexOf("categoryDeltaMinor")] = "2250";
   const duplicateCsv = "\uFEFF" + records.map(row => row.map(encodeCsvCellForTest).join(",")).join("\r\n") + "\r\n";
   const parsedDuplicate = parseProjectQuoteRevisionComparisonCsv(duplicateCsv);
   assert.equal(parsedDuplicate.status, "blocked");

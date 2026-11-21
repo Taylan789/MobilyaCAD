@@ -314,11 +314,10 @@ test("tampered line/category totals block serialization without a partial JSON r
 test("DOM-096 JSON import/export blocks duplicate line identities without partial payload", () => {
   const duplicateResult = readyComparisonResult();
   const duplicate = structuredClone(duplicateResult.comparison.lineChanges[0]);
-  for (const line of [duplicate.from, duplicate.to]) {
-    line.unitPriceMinor = 0;
-    line.lineTotalMinor = 0;
-  }
   duplicateResult.comparison.lineChanges.push(duplicate);
+  duplicateResult.comparison.categoryDeltasMinor.material += 1000;
+  duplicateResult.comparison.grandTotalDeltaMinor += 1000;
+  duplicateResult.comparison.toGrandTotalMinor += 1000;
   const serializedDuplicate = serializeProjectQuoteRevisionComparisonFile(duplicateResult);
   assert.equal(serializedDuplicate.status, "blocked");
   assert.equal(serializedDuplicate.json, null);
@@ -328,11 +327,10 @@ test("DOM-096 JSON import/export blocks duplicate line identities without partia
   assert.equal(valid.status, "ready");
   const duplicateImport = JSON.parse(valid.json);
   const repeated = structuredClone(duplicateImport.comparison.lineChanges[0]);
-  for (const line of [repeated.from, repeated.to]) {
-    line.unitPriceMinor = 0;
-    line.lineTotalMinor = 0;
-  }
   duplicateImport.comparison.lineChanges.push(repeated);
+  duplicateImport.comparison.categoryDeltasMinor.material += 1000;
+  duplicateImport.comparison.grandTotalDeltaMinor += 1000;
+  duplicateImport.comparison.toGrandTotalMinor += 1000;
   const parsedDuplicate = parseProjectQuoteRevisionComparisonFile(JSON.stringify(duplicateImport));
   assert.equal(parsedDuplicate.status, "blocked");
   assert.equal(parsedDuplicate.file, null);
