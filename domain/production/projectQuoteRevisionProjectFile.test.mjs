@@ -529,7 +529,7 @@ test("standalone and project-history import block version downgrade payloads", (
 
   assert.equal(standaloneDowngrade.status, "blocked");
   assert.equal(standaloneDowngrade.project, null);
-  assert.match(standaloneDowngrade.diagnostics.join(" | "), /desteklenmeyen teklif revizyon geçmişi dosya sürümü/);
+  assert.match(standaloneDowngrade.diagnostics.join(" | "), /Desteklenmeyen teklif revizyon geçmişi dosya sürümü/);
   assert.equal(projectDowngrade.status, "blocked");
   assert.equal(projectDowngrade.project, null);
   assert.match(projectDowngrade.diagnostics.join(" | "), /JSON v1 quoteRevisionHistory alanını desteklemez/);
