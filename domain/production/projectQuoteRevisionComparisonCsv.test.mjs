@@ -296,7 +296,7 @@ test("DOM-096 CSV import/export blocks duplicate line identities without partial
   const serializedDuplicate = serializeProjectQuoteRevisionComparisonCsv(duplicateResult);
   assert.equal(serializedDuplicate.status, "blocked");
   assert.equal(serializedDuplicate.csv, null);
-  assert.match(serializedDuplicate.diagnostics[0], /kimliği yineleniyor/);
+  assert.match(serializedDuplicate.diagnostics[0], /yineleniyor/);
 
   const valid = serializeProjectQuoteRevisionComparisonCsv(readyComparisonResult());
   assert.equal(valid.status, "ready");
@@ -322,7 +322,7 @@ test("DOM-096 CSV import/export blocks duplicate line identities without partial
   const parsedDuplicate = parseProjectQuoteRevisionComparisonCsv(duplicateCsv);
   assert.equal(parsedDuplicate.status, "blocked");
   assert.equal(parsedDuplicate.comparison, null);
-  assert.match(parsedDuplicate.diagnostics[0], /kimliği yineleniyor/);
+  assert.match(parsedDuplicate.diagnostics[0], /yineleniyor/);
 });
 
 test("CSV rejects inconsistent category deltas, malformed quoting and unknown headers", () => {

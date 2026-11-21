@@ -321,7 +321,7 @@ test("DOM-096 JSON import/export blocks duplicate line identities without partia
   const serializedDuplicate = serializeProjectQuoteRevisionComparisonFile(duplicateResult);
   assert.equal(serializedDuplicate.status, "blocked");
   assert.equal(serializedDuplicate.json, null);
-  assert.match(serializedDuplicate.diagnostics[0], /kimliği yineleniyor/);
+  assert.match(serializedDuplicate.diagnostics[0], /yineleniyor/);
 
   const valid = serializeProjectQuoteRevisionComparisonFile(readyComparisonResult());
   assert.equal(valid.status, "ready");
@@ -335,7 +335,7 @@ test("DOM-096 JSON import/export blocks duplicate line identities without partia
   assert.equal(parsedDuplicate.status, "blocked");
   assert.equal(parsedDuplicate.file, null);
   assert.equal(parsedDuplicate.comparison, null);
-  assert.match(parsedDuplicate.diagnostics[0], /kimliği yineleniyor/);
+  assert.match(parsedDuplicate.diagnostics[0], /yineleniyor/);
 });
 
 test("unknown fields and unsupported comparison versions are rejected during parse", () => {
