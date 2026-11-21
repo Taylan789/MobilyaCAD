@@ -1908,3 +1908,13 @@
 - **Final exact-SHA verification:** CI [#44847105808](https://github.com/Taylan789/MobilyaCAD/actions/runs/44847105808), QA [#44847105831](https://github.com/Taylan789/MobilyaCAD/actions/runs/44847105831), Pages [#44847105832](https://github.com/Taylan789/MobilyaCAD/actions/runs/44847105832) successful: 130/130 frontend, 590/590 domain tests, strict domain type-check, lint, production build and npm audit (0 vulnerabilities).
 - **Test site:** deployment verified at https://taylan789.github.io/MobilyaCAD/
 - **Next:** DOM-079 safe standalone revision-history import into project v2; frontend export integration remains separate ownership.
+
+## 21 Kasım 2026 05:13 TRT — DOM-079 VERIFIED
+
+- **İş:** Standalone teklif revizyon geçmişi JSON dosyasını yalnızca boş geçmişli, geçerli proje JSON v2 içine import eden API eklendi. projectId eşleşmesi kesin; mevcut non-empty revision chain sessizce ezilemez. Bozuk/boş JSON geçmişi, yabancı projectId ve legacy v1 hedefleri fail-closed.
+- **Commit:** [45410f6f9ef2ba8294a526eb0e5bda4435719971](https://github.com/Taylan789/MobilyaCAD/commit/45410f6f9ef2ba8294a526eb0e5bda4435719971). Değişen dosyalar: `domain/production/projectQuoteRevisionProjectFile.ts`, `domain/production/projectQuoteRevisionProjectFile.test.mjs`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`.
+- **Regresyon:** 4 yeni test (başarılı import/round-trip ve input immutability; yabancı projectId; no-overwrite; malformed/empty/v1 rejection).
+- **Exact-SHA Actions:** CI [#44854578281](https://github.com/Taylan789/MobilyaCAD/actions/runs/44854578281) success; QA [#44854578278](https://github.com/Taylan789/MobilyaCAD/actions/runs/44854578278) success — **130 frontend + 594 domain tests**, strict domain type-check, lint, production build ve production audit (**0 production vulnerability**) başarılı. npm install sırasında 4 moderate development advisories bildirildi.
+- **Pages:** [#44854578405](https://github.com/Taylan789/MobilyaCAD/actions/runs/44854578405) başarılı; test sitesi güncel: https://taylan789.github.io/MobilyaCAD/. Bu domain-only değişiklik frontend görünümünü değiştirmedi.
+- **Ajan durumu:** AI Developer [#44852162524](https://github.com/Taylan789/MobilyaCAD/actions/runs/44852162524) OpenRouter free-model daily 429 nedeniyle başarısız; rerun ücret/kota tüketebileceği için yapılmadı. Integration/performance specialist job skipped; aktif ayrı branch/PR kanıtı yok. UI ajanının PR [#126](https://github.com/Taylan789/MobilyaCAD/pull/126) draft ve birleştirilmedi.
+- **Sonraki:** DOM-080 import/export için duplicate revision ID, foreign revision, malformed metadata ve version-downgrade testlerini genişlet.
