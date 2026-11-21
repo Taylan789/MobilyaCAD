@@ -5,13 +5,10 @@ import test from "node:test";
 const css = readFileSync(new URL("../src/components/production/MaterialCatalogManager.css", import.meta.url), "utf8");
 
 test("desktop material catalog uses compact technical card geometry", () => {
-  const start = css.indexOf("@media (min-width: 1121px)");
-  const end = start < 0 ? -1 : css.indexOf("\\n}", start);
-  const desktop = start >= 0 && end >= 0 ? css.slice(start, end + 2) : "";
-  assert.ok(desktop.includes("grid-template-columns: minmax(0, 1.25fr) minmax(300px, .8fr);"));
-  assert.ok(desktop.includes("min-height: 116px;"));
-  assert.ok(desktop.includes("grid-template-columns: 88px minmax(0, 1fr);"));
-  assert.ok(desktop.includes("padding: 8px;"));
+  assert.ok(css.includes("@media (min-width: 1121px) {"));
+  assert.ok(css.includes(".mc-material-library__workspace {\\n    grid-template-columns: minmax(0, 1.25fr) minmax(300px, .8fr);"));
+  assert.ok(css.includes(".mc-material-card {\\n    min-height: 116px;\\n    grid-template-columns: 88px minmax(0, 1fr);"));
+  assert.ok(css.includes(".mc-material-card__body { gap: 7px; padding: 8px; }"));
 });
 
 test("material catalog keeps its existing compact breakpoint behavior", () => {
