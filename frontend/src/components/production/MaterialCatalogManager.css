@@ -723,3 +723,50 @@
   color: #8295a0;
   font-size: 7px;
 }
+
+
+/* UI-MATERIAL-CATALOG-DESKTOP-DENSITY-001 — reclaim editor/catalog space on desktop */
+@media (min-width: 1121px) {
+  .mc-material-library__workspace {
+    grid-template-columns: minmax(0, 1.25fr) minmax(300px, .8fr);
+    gap: 12px;
+  }
+
+  .mc-material-library__catalog,
+  .mc-material-library__editor {
+    padding: 13px;
+  }
+
+  .mc-material-library__grid { gap: 7px; }
+
+  .mc-material-card {
+    min-height: 116px;
+    grid-template-columns: 88px minmax(0, 1fr);
+  }
+
+  .mc-material-card__body { gap: 7px; padding: 8px; }
+  .mc-material-card__footer { padding-top: 5px; }
+}
+
+/* Windows/browser high-contrast mode keeps the real material controls distinct. */
+@media (forced-colors: active) {
+  .mc-material-library__catalog,
+  .mc-material-library__editor,
+  .mc-material-card,
+  .mc-material-library__metric,
+  .mc-material-library__filters button,
+  .mc-panel-preview__options button {
+    border-color: CanvasText;
+  }
+
+  .mc-material-library button:focus-visible,
+  .mc-material-library input:focus-visible {
+    outline-color: Highlight;
+  }
+
+  .mc-material-library__filters button[aria-pressed="true"],
+  .mc-panel-preview__options button[aria-pressed="true"] {
+    color: HighlightText;
+    background: Highlight;
+  }
+}
