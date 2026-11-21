@@ -2274,7 +2274,7 @@ test("DOM-094 three-revision comparison reconciles fractional quantity rounding 
   assert.equal(result.comparison.lineChanges.length, 1);
   const changed = result.comparison.lineChanges[0];
   assert.equal(changed.type, "changed");
-  assert.equal(changed.from.sourceId, "dom-094-panel");
+  assert.equal(changed.from.sourceId, "panel");
   assert.equal(changed.to.sourceId, "dom-094-panel");
   assert.equal(changed.from.quantity, 0.375);
   assert.equal(changed.to.quantity, 0.375);
