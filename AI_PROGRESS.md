@@ -1947,3 +1947,9 @@
 - **Test sitesi:** Pages deployment başarılı — https://taylan789.github.io/MobilyaCAD/
 - **Ajanlar:** AI Developer [#44852162524](https://github.com/Taylan789/MobilyaCAD/actions/runs/44852162524) OpenRouter free-model daily limit 429; reset 22 Nov 2026 03:00 TRT, rerun yapılmadı. Integration/performance job skipped; active specialist branch/PR not evidenced. UI PRs remain unmerged, so bu domain/test commit görünür frontend yenilemesi içermez.
 - **Next:** DOM-083 embedded project-v2 ↔ standalone two-revision history equivalence, then DOM-084 source/resource provenance cross-check; INT-001/INT-002/PERF-001 ownership stays separate.
+
+## 21 Kasım 2026 10:34 TRT — DOM-083 (Actions pending)
+- Added an integration regression test connecting two project-v2 embedded quote revisions to the standalone revision-history JSON export/import; exact history equality, deterministic envelope export and project input immutability are asserted.
+- Initial baseline: `dev/github-work` HEAD `e1330ced7252dcd204dc67f0f7500c87b4f80218`; latest CI, QA and Pages were green on this SHA, with no active runs. Latest test-site deployment was verified at https://taylan789.github.io/MobilyaCAD/.
+- Code commit SHA and exact-SHA CI/QA/Pages results will be recorded after the commit and workflow runs are available. Local tests were not run (repository checkout is unavailable in this runtime).
+- No frontend/**, adapter/performance-owned files, other agent branches, or main changed. Next: DOM-084 provenance cross-check; INT-001/INT-002/PERF-001 remain separately owned.

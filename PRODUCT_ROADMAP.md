@@ -852,3 +852,9 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - QA: 136 frontend + 601 domain tests; strict shared-domain type-check, lint (32 warnings / 0 errors), production build and production audit (0 vulnerabilities). DOM-082 test passed.
 - Test site deployed: https://taylan789.github.io/MobilyaCAD/
 - Next small slices: DOM-083 embedded project-v2 history ↔ standalone two-revision equivalence; DOM-084 quote comparison source/resource provenance cross-check; INT-001 frontend-owned adapter/export wiring and INT-002/PERF-001 specialist-owned integration/performance tasks remain isolated.
+
+## DOM-083 — Embedded project-v2 ↔ standalone quote-history equivalence (IN PROGRESS)
+- New automated domain contract test appends two dated revisions into project JSON v2, reads the embedded chain, and compares it exactly to the validated source history.
+- The same embedded history is serialized to the standalone quote-history JSON and compared byte-for-byte with the standalone export path; parse results are also compared. The fixture verifies project envelope identity and non-mutation.
+- Exact-SHA CI/QA/Pages results are pending. No frontend, adapter/performance-owned files, or machine-specific output changed.
+- Next: DOM-084 quote comparison source/resource provenance cross-check; INT-001 frontend adapter remains UI-owned and INT-002/PERF-001 remain specialist-owned.

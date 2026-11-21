@@ -9,6 +9,10 @@ import {
   parseProjectQuoteRevisionHistoryFile,
   serializeProjectQuoteRevisionHistoryFile
 } from "./projectQuoteRevisionFile.ts";
+import {
+  appendProjectQuoteRevisionToProjectFile,
+  readProjectQuoteRevisionHistoryFromProjectFile
+} from "./projectQuoteRevisionProjectFile.ts";
 
 const noBanding = { top: false, bottom: false, left: false, right: false };
 const edgeBandingByGroup = Object.fromEntries(
@@ -190,3 +194,58 @@ test("DOM-082 two-revision standalone history round-trip preserves chain and pri
   assert.equal(reexported.status, "ready");
   assert.equal(reexported.json, exported.json);
 });
+test("DOM-083 project-v2 embedded history and standalone export preserve the same two-revision chain", () => {
+  const projectFile = {
+    format: "MobilyaCAD",
+    formatVersion: 2,
+    projectId,
+    room: { width: 4000, length: 5000, height: 2800, unit: "mm" },
+    furniture: [],
+    materials: []
+  };
+  const originalProjectFile = structuredClone(projectFile);
+
+  const firstAppend = appendProjectQuoteRevisionToProjectFile(projectFile, {
+    revisionId: "quote-r1",
+    createdAt: "2026-11-20T08:00:00Z",
+    pricingSnapshot: firstSnapshot
+  });
+  assert.equal(firstAppend.status, "ready", firstAppend.diagnostics.join(" | "));
+  assert.ok(firstAppend.project);
+
+  const secondAppend = appendProjectQuoteRevisionToProjectFile(firstAppend.project, {
+    revisionId: "quote-r2",
+    createdAt: "2026-11-21T08:00:00Z",
+    pricingSnapshot: secondSnapshot
+  });
+  assert.equal(secondAppend.status, "ready", secondAppend.diagnostics.join(" | "));
+  assert.ok(secondAppend.project);
+
+  const embedded = readProjectQuoteRevisionHistoryFromProjectFile(secondAppend.project);
+  assert.equal(embedded.status, "ready", embedded.diagnostics.join(" | "));
+  assert.ok(embedded.history);
+  const expected = validateProjectQuoteRevisionHistory(sourceHistory);
+  assert.equal(expected.status, "ready", expected.diagnostics.join(" | "));
+  assert.ok(expected.history);
+  assert.deepEqual(embedded.history, expected.history);
+  assert.deepEqual(projectFile, originalProjectFile);
+  assert.equal(secondAppend.project.formatVersion, 2);
+  assert.equal(secondAppend.project.projectId, projectId);
+
+  const embeddedExport = serializeProjectQuoteRevisionHistoryFile(embedded.history);
+  const standaloneExport = serializeProjectQuoteRevisionHistoryFile(expected.history);
+  assert.equal(embeddedExport.status, "ready");
+  assert.equal(standaloneExport.status, "ready");
+  assert.ok(embeddedExport.json);
+  assert.ok(standaloneExport.json);
+  assert.equal(embeddedExport.json, standaloneExport.json);
+
+  const embeddedImport = parseProjectQuoteRevisionHistoryFile(embeddedExport.json);
+  const standaloneImport = parseProjectQuoteRevisionHistoryFile(standaloneExport.json);
+  assert.equal(embeddedImport.status, "ready", embeddedImport.diagnostics.join(" | "));
+  assert.equal(standaloneImport.status, "ready", standaloneImport.diagnostics.join(" | "));
+  assert.ok(embeddedImport.history);
+  assert.ok(standaloneImport.history);
+  assert.deepEqual(embeddedImport.history, standaloneImport.history);
+});
+
