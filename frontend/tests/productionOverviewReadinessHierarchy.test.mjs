@@ -8,7 +8,7 @@ const styles = readFileSync(
 );
 
 test("production report readiness is a compact, status-aware grid", () => {
-  assert.match(styles, /\.mc-production__readiness\s*\{[\s\S]*display:\s*grid/);
+  assert.match(styles, /\.mc-production__readiness\s*\{[^}]*display:\s*grid;[^}]*grid-template-columns/);
   assert.match(styles, /\.mc-production__readiness::before\s*\{/);
   assert.match(styles, /\.mc-production__readiness--ready::before/);
   assert.match(styles, /\.mc-production__readiness--partial/);
@@ -17,10 +17,10 @@ test("production report readiness is a compact, status-aware grid", () => {
 });
 
 test("production report cards use graphite surfaces and readable steel contrast", () => {
-  assert.match(styles, /\.mc-production__section,[\s\S]*\.mc-production__issues\s*\{[\s\S]*background:\s*#182630/);
-  assert.match(styles, /\.mc-production__material\s*\{[\s\S]*background:\s*#1b2a33/);
-  assert.match(styles, /\.mc-production__cut-row\s*\{[\s\S]*background:\s*#1b2932/);
-  assert.match(styles, /\.mc-production__empty\s*\{[\s\S]*background:\s*#1b2932/);
+  assert.match(styles, /\.mc-production__section,\s*\.mc-production__issues\s*\{[^}]*background:\s*#182630/);
+  assert.match(styles, /\.mc-production__material\s*\{[^}]*background:\s*#1b2a33/);
+  assert.match(styles, /\.mc-production__cut-row\s*\{[^}]*background:\s*#1b2932/);
+  assert.match(styles, /\.mc-production__empty\s*\{[^}]*background:\s*#1b2932/);
 });
 
 test("production overview preserves responsive and accessibility modes", () => {
