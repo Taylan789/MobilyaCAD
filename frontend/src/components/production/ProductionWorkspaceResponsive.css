@@ -1,0 +1,119 @@
+/* Compact desktop treatment for the production workspace.
+   Keeps the existing content and actions intact; only panel density changes. */
+
+@media (min-width: 1101px) and (max-width: 1360px) {
+  .mc-production-studio__layout {
+    grid-template-columns: 214px minmax(0, 1fr);
+  }
+
+  .mc-production-studio__rail {
+    gap: 16px;
+    padding: 16px 11px 12px;
+  }
+
+  .mc-production-studio__main {
+    padding: 20px clamp(16px, 2vw, 28px) 28px;
+  }
+
+  .mc-production-studio__project {
+    gap: 10px;
+    padding: 11px 10px;
+  }
+
+  .mc-production-studio__project-total strong {
+    font-size: 25px;
+  }
+
+  .mc-production-studio__heading {
+    gap: 16px;
+    margin-bottom: 16px;
+    padding-bottom: 13px;
+  }
+}
+
+@media (min-width: 821px) and (max-height: 860px) {
+  .mc-production-studio__topbar {
+    min-height: 52px;
+    padding-inline: 18px;
+  }
+
+  .mc-production-studio__brand-mark {
+    width: 31px;
+    height: 31px;
+  }
+
+  .mc-production-studio__rail {
+    gap: 14px;
+    padding-top: 14px;
+    padding-bottom: 11px;
+  }
+
+  .mc-production-studio__project {
+    gap: 9px;
+    padding: 10px;
+  }
+
+  .mc-production-studio__scope {
+    padding: 9px;
+  }
+
+  .mc-production-studio__main {
+    padding-top: 18px;
+    padding-bottom: 22px;
+  }
+
+  .mc-production-studio__heading {
+    margin-bottom: 14px;
+    padding-bottom: 12px;
+  }
+
+  .mc-production-studio .mc-production {
+    gap: 14px;
+    padding-bottom: 18px;
+  }
+
+  .mc-production-studio .mc-production__section {
+    gap: 11px;
+    padding: 13px;
+  }
+}
+
+@media (min-width: 821px) and (max-height: 760px) {
+  .mc-production-studio__topbar {
+    min-height: 48px;
+  }
+
+  .mc-production-studio__rail {
+    gap: 10px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+  }
+
+  .mc-production-studio__project {
+    gap: 7px;
+  }
+
+  .mc-production-studio__scope p {
+    line-height: 1.45;
+  }
+
+  .mc-production-studio__main {
+    padding-top: 14px;
+    padding-bottom: 16px;
+  }
+
+  .mc-production-studio__heading h1 {
+    font-size: 21px;
+  }
+}
+
+.mc-production-studio button:focus-visible {
+  outline: 2px solid #a9c7d8;
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mc-production-studio {
+    animation: none;
+  }
+}

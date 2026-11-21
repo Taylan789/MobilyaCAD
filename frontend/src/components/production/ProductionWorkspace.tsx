@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 
 import "./ProductionWorkspace.css";
+import "./ProductionWorkspaceResponsive.css";
 
 type ProductionSection = "report" | "materials";
 
