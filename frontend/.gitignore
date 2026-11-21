@@ -1,0 +1,47 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# MobilyaCAD yedek dosyalari
+*.backup*
+*.before-*
+*.pre-template-backup
+*.nova-backup*
+
+# Gereksiz bos dosyalar
+/0
+/=
+/div
+/div:last-child
+/div[style*=background: rgb(23, 36, 56)]
+/frontend@0.0.0
+/item.id
+/product.id
+/span
+/svg
+/tsc
+/{ 
+
+# Yedek dosyalari
+*-backup*

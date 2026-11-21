@@ -1,0 +1,92 @@
+name: MobilyaCAD QA & Test
+
+on:
+  push:
+    branches:
+      - dev/github-work
+  pull_request:
+    branches:
+      - dev/github-work
+  schedule:
+    - cron: "0 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mobilyacad-qa-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  qa:
+    name: QA checks
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check project structure
+        working-directory: .
+        run: |
+          test -f frontend/package.json
+          test -f frontend/package-lock.json
+          test -f frontend/tsconfig.json
+          test -f frontend/vite.config.ts
+          test -d frontend/tests
+          echo "Required frontend project files are present."
+
+      - name: Run unit tests
+        id: tests
+        run: |
+          npm test
+          echo "configured=true" >> "$GITHUB_OUTPUT"
+          echo "result=passed" >> "$GITHUB_OUTPUT"
+
+      - name: Run shared domain tests
+        working-directory: .
+        run: node --experimental-strip-types --test domain/production/*.test.mjs
+
+      - name: Type-check shared domain modules
+        working-directory: frontend
+        run: npx tsc --ignoreConfig --noEmit --strict --target ES2022 --module ESNext --moduleResolution Bundler --allowImportingTsExtensions ../domain/production/bodyPanelMaterials.ts ../domain/production/cabinetConstruction.ts ../domain/production/bookshelfConstruction.ts ../domain/production/projectProduction.ts ../domain/production/projectMaterialSummary.ts ../domain/production/projectMaterialSummaryFile.ts ../domain/production/projectEdgeBandingConsumptionFile.ts ../domain/production/projectEdgeBandingConsumptionCsv.ts ../domain/production/projectEdgeBandingRollPlan.ts ../domain/production/projectEdgeBandingRollCostSummary.ts ../domain/production/projectEdgeBandingRollCostCsv.ts ../domain/production/projectCostSummary.ts ../domain/production/drawerBoxConstruction.ts ../domain/production/tableConstruction.ts ../domain/production/wardrobeConstruction.ts ../domain/production/tvUnitConstruction.ts ../domain/production/panelCutoutGeometry.ts ../domain/production/projectPartSnapshot.ts ../domain/production/projectPricedConsumption.ts ../domain/production/projectLaborOperationPricing.ts ../domain/production/projectQuoteSummary.ts ../domain/production/projectQuoteSummaryFile.ts ../domain/production/projectQuotePricingSnapshot.ts ../domain/production/projectQuoteRevision.ts ../domain/production/projectQuoteRevisionFile.ts ../domain/production/projectQuoteRevisionProjectFile.ts ../domain/production/projectEdgeBandingRollPricingProjectFile.ts ../domain/production/projectQuoteRevisionComparisonFile.ts ../domain/production/projectQuoteRevisionComparisonCsv.ts ../domain/production/sheetNestingInput.ts ../domain/production/projectSheetNestingInput.ts ../domain/production/projectSheetNestingBatches.ts ../domain/production/sheetNestingLayout.ts ../domain/production/sheetCutPlan.ts ../domain/production/projectSheetCutPlanAreaSummary.ts ../domain/production/projectSheetCutPlanFile.ts ../domain/production/projectSheetCutPlanProvenanceSummary.ts ../domain/production/projectSheetCutPlan.ts ../domain/production/projectSheetCutPlanFreshness.ts
+          ../domain/production/projectSheetCutPlanExport.ts ../domain/production/projectEdgeBandingProjectFile.ts ../domain/production/projectQuoteSummaryCsv.ts ../domain/production/projectMaterialSummaryCsv.ts
+
+      - name: Lint
+        run: npm run lint
+
+      - name: TypeScript check and production build
+        run: npm run build
+
+      - name: Production dependency security audit
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: Write QA summary
+        if: always()
+        working-directory: .
+        env:
+          TEST_RESULT: ${{ steps.tests.outputs.result }}
+          JOB_STATUS: ${{ job.status }}
+        run: |
+          {
+            echo "## MobilyaCAD QA sonucu"
+            echo ""
+            echo "- Commit: \`${GITHUB_SHA}\`"
+            echo "- Dal: \`${GITHUB_REF_NAME}\`"
+            echo "- Birim testleri: ${TEST_RESULT:-başarısız veya başlatılamadı}"
+            echo "- Genel iş durumu: ${JOB_STATUS}"
+          } >> "$GITHUB_STEP_SUMMARY"
