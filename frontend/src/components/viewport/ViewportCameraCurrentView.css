@@ -1,0 +1,41 @@
+.cad-viewport-camera-tools__current-view {
+  display: inline-flex;
+  min-width: 74px;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 8px;
+  color: #b9cfdd;
+  border: 1px solid rgba(145, 180, 202, 0.24);
+  border-radius: 5px;
+  background: rgba(145, 180, 202, 0.08);
+  font-size: 8px;
+  font-weight: 760;
+  letter-spacing: 0.12em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.cad-viewport-camera-tools__current-view::before {
+  width: 5px;
+  height: 5px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 0 2px rgba(145, 180, 202, 0.1);
+  content: "";
+}
+
+@media (max-width: 1040px) {
+  .cad-viewport-camera-tools__current-view {
+    display: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .cad-viewport-camera-tools__current-view {
+    color: ButtonText;
+    border-color: ButtonText;
+    background: Canvas;
+  }
+}
