@@ -312,6 +312,10 @@ test("DOM-096 CSV import/export blocks duplicate line identities without partial
   const totalRow = records[1];
   totalRow[header.indexOf("toGrandTotalMinor")] = "12075";
   totalRow[header.indexOf("grandTotalDeltaMinor")] = "2075";
+  for (const row of records.slice(2)) {
+    row[header.indexOf("toGrandTotalMinor")] = "12075";
+    row[header.indexOf("grandTotalDeltaMinor")] = "2075";
+  }
   const materialRow = records.find(row =>
     row[header.indexOf("rowType")] === "category" &&
     row[header.indexOf("category")] === "material"
