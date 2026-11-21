@@ -54,3 +54,15 @@
     animation: none !important;
   }
 }
+
+.cad-drawer-config-section-title {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+.cad-drawer-config-section-detail {
+  margin: 0;
+  color: #8095a4;
+  font-size: 9px;
+  line-height: 1.45;
+}
