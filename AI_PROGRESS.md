@@ -1930,9 +1930,11 @@
 - **Sonraki:** DOM-081 project v2 envelope field-preservation; DOM-082 iki revizyonlu standalone import/export round-trip; ardından INT-001 export adapter contract reassessment.
 
 
-## 21 Kasım 2026 08:02 TRT — DOM-081 QA correction
+## 21 Kasım 2026 08:08 TRT — DOM-081 VERIFIED
 
-- Code commit [f4bb4337](https://github.com/Taylan789/MobilyaCAD/commit/f4bb4337a6991db0e33f5f7cd01ea1d99f203f6e) adds deep JSON-envelope cloning/freezing and fail-closed malformed/cyclic data rejection; the new import-isolation test was added.
-- Exact-SHA CI [#44868896354](https://github.com/Taylan789/MobilyaCAD/actions/runs/44868896354) passed. QA [#44868896322](https://github.com/Taylan789/MobilyaCAD/actions/runs/44868896322) failed before the new assertions: the fixture expected a `ready` quote snapshot but an empty quote produced `empty`. The production code was not implicated; the fixture will include a valid explicit quote adjustment.
-- Pages [#44868896329](https://github.com/Taylan789/MobilyaCAD/actions/runs/44868896329) build succeeded, exact-SHA verification failed, and deploy was blocked/skipped. Test site was not updated by DOM-081.
-- **Correction:** add an explicit fixture quote line, keep all validation assertions intact, then rerun exact-SHA CI/QA/Pages.
+- **İş:** Standalone quote-history import hedef proje v2 zarfını derin JSON kopyasıyla korur; nested room/furniture/material/custom extension alanlarını kayıpsız taşır, alias paylaşımını önler ve dönüş zarfını derin dondurur. JSON dışı değer ve döngü fail-closed reddedilir.
+- **Kod commit:** [f4bb4337](https://github.com/Taylan789/MobilyaCAD/commit/f4bb4337a6991db0e33f5f7cd01ea1d99f203f6e). **Test fixture correction:** [f33f6188](https://github.com/Taylan789/MobilyaCAD/commit/f33f61887f303849a1f13d7e49fb6d4e8bc57a80). Dosyalar: `domain/production/projectQuoteRevisionProjectFile.ts`, `domain/production/projectQuoteRevisionProjectFileImportImmutability.test.mjs`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`.
+- **Exact-SHA Actions:** CI [#44868995581](https://github.com/Taylan789/MobilyaCAD/actions/runs/44868995581) success; QA [#44868995531](https://github.com/Taylan789/MobilyaCAD/actions/runs/44868995531) success — **132/132 frontend + 600/600 domain tests**, strict domain TypeScript, lint, production build ve production audit (0 vulnerabilities). `npm ci` yine 4 moderate development advisory bildirdi.
+- **Pages:** [#44868995560](https://github.com/Taylan789/MobilyaCAD/actions/runs/44868995560) success; test site updated: https://taylan789.github.io/MobilyaCAD/.
+- **İlk QA düzeltmesi:** [#44868896322](https://github.com/Taylan789/MobilyaCAD/actions/runs/44868896322) yalnızca fixture'ın boş quote snapshot'ını `ready` beklemesi nedeniyle başarısız oldu; explicit profit fixture satırı eklendi, üretim kodu/validator gevşetilmedi.
+- **Sonraki:** DOM-082 iki revizyonlu standalone import/export round-trip; INT-001 frontend adapter ve INT-002/PERF-001 entegrasyon agent sahipliğinde kalır.

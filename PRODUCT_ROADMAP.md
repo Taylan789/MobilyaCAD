@@ -576,7 +576,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 
 
 ## Next 5 small tasks
-1. DOM-081 IN_PROGRESS — project v2 quote-history import preserves unrelated envelope data, deep target isolation and fail-closed malformed JSON values; exact-SHA Actions pending.
+1. DOM-081 DONE — deep project-envelope preservation/isolation and fail-closed JSON validation; exact-SHA CI/QA/Pages passed.
 
 2. DOM-082 READY — two-revision standalone history import/export round-trip preserves chain IDs, dates, previous links and snapshot/source metadata.
 
@@ -832,3 +832,15 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - Initial QA caught a case-sensitive diagnostic assertion (not a product bug); corrected without weakening validation. Exact-SHA CI [#44862393833](https://github.com/Taylan789/MobilyaCAD/actions/runs/44862393833), QA [#44862393777](https://github.com/Taylan789/MobilyaCAD/actions/runs/44862393777), and Pages [#44862393772](https://github.com/Taylan789/MobilyaCAD/actions/runs/44862393772) succeeded: 130 frontend + 598 domain tests, strict type-check, lint, production build, production audit 0 vulnerabilities.
 - Test site deployed: https://taylan789.github.io/MobilyaCAD/
 - Next 3 slices: DOM-081 project quote-history JSON round-trip invariants; DOM-082 strict malformed/unknown-field import boundaries; reassess frontend-owned import/export wiring and INT-001 adapter contract.
+
+
+## DOM-081 — Project v2 quote-history import envelope isolation (VERIFIED, 21 November 2026)
+
+- Import deep-clones the target project envelope before attaching validated history, preserves unrelated room/furniture/material/custom fields, and freezes the returned nested JSON values. Target data is not aliased or mutated by the result.
+- Unsupported JSON values, accessor/symbol/non-JSON fields and cyclic data fail closed with no partial project result. Existing project v1/version/projectId/history validation remains intact.
+- Regression file: `domain/production/projectQuoteRevisionProjectFileImportImmutability.test.mjs`; verifies exact envelope preservation, nested identity separation, frozen output, target immutability and invalid/cyclic target rejection.
+- Code [f4bb4337](https://github.com/Taylan789/MobilyaCAD/commit/f4bb4337a6991db0e33f5f7cd01ea1d99f203f6e); fixture correction [f33f6188](https://github.com/Taylan789/MobilyaCAD/commit/f33f61887f303849a1f13d7e49fb6d4e8bc57a80).
+- Exact-SHA CI [#44868995581](https://github.com/Taylan789/MobilyaCAD/actions/runs/44868995581), QA [#44868995531](https://github.com/Taylan789/MobilyaCAD/actions/runs/44868995531) and Pages [#44868995560](https://github.com/Taylan789/MobilyaCAD/actions/runs/44868995560) all succeeded: **132 frontend + 600 domain tests**, strict domain type-check, lint, production build and production audit (0 vulnerabilities).
+- Test site deployment succeeded: https://taylan789.github.io/MobilyaCAD/
+- First QA attempt caught only an empty quote fixture (snapshot status `empty`, not `ready); the fixture was corrected by adding an explicit test-only profit line. No production validation was loosened.
+- Next: DOM-082 two-revision standalone history import/export round-trip.
