@@ -278,23 +278,6 @@ export function MaterialCatalogManager({
         </span>
       </header>
 
-      <div className="mc-material-library__metrics">
-        <div className="mc-material-library__metric">
-          <span>TOPLAM MALZEME</span>
-          <strong>{materials.length.toLocaleString("tr-TR")}</strong>
-          <small>Bu proje dosyasında</small>
-        </div>
-        <div className="mc-material-library__metric mc-material-library__metric--used">
-          <span>PROJEDE KULLANILAN</span>
-          <strong>{usedMaterialCount.toLocaleString("tr-TR")}</strong>
-          <small>Aktif malzeme referansı</small>
-        </div>
-        <div className="mc-material-library__metric">
-          <span>ATANMAMIŞ</span>
-          <strong>{unusedMaterialCount.toLocaleString("tr-TR")}</strong>
-          <small>Henüz bir mobilyaya bağlı değil</small>
-        </div>
-      </div>
 
       <div className="mc-material-library__workspace">
         <section className="mc-material-library__catalog" aria-label="Kayıtlı malzemeler">
