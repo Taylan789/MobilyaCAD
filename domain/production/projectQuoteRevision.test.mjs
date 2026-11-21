@@ -16,6 +16,15 @@ import {
   PROJECT_QUOTE_REVISION_FILE_TYPE,
   serializeProjectQuoteRevisionHistoryFile
 } from "./projectQuoteRevisionFile.ts";
+import {
+  parseProjectQuoteRevisionComparisonFile,
+  serializeProjectQuoteRevisionComparisonFile
+} from "./projectQuoteRevisionComparisonFile.ts";
+import {
+  parseProjectQuoteRevisionComparisonCsv,
+  PROJECT_QUOTE_REVISION_COMPARISON_CSV_VERSION,
+  serializeProjectQuoteRevisionComparisonCsv
+} from "./projectQuoteRevisionComparisonCsv.ts";
 
 const noBanding = { top: false, bottom: false, left: false, right: false };
 const edgeBandingByGroup = Object.fromEntries(
@@ -1302,6 +1311,75 @@ test("DOM-078B material catalog identity changes are separate comparison lines",
     { added: 1, removed: 1, changed: 0 });
   assert.equal(materialChanges.find(change => change.type === "removed").from.sourceId, fromSource.sourceId);
   assert.equal(materialChanges.find(change => change.type === "added").to.sourceId, toSource.sourceId);
+});
+
+test("DOM-084 catalog resource identity changes stay added/removed and survive comparison JSON v2 and CSV v3", () => {
+  const fromSnapshot = createSnapshot();
+  const toSnapshot = createSnapshot();
+  const fromLine = fromSnapshot.quoteSummary.costSummary.lines.find(line => line.category === "material");
+  const toLine = toSnapshot.quoteSummary.costSummary.lines.find(line => line.category === "material");
+  assert.ok(fromLine);
+  assert.ok(toLine);
+  const fromSource = fromSnapshot.quoteSummary.lineSources.find(source => source.costLineId === fromLine.id);
+  const toSource = toSnapshot.quoteSummary.lineSources.find(source => source.costLineId === toLine.id);
+  assert.ok(fromSource);
+  assert.ok(toSource);
+  assert.equal(fromSource.resourceType, "material");
+  assert.equal(fromSource.resourceId, "mdf-18");
+  assert.equal(fromSource.unit, "m2");
+
+  // Keep source/Part identity stable while the actual catalog resource and unit change.
+  toSource.sourceId = fromSource.sourceId;
+  toSource.resourceType = "edge-banding";
+  toSource.resourceId = "pvc-1";
+  toSource.unit = "m";
+  toLine.quantity = 0.3;
+  toLine.unit = "m";
+  toLine.unitPriceMinor = 1000;
+  toLine.lineTotalMinor = calculateProjectCostLineTotalMinor(toLine.quantity, toLine.unitPriceMinor);
+  const materialDeltaMinor = toLine.lineTotalMinor - fromLine.lineTotalMinor;
+  toSnapshot.quoteSummary.costSummary.categoryTotalsMinor.material += materialDeltaMinor;
+  toSnapshot.quoteSummary.costSummary.grandTotalMinor += materialDeltaMinor;
+
+  const result = compareProjectQuoteRevisions(
+    createHistoryWithSnapshots(fromSnapshot, toSnapshot),
+    "quote-r1",
+    "quote-r2"
+  );
+  assert.equal(result.status, "ready");
+  assert.ok(result.comparison);
+  const changes = result.comparison.lineChanges.filter(change => (change.from ?? change.to)?.sourceId === fromSource.sourceId);
+  assert.equal(changes.length, 2);
+  assert.deepEqual(changes.map(change => change.type).sort(), ["added", "removed"]);
+  const removed = changes.find(change => change.type === "removed");
+  const added = changes.find(change => change.type === "added");
+  assert.ok(removed);
+  assert.ok(added);
+  assert.equal(removed.from.resourceType, "material");
+  assert.equal(removed.from.resourceId, "mdf-18");
+  assert.equal(removed.from.resourceUnit, "m2");
+  assert.deepEqual(removed.from.sourcePartIds, fromSource.sourcePartIds);
+  assert.equal(added.to.resourceType, "edge-banding");
+  assert.equal(added.to.resourceId, "pvc-1");
+  assert.equal(added.to.resourceUnit, "m");
+  assert.equal(added.to.unit, "m");
+  assert.deepEqual(added.to.sourcePartIds, fromSource.sourcePartIds);
+  assert.equal(result.comparison.categoryDeltasMinor.material, materialDeltaMinor);
+  assert.equal(result.comparison.grandTotalDeltaMinor, materialDeltaMinor);
+
+  const json = serializeProjectQuoteRevisionComparisonFile(result);
+  assert.equal(json.status, "ready", json.diagnostics.join("; "));
+  assert.equal(JSON.parse(json.json).schemaVersion, 2);
+  const parsedJson = parseProjectQuoteRevisionComparisonFile(json.json);
+  assert.equal(parsedJson.status, "ready", parsedJson.diagnostics.join("; "));
+  assert.deepEqual(parsedJson.comparison, result.comparison);
+
+  const csv = serializeProjectQuoteRevisionComparisonCsv(result);
+  assert.equal(csv.status, "ready", csv.diagnostics.join("; "));
+  assert.equal(PROJECT_QUOTE_REVISION_COMPARISON_CSV_VERSION, 3);
+  const parsedCsv = parseProjectQuoteRevisionComparisonCsv(csv.csv);
+  assert.equal(parsedCsv.status, "ready", parsedCsv.diagnostics.join("; "));
+  assert.deepEqual(parsedCsv.comparison, result.comparison);
 });
 
 test("roll purchase lines retain source metadata in immutable quote revisions", () => {
