@@ -72,6 +72,7 @@ import {
 import { ScrollArea } from "./components/ui/scroll-area";
 import { MobilyaCadLogo } from "./components/brand/MobilyaCadLogo";
 import "./components/workspace/KeyboardShortcuts.css";
+import "./components/workspace/ProjectHomeFileNote.css";
 import "./styles/workbench.css";
 import "./styles/workspace-viewport-fit.css";
 
@@ -1150,7 +1151,7 @@ function App() {
             <nav className="atelier-home-nav" aria-label="Stüdyo bölümleri">
               <a className="active" href="#studio-home">Stüdyo</a>
               <a href="#templates">Başlangıç</a>
-              <a href="#recent">Son projeler</a>
+              <a href="#recent">Dosya ile devam et</a>
             </nav>
             <div className="atelier-profile">
               <span className="atelier-profile-indicator" aria-hidden="true" />
@@ -1180,7 +1181,13 @@ function App() {
               </div>
             </section>
             <section className="atelier-bottom-row">
-              <div className="atelier-recent" id="recent"><div className="atelier-section-heading"><div><span className="atelier-eyebrow">ÇALIŞMALARIN</span><h2>Son projeler</h2></div><button onClick={() => startNewProject()}>Yeni proje ↗</button></div><button className="atelier-empty-project" onClick={() => startNewProject()}><span className="atelier-empty-plus">＋</span><span><b>İlk projen burada başlayacak</b><small>Yeni bir tasarım alanı oluştur ve çalışmaya başla.</small></span><span className="atelier-empty-arrow">→</span></button></div>
+              <aside className="atelier-file-history-note" id="recent" aria-label="Proje dosyası bilgisi">
+                <span className="atelier-file-history-note__badge" aria-hidden="true">JSON</span>
+                <div className="atelier-file-history-note__copy">
+                  <strong>Son projeler listesi otomatik tutulmaz</strong>
+                  <span>Önceki çalışmana devam etmek için dışa aktardığın JSON proje dosyasını aç.</span>
+                </div>
+              </aside>
             </section>
           </main>
           <footer className="atelier-home-footer"><span>MOBİLYACAD STUDIO <b>·</b> TASARIM VE ÜRETİM ORTAMI</span><span>ÖLÇÜYLE TASARLA. ÜRETİME HAZIRLA.</span></footer>
