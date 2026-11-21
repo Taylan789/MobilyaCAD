@@ -2299,94 +2299,84 @@ test("DOM-094 three-revision comparison reconciles fractional quantity rounding 
 });
 
 
+
 test("DOM-095 three-revision mixed-category comparison reconciles changes, removals and additions", () => {
-  const materialLine = (id, sourceId, partId, quantity, unitPriceMinor, description) => ({
+  const lineEntry = (id, category, description, quantity, unit, unitPriceMinor, source, sourceReference) => ({
     line: {
-      id,
-      category: "material",
-      description,
-      quantity,
-      unit: "m2",
-      unitPriceMinor,
-      currencyCode: "TRY",
-      sourceReference: "materials:dom-095"
+      id, category, description, quantity, unit, unitPriceMinor, currencyCode: "TRY",
+      ...(sourceReference === undefined ? {} : { sourceReference })
     },
-    source: {
-      costLineId: id,
-      sourceType: "production-consumption",
-      sourceId,
-      resourceType: "material",
-      resourceId: "mdf-18",
-      unit: "m2",
-      sourcePartIds: [partId]
-    }
+    source: { costLineId: id, ...source }
   });
-  const adjustment = (id, category, description, sourceId, unitPriceMinor) => ({
-    id,
-    category,
-    description,
-    sourceId,
-    sourceReference: "dom-095:" + category,
-    unitPriceMinor
-  });
-  const revisionSnapshot = (materials, adjustments) => {
-    const snapshot = createSnapshotWithQuoteLines(materials);
+  const revisionSnapshot = (entries) => {
+    const snapshot = createSnapshot();
     const quoteSummary = snapshot.quoteSummary;
     const costSummary = quoteSummary.costSummary;
     assert.ok(costSummary);
-    for (const entry of adjustments) {
-      const lineTotalMinor = calculateProjectCostLineTotalMinor(1, entry.unitPriceMinor);
-      costSummary.lines.push({
-        id: entry.id,
-        category: entry.category,
-        description: entry.description,
-        quantity: 1,
-        unit: "kalem",
-        unitPriceMinor: entry.unitPriceMinor,
-        lineTotalMinor,
-        currencyCode: "TRY",
-        sourceReference: entry.sourceReference
-      });
+    for (const entry of entries) {
+      const lineTotalMinor = calculateProjectCostLineTotalMinor(entry.line.quantity, entry.line.unitPriceMinor);
+      costSummary.lines.push({ ...entry.line, lineTotalMinor });
       quoteSummary.lineSources.push({
-        costLineId: entry.id,
-        sourceType: "quote-adjustment",
-        sourceId: entry.sourceId
+        ...entry.source,
+        ...(entry.source.sourcePartIds === undefined ? {} : { sourcePartIds: [...entry.source.sourcePartIds] })
       });
-      costSummary.categoryTotalsMinor[entry.category] += lineTotalMinor;
+      costSummary.categoryTotalsMinor[entry.line.category] += lineTotalMinor;
       costSummary.grandTotalMinor += lineTotalMinor;
     }
     costSummary.lineCount = costSummary.lines.length;
-    quoteSummary.requiredLineCount += adjustments.length;
-    quoteSummary.pricedLineCount += adjustments.length;
+    quoteSummary.requiredLineCount += entries.length;
+    quoteSummary.pricedLineCount += entries.length;
     return snapshot;
   };
+  const material = (id, sourceId, partId, quantity, price) => lineEntry(
+    id, "material", "DOM-095 material", quantity, "m2", price,
+    { sourceType: "production-consumption", sourceId, resourceType: "material", resourceId: "mdf-18", unit: "m2", sourcePartIds: [partId] },
+    "materials:dom-095"
+  );
+  const hardware = (price) => lineEntry(
+    "dom-095-hardware", "hardware", "DOM-095 hardware", 2, "adet", price,
+    { sourceType: "production-consumption", sourceId: "dom-095-hardware", sourcePartIds: ["dom-095-hardware-part"] },
+    "hardware:dom-095"
+  );
+  const labor = (price) => lineEntry(
+    "dom-095-labor", "labor", "DOM-095 labor", 1, "h", price,
+    { sourceType: "labor-operation", sourceId: "dom-095-labor", tariffId: "dom-095-labor-tariff" },
+    "labor:dom-095"
+  );
+  const operation = (price) => lineEntry(
+    "dom-095-operation", "operation", "DOM-095 operation", 1, "op", price,
+    { sourceType: "labor-operation", sourceId: "dom-095-operation", tariffId: "dom-095-operation-tariff" },
+    "operation:dom-095"
+  );
+  const waste = (price) => lineEntry(
+    "dom-095-waste", "waste", "DOM-095 waste", 1, "kalem", price,
+    { sourceType: "quote-adjustment", sourceId: "dom-095-waste" },
+    "waste:dom-095"
+  );
+  const profit = (price) => lineEntry(
+    "dom-095-profit", "profit", "DOM-095 profit", 1, "kalem", price,
+    { sourceType: "quote-adjustment", sourceId: "dom-095-profit" },
+    "profit:dom-095"
+  );
 
-  const panel = materialLine(
-    "dom-095-panel-line", "dom-095-panel-source", "dom-095-panel-part",
-    1.25, 1000, "DOM-095 panel price change"
-  );
-  const addedPanel = materialLine(
-    "dom-095-extra-line", "dom-095-extra-source", "dom-095-extra-part",
-    0.5, 600, "DOM-095 additional panel"
-  );
-  const fromSnapshot = revisionSnapshot([panel], [
-    adjustment("dom-095-hardware", "hardware", "DOM-095 hardware", "dom-095-hardware", 500),
-    adjustment("dom-095-labor", "labor", "DOM-095 labor", "dom-095-labor", 200),
-    adjustment("dom-095-operation-remove", "operation", "DOM-095 operation removed", "dom-095-operation", 400),
-    adjustment("dom-095-waste", "waste", "DOM-095 waste", "dom-095-waste", 300),
-    adjustment("dom-095-profit-stable", "profit", "DOM-095 stable profit", "dom-095-profit", 150)
+  const fromSnapshot = revisionSnapshot([
+    material("dom-095-panel", "dom-095-panel-source", "dom-095-panel-part", 1.25, 1000),
+    hardware(250),
+    labor(200),
+    operation(400),
+    waste(300),
+    profit(150)
   ]);
-  const toSnapshot = revisionSnapshot([{
-    ...panel,
-    line: { ...panel.line, unitPriceMinor: 800 }
-  }, addedPanel], [
-    adjustment("dom-095-hardware", "hardware", "DOM-095 hardware", "dom-095-hardware", 600),
-    adjustment("dom-095-labor", "labor", "DOM-095 labor", "dom-095-labor", 250),
-    adjustment("dom-095-waste", "waste", "DOM-095 waste", "dom-095-waste", 100),
-    adjustment("dom-095-profit-stable", "profit", "DOM-095 stable profit", "dom-095-profit", 150)
+  const toSnapshot = revisionSnapshot([
+    material("dom-095-panel", "dom-095-panel-source", "dom-095-panel-part", 1.25, 800),
+    material("dom-095-extra-material", "dom-095-extra-source", "dom-095-extra-part", 0.5, 600),
+    hardware(300),
+    labor(250),
+    waste(100),
+    profit(150)
   ]);
-  const middleSnapshot = createSnapshotWithQuoteAdjustmentLines([
-    adjustment("dom-095-middle-only", "operation", "DOM-095 intermediate-only operation", "dom-095-middle-only", 9999)
+  const middleSnapshot = revisionSnapshot([
+    operation(9999)
   ]);
   const history = {
     projectId: "project-42",
@@ -2427,7 +2417,6 @@ test("DOM-095 three-revision mixed-category comparison reconciles changes, remov
     }, { added: 0, removed: 0, changed: 0 }),
     { added: 1, removed: 1, changed: 4 }
   );
-
   const findChanges = sourceId => result.comparison.lineChanges.filter(
     change => (change.from ?? change.to)?.sourceId === sourceId
   );
@@ -2440,13 +2429,12 @@ test("DOM-095 three-revision mixed-category comparison reconciles changes, remov
   assert.equal(panelChange[0].to.unitPriceMinor, 800);
   assert.deepEqual(panelChange[0].from.sourcePartIds, ["dom-095-panel-part"]);
   assert.deepEqual(panelChange[0].to.sourcePartIds, ["dom-095-panel-part"]);
-
-  const extraMaterial = findChanges("dom-095-extra-source");
-  assert.equal(extraMaterial.length, 1);
-  assert.equal(extraMaterial[0].type, "added");
-  assert.equal(extraMaterial[0].from, null);
-  assert.equal(extraMaterial[0].to.lineTotalMinor, 300);
-  assert.deepEqual(extraMaterial[0].to.sourcePartIds, ["dom-095-extra-part"]);
+  const addedMaterial = findChanges("dom-095-extra-source");
+  assert.equal(addedMaterial.length, 1);
+  assert.equal(addedMaterial[0].type, "added");
+  assert.equal(addedMaterial[0].from, null);
+  assert.equal(addedMaterial[0].to.lineTotalMinor, 300);
+  assert.deepEqual(addedMaterial[0].to.sourcePartIds, ["dom-095-extra-part"]);
   assert.equal(findChanges("dom-095-hardware")[0].to.lineTotalMinor, 600);
   assert.equal(findChanges("dom-095-labor")[0].to.lineTotalMinor, 250);
   assert.equal(findChanges("dom-095-operation")[0].type, "removed");
@@ -2461,7 +2449,6 @@ test("DOM-095 three-revision mixed-category comparison reconciles changes, remov
   const parsedJson = parseProjectQuoteRevisionComparisonFile(json.json);
   assert.equal(parsedJson.status, "ready", parsedJson.diagnostics.join("; "));
   assert.deepEqual(parsedJson.comparison, result.comparison);
-
   const csv = serializeProjectQuoteRevisionComparisonCsv(result);
   assert.equal(csv.status, "ready", csv.diagnostics.join("; "));
   assert.equal(PROJECT_QUOTE_REVISION_COMPARISON_CSV_VERSION, 3);
@@ -2469,3 +2456,4 @@ test("DOM-095 three-revision mixed-category comparison reconciles changes, remov
   assert.equal(parsedCsv.status, "ready", parsedCsv.diagnostics.join("; "));
   assert.deepEqual(parsedCsv.comparison, result.comparison);
 });
+
