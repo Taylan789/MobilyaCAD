@@ -891,3 +891,16 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - Exact-SHA CI #44911402763 and QA #44911402703 succeeded. QA: 142 frontend + 609 domain tests, DOM-090 subtest passed, strict domain TypeScript, lint 32 warnings / 0 errors, production build, production audit 0 vulnerabilities.
 - Pages deployment #44911402698 succeeded on the same code SHA; test site: https://taylan789.github.io/MobilyaCAD/. No frontend or production calculation changed.
 - Next: DOM-091 deterministic pairing for repeated identical source lines across three revisions; preserve Part provenance and JSON/CSV output. UI PRs, integration/performance work, and AI Developer quota blocker remain separate.
+
+## DOM-091 — Repeated identical source lines across three revisions (VERIFIED, 21 November 2026)
+- Regression fixture covers legacy revisions with two identical source identity rows in r1, an intermediate r2, and three matching rows in r3. Comparing r1 directly to r3 ignores r2, deterministically matches the unchanged row, emits the expected changed + added rows, and preserves Part provenance.
+- Reordering paired cost lines and source mappings independently within all three snapshots yields the same comparison and byte-identical JSON v2 / CSV v3; both parsers round-trip exactly.
+- Material-category and grand-total deltas reconcile to **+4,500 TRY minor units**.
+- Code/test commit [bb1de957](https://github.com/Taylan789/MobilyaCAD/commit/bb1de9575aed24c10f6540e2c854fa5d34e8971a); exact-SHA CI [#44915382998](https://github.com/Taylan789/MobilyaCAD/actions/runs/44915382998), QA [#44915382980](https://github.com/Taylan789/MobilyaCAD/actions/runs/44915382980), and Pages [#44915383004](https://github.com/Taylan789/MobilyaCAD/actions/runs/44915383004) all succeeded.
+- QA: **142 frontend + 610 domain tests**; DOM-091 passed; strict domain TypeScript, production build, lint **32 warnings / 0 errors**, npm audit **0 production vulnerabilities**. Local tests were not run in this runtime.
+- Test site deployed: https://taylan789.github.io/MobilyaCAD/. No frontend, production calculations, adapter/performance-owned files, or machine-specific output changed.
+
+### Next small slices
+1. **DOM-092:** strict source-integrity duplicate source-ID rejection vs legacy duplicate-row backward compatibility.
+2. **DOM-093:** three-revision Part-provenance isolation when only one line's Part scope changes.
+3. **DOM-094:** three-revision price reductions and fractional quantities reconcile rounded line totals with category/grand-total deltas.
