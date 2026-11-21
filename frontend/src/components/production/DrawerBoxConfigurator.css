@@ -158,3 +158,160 @@
     transition: none;
   }
 }
+
+/* UI-DRAWER-CONFIG-DENSITY-001 — align the configurator's primary form and saved groups */
+.cad-drawer-configurator {
+  display: grid;
+  min-width: 0;
+  gap: 12px;
+}
+.cad-drawer-configurator > .cad-production-summary {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid rgba(145, 180, 202, .22);
+  border-left: 2px solid #91b4ca;
+  border-radius: 6px;
+  background: linear-gradient(100deg, rgba(100, 143, 167, .12), rgba(100, 143, 167, .035));
+}
+.cad-drawer-configurator > .cad-production-summary > span {
+  color: #a8bac5;
+  font-size: 10px;
+  line-height: 1.4;
+}
+.cad-drawer-configurator > .cad-production-summary > strong {
+  color: #e9f0f4;
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.cad-drawer-configurator > .cad-drawer-config-note {
+  margin: 0;
+  color: #9eafb9;
+  font-size: 10px;
+  line-height: 1.55;
+}
+.cad-drawer-configurator > .cad-production-card {
+  display: grid;
+  min-width: 0;
+  gap: 7px;
+  padding: 12px;
+  border: 1px solid rgba(151, 177, 193, .17);
+  border-radius: 6px;
+  background: linear-gradient(145deg, rgba(30, 45, 55, .72), rgba(20, 31, 39, .72));
+}
+.cad-drawer-configurator > .cad-production-card > strong {
+  color: #dce7ed;
+  font-size: 11px;
+  font-weight: 680;
+}
+.cad-drawer-configurator > .cad-production-card > span {
+  color: #c0d1db;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+.cad-drawer-configurator > .cad-production-card > small {
+  color: #879ba7;
+  font-size: 9px;
+  line-height: 1.45;
+}
+.cad-drawer-config-form {
+  display: grid;
+  min-width: 0;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid rgba(151, 177, 193, .2);
+  border-radius: 7px;
+  background: rgba(17, 27, 34, .58);
+}
+.cad-drawer-config-grid {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.cad-drawer-config-grid > .cad-field {
+  display: grid;
+  min-width: 0;
+  gap: 5px;
+  margin: 0;
+}
+.cad-drawer-config-grid > .cad-field label {
+  color: #aabdc8;
+  font-size: 9px;
+  line-height: 1.4;
+}
+.cad-drawer-config-grid > .cad-field input,
+.cad-drawer-config-grid > .cad-field select {
+  min-width: 0;
+  min-height: 34px;
+  height: 34px;
+  border-color: #3a505d;
+  border-radius: 5px;
+  color: #dce7ed;
+  background: #101a22;
+  font-size: 11px;
+}
+.cad-drawer-config-panel {
+  display: grid;
+  gap: 5px;
+  padding: 10px 11px;
+  border: 1px solid rgba(151, 177, 193, .15);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, .025);
+}
+.cad-drawer-config-panel > strong {
+  color: #cbd9e1;
+  font-size: 10px;
+}
+.cad-drawer-config-panel > .cad-drawer-config-note {
+  margin: 0;
+  color: #879ba7;
+  font-size: 9px;
+  line-height: 1.5;
+}
+.cad-drawer-configurator .cad-drawer-config-actions {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+.cad-drawer-configurator .cad-drawer-config-error {
+  margin: 0;
+  padding: 9px 10px;
+  border: 1px solid rgba(208, 163, 110, .3);
+  border-radius: 5px;
+  color: #e2b77f;
+  background: rgba(155, 109, 54, .11);
+  font-size: 10px;
+  line-height: 1.5;
+}
+.cad-drawer-configurator :is(input, select, button):focus-visible {
+  outline: 2px solid #a5c5d8;
+  outline-offset: 2px;
+}
+@media (max-width: 600px) {
+  .cad-drawer-config-form { padding: 9px; }
+  .cad-drawer-config-grid { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  .cad-drawer-configurator > .cad-production-summary { align-items: flex-start; flex-direction: column; gap: 5px; }
+  .cad-drawer-configurator .cad-drawer-config-actions > button { flex: 1 1 100%; }
+}
+@media (forced-colors: active) {
+  .cad-drawer-configurator > .cad-production-summary,
+  .cad-drawer-configurator > .cad-production-card,
+  .cad-drawer-config-form,
+  .cad-drawer-config-panel,
+  .cad-drawer-config-error {
+    border-color: CanvasText;
+    background: Canvas;
+    color: CanvasText;
+  }
+  .cad-drawer-configurator :is(input, select, button):focus-visible { outline-color: Highlight; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cad-drawer-configurator * { transition: none !important; animation: none !important; }
+}
