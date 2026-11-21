@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import type { ChangeEvent, CSSProperties } from "react";
+import type { ChangeEvent, CSSProperties, KeyboardEvent as ReactKeyboardEvent } from "react";
 import {
   Box,
   ArrowLeft,
@@ -917,6 +917,36 @@ function App() {
     link.click();
     link.remove();
     URL.revokeObjectURL(url);
+  }
+
+  function handleBottomPanelKeyDown(
+    event: ReactKeyboardEvent<HTMLButtonElement>,
+    currentTab: "parts" | "materials" | "issues"
+  ) {
+    const tabs = ["parts", "materials", "issues"] as const;
+    const currentIndex = tabs.indexOf(currentTab);
+    let nextIndex = currentIndex;
+
+    switch (event.key) {
+      case "ArrowRight":
+        nextIndex = (currentIndex + 1) % tabs.length;
+        break;
+      case "ArrowLeft":
+        nextIndex = (currentIndex + tabs.length - 1) % tabs.length;
+        break;
+      case "Home":
+        nextIndex = 0;
+        break;
+      case "End":
+        nextIndex = tabs.length - 1;
+        break;
+      default:
+        return;
+    }
+
+    event.preventDefault();
+    setBottomPanelTab(tabs[nextIndex]!);
+    event.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>('[role="tab"]')[nextIndex]?.focus();
   }
 
   function focusSceneFurniture(furnitureId: string, partId: string | null = null) {
@@ -2265,13 +2295,13 @@ function App() {
               <div className="cad-bottom-dock-header">
                 <div className="cad-bottom-dock-title"><span className="cad-dock-grip" /><div><strong>Üretim masası</strong><small>PROJE VERİLERİ · CANLI HESAP</small></div></div>
                 <div className="cad-bottom-dock-tabs" role="tablist" aria-label="Alt panel sekmeleri">
-                  <button type="button" role="tab" aria-selected={bottomPanelTab === "parts"} className={bottomPanelTab === "parts" ? "active" : ""} onClick={() => setBottomPanelTab("parts")}>Parça listesi <b>{productionParts.length}</b></button>
-                  <button type="button" role="tab" aria-selected={bottomPanelTab === "materials"} className={bottomPanelTab === "materials" ? "active" : ""} onClick={() => setBottomPanelTab("materials")}>Malzeme özeti <b>{materials.length}</b></button>
-                  <button type="button" role="tab" aria-selected={bottomPanelTab === "issues"} className={bottomPanelTab === "issues" ? "active" : ""} onClick={() => setBottomPanelTab("issues")}>Kontroller <b>{projectProduction.errors.length + projectProduction.blockedFurniture.length + projectProduction.unsupportedFurniture.length}</b></button>
+                  <button id="cad-bottom-tab-parts" type="button" role="tab" aria-selected={bottomPanelTab === "parts"} aria-controls="cad-bottom-dock-panel" tabIndex={bottomPanelTab === "parts" ? 0 : -1} className={bottomPanelTab === "parts" ? "active" : ""} onClick={() => setBottomPanelTab("parts")} onKeyDown={(event) => handleBottomPanelKeyDown(event, "parts")}>Parça listesi <b>{productionParts.length}</b></button>
+                  <button id="cad-bottom-tab-materials" type="button" role="tab" aria-selected={bottomPanelTab === "materials"} aria-controls="cad-bottom-dock-panel" tabIndex={bottomPanelTab === "materials" ? 0 : -1} className={bottomPanelTab === "materials" ? "active" : ""} onClick={() => setBottomPanelTab("materials")} onKeyDown={(event) => handleBottomPanelKeyDown(event, "materials")}>Malzeme özeti <b>{materials.length}</b></button>
+                  <button id="cad-bottom-tab-issues" type="button" role="tab" aria-selected={bottomPanelTab === "issues"} aria-controls="cad-bottom-dock-panel" tabIndex={bottomPanelTab === "issues" ? 0 : -1} className={bottomPanelTab === "issues" ? "active" : ""} onClick={() => setBottomPanelTab("issues")} onKeyDown={(event) => handleBottomPanelKeyDown(event, "issues")}>Kontroller <b>{projectProduction.errors.length + projectProduction.blockedFurniture.length + projectProduction.unsupportedFurniture.length}</b></button>
                 </div>
                 <div className="cad-bottom-dock-metrics"><span>{furniture.length} mobilya</span><i /> <span>{productionParts.length} parça</span><i /> <span>{materials.length} malzeme</span></div>
               </div>
-              <div className="cad-bottom-dock-body">
+              <div id="cad-bottom-dock-panel" role="tabpanel" aria-labelledby={`cad-bottom-tab-${bottomPanelTab}`} tabIndex={0} className="cad-bottom-dock-body">
                 {bottomPanelTab === "parts" && (productionParts.length > 0 ? (
                   <div className="cad-dock-table-wrap"><table className="cad-dock-table"><thead><tr><th>PARÇA</th><th>MOBİLYA</th><th>EN</th><th>BOY</th><th>KALINLIK</th><th>ADET</th><th>MALZEME</th></tr></thead><tbody>
                     {productionParts.slice(0, 80).map((part) => <tr key={part.id}><td><strong>{part.name}</strong></td><td>{projectProduction.furnitureNames.get(part.furnitureId) ?? "—"}</td><td>{part.width} mm</td><td>{part.length} mm</td><td>{part.thickness} mm</td><td>{part.quantity}</td><td>{part.material || "Atanmamış"}</td></tr>)}
