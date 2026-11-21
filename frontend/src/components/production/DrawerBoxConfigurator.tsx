@@ -411,10 +411,14 @@ export function DrawerBoxConfigurator({
               {dimensionGroups.map((group) => (
               <section
                 className="cad-drawer-config-section"
+                key={group.key}
                 aria-labelledby={"drawer-config-section-" + group.key}
               >
                 <div className="cad-drawer-config-section-heading">
-                  <h3 id={"drawer-config-section-" + group.key}>{group.title}</h3>
+                  <div className="cad-drawer-config-section-title">
+                    <h3 id={"drawer-config-section-" + group.key}>{group.title}</h3>
+                    <p className="cad-drawer-config-section-detail">{group.detail}</p>
+                  </div>
                   <span>{group.fields.length} ölçü</span>
                 </div>
                 <div className="cad-drawer-config-grid">
