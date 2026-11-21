@@ -1382,6 +1382,60 @@ test("DOM-084 catalog resource identity changes stay added/removed and survive c
   assert.deepEqual(parsedCsv.comparison, result.comparison);
 });
 
+
+test("DOM-085 price source reference changes remain value changes with unchanged catalog and Part provenance", () => {
+  const fromSnapshot = createSnapshot();
+  const toSnapshot = createSnapshot();
+  const fromLine = fromSnapshot.quoteSummary.costSummary.lines.find(line => line.category === "material");
+  const toLine = toSnapshot.quoteSummary.costSummary.lines.find(line => line.category === "material");
+  assert.ok(fromLine);
+  assert.ok(toLine);
+  const fromSource = fromSnapshot.quoteSummary.lineSources.find(source => source.costLineId === fromLine.id);
+  const toSource = toSnapshot.quoteSummary.lineSources.find(source => source.costLineId === toLine.id);
+  assert.ok(fromSource);
+  assert.ok(toSource);
+
+  // Only the price-list/source reference changes; catalog resource and Part identity stay fixed.
+  toSource.sourceType = fromSource.sourceType;
+  toSource.sourceId = fromSource.sourceId;
+  toSource.resourceType = fromSource.resourceType;
+  toSource.resourceId = fromSource.resourceId;
+  toSource.unit = fromSource.unit;
+  toSource.sourcePartIds = [...fromSource.sourcePartIds];
+  toLine.sourceReference = fromLine.sourceReference + ":price-source-v2";
+  assert.deepEqual(
+    { type: fromSource.resourceType, id: fromSource.resourceId, unit: fromSource.unit, partIds: fromSource.sourcePartIds },
+    { type: toSource.resourceType, id: toSource.resourceId, unit: toSource.unit, partIds: toSource.sourcePartIds }
+  );
+
+  const result = compareProjectQuoteRevisions(createHistoryWithSnapshots(fromSnapshot, toSnapshot), "quote-r1", "quote-r2");
+  assert.equal(result.status, "ready");
+  assert.ok(result.comparison);
+  const changes = result.comparison.lineChanges.filter(change => (change.from ?? change.to)?.sourceId === fromSource.sourceId);
+  assert.equal(changes.length, 1);
+  assert.equal(changes[0].type, "changed");
+  assert.equal(changes[0].from.sourceReference, fromLine.sourceReference);
+  assert.equal(changes[0].to.sourceReference, toLine.sourceReference);
+  assert.deepEqual(changes[0].from.sourcePartIds, fromSource.sourcePartIds);
+  assert.deepEqual(changes[0].to.sourcePartIds, toSource.sourcePartIds);
+  assert.equal(result.comparison.categoryDeltasMinor.material, 0);
+  assert.equal(result.comparison.grandTotalDeltaMinor, 0);
+
+  const json = serializeProjectQuoteRevisionComparisonFile(result);
+  assert.equal(json.status, "ready", json.diagnostics.join("; "));
+  assert.equal(JSON.parse(json.json).schemaVersion, 2);
+  const parsedJson = parseProjectQuoteRevisionComparisonFile(json.json);
+  assert.equal(parsedJson.status, "ready", parsedJson.diagnostics.join("; "));
+  assert.deepEqual(parsedJson.comparison, result.comparison);
+
+  const csv = serializeProjectQuoteRevisionComparisonCsv(result);
+  assert.equal(csv.status, "ready", csv.diagnostics.join("; "));
+  assert.equal(PROJECT_QUOTE_REVISION_COMPARISON_CSV_VERSION, 3);
+  const parsedCsv = parseProjectQuoteRevisionComparisonCsv(csv.csv);
+  assert.equal(parsedCsv.status, "ready", parsedCsv.diagnostics.join("; "));
+  assert.deepEqual(parsedCsv.comparison, result.comparison);
+});
+
 test("roll purchase lines retain source metadata in immutable quote revisions", () => {
   const result = createProjectQuoteRevision(createFirstRevision({
     pricingSnapshot: createRollSnapshot()

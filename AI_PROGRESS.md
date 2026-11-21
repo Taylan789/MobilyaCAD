@@ -1961,3 +1961,11 @@
 - **Test site:** deployment verified at https://taylan789.github.io/MobilyaCAD/. No visual frontend changes were included.
 - **Known limits:** local tests were not run because no checkout is available in this runtime. AI Developer [#44852162524](https://github.com/Taylan789/MobilyaCAD/actions/runs/44852162524) remains blocked by OpenRouter free-model daily 429 (limit 50, remaining 0); no quota/credits/secrets were changed or paid rerun attempted. Integration/performance specialist job was skipped; no active specialist PR/run was evidenced.
 - **Next:** DOM-084 quote comparison source/resource provenance cross-check. INT-001 remains frontend-owned; INT-002/PERF-001 remain specialist-owned.
+
+
+## 21 Kasım 2026 11:26 TRT — DOM-084 verified / DOM-085 test implementation (Actions pending)
+- DOM-084 catalog resource identity cross-check is verified on exact branch SHA `0824ee38ad61bf78017a3377c6ec48e766c815d0`: [CI #44884528629](https://github.com/Taylan789/MobilyaCAD/actions/runs/44884528629), [QA #44884528643](https://github.com/Taylan789/MobilyaCAD/actions/runs/44884528643), [Pages #44884528624](https://github.com/Taylan789/MobilyaCAD/actions/runs/44884528624) all succeeded. Production audit: 0 vulnerabilities; lint: 32 warnings, 0 errors; build passed. Test-site deployment: https://taylan789.github.io/MobilyaCAD/.
+- DOM-085 adds a regression proving that changing only a quote material price/source reference while keeping resource identity, source ID and Part provenance stable produces one `changed` line (no added/removed), zero total delta, and exact JSON v2/CSV v3 round-trip. No production code or frontend files changed.
+- DOM-085 code/test SHA and exact-SHA Actions are pending. No local tests were run because this runtime has no repository checkout.
+- AI Developer run [#44852162524](https://github.com/Taylan789/MobilyaCAD/actions/runs/44852162524) failed at OpenRouter free daily rate limit (HTTP 429; 50 requests/day, 0 remaining). Rerun was not attempted because it would require waiting for reset or adding credits. Integration/performance job was skipped; no active runs are currently reported.
+- Next: DOM-086 Part-provenance-only change on a stable catalog resource should be a removed + added pair, with strict export round-trip.

@@ -757,17 +757,15 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - First QA [#44792604194](https://github.com/Taylan789/MobilyaCAD/actions/runs/44792604194) exposed 11 failures: missing CSV ID-limit constant and outdated calculated-summary/JSON fixture expectations. These were corrected without relaxing arithmetic or strict validation.
 - Correction commit [67d462fa](https://github.com/Taylan789/MobilyaCAD/commit/67d462fa26df55b8f717067d73dd654dd7075d0e) passed [CI #44793078331](https://github.com/Taylan789/MobilyaCAD/actions/runs/44793078331), [QA #44793078386](https://github.com/Taylan789/MobilyaCAD/actions/runs/44793078386) and [Pages #44793078458](https://github.com/Taylan789/MobilyaCAD/actions/runs/44793078458). QA: 579/579 domain tests, type-check, lint, production build and audit (0 vulnerabilities) all successful.
 
-### Sonraki 5 küçük teslimat
+### ## Sonraki 5 küçük teslimat
 
 | ID | Sahip | Durum / kabul kriteri | Bağımlılık |
 |---|---|---|---|
-| DOM-078 | Ürün Geliştirme | IN_PROGRESS — 078A material provenance and 078B comparison matching verified; 078C comparison JSON/CSV metadata export remains | DOM-077 |
-| DOM-078B | Ürün Geliştirme | DONE — comparison grouping now includes catalog resource type/ID/unit; resource swaps yield add/remove pairs; export schema unchanged | DOM-078A | |
-| DOM-078C | Ürün Geliştirme | READY — strict comparison JSON v2/CSV v3 resource metadata, legacy JSON v1/CSV v1-v2 readers, partial metadata rejection and round-trip tests | DOM-078B | |
-| DOM-079 | Ürün Geliştirme | VERIFIED — matching project v2 import, no-overwrite guard, malformed/empty/v1 rejection; 4 regression tests | DOM-077 |
-| INT-001 | Arayüz + Ürün | READY — frontend adapter consumes domain reports and blocks unsupported geometry export; round-trip tests | Production-domain contract |
-| INT-002 | Entegrasyon/Performans | READY — adapter round-trip integration tests, isolated specialist branch | INT-001 contract |
-| PERF-001 | Entegrasyon/Performans | READY — repeatable CAD scene/render baseline and measured regression optimization | Separate specialist ownership |
+| DOM-085 | Ürün Geliştirme | IN_PROGRESS — fiyat kaynağı referansı değiştiğinde aynı katalog kaynağı/Part kapsamı için tek `changed` satırı; JSON v2 ve CSV v3 round-trip exact | DOM-084 |
+| DOM-086 | Ürün Geliştirme | READY — Part provenance değişimi aynı katalog kaynağında `removed` + `added` olarak ayrılır, yeni/önceki Part ID'ler exact korunur, JSON/CSV round-trip | DOM-085 |
+| INT-001 | Arayüz + Ürün | READY — frontend adapter tüketimi ve desteklenmeyen geometri export'unu bloklama; round-trip testleri | Production-domain contract |
+| INT-002 | Entegrasyon/Performans | READY — adapter round-trip ve geometri/miktar sadakati testleri; uzman dalında izolasyon | INT-001 |
+| PERF-001 | Entegrasyon/Performans | READY — tekrarlanabilir CAD sahne/render baseline ve ölçümlü optimizasyon | Ayrı uzman sahipliği |
 
 ## DOM-077 — Quote summary / immutable revision cross-format reconciliation (VERIFIED)
 
@@ -861,9 +859,15 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - Next: DOM-084 quote comparison source/resource provenance cross-check; INT-001 frontend adapter remains UI-owned and INT-002/PERF-001 remain specialist-owned. No frontend, adapter/performance-owned files, or machine-specific output changed.
 
 
-## DOM-084 — Quote comparison catalog/source provenance cross-check (IN_PROGRESS, 21 November 2026)
-- Acceptance slice: a revision comparison where the cost-line/source ID and Part provenance stay stable but the catalog resource identity changes from panel material (m²) to edge-banding (m) must emit a removed + added pair, not a price-only changed line.
-- The test checks the exact old/new resource type, resource ID, resource unit, line unit and sorted Part provenance, plus category/grand-total delta reconciliation.
-- The resulting comparison is round-tripped through strict comparison JSON v2 and CSV v3 and must remain exactly equal.
-- Test commit: [82c5c7e1](https://github.com/Taylan789/MobilyaCAD/commit/82c5c7e1c8ea4568862ef57e6ac43b83b91d8746). Actions verification is pending/unavailable in this run; no production calculation or UI changed.
-- Next small task: DOM-085 cross-check that price-source reference changes on an unchanged catalog resource remain value changes while resource identity and Part provenance are preserved; keep legacy JSON v1/CSV v1-v2 readers covered.
+## DOM-084 — Quote comparison catalog/source provenance cross-check (VERIFIED, 21 November 2026)
+- A revision comparison with stable cost/source ID and Part provenance but changed catalog resource type/ID/unit emits a removed + added pair instead of a price-only change.
+- The test asserts exact old/new resource identity, units, and sorted Part provenance, reconciles category/grand-total deltas, and round-trips strict comparison JSON v2 and CSV v3.
+- Test commit [82c5c7e1](https://github.com/Taylan789/MobilyaCAD/commit/82c5c7e1c8ea4568862ef57e6ac43b83b91d8746). Exact-SHA CI [#44884528629](https://github.com/Taylan789/MobilyaCAD/actions/runs/44884528629), QA [#44884528643](https://github.com/Taylan789/MobilyaCAD/actions/runs/44884528643) and Pages [#44884528624](https://github.com/Taylan789/MobilyaCAD/actions/runs/44884528624) succeeded on `0824ee38`. Production audit found 0 vulnerabilities; lint reported 32 warnings and 0 errors.
+- Test site deployed: https://taylan789.github.io/MobilyaCAD/
+- Next: DOM-085 source-reference value-change cross-check on an unchanged catalog resource with exact Part provenance through JSON v2/CSV v3.
+
+## DOM-085 — Quote comparison source-reference value change (IN_PROGRESS, 21 November 2026)
+- Acceptance: changing only the price/source reference on the same catalog resource and Part scope yields one `changed` line, not added/removed; price/category/grand totals remain unchanged.
+- Automated test also checks exact source-reference and Part provenance preservation through strict comparison JSON v2 and CSV v3.
+- Test implementation commit SHA and CI/QA/Pages results pending.
+- Next: DOM-086 catalog-stable Part-provenance change should be represented as removed + added without losing either Part ID list.
