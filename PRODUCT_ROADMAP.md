@@ -762,7 +762,8 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 | ID | Sahip | Durum / kabul kriteri | Bağımlılık |
 |---|---|---|---|
 | DOM-088 | Ürün Geliştirme | VERIFIED — reordered comparison is identical; JSON/CSV byte-exact and parse round-trip; 142 frontend + 607 domain tests; [CI](https://github.com/Taylan789/MobilyaCAD/actions/runs/44901772791), [QA](https://github.com/Taylan789/MobilyaCAD/actions/runs/44901772751), [Pages](https://github.com/Taylan789/MobilyaCAD/actions/runs/44901772717) succeeded | DOM-087 |
-| DOM-089 | Ürün Geliştirme | READY — independently reordered source mappings must be rejected when they no longer align with cost-line IDs; fail-closed validation regression | DOM-088 |
+| DOM-089 | Ürün Geliştirme | IMPLEMENTED — detached source mapping order blocks revision creation; exact-SHA Actions pending (test commit e6eca800) | DOM-088 |
+| DOM-090 | Ürün Geliştirme | READY — compare r1→r3 in a three-revision chain; exact provenance/totals, unknown and reverse selection fail closed | DOM-089 |
 | INT-001 | Arayüz + Ürün | READY — frontend adapter consumes production domain and blocks unsupported geometry exports; round-trip tests | Production-domain contract |
 | INT-002 | Entegrasyon/Performans | READY — adapter round-trip and geometry/quantity fidelity tests; isolated specialist branch | INT-001 |
 | PERF-001 | Entegrasyon/Performans | READY — repeatable CAD scene/render baseline and measured optimization | Separate specialist ownership |
