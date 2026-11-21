@@ -900,11 +900,6 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - QA: **142 frontend + 610 domain tests**; DOM-091 passed; strict domain TypeScript, production build, lint **32 warnings / 0 errors**, npm audit **0 production vulnerabilities**. Local tests were not run in this runtime.
 - Test site deployed: https://taylan789.github.io/MobilyaCAD/. No frontend, production calculations, adapter/performance-owned files, or machine-specific output changed.
 
-### Next small slices
-1. **DOM-094 (READY):** price reductions and fractional quantities reconcile rounded line totals with category/grand-total deltas.
-2. **DOM-095 (READY):** mixed-category three-revision quote comparison reconciles category and grand-total deltas for reductions/additions, with exact JSON/CSV export.
-3. **DOM-096 (READY):** malformed quote-comparison JSON/CSV with duplicate line IDs or inconsistent totals must fail closed without partial payload; valid round-trip remains exact.
-
 
 ## DOM-092 — strict source-integrity / legacy comparison boundary (VERIFIED, 21 November 2026)
 
@@ -921,3 +916,12 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - QA: **142 frontend + 612 domain tests**; DOM-093 passed, strict domain TypeScript, lint **32 warnings / 0 errors**, production build and audit **0 production vulnerabilities**. Local tests were not run in this runtime.
 - Test site deployment verified: https://taylan789.github.io/MobilyaCAD/. No frontend or production calculation changed; AI Developer free-model quota failure and disabled specialist lane remain separate.
 - Next: DOM-094 quantity/price reductions with fractional quantities and rounding, then DOM-095 mixed-category reconciliation.
+
+
+## DOM-094 — Fractional quote rounding and material price reduction (VERIFIED, 21 November 2026)
+
+- Three-revision r1→r3 regression covers fractional quantities and rounded minor-unit line totals while skipping an intermediate r2. The material unit price falls from 101 to 80 minor units at 0.375 m²; the rounded line total changes from 38 to 30 minor units. A separate half-minor-unit line verifies half-up rounding (0.5→1) and a sub-half line rounds to 0 (0.4→0).
+- The comparison emits exactly one changed line; material-category and grand-total deltas both reconcile to **−8 minor units** with all other categories at zero. Strict JSON v2 and CSV v3 round-trip equality is asserted.
+- Test commit [3235df04](https://github.com/Taylan789/MobilyaCAD/commit/3235df04df6fc0d3e7c4937590f9c3ac8dd60bb5). CI [#44931241164](https://github.com/Taylan789/MobilyaCAD/actions/runs/44931241164), QA [#44931241180](https://github.com/Taylan789/MobilyaCAD/actions/runs/44931241180), and Pages [#44931241155](https://github.com/Taylan789/MobilyaCAD/actions/runs/44931241155) succeeded: **142 frontend + 613 domain tests**, strict domain TypeScript, lint 32 warnings / 0 errors, production build, audit 0 vulnerabilities.
+- Test site deployment verified: https://taylan789.github.io/MobilyaCAD/. Test-only regression; production pricing logic and frontend files unchanged.
+- Next 3: DOM-095 mixed-category three-revision price changes and totals; DOM-096 adversarial comparison JSON/CSV rejection without partial payload; INT-001 frontend/domain adapter contract and export integration (joint ownership; no frontend edits from this agent).
