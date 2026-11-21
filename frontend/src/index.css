@@ -14,37 +14,37 @@
   -moz-osx-font-smoothing: grayscale;
 
   /* MobilyaCAD graphite + teal design tokens */
-  --background: oklch(0.165 0.012 250);
+  --background: oklch(0.155 0.012 250);
   --foreground: oklch(0.93 0.012 225);
-  --card: oklch(0.215 0.015 250);
+  --card: oklch(0.205 0.013 248);
   --card-foreground: oklch(0.93 0.012 220);
-  --popover: oklch(0.225 0.016 250);
+  --popover: oklch(0.215 0.014 248);
   --popover-foreground: oklch(0.93 0.012 220);
-  --primary: oklch(0.72 0.065 235);
+  --primary: oklch(0.7 0.07 235);
   --primary-foreground: oklch(0.18 0.02 245);
-  --secondary: oklch(0.275 0.014 250);
+  --secondary: oklch(0.255 0.014 248);
   --secondary-foreground: oklch(0.88 0.012 220);
-  --muted: oklch(0.245 0.014 250);
-  --muted-foreground: oklch(0.7 0.014 230);
-  --accent: oklch(0.39 0.055 55);
-  --accent-foreground: oklch(0.94 0.018 75);
+  --muted: oklch(0.23 0.012 248);
+  --muted-foreground: oklch(0.71 0.012 230);
+  --accent: oklch(0.3 0.03 242);
+  --accent-foreground: oklch(0.93 0.015 225);
   --destructive: oklch(0.62 0.17 25);
-  --border: oklch(0.335 0.015 245);
-  --input: oklch(0.305 0.014 245);
-  --ring: oklch(0.74 0.065 235);
+  --border: oklch(0.3 0.014 245);
+  --input: oklch(0.27 0.013 245);
+  --ring: oklch(0.73 0.075 235);
   --chart-1: oklch(0.76 0.07 235);
   --chart-2: oklch(0.68 0.09 225);
   --chart-3: oklch(0.76 0.12 145);
   --chart-4: oklch(0.7 0.1 285);
   --chart-5: oklch(0.72 0.13 55);
   --radius: 0.55rem;
-  --sidebar: oklch(0.205 0.014 250);
+  --sidebar: oklch(0.195 0.014 248);
   --sidebar-foreground: oklch(0.91 0.012 220);
   --sidebar-primary: oklch(0.72 0.065 235);
   --sidebar-primary-foreground: oklch(0.19 0.025 195);
-  --sidebar-accent: oklch(0.36 0.045 55);
+  --sidebar-accent: oklch(0.3 0.03 242);
   --sidebar-accent-foreground: oklch(0.94 0.018 75);
-  --sidebar-border: oklch(0.34 0.016 245);
+  --sidebar-border: oklch(0.3 0.014 245);
   --sidebar-ring: oklch(0.76 0.07 235);
 }
 
@@ -90,7 +90,7 @@ button:disabled {
 }
 
 ::selection {
-  background: oklch(0.55 0.09 190 / 0.42);
+  background: oklch(0.56 0.075 235 / 0.42);
   color: oklch(0.97 0.008 190);
 }
 
@@ -100,17 +100,17 @@ button:disabled {
 }
 
 ::-webkit-scrollbar-track {
-  background: #1a2229;
+  background: #17212a;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #43515c;
+  background: #4b6272;
   border: 1px solid #1a2229;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #627783;
+  background: #6e8799;
 }
 
 @theme inline {
@@ -167,5 +167,28 @@ button:disabled {
 
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+
+/* Global interaction polish: clear focus, low-noise scroll rails, and motion safety. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@media (forced-colors: active) {
+  :focus-visible {
+    outline-color: Highlight !important;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    border-color: Canvas !important;
   }
 }
