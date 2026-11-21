@@ -5,11 +5,11 @@ import { readFileSync } from "node:fs";
 const css = readFileSync(new URL("../src/styles/workspace-viewport-fit.css", import.meta.url), "utf8");
 
 function readLinearClamp(selector, property) {
-  const pattern = new RegExp(
-    selector + "\\s*\\{[^}]*" + property + ":\\s*(?:0\\s+0\\s+)?clamp\\((\\d+)px,\\s*calc\\(([\\d.]+)vw\\s*\+\s*([\d.]+)px\),\\s*(\d+)px\)",
-    "s",
-  );
-  const match = css.match(pattern);
+  const blockStart = css.indexOf(selector);
+  assert.notEqual(blockStart, -1, "expected selector " + selector);
+  const block = css.slice(blockStart, css.indexOf("}", blockStart));
+  const declaration = block.split("\n").find((line) => line.includes(property + ":"));
+  const match = declaration?.match(/clamp\((\d+)px,\s*calc\(([\d.]+)vw\s*\+\s*([\d.]+)px\),\s*(\d+)px\)/);
   assert.ok(match, "expected a clamp-based dock width for " + selector);
   return { min: Number(match[1]), vw: Number(match[2]), offset: Number(match[3]), max: Number(match[4]) };
 }
@@ -23,8 +23,8 @@ test("desktop dock widths scale continuously without the former breakpoint jumps
   assert.match(css, /@media\s*\(min-width:\s*1920px\)/);
   assert.doesNotMatch(css, /1361|1600/);
 
-  const sidebar = readLinearClamp("\\.cad-sidebar", "flex");
-  const inspector = readLinearClamp("\\.cad-inspector", "flex-basis");
+  const sidebar = readLinearClamp(".cad-sidebar", "flex");
+  const inspector = readLinearClamp(".cad-inspector", "flex-basis");
 
   assert.ok(Math.abs(widthAt(sidebar, 1101) - 232) < 0.1);
   assert.ok(Math.abs(widthAt(inspector, 1101) - 272) < 0.1);
