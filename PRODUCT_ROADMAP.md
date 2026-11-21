@@ -576,11 +576,11 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 
 
 ## Next 5 small tasks
-1. DOM-078D IN_PROGRESS — strict comparison CSV v3 exports resource type/ID/unit; legacy CSV v1/v2 remain readable. Actions pending.
-2. DOM-079 READY — safe standalone revision-history JSON import into project v2 with strict projectId match and no silent overwrite; legacy v1 blocked.
-3. DOM-066 / INT-001 FRONTEND-OWNED — comparison download and production report/export integration; domain contracts remain stable.
-4. INT-002/PERF-001 INTEGRATION-OWNED — adapter round-trip tests and measured CAD profiling on isolated specialist branch.
-5. QA-003 BLOCKED — final end-to-end export/data integrity review after INT-001/INT-002 evidence.
+1. DOM-079 READY — safe standalone revision-history JSON import into project v2 with strict projectId match and no silent overwrite; legacy v1 blocked.
+2. DOM-066 / INT-001 FRONTEND-OWNED — comparison download and production report/export integration; domain contract must preserve catalog resource identity.
+3. INT-002/PERF-001 INTEGRATION-OWNED — adapter round-trip tests and measured CAD profiling on isolated specialist branch.
+4. QA-003 BLOCKED — final end-to-end export/data integrity review after INT-001/INT-002 evidence.
+5. DOM-080 READY — strengthen quote-history import/export acceptance fixtures for malformed, duplicate, foreign-project and version-downgrade payloads.
 
 ## 10/10 ölçülebilir kalite kapıları (20 Kasım 2026 baseline)
 
@@ -803,10 +803,10 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - Code [e6330272](https://github.com/Taylan789/MobilyaCAD/commit/e63302724ec7b8586f2733e46023c8d22e864ba4); CI [#44841432348](https://github.com/Taylan789/MobilyaCAD/actions/runs/44841432348), QA [#44841432343](https://github.com/Taylan789/MobilyaCAD/actions/runs/44841432343), Pages [#44841432370](https://github.com/Taylan789/MobilyaCAD/actions/runs/44841432370) successful — 130 frontend + 589 domain tests, type-check, lint, build and production audit (0 vulnerabilities).
 - Next: DOM-078D strict CSV v3 resource identity with legacy v1/v2 readers.
 
-## DOM-078D — Strict revision-comparison CSV v3 catalog identity (QA correction pending)
+## DOM-078D — Strict revision-comparison CSV v3 catalog identity (VERIFIED)
 
 - CSV v3 adds resource type, catalog ID and unit for both sides of each line change. Complete metadata is preserved; partial or unit/category mismatches fail through the strict JSON domain validator.
 - CSV v1/v2 headers remain accepted by dedicated strict readers; roll/source provenance and exact units are retained. No silent resource metadata loss or partial export is allowed.
-- Code [81a39f4c](https://github.com/Taylan789/MobilyaCAD/commit/81a39f4c421fb53cff92b117cc18112849b75f16); CI [#44846921484](https://github.com/Taylan789/MobilyaCAD/actions/runs/44846921484) succeeded. QA [#44846921437](https://github.com/Taylan789/MobilyaCAD/actions/runs/44846921437) failed 1 of 590 domain tests: the legacy-v2 fixture helper did not unescape doubled CSV quotes. Pages [#44846921447](https://github.com/Taylan789/MobilyaCAD/actions/runs/44846921447) built, but its exact-SHA gate failed and deployment was skipped.
-- Correction: decode doubled quotes in the legacy fixture helper, retaining roll/source fields. CI/QA/Pages pending. Test site: https://taylan789.github.io/MobilyaCAD/
-- Next: verify legacy v2 round-trip on corrected SHA, then DOM-079 safe revision-history import.
+- Code [81a39f4c](https://github.com/Taylan789/MobilyaCAD/commit/81a39f4c421fb53cff92b117cc18112849b75f16); fixture correction [573810ee](https://github.com/Taylan789/MobilyaCAD/commit/573810ee6e1fc697f1eb9693dd6ce450b2d659a9). CI [#44847105808](https://github.com/Taylan789/MobilyaCAD/actions/runs/44847105808), QA [#44847105831](https://github.com/Taylan789/MobilyaCAD/actions/runs/44847105831), Pages [#44847105832](https://github.com/Taylan789/MobilyaCAD/actions/runs/44847105832) all successful — 130 frontend + 590 domain tests, type-check, lint, production build and audit (0 vulnerabilities).
+- Test site deployed: https://taylan789.github.io/MobilyaCAD/
+- Next: DOM-079 safe standalone revision-history import into project v2 with strict projectId match and no silent overwrite.
