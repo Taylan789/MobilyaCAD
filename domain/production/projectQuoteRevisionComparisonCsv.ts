@@ -10,7 +10,7 @@ import type {
 } from "./projectQuoteRevision.ts";
 
 export const PROJECT_QUOTE_REVISION_COMPARISON_CSV_FORMAT = "MobilyaCADQuoteRevisionComparisonCsv" as const;
-export const PROJECT_QUOTE_REVISION_COMPARISON_CSV_VERSION = 2 as const;
+export const PROJECT_QUOTE_REVISION_COMPARISON_CSV_VERSION = 3 as const;
 
 const legacyColumnsV1 = [
   "format", "formatVersion", "rowType", "projectId",
@@ -25,11 +25,16 @@ const legacyColumnsV1 = [
   "fromSourcePartIds", "toSourcePartIds", "fromEdgeDirection", "toEdgeDirection"
 ] as const;
 
-export const PROJECT_QUOTE_REVISION_COMPARISON_CSV_COLUMNS = [
+const legacyColumnsV2 = [
   ...legacyColumnsV1,
   "fromRollCount", "toRollCount", "fromRollLengthMm", "toRollLengthMm",
   "fromPurchasedLengthMm", "toPurchasedLengthMm", "fromFurnitureIds", "toFurnitureIds",
   "fromPlanSourceReference", "toPlanSourceReference", "fromPriceSourceReference", "toPriceSourceReference"
+] as const;
+
+export const PROJECT_QUOTE_REVISION_COMPARISON_CSV_COLUMNS = [
+  ...legacyColumnsV2,
+  "fromResourceType", "toResourceType", "fromResourceId", "toResourceId", "fromResourceUnit", "toResourceUnit"
 ] as const;
 
 export interface ProjectQuoteRevisionComparisonCsvSerializationResult {
@@ -49,7 +54,8 @@ const categories: readonly ProjectQuoteCostCategory[] = [
 ];
 const columns = PROJECT_QUOTE_REVISION_COMPARISON_CSV_COLUMNS;
 const columnIndex = new Map<string, number>(columns.map((column, index) => [column, index] as const));
-const legacyColumnIndex = new Map<string, number>(legacyColumnsV1.map((column, index) => [column, index] as const));
+const legacyColumnIndexV1 = new Map<string, number>(legacyColumnsV1.map((column, index) => [column, index] as const));
+const legacyColumnIndexV2 = new Map<string, number>(legacyColumnsV2.map((column, index) => [column, index] as const));
 const lineColumns = columns.slice(15);
 const sideRequiredFields = [
   "Description", "Quantity", "Unit", "UnitPriceMinor", "LineTotalMinor",
@@ -100,21 +106,23 @@ function lineChangeValues(
   from: ProjectQuoteRevisionCostLineSnapshot | null,
   to: ProjectQuoteRevisionCostLineSnapshot | null
 ): unknown[] {
-  const fromValues = from === null ? Array(18).fill("") : [
+  const fromValues = from === null ? Array(21).fill("") : [
     from.description, from.quantity, from.unit, from.unitPriceMinor, from.lineTotalMinor,
     from.currencyCode, from.sourceReference ?? "", from.sourceType, from.sourceId,
     from.tariffId ?? "", from.sourcePartIds === undefined ? "" : JSON.stringify(from.sourcePartIds),
     from.edgeDirection ?? "", from.rollCount ?? "", from.rollLengthMm ?? "",
     from.purchasedLengthMm ?? "", from.furnitureIds === undefined ? "" : JSON.stringify(from.furnitureIds),
-    from.planSourceReference ?? "", from.priceSourceReference ?? ""
+    from.planSourceReference ?? "", from.priceSourceReference ?? "",
+    from.resourceType ?? "", from.resourceId ?? "", from.resourceUnit ?? ""
   ];
-  const toValues = to === null ? Array(18).fill("") : [
+  const toValues = to === null ? Array(21).fill("") : [
     to.description, to.quantity, to.unit, to.unitPriceMinor, to.lineTotalMinor,
     to.currencyCode, to.sourceReference ?? "", to.sourceType, to.sourceId,
     to.tariffId ?? "", to.sourcePartIds === undefined ? "" : JSON.stringify(to.sourcePartIds),
     to.edgeDirection ?? "", to.rollCount ?? "", to.rollLengthMm ?? "",
     to.purchasedLengthMm ?? "", to.furnitureIds === undefined ? "" : JSON.stringify(to.furnitureIds),
-    to.planSourceReference ?? "", to.priceSourceReference ?? ""
+    to.planSourceReference ?? "", to.priceSourceReference ?? "",
+    to.resourceType ?? "", to.resourceId ?? "", to.resourceUnit ?? ""
   ];
   return [
     fromValues[0], toValues[0],
@@ -134,7 +142,10 @@ function lineChangeValues(
     fromValues[14], toValues[14],
     fromValues[15], toValues[15],
     fromValues[16], toValues[16],
-    fromValues[17], toValues[17]
+    fromValues[17], toValues[17],
+    fromValues[18], toValues[18],
+    fromValues[19], toValues[19],
+    fromValues[20], toValues[20]
   ];
 }
 
@@ -240,16 +251,19 @@ function parseLineSide(
   side: "from" | "to",
   category: ProjectQuoteCostCategory,
   indexMap: Map<string, number>,
-  version: 1 | 2
+  version: 1 | 2 | 3
 ): ProjectQuoteRevisionCostLineSnapshot | null {
   const names = [
     side + "Description", side + "Quantity", side + "Unit", side + "UnitPriceMinor",
     side + "LineTotalMinor", side + "LineCurrencyCode", side + "SourceReference",
     side + "SourceType", side + "SourceId", side + "TariffId",
     side + "SourcePartIds", side + "EdgeDirection",
-    ...(version === 2 ? [
+    ...(version >= 2 ? [
       side + "RollCount", side + "RollLengthMm", side + "PurchasedLengthMm",
       side + "FurnitureIds", side + "PlanSourceReference", side + "PriceSourceReference"
+    ] : []),
+    ...(version === 3 ? [
+      side + "ResourceType", side + "ResourceId", side + "ResourceUnit"
     ] : [])
   ] as const;
   const values = names.map((name) => cell(row, name, indexMap));
@@ -270,12 +284,15 @@ function parseLineSide(
   const sourceReference = cell(row, side + "SourceReference", indexMap);
   const tariffId = cell(row, side + "TariffId", indexMap);
   const edgeDirection = cell(row, side + "EdgeDirection", indexMap);
-  const rollCountCell = version === 2 ? cell(row, side + "RollCount", indexMap) : "";
-  const rollLengthCell = version === 2 ? cell(row, side + "RollLengthMm", indexMap) : "";
-  const purchasedLengthCell = version === 2 ? cell(row, side + "PurchasedLengthMm", indexMap) : "";
-  const furnitureIdsCell = version === 2 ? cell(row, side + "FurnitureIds", indexMap) : "";
-  const planSourceReference = version === 2 ? cell(row, side + "PlanSourceReference", indexMap) : "";
-  const priceSourceReference = version === 2 ? cell(row, side + "PriceSourceReference", indexMap) : "";
+  const rollCountCell = version >= 2 ? cell(row, side + "RollCount", indexMap) : "";
+  const rollLengthCell = version >= 2 ? cell(row, side + "RollLengthMm", indexMap) : "";
+  const purchasedLengthCell = version >= 2 ? cell(row, side + "PurchasedLengthMm", indexMap) : "";
+  const furnitureIdsCell = version >= 2 ? cell(row, side + "FurnitureIds", indexMap) : "";
+  const planSourceReference = version >= 2 ? cell(row, side + "PlanSourceReference", indexMap) : "";
+  const priceSourceReference = version >= 2 ? cell(row, side + "PriceSourceReference", indexMap) : "";
+  const resourceTypeCell = version === 3 ? cell(row, side + "ResourceType", indexMap) : "";
+  const resourceIdCell = version === 3 ? cell(row, side + "ResourceId", indexMap) : "";
+  const resourceUnitCell = version === 3 ? cell(row, side + "ResourceUnit", indexMap) : "";
   let furnitureIds: string[] | undefined;
   if (furnitureIdsCell !== "") {
     const parsed: unknown = JSON.parse(furnitureIdsCell);
@@ -303,7 +320,10 @@ function parseLineSide(
     ...(purchasedLengthCell === "" ? {} : { purchasedLengthMm: parseRollLengthCell(purchasedLengthCell, "CSV satın alınan rulo uzunluğu") }),
     ...(furnitureIds === undefined ? {} : { furnitureIds }),
     ...(planSourceReference === "" ? {} : { planSourceReference }),
-    ...(priceSourceReference === "" ? {} : { priceSourceReference })
+    ...(priceSourceReference === "" ? {} : { priceSourceReference }),
+    ...(resourceTypeCell === "" ? {} : { resourceType: resourceTypeCell as ProjectQuoteRevisionCostLineSnapshot["resourceType"] }),
+    ...(resourceIdCell === "" ? {} : { resourceId: resourceIdCell }),
+    ...(resourceUnitCell === "" ? {} : { resourceUnit: resourceUnitCell })
   };
 }
 
@@ -320,13 +340,6 @@ export function serializeProjectQuoteRevisionComparisonCsv(
     return blockedSerialization(parsedFile.diagnostics[0] ?? "Teklif karşılaştırması CSV için doğrulanamadı.");
   }
   const comparison = parsedFile.comparison;
-  const hasCatalogResourceMetadata = comparison.lineChanges.some(change =>
-    [change.from, change.to].some(line => line !== null &&
-      (line.resourceType !== undefined || line.resourceId !== undefined || line.resourceUnit !== undefined))
-  );
-  if (hasCatalogResourceMetadata) {
-    return blockedSerialization("CSV v2 katalog kaynak metadata'sını taşıyamaz; veri kaybını önlemek için export engellendi.");
-  }
   const records: unknown[][] = [
     [...columns],
     [...metaValues(comparison, "total"), "", "", "", ...blankLineValues()]
@@ -346,7 +359,7 @@ export function serializeProjectQuoteRevisionComparisonCsv(
   });
 }
 
-/** Parse strict v1/v2 CSV; reconstructed comparisons must pass the domain JSON validator. */
+/** Parse strict v1/v2/v3 CSV; reconstructed comparisons must pass the domain JSON validator. */
 export function parseProjectQuoteRevisionComparisonCsv(
   csvValue: unknown
 ): ProjectQuoteRevisionComparisonCsvParseResult {
@@ -355,12 +368,14 @@ export function parseProjectQuoteRevisionComparisonCsv(
     const records = parseCsvRecords(csvValue);
     if (records.length < 8) throw new Error("CSV genel toplam ve altı kategori satırını içermelidir.");
     const header = records[0];
-    const version: 1 | 2 = header.length === legacyColumnsV1.length && header.every((value, index) => value === legacyColumnsV1[index])
+    const version: 1 | 2 | 3 = header.length === legacyColumnsV1.length && header.every((value, index) => value === legacyColumnsV1[index])
       ? 1
-      : header.length === columns.length && header.every((value, index) => value === columns[index])
+      : header.length === legacyColumnsV2.length && header.every((value, index) => value === legacyColumnsV2[index])
         ? 2
-        : (() => { throw new Error("Teklif karşılaştırma CSV sütun başlığı desteklenen v1/v2 sözleşmesiyle uyuşmuyor."); })();
-    const indexMap = version === 1 ? legacyColumnIndex : columnIndex;
+        : header.length === columns.length && header.every((value, index) => value === columns[index])
+          ? 3
+          : (() => { throw new Error("Teklif karşılaştırma CSV sütun başlığı desteklenen v1/v2/v3 sözleşmesiyle uyuşmuyor."); })();
+    const indexMap = version === 1 ? legacyColumnIndexV1 : version === 2 ? legacyColumnIndexV2 : columnIndex;
     const lineColumnsForVersion = header.slice(15);
     for (const row of records.slice(1)) {
       if (row.length !== header.length) throw new Error("CSV satır sütun sayısı sözleşmeyle uyuşmuyor.");

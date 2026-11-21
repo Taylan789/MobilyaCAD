@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   parseProjectQuoteRevisionComparisonCsv,
   PROJECT_QUOTE_REVISION_COMPARISON_CSV_COLUMNS,
+  PROJECT_QUOTE_REVISION_COMPARISON_CSV_VERSION,
   serializeProjectQuoteRevisionComparisonCsv
 } from "./projectQuoteRevisionComparisonCsv.ts";
 
@@ -126,20 +127,48 @@ function readyComparisonResult() {
   };
 }
 
-test("CSV v2 fails closed when catalog resource metadata would be lost", () => {
+test("CSV v3 preserves catalog identity and blocks partial or mismatched metadata", () => {
   const original = readyComparisonResult();
-  for (const line of [original.comparison.lineChanges[0].from, original.comparison.lineChanges[0].to]) {
+  const materialChange = original.comparison.lineChanges[0];
+  for (const line of [materialChange.from, materialChange.to]) {
     line.resourceType = "material";
     line.resourceId = "mdf-18";
     line.resourceUnit = "m2";
   }
-  const blocked = serializeProjectQuoteRevisionComparisonCsv(original);
-  assert.equal(blocked.status, "blocked");
-  assert.equal(blocked.csv, null);
-  assert.match(blocked.diagnostics[0], /katalog kaynak metadata/);
+  const edgeBandLine = original.comparison.lineChanges[1].to;
+  edgeBandLine.resourceType = "edge-banding";
+  edgeBandLine.resourceId = "pvc-1";
+  edgeBandLine.resourceUnit = "mm";
+
+  const serialized = serializeProjectQuoteRevisionComparisonCsv(original);
+  assert.equal(serialized.status, "ready", serialized.diagnostics.join("; "));
+  assert.ok(serialized.csv);
+  assert.equal(PROJECT_QUOTE_REVISION_COMPARISON_CSV_VERSION, 3);
+  assert.match(serialized.csv, /"fromResourceType","toResourceType","fromResourceId","toResourceId","fromResourceUnit","toResourceUnit"/);
+  assert.match(serialized.csv, /"MobilyaCADQuoteRevisionComparisonCsv","3","line"/);
+  const parsed = parseProjectQuoteRevisionComparisonCsv(serialized.csv);
+  assert.equal(parsed.status, "ready", parsed.diagnostics.join("; "));
+  assert.deepEqual(parsed.comparison, original.comparison);
+
+  const partial = readyComparisonResult();
+  partial.comparison.lineChanges[0].to.resourceType = "material";
+  const partialResult = serializeProjectQuoteRevisionComparisonCsv(partial);
+  assert.equal(partialResult.status, "blocked");
+  assert.equal(partialResult.csv, null);
+  assert.match(partialResult.diagnostics[0], /katalog kaynak metadata/i);
+
+  const mismatched = readyComparisonResult();
+  const line = mismatched.comparison.lineChanges[0].to;
+  line.resourceType = "material";
+  line.resourceId = "mdf-18";
+  line.resourceUnit = "mm";
+  const mismatchResult = serializeProjectQuoteRevisionComparisonCsv(mismatched);
+  assert.equal(mismatchResult.status, "blocked");
+  assert.equal(mismatchResult.csv, null);
+  assert.match(mismatchResult.diagnostics[0], /katalog kaynak/i);
 });
 
-test("CSV v2 has stable columns and round-trips exact comparison metadata", () => {
+test("CSV v3 has stable columns and round-trips exact comparison metadata", () => {
   const original = readyComparisonResult();
   const serialized = serializeProjectQuoteRevisionComparisonCsv(original);
   assert.equal(serialized.status, "ready");
@@ -147,7 +176,7 @@ test("CSV v2 has stable columns and round-trips exact comparison metadata", () =
   assert.ok(serialized.csv.startsWith("\uFEFF"));
   const header = PROJECT_QUOTE_REVISION_COMPARISON_CSV_COLUMNS.map((column => '"' + column + '"')).join(",");
   assert.ok(serialized.csv.slice(1).startsWith(header + "\r\n"));
-  assert.equal(serialized.csv.split('"MobilyaCADQuoteRevisionComparisonCsv","2","line"').length - 1, 9);
+  assert.equal(serialized.csv.split('"MobilyaCADQuoteRevisionComparisonCsv","3","line"').length - 1, 9);
 
   const parsed = parseProjectQuoteRevisionComparisonCsv(serialized.csv);
   assert.equal(parsed.status, "ready");
@@ -268,14 +297,23 @@ function emptyComparisonResult() {
 
 function toLegacyV1Csv(csv) {
   const records = csv.slice(1).trimEnd().split("\r\n").map(row => row.split(",").map(cell => cell.slice(1, -1)));
-  const legacyColumnCount = PROJECT_QUOTE_REVISION_COMPARISON_CSV_COLUMNS.length - 12;
+  const legacyColumnCount = PROJECT_QUOTE_REVISION_COMPARISON_CSV_COLUMNS.length - 18;
   return records.map((row, index) => {
     if (index > 0) row[1] = "1";
     return row.slice(0, legacyColumnCount).map(value => '"' + value.replace(/"/g, '""') + '"').join(",");
   }).join("\r\n") + "\r\n";
 }
 
-test("DOM-072 CSV v2 round-trip preserves roll count, lengths and source references", () => {
+function toLegacyV2Csv(csv) {
+  const records = csv.slice(1).trimEnd().split("\r\n").map(row => row.split(",").map(cell => cell.slice(1, -1)));
+  const legacyColumnCount = PROJECT_QUOTE_REVISION_COMPARISON_CSV_COLUMNS.length - 6;
+  return records.map((row, index) => {
+    if (index > 0) row[1] = "2";
+    return row.slice(0, legacyColumnCount).map(value => '"' + value.replace(/"/g, '""') + '"').join(",");
+  }).join("\r\n") + "\r\n";
+}
+
+test("DOM-072 CSV v3 round-trip preserves roll count, lengths and source references", () => {
   const original = readyComparisonResult();
   const from = {
     category: "material", description: "PVC rulo satın alımı", quantity: 1, unit: "rulo",
@@ -324,6 +362,27 @@ test("DOM-072 CSV v2 blocks inconsistent roll metadata instead of partial export
   const serialized = serializeProjectQuoteRevisionComparisonCsv(candidate);
   assert.equal(serialized.status, "blocked");
   assert.equal(serialized.csv, null);
+});
+
+test("legacy CSV v2 remains readable with its roll columns", () => {
+  const original = emptyComparisonResult();
+  const rollLine = {
+    category: "material", description: "PVC rulo", quantity: 1, unit: "rulo",
+    unitPriceMinor: 1000, lineTotalMinor: 1000, currencyCode: "TRY",
+    sourceType: "production-consumption", sourceId: "pvc-roll", sourcePartIds: ["part-a"],
+    rollCount: 1, rollLengthMm: 100000, purchasedLengthMm: 100000, furnitureIds: ["cabinet-a"],
+    planSourceReference: "roll-spec:v1", priceSourceReference: "roll-prices:v1"
+  };
+  original.comparison.lineChanges.push({ type: "added", from: null, to: rollLine });
+  original.comparison.toGrandTotalMinor = 11000;
+  original.comparison.grandTotalDeltaMinor = 1000;
+  original.comparison.categoryDeltasMinor.material = 1000;
+  const current = serializeProjectQuoteRevisionComparisonCsv(original);
+  assert.equal(current.status, "ready");
+  const legacy = toLegacyV2Csv(current.csv);
+  const parsed = parseProjectQuoteRevisionComparisonCsv(legacy);
+  assert.equal(parsed.status, "ready", parsed.diagnostics.join("; "));
+  assert.deepEqual(parsed.comparison, original.comparison);
 });
 
 test("DOM-072 legacy CSV v1 without roll metadata remains readable", () => {

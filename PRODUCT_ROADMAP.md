@@ -576,11 +576,11 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 
 
 ## Next 5 small tasks
-1. DOM-078C IN_PROGRESS — strict revision-comparison JSON v2 now carries catalog resource type/ID/unit; legacy v1 reader retained. Actions pending.
-2. DOM-078D READY — strict comparison CSV v3 resource columns and legacy CSV v1/v2 readers; exact resource identity round-trip, partial/mismatched metadata rejected.
-3. DOM-079 READY — safe standalone revision-history JSON import into project v2 with strict projectId match and no silent overwrite; legacy v1 blocked.
-4. DOM-066 / INT-001 FRONTEND-OWNED — comparison download and production report/export integration; domain contracts remain stable.
-5. INT-002/PERF-001 INTEGRATION-OWNED; QA-003 BLOCKED — adapter round-trip and CAD profiling require isolated specialist evidence before final end-to-end audit.
+1. DOM-078D IN_PROGRESS — strict comparison CSV v3 exports resource type/ID/unit; legacy CSV v1/v2 remain readable. Actions pending.
+2. DOM-079 READY — safe standalone revision-history JSON import into project v2 with strict projectId match and no silent overwrite; legacy v1 blocked.
+3. DOM-066 / INT-001 FRONTEND-OWNED — comparison download and production report/export integration; domain contracts remain stable.
+4. INT-002/PERF-001 INTEGRATION-OWNED — adapter round-trip tests and measured CAD profiling on isolated specialist branch.
+5. QA-003 BLOCKED — final end-to-end export/data integrity review after INT-001/INT-002 evidence.
 
 ## 10/10 ölçülebilir kalite kapıları (20 Kasım 2026 baseline)
 
@@ -795,10 +795,18 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - Code [5e8689b3](https://github.com/Taylan789/MobilyaCAD/commit/5e8689b35116fbed8f5fb82158782434ae641910); CI [#44830602066](https://github.com/Taylan789/MobilyaCAD/actions/runs/44830602066), QA [#44830602034](https://github.com/Taylan789/MobilyaCAD/actions/runs/44830602034), Pages [#44830602182](https://github.com/Taylan789/MobilyaCAD/actions/runs/44830602182) all successful.
 
 
-## DOM-078C — Strict revision-comparison JSON v2 catalog identity (code delivered; Actions pending)
+## DOM-078C — Strict revision-comparison JSON v2 catalog identity (VERIFIED)
 
 - Public comparison line snapshots retain source catalog identity separately from generated quote-line/source IDs: resource type, resource ID and resource unit.
-- JSON v2 is the serializer's new output. The nested comparison domain schema remains v1; the outer file envelope is v2. The parser continues to read strict legacy envelope v1 only when resource fields are absent.
-- Resource metadata is all-or-none, restricted to material/edge-banding, with a valid catalog ID and unit matching the quote line. Changed lines keep resource identity; identity changes remain added/removed pairs.
-- Regression tests cover JSON v2 round-trip, real roll-resource provenance, v1 compatibility, partial/mismatched metadata and legacy v1 metadata rejection.
-- Next: DOM-078D CSV v3 resource identity round-trip; then DOM-079 safe history import.
+- JSON v2 is the serializer's new output. The nested comparison domain schema remains v1; strict legacy envelope v1 remains readable only without resource fields.
+- Resource metadata is all-or-none, restricted to material/edge-banding, with a valid catalog ID and unit matching the quote line; catalog identity changes remain added/removed pairs.
+- Code [e6330272](https://github.com/Taylan789/MobilyaCAD/commit/e63302724ec7b8586f2733e46023c8d22e864ba4); CI [#44841432348](https://github.com/Taylan789/MobilyaCAD/actions/runs/44841432348), QA [#44841432343](https://github.com/Taylan789/MobilyaCAD/actions/runs/44841432343), Pages [#44841432370](https://github.com/Taylan789/MobilyaCAD/actions/runs/44841432370) successful — 130 frontend + 589 domain tests, type-check, lint, build and production audit (0 vulnerabilities).
+- Next: DOM-078D strict CSV v3 resource identity with legacy v1/v2 readers.
+
+## DOM-078D — Strict revision-comparison CSV v3 catalog identity (code delivered; Actions pending)
+
+- CSV v3 adds resource type, catalog ID and unit for both sides of each line change. Complete metadata is preserved; partial or unit/category mismatches fail through the existing strict JSON domain validator.
+- CSV v1/v2 headers remain accepted by dedicated strict readers; roll/source provenance and exact units are retained. No silent resource metadata loss or partial export is allowed.
+- Tests cover resource identity round-trip, partial/mismatched metadata blocking and legacy v1/v2 compatibility.
+- Commit SHA and CI/QA/Pages: pending. Test site: https://taylan789.github.io/MobilyaCAD/
+- Next: DOM-079 safe standalone quote revision-history import into project v2; frontend download integration remains separately owned.

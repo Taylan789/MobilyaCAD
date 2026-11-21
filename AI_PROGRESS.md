@@ -1892,11 +1892,20 @@
 - **Next:** DOM-078C strict comparison JSON v2/CSV v3 resource metadata and legacy parsing; then DOM-079 safe revision-history import. UI and integration/performance ownership remains isolated.
 
 
-## 21 Kasım 2026 02:56 TRT — DOM-078C JSON v2 catalog resource metadata (code delivery; Actions pending)
+## 21 Kasım 2026 02:56 TRT — DOM-078C JSON v2 catalog resource metadata (VERIFIED)
 
-- **Code slice:** comparison snapshots expose resource type, resource ID and resource unit; JSON serializer emits strict outer envelope v2. Nested comparison schema remains v1. Legacy JSON v1 is readable only without resource metadata.
-- **Validation:** resource metadata must be complete, catalog ID valid, type material/edge-banding, and resource unit equal the line unit. Changed lines must keep resource identity; resource swaps remain added/removed. CSV v2 blocks metadata-bearing comparisons to prevent loss until DOM-078D.
-- **Files:** domain/production/projectQuoteRevision.ts, projectQuoteRevisionComparisonFile.ts and tests, PRODUCT_ROADMAP.md, AI_COORDINATION.md, AI_PROGRESS.md. No frontend, adapter/performance-owned or machine-specific files touched.
-- **Acceptance tests added:** JSON v2 resource metadata round-trip, real roll resource identity, legacy v1 read, partial/mismatched metadata rejection and v1 metadata rejection. GitHub Actions pending; no local Node/TypeScript run available.
-- **Commit SHA/CI/QA/Pages:** pending. Test site: https://taylan789.github.io/MobilyaCAD/
-- **Next:** DOM-078D strict CSV v3 resource metadata plus v1/v2 readers and round-trip tests. No UI download wiring is implied.
+- **Code slice:** comparison snapshots carry resource type, catalog ID and unit; JSON serializer emits strict outer envelope v2 while nested comparison schema stays v1. Legacy JSON v1 remains readable only without resource metadata.
+- **Validation:** metadata is all-or-none, catalog ID/type/unit are strict; resource identity changes remain added/removed pairs.
+- **Commit:** [e63302724ec7b8586f2733e46023c8d22e864ba4](https://github.com/Taylan789/MobilyaCAD/commit/e63302724ec7b8586f2733e46023c8d22e864ba4). CI [#44841432348](https://github.com/Taylan789/MobilyaCAD/actions/runs/44841432348), QA [#44841432343](https://github.com/Taylan789/MobilyaCAD/actions/runs/44841432343), Pages [#44841432370](https://github.com/Taylan789/MobilyaCAD/actions/runs/44841432370) all successful: 130 frontend + 589 domain tests, strict type-check, lint 32 warnings/0 errors, production build, audit 0 vulnerabilities.
+- Test site deployed: https://taylan789.github.io/MobilyaCAD/
+- Next: DOM-078D CSV v3 resource identity export with legacy v1/v2 readers.
+
+## 21 Kasım 2026 03:45 TRT — DOM-078D CSV v3 resource identity (code delivery; Actions pending)
+
+- **Code slice:** comparison CSV now emits strict v3 columns for resource type, catalog ID and unit on both sides. The v1/v2 headers remain strict, supported readers; v2 roll metadata parsing is retained.
+- **Acceptance:** resource identity round-trip; complete metadata required; resource type/category/unit validated by JSON domain validator; partial and mismatched metadata block; legacy CSV v1/v2 compatibility tests.
+- **Files:** domain/production/projectQuoteRevisionComparisonCsv.ts, its test, AI_COORDINATION.md, PRODUCT_ROADMAP.md, AI_PROGRESS.md. No frontend, adapter/performance-owned or machine-specific files touched.
+- **Commit SHA:** pending until commit is created; Actions pending. Local clone/test unavailable because GitHub DNS/network resolution is blocked in the runtime.
+- **Test site:** https://taylan789.github.io/MobilyaCAD/ — this domain-only CSV contract change is not a visible UI feature; deployment awaits exact-SHA CI and QA.
+- **AI Developer:** run [#44842686948](https://github.com/Taylan789/MobilyaCAD/actions/runs/44842686948) failed with OpenRouter free-model daily 429; reset is 22 November 2026 03:00 TRT. No rerun during this commit to avoid overlapping writes; next scheduled run can retry after reset.
+- **Next:** DOM-079 safe standalone revision-history import into project v2; then frontend-owned export wiring and integration/performance work.
