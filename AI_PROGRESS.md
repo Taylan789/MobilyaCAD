@@ -27,3 +27,13 @@
 - **Test site:** https://taylan789.github.io/MobilyaCAD/; deployment run verified. Local tests were not run in this runtime; remote Actions are the verification source.
 - **Limits:** no frontend/runtime calculation changes. AI Developer [#44924539196](https://github.com/Taylan789/MobilyaCAD/actions/runs/44924539196) failed on OpenRouter free-model daily 429; no paid retry, quota/secrets change. Integration/performance job skipped; UI PR #139 remains draft/unmerged.
 - **Next:** DOM-094 price reductions and fractional quantities with rounded line/category/grand-total reconciliation; DOM-095 mixed-category comparison.
+
+## 21 Kasım 2026 22:46 TRT — DOM-096 VERIFIED
+
+- Final code/test commit: [798e29b84731352e8249012c16e635a6a97d28f0](https://github.com/Taylan789/MobilyaCAD/commit/798e29b84731352e8249012c16e635a6a97d28f0). Changes: \`domain/production/projectQuoteRevisionComparisonFile.ts\`, \`domain/production/projectQuoteRevisionComparisonFile.test.mjs\`, \`domain/production/projectQuoteRevisionComparisonCsv.test.mjs\`.
+- Duplicate guard rejects repeated exact line snapshots per from/to side. Repeated source identity with differing quantity/price is allowed, preserving DOM-091. Inconsistent JSON/CSV category/grand totals return blocked/null payload; valid JSON v2 and CSV v3 round-trip remains exact.
+- Exact-SHA Actions: CI [#44943420344](https://github.com/Taylan789/MobilyaCAD/actions/runs/44943420344), QA [#44943420373](https://github.com/Taylan789/MobilyaCAD/actions/runs/44943420373), Pages [#44943420330](https://github.com/Taylan789/MobilyaCAD/actions/runs/44943420330) succeeded. QA: **142 frontend + 616 domain tests**, strict domain TS, production build, audit 0 vulnerabilities; lint 32 warnings / 0 errors.
+- Test site verified: https://taylan789.github.io/MobilyaCAD/.
+- Earlier iterations failed QA (DOM-091 repeated identity regression; duplicate-test diagnostic assertion; CSV metadata fixture). These were corrected and rerun; only final SHA is marked verified.
+- AI Developer [#44934045185](https://github.com/Taylan789/MobilyaCAD/actions/runs/44934045185) failed deterministically on unsupported \`push\` event; no rerun or paid/quota/secrets changes. Integration/performance lane skipped; UI PRs #140/#141 remain separate frontend ownership.
+- Next: DOM-097 fractional hardware + labor/operation reconciliation; INT-001 frontend/domain export contract; DOM-098 bounded comparison JSON import.

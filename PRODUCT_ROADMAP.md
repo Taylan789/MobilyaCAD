@@ -934,4 +934,14 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - Test commit [9258473e](https://github.com/Taylan789/MobilyaCAD/commit/9258473ebe4521ee1df5143c8215e1ab4772fb0f); CI [#44934335237](https://github.com/Taylan789/MobilyaCAD/actions/runs/44934335237), QA [#44934335265](https://github.com/Taylan789/MobilyaCAD/actions/runs/44934335265), Pages [#44934335205](https://github.com/Taylan789/MobilyaCAD/actions/runs/44934335205) all succeeded.
 - QA: **142/142 frontend + 614/614 domain tests**, strict domain TypeScript, lint **32 warnings / 0 errors**, production build and production audit **0 vulnerabilities**. Test site deployment verified: https://taylan789.github.io/MobilyaCAD/.
 - Fixture correction: quote-adjustment sources are restricted to waste/profit; hardware/material use production-consumption sources and labor/operation use labor-operation sources. Corrected fixture passes exact-SHA QA.
-- Next: DOM-096 adversarial comparison import rejection, INT-001 domain/frontend contract, then DOM-097 fractional hardware and labor/operation reconciliation.
+- Next: DOM-097 fractional hardware quantity and labor/operation revision reconciliation; INT-001 frontend/domain export contract (joint ownership, no frontend writes); DOM-098 bounded JSON comparison import.
+
+
+## DOM-096 — Duplicate quote comparison snapshot rejection (VERIFIED, 21 November 2026)
+
+- JSON v2 and CSV v3 serialization/import reject repeated exact line snapshots on the same revision side without returning partial payload. A changed line's from/to snapshots may share identity, and repeated source identity with different quantity/price remains supported (DOM-091 regression preserved).
+- Existing line-total arithmetic, per-category deltas and grand-total reconciliation remain fail-closed; tests assert malformed JSON/CSV yields null comparison/file and valid JSON/CSV stays exact.
+- Final code/test commit [798e29b](https://github.com/Taylan789/MobilyaCAD/commit/798e29b84731352e8249012c16e635a6a97d28f0); CI [#44943420344](https://github.com/Taylan789/MobilyaCAD/actions/runs/44943420344), QA [#44943420373](https://github.com/Taylan789/MobilyaCAD/actions/runs/44943420373), Pages [#44943420330](https://github.com/Taylan789/MobilyaCAD/actions/runs/44943420330) all succeeded.
+- QA: **142 frontend + 616 domain tests** passed; strict domain TypeScript, production build, audit **0 vulnerabilities**, lint **32 warnings / 0 errors**. Deployment confirmed at https://taylan789.github.io/MobilyaCAD/.
+- Iteration evidence: DOM-091 repeated source identities with different snapshots were initially blocked and then explicitly preserved; CSV duplicate fixture metadata was corrected after a failed run. Only the final exact-SHA run is green.
+- Next: DOM-097 fractional hardware quantity and labor/operation revision reconciliation; INT-001 shared export contract; DOM-098 bounded JSON comparison import.
