@@ -757,17 +757,15 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - First QA [#44792604194](https://github.com/Taylan789/MobilyaCAD/actions/runs/44792604194) exposed 11 failures: missing CSV ID-limit constant and outdated calculated-summary/JSON fixture expectations. These were corrected without relaxing arithmetic or strict validation.
 - Correction commit [67d462fa](https://github.com/Taylan789/MobilyaCAD/commit/67d462fa26df55b8f717067d73dd654dd7075d0e) passed [CI #44793078331](https://github.com/Taylan789/MobilyaCAD/actions/runs/44793078331), [QA #44793078386](https://github.com/Taylan789/MobilyaCAD/actions/runs/44793078386) and [Pages #44793078458](https://github.com/Taylan789/MobilyaCAD/actions/runs/44793078458). QA: 579/579 domain tests, type-check, lint, production build and audit (0 vulnerabilities) all successful.
 
-### ## Sonraki 5 küçük teslimat
+## Sonraki 5 küçük teslimat
 
 | ID | Sahip | Durum / kabul kriteri | Bağımlılık |
 |---|---|---|---|
-
-| DOM-086 | Ürün Geliştirme | VERIFIED — stable catalog/source and cost values, changed Part provenance → removed + added; exact old/new Part ID lists; JSON v2/CSV v3 round-trip; 139 frontend + 605 domain tests, build/audit passed | DOM-085 |
-| DOM-087 | Ürün Geliştirme | VERIFIED — only changed Part A provenance yields removed/added; Part B stays unchanged; JSON v2/CSV v3 exact round-trip; 142 frontend + 606 domain tests, build/audit passed | DOM-086 |
-| DOM-088 | Ürün Geliştirme | READY — revision comparison/export determinism when cost lines and source mappings are reordered; exact JSON/CSV output and parsed equality | DOM-087 |
-| INT-001 | Arayüz + Ürün | READY — frontend adapter tüketimi ve desteklenmeyen geometri export'unu bloklama; round-trip testleri | Production-domain contract |
-| INT-002 | Entegrasyon/Performans | READY — adapter round-trip ve geometri/miktar sadakati testleri; uzman dalında izolasyon | INT-001 |
-| PERF-001 | Entegrasyon/Performans | READY — tekrarlanabilir CAD sahne/render baseline ve ölçümlü optimizasyon | Ayrı uzman sahipliği |
+| DOM-088 | Ürün Geliştirme | IMPLEMENTED — reordered line/source comparison and exact JSON/CSV output test added; exact-SHA Actions pending | DOM-087 |
+| DOM-089 | Ürün Geliştirme | READY — independently reordered source mappings must be rejected when they no longer align with cost-line IDs; fail-closed validation regression | DOM-088 |
+| INT-001 | Arayüz + Ürün | READY — frontend adapter consumes production domain and blocks unsupported geometry exports; round-trip tests | Production-domain contract |
+| INT-002 | Entegrasyon/Performans | READY — adapter round-trip and geometry/quantity fidelity tests; isolated specialist branch | INT-001 |
+| PERF-001 | Entegrasyon/Performans | READY — repeatable CAD scene/render baseline and measured optimization | Separate specialist ownership |
 
 ## DOM-077 — Quote summary / immutable revision cross-format reconciliation (VERIFIED)
 

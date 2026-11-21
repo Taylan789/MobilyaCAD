@@ -1653,3 +1653,78 @@ test("DOM-087 multi-line Part provenance isolates changes to the affected materi
   assert.deepEqual(parsedCsv.comparison, result.comparison);
 });
 
+
+
+test("DOM-088 revision comparison and JSON/CSV exports are deterministic when quote lines and source mappings are reordered", () => {
+  const materialLine = (id, description, sourceId, partId, quantity, unitPriceMinor) => ({
+    line: {
+      id, category: "material", description, quantity, unit: "m2",
+      unitPriceMinor, currencyCode: "TRY", sourceReference: "materials:2026-11"
+    },
+    source: {
+      costLineId: id, sourceType: "production-consumption", sourceId,
+      resourceType: "material", resourceId: "mdf-18", unit: "m2",
+      sourcePartIds: [partId]
+    }
+  });
+  const fromEntries = [
+    materialLine("quote-material-a", "MDF panel A", "material-source-a", "part-a", 1, 1000),
+    materialLine("quote-material-b", "MDF panel B", "material-source-b", "part-b", 2, 1200)
+  ];
+  const toEntries = [
+    materialLine("quote-material-b", "MDF panel B", "material-source-b", "part-b", 2.5, 1200),
+    materialLine("quote-material-a", "MDF panel A", "material-source-a", "part-a", 1, 1000),
+    materialLine("quote-material-c", "MDF panel C", "material-source-c", "part-c", 0.5, 1200)
+  ];
+
+  const reorderSnapshot = (snapshot, reorder) => {
+    const lines = snapshot.quoteSummary.costSummary.lines;
+    const sources = snapshot.quoteSummary.lineSources;
+    const paired = lines.map((line, index) => ({ line, source: sources[index] }));
+    const reordered = reorder(paired);
+    lines.splice(0, lines.length, ...reordered.map(item => item.line));
+    sources.splice(0, sources.length, ...reordered.map(item => item.source));
+  };
+  const compare = (reorderInputs) => {
+    const fromSnapshot = createSnapshotWithQuoteLines(fromEntries);
+    const toSnapshot = createSnapshotWithQuoteLines(toEntries);
+    if (reorderInputs) {
+      reorderSnapshot(fromSnapshot, pairs => pairs.reverse());
+      reorderSnapshot(toSnapshot, pairs => pairs.slice(1).concat(pairs.slice(0, 1)));
+    }
+    const result = compareProjectQuoteRevisions(
+      createHistoryWithSnapshots(fromSnapshot, toSnapshot), "quote-r1", "quote-r2"
+    );
+    assert.equal(result.status, "ready", result.diagnostics.join("; "));
+    assert.ok(result.comparison);
+    assert.deepEqual(result.comparison.lineChanges.map(change => ({
+      type: change.type, sourceId: (change.from ?? change.to).sourceId
+    })), [
+      { type: "changed", sourceId: "material-source-b" },
+      { type: "added", sourceId: "material-source-c" }
+    ]);
+    return result;
+  };
+
+  const ordered = compare(false);
+  const reordered = compare(true);
+  assert.deepEqual(reordered.comparison, ordered.comparison);
+
+  const orderedJson = serializeProjectQuoteRevisionComparisonFile(ordered);
+  const reorderedJson = serializeProjectQuoteRevisionComparisonFile(reordered);
+  assert.equal(orderedJson.status, "ready", orderedJson.diagnostics.join("; "));
+  assert.equal(reorderedJson.status, "ready", reorderedJson.diagnostics.join("; "));
+  assert.equal(reorderedJson.json, orderedJson.json);
+  const parsedJson = parseProjectQuoteRevisionComparisonFile(reorderedJson.json);
+  assert.equal(parsedJson.status, "ready", parsedJson.diagnostics.join("; "));
+  assert.deepEqual(parsedJson.comparison, ordered.comparison);
+
+  const orderedCsv = serializeProjectQuoteRevisionComparisonCsv(ordered);
+  const reorderedCsv = serializeProjectQuoteRevisionComparisonCsv(reordered);
+  assert.equal(orderedCsv.status, "ready", orderedCsv.diagnostics.join("; "));
+  assert.equal(reorderedCsv.status, "ready", reorderedCsv.diagnostics.join("; "));
+  assert.equal(reorderedCsv.csv, orderedCsv.csv);
+  const parsedCsv = parseProjectQuoteRevisionComparisonCsv(reorderedCsv.csv);
+  assert.equal(parsedCsv.status, "ready", parsedCsv.diagnostics.join("; "));
+  assert.deepEqual(parsedCsv.comparison, ordered.comparison);
+});

@@ -1986,3 +1986,11 @@
 - **Agent limits:** AI Developer [#44886646460](https://github.com/Taylan789/MobilyaCAD/actions/runs/44886646460) failed with OpenRouter free-model daily HTTP 429 (limit 50, remaining 0); no paid retry or quota/credits/secrets changes. Integration/performance job skipped, no active specialist run/PR evidenced. UI PRs remain unmerged; this domain/test slice is not a visual redesign.
 - **Next:** DOM-088 deterministic comparison/export when quote lines and source mappings are reordered; INT-001/INT-002/PERF-001 remain separately owned.
 
+
+## 21 Kasım 2026 14:55 TRT — DOM-088 implement edildi (Actions bekleniyor)
+- **Kabul kriteri:** aynı teklif snapshot'ında maliyet satırları ve kaynak eşlemesi birlikte farklı sıralara alındığında karşılaştırma sonucu, JSON v2 ve CSV v3 metni byte-for-byte deterministik kalmalı; parse edilmiş karşılaştırmalar aynı olmalı.
+- **Test dilimi:** iki revizyon; değişmeyen Part A, değişen Part B ve eklenen Part C. Sıralı ve permütasyonlu girdilerin line-change listesi, JSON/CSV çıktıları ve round-trip sonuçları birebir karşılaştırılıyor.
+- **Değişiklik:** yalnızca `domain/production/projectQuoteRevision.test.mjs` test kapsamı; domain üretim hesabı veya frontend kodu değiştirilmedi. Bu commit SHA'sı ve Actions kanıtı doğrulama tamamlandıktan sonra bu kayda eklenecek (self-referential SHA yazılamaz).
+- **Doğrulama:** bu runtime'da yerel checkout/test çalıştırma yok. CI, QA ve Pages sonuçları yeni commit SHA için henüz gözlenmedi.
+- **Ajan durumu:** aktif CI/QA/AI Developer run yok; son AI Developer run [#44886646460](https://github.com/Taylan789/MobilyaCAD/actions/runs/44886646460) OpenRouter free-model daily 429 nedeniyle başarısız; ücret/secrets/quota değişikliği veya rerun yapılmadı. Integration/performance job skipped.
+- **Sonraki:** yeni commit'in exact-SHA CI/QA/Pages sonuçlarını izle; başarılıysa DOM-088'i VERIFIED yap ve DOM-089'a geç.
