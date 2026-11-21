@@ -1970,3 +1970,10 @@
 - No local tests were run (no checkout in this runtime). No frontend, adapter/performance-owned files, other-agent branches, or `main` changed.
 - AI Developer run [#44852162524](https://github.com/Taylan789/MobilyaCAD/actions/runs/44852162524) failed due OpenRouter free daily limit (HTTP 429, 50/50 requests exhausted); rerun was intentionally not attempted to avoid quota/credit risk. Integration/performance specialist job skipped; no active runs detected. UI PR [#126](https://github.com/Taylan789/MobilyaCAD/pull/126) is closed/draft and not merged; other UI PRs remain separate. This domain-only change does not deliver visual redesign.
 - **Next:** DOM-086 Part-provenance-only comparison behavior (stable catalog resource → removed/added pair), with exact JSON/CSV round-trip.
+
+## 21 Kasım 2026 12:39 TRT — DOM-086 delivered (Actions pending)
+- Added a regression for a quote revision where catalog resource, unit, source identity, quantity and price remain stable but the sorted Part provenance set changes. The expected result is exactly one removed + one added line with the old/new Part ID lists preserved; category and grand-total deltas remain zero.
+- Strict comparison JSON v2 and CSV v3 serialize/parse the complete result and assert exact equality. No production calculation, frontend, adapter/performance-owned file, or machine-specific output changed.
+- Baseline branch HEAD: `3558fafcbb892477a1e6fe9949c734edc5deca5e`. Code/test commit and exact-SHA CI/QA/Pages results pending; local tests were not run because this runtime has no checkout.
+- Latest baseline CI/QA/Pages were green on that SHA. AI Developer run [#44886646460](https://github.com/Taylan789/MobilyaCAD/actions/runs/44886646460) failed at OpenRouter free-model daily limit (HTTP 429); no rerun or quota/credit/secrets change. Integration/performance specialist was skipped; no active run was found. `main` and other agent branches remain untouched.
+- Next: DOM-087 multi-line Part-provenance isolation and exact export round-trip; INT-001/INT-002/PERF-001 remain separately owned.

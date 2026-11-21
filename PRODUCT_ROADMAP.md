@@ -761,8 +761,9 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 
 | ID | Sahip | Durum / kabul kriteri | Bağımlılık |
 |---|---|---|---|
-| DOM-085 | Ürün Geliştirme | VERIFIED — kaynak referansı değişimi aynı katalog kaynağı ve Part kapsamı için tek `changed` satırı; JSON v2 ve CSV v3 exact round-trip, 139 frontend + 604 domain test, build/audit passed | DOM-084 |
-| DOM-086 | Ürün Geliştirme | READY — Part provenance değişimi aynı katalog kaynağında `removed` + `added` olarak ayrılır, yeni/önceki Part ID'ler exact korunur, JSON/CSV round-trip | DOM-085 |
+
+| DOM-086 | Ürün Geliştirme | IN_PROGRESS — stable catalog/source, changed Part provenance emits removed + added; exact old/new Part IDs and zero cost deltas; JSON v2/CSV v3 round-trip | DOM-085 |
+| DOM-087 | Ürün Geliştirme | READY — multiple Part-scoped material lines, only changed provenance pair changes; unaffected line remains unchanged; JSON/CSV exact round-trip | DOM-086 |
 | INT-001 | Arayüz + Ürün | READY — frontend adapter tüketimi ve desteklenmeyen geometri export'unu bloklama; round-trip testleri | Production-domain contract |
 | INT-002 | Entegrasyon/Performans | READY — adapter round-trip ve geometri/miktar sadakati testleri; uzman dalında izolasyon | INT-001 |
 | PERF-001 | Entegrasyon/Performans | READY — tekrarlanabilir CAD sahne/render baseline ve ölçümlü optimizasyon | Ayrı uzman sahipliği |

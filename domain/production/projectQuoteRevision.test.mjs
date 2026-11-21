@@ -1436,6 +1436,71 @@ test("DOM-085 price source reference changes remain value changes with unchanged
   assert.deepEqual(parsedCsv.comparison, result.comparison);
 });
 
+test("DOM-086 Part provenance-only changes split into removed and added quote lines", () => {
+  const fromSnapshot = createSnapshot();
+  const toSnapshot = createSnapshot();
+  const fromLine = fromSnapshot.quoteSummary.costSummary.lines.find(line => line.category === "material");
+  const toLine = toSnapshot.quoteSummary.costSummary.lines.find(line => line.category === "material");
+  assert.ok(fromLine);
+  assert.ok(toLine);
+  const fromSource = fromSnapshot.quoteSummary.lineSources.find(source => source.costLineId === fromLine.id);
+  const toSource = toSnapshot.quoteSummary.lineSources.find(source => source.costLineId === toLine.id);
+  assert.ok(fromSource);
+  assert.ok(toSource);
+  assert.ok(fromSource.sourcePartIds.length > 0);
+
+  // Keep catalog/source identity and pricing stable; only the responsible Part IDs change.
+  toSource.sourceType = fromSource.sourceType;
+  toSource.sourceId = fromSource.sourceId;
+  toSource.resourceType = fromSource.resourceType;
+  toSource.resourceId = fromSource.resourceId;
+  toSource.unit = fromSource.unit;
+  toSource.sourcePartIds = fromSource.sourcePartIds.map(partId => partId + "-v2");
+  assert.notDeepEqual(toSource.sourcePartIds, fromSource.sourcePartIds);
+  assert.deepEqual(
+    { type: fromSource.resourceType, id: fromSource.resourceId, unit: fromSource.unit, sourceId: fromSource.sourceId },
+    { type: toSource.resourceType, id: toSource.resourceId, unit: toSource.unit, sourceId: toSource.sourceId }
+  );
+
+  const result = compareProjectQuoteRevisions(createHistoryWithSnapshots(fromSnapshot, toSnapshot), "quote-r1", "quote-r2");
+  assert.equal(result.status, "ready");
+  assert.ok(result.comparison);
+  const changes = result.comparison.lineChanges.filter(change => (change.from ?? change.to)?.sourceId === fromSource.sourceId);
+  assert.equal(changes.length, 2);
+  const removed = changes.find(change => change.type === "removed");
+  const added = changes.find(change => change.type === "added");
+  assert.ok(removed);
+  assert.ok(added);
+  assert.equal(removed.to, null);
+  assert.equal(added.from, null);
+  assert.deepEqual(removed.from.sourcePartIds, fromSource.sourcePartIds);
+  assert.deepEqual(added.to.sourcePartIds, toSource.sourcePartIds);
+  assert.deepEqual(
+    { type: removed.from.resourceType, id: removed.from.resourceId, unit: removed.from.resourceUnit },
+    { type: added.to.resourceType, id: added.to.resourceId, unit: added.to.resourceUnit }
+  );
+  assert.equal(removed.from.quantity, added.to.quantity);
+  assert.equal(removed.from.unit, added.to.unit);
+  assert.equal(removed.from.unitPriceMinor, added.to.unitPriceMinor);
+  assert.equal(removed.from.lineTotalMinor, added.to.lineTotalMinor);
+  assert.equal(result.comparison.categoryDeltasMinor.material, 0);
+  assert.equal(result.comparison.grandTotalDeltaMinor, 0);
+
+  const json = serializeProjectQuoteRevisionComparisonFile(result);
+  assert.equal(json.status, "ready", json.diagnostics.join("; "));
+  assert.equal(JSON.parse(json.json).schemaVersion, 2);
+  const parsedJson = parseProjectQuoteRevisionComparisonFile(json.json);
+  assert.equal(parsedJson.status, "ready", parsedJson.diagnostics.join("; "));
+  assert.deepEqual(parsedJson.comparison, result.comparison);
+
+  const csv = serializeProjectQuoteRevisionComparisonCsv(result);
+  assert.equal(csv.status, "ready", csv.diagnostics.join("; "));
+  assert.equal(PROJECT_QUOTE_REVISION_COMPARISON_CSV_VERSION, 3);
+  const parsedCsv = parseProjectQuoteRevisionComparisonCsv(csv.csv);
+  assert.equal(parsedCsv.status, "ready", parsedCsv.diagnostics.join("; "));
+  assert.deepEqual(parsedCsv.comparison, result.comparison);
+});
+
 test("roll purchase lines retain source metadata in immutable quote revisions", () => {
   const result = createProjectQuoteRevision(createFirstRevision({
     pricingSnapshot: createRollSnapshot()
