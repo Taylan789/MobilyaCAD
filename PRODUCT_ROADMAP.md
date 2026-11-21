@@ -844,3 +844,10 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - Test site deployment succeeded: https://taylan789.github.io/MobilyaCAD/
 - First QA attempt caught only an empty quote fixture (snapshot status `empty`, not `ready); the fixture was corrected by adding an explicit test-only profit line. No production validation was loosened.
 - Next: DOM-082 two-revision standalone history import/export round-trip.
+
+
+## DOM-082 — Standalone two-revision quote-history round-trip (IN_PROGRESS)
+- Added an automated domain regression fixture with two distinct dated pricing snapshots. It checks revision IDs/numbers, `createdAt`, `previousRevisionId`, source integrity version, catalog/source/Part metadata and exact totals after standalone JSON serialize → parse.
+- Acceptance: both snapshots remain byte-for-byte equivalent at the validated object level; no cost recalculation or metadata loss; re-export produces identical JSON.
+- Dependencies: DOM-079/080/081 history validation and project import boundaries.
+- Next small slices: DOM-083 project-v2 embedded history ↔ standalone two-revision equivalence; DOM-084 quote comparison export provenance cross-check; then revisit INT-001 UI adapter contract (frontend owner) and INT-002 integration tests (specialist owner).

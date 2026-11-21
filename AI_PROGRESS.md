@@ -1938,3 +1938,11 @@
 - **Pages:** [#44868995560](https://github.com/Taylan789/MobilyaCAD/actions/runs/44868995560) success; test site updated: https://taylan789.github.io/MobilyaCAD/.
 - **İlk QA düzeltmesi:** [#44868896322](https://github.com/Taylan789/MobilyaCAD/actions/runs/44868896322) yalnızca fixture'ın boş quote snapshot'ını `ready` beklemesi nedeniyle başarısız oldu; explicit profit fixture satırı eklendi, üretim kodu/validator gevşetilmedi.
 - **Sonraki:** DOM-082 iki revizyonlu standalone import/export round-trip; INT-001 frontend adapter ve INT-002/PERF-001 entegrasyon agent sahipliğinde kalır.
+
+
+## 21 Kasım 2026 08:15 TRT — DOM-082 IN_PROGRESS
+- **İş:** İki revizyonlu bağımsız teklif geçmişi için testli serialize/parse round-trip; revision IDs/numbers/dates/previous links/source integrity, katalog ve Part kaynak izi, fiyat snapshot toplamları, değişmeyen JSON yeniden dışa aktarım.
+- **Dosya:** `domain/production/projectQuoteRevisionStandaloneRoundTrip.test.mjs` (yeni); `PRODUCT_ROADMAP.md`, `AI_COORDINATION.md`, `AI_PROGRESS.md` güncellendi.
+- **Commit SHA:** test ve doküman commit'i oluşturulduktan sonra doğrulama notunda kaydedilecek.
+- **Actions:** commit sonrası exact-SHA CI/QA/Pages bekleniyor; yerel repo checkout bulunmadığı için testler bu ortamda çalıştırılmadı.
+- **Next:** Actions kanıtı geldikten sonra DOM-082'yi doğrulanmış olarak işaretle; DOM-083 embedded v2 ↔ standalone iki revizyon eşdeğerliği.
