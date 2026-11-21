@@ -1,0 +1,618 @@
+/*
+ * MobilyaCAD — industrial studio entry and brand system.
+ * This stylesheet is loaded with the shared brand component so the entry
+ * screen and workspace wordmark use the same graphite / steel-blue language.
+ */
+
+:root {
+  --mc-forest: #1a2a35;
+  --mc-forest-deep: #111b23;
+  --mc-wood: #8fb6d1;
+  --mc-wood-light: #c5d9e5;
+  --mc-paper: #111a22;
+  --mc-ink: #e7eef3;
+  --mc-line: #354957;
+  --mc-focus: #9fc4dd;
+}
+
+.mc-brand {
+  gap: 10px;
+  color: #e7eef3;
+}
+
+.mc-brand__mark {
+  width: 42px;
+  height: 42px;
+  border: 1px solid rgba(143, 182, 209, .28);
+  border-radius: 10px;
+  filter: none;
+  box-shadow: inset 0 1px rgba(255, 255, 255, .055), 0 5px 16px rgba(0, 0, 0, .2);
+  transition: border-color .16s ease, box-shadow .16s ease, transform .16s ease;
+}
+
+.mc-brand__copy strong,
+.mc-brand--inverse .mc-brand__copy strong {
+  color: #e7eef3;
+  font-size: 14px;
+  font-weight: 760;
+  letter-spacing: .075em;
+}
+
+.mc-brand__copy strong span {
+  color: #8fb6d1;
+}
+
+.mc-brand__copy small,
+.mc-brand--inverse .mc-brand__copy small {
+  color: #91a5b3;
+  font-size: 8px;
+  font-weight: 680;
+  letter-spacing: 1.45px;
+}
+
+.mc-brand:hover .mc-brand__mark {
+  border-color: rgba(159, 196, 221, .62);
+  box-shadow: inset 0 1px rgba(255, 255, 255, .08), 0 7px 20px rgba(0, 0, 0, .28);
+  transform: translateY(-1px);
+}
+
+.atelier-home {
+  --ink: #e5edf2;
+  --paper: #101820;
+  --muted: #93a6b3;
+  --line: #334653;
+  position: relative;
+  isolation: isolate;
+  color: var(--ink);
+  background:
+    radial-gradient(ellipse at 78% 14%, rgba(65, 102, 126, .17), transparent 42%),
+    linear-gradient(135deg, #111b23 0%, #0e171e 58%, #121e27 100%);
+}
+
+.atelier-home::before {
+  position: fixed;
+  z-index: -1;
+  inset: 0;
+  pointer-events: none;
+  content: "";
+  opacity: .16;
+  background-image:
+    linear-gradient(rgba(139, 171, 191, .12) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(139, 171, 191, .12) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: linear-gradient(90deg, transparent, #000 55%, transparent);
+}
+
+.atelier-homebar {
+  position: sticky;
+  z-index: 10;
+  top: 0;
+  height: 68px;
+  padding-inline: clamp(22px, 4.5vw, 72px);
+  border-bottom: 1px solid rgba(91, 119, 137, .42);
+  background: rgba(16, 24, 32, .94);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .12);
+  backdrop-filter: blur(16px);
+  animation: none;
+}
+
+.atelier-brand-lockup {
+  min-width: 184px;
+}
+
+.atelier-home-nav {
+  gap: clamp(16px, 2.4vw, 34px);
+  color: #8fa2af;
+  font-size: 11px;
+}
+
+.atelier-home-nav a {
+  color: #91a5b2;
+  transition: color .16s ease;
+}
+
+.atelier-home-nav a:hover,
+.atelier-home-nav a:focus-visible,
+.atelier-home-nav a.active {
+  color: #e3edf3;
+}
+
+.atelier-home-nav a.active {
+  font-weight: 700;
+}
+
+.atelier-home-nav a.active::after {
+  height: 2px;
+  background: #8fb6d1;
+}
+
+.atelier-profile {
+  gap: 9px;
+}
+
+.atelier-profile > span {
+  width: 8px;
+  height: 8px;
+  border: 1px solid #8fb6d1;
+  border-radius: 50%;
+  background: #6f9dbb;
+  box-shadow: 0 0 0 4px rgba(111, 157, 187, .12);
+}
+
+.atelier-profile b {
+  color: #d9e4eb;
+  font-size: 9px;
+  letter-spacing: .11em;
+}
+
+.atelier-profile small {
+  color: #8297a5;
+  font-size: 9px;
+}
+
+.atelier-home-main {
+  max-width: 1480px;
+  padding: 0 clamp(22px, 4.5vw, 72px) 34px;
+}
+
+.atelier-welcome {
+  min-height: 318px;
+  gap: clamp(28px, 5vw, 76px);
+  padding: 34px 0 30px;
+  border-bottom-color: rgba(76, 101, 117, .48);
+}
+
+.atelier-eyebrow {
+  color: #91b8d2;
+  font-size: 9px;
+  font-weight: 760;
+  letter-spacing: 1.55px;
+}
+
+.atelier-welcome h1 {
+  margin: 18px 0 14px;
+  color: #edf3f6;
+  font-family: "Geist Variable", sans-serif;
+  font-size: clamp(38px, 4.35vw, 62px);
+  font-weight: 660;
+  line-height: 1.02;
+  letter-spacing: -.055em;
+}
+
+.atelier-welcome h1 em {
+  color: #9abbd1;
+  font-style: normal;
+  font-weight: 520;
+}
+
+.atelier-welcome-copy > p {
+  max-width: 450px;
+  color: #a0b0bb;
+  font-size: 12px;
+  line-height: 1.75;
+}
+
+.atelier-welcome-copy > * {
+  animation: none;
+}
+
+.atelier-welcome-actions {
+  gap: 18px;
+  margin-top: 23px;
+}
+
+.atelier-primary-action {
+  min-height: 42px !important;
+  height: 42px !important;
+  padding-inline: 15px !important;
+  border: 1px solid #6f94ad !important;
+  border-radius: 6px !important;
+  background: linear-gradient(180deg, #55768d, #3d5d73) !important;
+  color: #f3f7fa !important;
+  font-size: 11px !important;
+  font-weight: 680 !important;
+  box-shadow: 0 5px 14px rgba(0, 0, 0, .2) !important;
+  transition: background .16s ease, border-color .16s ease, transform .16s ease !important;
+}
+
+.atelier-primary-action:hover {
+  border-color: #a4c6dc !important;
+  background: linear-gradient(180deg, #668ba5, #4c6d84) !important;
+  transform: translateY(-1px);
+}
+
+.atelier-primary-action span {
+  margin-left: 10px;
+  color: #d4e4ee;
+}
+
+.atelier-open-action {
+  color: #b5c5cf;
+  font-size: 11px;
+  font-weight: 620;
+  text-decoration: underline;
+  text-decoration-color: rgba(143, 182, 209, .45);
+  text-underline-offset: 4px;
+}
+
+.atelier-open-action span {
+  color: #9abbd1;
+}
+
+.atelier-feature-art {
+  height: 258px;
+  border: 1px solid #40596a;
+  background:
+    radial-gradient(ellipse at 50% 42%, rgba(74, 112, 137, .32), transparent 58%),
+    linear-gradient(145deg, #1a2a35, #111c25 72%);
+  box-shadow: 0 18px 38px rgba(0, 0, 0, .24), inset 0 1px rgba(255, 255, 255, .035);
+  animation: none;
+}
+
+.atelier-art-grid {
+  opacity: .34;
+  background-image:
+    linear-gradient(rgba(153, 187, 207, .2) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(153, 187, 207, .2) 1px, transparent 1px);
+  background-size: 25px 25px;
+  animation: none;
+}
+
+.atelier-art-index {
+  color: #9db4c3;
+  font-size: 8px;
+  letter-spacing: 1.35px;
+}
+
+.atelier-art-cube {
+  filter: drop-shadow(18px 22px 14px rgba(0, 0, 0, .32));
+  animation: none;
+}
+
+.atelier-cube-front {
+  border-color: #9db6c7;
+  background: linear-gradient(135deg, #a8bdca, #6e899b);
+}
+
+.atelier-cube-side {
+  border-color: #577489;
+  background: linear-gradient(135deg, #526e81, #2b4658);
+}
+
+.atelier-cube-top {
+  border-color: #d0dce3;
+  background: linear-gradient(135deg, #d5e0e6, #9fb4c2);
+}
+
+.atelier-dim {
+  color: #b8d2e2;
+  font-size: 8px;
+  font-variant-numeric: tabular-nums;
+}
+
+.atelier-art-caption {
+  border-top-color: rgba(159, 196, 221, .28);
+  color: #d3e0e8;
+}
+
+.atelier-art-caption span {
+  color: #8fa9ba;
+}
+
+.atelier-section {
+  padding-top: 27px;
+}
+
+.atelier-section-heading {
+  margin-bottom: 13px;
+}
+
+.atelier-section-heading h2 {
+  margin-top: 5px;
+  color: #e4edf2;
+  font-family: "Geist Variable", sans-serif;
+  font-size: 20px;
+  font-weight: 620;
+  letter-spacing: -.025em;
+}
+
+.atelier-section-note {
+  color: #8195a3;
+  font-size: 9px;
+}
+
+.atelier-start-grid {
+  gap: 10px;
+}
+
+.atelier-start-card {
+  grid-template-rows: 17px 88px auto;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid #354a58;
+  border-radius: 7px;
+  background: linear-gradient(155deg, #1b2a34, #17232c);
+  color: #e2ebf0;
+  transition: border-color .16s ease, background .16s ease, transform .16s ease;
+}
+
+.atelier-start-card:hover {
+  border-color: #7fa7c1;
+  background: linear-gradient(155deg, #223643, #1a2b36);
+  box-shadow: 0 10px 22px rgba(0, 0, 0, .16);
+  transform: translateY(-2px);
+}
+
+.atelier-card-number {
+  color: #8fb6d1;
+  font-size: 8px;
+  font-weight: 720;
+  letter-spacing: 1.35px;
+}
+
+.atelier-card-visual {
+  border: 1px solid rgba(116, 148, 169, .22);
+  background: #1c2c37;
+}
+
+.atelier-visual-furniture {
+  background: linear-gradient(145deg, #263d4b, #1b2d38);
+}
+
+.mini-cabinet {
+  background: #637e91;
+  border-color: #9cb5c5;
+  box-shadow: 8px 8px 0 rgba(0, 0, 0, .2);
+}
+
+.mini-cabinet i {
+  border-right-color: #4d687b;
+  background: linear-gradient(90deg, #c3d0d8, #91a8b7);
+}
+
+.mini-cabinet:after {
+  border-top-color: #4d687b;
+}
+
+.atelier-visual-parts {
+  background: linear-gradient(145deg, #203541, #172731);
+}
+
+.mini-panels i {
+  border-color: #7f9db1;
+  background: linear-gradient(135deg, #a8bdca, #637f92);
+  box-shadow: 4px 5px 0 rgba(0, 0, 0, .22);
+}
+
+.mini-panels i:nth-child(2) {
+  background: linear-gradient(135deg, #d0dce3, #8ca4b4);
+}
+
+.mini-panels i:nth-child(3) {
+  background: linear-gradient(135deg, #607d91, #344e60);
+}
+
+.atelier-visual-production {
+  background: linear-gradient(145deg, #263947, #192a35);
+}
+
+.mini-cut i {
+  border-color: #7f9db1;
+  background: #8daabd;
+}
+
+.mini-cut i:nth-child(2),
+.mini-cut i:nth-child(3) {
+  border-color: #5b7b90;
+  background: #4f6d82;
+}
+
+.atelier-card-copy {
+  gap: 4px;
+}
+
+.atelier-card-copy b {
+  color: #e5edf2;
+  font-size: 11px;
+  font-weight: 690;
+}
+
+.atelier-card-copy span {
+  color: #91a4b1;
+  font-size: 9px;
+}
+
+.atelier-card-arrow {
+  color: #9abbd1;
+}
+
+.atelier-bottom-row {
+  grid-template-columns: minmax(0, 1fr) 270px;
+  gap: 24px;
+  padding-top: 27px;
+}
+
+.atelier-recent .atelier-section-heading button {
+  color: #9abbd1;
+  font-size: 10px;
+}
+
+.atelier-empty-project {
+  gap: 12px;
+  padding: 13px;
+  border: 1px dashed #506777;
+  border-radius: 7px;
+  background: rgba(26, 42, 53, .62);
+  color: #dce7ed;
+}
+
+.atelier-empty-project:hover {
+  border-color: #91b8d2;
+  background: #1b2d38;
+}
+
+.atelier-empty-plus {
+  width: 34px;
+  height: 34px;
+  border: 1px solid #526e81;
+  border-radius: 6px;
+  background: #243a49;
+  color: #a9c9dd;
+}
+
+.atelier-empty-project b {
+  color: #e0e9ee;
+  font-size: 10px;
+}
+
+.atelier-empty-project small {
+  color: #8fa2af;
+  font-size: 9px;
+}
+
+.atelier-empty-arrow {
+  color: #9abbd1;
+}
+
+.atelier-tip {
+  min-height: 124px;
+  padding: 15px 16px;
+  border: 1px solid #40596a;
+  border-radius: 7px;
+  background:
+    linear-gradient(135deg, rgba(64, 96, 117, .35), rgba(24, 39, 49, .95)),
+    #1a2a35;
+}
+
+.atelier-tip > b {
+  margin-top: 8px;
+  color: #e1ebf1;
+  font-family: "Geist Variable", sans-serif;
+  font-size: 18px;
+  font-weight: 610;
+}
+
+.atelier-tip p {
+  color: #9db0bc;
+  font-size: 9px;
+}
+
+.atelier-tip-mark {
+  color: #7595aa;
+  font-family: "Geist Variable", sans-serif;
+  font-size: 11px;
+  font-weight: 760;
+  letter-spacing: .08em;
+}
+
+.atelier-home-footer {
+  padding: 13px clamp(22px, 4.5vw, 72px);
+  border-top: 1px solid rgba(76, 101, 117, .48);
+  color: #7f929f;
+  font-size: 8px;
+  letter-spacing: 1.05px;
+}
+
+.atelier-home-footer b {
+  color: #8fb6d1;
+}
+
+.atelier-home :focus-visible {
+  outline: 2px solid #a6c9df;
+  outline-offset: 3px;
+}
+
+@media (max-width: 900px) {
+  .atelier-welcome {
+    min-height: 0;
+    grid-template-columns: 1fr;
+    gap: 22px;
+    padding-block: 30px;
+  }
+
+  .atelier-feature-art {
+    height: 218px;
+  }
+
+  .atelier-start-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .atelier-start-card-wide {
+    grid-column: span 2;
+  }
+
+  .atelier-bottom-row {
+    grid-template-columns: 1fr;
+    gap: 14px;
+    padding-top: 24px;
+  }
+
+  .atelier-tip {
+    min-height: 108px;
+  }
+}
+
+@media (max-width: 560px) {
+  .atelier-homebar {
+    height: 62px;
+    padding-inline: 16px;
+  }
+
+  .atelier-home-nav {
+    display: none;
+  }
+
+  .atelier-profile {
+    margin-left: auto;
+  }
+
+  .atelier-profile div {
+    display: none;
+  }
+
+  .atelier-home-main {
+    padding-inline: 17px;
+  }
+
+  .atelier-welcome {
+    padding-block: 26px;
+  }
+
+  .atelier-welcome h1 {
+    font-size: 42px;
+  }
+
+  .atelier-welcome-actions {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 13px;
+  }
+
+  .atelier-feature-art {
+    height: 190px;
+  }
+
+  .atelier-start-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .atelier-start-card-wide {
+    grid-column: auto;
+  }
+
+  .atelier-home-footer {
+    gap: 8px;
+    flex-direction: column;
+    padding-inline: 17px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .atelier-home *,
+  .mc-brand__mark {
+    animation: none !important;
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+  }
+}
