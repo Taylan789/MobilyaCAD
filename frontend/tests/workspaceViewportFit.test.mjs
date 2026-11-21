@@ -40,8 +40,10 @@ test("desktop dock widths scale continuously and release more width to the model
   assert.ok(Math.abs(widthAt(inspector, 1440) - 266.56) < 0.1);
   assert.ok(Math.abs(widthAt(sidebar, 1919) - 275.492) < 0.1);
   assert.ok(Math.abs(widthAt(inspector, 1919) - 302) < 0.1);
-  assert.ok(Math.abs(widthAt(sidebar, 1920) - 276) < 0.1);
-  assert.ok(Math.abs(widthAt(inspector, 1920) - 302) < 0.1);
+
+  const wideDesktop = css.slice(css.indexOf("@media (min-width: 1920px)"));
+  assert.match(wideDesktop, /\.cad-sidebar[\s\S]*?flex-basis:\s*276px/);
+  assert.match(wideDesktop, /\.cad-inspector[\s\S]*?flex-basis:\s*302px/);
 
   assert.ok(viewportAt(1280, sidebar, inspector) > 769);
   assert.ok(viewportAt(1440, sidebar, inspector) > 900);
