@@ -274,6 +274,33 @@ function validateLine(value: unknown, currencyCode: string, allowResourceIdentit
   };
 }
 
+function comparisonLineIdentity(line: ProjectQuoteRevisionCostLineSnapshot): string {
+  return JSON.stringify([
+    line.category,
+    line.edgeDirection === undefined ? line.description : null,
+    line.edgeDirection ?? null,
+    line.unit,
+    line.sourceType,
+    line.sourceId,
+    line.tariffId ?? null,
+    line.sourcePartIds ?? [],
+    line.resourceType ?? null,
+    line.resourceId ?? null,
+    line.resourceUnit ?? null,
+    line.furnitureIds ?? []
+  ]);
+}
+
+function requireUniqueComparisonLineIdentity(
+  line: ProjectQuoteRevisionCostLineSnapshot,
+  identities: Set<string>,
+  label: string
+): void {
+  const identity = comparisonLineIdentity(line);
+  if (identities.has(identity)) throw new Error(label + " teklif satır kimliği yineleniyor.");
+  identities.add(identity);
+}
+
 function sameOptionalArray(left: readonly string[] | undefined, right: readonly string[] | undefined): boolean {
   return JSON.stringify(left ?? []) === JSON.stringify(right ?? []);
 }
@@ -335,6 +362,8 @@ function validateComparison(value: unknown, allowResourceIdentity: boolean): Pro
   }
 
   if (!Array.isArray(value.lineChanges)) throw new Error("Teklif satır farkları listesi olmalıdır.");
+  const fromIdentities = new Set<string>();
+  const toIdentities = new Set<string>();
   const lineChanges: ProjectQuoteRevisionLineChange[] = value.lineChanges.map((entry, index) => {
     if (!isRecord(entry)) throw new Error("Teklif satır farkı " + (index + 1) + " geçerli bir nesne olmalıdır.");
     requireExactKeys(entry, lineChangeKeys, "Teklif satır farkı");
@@ -353,6 +382,8 @@ function validateComparison(value: unknown, allowResourceIdentity: boolean): Pro
     }
     const from = entry.from === null ? null : validateLine(entry.from, currencyCode, allowResourceIdentity);
     const to = entry.to === null ? null : validateLine(entry.to, currencyCode, allowResourceIdentity);
+    if (from !== null) requireUniqueComparisonLineIdentity(from, fromIdentities, "Başlangıç");
+    if (to !== null) requireUniqueComparisonLineIdentity(to, toIdentities, "Hedef");
     if (type === "changed" && from !== null && to !== null && !sameChangedLineIdentity(from, to)) {
       throw new Error("Değişen satırın kaynak, kategori, birim, yön veya Part kimliği sabit kalmalıdır.");
     }

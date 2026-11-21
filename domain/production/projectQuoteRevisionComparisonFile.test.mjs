@@ -300,6 +300,44 @@ test("tampered line/category totals block serialization without a partial JSON r
   assert.equal(serialized.status, "blocked");
   assert.equal(serialized.json, null);
   assert.match(serialized.diagnostics[0], /satır farkları kategori toplam farkıyla uyuşmuyor/);
+
+  const valid = serializeProjectQuoteRevisionComparisonFile(readyComparisonResult());
+  assert.equal(valid.status, "ready");
+  const malformedTotals = JSON.parse(valid.json);
+  malformedTotals.comparison.categoryDeltasMinor.material += 1;
+  const parsedMalformed = parseProjectQuoteRevisionComparisonFile(JSON.stringify(malformedTotals));
+  assert.equal(parsedMalformed.status, "blocked");
+  assert.equal(parsedMalformed.file, null);
+  assert.equal(parsedMalformed.comparison, null);
+});
+
+test("DOM-096 JSON import/export blocks duplicate line identities without partial payload", () => {
+  const duplicateResult = readyComparisonResult();
+  const duplicate = structuredClone(duplicateResult.comparison.lineChanges[0]);
+  for (const line of [duplicate.from, duplicate.to]) {
+    line.unitPriceMinor = 0;
+    line.lineTotalMinor = 0;
+  }
+  duplicateResult.comparison.lineChanges.push(duplicate);
+  const serializedDuplicate = serializeProjectQuoteRevisionComparisonFile(duplicateResult);
+  assert.equal(serializedDuplicate.status, "blocked");
+  assert.equal(serializedDuplicate.json, null);
+  assert.match(serializedDuplicate.diagnostics[0], /kimliği yineleniyor/);
+
+  const valid = serializeProjectQuoteRevisionComparisonFile(readyComparisonResult());
+  assert.equal(valid.status, "ready");
+  const duplicateImport = JSON.parse(valid.json);
+  const repeated = structuredClone(duplicateImport.comparison.lineChanges[0]);
+  for (const line of [repeated.from, repeated.to]) {
+    line.unitPriceMinor = 0;
+    line.lineTotalMinor = 0;
+  }
+  duplicateImport.comparison.lineChanges.push(repeated);
+  const parsedDuplicate = parseProjectQuoteRevisionComparisonFile(JSON.stringify(duplicateImport));
+  assert.equal(parsedDuplicate.status, "blocked");
+  assert.equal(parsedDuplicate.file, null);
+  assert.equal(parsedDuplicate.comparison, null);
+  assert.match(parsedDuplicate.diagnostics[0], /kimliği yineleniyor/);
 });
 
 test("unknown fields and unsupported comparison versions are rejected during parse", () => {

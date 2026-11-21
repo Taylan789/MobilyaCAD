@@ -9,6 +9,52 @@ import {
 } from "./projectQuoteRevisionComparisonCsv.ts";
 
 
+function parseCsvRecordsForTest(csv) {
+  const input = csv.charCodeAt(0) === 0xfeff ? csv.slice(1) : csv;
+  const records = [];
+  let row = [];
+  let cell = "";
+  let quoted = false;
+  for (let index = 0; index < input.length; index += 1) {
+    const character = input[index];
+    if (quoted) {
+      if (character === '"') {
+        if (input[index + 1] === '"') {
+          cell += '"';
+          index += 1;
+        } else {
+          quoted = false;
+        }
+      } else {
+        cell += character;
+      }
+    } else if (character === '"') {
+      quoted = true;
+    } else if (character === ",") {
+      row.push(cell);
+      cell = "";
+    } else if (character === "\r" || character === "\n") {
+      if (character === "\r" && input[index + 1] === "\n") index += 1;
+      row.push(cell);
+      records.push(row);
+      row = [];
+      cell = "";
+    } else {
+      cell += character;
+    }
+  }
+  if (cell !== "" || row.length > 0) {
+    row.push(cell);
+    records.push(row);
+  }
+  return records;
+}
+
+function encodeCsvCellForTest(value) {
+  const text = String(value);
+  return /[",\r\n]/.test(text) ? '"' + text.replaceAll('"', '""') + '"' : text;
+}
+
 function quoteAdjustmentLine(category, description, sourceId, sourceReference, amount) {
   return { category, description, quantity: 1, unit: "kalem", unitPriceMinor: amount, lineTotalMinor: amount,
     currencyCode: "TRY", sourceReference, sourceType: "quote-adjustment", sourceId };
@@ -240,11 +286,48 @@ test("CSV preserves mm and m as separate line changes without conversion", () =>
   assert.equal(parsed.comparison.grandTotalDeltaMinor, 0);
 });
 
+test("DOM-096 CSV import/export blocks duplicate line identities without partial payload", () => {
+  const duplicateResult = readyComparisonResult();
+  const duplicate = structuredClone(duplicateResult.comparison.lineChanges[0]);
+  for (const line of [duplicate.from, duplicate.to]) {
+    line.unitPriceMinor = 0;
+    line.lineTotalMinor = 0;
+  }
+  duplicateResult.comparison.lineChanges.push(duplicate);
+  const serializedDuplicate = serializeProjectQuoteRevisionComparisonCsv(duplicateResult);
+  assert.equal(serializedDuplicate.status, "blocked");
+  assert.equal(serializedDuplicate.csv, null);
+  assert.match(serializedDuplicate.diagnostics[0], /kimliği yineleniyor/);
+
+  const valid = serializeProjectQuoteRevisionComparisonCsv(readyComparisonResult());
+  assert.equal(valid.status, "ready");
+  const records = parseCsvRecordsForTest(valid.csv);
+  const header = records[0];
+  const lineRow = records.find(row =>
+    row[header.indexOf("rowType")] === "line" &&
+    row[header.indexOf("fromDescription")] === "MDF Lam 18"
+  );
+  assert.ok(lineRow);
+  const repeated = lineRow.slice();
+  for (const side of ["from", "to"]) {
+    repeated[header.indexOf(side + "UnitPriceMinor")] = "0";
+    repeated[header.indexOf(side + "LineTotalMinor")] = "0";
+  }
+  records.push(repeated);
+  const duplicateCsv = "\uFEFF" + records.map(row => row.map(encodeCsvCellForTest).join(",")).join("\r\n") + "\r\n";
+  const parsedDuplicate = parseProjectQuoteRevisionComparisonCsv(duplicateCsv);
+  assert.equal(parsedDuplicate.status, "blocked");
+  assert.equal(parsedDuplicate.comparison, null);
+  assert.match(parsedDuplicate.diagnostics[0], /kimliği yineleniyor/);
+});
+
 test("CSV rejects inconsistent category deltas, malformed quoting and unknown headers", () => {
   const valid = serializeProjectQuoteRevisionComparisonCsv(readyComparisonResult());
   assert.equal(valid.status, "ready");
   const categoryTampered = valid.csv.replace('"material","1250",""', '"material","9999",""');
-  assert.equal(parseProjectQuoteRevisionComparisonCsv(categoryTampered).status, "blocked");
+  const parsedCategoryTampered = parseProjectQuoteRevisionComparisonCsv(categoryTampered);
+  assert.equal(parsedCategoryTampered.status, "blocked");
+  assert.equal(parsedCategoryTampered.comparison, null);
   assert.equal(parseProjectQuoteRevisionComparisonCsv(valid.csv.replace('"MDF Lam 18"', '"MDF Lam 18')).comparison, null);
   const unknownHeader = valid.csv.replace('"projectId"', '"extraField"');
   assert.equal(parseProjectQuoteRevisionComparisonCsv(unknownHeader).status, "blocked");
