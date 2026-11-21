@@ -6,7 +6,7 @@ const css = readFileSync(new URL("../src/styles/workspace-viewport-fit.css", imp
 
 function readLinearClamp(selector, property) {
   const pattern = new RegExp(
-    selector + "\\s*\\{[^}]*" + property + ":\\s*clamp\\((\\d+)px,\\s*calc\\(([\\d.]+)vw\\s*\\+\\s*([\\d.]+)px\\),\\s*(\\d+)px\\)",
+    selector + "\\s*\\{[^}]*" + property + ":\\s*clamp\\((\\d+)px,\\s*calc\(([\\d.]+)vw\\s*\+\s*([\d.]+)px\),\\s*(\d+)px\)",
     "s",
   );
   const match = css.match(pattern);
@@ -19,8 +19,8 @@ function widthAt(rule, viewportWidth) {
 }
 
 test("desktop dock widths scale continuously without the former breakpoint jumps", () => {
-  assert.match(css, /@media\\s*\\(min-width:\\s*1101px\\)\\s*and\\s*\\(max-width:\\s*1919px\\)/);
-  assert.match(css, /@media\\s*\\(min-width:\\s*1920px\\)/);
+  assert.match(css, /@media\s*\(min-width:\s*1101px\)\s*and\s*\(max-width:\s*1919px\)/);
+  assert.match(css, /@media\s*\(min-width:\s*1920px\)/);
   assert.doesNotMatch(css, /1361|1600/);
 
   const sidebar = readLinearClamp("\\.cad-sidebar", "flex");
@@ -38,9 +38,9 @@ test("desktop dock widths scale continuously without the former breakpoint jumps
 });
 
 test("spacing, toolbar and inspector controls scale within bounds and reduced-motion remains supported", () => {
-  assert.match(css, /gap:\\s*clamp\\(7px,\\s*0\\.52vw,\\s*10px\\)/);
-  assert.match(css, /padding:\\s*clamp\\(8px,\\s*0\\.63vw,\\s*12px\\)/);
-  assert.match(css, /\\.cad-viewport-toolbar[\\s\\S]*?height:\\s*clamp\\(48px/);
-  assert.match(css, /\\.cad-inspector-tab-list button[\\s\\S]*?height:\\s*clamp\\(31px/);
-  assert.match(css, /@media\\s*\\(prefers-reduced-motion:\\s*reduce\\)[\\s\\S]*?transition:\\s*none/s);
+  assert.match(css, /gap:\s*clamp\(7px,\s*0\.52vw,\s*10px\)/);
+  assert.match(css, /padding:\s*clamp\(8px,\s*0\.63vw,\s*12px\)/);
+  assert.match(css, /\.cad-viewport-toolbar[\s\S]*?height:\s*clamp\(48px/);
+  assert.match(css, /\.cad-inspector-tab-list button[\s\S]*?height:\s*clamp\(31px/);
+  assert.match(css, /@media\s*\(prefers-reduced-motion:\s*reduce\)[\s\S]*?transition:\s*none/s);
 });
