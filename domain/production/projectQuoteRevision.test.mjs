@@ -1728,3 +1728,74 @@ test("DOM-088 revision comparison and JSON/CSV exports are deterministic when qu
   assert.equal(parsedCsv.status, "ready", parsedCsv.diagnostics.join("; "));
   assert.deepEqual(parsedCsv.comparison, ordered.comparison);
 });
+
+test("DOM-089 quote revision rejects source mappings reordered independently from cost lines", () => {
+  const entries = [
+    {
+      line: {
+        id: "dom-089-cost-line-a",
+        category: "material",
+        description: "DOM-089 MDF panel A",
+        quantity: 1.25,
+        unit: "m2",
+        unitPriceMinor: 1250,
+        currencyCode: "TRY",
+        sourceReference: "materials:dom-089"
+      },
+      source: {
+        costLineId: "dom-089-cost-line-a",
+        sourceType: "production-consumption",
+        sourceId: "dom-089-source-a",
+        resourceType: "material",
+        resourceId: "mdf-18",
+        unit: "m2",
+        sourcePartIds: ["dom-089-part-a"]
+      }
+    },
+    {
+      line: {
+        id: "dom-089-cost-line-b",
+        category: "material",
+        description: "DOM-089 MDF panel B",
+        quantity: 2.5,
+        unit: "m2",
+        unitPriceMinor: 1500,
+        currencyCode: "TRY",
+        sourceReference: "materials:dom-089"
+      },
+      source: {
+        costLineId: "dom-089-cost-line-b",
+        sourceType: "production-consumption",
+        sourceId: "dom-089-source-b",
+        resourceType: "material",
+        resourceId: "mdf-18",
+        unit: "m2",
+        sourcePartIds: ["dom-089-part-b"]
+      }
+    }
+  ];
+  const snapshot = createSnapshotWithQuoteLines(entries);
+  const costSummary = snapshot.quoteSummary.costSummary;
+  assert.ok(costSummary);
+
+  const lineAIndex = costSummary.lines.findIndex(line => line.id === "dom-089-cost-line-a");
+  const lineBIndex = costSummary.lines.findIndex(line => line.id === "dom-089-cost-line-b");
+  const sourceAIndex = snapshot.quoteSummary.lineSources.findIndex(source => source.costLineId === "dom-089-cost-line-a");
+  const sourceBIndex = snapshot.quoteSummary.lineSources.findIndex(source => source.costLineId === "dom-089-cost-line-b");
+  assert.ok(lineAIndex >= 0 && lineBIndex >= 0 && sourceAIndex >= 0 && sourceBIndex >= 0);
+  assert.notEqual(lineAIndex, lineBIndex);
+  assert.notEqual(sourceAIndex, sourceBIndex);
+
+  const sourceA = snapshot.quoteSummary.lineSources[sourceAIndex];
+  snapshot.quoteSummary.lineSources[sourceAIndex] = snapshot.quoteSummary.lineSources[sourceBIndex];
+  snapshot.quoteSummary.lineSources[sourceBIndex] = sourceA;
+
+  const result = createProjectQuoteRevision(createFirstRevision({ pricingSnapshot: snapshot }));
+  assert.equal(result.status, "blocked");
+  assert.equal(result.revision, null);
+  assert.match(
+    result.diagnostics[0],
+    /Teklif kaynak eşlemesi maliyet satırı kimliğiyle uyuşmuyor/
+  );
+});
+
