@@ -1,0 +1,92 @@
+/* UI-WORKSPACE-VIEWPORT-FIT-001 — preserve room for the actual 3D canvas */
+@media (min-width: 1101px) and (max-width: 1360px) {
+  .cad-sidebar {
+    flex: 0 0 232px !important;
+    width: 232px !important;
+    min-width: 232px !important;
+  }
+  .cad-inspector {
+    flex-basis: 272px !important;
+    width: 272px !important;
+    min-width: 272px !important;
+  }
+  .cad-workspace-content {
+    gap: 7px !important;
+    padding: 8px !important;
+  }
+  .cad-viewport-toolbar {
+    min-height: 48px !important;
+    height: 48px !important;
+    padding-inline: 10px !important;
+  }
+  .cad-viewport-title-icon {
+    width: 30px !important;
+    height: 30px !important;
+  }
+  .cad-inspector-tab-list {
+    min-height: 38px !important;
+  }
+  .cad-inspector-tab-list button {
+    min-height: 31px !important;
+    height: 31px !important;
+  }
+}
+
+
+@media (min-width: 1361px) and (max-width: 1599px) {
+  .cad-sidebar {
+    flex: 0 0 270px !important;
+    width: 270px !important;
+    min-width: 270px !important;
+  }
+  .cad-inspector {
+    flex-basis: 330px !important;
+    width: 330px !important;
+    min-width: 330px !important;
+  }
+  .cad-workspace-content {
+    gap: 8px !important;
+    padding: 9px !important;
+  }
+  .cad-viewport-toolbar {
+    min-height: 50px !important;
+    height: 50px !important;
+    padding-inline: 14px !important;
+  }
+  .cad-viewport-title-icon {
+    width: 32px !important;
+    height: 32px !important;
+  }
+  .cad-viewport,
+  .cad-inspector {
+    border-radius: 10px !important;
+  }
+}
+
+
+@media (min-width: 1600px) {
+  .cad-sidebar {
+    flex-basis: 294px !important;
+    width: 294px !important;
+    min-width: 294px !important;
+  }
+  .cad-inspector {
+    flex-basis: 352px !important;
+    width: 352px !important;
+    min-width: 352px !important;
+  }
+  .cad-workspace-content {
+    gap: 10px !important;
+    padding: 12px !important;
+  }
+}
+
+
+@media (prefers-reduced-motion: reduce) {
+  .cad-sidebar,
+  .cad-inspector,
+  .cad-tool-toggle button,
+  .studio-viewport-actions button {
+    transition: none !important;
+  }
+}
