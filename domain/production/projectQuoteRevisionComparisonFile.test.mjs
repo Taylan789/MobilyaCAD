@@ -176,7 +176,7 @@ test("comparison JSON export round-trip exact currency, source, Part IDs and edg
   assert.ok(serialized.json);
   const envelope = JSON.parse(serialized.json);
   assert.equal(envelope.fileType, PROJECT_QUOTE_REVISION_COMPARISON_FILE_TYPE);
-  assert.equal(envelope.schemaVersion, 1);
+  assert.equal(envelope.schemaVersion, 2);
   assert.deepEqual(envelope.comparison, original.comparison);
 
   const parsed = parseProjectQuoteRevisionComparisonFile(serialized.json);
@@ -189,6 +189,58 @@ test("comparison JSON export round-trip exact currency, source, Part IDs and edg
   assert.equal(parsed.comparison?.lineChanges[1].to.edgeDirection, "right");
   assert.equal(parsed.comparison?.lineChanges[2].from.tariffId, "labor-hourly");
   assertQuoteAdjustmentProvenance(parsed.comparison);
+});
+
+test("legacy JSON v1 comparisons remain readable without catalog resource metadata", () => {
+  const original = readyComparisonResult();
+  const legacyEnvelope = {
+    fileType: PROJECT_QUOTE_REVISION_COMPARISON_FILE_TYPE,
+    schemaVersion: 1,
+    comparison: original.comparison
+  };
+  const parsed = parseProjectQuoteRevisionComparisonFile(JSON.stringify(legacyEnvelope));
+  assert.equal(parsed.status, "ready");
+  assert.equal(parsed.file.schemaVersion, 1);
+  assert.deepEqual(parsed.comparison, original.comparison);
+});
+
+test("JSON v2 preserves complete catalog resource identity and rejects partial or mismatched metadata", () => {
+  const original = readyComparisonResult();
+  const materialChange = original.comparison.lineChanges[0];
+  for (const line of [materialChange.from, materialChange.to]) {
+    line.resourceType = "material";
+    line.resourceId = "mdf-18";
+    line.resourceUnit = "m2";
+  }
+  const edgeBandLine = original.comparison.lineChanges[1].to;
+  edgeBandLine.resourceType = "edge-banding";
+  edgeBandLine.resourceId = "pvc-1";
+  edgeBandLine.resourceUnit = "mm";
+  const serialized = serializeProjectQuoteRevisionComparisonFile(original);
+  assert.equal(serialized.status, "ready", serialized.diagnostics.join("; "));
+  assert.equal(JSON.parse(serialized.json).schemaVersion, 2);
+  const parsed = parseProjectQuoteRevisionComparisonFile(serialized.json);
+  assert.equal(parsed.status, "ready");
+  assert.deepEqual(parsed.comparison, original.comparison);
+  assert.equal(parsed.comparison.lineChanges[1].to.resourceId, "pvc-1");
+
+  const partial = structuredClone(original);
+  delete partial.comparison.lineChanges[0].to.resourceId;
+  assert.equal(serializeProjectQuoteRevisionComparisonFile(partial).status, "blocked");
+  const mismatched = structuredClone(original);
+  mismatched.comparison.lineChanges[0].to.resourceUnit = "kg";
+  assert.equal(serializeProjectQuoteRevisionComparisonFile(mismatched).status, "blocked");
+
+  const legacyWithMetadata = structuredClone(original);
+  legacyWithMetadata.comparison.lineChanges[0].to.resourceType = "material";
+  legacyWithMetadata.comparison.lineChanges[0].to.resourceId = "mdf-18";
+  legacyWithMetadata.comparison.lineChanges[0].to.resourceUnit = "m2";
+  const legacyParse = parseProjectQuoteRevisionComparisonFile(JSON.stringify({
+    fileType: PROJECT_QUOTE_REVISION_COMPARISON_FILE_TYPE,
+    schemaVersion: 1,
+    comparison: legacyWithMetadata.comparison
+  }));
+  assert.equal(legacyParse.status, "blocked");
 });
 
 test("comparison JSON preserves mm and m as distinct added/removed lines without conversion", () => {
@@ -261,7 +313,7 @@ test("unknown fields and unsupported comparison versions are rejected during par
   assert.equal(unknownResult.comparison, null);
 
   const unsupported = JSON.parse(valid.json);
-  unsupported.schemaVersion = 2;
+  unsupported.schemaVersion = 3;
   const unsupportedResult = parseProjectQuoteRevisionComparisonFile(JSON.stringify(unsupported));
   assert.equal(unsupportedResult.status, "blocked");
   assert.equal(unsupportedResult.comparison, null);
@@ -351,6 +403,12 @@ test("DOM-072 immutable revision comparison carries roll purchase provenance and
   assert.equal(rollChange.from.rollLengthMm, 100000);
   assert.equal(rollChange.from.purchasedLengthMm, 200000);
   assert.deepEqual(rollChange.from.furnitureIds, ["cabinet-a"]);
+  assert.equal(rollChange.from.resourceType, "edge-banding");
+  assert.equal(rollChange.from.resourceId, "pvc-a");
+  assert.equal(rollChange.from.resourceUnit, "rulo");
+  assert.equal(rollChange.to.resourceType, "edge-banding");
+  assert.equal(rollChange.to.resourceId, "pvc-a");
+  assert.equal(rollChange.to.resourceUnit, "rulo");
   assert.equal(rollChange.from.planSourceReference, "roll-spec:v1");
   assert.equal(rollChange.from.priceSourceReference, "roll-prices:v1");
   assert.equal(rollChange.to.rollCount, 3);

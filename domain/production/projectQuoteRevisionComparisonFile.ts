@@ -10,7 +10,7 @@ export const PROJECT_QUOTE_REVISION_COMPARISON_FILE_TYPE = "mobilyacad-quote-rev
 
 export interface ProjectQuoteRevisionComparisonFile {
   fileType: typeof PROJECT_QUOTE_REVISION_COMPARISON_FILE_TYPE;
-  schemaVersion: 1;
+  schemaVersion: 1 | 2;
   comparison: ProjectQuoteRevisionComparison;
 }
 
@@ -34,13 +34,15 @@ const comparisonKeys = new Set([
   "toGrandTotalMinor", "grandTotalDeltaMinor", "categoryDeltasMinor", "lineChanges"
 ]);
 const lineChangeKeys = new Set(["type", "from", "to"]);
-const lineKeys = new Set([
+const baseLineKeys = new Set([
   "category", "description", "quantity", "unit", "unitPriceMinor",
   "lineTotalMinor", "currencyCode", "sourceReference", "sourceType",
   "sourceId", "tariffId", "sourcePartIds", "edgeDirection",
   "rollCount", "rollLengthMm", "purchasedLengthMm", "furnitureIds",
   "planSourceReference", "priceSourceReference"
 ]);
+const resourceLineKeys = new Set(["resourceType", "resourceId", "resourceUnit"]);
+const lineKeysV2 = new Set([...baseLineKeys, ...resourceLineKeys]);
 const categories: readonly ProjectQuoteCostCategory[] = [
   "material", "hardware", "labor", "operation", "waste", "profit"
 ];
@@ -145,9 +147,9 @@ function requireRollLengthTenths(value: unknown, label: string, maximumMm?: numb
   return tenths;
 }
 
-function validateLine(value: unknown, currencyCode: string): ProjectQuoteRevisionCostLineSnapshot {
+function validateLine(value: unknown, currencyCode: string, allowResourceIdentity: boolean): ProjectQuoteRevisionCostLineSnapshot {
   if (!isRecord(value)) throw new Error("Teklif fark satırı geçerli bir nesne olmalıdır.");
-  requireAllowedKeys(value, lineKeys, "Teklif fark satırı");
+  requireAllowedKeys(value, allowResourceIdentity ? lineKeysV2 : baseLineKeys, "Teklif fark satırı");
   requireRequiredKeys(value, new Set([
     "category", "description", "quantity", "unit", "unitPriceMinor",
     "lineTotalMinor", "currencyCode", "sourceType", "sourceId"
@@ -189,6 +191,23 @@ function validateLine(value: unknown, currencyCode: string): ProjectQuoteRevisio
     : requireText(value.edgeDirection, "Kenar yönü", 16);
   if (edgeDirection !== undefined && (!edgeDirections.has(edgeDirection) || category !== "material")) {
     throw new Error("Kenar yönü yalnızca desteklenen material satırlarında kullanılabilir.");
+  }
+  const hasResourceMetadata = [...resourceLineKeys].some(key => Object.prototype.hasOwnProperty.call(value, key));
+  let resourceType: ProjectQuoteRevisionCostLineSnapshot["resourceType"] | undefined;
+  let resourceId: string | undefined;
+  let resourceUnit: string | undefined;
+  if (hasResourceMetadata) {
+    if (!allowResourceIdentity) throw new Error("Katalog kaynak metadata'sı yalnızca JSON v2 satırlarında kullanılabilir.");
+    requireRequiredKeys(value, resourceLineKeys, "Katalog kaynak metadata'sı");
+    if (value.resourceType !== "material" && value.resourceType !== "edge-banding") {
+      throw new Error("Katalog kaynak türü material veya edge-banding olmalıdır.");
+    }
+    resourceType = value.resourceType;
+    resourceId = requireIdentifier(value.resourceId, "Katalog kaynak kimliği");
+    resourceUnit = requireText(value.resourceUnit, "Katalog kaynak birimi", 32);
+    if (category !== "material" || resourceUnit !== unit) {
+      throw new Error("Katalog kaynak türü/birimi teklif satırı kategori ve birimiyle uyuşmalıdır.");
+    }
   }
 
   const hasRollMetadata = [...rollMetadataKeys].some(key => Object.prototype.hasOwnProperty.call(value, key));
@@ -240,6 +259,9 @@ function validateLine(value: unknown, currencyCode: string): ProjectQuoteRevisio
     ...(sourceReference === undefined ? {} : { sourceReference }),
     sourceType,
     sourceId,
+    ...(resourceType === undefined ? {} : { resourceType }),
+    ...(resourceId === undefined ? {} : { resourceId }),
+    ...(resourceUnit === undefined ? {} : { resourceUnit }),
     ...(tariffId === undefined ? {} : { tariffId }),
     ...(sourcePartIds === undefined ? {} : { sourcePartIds }),
     ...(edgeDirection === undefined ? {} : { edgeDirection: edgeDirection as ProjectQuoteRevisionCostLineSnapshot["edgeDirection"] }),
@@ -269,11 +291,14 @@ function sameChangedLineIdentity(
     sameOptionalArray(from.sourcePartIds, to.sourcePartIds) &&
     from.edgeDirection === to.edgeDirection &&
     sameOptionalArray(from.furnitureIds, to.furnitureIds) &&
+    from.resourceType === to.resourceType &&
+    from.resourceId === to.resourceId &&
+    from.resourceUnit === to.resourceUnit &&
     (from.edgeDirection !== undefined || from.description === to.description)
   );
 }
 
-function validateComparison(value: unknown): ProjectQuoteRevisionComparison {
+function validateComparison(value: unknown, allowResourceIdentity: boolean): ProjectQuoteRevisionComparison {
   if (!isRecord(value)) throw new Error("Teklif revizyon karşılaştırması geçerli bir nesne olmalıdır.");
   requireExactKeys(value, comparisonKeys, "Teklif revizyon karşılaştırması");
   if (value.schemaVersion !== 1) throw new Error("Desteklenmeyen teklif karşılaştırma sürümü.");
@@ -326,8 +351,8 @@ function validateComparison(value: unknown): ProjectQuoteRevisionComparison {
     if (type === "changed" && (entry.from === null || entry.to === null)) {
       throw new Error("Değişen satır her iki revizyonda da bulunmalıdır.");
     }
-    const from = entry.from === null ? null : validateLine(entry.from, currencyCode);
-    const to = entry.to === null ? null : validateLine(entry.to, currencyCode);
+    const from = entry.from === null ? null : validateLine(entry.from, currencyCode, allowResourceIdentity);
+    const to = entry.to === null ? null : validateLine(entry.to, currencyCode, allowResourceIdentity);
     if (type === "changed" && from !== null && to !== null && !sameChangedLineIdentity(from, to)) {
       throw new Error("Değişen satırın kaynak, kategori, birim, yön veya Part kimliği sabit kalmalıdır.");
     }
@@ -379,10 +404,10 @@ export function serializeProjectQuoteRevisionComparisonFile(
     if (!Array.isArray(resultValue.diagnostics) || resultValue.diagnostics.length !== 0) {
       throw new Error("Hazır teklif karşılaştırması tanı/engel içermemelidir.");
     }
-    const comparison = validateComparison(resultValue.comparison);
+    const comparison = validateComparison(resultValue.comparison, true);
     const file: ProjectQuoteRevisionComparisonFile = {
       fileType: PROJECT_QUOTE_REVISION_COMPARISON_FILE_TYPE,
-      schemaVersion: 1,
+      schemaVersion: 2,
       comparison
     };
     const json = JSON.stringify(file);
@@ -393,7 +418,7 @@ export function serializeProjectQuoteRevisionComparisonFile(
   }
 }
 
-/** Parses the strict v1 comparison envelope and rejects unsupported fields or versions. */
+/** Parses strict legacy JSON v1 or resource-aware JSON v2 comparison envelopes. */
 export function parseProjectQuoteRevisionComparisonFile(
   jsonValue: unknown
 ): ProjectQuoteRevisionComparisonFileParseResult {
@@ -410,11 +435,12 @@ export function parseProjectQuoteRevisionComparisonFile(
     if (parsed.fileType !== PROJECT_QUOTE_REVISION_COMPARISON_FILE_TYPE) {
       throw new Error("Dosya türü MobilyaCAD teklif karşılaştırması değildir.");
     }
-    if (parsed.schemaVersion !== 1) throw new Error("Desteklenmeyen teklif karşılaştırma JSON sürümü.");
-    const comparison = deepFreeze(validateComparison(parsed.comparison));
+    if (parsed.schemaVersion !== 1 && parsed.schemaVersion !== 2) throw new Error("Desteklenmeyen teklif karşılaştırma JSON sürümü.");
+    const schemaVersion = parsed.schemaVersion as 1 | 2;
+    const comparison = deepFreeze(validateComparison(parsed.comparison, schemaVersion === 2));
     const file = deepFreeze({
       fileType: PROJECT_QUOTE_REVISION_COMPARISON_FILE_TYPE,
-      schemaVersion: 1 as const,
+      schemaVersion,
       comparison
     });
     return Object.freeze({ status: "ready" as const, file, comparison, diagnostics: Object.freeze([]) });

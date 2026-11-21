@@ -849,6 +849,9 @@ export interface ProjectQuoteRevisionCostLineSnapshot {
   sourceReference?: string;
   sourceType: ProjectQuoteLineSource["sourceType"];
   sourceId: string;
+  resourceType?: ProjectQuoteLineSource["resourceType"];
+  resourceId?: string;
+  resourceUnit?: string;
   tariffId?: string;
   sourcePartIds?: readonly string[];
   edgeDirection?: ProjectCostLineEdgeDirection;
@@ -905,6 +908,9 @@ function createRevisionComparisonLineSnapshot(
     ...(line.sourceReference === undefined ? {} : { sourceReference: line.sourceReference }),
     sourceType: source.sourceType,
     sourceId: source.sourceId,
+    ...(source.resourceType === undefined ? {} : { resourceType: source.resourceType }),
+    ...(source.resourceId === undefined ? {} : { resourceId: source.resourceId }),
+    ...(source.unit === undefined ? {} : { resourceUnit: source.unit }),
     ...(source.tariffId === undefined ? {} : { tariffId: source.tariffId }),
     ...(source.sourcePartIds === undefined ? {} : { sourcePartIds: [...source.sourcePartIds] }),
     ...(line.edgeDirection === undefined ? {} : { edgeDirection: line.edgeDirection }),

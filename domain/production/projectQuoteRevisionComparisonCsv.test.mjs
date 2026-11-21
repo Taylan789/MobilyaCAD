@@ -126,6 +126,19 @@ function readyComparisonResult() {
   };
 }
 
+test("CSV v2 fails closed when catalog resource metadata would be lost", () => {
+  const original = readyComparisonResult();
+  for (const line of [original.comparison.lineChanges[0].from, original.comparison.lineChanges[0].to]) {
+    line.resourceType = "material";
+    line.resourceId = "mdf-18";
+    line.resourceUnit = "m2";
+  }
+  const blocked = serializeProjectQuoteRevisionComparisonCsv(original);
+  assert.equal(blocked.status, "blocked");
+  assert.equal(blocked.csv, null);
+  assert.match(blocked.diagnostics[0], /katalog kaynak metadata/);
+});
+
 test("CSV v2 has stable columns and round-trips exact comparison metadata", () => {
   const original = readyComparisonResult();
   const serialized = serializeProjectQuoteRevisionComparisonCsv(original);

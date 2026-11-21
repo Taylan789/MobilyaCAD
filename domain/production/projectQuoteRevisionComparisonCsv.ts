@@ -320,6 +320,13 @@ export function serializeProjectQuoteRevisionComparisonCsv(
     return blockedSerialization(parsedFile.diagnostics[0] ?? "Teklif karşılaştırması CSV için doğrulanamadı.");
   }
   const comparison = parsedFile.comparison;
+  const hasCatalogResourceMetadata = comparison.lineChanges.some(change =>
+    [change.from, change.to].some(line => line !== null &&
+      (line.resourceType !== undefined || line.resourceId !== undefined || line.resourceUnit !== undefined))
+  );
+  if (hasCatalogResourceMetadata) {
+    return blockedSerialization("CSV v2 katalog kaynak metadata'sını taşıyamaz; veri kaybını önlemek için export engellendi.");
+  }
   const records: unknown[][] = [
     [...columns],
     [...metaValues(comparison, "total"), "", "", "", ...blankLineValues()]

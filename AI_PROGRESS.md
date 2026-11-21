@@ -1890,3 +1890,13 @@
 - **Test site:** Pages [#44830602182](https://github.com/Taylan789/MobilyaCAD/actions/runs/44830602182) successful; deployment completed for this code SHA. [Live test site](https://taylan789.github.io/MobilyaCAD/). This domain-only change does not visually redesign the frontend.
 - **AI Developer:** run [#44814337311](https://github.com/Taylan789/MobilyaCAD/actions/runs/44814337311) failed with OpenRouter free-model daily 429. No active run; rerun is deferred until the daily limit resets (03:00 TRT). Integration/performance specialist job was skipped; no active specialist branch/PR was evidenced.
 - **Next:** DOM-078C strict comparison JSON v2/CSV v3 resource metadata and legacy parsing; then DOM-079 safe revision-history import. UI and integration/performance ownership remains isolated.
+
+
+## 21 Kasım 2026 02:56 TRT — DOM-078C JSON v2 catalog resource metadata (code delivery; Actions pending)
+
+- **Code slice:** comparison snapshots expose resource type, resource ID and resource unit; JSON serializer emits strict outer envelope v2. Nested comparison schema remains v1. Legacy JSON v1 is readable only without resource metadata.
+- **Validation:** resource metadata must be complete, catalog ID valid, type material/edge-banding, and resource unit equal the line unit. Changed lines must keep resource identity; resource swaps remain added/removed. CSV v2 blocks metadata-bearing comparisons to prevent loss until DOM-078D.
+- **Files:** domain/production/projectQuoteRevision.ts, projectQuoteRevisionComparisonFile.ts and tests, PRODUCT_ROADMAP.md, AI_COORDINATION.md, AI_PROGRESS.md. No frontend, adapter/performance-owned or machine-specific files touched.
+- **Acceptance tests added:** JSON v2 resource metadata round-trip, real roll resource identity, legacy v1 read, partial/mismatched metadata rejection and v1 metadata rejection. GitHub Actions pending; no local Node/TypeScript run available.
+- **Commit SHA/CI/QA/Pages:** pending. Test site: https://taylan789.github.io/MobilyaCAD/
+- **Next:** DOM-078D strict CSV v3 resource metadata plus v1/v2 readers and round-trip tests. No UI download wiring is implied.
