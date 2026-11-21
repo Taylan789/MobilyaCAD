@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  parseProjectQuoteRevisionComparisonFile,
+  serializeProjectQuoteRevisionComparisonFile,
   PROJECT_QUOTE_REVISION_COMPARISON_FILE_MAX_BYTES,
   PROJECT_QUOTE_REVISION_COMPARISON_MAX_LINE_CHANGES
 } from "./projectQuoteRevisionComparisonFile.ts";
@@ -535,4 +537,49 @@ test("DOM-072 legacy CSV v1 without roll metadata remains readable", () => {
   assert.equal(parsed.status, "ready");
   assert.deepEqual(parsed.comparison, original.comparison);
   assert.equal(parsed.comparison.lineChanges.length, 0);
+});
+
+
+test("DOM-100 JSON v2 and CSV v3 preserve comparison data across cross-format round-trips and fail closed", () => {
+  const original = readyComparisonResult();
+  for (const line of [original.comparison.lineChanges[0].from, original.comparison.lineChanges[0].to]) {
+    line.resourceType = "material";
+    line.resourceId = "mdf-18";
+    line.resourceUnit = "m2";
+  }
+  const edgeBandLine = original.comparison.lineChanges[1].to;
+  edgeBandLine.resourceType = "edge-banding";
+  edgeBandLine.resourceId = "pvc-1";
+  edgeBandLine.resourceUnit = "mm";
+
+  const jsonExport = serializeProjectQuoteRevisionComparisonFile(original);
+  assert.equal(jsonExport.status, "ready", jsonExport.diagnostics.join("; "));
+  assert.equal(JSON.parse(jsonExport.json).schemaVersion, 2);
+  const jsonImport = parseProjectQuoteRevisionComparisonFile(jsonExport.json);
+  assert.equal(jsonImport.status, "ready", jsonImport.diagnostics.join("; "));
+  assert.deepEqual(jsonImport.comparison, original.comparison);
+
+  const csvExport = serializeProjectQuoteRevisionComparisonCsv(jsonImport);
+  assert.equal(csvExport.status, "ready", csvExport.diagnostics.join("; "));
+  assert.ok(csvExport.csv);
+  assert.equal(PROJECT_QUOTE_REVISION_COMPARISON_CSV_VERSION, 3);
+  const csvImport = parseProjectQuoteRevisionComparisonCsv(csvExport.csv);
+  assert.equal(csvImport.status, "ready", csvImport.diagnostics.join("; "));
+  assert.deepEqual(csvImport.comparison, original.comparison);
+
+  const jsonFromCsv = serializeProjectQuoteRevisionComparisonFile(csvImport);
+  assert.equal(jsonFromCsv.status, "ready", jsonFromCsv.diagnostics.join("; "));
+  const finalJsonImport = parseProjectQuoteRevisionComparisonFile(jsonFromCsv.json);
+  assert.equal(finalJsonImport.status, "ready", finalJsonImport.diagnostics.join("; "));
+  assert.deepEqual(finalJsonImport.comparison, original.comparison);
+
+  const corruptedCsv = csvExport.csv.replaceAll(
+    '"MobilyaCADQuoteRevisionComparisonCsv","3","line"',
+    '"MobilyaCADQuoteRevisionComparisonCsv","4","line"'
+  );
+  assert.notEqual(corruptedCsv, csvExport.csv);
+  const rejectedCsv = parseProjectQuoteRevisionComparisonCsv(corruptedCsv);
+  assert.equal(rejectedCsv.status, "blocked");
+  assert.equal(rejectedCsv.comparison, null);
+  assert.ok(rejectedCsv.diagnostics.length > 0);
 });

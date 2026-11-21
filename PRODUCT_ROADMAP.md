@@ -260,8 +260,17 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 ## Sıradaki 3 küçük görev — domain sahipliği
 
 1. DOM-099 DONE — CSV import/export 1 MiB UTF-8 payload ve 2.000 satır fark limiti; eski CSV v1/v2/v3 korundu. [CI #44958138720](https://github.com/Taylan789/MobilyaCAD/actions/runs/44958138720), [QA #44958138801](https://github.com/Taylan789/MobilyaCAD/actions/runs/44958138801), [Pages #44958138729](https://github.com/Taylan789/MobilyaCAD/actions/runs/44958138729) passed.
-2. DOM-100 PLANNED — JSON v2/CSV v3 karşılaştırma import/export çapraz format eşitliği ve malformed payload fail-closed testleri.
-3. INT-001 FRONTEND-OWNED — karşılaştırma download ve üretim raporu adapter sözleşmesi; frontend dosyaları ürün ajanı tarafından değiştirilmez.
+2. DOM-100 IMPLEMENTED — JSON v2 → CSV v3 → JSON v2 çapraz format round-trip ve bozulmuş CSV satır sürümü için fail-closed test; exact-SHA Actions pending.
+3. DOM-101 PLANNED — adversarial CSV quoting/record-boundary ve UTF-8/byte-limit kombinasyonları.
+4. INT-001 FRONTEND-OWNED — karşılaştırma download ve üretim raporu adapter sözleşmesi; frontend dosyaları ürün ajanı tarafından değiştirilmez.
+
+## DOM-100 — JSON v2 / CSV v3 çapraz format bütünlüğü (IMPLEMENTED, Actions pending)
+
+- JSON v2 comparison, CSV v3'e dönüştürülüp tekrar parse edilir; ardından CSV'den JSON v2'ye dönüp parse edilen comparison nesnesi kaynakla birebir karşılaştırılır.
+- Test katalog malzeme/kenar bandı kimlikleri ve birimleri ile Part/kaynak metadatasını korumayı doğrular.
+- CSV line-row sürümünün bozulması import'u blocked yapmalı ve kısmi comparison döndürmemelidir.
+- Kod/test commit SHA ve exact-SHA CI/QA/Pages sonuçları doğrulama tamamlandıktan sonra AI_PROGRESS/roadmap/coordination'a eklenecek.
+- Next: DOM-101 adversarial CSV quoting/record-boundary tests; INT-001 frontend-owned adapter contract remains separate.
 
 ## Üretim güvenliği ve karar sınırları
 

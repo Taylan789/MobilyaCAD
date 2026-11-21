@@ -1,3 +1,12 @@
+## 22 Kasım 2026 02:29 TRT — DOM-100 IMPLEMENTED, Actions pending
+
+- JSON v2 comparison → CSV v3 export/import → JSON v2 export/import cross-format exact equality test added; resource/catalog identity, units and Part provenance are included.
+- Invalid CSV line-row format version must fail closed with `status=blocked`, `comparison=null`.
+- **Commit SHA:** recorded in the follow-up verification after commit creation. **Local tests:** not run in this runtime; exact-SHA GitHub Actions is the verification source.
+- Changed: `domain/production/projectQuoteRevisionComparisonCsv.test.mjs`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`, `AI_COORDINATION.md`.
+- Next: inspect exact-SHA CI/QA/Pages results; then DOM-101 adversarial CSV quoting/record boundaries.
+
+
 ## 22 Kasım 2026 00:15 TRT — DOM-097 VERIFIED
 
 - Fractional hardware quantity and labor/operation tariff revisions reconcile rounded line/category/grand totals over r1→r3; exact JSON v2/CSV v3 round-trip is covered.
