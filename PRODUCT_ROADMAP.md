@@ -8,7 +8,7 @@ MobilyaCAD'i tarayıcıda çalışan bir 3D mobilya yerleşim aracından; parame
 
 Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarılan veriler aynı kaynak parametreleri kullanmalı. Fiziksel üretime giden ölçüler, bağlantılar ve CNC işlemleri ancak gerçek üretici/atölye standardı doğrulandığında onaylı kabul edilebilir.
 
-## Doğrulanmış mevcut temel — 18 Kasım 2026
+## Doğrulanmış mevcut temel — 21 Kasım 2026
 
 | Alan | Mevcut durum | Sınır |
 |---|---|---|
@@ -24,7 +24,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 | Malzeme kataloğu | UI CRUD; mobilya varsayılan materialId ve çekmece grubunda varsayılan + dört panel grubu override; domain gövde/kitaplık motorları altı gövde panel grubu için malzeme override'ını doğrular | Gövde panel override'ları henüz frontend JSON v1/CSV ve UI akışına bağlanmadı; fiyat, tedarikçi ve fire henüz yok |
 | Proje dosyası | Yerel JSON v1 indirme/yükleme; saf serializer/parser; round-trip ve eski v1 uyumluluk; mm, mobilya ve çekmece grubu katalog referansları ile dört çekmece panel kalınlığının doğrulanması | Şema migrasyonu, otomatik kayıt ve kurtarma yok |
 | Teklif/maliyet | Kullanıcı fiyat tablosu malzeme tüketimini materialId + m2, donanımı hardwareId + özgün BOM birimi, kenar bandını edgeBandingId + açık mm/m birimi ile fiyatlandırır; kullanıcı girdili işçilik/operasyon tarifesi, tek para birimli birleşik teklif ve tarihli fiyat/tarife katalog snapshot'ı, DOM-014 doğrulanmış immutable append ve DOM-015 ortak satır aritmetiği doğrulaması vardır | Frontend/UI ve JSON v1/CSV kalıcı revizyon geçmişi entegrasyonu ayrı sahibindedir; tüm geçmişte ID tekilliği depolama katmanında doğrulanmalıdır; vergi, kur, iskonto, otomatik fire/kâr yüzdesi ve üretim onayı yok |
-| Test/CI | Verified code SHA [67d462fa](https://github.com/Taylan789/MobilyaCAD/commit/67d462fa26df55b8f717067d73dd654dd7075d0e): [CI #44793078331](https://github.com/Taylan789/MobilyaCAD/actions/runs/44793078331), [QA #44793078386](https://github.com/Taylan789/MobilyaCAD/actions/runs/44793078386), [Pages #44793078458](https://github.com/Taylan789/MobilyaCAD/actions/runs/44793078458) success | QA 124/124 frontend + 579/579 domain tests, strict shared-domain TS, lint 32 warnings/0 errors, production build and audit 0 vulnerabilities |
+| Test/CI | Verified code SHA [9258473e](https://github.com/Taylan789/MobilyaCAD/commit/9258473ebe4521ee1df5143c8215e1ab4772fb0f): [CI #44934335237](https://github.com/Taylan789/MobilyaCAD/actions/runs/44934335237), [QA #44934335265](https://github.com/Taylan789/MobilyaCAD/actions/runs/44934335265), [Pages #44934335205](https://github.com/Taylan789/MobilyaCAD/actions/runs/44934335205) all succeeded | QA 142/142 frontend + 614/614 domain tests, DOM-095 passed; strict shared-domain TS, lint 32 warnings/0 errors, production build and audit 0 vulnerabilities |
 
 ### Bilinen mimari ve veri boşlukları
 
@@ -924,4 +924,14 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - The comparison emits exactly one changed line; material-category and grand-total deltas both reconcile to **−8 minor units** with all other categories at zero. Strict JSON v2 and CSV v3 round-trip equality is asserted.
 - Test commit [3235df04](https://github.com/Taylan789/MobilyaCAD/commit/3235df04df6fc0d3e7c4937590f9c3ac8dd60bb5). CI [#44931241164](https://github.com/Taylan789/MobilyaCAD/actions/runs/44931241164), QA [#44931241180](https://github.com/Taylan789/MobilyaCAD/actions/runs/44931241180), and Pages [#44931241155](https://github.com/Taylan789/MobilyaCAD/actions/runs/44931241155) succeeded: **142 frontend + 613 domain tests**, strict domain TypeScript, lint 32 warnings / 0 errors, production build, audit 0 vulnerabilities.
 - Test site deployment verified: https://taylan789.github.io/MobilyaCAD/. Test-only regression; production pricing logic and frontend files unchanged.
-- Next 3: DOM-095 mixed-category three-revision price changes and totals; DOM-096 adversarial comparison JSON/CSV rejection without partial payload; INT-001 frontend/domain adapter contract and export integration (joint ownership; no frontend edits from this agent).
+- Next 3: DOM-096 adversarial comparison JSON/CSV rejection without partial payload; INT-001 frontend/domain adapter contract and export integration (joint ownership; no frontend edits from this agent); DOM-097 fractional hardware quantity and labor/operation revision reconciliation.
+
+## DOM-095 — Mixed-category three-revision quote comparison (VERIFIED, 21 November 2026)
+
+- r1→r3 comparison skips the intermediate r2 and reconciles a fractional material price reduction plus a new material line, hardware price increase, labor price increase, removed operation, waste reduction and unchanged profit.
+- Expected per-category deltas in minor units: material **+50**, hardware **+100**, labor **+50**, operation **−400**, waste **−200**, profit **0**; grand-total delta **−400**, equal to the sum of category deltas. Added/removed/changed counts (1/1/4) and Part provenance are asserted.
+- Exact JSON v2 and CSV v3 comparison round-trips are asserted. No production calculations, frontend or machine-specific output changed.
+- Test commit [9258473e](https://github.com/Taylan789/MobilyaCAD/commit/9258473ebe4521ee1df5143c8215e1ab4772fb0f); CI [#44934335237](https://github.com/Taylan789/MobilyaCAD/actions/runs/44934335237), QA [#44934335265](https://github.com/Taylan789/MobilyaCAD/actions/runs/44934335265), Pages [#44934335205](https://github.com/Taylan789/MobilyaCAD/actions/runs/44934335205) all succeeded.
+- QA: **142/142 frontend + 614/614 domain tests**, strict domain TypeScript, lint **32 warnings / 0 errors**, production build and production audit **0 vulnerabilities**. Test site deployment verified: https://taylan789.github.io/MobilyaCAD/.
+- Fixture correction: quote-adjustment sources are restricted to waste/profit; hardware/material use production-consumption sources and labor/operation use labor-operation sources. Corrected fixture passes exact-SHA QA.
+- Next: DOM-096 adversarial comparison import rejection, INT-001 domain/frontend contract, then DOM-097 fractional hardware and labor/operation reconciliation.

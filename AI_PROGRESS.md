@@ -1,3 +1,15 @@
+
+## 21 Kasım 2026 21:14 TRT — DOM-095 VERIFIED
+
+- **Test commit:** [9258473e](https://github.com/Taylan789/MobilyaCAD/commit/9258473ebe4521ee1df5143c8215e1ab4772fb0f); only domain/production/projectQuoteRevision.test.mjs changed for the feature slice.
+- **Coverage:** r1→r3 skips the middle r2, compares a 1.25 m² material line reduced 1000→800 minor units plus a 0.5 m² material addition at 600, hardware 250→300 with quantity 2, labor 200→250, operation removal (400), waste reduction 300→100, and unchanged profit.
+- **Reconciliation:** material +50, hardware +100, labor +50, operation −400, waste −200, profit 0; grand total −400. Added/removed/changed counts 1/1/4. Part provenance and exact JSON v2 / CSV v3 round-trip are asserted.
+- **Exact-SHA Actions:** CI [#44934335237](https://github.com/Taylan789/MobilyaCAD/actions/runs/44934335237), QA [#44934335265](https://github.com/Taylan789/MobilyaCAD/actions/runs/44934335265), and Pages [#44934335205](https://github.com/Taylan789/MobilyaCAD/actions/runs/44934335205) succeeded. QA: **142 frontend + 614 domain tests**, strict domain TS, lint 32 warnings/0 errors, production build, audit 0 vulnerabilities.
+- **Test site:** https://taylan789.github.io/MobilyaCAD/; exact-SHA deployment succeeded. No frontend, production engine or CNC output changed.
+- **Incident/recovery:** first Git tree commit [aca859e8](https://github.com/Taylan789/MobilyaCAD/commit/aca859e88ba6071c474001f2a0f04512811f6357) omitted the base tree. Immediate restoration commit [c97986a8](https://github.com/Taylan789/MobilyaCAD/commit/c97986a88bda5c9afac200ce382143795049396e) restored all **253 tree entries and 4 workflows**; no history rewrite was used. That restoration SHA's QA exposed invalid quote-adjustment categories, fixed in 9258473e; final exact-SHA CI/QA/Pages are green.
+- **AI Developer:** [run #44934045185](https://github.com/Taylan789/MobilyaCAD/actions/runs/44934045185) failed with “Unsupported event type: push”; previous run [#44924539196](https://github.com/Taylan789/MobilyaCAD/actions/runs/44924539196) hit OpenRouter free-model daily 429. No rerun (deterministic trigger/quota); no paid retry or secret/quota changes. Integration/performance specialist job skipped.
+- **Next:** DOM-096 malformed comparison JSON/CSV fail-closed tests; INT-001 adapter contract; DOM-097 fractional hardware and labor/operation revision reconciliation.
+
 ## 21 Kasım 2026 20:35 TRT — DOM-094 VERIFIED
 
 - **Test commit:** [3235df04](https://github.com/Taylan789/MobilyaCAD/commit/3235df04df6fc0d3e7c4937590f9c3ac8dd60bb5); regression in `domain/production/projectQuoteRevision.test.mjs`. Three-revision r1→r3 test verifies fractional quantity rounding, price reduction, and intermediate r2 isolation.
@@ -5,7 +17,7 @@
 - CI [#44931241164](https://github.com/Taylan789/MobilyaCAD/actions/runs/44931241164), QA [#44931241180](https://github.com/Taylan789/MobilyaCAD/actions/runs/44931241180), Pages [#44931241155](https://github.com/Taylan789/MobilyaCAD/actions/runs/44931241155) all succeeded: **142 frontend + 613 domain tests**, strict domain type-check, lint 32 warnings / 0 errors, production build, production audit 0 vulnerabilities.
 - **Test site:** https://taylan789.github.io/MobilyaCAD/; deployment verified. Regression-only slice; no production calculations or frontend files changed.
 - **Limits:** first QA attempts exposed test fixture source-ID expectations; corrected and reverified. AI Developer [#44924539196](https://github.com/Taylan789/MobilyaCAD/actions/runs/44924539196) remains blocked by OpenRouter free-model daily HTTP 429; no paid retry or quota/secrets change. Integration/performance lane skipped. UI PRs #140 and #141 are drafts; no visible frontend redesign is included in this domain slice.
-- **Next:** DOM-095 mixed-category comparison with reductions/additions; DOM-096 adversarial malformed comparison import; INT-001 adapter contract remains shared with frontend.
+- **Next:** DOM-096 adversarial comparison JSON/CSV rejection without partial payload; INT-001 adapter contract remains shared with frontend; DOM-097 fractional hardware quantity and labor/operation revision reconciliation.
 
 ## 21 Kasım 2026 19:27 TRT — DOM-093 VERIFIED
 
