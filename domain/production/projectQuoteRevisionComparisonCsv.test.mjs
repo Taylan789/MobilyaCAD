@@ -559,7 +559,11 @@ test("DOM-100 JSON v2 and CSV v3 preserve comparison data across cross-format ro
   assert.equal(jsonImport.status, "ready", jsonImport.diagnostics.join("; "));
   assert.deepEqual(jsonImport.comparison, original.comparison);
 
-  const csvExport = serializeProjectQuoteRevisionComparisonCsv(jsonImport);
+  const csvExport = serializeProjectQuoteRevisionComparisonCsv({
+    status: jsonImport.status,
+    diagnostics: jsonImport.diagnostics,
+    comparison: jsonImport.comparison
+  });
   assert.equal(csvExport.status, "ready", csvExport.diagnostics.join("; "));
   assert.ok(csvExport.csv);
   assert.equal(PROJECT_QUOTE_REVISION_COMPARISON_CSV_VERSION, 3);

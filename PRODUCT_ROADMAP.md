@@ -260,7 +260,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 ## Sıradaki 3 küçük görev — domain sahipliği
 
 1. DOM-099 DONE — CSV import/export 1 MiB UTF-8 payload ve 2.000 satır fark limiti; eski CSV v1/v2/v3 korundu. [CI #44958138720](https://github.com/Taylan789/MobilyaCAD/actions/runs/44958138720), [QA #44958138801](https://github.com/Taylan789/MobilyaCAD/actions/runs/44958138801), [Pages #44958138729](https://github.com/Taylan789/MobilyaCAD/actions/runs/44958138729) passed.
-2. DOM-100 IMPLEMENTED — JSON v2 → CSV v3 → JSON v2 çapraz format round-trip ve bozulmuş CSV satır sürümü için fail-closed test; exact-SHA Actions pending.
+2. DOM-100 IMPLEMENTED — ilk QA serializer envelope'daki `file` alanı nedeniyle başarısız; düzeltme commit edildi, exact-SHA Actions pending.
 3. DOM-101 PLANNED — adversarial CSV quoting/record-boundary ve UTF-8/byte-limit kombinasyonları.
 4. INT-001 FRONTEND-OWNED — karşılaştırma download ve üretim raporu adapter sözleşmesi; frontend dosyaları ürün ajanı tarafından değiştirilmez.
 
@@ -269,7 +269,8 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 - JSON v2 comparison, CSV v3'e dönüştürülüp tekrar parse edilir; ardından CSV'den JSON v2'ye dönüp parse edilen comparison nesnesi kaynakla birebir karşılaştırılır.
 - Test katalog malzeme/kenar bandı kimlikleri ve birimleri ile Part/kaynak metadatasını korumayı doğrular.
 - CSV line-row sürümünün bozulması import'u blocked yapmalı ve kısmi comparison döndürmemelidir.
-- Kod/test commit SHA ve exact-SHA CI/QA/Pages sonuçları doğrulama tamamlandıktan sonra AI_PROGRESS/roadmap/coordination'a eklenecek.
+- İlk commit [5f6b3b19](https://github.com/Taylan789/MobilyaCAD/commit/5f6b3b19d33a50942e61a43f5930d160dbed9d08): CI [#44962254296](https://github.com/Taylan789/MobilyaCAD/actions/runs/44962254296) başarılı; QA [#44962254281](https://github.com/Taylan789/MobilyaCAD/actions/runs/44962254281) başarısız (CSV serializer strict envelope `file` alanını reddetti); Pages [#44962254292](https://github.com/Taylan789/MobilyaCAD/actions/runs/44962254292) gate başarısız.
+- Test, JSON parser sonucu içinden serializer'ın izin verdiği alanları açıkça geçirerek düzeltildi; yeni exact-SHA CI/QA/Pages bekleniyor.
 - Next: DOM-101 adversarial CSV quoting/record-boundary tests; INT-001 frontend-owned adapter contract remains separate.
 
 ## Üretim güvenliği ve karar sınırları

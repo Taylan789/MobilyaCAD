@@ -1,3 +1,11 @@
+## 22 Kasım 2026 02:30 TRT — DOM-100 doğrulama düzeltmesi, Actions pending
+
+- İlk test commit'i [5f6b3b19](https://github.com/Taylan789/MobilyaCAD/commit/5f6b3b19d33a50942e61a43f5930d160dbed9d08): CI [#44962254296](https://github.com/Taylan789/MobilyaCAD/actions/runs/44962254296) passed; QA [#44962254281](https://github.com/Taylan789/MobilyaCAD/actions/runs/44962254281) failed at DOM-100. Root cause: strict CSV serializer rejects the JSON parser result's extra `file` envelope property. Pages [#44962254292](https://github.com/Taylan789/MobilyaCAD/actions/runs/44962254292) failed its CI/QA gate.
+- Correction now passes only `status`, `diagnostics`, and `comparison` to the CSV serializer; test logic and production behavior are not weakened.
+- Current correction commit SHA and exact-SHA Actions results will be recorded after branch update and verification. Local tests unavailable; GitHub Actions is the test source.
+- Next: exact-SHA CI/QA/Pages; if green, DOM-101 adversarial CSV quoting/record boundaries.
+
+
 ## 22 Kasım 2026 02:29 TRT — DOM-100 IMPLEMENTED, Actions pending
 
 - JSON v2 comparison → CSV v3 export/import → JSON v2 export/import cross-format exact equality test added; resource/catalog identity, units and Part provenance are included.

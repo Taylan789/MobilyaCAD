@@ -88,7 +88,7 @@ Bu dosya dört geliştirme/denetim rolünün ortak görev panosu ve entegrasyon 
 
 ## Sıradaki 3 görev — domain sahipliği
 
-1. DOM-100 IMPLEMENTED — JSON v2 ↔ CSV v3 çapraz format exact round-trip ve malformed row version fail-closed; exact-SHA Actions pending.
+1. DOM-100 IMPLEMENTED — ilk QA serializer envelope `file` alanı nedeniyle fail; test girdisi düzeltildi, exact-SHA CI/QA/Pages pending.
 2. DOM-101 PLANNED — adversarial CSV quoting/record-boundary ve UTF-8 byte limit kombinasyonları.
 3. INT-001 FRONTEND-OWNED — domain/arayüz export sözleşmesi ve download adapter; frontend koduna domain ajanı dokunmaz.
 
@@ -424,4 +424,4 @@ Bu dosya dört geliştirme/denetim rolünün ortak görev panosu ve entegrasyon 
 | DOM-097 | Fractional hardware quantity and labor/operation tariff changes reconcile line rounding, category totals and grand total across three revisions | Ürün Geliştirme | DONE | [code/test 56e00eef](https://github.com/Taylan789/MobilyaCAD/commit/56e00eefa5d8a29a77362bea10345a3b31586745); exact-SHA CI #44948272866, QA #44948272895, Pages #44948272855 succeeded; verified again with DOM-098 SHA | DOM-099
 | DOM-098 | Strict JSON comparison import/export resource limits: 1 MiB UTF-8 and 2,000 line changes; no partial payload | Ürün Geliştirme | DONE | [code commit 88bb19f](https://github.com/Taylan789/MobilyaCAD/commit/88bb19f441349563fb7c23fd858a2ba0df490755), [test correction 2ed95db](https://github.com/Taylan789/MobilyaCAD/commit/2ed95db6639a1f9bdb70cb95c5f9e156f6136e2e); exact-SHA CI #44950880826, QA #44950880888 (142 frontend + 620 domain, 0 audit vulnerabilities), Pages #44950880938 successful | DOM-099
 | DOM-099 | Bound quote comparison CSV parser to 1 MiB UTF-8 and 2,000 line-change rows; preserve legacy versions and fail closed | Ürün Geliştirme | DONE — [commit 24f945c](https://github.com/Taylan789/MobilyaCAD/commit/24f945c0dd05c2653daaacdba5361460f20883b6), [CI #44958138720](https://github.com/Taylan789/MobilyaCAD/actions/runs/44958138720), [QA #44958138801](https://github.com/Taylan789/MobilyaCAD/actions/runs/44958138801), [Pages #44958138729](https://github.com/Taylan789/MobilyaCAD/actions/runs/44958138729) successful — 142 frontend + 621 domain tests, strict TS/lint/build/audit | DOM-100
-| DOM-100 | JSON v2 ↔ CSV v3 comparison exact cross-format round-trip, resource/Part metadata preservation and corrupted row version fail-closed | Ürün Geliştirme | IMPLEMENTED — exact-SHA CI/QA/Pages pending | DOM-101
+| DOM-100 | JSON v2 ↔ CSV v3 comparison exact cross-format round-trip, resource/Part metadata preservation and corrupted row version fail-closed | Ürün Geliştirme | IMPLEMENTED — first QA failed on extra serializer envelope field; corrected test pending exact-SHA CI/QA/Pages | DOM-101
