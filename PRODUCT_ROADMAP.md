@@ -884,9 +884,10 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - Next: DOM-088 reordered-line/source mapping determinism; INT-001 remains frontend-owned and INT-002/PERF-001 specialist-owned.
 
 
-## DOM-090 — Three-revision quote comparison r1→r3 (implementation; Actions pending)
-- A three-revision history now exercises direct r1→r3 comparison, deliberately skipping intermediate r2 changes.
-- Assertions cover Part-scoped source provenance, one changed material line, one removed line, one added line, exact category/grand-total reconciliation, and strict comparison JSON v2 / CSV v3 round-trip.
-- Reverse revision order and an unknown revision ID must return blocked with no comparison payload.
-- No production calculation or frontend behavior changed; the existing comparison API is exercised with a complete three-revision chain.
-- Next: DOM-091 repeated-source line matching across revision history and deterministic output; keep integration/UI ownership boundaries intact.
+## DOM-090 — Three-revision quote comparison r1→r3 (VERIFIED, 21 November 2026)
+- Three-revision history compares r1 directly to r3, intentionally skipping r2; source Part IDs remain exact. A stable material line changes quantity, a second line is removed, and a third is added.
+- Material-category and grand-total deltas both reconcile to +800 TRY minor units; reverse-order and unknown revision selections are blocked with null comparison payload.
+- Strict comparison JSON v2 and CSV v3 round-trip equality are asserted. Test commit 41afe676.
+- Exact-SHA CI #44911402763 and QA #44911402703 succeeded. QA: 142 frontend + 609 domain tests, DOM-090 subtest passed, strict domain TypeScript, lint 32 warnings / 0 errors, production build, production audit 0 vulnerabilities.
+- Pages deployment #44911402698 succeeded on the same code SHA; test site: https://taylan789.github.io/MobilyaCAD/. No frontend or production calculation changed.
+- Next: DOM-091 deterministic pairing for repeated identical source lines across three revisions; preserve Part provenance and JSON/CSV output. UI PRs, integration/performance work, and AI Developer quota blocker remain separate.
