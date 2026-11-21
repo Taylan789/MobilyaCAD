@@ -1,0 +1,39 @@
+/* UI-VIEWPORT-TECHNICAL-FRAME-001 — passive precision frame for the live 3D canvas */
+.cad-viewport::after {
+  --cad-viewport-frame-mark: rgba(142, 181, 205, .68);
+  content: "";
+  position: absolute;
+  inset: 11px;
+  z-index: 2;
+  pointer-events: none;
+  border: 1px solid rgba(112, 151, 177, .13);
+  border-radius: 5px;
+  background:
+    linear-gradient(var(--cad-viewport-frame-mark), var(--cad-viewport-frame-mark)) top left / 18px 1px no-repeat,
+    linear-gradient(var(--cad-viewport-frame-mark), var(--cad-viewport-frame-mark)) top left / 1px 18px no-repeat,
+    linear-gradient(var(--cad-viewport-frame-mark), var(--cad-viewport-frame-mark)) top right / 18px 1px no-repeat,
+    linear-gradient(var(--cad-viewport-frame-mark), var(--cad-viewport-frame-mark)) top right / 1px 18px no-repeat,
+    linear-gradient(var(--cad-viewport-frame-mark), var(--cad-viewport-frame-mark)) bottom left / 18px 1px no-repeat,
+    linear-gradient(var(--cad-viewport-frame-mark), var(--cad-viewport-frame-mark)) bottom left / 1px 18px no-repeat,
+    linear-gradient(var(--cad-viewport-frame-mark), var(--cad-viewport-frame-mark)) bottom right / 18px 1px no-repeat,
+    linear-gradient(var(--cad-viewport-frame-mark), var(--cad-viewport-frame-mark)) bottom right / 1px 18px no-repeat;
+  transition: border-color 120ms ease;
+}
+
+.cad-viewport--drop-ready::after {
+  --cad-viewport-frame-mark: rgba(170, 211, 236, .92);
+  border-color: rgba(126, 184, 218, .52);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cad-viewport::after {
+    transition: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .cad-viewport::after {
+    border-color: CanvasText;
+    background: none;
+  }
+}
