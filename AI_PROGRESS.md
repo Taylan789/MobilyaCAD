@@ -37,3 +37,12 @@
 - Earlier iterations failed QA (DOM-091 repeated identity regression; duplicate-test diagnostic assertion; CSV metadata fixture). These were corrected and rerun; only final SHA is marked verified.
 - AI Developer [#44934045185](https://github.com/Taylan789/MobilyaCAD/actions/runs/44934045185) failed deterministically on unsupported \`push\` event; no rerun or paid/quota/secrets changes. Integration/performance lane skipped; UI PRs #140/#141 remain separate frontend ownership.
 - Next: DOM-097 fractional hardware + labor/operation reconciliation; INT-001 frontend/domain export contract; DOM-098 bounded comparison JSON import.
+
+## 21 Kasım 2026 23:44 TRT — DOM-097 IMPLEMENTED, Actions verification pending
+
+- **Code/test commit:** [56e00eef](https://github.com/Taylan789/MobilyaCAD/commit/56e00eefa5d8a29a77362bea10345a3b31586745); added regression coverage in `domain/production/projectQuoteRevision.test.mjs`.
+- **Coverage:** r1→r3 comparison includes fractional hardware quantity (1.25→2.5), existing labor quantity/tariff change (1.5 h × 2,400→1.75 h × 2,800), and operation change (0.125 h × 1,010→0.5 h × 1,020); the intermediate r2 is deliberately ignored.
+- **Expected reconciliation asserted:** hardware +1,000, labor +1,300, operation +384, grand total +2,684 minor currency units; line totals use the shared half-up rounding helper. Exact comparison JSON v2 and CSV v3 round-trip assertions included.
+- **Files:** only `domain/production/projectQuoteRevision.test.mjs` changed for code/test; no frontend, adapter/performance-owned file, production calculation or CNC output changed.
+- **Actions:** push CI/QA are configured for `dev/github-work`; this run could not retrieve the exact-SHA workflow run list, and the current combined status was empty. CI/QA therefore remain **unverified/pending**, not green. Test site https://taylan789.github.io/MobilyaCAD/ is not claimed updated; latest known verified deployment is Pages [#44943420330](https://github.com/Taylan789/MobilyaCAD/actions/runs/44943420330) on the DOM-096 SHA.
+- **Next:** verify DOM-097 exact-SHA CI/QA and Pages deployment; then DOM-098 bounded comparison JSON import rejection.
