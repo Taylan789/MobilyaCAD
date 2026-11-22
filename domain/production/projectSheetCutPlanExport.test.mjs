@@ -443,6 +443,12 @@ test("DOM-113 malformed or incomplete material conflict provenance fails closed"
       code: "invalid-material"
     },
     {
+      name: "null diagnostic furniture identity",
+      conflict: validConflict,
+      furnitureId: null,
+      code: "invalid-material"
+    },
+    {
       name: "non-material diagnostic code",
       conflict: validConflict,
       furnitureId: "cabinet-1",

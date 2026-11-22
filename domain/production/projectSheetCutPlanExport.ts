@@ -198,6 +198,9 @@ function readProductionDiagnostics(
         ...(materialIdentityConflict === undefined ? {} : { materialIdentityConflict })
       });
       if (materialIdentityConflict !== undefined) {
+        if (furnitureId === null) {
+          throw new Error("material identity conflict provenance furniture kimliği zorunludur.");
+        }
         const canonical = JSON.stringify(materialIdentityConflict);
         const sourceFurnitureIds = new Set(materialIdentityConflict.sources.map((item) => item.furnitureId));
         const existing = conflictCoverage.get(materialIdentityConflict.materialId);
