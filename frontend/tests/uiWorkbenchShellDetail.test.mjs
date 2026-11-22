@@ -20,3 +20,17 @@ test("shell detail styles retain reduced-motion and forced-colors accommodations
   assert.match(stylesheet, /forced-colors:\s*active/);
   assert.match(stylesheet, /CanvasText/);
 });
+
+test("scene hierarchy distinguishes selected objects, hidden items, and material provenance", () => {
+  assert.match(stylesheet, /\.cad-app \.studio-tree-object-select\.selected/);
+  assert.match(stylesheet, /\.cad-app \.studio-tree-object\.is-hidden/);
+  assert.match(stylesheet, /\.studio-tree-material-source\.is-missing/);
+  assert.match(stylesheet, /\.studio-tree-material-source\.is-custom/);
+});
+
+test("scene tree refinements retain reduced-motion and forced-colors support", () => {
+  assert.match(stylesheet, /\.studio-tree-object-parts\s*\{\s*animation:\s*none\s*!important/);
+  assert.match(stylesheet, /\.cad-app \.studio-tree-part\.selected/);
+  assert.match(stylesheet, /Canvas/);
+  assert.match(stylesheet, /Highlight/);
+});
