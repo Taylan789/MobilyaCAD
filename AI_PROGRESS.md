@@ -1,3 +1,13 @@
+## 22 Kasım 2026 07:07 TRT — DOM-104 VERIFIED
+
+- Repeated quote-comparison CSV exports from the same and equivalent deep-copy inputs are byte-identical. Regression coverage also verifies UTF-8 BOM, CRLF terminator, v3 parse equality, and no input mutation.
+- Serializer/schema unchanged; this is a behavior-contract test slice. Files: `domain/production/projectQuoteRevisionComparisonCsv.test.mjs`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`.
+- Code/test commit [614d559](https://github.com/Taylan789/MobilyaCAD/commit/614d559c902cc4038f9c177eaa31ce86045ef3fe). Exact-SHA CI [#44983853404](https://github.com/Taylan789/MobilyaCAD/actions/runs/44983853404), QA [#44983853400](https://github.com/Taylan789/MobilyaCAD/actions/runs/44983853400), and Pages [#44983853533](https://github.com/Taylan789/MobilyaCAD/actions/runs/44983853533) succeeded: **142 frontend + 629 domain tests**, strict domain TypeScript, lint 32 warnings/0 errors, production build, audit 0 vulnerabilities.
+- Test site deployment confirmed: https://taylan789.github.io/MobilyaCAD/. Local tests were unavailable; exact-SHA Actions passed.
+- AI Developer [#44972838278](https://github.com/Taylan789/MobilyaCAD/actions/runs/44972838278) failed on OpenRouter free-model daily HTTP 429; integration/performance job skipped. No rerun due explicit daily quota exhaustion, and no paid fallback/secrets/quota settings changed. No specialist integration/performance branch or PR was found.
+- UI PR [#145](https://github.com/Taylan789/MobilyaCAD/pull/145) is draft/unmerged; QA [#44975896881](https://github.com/Taylan789/MobilyaCAD/actions/runs/44975896881) succeeded. No visible frontend redesign deployed yet.
+- Next: DOM-105 legacy CSV v1/v2 import → canonical v3 export and metadata preservation/omission tests; INT-001, INT-002, PERF-001 remain agent-owned.
+
 ## 22 Kasım 2026 07:07 TRT — DOM-104 IN_PROGRESS
 
 - Added repeated quote-comparison CSV export regression coverage across three equivalent inputs: exact byte equality, BOM/CRLF contract, CSV v3 parser round-trip, and input immutability.
