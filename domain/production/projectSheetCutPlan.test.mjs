@@ -4,6 +4,7 @@ import { createProjectSheetNestingBatches } from "./projectSheetNestingBatches.t
 import { createProjectSheetCutPlan } from "./projectSheetCutPlan.ts";
 import { parseProjectSheetCutPlanJson } from "./projectSheetCutPlanFile.ts";
 import { calculateSheetNestingLayout } from "./sheetNestingLayout.ts";
+import { validateProjectPartSnapshot } from "./projectPartSnapshot.ts";
 
 function part(id, materialId, thickness, quantity, grainDirection, overrides = {}) {
   return {

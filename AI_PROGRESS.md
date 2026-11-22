@@ -317,3 +317,9 @@
 - **Next:** DOM-120 project cut-plan area-summary reconciliation; DOM-121 edge-band/material summary provenance; DOM-122 priced-consumption/quote total reconciliation.
 - **AI Developer:** run [#45075174069](https://github.com/Taylan789/MobilyaCAD/actions/runs/45075174069) failed on OpenRouter free-model daily 429. The reset is scheduled for 23 Nov 2026 03:00 TRT; do not rerun before reset. No paid fallback or quota/secrets changes.
 - **Test site:** latest verified deployment remains [#45074176186](https://github.com/Taylan789/MobilyaCAD/actions/runs/45074176186) for previous SHA; new deployment is pending. URL: https://taylan789.github.io/MobilyaCAD/.
+
+## 23 Kasım 2026 01:55 TRT — DOM-119 QA correction
+
+- **Initial verification:** CI [#45079989113](https://github.com/Taylan789/MobilyaCAD/actions/runs/45079989113) passed. QA [#45079989219](https://github.com/Taylan789/MobilyaCAD/actions/runs/45079989219) failed in the shared domain tests: 647 passed, 1 failed; the new test referenced `validateProjectPartSnapshot` without importing it.
+- **Correction:** added the missing test import. No production behavior was changed. The first Pages run [#45079989158](https://github.com/Taylan789/MobilyaCAD/actions/runs/45079989158) was still waiting for exact-SHA QA and is expected to be superseded by the corrected commit's deployment workflow.
+- **Correction commit:** pending SHA; new exact-SHA CI/QA/Pages runs are pending.

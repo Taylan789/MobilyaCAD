@@ -1155,7 +1155,7 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 
 - **Acceptance:** a ready mixed-material project plan reconciles each group with its matching nesting batch and canonical Part snapshot; source material/measure/grain/quantity remain intact; every physical piece number from 1..quantity is placed exactly once; group and project placement counts agree; excluded Parts remain snapshot-only and never enter placements.
 - **Scope:** domain cross-consumer regression in `domain/production/projectSheetCutPlan.test.mjs`; no production behavior, frontend, adapter/performance-owned files, schema, CNC output, or `main`.
-- **Verification:** exact-SHA CI/QA/Pages pending. Local tests unavailable; GitHub Actions is authoritative.
+- **Verification:** initial exact-SHA CI [#45079989113](https://github.com/Taylan789/MobilyaCAD/actions/runs/45079989113) passed; QA [#45079989219](https://github.com/Taylan789/MobilyaCAD/actions/runs/45079989219) found one missing test import (647/648). Import corrected; new exact-SHA CI/QA/Pages pending. Local tests unavailable; GitHub Actions is authoritative.
 - **Next:** DOM-120 project cut-plan area-summary reconciliation; DOM-121 edge-band/material summary provenance across mixed-family snapshots; DOM-122 quote-cost summary totals against priced-consumption source. INT-001 frontend-owned; INT-002/PERF-001 specialist-owned; QA-003 remains blocked until their evidence exists.
 
 ## 10/10 quality checklist — evidence-based status
