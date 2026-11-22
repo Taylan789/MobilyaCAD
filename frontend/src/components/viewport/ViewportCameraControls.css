@@ -178,3 +178,50 @@
     scroll-behavior: auto;
   }
 }
+
+
+/* Camera controls follow the usable viewport width, not the outer browser window. */
+.cad-viewport {
+  container-name: cad-viewport;
+  container-type: inline-size;
+}
+
+@container cad-viewport (max-width: 720px) {
+  .cad-viewport-camera-tools__label {
+    display: none;
+  }
+
+  .cad-viewport-camera-tools button {
+    min-width: 35px;
+    padding-inline: 7px;
+  }
+}
+
+@container cad-viewport (max-width: 560px) {
+  .cad-viewport-camera-tools {
+    gap: 2px;
+    padding: 3px;
+  }
+
+  .cad-viewport-camera-tools button {
+    min-width: 30px;
+    min-height: 28px;
+    gap: 0;
+    padding-inline: 5px;
+    font-size: 0;
+  }
+
+  .cad-viewport-camera-tools button > span {
+    display: none;
+  }
+
+  .cad-viewport-camera-tools button svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .cad-viewport-camera-tools__divider {
+    height: 17px;
+    margin-inline: 1px;
+  }
+}
