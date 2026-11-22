@@ -1,3 +1,12 @@
+## 22 Kasım 2026 21:38 TRT — DOM-115 VERIFIED
+
+- Test-only commit [d04b156](https://github.com/Taylan789/MobilyaCAD/commit/d04b156fdb49ff742659194cda3938df4c607fa1): blocked mixed-family conflict kaynak Part ID'leri unique set olarak karşılaştırılıyor ve her conflict diagnostic'in kaynak kapsamı ayrı doğrulanıyor. İki önceki QA başarısızlığı yalnız assertion beklentilerinden kaynaklandı; üretim tanı kodu değiştirilmedi.
+- Exact-SHA CI [#45056168193](https://github.com/Taylan789/MobilyaCAD/actions/runs/45056168193), QA [#45056168306](https://github.com/Taylan789/MobilyaCAD/actions/runs/45056168306), Pages [#45056168182](https://github.com/Taylan789/MobilyaCAD/actions/runs/45056168182) başarılı. QA: **165 frontend + 641 domain testi**, strict domain TypeScript, lint **32 warning / 0 error**, production build ve dependency audit **0 vulnerability**.
+- Test site deploy doğrulandı: https://taylan789.github.io/MobilyaCAD/. Frontend, production calculation source, adapter/performance-owned files, CNC output ve `main` değişmedi.
+- AI Developer [#45045107407](https://github.com/Taylan789/MobilyaCAD/actions/runs/45045107407) OpenRouter free-model günlük kotası HTTP 429 nedeniyle başarısız; specialist job skipped/disabled, ayrı specialist branch/PR doğrulanmadı. Paid fallback, secret veya quota değişikliği yapılmadı.
+- Next: DOM-116 ready nesting-batch selected/excluded Part snapshot ve material/thickness group consistency.
+
+
 ## 22 Kasım 2026 21:30 TRT — DOM-115 ikinci QA düzeltmesi, doğrulama bekliyor
 
 - [Commit 1324c78](https://github.com/Taylan789/MobilyaCAD/commit/1324c78c7bce82b4dff5bf60f567e2355deb3dec) CI [#45055923770](https://github.com/Taylan789/MobilyaCAD/actions/runs/45055923770) başarılı; QA [#45055923801](https://github.com/Taylan789/MobilyaCAD/actions/runs/45055923801) başarısız: 640 domain testi geçti, 1 DOM-115 assertion failed. İlk regex düzeltmesi geçti; yeni hata, her blocked-furniture tanısının aynı tam conflict kaynak listesini taşıması ve testin flatten edilmiş tekrarları tekil listeyle karşılaştırmasıydı.
