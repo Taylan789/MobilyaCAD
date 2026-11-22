@@ -595,7 +595,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 
 1. DOM-109 DONE — [commit a6d34fe](https://github.com/Taylan789/MobilyaCAD/commit/a6d34fe17bf7eddc26f2aac97373adb61e346d03); exact-SHA CI/QA and Pages succeeded (150 frontend + 635 domain tests).
 2. DOM-110 VERIFIED — mixed-family cabinet/bookshelf material summary (8/18 mm, quantity, Part provenance, area/volume/banding); exact-SHA CI [#45015876727](https://github.com/Taylan789/MobilyaCAD/actions/runs/45015876727), QA [#45015876733](https://github.com/Taylan789/MobilyaCAD/actions/runs/45015876733) passed; Pages [#45015876696](https://github.com/Taylan789/MobilyaCAD/actions/runs/45015876696) deployed.
-3. DOM-111 IN PROGRESS — fix multi-error diagnostics: conflicting material IDs must block every furniture source sharing the ID, and strict TS narrowing must remain valid; prior SHA failed CI/QA.
+3. DOM-111 VERIFIED — material-ID conflicts block all furniture contributors and diagnostics list all affected IDs; exact-SHA CI/QA/Pages successful (150 frontend + 637 domain, 0 audit vulnerabilities).
 4. INT-001 frontend-owned — comparison/download and production export adapter contract; document integration handoff only, no frontend edits.
 5. INT-002/PERF-001 specialist-owned — integration profiling/benchmark evidence; QA-003 remains blocked until INT-001 and specialist evidence are available.
 
@@ -1027,7 +1027,7 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - **Coverage:** Tabletop uses an explicit 8 mm catalog override, legs use the 60 mm group material, and aprons retain the default material. Snapshot serialize/validate/compare is unchanged; summary quantities, line counts, area and volume agree with resulting Parts.
 - **Scope:** Domain regression test in `domain/production/projectProduction.test.mjs` only; no production geometry, schema, frontend, adapter/performance-owned files or CNC output changed.
 - **Verification:** [commit 55d8e104](https://github.com/Taylan789/MobilyaCAD/commit/55d8e104d8842f48faad1b53f6e32230ec88eb89) verified with exact-SHA [CI #44999210991](https://github.com/Taylan789/MobilyaCAD/actions/runs/44999210991), [QA #44999210952](https://github.com/Taylan789/MobilyaCAD/actions/runs/44999210952), and [Pages #44999210947](https://github.com/Taylan789/MobilyaCAD/actions/runs/44999210947), all successful. QA unit/domain tests, strict domain TypeScript, lint (32 warnings, 0 errors), production build, and audit (0 vulnerabilities) passed. Local tests unavailable; Actions are the evidence. Test site updated: https://taylan789.github.io/MobilyaCAD/.
-- **Next:** DOM-111 corrective grouped catalogue identity diagnostics; then DOM-112 additive structured conflict provenance (catalog ID + all source Part/furniture IDs). INT-001 remains frontend-owned and INT-002/PERF-001 specialist-owned.
+- **Next:** DOM-112 additive structured conflict provenance (catalog ID + all source Part/furniture IDs), preserving diagnostic message compatibility. INT-001 remains frontend-owned; INT-002/PERF-001 specialist-owned.
 
 
 ## DOM-108 — Mixed-family material-reference fail-closed reconciliation (VERIFIED, 22 November 2026)
@@ -1057,14 +1057,14 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - Test site deployed: https://taylan789.github.io/MobilyaCAD/.
 - Next: DOM-111 stable multi-error diagnostics and source-wide blocking.
 
-## DOM-111 — Deterministic multi-error diagnostics (IN PROGRESS)
+## DOM-111 — Deterministic multi-error diagnostics (VERIFIED, 22 November 2026)
 
-- Prior exact-SHA CI/QA on [cf4efd38](https://github.com/Taylan789/MobilyaCAD/commit/cf4efd3841197b4fc8510b2c6a779d8341c47fb6) exposed optional materialId narrowing and pairwise-only blocking. Grouped correction [a84e371](https://github.com/Taylan789/MobilyaCAD/commit/a84e371253e647d0d2564089b324a7ee37b68b09) passed CI [#45027062785](https://github.com/Taylan789/MobilyaCAD/actions/runs/45027062785) but QA [#45027062707](https://github.com/Taylan789/MobilyaCAD/actions/runs/45027062707) failed 1/637: the diagnostic message listed conflicting label representatives but omitted the third furniture source sharing the material ID. Pages gate [#45027062794](https://github.com/Taylan789/MobilyaCAD/actions/runs/45027062794) failed/blocked.
-- This correction retains deterministic conflicting-label representatives and appends the sorted complete affected furniture-ID list to each conflict message. All contributors remain blocked, and the report still returns no partial Parts.
-- Exact-SHA verification for this correction pending; local execution unavailable.
-- **Next:** DOM-112 additive structured conflict provenance (material ID and all source furniture/Part IDs), retaining existing message compatibility.
+- Prior exact-SHA run on [cf4efd38](https://github.com/Taylan789/MobilyaCAD/commit/cf4efd3841197b4fc8510b2c6a779d8341c47fb6) exposed strict TypeScript narrowing and pairwise-only blocking. Intermediate [a84e371](https://github.com/Taylan789/MobilyaCAD/commit/a84e3712533b71bf360f9b3e1d62410d9f4345a2) passed CI but QA found an incomplete message; final correction [864f37d](https://github.com/Taylan789/MobilyaCAD/commit/864f37d2523b71bf360f9b3e1d62410d9f4345a2) narrows materialId, groups all Parts by ID, uses sorted label representatives, blocks every contributor, and lists all affected furniture IDs.
+- Exact-SHA CI [#45027201001](https://github.com/Taylan789/MobilyaCAD/actions/runs/45027201001), QA [#45027201043](https://github.com/Taylan789/MobilyaCAD/actions/runs/45027201043), and Pages [#45027200963](https://github.com/Taylan789/MobilyaCAD/actions/runs/45027200963) succeeded. QA: 150/150 frontend + 637/637 domain, strict TypeScript, lint 32 warnings/0 errors, production build and audit 0 vulnerabilities.
+- Test site deployment confirmed: https://taylan789.github.io/MobilyaCAD/.
+- **Next:** DOM-112 structured material conflict provenance (catalog ID and all source Part/furniture IDs) with backwards-compatible diagnostics.
 
 ## DOM-112 — Structured material-conflict source provenance (READY)
 
-- Acceptance: additive report fields expose catalogue ID and sorted source furniture/Part identities for consumers; legacy message text, atomic blocking, deterministic order and strict validation remain unchanged.
+- Acceptance: additive report fields expose catalogue ID and sorted source furniture/Part identities; legacy diagnostic messages, atomic blocking, deterministic order and strict validation remain unchanged.
 - Scope: domain report contract/tests and integration notes only; frontend-owned files remain untouched.
