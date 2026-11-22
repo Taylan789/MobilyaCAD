@@ -625,3 +625,121 @@ test("DOM-100 JSON v2 and CSV v3 preserve comparison data across cross-format ro
   assert.equal(rejectedCsv.comparison, null);
   assert.ok(rejectedCsv.diagnostics.length > 0);
 });
+
+test("DOM-102 CSV v1 round-trip preserves basic metadata without roll or resource columns", () => {
+  const original = emptyComparisonResult();
+  original.comparison.lineChanges = [
+    {
+      type: "changed",
+      from: {
+        category: "material", description: "MDF Lam 18", quantity: 2, unit: "m2",
+        unitPriceMinor: 2000, lineTotalMinor: 4000, currencyCode: "TRY",
+        sourceReference: "material-list-v1", sourceType: "production-consumption",
+        sourceId: "mdf-18", sourcePartIds: [], edgeDirection: "top"
+      },
+      to: {
+        category: "material", description: "MDF Lam 18", quantity: 2, unit: "m2",
+        unitPriceMinor: 2500, lineTotalMinor: 5000, currencyCode: "TRY",
+        sourceReference: "material-list-v2", sourceType: "production-consumption",
+        sourceId: "mdf-18", sourcePartIds: [], edgeDirection: "top"
+      }
+    },
+    {
+      type: "added", from: null,
+      to: {
+        category: "material", description: "Edge PVC", quantity: 250, unit: "mm",
+        unitPriceMinor: 1, lineTotalMinor: 250, currencyCode: "TRY",
+        sourceReference: "edge-catalog-mm-v1", sourceType: "production-consumption",
+        sourceId: "pvc-1", sourcePartIds: [], edgeDirection: "right"
+      }
+    }
+  ];
+  original.comparison.fromGrandTotalMinor = 4000;
+  original.comparison.toGrandTotalMinor = 5250;
+  original.comparison.grandTotalDeltaMinor = 1250;
+  original.comparison.categoryDeltasMinor = { material: 1250, hardware: 0, labor: 0, operation: 0, waste: 0, profit: 0 };
+
+  const current = serializeProjectQuoteRevisionComparisonCsv(original);
+  assert.equal(current.status, "ready", current.diagnostics.join("; "));
+  const legacy = toLegacyV1Csv(current.csv);
+  const parsed = parseProjectQuoteRevisionComparisonCsv(legacy);
+  assert.equal(parsed.status, "ready", parsed.diagnostics.join("; "));
+  assert.deepEqual(parsed.comparison, original.comparison);
+  assert.equal(parsed.comparison.lineChanges[0].from.unit, "m2");
+  assert.equal(parsed.comparison.lineChanges[0].to.sourceReference, "material-list-v2");
+  assert.equal(parsed.comparison.lineChanges[1].to.unit, "mm");
+  assert.deepEqual(parsed.comparison.categoryDeltasMinor, { material: 1250, hardware: 0, labor: 0, operation: 0, waste: 0, profit: 0 });
+});
+
+test("DOM-102 CSV v2 round-trip preserves roll metadata without resource columns", () => {
+  const original = emptyComparisonResult();
+  const from = {
+    category: "material", description: "PVC rulo", quantity: 1, unit: "rulo",
+    unitPriceMinor: 15000, lineTotalMinor: 15000, currencyCode: "TRY",
+    sourceReference: "roll-prices:v1", sourceType: "production-consumption", sourceId: "pvc-roll",
+    sourcePartIds: ["part-a"], rollCount: 1, rollLengthMm: 100000,
+    purchasedLengthMm: 100000, furnitureIds: ["cabinet-a"],
+    planSourceReference: "roll-spec:v1", priceSourceReference: "roll-prices:v1"
+  };
+  const to = { ...from, quantity: 2, unitPriceMinor: 18000, lineTotalMinor: 36000,
+    sourceReference: "roll-prices:v2", rollCount: 2, purchasedLengthMm: 200000,
+    planSourceReference: "roll-spec:v2", priceSourceReference: "roll-prices:v2" };
+  original.comparison.lineChanges = [{ type: "changed", from, to }];
+  original.comparison.fromGrandTotalMinor = 15000;
+  original.comparison.toGrandTotalMinor = 36000;
+  original.comparison.grandTotalDeltaMinor = 21000;
+  original.comparison.categoryDeltasMinor.material = 21000;
+
+  const current = serializeProjectQuoteRevisionComparisonCsv(original);
+  assert.equal(current.status, "ready", current.diagnostics.join("; "));
+  const legacy = toLegacyV2Csv(current.csv);
+  const parsed = parseProjectQuoteRevisionComparisonCsv(legacy);
+  assert.equal(parsed.status, "ready", parsed.diagnostics.join("; "));
+  assert.deepEqual(parsed.comparison, original.comparison);
+  const rollChange = parsed.comparison.lineChanges.find(change => (change.from ?? change.to)?.unit === "rulo");
+  assert.ok(rollChange);
+  assert.equal(rollChange.from.rollCount, 1);
+  assert.equal(rollChange.from.rollLengthMm, 100000);
+  assert.equal(rollChange.to.rollCount, 2);
+  assert.equal(rollChange.to.purchasedLengthMm, 200000);
+  assert.equal(rollChange.from.resourceType, undefined);
+  assert.equal(rollChange.to.resourceType, undefined);
+});
+
+test("DOM-102 CSV v3 blocks partial resource identity metadata without partial comparison", () => {
+  const original = readyComparisonResult();
+  const materialChange = original.comparison.lineChanges[0];
+  for (const line of [materialChange.from, materialChange.to]) {
+    line.resourceType = "material";
+    line.resourceId = "mdf-18";
+    line.resourceUnit = "m2";
+  }
+  const edgeBandLine = original.comparison.lineChanges[1].to;
+  edgeBandLine.resourceType = "edge-banding";
+  edgeBandLine.resourceId = "pvc-1";
+  edgeBandLine.resourceUnit = "mm";
+
+  const serialized = serializeProjectQuoteRevisionComparisonCsv(original);
+  assert.equal(serialized.status, "ready", serialized.diagnostics.join("; "));
+  const records = parseCsvRecordsForTest(serialized.csv);
+  const header = records[0];
+  const index = name => header.indexOf(name);
+  const materialRow = records.find(row =>
+    row[index("rowType")] === "line" &&
+    row[index("changeType")] === "changed" &&
+    row[index("fromDescription")] === "MDF Lam 18");
+  assert.ok(materialRow);
+  materialRow[index("toResourceId")] = "";
+  const tampered = "\uFEFF" + records.map(row => row.map(encodeCsvCellForTest).join(",")).join("\r\n") + "\r\n";
+  const parsed = parseProjectQuoteRevisionComparisonCsv(tampered);
+  assert.equal(parsed.status, "blocked");
+  assert.equal(parsed.comparison, null);
+  assert.ok(parsed.diagnostics.length > 0);
+
+  const unsupportedHeader = records[0].map(encodeCsvCellForTest).join(",") +
+    ',"extraField"' + "\r\n" +
+    records.slice(1).map(row => row.map(encodeCsvCellForTest).join(",")).join("\r\n") + "\r\n";
+  const unsupported = parseProjectQuoteRevisionComparisonCsv(unsupportedHeader);
+  assert.equal(unsupported.status, "blocked");
+  assert.equal(unsupported.comparison, null);
+});
