@@ -313,12 +313,12 @@ Proje isteğinde `family: "bathroom-vanity"` kullanılır. Diğer gövde ölçü
 
 ## 2.15 Karışık aile projelerinde kesitli panel tüketimi
 
-\`panelCutouts\` her desteklenen mobilya ailesinin mevcut \`ProjectProductionPart\` kimliğine bağlanabilir; yalnızca banyo dolabı üst paneline özgü değildir. Domain kabul testi, aynı projede \`bathroom-vanity\` üst panelinde iki dikdörtgen açıklığı ve \`bookshelf\` rafında bir açıklığı birlikte doğrular.
+`panelCutouts` her desteklenen mobilya ailesinin mevcut `ProjectProductionPart` kimliğine bağlanabilir; yalnızca banyo dolabı üst paneline özgü değildir. Domain kabul testi, aynı projede `bathroom-vanity` üst panelinde iki dikdörtgen açıklığı ve `bookshelf` rafında bir açıklığı birlikte doğrular.
 
-- Banyo üst paneli 18 mm \`mdf-18\`; kitaplık rafı 8 mm \`mdf-8\` katalog malzemesi ve üç adet olarak hesaplanır. Diğer kitaplık gövde parçaları kendi malzeme/kalınlık gruplarında kalır.
-- Kesit geometri eklemek Part satır sayısını veya \`quantity\` değerini değiştirmez. Malzeme özeti net alan/hacim ve iç kenar bantlamasını her malzeme + kalınlık grubu için aynı Part listesinden, quantity ile ağırlıklandırarak hesaplar.
+- Banyo üst paneli 18 mm `mdf-18`; kitaplık rafı 8 mm `mdf-8` katalog malzemesi ve üç adet olarak hesaplanır. Diğer kitaplık gövde parçaları kendi malzeme/kalınlık gruplarında kalır.
+- Kesit geometri eklemek Part satır sayısını veya `quantity` değerini değiştirmez. Malzeme özeti net alan/hacim ve iç kenar bantlamasını her malzeme + kalınlık grubu için aynı Part listesinden, quantity ile ağırlıklandırarak hesaplar.
 - Test, kesit öncesi ve sonrası özet farkını karşılaştırır: 18 mm grupta 0.08 m² / 0.00144 m³ ve 600 mm iç bant; 8 mm grupta raf adedi üç olduğu için 0.06 m² / 0.00048 m³ ve 900 mm iç bant farkı beklenir.
-- Birden fazla ailede geçerli kesit bulunması yine \`status: "ready"\` üretir; ancak JSON v1/CSV adapter'ı \`panelGeometry\` alanını kayıpsız taşımadığından \`canExport: false\` kalır. Bu test, dışa aktarımın üretime hazır olduğu anlamına gelmez.
+- Birden fazla ailede geçerli kesit bulunması yine `status: "ready"` üretir; ancak JSON v1/CSV adapter'ı `panelGeometry` alanını kayıpsız taşımadığından `canExport: false` kalır. Bu test, dışa aktarımın üretime hazır olduğu anlamına gelmez.
 - Bu kapsam geometriyi yalnız dikdörtgen geçiş açıklıklarıyla sınırlar; CNC, lavabo/armatür standardı, yük, bağlantı, fire, levha optimizasyonu veya fiyat hesabı eklemez. Fiziksel üretim öncesi atölye doğrulaması gerekir.
 
 
@@ -982,12 +982,12 @@ Kaynak test: domain/production/projectBathroomVanityPanelPricing.test.mjs.
 
 
 ### DOM-062 QA düzeltme notu
-- İlk QA #44632666298, comparison line snapshot'larında optional \`sourceReference\`, \`tariffId\`, \`sourcePartIds\` ve \`edgeDirection\` alanlarının zorunlu sanılması nedeniyle dört export testini düşürdü. Satır doğrulaması optional alanları kabul ederken yalnızca temel satır alanlarını zorunlu kılacak şekilde ayrıldı.
+- İlk QA #44632666298, comparison line snapshot'larında optional `sourceReference`, `tariffId`, `sourcePartIds` ve `edgeDirection` alanlarının zorunlu sanılması nedeniyle dört export testini düşürdü. Satır doğrulaması optional alanları kabul ederken yalnızca temel satır alanlarını zorunlu kılacak şekilde ayrıldı.
 - Delta regresyon fixture'ı kategori farkları toplamını genel farkla eşit tutup satır/kategori tutarsızlığını doğrudan sınar. Testler zayıflatılmadı; export fail-closed kalır.
 
 
 ### DOM-062 final QA (20 Kasım 2026)
-- Implementation \`c5491e4\` and optional-field correction \`e4dcc985\` verified by [CI #44632874056](https://github.com/Taylan789/MobilyaCAD/actions/runs/44632874056), [QA #44632874051](https://github.com/Taylan789/MobilyaCAD/actions/runs/44632874051), [Pages #44632874042](https://github.com/Taylan789/MobilyaCAD/actions/runs/44632874042).
+- Implementation `c5491e4` and optional-field correction `e4dcc985` verified by [CI #44632874056](https://github.com/Taylan789/MobilyaCAD/actions/runs/44632874056), [QA #44632874051](https://github.com/Taylan789/MobilyaCAD/actions/runs/44632874051), [Pages #44632874042](https://github.com/Taylan789/MobilyaCAD/actions/runs/44632874042).
 - Final QA: 124/124 frontend tests and 451/451 domain tests, strict domain TypeScript, lint, production build and production dependency audit (0 vulnerabilities) passed. Initial four export tests failed because optional source metadata was incorrectly required; allowed/required validation was separated and the corrected SHA passed.
 
 
@@ -1057,6 +1057,6 @@ The diagnostic report adds the optional `blockedFurniture[].materialIdentityConf
 
 ## DOM-114 — Nesting-batch blocked diagnostic provenance
 
-- When the source project-production report is blocked, the nesting-batch report keeps the existing human-readable \`diagnostics\` and adds \`productionDiagnostics\` only when the shared production-diagnostic parser returns validated records.
+- When the source project-production report is blocked, the nesting-batch report keeps the existing human-readable `diagnostics` and adds `productionDiagnostics` only when the shared production-diagnostic parser returns validated records.
 - The additive structured diagnostics preserve source, furniture/family/code/message, and validated material-conflict catalog/source provenance. They are ordered exactly as the source report.
 - Any malformed or incomplete conflict source coverage/order fails closed: no structured diagnostics are emitted and the nesting batch remains blocked with a diagnostic message. Batch result remains null; no partial layouts are produced.

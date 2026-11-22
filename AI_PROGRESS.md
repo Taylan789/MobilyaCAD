@@ -1,3 +1,13 @@
+## 22 Kasım 2026 19:19 TRT — DOM-114 VERIFIED
+
+- Blocked nesting-batch reports now preserve validated source-aware production diagnostics via the additive \`productionDiagnostics\` field; legacy human-readable diagnostics remain, and no partial batch/layout result is returned.
+- Added a mixed cabinet/bookshelf conflict regression that checks complete sorted source-Part coverage, per-furniture diagnostic coverage, input-order invariance, input immutability, and fail-closed incomplete provenance.
+- Files: \`domain/production/projectSheetNestingBatches.ts\`, \`domain/production/projectSheetNestingBatches.test.mjs\`, \`domain/production/projectSheetCutPlanExport.ts\`, \`docs/production-domain-contract.md\`, \`AI_COORDINATION.md\`, \`PRODUCT_ROADMAP.md\`.
+- Code/test commit: [751065b](https://github.com/Taylan789/MobilyaCAD/commit/751065b1437da702200696da588949bc0243596d). Exact-SHA [CI](https://github.com/Taylan789/MobilyaCAD/actions/runs/45043968666), [QA](https://github.com/Taylan789/MobilyaCAD/actions/runs/45043968727) and [Pages](https://github.com/Taylan789/MobilyaCAD/actions/runs/45043968653) succeeded. QA: 162 frontend + 640 domain tests, strict TypeScript, lint 32 warnings/0 errors, production build and dependency audit 0 vulnerabilities.
+- Test site deployed: https://taylan789.github.io/MobilyaCAD/. Local tests were not run in this runtime; GitHub Actions is the verification evidence.
+- AI Developer [run #44972838278](https://github.com/Taylan789/MobilyaCAD/actions/runs/44972838278) failed on OpenRouter free-model quota HTTP 429; no rerun, paid fallback, or quota/secret change. Integration/Performance job remains disabled/skipped; no specialist agent run is claimed. Frontend PRs remain separate and unmerged.
+- Next: DOM-115 blocked mixed-family nesting/material-summary/Part-snapshot reconciliation.
+
 ## 22 Kasım 2026 11:10 TRT — DOM-108 VERIFIED
 
 - Mixed-family material-reference regression covers a cabinet override to a missing catalog ID alongside a valid table, and a valid cabinet alongside a table assigning an 8 mm top to an 18 mm-only material. Both must block the project, return no partial Parts, retain family-specific diagnostics, throw through the strict aggregator, and leave request inputs unchanged.
