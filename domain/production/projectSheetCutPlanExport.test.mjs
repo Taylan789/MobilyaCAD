@@ -347,12 +347,12 @@ test("DOM-113 structured material conflict provenance reaches cut-plan export di
   "sources": [
     {
       "furnitureId": "cabinet-1",
-      "partId": "cabinet-top",
+      "partId": "cabinet-side",
       "materialLabel": "MDF Lam Premium"
     },
     {
       "furnitureId": "cabinet-1",
-      "partId": "cabinet-side",
+      "partId": "cabinet-top",
       "materialLabel": "MDF Lam Premium"
     },
     {
@@ -412,7 +412,7 @@ test("DOM-113 structured material conflict provenance reaches cut-plan export di
 test("DOM-113 malformed or incomplete material conflict provenance fails closed", () => {
   const parts = [part("part-1")];
   const json = savedPlan(parts, ["part-1"]);
-  const validSources = [{"furnitureId":"cabinet-1","partId":"cabinet-top","materialLabel":"MDF Lam Premium"},{"furnitureId":"cabinet-1","partId":"cabinet-side","materialLabel":"MDF Lam Premium"},{"furnitureId":"table-1","partId":"table-top","materialLabel":"MDF Lam 18"}];
+  const validSources = [{"furnitureId":"cabinet-1","partId":"cabinet-side","materialLabel":"MDF Lam Premium"},{"furnitureId":"cabinet-1","partId":"cabinet-top","materialLabel":"MDF Lam Premium"},{"furnitureId":"table-1","partId":"table-top","materialLabel":"MDF Lam 18"}];
   const validConflict = { materialId: "mdf-18", sources: validSources };
   const malformedCases = [
     {

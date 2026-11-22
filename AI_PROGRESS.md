@@ -218,3 +218,8 @@
 - **Files:** `domain/production/projectSheetCutPlanExport.ts`, `domain/production/projectSheetCutPlanExport.test.mjs`, `docs/production-domain-contract.md`, `PRODUCT_ROADMAP.md`, `AI_COORDINATION.md`. No frontend, adapter/performance-owned files, persistence schema or CNC output changed.
 - **Commit/Actions:** exact SHA and CI/QA/Pages evidence will be recorded after the initial commit completes; local execution is unavailable in this runtime.
 - **Next:** DOM-114 conflict provenance coverage/order invariants; frontend structured diagnostic display remains UI-owned and specialist INT-002/PERF-001 remains isolated.
+
+
+## 22 Kasım 2026 18:58 TRT — DOM-113 test-fixture correction
+- Initial code commit [e19ee858](https://github.com/Taylan789/MobilyaCAD/commit/e19ee85861d43734e4acf70039213f5b8e87b9bf): CI [#45040992194](https://github.com/Taylan789/MobilyaCAD/actions/runs/45040992194) succeeded. QA [#45040992251](https://github.com/Taylan789/MobilyaCAD/actions/runs/45040992251) failed one acceptance test because the valid source list was not sorted lexically (638/639 domain tests passed); the consumer correctly blocked the malformed fixture. Pages [#45040992198](https://github.com/Taylan789/MobilyaCAD/actions/runs/45040992198) did not deploy.
+- Reordered only the valid and shared malformed-case fixture sources to canonical furniture/Part order; assertions unchanged. Correction commit and exact-SHA CI/QA/Pages pending.
