@@ -233,6 +233,7 @@ test("CSV v3 has stable columns and round-trips exact comparison metadata", () =
   const parsed = parseProjectQuoteRevisionComparisonCsv(serialized.csv);
   assert.equal(parsed.status, "ready");
   assert.equal(parsed.formatVersion, 3);
+  assert.equal(Object.keys(parsed).includes("formatVersion"), false);
   assert.deepEqual(parsed.comparison, original.comparison);
   assert.equal(parsed.comparison?.currencyCode, "TRY");
   assert.equal(parsed.comparison?.lineChanges[0].to.unit, "m2");

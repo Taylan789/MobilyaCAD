@@ -593,7 +593,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 
 ## Next 5 small tasks
 
-1. DOM-103 IN PROGRESS — additive ready-only CSV formatVersion disclosure is implemented; exact-SHA CI/QA/Pages pending.
+1. DOM-103 IN PROGRESS — initial QA exposed strict cross-format serializer compatibility; formatVersion is now non-enumerable while remaining directly accessible; exact-SHA Actions pending.
 2. DOM-104 READY — byte-stable repeated quote-comparison CSV export and round-trip regression tests, no schema change.
 3. INT-001 FRONTEND-OWNED — comparison download and production report/export integration; domain agent does not edit frontend files.
 4. INT-002/PERF-001 INTEGRATION-OWNED — adapter round-trip tests and measured CAD profiling on the isolated specialist branch.

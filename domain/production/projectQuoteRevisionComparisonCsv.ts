@@ -47,7 +47,7 @@ export interface ProjectQuoteRevisionComparisonCsvSerializationResult {
 
 export interface ProjectQuoteRevisionComparisonCsvParseResult {
   status: "ready" | "blocked";
-  /** CSV header version, available only when parsing succeeds. */
+  /** CSV header version, available only on success; non-enumerable to preserve strict serializer compatibility. */
   formatVersion?: 1 | 2 | 3;
   comparison: ProjectQuoteRevisionComparison | null;
   diagnostics: readonly string[];
@@ -468,7 +468,13 @@ export function parseProjectQuoteRevisionComparisonCsv(
     if (normalized.status !== "ready" || normalized.comparison === null) {
       throw new Error(normalized.diagnostics[0] ?? "CSV karşılaştırması doğrulanmış JSON'a dönüştürülemedi.");
     }
-    return Object.freeze({ status: "ready" as const, formatVersion: version, comparison: normalized.comparison, diagnostics: Object.freeze([]) });
+    const result: ProjectQuoteRevisionComparisonCsvParseResult = {
+      status: "ready" as const,
+      comparison: normalized.comparison,
+      diagnostics: Object.freeze([])
+    };
+    Object.defineProperty(result, "formatVersion", { value: version, enumerable: false });
+    return Object.freeze(result);
   } catch (error) {
     return blockedParse(error instanceof Error ? error.message : String(error));
   }
