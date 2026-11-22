@@ -1832,14 +1832,18 @@ function App() {
                 <span className="cad-viewport-title-icon"><BoxSelect /></span>
                 <div><strong>Modelleme alanı</strong><small>ORTOGRAFİK / 3 BOYUTLU SAHNE</small></div>
               </div>
-              <div className="studio-viewport-actions">
-                <span className="studio-view-label">ARAÇLAR</span>
-                <button type="button" className={transformMode === "translate" ? "active" : ""} onClick={() => setTransformMode("translate")}><Move3D /> Taşı</button>
-                <button type="button" className={transformMode === "scale" ? "active" : ""} onClick={() => setTransformMode("scale")}><Maximize2 /> Ölçekle</button>
-                <button type="button" className={transformMode === "rotate" ? "active" : ""} onClick={() => setTransformMode("rotate")}><RotateCw /> Döndür</button>
-                <span className="studio-heading-divider" />
-                <button type="button" className="studio-panel-toggle" aria-label={leftDockCollapsed ? "Sol paneli göster" : "Sol paneli gizle"} title={leftDockCollapsed ? "Sol paneli göster" : "Sol paneli gizle"} aria-pressed={!leftDockCollapsed} aria-expanded={!leftDockCollapsed} aria-controls="cad-left-dock" onClick={() => setLeftDockCollapsed((current) => !current)}><PanelLeft /></button>
-                <button type="button" className="studio-panel-toggle" aria-label={inspectorCollapsed ? "Özellik panelini göster" : "Özellik panelini gizle"} title={inspectorCollapsed ? "Özellik panelini göster" : "Özellik panelini gizle"} aria-pressed={!inspectorCollapsed} aria-expanded={!inspectorCollapsed} aria-controls="cad-inspector" onClick={() => setInspectorCollapsed((current) => !current)}><PanelRight /></button>
+              <div className="studio-viewport-actions" role="group" aria-label="3D görünüm ve panel araçları">
+                <span className="studio-view-label">DÖNÜŞÜM</span>
+                <div className="studio-transform-tools" role="group" aria-label="Nesne dönüştürme">
+                  <button type="button" aria-pressed={transformMode === "translate"} className={transformMode === "translate" ? "active" : ""} onClick={() => setTransformMode("translate")}><Move3D /> Taşı</button>
+                  <button type="button" aria-pressed={transformMode === "scale"} className={transformMode === "scale" ? "active" : ""} onClick={() => setTransformMode("scale")}><Maximize2 /> Ölçekle</button>
+                  <button type="button" aria-pressed={transformMode === "rotate"} className={transformMode === "rotate" ? "active" : ""} onClick={() => setTransformMode("rotate")}><RotateCw /> Döndür</button>
+                </div>
+                <span className="studio-heading-divider" aria-hidden="true" />
+                <div className="studio-panel-tools" role="group" aria-label="Panel görünürlüğü">
+                  <button type="button" className="studio-panel-toggle" aria-label={leftDockCollapsed ? "Sol paneli göster" : "Sol paneli gizle"} title={leftDockCollapsed ? "Sol paneli göster" : "Sol paneli gizle"} aria-pressed={!leftDockCollapsed} aria-expanded={!leftDockCollapsed} aria-controls="cad-left-dock" onClick={() => setLeftDockCollapsed((current) => !current)}><PanelLeft /></button>
+                  <button type="button" className="studio-panel-toggle" aria-label={inspectorCollapsed ? "Özellik panelini göster" : "Özellik panelini gizle"} title={inspectorCollapsed ? "Özellik panelini göster" : "Özellik panelini gizle"} aria-pressed={!inspectorCollapsed} aria-expanded={!inspectorCollapsed} aria-controls="cad-inspector" onClick={() => setInspectorCollapsed((current) => !current)}><PanelRight /></button>
+                </div>
                 <span className="studio-unit-pill">MM</span>
               </div>
             </div>
