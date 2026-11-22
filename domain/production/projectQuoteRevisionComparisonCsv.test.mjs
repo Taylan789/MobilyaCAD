@@ -815,7 +815,7 @@ test("DOM-102 legacy CSV v1/v2 intentionally omit catalog identity but retain li
 });
 
 
-test("DOM-105 legacy CSV v1/v2 imports can be canonicalized to v3 without losing supported metadata", () => {
+test("DOM-105/106 legacy CSV v1/v2 imports preserve supported metadata across canonical CSV and JSON round-trips", () => {
   const version1Source = readyComparisonResult();
   const version2Source = readyComparisonResult();
 
@@ -944,6 +944,35 @@ test("DOM-105 legacy CSV v1/v2 imports can be canonicalized to v3 without losing
     assert.equal(canonicalParsed.status, "ready", canonicalParsed.diagnostics.join("; "));
     assert.equal(canonicalParsed.formatVersion, 3);
     assert.deepEqual(canonicalParsed.comparison, importedSnapshot);
+
+    const jsonV2 = serializeProjectQuoteRevisionComparisonFile({
+      status: "ready",
+      comparison: canonicalParsed.comparison,
+      diagnostics: []
+    });
+    assert.equal(jsonV2.status, "ready", "JSON v2 from legacy v" + legacy.version + ": " + jsonV2.diagnostics.join("; "));
+    assert.ok(jsonV2.json);
+    const jsonEnvelope = JSON.parse(jsonV2.json);
+    assert.equal(jsonEnvelope.schemaVersion, 2);
+    assert.deepEqual(jsonEnvelope.comparison, importedSnapshot);
+
+    const jsonParsed = parseProjectQuoteRevisionComparisonFile(jsonV2.json);
+    assert.equal(jsonParsed.status, "ready", jsonParsed.diagnostics.join("; "));
+    assert.ok(jsonParsed.file);
+    assert.equal(jsonParsed.file.schemaVersion, 2);
+    assert.deepEqual(jsonParsed.comparison, importedSnapshot);
+
+    const csvAfterJson = serializeProjectQuoteRevisionComparisonCsv({
+      status: "ready",
+      comparison: jsonParsed.comparison,
+      diagnostics: []
+    });
+    assert.equal(csvAfterJson.status, "ready", "CSV v3 after JSON v2 from legacy v" + legacy.version + ": " + csvAfterJson.diagnostics.join("; "));
+    assert.ok(csvAfterJson.csv);
+    const finalCsvParsed = parseProjectQuoteRevisionComparisonCsv(csvAfterJson.csv);
+    assert.equal(finalCsvParsed.status, "ready", finalCsvParsed.diagnostics.join("; "));
+    assert.equal(finalCsvParsed.formatVersion, 3);
+    assert.deepEqual(finalCsvParsed.comparison, importedSnapshot);
   }
 });
 

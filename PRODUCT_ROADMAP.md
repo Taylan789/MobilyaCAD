@@ -1010,3 +1010,11 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - **Verified:** correction commit [1d4503be](https://github.com/Taylan789/MobilyaCAD/commit/1d4503be5a277ec8a9eca8e1c5fc71120caee214). Exact-SHA CI [#44990018540](https://github.com/Taylan789/MobilyaCAD/actions/runs/44990018540), QA [#44990018528](https://github.com/Taylan789/MobilyaCAD/actions/runs/44990018528), and Pages [#44990018506](https://github.com/Taylan789/MobilyaCAD/actions/runs/44990018506) all succeeded: **144 frontend + 630 domain tests**, strict domain TypeScript, lint **32 warnings/0 errors**, production build and audit **0 vulnerabilities**. Test-site deployment confirmed: https://taylan789.github.io/MobilyaCAD/.
 - **Scope:** domain tests/docs only; no production serializer/schema, frontend, adapter/performance-owned files, or CNC output changed.
 - **Next:** DOM-106 legacy v1/v2 → canonical v3 → JSON v2 → CSV v3 cross-format round-trip; INT-001 frontend-owned; INT-002/PERF-001 specialist-owned; QA-003 blocked until adapter evidence.
+
+
+## DOM-106 — Legacy CSV → canonical v3 → JSON v2 → CSV v3 (IN_PROGRESS, 22 Kasım 2026)
+
+- **Acceptance:** Both legacy CSV v1 and v2 import cases traverse canonical CSV v3, strict JSON v2 parse/serialize, and a final CSV v3 parse; every stage preserves the exact normalized comparison, supported line/roll provenance, and absent catalog identity.
+- **Coverage:** Existing DOM-105 fixtures are reused and extended; no duplicate fixtures or schema changes. Failed JSON/CSV conversion is asserted rather than treated as a successful output.
+- **Scope:** Domain regression tests only; no production serializer/schema, frontend, adapter/performance-owned files, pricing assumptions, or CNC output changes. Local execution is unavailable; exact-SHA Actions evidence is pending.
+- **Next:** DOM-107 family-specific panel material override propagation coverage; frontend JSON persistence/download adapter stays INT-001-owned, and adapter/performance work stays INT-002/PERF-001 specialist-owned.

@@ -1,3 +1,11 @@
+## 22 Kasım 2026 09:31 TRT — DOM-106 IN_PROGRESS
+
+- Added a cross-format regression slice to the existing legacy CSV v1/v2 fixture: import → canonical CSV v3 parse → JSON v2 serialize/parse → CSV v3 serialize/parse. Each transition checks exact normalized comparison equality, supported metadata and legacy catalog-identity omission.
+- Files: `domain/production/projectQuoteRevisionComparisonCsv.test.mjs`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`. No production serializer/schema, frontend, adapter/performance-owned file or machine-specific output changed.
+- Commit SHA and exact-SHA CI/QA/Pages verification pending. Local test execution unavailable in this runtime; do not claim success until Actions results are observed.
+- Latest AI Developer run [#44972838278](https://github.com/Taylan789/MobilyaCAD/actions/runs/44972838278) failed with OpenRouter free-model daily quota HTTP 429; specialist job was skipped. No quota/secrets/paid fallback change or rerun.
+- Next: DOM-107 audit and extend validated panel-material override propagation to the next unsupported construction family; project JSON/frontend persistence remains frontend-owned.
+
 ## 22 Kasım 2026 08:29 TRT — DOM-105 VERIFIED
 
 - Canonical export test: legacy CSV v1/v2 imports → current v3 serializer → v3 parse equality. Supported line provenance, source Part IDs, edge direction, tariffs and quote adjustment references remain intact; v2 additionally retains roll count/length, furniture IDs, plan/price references. Missing catalog resource identity stays absent instead of being inferred.
