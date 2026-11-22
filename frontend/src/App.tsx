@@ -74,6 +74,7 @@ import { MobilyaCadLogo } from "./components/brand/MobilyaCadLogo";
 import "./components/workspace/KeyboardShortcuts.css";
 import "./styles/workbench.css";
 import "./styles/workspace-viewport-fit.css";
+import "./styles/atelier-home-hero.css";
 
 import Scene3D from "./components/viewport/Scene3D";
 import { DrawerBoxConfigurator } from "./components/production/DrawerBoxConfigurator";
@@ -1169,7 +1170,19 @@ function App() {
                   <input id="atelier-open-project" type="file" accept=".json,application/json" hidden onChange={(event) => { void loadProject(event).then((loaded) => { if (loaded) startWorkspace(); }); }} />
                 </div>
               </div>
-
+              <div className="atelier-feature-art" aria-hidden="true">
+                <div className="atelier-art-grid" />
+                <span className="atelier-art-index">MOBİLYACAD / FORM STUDY</span>
+                <div className="atelier-art-cube">
+                  <div className="atelier-cube-top" />
+                  <div className="atelier-cube-front" />
+                  <div className="atelier-cube-side" />
+                  <span className="atelier-dim atelier-dim-x">X</span>
+                  <span className="atelier-dim atelier-dim-y">Y</span>
+                  <span className="atelier-dim atelier-dim-z">Z</span>
+                </div>
+                <div className="atelier-art-caption"><span>AXONOMETRIC</span><span>FORM · STRUCTURE</span></div>
+              </div>
             </section>
             <section className="atelier-section atelier-start-section" id="templates">
               <div className="atelier-section-heading"><div><span className="atelier-eyebrow">BAŞLANGIÇ NOKTASI</span><h2>Ne tasarlıyoruz?</h2></div><span className="atelier-section-note">Bir çalışma türü seçerek başla</span></div>
