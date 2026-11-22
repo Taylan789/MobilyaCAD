@@ -1120,7 +1120,7 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 | DOM-116 VERIFIED | Ready nesting-batch seçimi, tam Part snapshot ve material/normalize thickness grup kaynağını birlikte doğrula | Seçilmiş/çıkarılmış kimlikler ayrık ve tam; snapshot proje sırasını korur; her batch yalnız seçili Part içerir, malzeme/kalınlık/adet kaynakla uyuşur; kesit metadata snapshot'ta kalır |
 | DOM-117 VERIFIED | Batch Part quantity and totalPieceCount reconcile against canonical Part snapshot | Per-Part quantities unchanged; safe group sum matches snapshot; exact MAX_SAFE_INTEGER accepted, overflow fails closed |
 | DOM-117 | Batch Part adetleri ve batch toplam adetini seçili kaynak snapshot ile karşılaştır | Quantity kayıpsız, toplam güvenli tam sayı, grup kaynakları birebir; overflow fail-closed; DOM-116 testine bağımlı |
-| DOM-118 IMPLEMENTED — Actions pending | Stock-sheet tanım sırası ve missing/unused/duplicate group tanılarının deterministik sözleşmesi | Batch çıktısı levha tanımı sırasından bağımsız; tanı materialId + sayısal normalize kalınlık sırasına göre
+| DOM-118 VERIFIED | Stock-sheet tanım sırası ve missing/unused/duplicate group tanılarının deterministik sözleşmesi | Batch çıktısı levha tanımı sırasından bağımsız; grup sırası proje kaynak sırasını korur; tanılar materialId + sayısal normalize kalınlık sırasına göre. CI [#45072743130](https://github.com/Taylan789/MobilyaCAD/actions/runs/45072743130), QA [#45072741019](https://github.com/Taylan789/MobilyaCAD/actions/runs/45072741019), Pages [#45072740981](https://github.com/Taylan789/MobilyaCAD/actions/runs/45072740981) başarılı
 | DOM-119 | Ready batch → cut-plan/layout kaynak kapsamı için cross-consumer atomik doğrulama | Tüm kaynak ID/adet kapsamı reconciled; blocked/stale/unsupported durumda kısmi sonuç veya export yok; DOM-117/118 bağımlı |
 | INT-001 | Domain üretim raporu ↔ frontend adapter/export contract entegrasyonu | UI sahibinin dosyalarına dokunmadan JSON/CSV round-trip ve desteklenmeyen geometri için fail-closed kanıt |
 | INT-002 / PERF-001 | Integration/performance agent'ın adapter contract, benchmark ve profiling teslimatı | Agent'ın ayrı branch/PR ve gerçek CI kanıtı; bu otomasyon sahiplenmez veya merge etmez |
@@ -1131,7 +1131,7 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 
 - Ready nesting-batch selected/excluded IDs and full project Part snapshot are verified in project order; excluded cutout metadata is retained without entering nesting batches. Group source IDs reconcile to selected snapshots by catalog material ID, normalized 0.1 mm thickness, quantity and aggregate piece counts.
 - Test-only commit [5fd1b751](https://github.com/Taylan789/MobilyaCAD/commit/5fd1b751e0b8d1c0de5ee32ababfdf92f73f00c6); exact-SHA CI [#45063059018](https://github.com/Taylan789/MobilyaCAD/actions/runs/45063059018), QA [#45063059051](https://github.com/Taylan789/MobilyaCAD/actions/runs/45063059051), Pages [#45063058957](https://github.com/Taylan789/MobilyaCAD/actions/runs/45063058957) passed/deployed. QA 165 frontend + 642 domain tests; strict domain TS, lint 32 warnings/0 errors, build, production audit 0 vulnerabilities.
-- **Next small slices:** DOM-117 quantity/totalPieceCount reconciliation and safe-integer boundaries; DOM-118 deterministic stock-sheet group/order diagnostics; DOM-119 atomic ready-batch to cut-plan source-coverage validation. INT-001 remains frontend-owned, INT-002/PERF-001 specialist-owned.
+- **Next small slices:** DOM-119 ready nesting-batch → cut-plan source coverage and atomic reconciliation; INT-001 frontend-owned, INT-002/PERF-001 specialist-owned.
 
 
 ## DOM-117 — Nesting batch quantity reconciliation (VERIFIED, 22 Kasım 2026)
@@ -1139,6 +1139,14 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - **Acceptance:** each selected batch Part retains the canonical snapshot quantity/material/thickness; source IDs and group totals are reconciled without unsafe arithmetic; an exact safe-integer boundary is accepted and overflow blocks atomically.
 - **Tests:** two new domain regressions cover grouped 2+3/4-piece totals against snapshot, excluded source immutability, MAX_SAFE_INTEGER exact total, and overflow blocking with no partial result/snapshot.
 - **Scope:** `domain/production/projectSheetNestingBatches.test.mjs` and coordination/roadmap/progress records only. No production behavior, frontend, adapter/performance-owned files, schema or CNC output changes.
-- **Next:** DOM-118 deterministic stock-sheet definition/group diagnostics; DOM-119 ready batch → cut-plan source coverage; INT-001 remains frontend-owned, INT-002/PERF-001 specialist-owned.
+- **Next:** DOM-119 ready batch → cut-plan source coverage and atomic reconciliation; INT-001 remains frontend-owned, INT-002/PERF-001 specialist-owned.
 
 - **Verification:** code/test commit [492fed69](https://github.com/Taylan789/MobilyaCAD/commit/492fed69afe459e436e2ba603968da3ed088d187); CI [#45066750467](https://github.com/Taylan789/MobilyaCAD/actions/runs/45066750467), QA [#45066750708](https://github.com/Taylan789/MobilyaCAD/actions/runs/45066750708) passed, and Pages [#45066750453](https://github.com/Taylan789/MobilyaCAD/actions/runs/45066750453) deployed. QA: 165 frontend + 644 domain tests, strict TypeScript, lint 32 warnings/0 errors, production build, production audit 0 vulnerabilities.
+
+## DOM-118 VERIFIED — 23 Kasım 2026
+
+- Stock-sheet definition order does not change ready batch output; the group order continues to follow the selected project Part source order.
+- Missing/invalid group and unused stock-definition diagnostics are sorted by material ID, then numeric normalized 0.1 mm thickness. Reversing source Part and stock-definition order produces the same diagnostics.
+- Duplicate normalized stock definitions remain blocked, and their diagnostic is order-invariant. Unused definitions are never silently discarded.
+- Exact code/test commit: d081696ce27d6ad9f9a52604a3c47ef2a8ad4700. CI #45072743130 and QA #45072741019 succeeded (169 frontend + 647 domain tests; 0 failures, strict domain TS, lint, build, production audit 0 vulnerabilities); Pages #45072740981 succeeded.
+- Next: DOM-119 atomic ready-batch to cut-plan source coverage reconciliation. INT-001 frontend-owned; INT-002/PERF-001 specialist-owned.

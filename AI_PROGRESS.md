@@ -299,10 +299,11 @@
 - **Scope:** test file and project records only; no production calculation source, frontend, adapter/performance-owned files, project schema, CNC output or `main`.
 - **Next:** DOM-118 deterministic stock-sheet group/order diagnostics; DOM-119 ready batch → cut-plan source coverage and atomic reconciliation; INT-001 UI-owned, INT-002/PERF-001 specialist-owned.
 
-## 23 Kasım 2026 00:27 TRT — DOM-118 IMPLEMENTED, Actions pending
+## 23 Kasım 2026 00:35 TRT — DOM-118 VERIFIED
 
-- **Code/test:** Nesting-batch diagnostics are now canonical by material ID then numeric normalized thickness, independent of source Part and stock-definition order; batch group output still preserves first-source project order. Unused stock definitions remain explicit and duplicate normalized groups fail closed.
-- **Tests:** valid stock-definition order reversal, reverse-order missing/unused diagnostics across multiple material/thickness groups, and duplicate-definition order invariance.
-- **Files:** domain/production/projectSheetNestingBatches.ts, domain/production/projectSheetNestingBatches.test.mjs, docs/production-domain-contract.md, AI_COORDINATION.md, PRODUCT_ROADMAP.md, AI_PROGRESS.md. No frontend, integration/performance-owned files, export schema, CNC output or main changed.
-- **Verification:** CI/QA/Pages will be checked for the exact commit SHA; local test execution is unavailable.
-- **Next:** DOM-119 atomic ready-batch to cut-plan source coverage reconciliation; INT-001 frontend-owned, INT-002/PERF-001 specialist-owned.
+- **Code/test commit:** [d081696ce27d6ad9f9a52604a3c47ef2a8ad4700](https://github.com/Taylan789/MobilyaCAD/commit/d081696ce27d6ad9f9a52604a3c47ef2a8ad4700). Stock-definition reversal preserves ready batch payload/group order; missing and unused diagnostics sort canonically by material ID and numeric normalized thickness; duplicate normalized groups block with order-invariant diagnostics.
+- **Tests:** exact-SHA QA passed **169 frontend + 647 domain tests (0 failures)**. CI [#45072743130](https://github.com/Taylan789/MobilyaCAD/actions/runs/45072743130) and QA [#45072741019](https://github.com/Taylan789/MobilyaCAD/actions/runs/45072741019) passed; strict domain TypeScript, lint, production build, production audit **0 vulnerabilities**. Pages [#45072740981](https://github.com/Taylan789/MobilyaCAD/actions/runs/45072740981) deployed successfully.
+- **Test site:** https://taylan789.github.io/MobilyaCAD/ — Pages deployment verified for the code/test SHA.
+- **Files:** domain/production/projectSheetNestingBatches.ts, domain/production/projectSheetNestingBatches.test.mjs, docs/production-domain-contract.md, AI_COORDINATION.md, PRODUCT_ROADMAP.md, AI_PROGRESS.md. No frontend/**, adapter/performance-owned files, schema, CNC output or main changed.
+- **Known limits:** local tests unavailable; GitHub Actions is authoritative. npm install reports 4 moderate advisories, while the production dependency audit is clean. Existing bundle warning remains (1.687 MB JS / 472.30 KB gzip).
+- **Next:** DOM-119 ready batch → cut-plan source coverage and atomic reconciliation; INT-001 frontend-owned, INT-002/PERF-001 specialist-owned.
