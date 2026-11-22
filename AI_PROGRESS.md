@@ -165,10 +165,13 @@
 - **Next:** DOM-100 cross-format JSON v2 ↔ CSV v3 integrity tests; DOM-101 adversarial CSV quoting/record boundaries; INT-001 remains frontend-owned.
 
 
-## 22 Kasım 2026 13:44 TRT — DOM-109 IMPLEMENTED, Actions pending
+## 22 Kasım 2026 13:52 TRT — DOM-109 VERIFIED
 
-- Cross-family catalogue IDs now require one normalized material label. Unicode compatibility normalization, case folding and whitespace collapsing treat harmless label formatting differences as equivalent; actual name conflicts block the project atomically and diagnose both source furniture/Part rows.
-- Material-consumption summary groups normalized compatible labels by ID and thickness; direct summary input rejects identity conflicts rather than splitting one catalogue identity. Tests cover cabinet/bookshelf/table conflict and compatible labels with 8/18 mm grouping.
+- **Commit:** [a6d34fe17bf7eddc26f2aac97373adb61e346d03](https://github.com/Taylan789/MobilyaCAD/commit/a6d34fe17bf7eddc26f2aac97373adb61e346d03). Same material catalogue ID across mixed-family Parts now must use a single normalized label; conflicting names diagnose both source furniture/Part rows and block the project without partial results.
+- Compatible labels normalize Unicode compatibility, case and whitespace; the consumption summary groups them by ID and thickness, and direct summary input rejects conflicting labels.
 - Files: `domain/production/projectProduction.ts`, `projectProduction.test.mjs`, new `materialIdentity.ts`, `projectMaterialSummary.ts`, `projectMaterialSummary.test.mjs`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`. No frontend, adapter/performance-owned files, export schema or CNC output changed.
-- Commit SHA will be recorded after GitHub returns it and exact-SHA verification is inspected. CI/QA/Pages for this feature commit are pending; latest known deployed test site is https://taylan789.github.io/MobilyaCAD/ at Pages run [#45009653995](https://github.com/Taylan789/MobilyaCAD/actions/runs/45009653995).
-- AI Developer [#45004322556](https://github.com/Taylan789/MobilyaCAD/actions/runs/45004322556) failed due OpenRouter free-model daily quota HTTP 429; specialist lane skipped. No paid retry, secret or quota change. Next: DOM-110 material summary invariants.
+- **Exact-SHA Actions:** CI [#45014447877](https://github.com/Taylan789/MobilyaCAD/actions/runs/45014447877), QA [#45014447767](https://github.com/Taylan789/MobilyaCAD/actions/runs/45014447767), and Pages [#45014447798](https://github.com/Taylan789/MobilyaCAD/actions/runs/45014447798) succeeded. QA **150/150 frontend + 635/635 domain**, strict domain TypeScript, lint **32 warnings / 0 errors**, production build, dependency audit **0 vulnerabilities**. The Pages deploy job completed successfully.
+- **Test site:** https://taylan789.github.io/MobilyaCAD/ — updated and deployment confirmed.
+- AI Developer [#45004322556](https://github.com/Taylan789/MobilyaCAD/actions/runs/45004322556) failed because OpenRouter free-model daily quota returned HTTP 429; specialist lane skipped. No paid retry, quota or secrets changes.
+- **Next:** DOM-110 mixed-family material summary invariants, then DOM-111 deterministic multi-error diagnostics.
+

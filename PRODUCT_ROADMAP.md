@@ -1040,13 +1040,14 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - AI Developer [#44972838278](https://github.com/Taylan789/MobilyaCAD/actions/runs/44972838278) remains blocked by OpenRouter free-model daily HTTP 429 (remaining 0; reset 23 Nov 2026 03:00 TRT); no rerun or paid fallback.
 - UI PRs #151, #149 and #147 remain draft/unmerged; visible frontend redesign is not deployed. This agent does not touch frontend files.
 
-## DOM-109 — Cross-family catalogue identity reconciliation (IMPLEMENTED, ACTIONS PENDING)
+## DOM-109 — Cross-family catalogue identity reconciliation (VERIFIED, 22 November 2026)
 
 - Same material ID across cabinet, bookshelf, table and other mixed-family Part rows must retain one normalized label. Labels are compared after Unicode compatibility normalization, whitespace collapsing and case normalization.
-- Conflicting names now block the project atomically with diagnostics identifying both furniture/Part sources; no partial Part result is returned. Compatible normalized labels aggregate consistently, and distinct thicknesses stay separate.
+- Conflicting names block the project atomically with diagnostics identifying both furniture/Part sources; no partial Part result is returned. Compatible normalized labels aggregate consistently, and distinct thicknesses stay separate.
 - Direct material-consumption summary calls also reject conflicting labels for a catalogue ID instead of splitting the same identity into multiple groups.
-- Code/test scope: `domain/production/projectProduction.ts`, `projectProduction.test.mjs`, new `materialIdentity.ts`, `projectMaterialSummary.ts`, and `projectMaterialSummary.test.mjs`. No frontend, adapter/performance-owned files, export schema or CNC output changed.
-- Exact-SHA CI/QA/Pages verification is pending. Do not mark deployed until the feature commit's Actions runs are observed.
+- Code/test commit: [a6d34fe17bf7eddc26f2aac97373adb61e346d03](https://github.com/Taylan789/MobilyaCAD/commit/a6d34fe17bf7eddc26f2aac97373adb61e346d03). Files: `domain/production/projectProduction.ts`, `projectProduction.test.mjs`, new `materialIdentity.ts`, `projectMaterialSummary.ts`, and `projectMaterialSummary.test.mjs`. No frontend, adapter/performance-owned files, export schema or CNC output changed.
+- Exact-SHA CI [#45014447877](https://github.com/Taylan789/MobilyaCAD/actions/runs/45014447877), QA [#45014447767](https://github.com/Taylan789/MobilyaCAD/actions/runs/45014447767), and Pages [#45014447798](https://github.com/Taylan789/MobilyaCAD/actions/runs/45014447798) all succeeded. QA: **150 frontend + 635 domain tests**, strict domain TS, lint 32 warnings/0 errors, production build, and audit 0 vulnerabilities.
+- Test site deployment confirmed: https://taylan789.github.io/MobilyaCAD/.
 - Next: DOM-110 mixed-family material summary invariants; DOM-111 stable multi-error diagnostics.
 
 ## DOM-110 — Mixed-family material summary invariants (READY)
