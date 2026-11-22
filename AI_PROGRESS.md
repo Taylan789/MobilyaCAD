@@ -223,3 +223,11 @@
 ## 22 Kasım 2026 18:58 TRT — DOM-113 test-fixture correction
 - Initial code commit [e19ee858](https://github.com/Taylan789/MobilyaCAD/commit/e19ee85861d43734e4acf70039213f5b8e87b9bf): CI [#45040992194](https://github.com/Taylan789/MobilyaCAD/actions/runs/45040992194) succeeded. QA [#45040992251](https://github.com/Taylan789/MobilyaCAD/actions/runs/45040992251) failed one acceptance test because the valid source list was not sorted lexically (638/639 domain tests passed); the consumer correctly blocked the malformed fixture. Pages [#45040992198](https://github.com/Taylan789/MobilyaCAD/actions/runs/45040992198) did not deploy.
 - Reordered only the valid and shared malformed-case fixture sources to canonical furniture/Part order; assertions unchanged. Correction commit and exact-SHA CI/QA/Pages pending.
+
+
+## 22 Kasım 2026 19:01 TRT — DOM-113 VERIFIED
+- **Final code/test commit:** [b8fdbda7](https://github.com/Taylan789/MobilyaCAD/commit/b8fdbda7c1175afa766712c471ed8974c5ba369a). Added explicit narrowing of diagnostic furniture identity after the prior strict TypeScript run rejected a nullable ID in conflict-coverage accumulation; null identity now has a fail-closed regression.
+- **Exact-SHA Actions:** CI [#45041353850](https://github.com/Taylan789/MobilyaCAD/actions/runs/45041353850), QA [#45041353786](https://github.com/Taylan789/MobilyaCAD/actions/runs/45041353786), and Pages [#45041353780](https://github.com/Taylan789/MobilyaCAD/actions/runs/45041353780) succeeded. QA: **162 frontend + 639 domain tests**, strict domain TypeScript, lint **32 warnings / 0 errors**, production build, and production audit **0 vulnerabilities**.
+- **Test site:** https://taylan789.github.io/MobilyaCAD/ — deployment run succeeded on this SHA.
+- **Correction history:** e19ee858 failed one ordered-fixture assertion; dc204108 fixed fixture ordering but strict TypeScript exposed nullable narrowing; b8fdbda7 fixed the guard. No test assertions were weakened. Local test execution unavailable in this runtime.
+- **Next:** DOM-114 structured conflict provenance through nesting-batch diagnostics; UI/adapter ownership remains unchanged.
