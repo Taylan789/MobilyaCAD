@@ -593,9 +593,9 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 
 ## Next 5 small tasks
 
-1. **DOM-120 IN PROGRESS** — independent mixed-stock project cut-plan area-summary reconciliation; exact-SHA Actions pending.
-2. **DOM-121 PLANNED** — edge-band/material summary provenance across mixed-family Part snapshots.
-3. **DOM-122 PLANNED** — quote-cost totals reconcile against priced-consumption and labor/operation source lines.
+1. **DOM-120 VERIFIED** — independent mixed-stock project cut-plan area-summary reconciliation; [test commit 31ca52de](https://github.com/Taylan789/MobilyaCAD/commit/31ca52de6334d4f36b0b37e7594d20affde91c16), exact-SHA CI/QA/Pages successful (172 frontend + 649 domain tests).
+2. **DOM-121 READY** — edge-band/material summary provenance across mixed-family Part snapshots.
+3. **DOM-122 READY** — quote-cost totals reconcile against priced-consumption and labor/operation source lines.
 4. **INT-001 FRONTEND-OWNED** — domain/export contract and download-adapter wiring; product agent does not edit frontend.
 5. **INT-002/PERF-001 SPECIALIST-OWNED** — adapter round-trip and measured CAD profiling; QA-003 stays blocked until integration evidence.
 

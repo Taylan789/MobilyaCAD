@@ -334,12 +334,12 @@
 - **AI Developer:** [#45075174069](https://github.com/Taylan789/MobilyaCAD/actions/runs/45075174069) failed with OpenRouter free-model daily 429; specialist integration/performance job skipped. No rerun before the documented 03:00 TRT reset, no paid fallback, quota or secrets changes.
 - **Next:** DOM-120 area-summary reconciliation, then DOM-121 edge-band/material summary provenance, DOM-122 priced-consumption/quote totals. INT-001 frontend-owned, INT-002/PERF-001 specialist-owned; QA-003 blocked.
 
-## 23 Kasım 2026 02:23 TRT — DOM-120 (verification pending)
+## 23 Kasım 2026 02:23 TRT — DOM-120 VERIFIED
 
-- **Slice:** Added a test-only cross-consumer reconciliation for project cut-plan area summaries. It independently derives each sheet's gross/trim/usable/placed/unoccupied area and occupancy from the cut-plan placements, then checks mixed-stock group summaries, project sums and weighted occupancy. The plywood fixture requires multiple sheets; the MDF fixture has nonzero trim.
-- **Files:** `domain/production/projectSheetCutPlanAreaSummary.test.mjs`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`.
-- **Commit:** pending; exact-SHA CI, QA, production build, audit and Pages deployment are not yet observed. Local tests unavailable; GitHub Actions is authoritative.
-- **Scope:** test and roadmap/coordination only. No frontend, production algorithm, schema, export adapter, machine-specific output or `main` changed.
-- **Known blockers:** AI Developer run [#45075174069](https://github.com/Taylan789/MobilyaCAD/actions/runs/45075174069) failed with OpenRouter free-model daily 429; exact logs confirmed quota exhausted. The recorded reset is 03:00 TRT; do not rerun before reset or use paid fallback.
-- **Test site:** current verified deployment [#45080259326](https://github.com/Taylan789/MobilyaCAD/actions/runs/45080259326) is prior SHA; this commit's deployment is pending. URL: https://taylan789.github.io/MobilyaCAD/.
-- **Next:** DOM-121 edge-band/material summary provenance across mixed-family snapshots; DOM-122 quote-cost totals against priced-consumption sources. INT-001 frontend-owned; INT-002/PERF-001 specialist-owned; QA-003 remains blocked.
+- **Slice:** Test-only cross-consumer reconciliation for project cut-plan area summaries. Independent geometry arithmetic verifies each group's per-sheet gross/trim/usable/placed/unoccupied areas and occupancy, then reconciles mixed-stock project sums and weighted occupancy. The plywood fixture requires multiple sheets; MDF uses nonzero trim.
+- **Code/test commit:** [31ca52de](https://github.com/Taylan789/MobilyaCAD/commit/31ca52de6334d4f36b0b37e7594d20affde91c16); test file `domain/production/projectSheetCutPlanAreaSummary.test.mjs`.
+- **Exact-SHA Actions:** CI [#45083257996](https://github.com/Taylan789/MobilyaCAD/actions/runs/45083257996) and QA [#45083257987](https://github.com/Taylan789/MobilyaCAD/actions/runs/45083257987) succeeded. QA: **172 frontend + 649 domain tests**, strict domain TypeScript, lint **32 warnings / 0 errors**, production build, audit **0 vulnerabilities**.
+- **Pages:** [#45083257991](https://github.com/Taylan789/MobilyaCAD/actions/runs/45083257991) deployed successfully to https://taylan789.github.io/MobilyaCAD/.
+- **Scope:** test and coordination/roadmap only; no frontend, production algorithm, schema, export adapter, machine-specific output or `main` changed. Local tests unavailable; GitHub Actions is authoritative.
+- **Known blockers:** AI Developer run [#45075174069](https://github.com/Taylan789/MobilyaCAD/actions/runs/45075174069) failed with OpenRouter free-model daily 429; exact logs confirm quota exhaustion. The recorded reset is 03:00 TRT. No rerun before reset or paid fallback.
+- **Next:** DOM-121 edge-band/material summary provenance across mixed-family snapshots; DOM-122 priced-consumption/quote reconciliation. INT-001 frontend-owned; INT-002/PERF-001 specialist-owned; QA-003 remains blocked.
