@@ -195,3 +195,106 @@
     background: Highlight;
   }
 }
+
+/* Scene hierarchy: compact, readable object and part selection states. */
+.cad-app .studio-tree-heading {
+  color: #91a8b8;
+  margin-bottom: 10px;
+}
+.cad-app .studio-tree-heading-actions { gap: 4px; }
+.cad-app .studio-tree-heading-actions button,
+.cad-app .studio-tree-object-row > button:not(.studio-tree-object-select) {
+  display: grid;
+  min-width: 27px;
+  width: 27px;
+  height: 30px;
+  padding: 0;
+  place-items: center;
+  color: #91a9b8;
+  background: #1a2832;
+  border: 1px solid #354b59;
+  border-radius: 5px;
+}
+.cad-app .studio-tree-heading-actions button:hover,
+.cad-app .studio-tree-object-row > button:not(.studio-tree-object-select):hover:not(:disabled) {
+  color: #e7f1f7;
+  background: #2a3e4c;
+  border-color: #58768a;
+}
+.cad-app .studio-tree-heading-actions button:disabled,
+.cad-app .studio-tree-object-row > button:disabled { opacity: .42; }
+.cad-app .studio-tree-search { margin-bottom: 10px; }
+.cad-app .studio-tree-room,
+.cad-app .studio-tree-object-select {
+  color: #c0d0da;
+  background: #1a2832;
+  border: 1px solid #344a58;
+  border-radius: 6px;
+}
+.cad-app .studio-tree-room { min-height: 54px; }
+.cad-app .studio-tree-room:hover,
+.cad-app .studio-tree-object-select:hover {
+  color: #edf5f9;
+  background: #253945;
+  border-color: #59788d;
+}
+.cad-app .studio-tree-object-row { display: flex; align-items: stretch; gap: 4px; }
+.cad-app .studio-tree-object-select { flex: 1 1 0%; min-width: 0; padding: 8px; }
+.cad-app .studio-tree-object-select.selected {
+  color: #e9f4fa;
+  background: #2a4557;
+  border-color: #789bb4;
+  box-shadow: inset 2px 0 #90b8d3;
+}
+.cad-app .studio-tree-object-select strong,
+.cad-app .studio-tree-room strong { color: #e2edf3; }
+.cad-app .studio-tree-object-select small,
+.cad-app .studio-tree-room small { color: #8fa5b2; }
+.cad-app .studio-tree-object-select em { color: #c3d4de; background: #304652; }
+.cad-app .studio-tree-material-line { display: flex; align-items: center; gap: 4px; min-width: 0; flex-wrap: wrap; }
+.cad-app .studio-tree-material-source {
+  padding: 1px 4px;
+  color: #a8c5d7;
+  background: #263d4b;
+  border: 1px solid #385463;
+  border-radius: 3px;
+  font-size: 7px;
+  letter-spacing: .04em;
+}
+.cad-app .studio-tree-material-source.is-custom { color: #cbb99b; background: #3a3328; border-color: #5a4b39; }
+.cad-app .studio-tree-material-source.is-missing { color: #e3aaa2; background: #3d2b2b; border-color: #684444; }
+.cad-app .studio-tree-material-source.is-unassigned { color: #9eacb7; background: #28333b; border-color: #3c4b56; }
+.cad-app .studio-tree-material-name { min-width: 0; color: #b6c6d0; overflow-wrap: anywhere; }
+.cad-app .studio-tree-material-inheritance { color: #83a7c0; font-size: 7px; letter-spacing: .06em; }
+.cad-app .studio-tree-branch { border-left-color: #3b5362; }
+.cad-app .studio-tree-branch-label { color: #8da3b0; }
+.cad-app .studio-tree-branch-label b { color: #a9c8dd; }
+.cad-app .studio-tree-object::before { border-top-color: #3b5362; }
+.cad-app .studio-tree-object-parts { margin-top: 3px; padding: 4px 0 2px; border-top: 1px solid #2e414e; }
+.cad-app .studio-tree-part { width: calc(100% - 18px); min-height: 30px; height: auto; margin-left: 18px; border: 1px solid transparent; border-radius: 5px; }
+.cad-app .studio-tree-part.selected { color: #e5f2f8; background: #2b4555; border-color: #486778; }
+.cad-app .studio-tree-part-line { background: #4a6677; }
+.cad-app .studio-tree-part-type-icon { color: #88a9bf; }
+.cad-app .studio-tree-part-name { color: inherit; }
+.cad-app .studio-tree-empty { padding: 24px 12px; border: 1px dashed #3b5362; border-radius: 8px; background: rgba(13, 22, 29, .3); }
+.cad-app .studio-tree-empty button { color: #b8d4e5; background: #233946; border-color: #405c6c; }
+.cad-app .studio-tree-empty button:hover { background: #2c4859; }
+.cad-app .studio-tree-object.is-hidden .studio-tree-object-select { opacity: .64; }
+.cad-app .studio-tree-isolate.is-active { color: #e7f3f8; background: #304d60; border-color: #769ab4; }
+@media (prefers-reduced-motion: reduce) {
+  .cad-app .studio-tree-object-parts { animation: none !important; }
+}
+@media (forced-colors: active) {
+  .cad-app .studio-tree-room,
+  .cad-app .studio-tree-object-select,
+  .cad-app .studio-tree-part,
+  .cad-app .studio-tree-empty,
+  .cad-app .studio-tree-heading-actions button,
+  .cad-app .studio-tree-object-row > button:not(.studio-tree-object-select) {
+    border: 1px solid CanvasText !important;
+    background: Canvas !important;
+    color: CanvasText !important;
+  }
+  .cad-app .studio-tree-object-select.selected,
+  .cad-app .studio-tree-part.selected { outline: 2px solid Highlight !important; }
+}
