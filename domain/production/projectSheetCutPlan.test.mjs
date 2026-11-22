@@ -284,3 +284,99 @@ test("ready batch raporunda boş olmayan tanı, unknown field veya seçili/hari�
     layoutReports: makeLayouts(batchReport)
   }, /listeleri çakışıyor/);
 });
+
+test("DOM-119 ready project cut plan reconciles source quantities and physical placements with canonical snapshot", () => {
+  const productionParts = [
+    part("mdf-18-a", "mdf-18", 18, 2, "length"),
+    part("mdf-18-b", "mdf-18", 18, 3, "length"),
+    part("plywood-8", "plywood-8", 8, 4, "width"),
+    part("excluded-12", "other-12", 12, 5, "length")
+  ];
+  const selectedPartIds = ["mdf-18-a", "mdf-18-b", "plywood-8"];
+  const batchReport = createProjectSheetNestingBatches({
+    schemaVersion: 1,
+    productionReport: productionReport(productionParts),
+    partIds: selectedPartIds,
+    stockSheets: [
+      {
+        sheet: {
+          materialId: "mdf-18",
+          widthMm: 1200,
+          lengthMm: 1000,
+          thicknessMm: 18,
+          grainDirection: "length"
+        },
+        kerfMm: 3
+      },
+      {
+        sheet: {
+          materialId: "plywood-8",
+          widthMm: 1200,
+          lengthMm: 1000,
+          thicknessMm: 8,
+          grainDirection: "width"
+        },
+        kerfMm: 2.4
+      }
+    ]
+  });
+  assert.equal(batchReport.status, "ready");
+  assert.deepEqual(batchReport.sourcePartIds, selectedPartIds);
+  assert.deepEqual(batchReport.excludedPartIds, ["excluded-12"]);
+
+  const cutPlan = createProjectSheetCutPlan({
+    schemaVersion: 1,
+    batchReport,
+    layoutReports: makeLayouts(batchReport)
+  });
+  assert.equal(cutPlan.status, "ready");
+  assert.ok(cutPlan.result);
+
+  const snapshot = validateProjectPartSnapshot(cutPlan.result.projectPartSnapshot);
+  const snapshotParts = new Map(snapshot.parts.map((entry) => [entry.id, JSON.parse(entry.snapshot)]));
+  assert.deepEqual(snapshot.parts.map((entry) => entry.id), productionParts.map((entry) => entry.id));
+
+  const coveredPartIds = [];
+  let totalPlacedPieces = 0;
+  for (const group of cutPlan.result.groups) {
+    const sourceParts = group.cutPlan.sourceParts;
+    assert.deepEqual(sourceParts.map((entry) => entry.id), group.sourcePartIds);
+
+    const batchGroup = batchReport.result.batches.find((entry) =>
+      entry.materialId === group.materialId && entry.thicknessMm === group.thicknessMm
+    );
+    assert.ok(batchGroup, "cut-plan group must map to exactly one nesting batch");
+    let expectedGroupPieceCount = 0;
+    for (const sourcePart of sourceParts) {
+      const snapshotPart = snapshotParts.get(sourcePart.id);
+      assert.ok(snapshotPart, "source Part must resolve in the full canonical snapshot");
+      assert.equal(sourcePart.materialId, snapshotPart.materialId);
+      assert.equal(sourcePart.widthMm, snapshotPart.width);
+      assert.equal(sourcePart.lengthMm, snapshotPart.length);
+      assert.equal(sourcePart.thicknessMm, snapshotPart.thickness);
+      assert.equal(sourcePart.quantity, snapshotPart.quantity);
+      assert.equal(sourcePart.grainDirection, snapshotPart.grainDirection);
+
+      const placements = group.cutPlan.sheets.flatMap((sheet) => sheet.placements)
+        .filter((placement) => placement.sourcePartId === sourcePart.id);
+      assert.equal(placements.length, snapshotPart.quantity);
+      assert.deepEqual(
+        placements.map((placement) => placement.pieceNumber).sort((a, b) => a - b),
+        Array.from({ length: snapshotPart.quantity }, (_, index) => index + 1)
+      );
+      expectedGroupPieceCount += snapshotPart.quantity;
+      coveredPartIds.push(sourcePart.id);
+    }
+
+    const layoutPieceCount = group.cutPlan.sheets.reduce((sum, sheet) => sum + sheet.pieceCount, 0);
+    assert.equal(group.cutPlan.totalPieceCount, expectedGroupPieceCount);
+    assert.equal(group.cutPlan.totalPieceCount, batchGroup.batch.totalPieceCount);
+    assert.equal(layoutPieceCount, group.cutPlan.totalPieceCount);
+    totalPlacedPieces += layoutPieceCount;
+  }
+
+  assert.deepEqual([...coveredPartIds].sort(), [...selectedPartIds].sort());
+  assert.ok(!coveredPartIds.includes("excluded-12"), "excluded Part must remain snapshot-only");
+  assert.equal(snapshotParts.has("excluded-12"), true);
+  assert.equal(totalPlacedPieces, 9);
+});

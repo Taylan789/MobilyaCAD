@@ -1150,3 +1150,18 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - Duplicate normalized stock definitions remain blocked, and their diagnostic is order-invariant. Unused definitions are never silently discarded.
 - Exact code/test commit: d081696ce27d6ad9f9a52604a3c47ef2a8ad4700. CI #45072743130 and QA #45072741019 succeeded (169 frontend + 647 domain tests; 0 failures, strict domain TS, lint, build, production audit 0 vulnerabilities); Pages #45072740981 succeeded.
 - Next: DOM-119 atomic ready-batch to cut-plan source coverage reconciliation. INT-001 frontend-owned; INT-002/PERF-001 specialist-owned.
+
+## DOM-119 — Nesting batch → project cut-plan source coverage (verification pending)
+
+- **Acceptance:** a ready mixed-material project plan reconciles each group with its matching nesting batch and canonical Part snapshot; source material/measure/grain/quantity remain intact; every physical piece number from 1..quantity is placed exactly once; group and project placement counts agree; excluded Parts remain snapshot-only and never enter placements.
+- **Scope:** domain cross-consumer regression in `domain/production/projectSheetCutPlan.test.mjs`; no production behavior, frontend, adapter/performance-owned files, schema, CNC output, or `main`.
+- **Verification:** exact-SHA CI/QA/Pages pending. Local tests unavailable; GitHub Actions is authoritative.
+- **Next:** DOM-120 project cut-plan area-summary reconciliation; DOM-121 edge-band/material summary provenance across mixed-family snapshots; DOM-122 quote-cost summary totals against priced-consumption source. INT-001 frontend-owned; INT-002/PERF-001 specialist-owned; QA-003 remains blocked until their evidence exists.
+
+## 10/10 quality checklist — evidence-based status
+
+- **CAD core:** measured room/model sync, transforms, snap/grid, selection/grouping, undo/redo, camera, save/load — baseline needs feature-by-feature automated coverage; no overall score claimed.
+- **Production:** source Part tree, cut list, materials, edge banding, hardware, waste, nesting, cost and export — measure each consumer's source/quantity/geometry reconciliation; CNC/machine-specific output remains human/fixture validation.
+- **UX:** functional controls, navigation, empty/error states, keyboard/accessibility, responsive layout — UI agent-owned; verify automated frontend checks and real integration after its PR.
+- **Performance:** bundle size, viewport frame behavior, memory, large-placement tests — specialist-owned measured baselines; current bundle-size warning remains.
+- **Reliability:** strict types, test coverage, round-trip losslessness, backward compatibility, fail-closed import/export, production audit — CI/QA evidence per exact SHA; 10/10 requires all checks and no unresolved critical risks.

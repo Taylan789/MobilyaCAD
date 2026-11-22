@@ -307,3 +307,13 @@
 - **Files:** domain/production/projectSheetNestingBatches.ts, domain/production/projectSheetNestingBatches.test.mjs, docs/production-domain-contract.md, AI_COORDINATION.md, PRODUCT_ROADMAP.md, AI_PROGRESS.md. No frontend/**, adapter/performance-owned files, schema, CNC output or main changed.
 - **Known limits:** local tests unavailable; GitHub Actions is authoritative. npm install reports 4 moderate advisories, while the production dependency audit is clean. Existing bundle warning remains (1.687 MB JS / 472.30 KB gzip).
 - **Next:** DOM-119 ready batch → cut-plan source coverage and atomic reconciliation; INT-001 frontend-owned, INT-002/PERF-001 specialist-owned.
+
+## 23 Kasım 2026 01:48 TRT — DOM-119 (verification pending)
+
+- **Slice:** Added a mixed-material project cut-plan regression that reconciles each group to its nesting batch and canonical Part snapshot, preserves material/measure/grain/quantity, verifies physical piece numbers 1..quantity exactly once, checks group/layout totals, and keeps excluded Parts snapshot-only.
+- **Files:** `domain/production/projectSheetCutPlan.test.mjs`, `PRODUCT_ROADMAP.md`, `AI_COORDINATION.md`, `AI_PROGRESS.md`.
+- **Commit:** pending; exact-SHA CI, QA, production build, audit and Pages are not yet observed.
+- **Known limits:** test-only slice; no production code or frontend change. Local tests unavailable; GitHub Actions is authoritative.
+- **Next:** DOM-120 project cut-plan area-summary reconciliation; DOM-121 edge-band/material summary provenance; DOM-122 priced-consumption/quote total reconciliation.
+- **AI Developer:** run [#45075174069](https://github.com/Taylan789/MobilyaCAD/actions/runs/45075174069) failed on OpenRouter free-model daily 429. The reset is scheduled for 23 Nov 2026 03:00 TRT; do not rerun before reset. No paid fallback or quota/secrets changes.
+- **Test site:** latest verified deployment remains [#45074176186](https://github.com/Taylan789/MobilyaCAD/actions/runs/45074176186) for previous SHA; new deployment is pending. URL: https://taylan789.github.io/MobilyaCAD/.
