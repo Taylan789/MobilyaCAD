@@ -192,3 +192,115 @@ test("boş proje seçimi boş ve sıfır alan toplamları üretir", () => {
   });
   assert.deepEqual(report.result?.groups, []);
 });
+
+
+// DOM-120: independent cross-consumer area reconciliation from cut-plan geometry.
+function independentlyReconcileArea(cutPlanReport) {
+  const plan = cutPlanReport.result;
+  assert.ok(plan);
+  const trim = plan.edgeTrimMm ?? { left: 0, right: 0, top: 0, bottom: 0 };
+  const grossPerSheet = plan.stockSheet.widthMm * plan.stockSheet.lengthMm;
+  const usablePerSheet =
+    (plan.stockSheet.widthMm - trim.left - trim.right) *
+    (plan.stockSheet.lengthMm - trim.top - trim.bottom);
+  const trimPerSheet = grossPerSheet - usablePerSheet;
+  const roundedArea = (value) => Math.round(value * 100) / 100;
+  const roundedPercent = (placed, usable) =>
+    usable === 0 ? null : Math.round((placed / usable) * 10_000) / 100;
+  const sheets = plan.sheets.map((sheet) => {
+    const placedArea = sheet.placements.reduce(
+      (sum, placement) => sum + placement.widthMm * placement.lengthMm,
+      0
+    );
+    return {
+      sheetIndex: sheet.index,
+      grossSheetAreaMm2: roundedArea(grossPerSheet),
+      trimExcludedAreaMm2: roundedArea(trimPerSheet),
+      usableSheetAreaMm2: roundedArea(usablePerSheet),
+      placedPartAreaMm2: roundedArea(placedArea),
+      unoccupiedUsableAreaMm2: roundedArea(usablePerSheet - placedArea),
+      geometricOccupancyPercent: roundedPercent(placedArea, usablePerSheet)
+    };
+  });
+  const placedArea = sheets.reduce((sum, sheet) => sum + sheet.placedPartAreaMm2, 0);
+  const usableArea = usablePerSheet * sheets.length;
+  return {
+    schemaVersion: 1,
+    sheetCount: sheets.length,
+    grossSheetAreaMm2: roundedArea(grossPerSheet * sheets.length),
+    trimExcludedAreaMm2: roundedArea(trimPerSheet * sheets.length),
+    usableSheetAreaMm2: roundedArea(usableArea),
+    placedPartAreaMm2: roundedArea(placedArea),
+    unoccupiedUsableAreaMm2: roundedArea(usableArea - placedArea),
+    geometricOccupancyPercent: roundedPercent(placedArea, usableArea),
+    sheets
+  };
+}
+
+test("DOM-120 mixed-stock project area summary reconciles against per-sheet cut-plan geometry and weighted totals", () => {
+  const mdf = makeCutPlan({
+    id: "part-mdf",
+    materialId: "mdf-18",
+    thicknessMm: 18,
+    sheetWidthMm: 1000,
+    sheetLengthMm: 1000,
+    quantity: 2,
+    edgeTrimMm: { left: 10, right: 10, top: 5, bottom: 5 }
+  });
+  const plywood = makeCutPlan({
+    id: "part-plywood",
+    materialId: "plywood-8",
+    thicknessMm: 8,
+    sheetWidthMm: 800,
+    sheetLengthMm: 600,
+    partWidthMm: 700,
+    partLengthMm: 500,
+    quantity: 3
+  });
+  assert.equal(mdf.status, "ready");
+  assert.equal(plywood.status, "ready");
+  assert.ok(plywood.result);
+  assert.ok(plywood.result.sheets.length > 1, "fixture must exercise a multi-sheet stock group");
+
+  const inputGroups = [group(mdf), group(plywood)];
+  const report = calculateProjectSheetCutPlanAreaSummary({
+    schemaVersion: 1,
+    sourcePartIds: ["part-mdf", "part-plywood"],
+    groups: inputGroups
+  });
+  assert.equal(report.status, "ready");
+  assert.ok(report.result);
+  assert.equal(report.result.groupCount, inputGroups.length);
+
+  for (let index = 0; index < inputGroups.length; index += 1) {
+    assert.deepEqual(
+      report.result.groups[index].areaSummary,
+      independentlyReconcileArea(inputGroups[index].cutPlanReport),
+      "each material group must reconcile gross, trim, usable, placement, offcut and sheet-level occupancy"
+    );
+  }
+
+  const expectedTotals = report.result.groups.reduce((totals, groupSummary) => {
+    const area = groupSummary.areaSummary;
+    totals.sheetCount += area.sheetCount;
+    totals.grossSheetAreaMm2 += area.grossSheetAreaMm2;
+    totals.trimExcludedAreaMm2 += area.trimExcludedAreaMm2;
+    totals.usableSheetAreaMm2 += area.usableSheetAreaMm2;
+    totals.placedPartAreaMm2 += area.placedPartAreaMm2;
+    totals.unoccupiedUsableAreaMm2 += area.unoccupiedUsableAreaMm2;
+    return totals;
+  }, {
+    sheetCount: 0,
+    grossSheetAreaMm2: 0,
+    trimExcludedAreaMm2: 0,
+    usableSheetAreaMm2: 0,
+    placedPartAreaMm2: 0,
+    unoccupiedUsableAreaMm2: 0
+  });
+  expectedTotals.geometricOccupancyPercent = expectedTotals.usableSheetAreaMm2 === 0
+    ? null
+    : Math.round(
+        (expectedTotals.placedPartAreaMm2 / expectedTotals.usableSheetAreaMm2) * 10_000
+      ) / 100;
+  assert.deepEqual(report.result.totals, expectedTotals);
+});

@@ -593,11 +593,11 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 
 ## Next 5 small tasks
 
-1. DOM-109 DONE — [commit a6d34fe](https://github.com/Taylan789/MobilyaCAD/commit/a6d34fe17bf7eddc26f2aac97373adb61e346d03); exact-SHA CI/QA and Pages succeeded (150 frontend + 635 domain tests).
-2. DOM-110 VERIFIED — mixed-family cabinet/bookshelf material summary (8/18 mm, quantity, Part provenance, area/volume/banding); exact-SHA CI [#45015876727](https://github.com/Taylan789/MobilyaCAD/actions/runs/45015876727), QA [#45015876733](https://github.com/Taylan789/MobilyaCAD/actions/runs/45015876733) passed; Pages [#45015876696](https://github.com/Taylan789/MobilyaCAD/actions/runs/45015876696) deployed.
-3. DOM-111 VERIFIED — material-ID conflicts block all furniture contributors and diagnostics list all affected IDs; exact-SHA CI/QA/Pages successful (150 frontend + 637 domain, 0 audit vulnerabilities).
-4. INT-001 frontend-owned — comparison/download and production export adapter contract; document integration handoff only, no frontend edits.
-5. INT-002/PERF-001 specialist-owned — integration profiling/benchmark evidence; QA-003 remains blocked until INT-001 and specialist evidence are available.
+1. **DOM-120 IN PROGRESS** — independent mixed-stock project cut-plan area-summary reconciliation; exact-SHA Actions pending.
+2. **DOM-121 PLANNED** — edge-band/material summary provenance across mixed-family Part snapshots.
+3. **DOM-122 PLANNED** — quote-cost totals reconcile against priced-consumption and labor/operation source lines.
+4. **INT-001 FRONTEND-OWNED** — domain/export contract and download-adapter wiring; product agent does not edit frontend.
+5. **INT-002/PERF-001 SPECIALIST-OWNED** — adapter round-trip and measured CAD profiling; QA-003 stays blocked until integration evidence.
 
 ## 10/10 ölçülebilir kalite kapıları (20 Kasım 2026 baseline)
 
@@ -1165,3 +1165,10 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - **UX:** functional controls, navigation, empty/error states, keyboard/accessibility, responsive layout — UI agent-owned; verify automated frontend checks and real integration after its PR.
 - **Performance:** bundle size, viewport frame behavior, memory, large-placement tests — specialist-owned measured baselines; current bundle-size warning remains.
 - **Reliability:** strict types, test coverage, round-trip losslessness, backward compatibility, fail-closed import/export, production audit — CI/QA evidence per exact SHA; 10/10 requires all checks and no unresolved critical risks.
+
+## DOM-120 — Project cut-plan area-summary reconciliation (23 Kasım 2026)
+
+- **Acceptance:** each mixed-material group area summary independently reconciles stock dimensions, per-sheet trim, usable area, placement geometry, unoccupied area and sheet occupancy; project totals equal the sum of group totals and geometric occupancy is weighted across all groups rather than averaged.
+- **Fixture:** nonzero MDF trim plus a different stock size/material with multiple sheets. The test is cross-consumer and test-only; no production algorithm or export format changed.
+- **Verification:** commit and exact-SHA CI/QA/Pages pending; local tests unavailable, Actions is authoritative.
+- **Next:** DOM-121 edge-band/material summary provenance; DOM-122 priced-consumption/quote reconciliation. INT-001 remains frontend-owned and INT-002/PERF-001 specialist-owned.
