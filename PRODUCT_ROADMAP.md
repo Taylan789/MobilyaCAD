@@ -989,3 +989,10 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - Test site deployment completed successfully at https://taylan789.github.io/MobilyaCAD/. A direct web fetch was unavailable in this runtime; the deployment run itself is confirmed green.
 - AI Developer run [#44953172176](https://github.com/Taylan789/MobilyaCAD/actions/runs/44953172176) failed because OpenRouter's free-model daily quota was exhausted (HTTP 429). The integration/performance job was skipped; no specialist branch/PR was found. No paid retry, quota or secret change was made.
 - **Next 3 small tasks:** DOM-100 JSON v2 ↔ CSV v3 equivalence and malformed fail-closed cross-format tests; DOM-101 adversarial CSV quoting/record-boundary tests; INT-001 frontend-owned adapter/export contract review. INT-002/PERF-001 remains specialist-owned.
+
+## DOM-104 — Deterministic quote-comparison CSV exports (IN_PROGRESS, 22 November 2026)
+
+- Added a regression test that serializes one logical quote comparison three times from the original and independent deep copies; it asserts exact byte equality, UTF-8 BOM, CRLF ending, v3 parse equality, and source immutability.
+- The serializer already uses stable fixed columns, category order, and input line order; no production serializer or CSV schema change was needed. This slice locks its existing deterministic contract rather than introducing unnecessary sorting that could change quote line semantics.
+- Code/test commit and exact-SHA CI/QA/Pages are pending; local execution is unavailable in this environment, so Actions will be the verification source.
+- Next: DOM-105 canonical v3 export after legacy v1/v2 import, preserving supported line/roll provenance while documenting and testing catalog identity fields that older formats cannot carry. INT-001 is frontend-owned; INT-002/PERF-001 specialist-owned.

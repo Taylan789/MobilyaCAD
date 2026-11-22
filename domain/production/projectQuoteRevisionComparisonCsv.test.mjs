@@ -244,6 +244,31 @@ test("CSV v3 has stable columns and round-trips exact comparison metadata", () =
   assertQuoteAdjustmentProvenance(parsed.comparison);
 });
 
+test("DOM-104 repeated CSV exports are byte-stable and round-trip without mutating input", () => {
+  const original = readyComparisonResult();
+  const comparisonSnapshot = structuredClone(original.comparison);
+  const equivalentInputs = [
+    original,
+    { status: original.status, comparison: structuredClone(original.comparison), diagnostics: original.diagnostics },
+    { status: original.status, comparison: structuredClone(original.comparison), diagnostics: original.diagnostics }
+  ];
+  const exports = equivalentInputs.map(input => serializeProjectQuoteRevisionComparisonCsv(input));
+  assert.ok(exports.every(result => result.status === "ready" && result.csv !== null), exports.map(result => result.diagnostics.join("; ")).join("; "));
+  const csvs = exports.map(result => result.csv);
+  assert.equal(csvs[1], csvs[0]);
+  assert.equal(csvs[2], csvs[0]);
+  assert.ok(csvs[0].startsWith("\uFEFF"));
+  assert.ok(csvs[0].endsWith("\r\n"));
+
+  for (const csv of csvs) {
+    const parsed = parseProjectQuoteRevisionComparisonCsv(csv);
+    assert.equal(parsed.status, "ready", parsed.diagnostics.join("; "));
+    assert.equal(parsed.formatVersion, 3);
+    assert.deepEqual(parsed.comparison, comparisonSnapshot);
+  }
+  assert.deepEqual(original.comparison, comparisonSnapshot);
+});
+
 test("CSV quoting round-trip preserves Turkish text, commas, quotes and embedded line breaks", () => {
   const original = readyComparisonResult();
   const escapedText = 'MDF, "özel"\r\nlam';

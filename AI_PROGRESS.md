@@ -1,3 +1,10 @@
+## 22 Kasım 2026 07:07 TRT — DOM-104 IN_PROGRESS
+
+- Added repeated quote-comparison CSV export regression coverage across three equivalent inputs: exact byte equality, BOM/CRLF contract, CSV v3 parser round-trip, and input immutability.
+- Existing serializer already has deterministic fixed-column/category/input-line ordering; no production code/schema changes were necessary. No frontend, adapter/performance-owned files, or machine-specific output changed.
+- Commit SHA and exact-SHA CI/QA/Pages verification are pending. Local tests are unavailable; do not claim success before GitHub Actions results.
+- Next: DOM-105 legacy CSV v1/v2 import followed by canonical v3 export with supported metadata round-trip and explicit catalog-identity omission; INT-001/INT-002/PERF-001 remain separately owned.
+
 ## 22 Kasım 2026 06:46 TRT — DOM-103 VERIFIED
 
 - Quote-comparison CSV parser success results expose the detected `formatVersion` (`1 | 2 | 3`) for direct UI disclosure; the property is non-enumerable so the existing strict JSON serializer can accept a CSV parser result without leaking CSV metadata. Blocked imports omit version.

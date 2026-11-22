@@ -89,10 +89,11 @@ Bu dosya dört geliştirme/denetim rolünün ortak görev panosu ve entegrasyon 
 ## Sıradaki görevler — domain/agent sahipliği
 
 1. DOM-103 DONE — [commit 431b044](https://github.com/Taylan789/MobilyaCAD/commit/431b044cd20d07209104f2fdd422352400c56750); CI #44982525644, QA #44982525656, Pages #44982525667 successful (142 frontend + 628 domain; strict TS/build/audit passed; lint 32 warnings/0 errors).
-2. DOM-104 READY — byte-stable repeated CSV export and round-trip invariants; no schema changes.
-3. INT-001 FRONTEND-OWNED — domain/frontend export contract and download adapter; product agent does not touch frontend files.
-4. INT-002/PERF-001 INTEGRATION-OWNED — adapter round-trip and measured CAD profiling on specialist-owned branch.
-5. QA-003 BLOCKED — end-to-end export reconciliation after INT-001/INT-002 evidence.
+2. DOM-104 IN_PROGRESS — repeated CSV serialization/round-trip regression test committed; exact-SHA CI/QA/Pages pending.
+3. DOM-105 READY — canonical v3 export after legacy v1/v2 CSV import, preserving supported metadata and intentionally absent resource identity.
+4. INT-001 FRONTEND-OWNED — domain/frontend export contract and download adapter; product agent does not touch frontend files.
+5. INT-002/PERF-001 INTEGRATION-OWNED — adapter round-trip and measured CAD profiling on specialist-owned branch.
+6. QA-003 BLOCKED — end-to-end export reconciliation after INT-001/INT-002 evidence.
 
 ## Son devir kayıtları
 
@@ -430,4 +431,5 @@ Bu dosya dört geliştirme/denetim rolünün ortak görev panosu ve entegrasyon 
 | DOM-101 | Adversarial CSV quoting, embedded CRLF/BOM and record-boundary cases; fail closed without partial comparisons | Ürün Geliştirme | DONE — [commit 24b5bdc](https://github.com/Taylan789/MobilyaCAD/commit/24b5bdc358d6b8e5fa8404a063dde0f024fd3068); CI #44968313006, QA #44968312997, Pages #44968312947 successful — 142 frontend + 624 domain, strict TS/lint/build/audit | malformed quoting/row width/version and byte limits | DOM-102
 | DOM-102 | JSON v1/v2 and CSV v1/v2/v3 compatibility matrix; verify supported metadata preservation and fail closed for unsupported partial fields | Ürün Geliştirme | DONE — [fix commit 8bc5ede](https://github.com/Taylan789/MobilyaCAD/commit/8bc5ede4c2f34158929d1272ffbc253184380242), CI #44974595633, QA #44974595666 (142 frontend + 628 domain), Pages #44974595608 all successful; lint 32 warnings/0 errors, audit 0 | legacy metadata preservation/omission and strict v3 identity; no parser behavior changed | DOM-103
 | DOM-103 | Additive CSV parser formatVersion for legacy import disclosure; let UI warn about unavailable catalog identity | Ürün Geliştirme | DONE — [fix commit 431b044](https://github.com/Taylan789/MobilyaCAD/commit/431b044cd20d07209104f2fdd422352400c56750); CI #44982525644, QA #44982525656 (142 frontend + 628 domain), Pages #44982525667 successful; lint 32 warnings/0 errors, strict TS/build/audit 0 vulnerabilities | ready result exposes directly-readable non-enumerable v1/v2/v3; blocked imports omit version; strict JSON serializer compatibility preserved | DOM-104
-| DOM-104 | Deterministic quote-comparison CSV serialization; repeated exports must be byte-identical and parse to the same comparison | Ürün Geliştirme | READY | exact serialized bytes + round-trip regression coverage, no schema changes | INT-001
+| DOM-104 | Deterministic quote-comparison CSV serialization; repeated exports must be byte-identical and parse to the same comparison | Ürün Geliştirme | IN_PROGRESS — test commit; exact-SHA Actions pending | exact bytes, BOM/CRLF, v3 round-trip, source immutability; no schema changes | DOM-105
+| DOM-105 | Legacy quote-comparison CSV v1/v2 import → canonical v3 export; preserve supported roll/line provenance, intentionally omit unavailable catalog identity | Ürün Geliştirme | READY | deterministic v3 export + round-trip and explicit v1/v2 identity omission | DOM-104 |
