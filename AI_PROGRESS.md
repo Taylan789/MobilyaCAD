@@ -1,10 +1,11 @@
-## 22 Kasım 2026 03:44 TRT — DOM-101 test slice IMPLEMENTED, Actions pending
+## 22 Kasım 2026 03:44 TRT — DOM-101 VERIFIED
 
-- Added adversarial regression coverage in `domain/production/projectQuoteRevisionComparisonCsv.test.mjs`: valid BOM/no-BOM and CRLF/LF/single-CR record delimiters round-trip exactly; malformed quote boundaries, trailing characters, unquoted quotes, row-width/blank-record and unfinished quoted-field cases fail closed with `comparison=null`.
-- Production CSV parser and serializer were not changed. DOM-099's 1 MiB UTF-8 and 2,000-line limits remain unchanged.
-- Code/test commit: this commit (SHA is recorded in the verification follow-up); no local Node test runtime/checkout is available here.
-- Exact-SHA CI/QA/Pages: pending observation; test-site deployment is not yet claimed. No visible frontend change.
-- Next: DOM-102 JSON v1/v2 and CSV v1/v2/v3 compatibility matrix; INT-001 remains frontend-owned and INT-002/PERF-001 specialist-owned.
+- Added adversarial regression coverage in `domain/production/projectQuoteRevisionComparisonCsv.test.mjs`: valid BOM/no-BOM and CRLF/LF/single-CR record delimiters round-trip exactly; malformed quote boundaries, trailing characters, unquoted quotes, extra blank record and unfinished quoted field fail closed with `comparison=null`.
+- Production CSV parser/serializer unchanged. DOM-099's 1 MiB UTF-8 and 2,000-line bounds remain intact.
+- Code/test commit: [24b5bdc](https://github.com/Taylan789/MobilyaCAD/commit/24b5bdc358d6b8e5fa8404a063dde0f024fd3068). Exact-SHA CI [#44968313006](https://github.com/Taylan789/MobilyaCAD/actions/runs/44968313006), QA [#44968312997](https://github.com/Taylan789/MobilyaCAD/actions/runs/44968312997), and Pages [#44968312947](https://github.com/Taylan789/MobilyaCAD/actions/runs/44968312947) succeeded.
+- QA: 142 frontend + 624 domain tests, strict domain type-check, lint 32 warnings/0 errors, production build and audit 0 vulnerabilities. Test site deployed: https://taylan789.github.io/MobilyaCAD/. No visible UI change.
+- AI Developer [#44953172176](https://github.com/Taylan789/MobilyaCAD/actions/runs/44953172176) still failed on OpenRouter free-model daily HTTP 429; integration/performance job skipped, no specialist branch/PR; no quota, paid-service or secret changes.
+- Next: DOM-102 legacy JSON v1/v2 and CSV v1/v2/v3 compatibility matrix; INT-001 frontend-owned, INT-002/PERF-001 specialist-owned.
 
 ## 22 Kasım 2026 02:34 TRT — DOM-100 VERIFIED
 
