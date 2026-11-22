@@ -1,3 +1,12 @@
+## 22 Kasım 2026 21:30 TRT — DOM-115 QA düzeltmesi, doğrulama bekliyor
+
+- İncelenen branch HEAD: `f909ed3a3f55b1fd1308217f15a62f9d3a76963a`. CI [#45051528250](https://github.com/Taylan789/MobilyaCAD/actions/runs/45051528250) başarılı; QA [#45051528277](https://github.com/Taylan789/MobilyaCAD/actions/runs/45051528277) başarısız: 640 domain testi geçti, yalnız DOM-115 testinin tanı mesajı regex'i gerçek metinle uyuşmadı. Üretim tanısı `katalog kimliği farklı adlarla kullanılıyor` diyor; test beklentisi `farklı malzeme adlarıyla` idi.
+- Test beklentisi gerçek mevcut mesajla hizalandı; üretim kodu ve davranışı değiştirilmedi. CI/QA/Pages yeni SHA için bekleniyor; bu runtime'da yerel Node testleri çalıştırılamadı.
+- Pages run [#45051528272](https://github.com/Taylan789/MobilyaCAD/actions/runs/45051528272) build'i başarılı olsa da QA kapısı başarısız olduğundan deploy atlandı. Son başarılı test-site sürümü [#45049246309](https://github.com/Taylan789/MobilyaCAD/actions/runs/45049246309); [test site](https://taylan789.github.io/MobilyaCAD/).
+- AI Developer [#45045107407](https://github.com/Taylan789/MobilyaCAD/actions/runs/45045107407) OpenRouter ücretsiz model günlük kotası HTTP 429 nedeniyle başarısız; integration/performance job skipped/disabled, ayrı uzman branch/PR doğrulanmadı. Ücret, secret veya kota değişikliği yapılmadı.
+- Files in this correction: `domain/production/projectSheetNestingBatches.test.mjs`, `docs/production-domain-contract.md`, `PRODUCT_ROADMAP.md`, `AI_COORDINATION.md`, `AI_PROGRESS.md`. Commit SHA and exact-SHA Actions evidence will be recorded in the next progress update. Next: verify DOM-115 and then DOM-116.
+
+
 ## 22 Kasım 2026 20:43 TRT — DOM-115 IMPLEMENTED, Actions pending
 
 - Added a cross-consumer regression: blocked mixed-family material-conflict Part/furniture provenance must exactly reconcile with material summaries from isolated valid source reports and a validated full Part snapshot; no partial nesting result or project snapshot is exposed.

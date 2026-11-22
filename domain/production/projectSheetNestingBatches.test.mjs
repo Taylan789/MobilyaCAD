@@ -519,7 +519,7 @@ test("DOM-115 blocked mixed-family material-conflict provenance reconciles with 
 
   const nestingReport = assertBlocked(
     request(blockedProduction, []),
-    /katalog kimliği farklı malzeme adlarıyla kullanılıyor/
+    /katalog kimliği farklı adlarla kullanılıyor/
   );
   assert.equal(nestingReport.projectPartSnapshot, undefined);
   assert.deepEqual(

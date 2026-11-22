@@ -775,10 +775,16 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 | ID | Sahip | Durum / kabul kriteri | Bağımlılık |
 |---|---|---|---|
 | DOM-114 | Ürün Geliştirme | VERIFIED — [code/test 751065b](https://github.com/Taylan789/MobilyaCAD/commit/751065b1437da702200696da588949bc0243596d); exact-SHA CI [#45043968666](https://github.com/Taylan789/MobilyaCAD/actions/runs/45043968666), QA [#45043968727](https://github.com/Taylan789/MobilyaCAD/actions/runs/45043968727) passed (162 frontend + 640 domain, strict TS, lint 32 warnings/0 errors, build, audit 0 vulnerabilities); Pages [#45043968653](https://github.com/Taylan789/MobilyaCAD/actions/runs/45043968653) deployed | full conflict source/order and diagnostic coverage; incomplete metadata blocked | DOM-115 |
-| DOM-115 | Ürün Geliştirme | READY — reconcile blocked mixed-family nesting reports with material-summary and Part-snapshot consumers; no partial Part/batch results | DOM-114 |
+| DOM-115 | Ürün Geliştirme | IN PROGRESS — regression expectation corrected after QA #45051528277 (640 domain passed, 1 diagnostic-wording assertion failed); exact-SHA CI/QA/Pages pending | DOM-114 |
 | DOM-116 | Ürün Geliştirme | READY — cross-consumer project production diagnostics/export integrity with deterministic provenance | DOM-115 |
 | INT-001 | Arayüz + Ürün | READY — frontend adapter consumes project production domain and blocks unsupported geometry export; round-trip tests | Production-domain contract |
 | INT-002 | Entegrasyon/Performans | READY — adapter round-trip and geometry/quantity fidelity tests on isolated specialist branch | INT-001 |
+
+## DOM-115 — Blocked mixed-family provenance reconciliation (revalidation pending)
+
+- Cross-consumer regression compares the blocked mixed-family material-conflict source Part/furniture IDs against isolated valid material summaries and a validated full Part snapshot. The blocked combined report must not expose a partial `result` or `projectPartSnapshot`.
+- Prior exact-SHA CI [#45051528250](https://github.com/Taylan789/MobilyaCAD/actions/runs/45051528250) succeeded; QA [#45051528277](https://github.com/Taylan789/MobilyaCAD/actions/runs/45051528277) failed only on the test's expected diagnostic phrase (640 domain tests passed, 1 failed). The assertion is aligned to the existing diagnostic wording in this correction; new exact-SHA checks remain pending.
+- Next after verification: DOM-116 selected/excluded Part snapshot and material/thickness source-group consistency.
 
 **Parallel specialist work:** PERF-001 repeatable CAD scene/render baseline and measured profiling remains Integration/Performance-owned; QA-003 remains blocked until INT-001 and INT-002 evidence.
 
