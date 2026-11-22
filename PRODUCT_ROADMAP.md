@@ -593,7 +593,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 
 ## Next 5 small tasks
 
-1. DOM-102 IN PROGRESS — compatibility matrix implemented; first QA failed on a test-only CSV fixture converter (627/628), correction underway; exact-SHA Actions pending.
+1. DOM-102 DONE — legacy JSON v1/v2 + CSV v1/v2/v3 matrix verified. [Fix commit 8bc5ede](https://github.com/Taylan789/MobilyaCAD/commit/8bc5ede4c2f34158929d1272ffbc253184380242); CI #44974595633, QA #44974595666 (142 frontend + 628 domain), Pages #44974595608 passed.
 2. DOM-103 READY — expose the parsed CSV schema version as an additive formatVersion field so the frontend can warn about legacy resource-identity limitations; parser tests and contract note, no frontend writes.
 3. INT-001 FRONTEND-OWNED — comparison download and production report/export integration; domain agent does not edit frontend files.
 4. INT-002/PERF-001 INTEGRATION-OWNED — adapter round-trip tests and measured CAD profiling on the isolated specialist branch.

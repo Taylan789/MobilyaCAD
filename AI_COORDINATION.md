@@ -88,9 +88,9 @@ Bu dosya dört geliştirme/denetim rolünün ortak görev panosu ve entegrasyon 
 
 ## Sıradaki 3 görev — domain sahipliği
 
-1. DOM-102 READY — JSON v1/v2 and CSV v1/v2/v3 legacy compatibility matrix; verify supported metadata preservation and fail-closed behavior.
+1. DOM-103 READY — add CSV formatVersion disclosure so UI can explain resource-identity limitations of legacy v1/v2; additive parser contract, no frontend writes.
 2. INT-001 FRONTEND-OWNED — domain/frontend export contract and download adapter; product agent does not touch frontend files.
-3. INT-002/PERF-001 INTEGRATION-OWNED — adapter round-trip and measured CAD profiling on the specialist-owned branch.
+3. INT-002/PERF-001 INTEGRATION-OWNED — adapter round-trip and measured CAD profiling on specialist-owned branch.
 4. QA-003 BLOCKED — end-to-end export reconciliation after INT-001/INT-002 evidence.
 
 ## Son devir kayıtları
@@ -427,4 +427,5 @@ Bu dosya dört geliştirme/denetim rolünün ortak görev panosu ve entegrasyon 
 | DOM-099 | Bound quote comparison CSV parser to 1 MiB UTF-8 and 2,000 line-change rows; preserve legacy versions and fail closed | Ürün Geliştirme | DONE — [commit 24f945c](https://github.com/Taylan789/MobilyaCAD/commit/24f945c0dd05c2653daaacdba5361460f20883b6), [CI #44958138720](https://github.com/Taylan789/MobilyaCAD/actions/runs/44958138720), [QA #44958138801](https://github.com/Taylan789/MobilyaCAD/actions/runs/44958138801), [Pages #44958138729](https://github.com/Taylan789/MobilyaCAD/actions/runs/44958138729) successful — 142 frontend + 621 domain tests, strict TS/lint/build/audit | DOM-100
 | DOM-100 | JSON v2 ↔ CSV v3 comparison exact cross-format round-trip, resource/Part metadata preservation and corrupted row version fail-closed | Ürün Geliştirme | DONE — code/test f704bbd6; CI #44962373022, QA #44962373046, Pages #44962373013 successful — 142 frontend + 622 domain, 32 lint warnings/0 errors, build/audit passed | DOM-101
 | DOM-101 | Adversarial CSV quoting, embedded CRLF/BOM and record-boundary cases; fail closed without partial comparisons | Ürün Geliştirme | DONE — [commit 24b5bdc](https://github.com/Taylan789/MobilyaCAD/commit/24b5bdc358d6b8e5fa8404a063dde0f024fd3068); CI #44968313006, QA #44968312997, Pages #44968312947 successful — 142 frontend + 624 domain, strict TS/lint/build/audit | malformed quoting/row width/version and byte limits | DOM-102
-| DOM-102 | JSON v1/v2 and CSV v1/v2/v3 compatibility matrix; verify supported metadata preservation and fail closed for unsupported partial fields | Ürün Geliştirme | PLANNED | explicit version matrix and round-trip/blocker evidence | INT-001
+| DOM-102 | JSON v1/v2 and CSV v1/v2/v3 compatibility matrix; verify supported metadata preservation and fail closed for unsupported partial fields | Ürün Geliştirme | DONE — [fix commit 8bc5ede](https://github.com/Taylan789/MobilyaCAD/commit/8bc5ede4c2f34158929d1272ffbc253184380242), CI #44974595633, QA #44974595666 (142 frontend + 628 domain), Pages #44974595608 all successful; lint 32 warnings/0 errors, audit 0 | legacy metadata preservation/omission and strict v3 identity; no parser behavior changed | DOM-103
+| DOM-103 | Additive CSV parser formatVersion for legacy import disclosure; let UI warn about unavailable catalog identity | Ürün Geliştirme | READY | backward-compatible version field, blocked imports expose no version, parser tests and contract note | INT-001

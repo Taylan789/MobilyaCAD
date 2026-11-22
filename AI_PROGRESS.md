@@ -1,20 +1,11 @@
-## 22 Kasım 2026 05:03 TRT — DOM-102 fixture correction; verification still pending
+## 22 Kasım 2026 05:03 TRT — DOM-102 VERIFIED
 
-- Initial compatibility test commit [bba2139](https://github.com/Taylan789/MobilyaCAD/commit/bba2139138c3f1911a49380db87e45a066955a0c) added legacy CSV v1/v2 resource-identity omission assertions.
-- Exact-SHA CI [#44974489493](https://github.com/Taylan789/MobilyaCAD/actions/runs/44974489493) passed (TypeScript/production build and lint). QA [#44974489479](https://github.com/Taylan789/MobilyaCAD/actions/runs/44974489479) failed: **627/628 domain tests passed**; the new fixture conversion helpers naively split CSV cells on commas and broke JSON-array Part IDs. The production parser was not implicated.
-- Correction: legacy test converters now use the existing quote-aware test CSV record parser and cell encoder; no production code or test assertions are weakened. This fix is committed below and exact-SHA Actions are pending.
-- Pages build succeeded, but verify gate failed and deploy was skipped: [#44974489459](https://github.com/Taylan789/MobilyaCAD/actions/runs/44974489459). Latest verified test-site deployment remains [#44968555421](https://github.com/Taylan789/MobilyaCAD/actions/runs/44968555421) on SHA 87b5683.
+- Legacy quote-comparison matrix covers JSON v1/v2 and CSV v1/v2/v3. JSON v1 remains readable; JSON v2 preserves resource identity and rejects partial/mismatched metadata; legacy CSV v1/v2 preserves supported line/roll provenance while omitting resource identity unavailable in their columns; CSV v3 preserves complete resource identity and rejects partial metadata.
+- Added explicit CSV v1/v2 resource-identity omission coverage while retaining sourceReference and Part IDs. Initial QA failed because test-only legacy conversion helpers split CSV on commas and corrupted JSON-array Part IDs; corrected in [fix commit 8bc5ede](https://github.com/Taylan789/MobilyaCAD/commit/8bc5ede4c2f34158929d1272ffbc253184380242), reusing quote-aware test parsing/encoding. No production parser changes or weakened assertions.
+- Exact-SHA CI [#44974595633](https://github.com/Taylan789/MobilyaCAD/actions/runs/44974595633), QA [#44974595666](https://github.com/Taylan789/MobilyaCAD/actions/runs/44974595666), and Pages [#44974595608](https://github.com/Taylan789/MobilyaCAD/actions/runs/44974595608) all succeeded. QA: **142 frontend + 628 domain tests**, strict domain TypeScript, lint **32 warnings / 0 errors**, production build and audit **0 vulnerabilities**.
+- Test site deployed: https://taylan789.github.io/MobilyaCAD/. This was a domain/test-only slice; no visible frontend redesign.
 - AI Developer [#44972838278](https://github.com/Taylan789/MobilyaCAD/actions/runs/44972838278) failed with OpenRouter free-model daily HTTP 429; no paid fallback, quota/secrets change or rerun. Integration/performance job skipped.
-- Next: revalidate DOM-102 on the correction SHA; only then proceed to DOM-103 (additive CSV formatVersion disclosure). No frontend files changed.
-
-## 22 Kasım 2026 05:03 TRT — DOM-102 implemented, exact-SHA verification pending
-
-- Legacy comparison compatibility coverage spans JSON v1/v2 and CSV v1/v2/v3: JSON v1 legacy import, JSON v2 resource-identity round-trip and partial/mismatched metadata rejection; CSV v1/v2 roll/basic metadata round-trip, CSV v3 resource identity and partial metadata rejection.
-- Added an explicit CSV v1/v2 loss contract: catalog resource identity columns absent in legacy versions are intentionally not reconstructed, while line source reference and Part provenance remain preserved. Existing v3 partial identity and unsupported-header fail-closed assertions remain.
-- Code/test change is included in the current commit; SHA is recorded in the verification follow-up. Exact-SHA GitHub Actions CI/QA and Pages are pending. Tests were not run locally in this runtime.
-- Latest AI Developer run [#44972838278](https://github.com/Taylan789/MobilyaCAD/actions/runs/44972838278) failed after commit creation due OpenRouter free-model daily HTTP 429; no paid fallback, quota/secrets change or rerun. Integration/performance job was skipped.
-- Test site https://taylan789.github.io/MobilyaCAD/ is not claimed updated for this commit until exact-SHA CI+QA+Pages succeeds.
-- Next domain slice: DOM-103 add an additive CSV parser version disclosure (formatVersion) so frontend can warn when legacy v1/v2 lacks catalog resource identity; no frontend files will be changed.
+- Next: DOM-103 additive CSV formatVersion disclosure for legacy import; frontend warning remains UI-agent-owned. No frontend files changed.
 
 ## 22 Kasım 2026 03:44 TRT — DOM-101 VERIFIED
 
