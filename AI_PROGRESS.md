@@ -289,10 +289,12 @@
 - **Next:** DOM-117 grouped Part quantity and aggregate total reconciliation against canonical snapshots, including safe-integer boundaries.
 
 
-## 22 Kasım 2026 23:25 TRT — DOM-117 implemented, exact-SHA Actions pending
 
-- Added two regression tests to `domain/production/projectSheetNestingBatches.test.mjs`: canonical Part snapshot quantity/material/normalized thickness reconciliation with safe group totals; exact `Number.MAX_SAFE_INTEGER` total accepted; overflow blocks the entire nesting-batch report and does not return a partial snapshot.
-- **Scope:** test-only domain file plus `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`; no frontend, production calculation source, adapter/performance-owned files, CNC output, project schema or `main` touched. The existing production validator already contains the safe-integer guard, so this slice adds missing cross-consumer evidence rather than changing behavior.
-- Pre-change branch HEAD: `4d379f490bd9d5c0efc3a7f789007a3b7c0a36e6`; latest CI #739, QA #799, Pages #558 all succeeded; no active CI/QA/AI Developer run. Local checkout/tests are unavailable here; exact-SHA GitHub Actions are required.
-- **Commit SHA and exact Actions/Pages results:** pending commit creation and verification.
-- **Next:** DOM-118 deterministic stock-sheet group/order diagnostics, then DOM-119 ready batch → cut-plan source coverage; INT-001 UI-owned and INT-002/PERF-001 specialist-owned.
+## 22 Kasım 2026 — DOM-117 VERIFIED
+
+- **Code/test commit:** [492fed69](https://github.com/Taylan789/MobilyaCAD/commit/492fed69afe459e436e2ba603968da3ed088d187). Added two nesting-batch regressions: grouped Part quantity/material/normalized-thickness reconciliation from the canonical snapshot, and exact `Number.MAX_SAFE_INTEGER` acceptance versus overflow atomic blocking (no partial result/snapshot).
+- **Exact-SHA Actions:** CI [#45066750467](https://github.com/Taylan789/MobilyaCAD/actions/runs/45066750467) and QA [#45066750708](https://github.com/Taylan789/MobilyaCAD/actions/runs/45066750708) passed. QA: **165 frontend + 644 domain tests (0 failures)**, strict domain TypeScript, lint **32 warnings / 0 errors**, production build, production dependency audit **0 vulnerabilities**.
+- **Test site:** Pages [#45066750453](https://github.com/Taylan789/MobilyaCAD/actions/runs/45066750453) succeeded and deployed to https://taylan789.github.io/MobilyaCAD/.
+- **Known limits:** Local tests unavailable; GitHub Actions is authoritative. npm install reports 4 moderate dependency advisories (production audit is clean). The production bundle remains oversized (1.687 MB minified JS / 472.29 KB gzip; Vite >500 kB warning). AI Developer run [#45045107407](https://github.com/Taylan789/MobilyaCAD/actions/runs/45045107407) failed due OpenRouter free-model daily 429; no rerun on stale SHA and no paid fallback. Integration/performance job is disabled; no specialist branch/PR verified.
+- **Scope:** test file and project records only; no production calculation source, frontend, adapter/performance-owned files, project schema, CNC output or `main`.
+- **Next:** DOM-118 deterministic stock-sheet group/order diagnostics; DOM-119 ready batch → cut-plan source coverage and atomic reconciliation; INT-001 UI-owned, INT-002/PERF-001 specialist-owned.
