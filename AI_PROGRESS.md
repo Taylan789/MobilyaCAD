@@ -185,3 +185,12 @@
 - Prior failed runs were investigated and corrected: [CI #45021592403](https://github.com/Taylan789/MobilyaCAD/actions/runs/45021592403), [QA #45021592322](https://github.com/Taylan789/MobilyaCAD/actions/runs/45021592322); intermediate QA [#45027062707](https://github.com/Taylan789/MobilyaCAD/actions/runs/45027062707) identified message completeness, fixed without weakening tests.
 - AI Developer latest known run [#45004322556](https://github.com/Taylan789/MobilyaCAD/actions/runs/45004322556) failed on OpenRouter free-model daily HTTP 429; no paid retry, quota/secret changes or rerun. No integration/performance branch found. Frontend PR [#155](https://github.com/Taylan789/MobilyaCAD/pull/155) remains draft/unmerged, so the full redesign is not deployed.
 - **Next:** DOM-112 additive structured material conflict provenance (catalog ID + all source furniture/Part IDs), retaining the legacy diagnostic message contract; INT-001 frontend-owned, INT-002/PERF-001 specialist-owned.
+
+
+## 22 Kasım 2026 17:22 TRT — DOM-112 IMPLEMENTED, Actions pending
+
+- Added the optional typed `materialIdentityConflict` metadata to blocked material diagnostics: catalogue `materialId`, plus a complete deterministic list of source furniture IDs, Part IDs, and original material labels. Each blocked contributor receives the complete source set; legacy message/order and atomic failure behavior are preserved.
+- Regression coverage derives expected provenance from independently calculated cabinet/bookshelf/table requests, checks every source and every blocked diagnostic, and confirms table provenance remains stable when request order is reversed.
+- Files: `domain/production/projectProduction.ts`, `domain/production/projectProduction.test.mjs`, `docs/production-domain-contract.md`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`. No frontend/**, adapter/performance-owned files, project JSON/CSV schema or CNC output changed.
+- Commit SHA and exact Actions/Pages results will be added in a follow-up documentation commit after the GitHub run reports; local tests are unavailable.
+- Next: DOM-113 structured provenance consumer validation and fail-closed export-readiness contract.

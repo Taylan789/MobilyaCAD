@@ -1027,7 +1027,7 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - **Coverage:** Tabletop uses an explicit 8 mm catalog override, legs use the 60 mm group material, and aprons retain the default material. Snapshot serialize/validate/compare is unchanged; summary quantities, line counts, area and volume agree with resulting Parts.
 - **Scope:** Domain regression test in `domain/production/projectProduction.test.mjs` only; no production geometry, schema, frontend, adapter/performance-owned files or CNC output changed.
 - **Verification:** [commit 55d8e104](https://github.com/Taylan789/MobilyaCAD/commit/55d8e104d8842f48faad1b53f6e32230ec88eb89) verified with exact-SHA [CI #44999210991](https://github.com/Taylan789/MobilyaCAD/actions/runs/44999210991), [QA #44999210952](https://github.com/Taylan789/MobilyaCAD/actions/runs/44999210952), and [Pages #44999210947](https://github.com/Taylan789/MobilyaCAD/actions/runs/44999210947), all successful. QA unit/domain tests, strict domain TypeScript, lint (32 warnings, 0 errors), production build, and audit (0 vulnerabilities) passed. Local tests unavailable; Actions are the evidence. Test site updated: https://taylan789.github.io/MobilyaCAD/.
-- **Next:** DOM-112 additive structured conflict provenance (catalog ID + all source Part/furniture IDs), preserving diagnostic message compatibility. INT-001 remains frontend-owned; INT-002/PERF-001 specialist-owned.
+- **Next:** DOM-113 structured conflict provenance consumer validation and fail-closed export readiness contract. INT-001 remains frontend-owned; INT-002/PERF-001 specialist-owned.
 
 
 ## DOM-108 — Mixed-family material-reference fail-closed reconciliation (VERIFIED, 22 November 2026)
@@ -1068,3 +1068,12 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 
 - Acceptance: additive report fields expose catalogue ID and sorted source furniture/Part identities; legacy diagnostic messages, atomic blocking, deterministic order and strict validation remain unchanged.
 - Scope: domain report contract/tests and integration notes only; frontend-owned files remain untouched.
+
+
+## DOM-112 — Structured material-identity conflict provenance (IMPLEMENTED, Actions pending, 22 Kasım 2026)
+
+- **Acceptance:** Additive typed report metadata exposes catalogue identity and every contributing material-bearing Part's furniture/Part ID and original label. Sources are sorted deterministically; every blocked furniture diagnostic carries the complete group. Legacy message text, ordering, atomic blocking, strict aggregation and inputs remain unchanged.
+- **Tests:** The mixed-family conflict test builds the expected provenance from isolated valid cabinet/bookshelf/table results and checks every source. The order-reversal diagnostic regression additionally confirms table-family provenance survives.
+- **Scope:** `domain/production/projectProduction.ts`, `domain/production/projectProduction.test.mjs`, and `docs/production-domain-contract.md`; no frontend, adapter/performance-owned files, project persistence/export schema or CNC output changed.
+- **Verification:** Code commit and exact-SHA CI/QA/Pages verification pending. Local tests are unavailable in this runtime.
+- **Next:** DOM-113 validate structured provenance and its fail-closed export/diagnostic consumers; INT-001 remains frontend-owned and INT-002/PERF-001 specialist-owned.

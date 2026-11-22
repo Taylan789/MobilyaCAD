@@ -1043,3 +1043,7 @@ The domain-only project-file extension `edgeBandingRollPricing` schema v1 stores
 Each table is limited to 1,000 rows, rejects duplicate catalog IDs and unknown fields, and is canonicalized by catalog ID. Price-only inputs can be saved for later configuration; quote calculation still rejects missing or unused data. Empty inputs remove the extension. The writer is immutable and refuses to replace an invalid saved extension.
 
 Project JSON v1 remains legacy/read-only for this extension; an extension on v1 is blocked rather than silently discarded. v2 requires a stable projectId. This stores user inputs only: no prices, roll lengths, waste rates, currency conversion, yield, CNC standard, or workshop approval is inferred. Frontend controls/download wiring remain UI-owned.
+
+## Structured material identity conflict provenance
+
+The diagnostic report adds the optional `blockedFurniture[].materialIdentityConflict` field for `invalid-material` identity-name conflicts. It carries the catalogue `materialId` and a deterministic `sources` list of every material-bearing Part in that conflicting ID group, including `furnitureId`, `partId`, and the original `materialLabel`. Sources are sorted by furniture ID then Part ID. Every blocked contributor receives the same complete provenance; legacy diagnostic `message`, ordering, atomic blocking, and strict aggregator behavior remain unchanged. Other diagnostic codes omit this field.

@@ -1638,6 +1638,28 @@ test("karışık mobilya ailelerinde aynı malzeme kimliğinin çelişkili katal
   assert.match(report.firstError, /mdf-18.*book-material-conflict.*MDF Lam 18.*cab-material-conflict.*MDF Lam Premium/);
   assert.match(report.blockedFurniture[1].message, /cab-material-conflict/);
   assert.match(report.blockedFurniture[2].message, /table-material-conflict/);
+
+  const expectedSources = [cabinet, bookshelf, table]
+    .flatMap((request) => calculateCabinetProjectProduction({
+      schemaVersion: 1,
+      furniture: [request]
+    }).parts)
+    .filter((part) => part.materialId === "mdf-18")
+    .map((part) => ({
+      furnitureId: part.furnitureId,
+      partId: part.id,
+      materialLabel: part.material
+    }))
+    .sort((left, right) =>
+      left.furnitureId < right.furnitureId ? -1 :
+        left.furnitureId > right.furnitureId ? 1 :
+          left.partId < right.partId ? -1 : left.partId > right.partId ? 1 : 0
+    );
+  const expectedConflict = { materialId: "mdf-18", sources: expectedSources };
+  assert.deepEqual(report.blockedFurniture[0].materialIdentityConflict, expectedConflict);
+  assert.ok(report.blockedFurniture.every((item =>
+    assert.deepEqual(item.materialIdentityConflict, expectedConflict)
+  ) === undefined));
 });
 
 test("DOM-111 mixed-family diagnostics and first error remain stable when furniture order changes", () => {
@@ -1690,6 +1712,12 @@ test("DOM-111 mixed-family diagnostics and first error remain stable when furnit
     }]
   );
   assert.match(forward.firstError, /mdf-18.*book-material-conflict.*cab-material-conflict/);
+  const materialConflict = forward.blockedFurniture[0].materialIdentityConflict;
+  assert.equal(materialConflict?.materialId, "mdf-18");
+  assert.ok(materialConflict?.sources.some((source) =>
+    source.furnitureId === "table-material-conflict" &&
+    source.partId.startsWith("table-material-conflict-")
+  ));
   assert.equal(JSON.stringify(requests), before);
 });
 

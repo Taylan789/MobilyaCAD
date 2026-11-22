@@ -104,11 +104,22 @@ export interface CabinetProjectProductionResult {
 
 export type SupportedProjectFurnitureFamily = "cabinet" | "bookshelf" | "table" | "wardrobe" | "tv-unit" | "bathroom-vanity";
 
+export interface ProjectProductionMaterialIdentityConflict {
+  materialId: string;
+  sources: Array<{
+    furnitureId: string;
+    partId: string;
+    materialLabel: string;
+  }>;
+}
+
 export interface ProjectProductionFurnitureDiagnostic {
   furnitureId: string | null;
   family: string | null;
   code: "unsupported-family" | "invalid-request" | "invalid-construction" | "invalid-drawer" | "invalid-panel-geometry" | "invalid-hardware" | "invalid-edge-banding" | "invalid-material";
   message: string;
+  /** Complete deterministic provenance for material identity conflicts; omitted for other diagnostic codes. */
+  materialIdentityConflict?: ProjectProductionMaterialIdentityConflict;
 }
 
 export interface CabinetProjectProductionReport {
@@ -355,9 +366,21 @@ export function calculateCabinetProjectProductionWithDiagnostics(
     furnitureId: string | null,
     family: string | null,
     code: ProjectProductionFurnitureDiagnostic["code"],
-    message: string
+    message: string,
+    materialIdentityConflict?: ProjectProductionMaterialIdentityConflict
   ): void => {
-    blockedFurniture.push({ furnitureId, family, code, message });
+    blockedFurniture.push({
+      furnitureId,
+      family,
+      code,
+      message,
+      ...(materialIdentityConflict === undefined ? {} : {
+        materialIdentityConflict: {
+          materialId: materialIdentityConflict.materialId,
+          sources: materialIdentityConflict.sources.map((source) => ({ ...source }))
+        }
+      })
+    });
     firstError ??= message;
   };
 
@@ -478,12 +501,24 @@ export function calculateCabinetProjectProductionWithDiagnostics(
         conflictingParts.map((part) =>
           part.furnitureId + "/" + part.id + " \"" + part.material + "\""
         ).join(" ve ") + ". Etkilenen mobilyalar: " + affectedFurnitureIds.join(", ") + ".";
+      const materialIdentityConflict: ProjectProductionMaterialIdentityConflict = {
+        materialId,
+        sources: materialGroupParts.map((part) => ({
+          furnitureId: part.furnitureId,
+          partId: part.id,
+          materialLabel: part.material
+        })).sort((left, right) =>
+          compareText(left.furnitureId, right.furnitureId) ||
+          compareText(left.partId, right.partId)
+        )
+      };
       for (const furnitureId of affectedFurnitureIds) {
         addBlocked(
           furnitureId,
           familyByFurnitureId.get(furnitureId) ?? null,
           "invalid-material",
-          message
+          message,
+          materialIdentityConflict
         );
       }
     }
