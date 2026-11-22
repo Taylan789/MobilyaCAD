@@ -1,11 +1,12 @@
 ## 22 Kasım 2026 19:19 TRT — DOM-114 VERIFIED
 
-- Blocked nesting-batch reports now preserve validated source-aware production diagnostics via the additive \`productionDiagnostics\` field; legacy human-readable diagnostics remain, and no partial batch/layout result is returned.
+- Blocked nesting-batch reports now preserve validated source-aware production diagnostics via the additive `productionDiagnostics` field; legacy human-readable diagnostics remain, and no partial batch/layout result is returned.
 - Added a mixed cabinet/bookshelf conflict regression that checks complete sorted source-Part coverage, per-furniture diagnostic coverage, input-order invariance, input immutability, and fail-closed incomplete provenance.
-- Files: \`domain/production/projectSheetNestingBatches.ts\`, \`domain/production/projectSheetNestingBatches.test.mjs\`, \`domain/production/projectSheetCutPlanExport.ts\`, \`docs/production-domain-contract.md\`, \`AI_COORDINATION.md\`, \`PRODUCT_ROADMAP.md\`.
+- Files: `domain/production/projectSheetNestingBatches.ts`, `domain/production/projectSheetNestingBatches.test.mjs`, `domain/production/projectSheetCutPlanExport.ts`, `docs/production-domain-contract.md`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`.
 - Code/test commit: [751065b](https://github.com/Taylan789/MobilyaCAD/commit/751065b1437da702200696da588949bc0243596d). Exact-SHA [CI](https://github.com/Taylan789/MobilyaCAD/actions/runs/45043968666), [QA](https://github.com/Taylan789/MobilyaCAD/actions/runs/45043968727) and [Pages](https://github.com/Taylan789/MobilyaCAD/actions/runs/45043968653) succeeded. QA: 162 frontend + 640 domain tests, strict TypeScript, lint 32 warnings/0 errors, production build and dependency audit 0 vulnerabilities.
 - Test site deployed: https://taylan789.github.io/MobilyaCAD/. Local tests were not run in this runtime; GitHub Actions is the verification evidence.
 - AI Developer [run #44972838278](https://github.com/Taylan789/MobilyaCAD/actions/runs/44972838278) failed on OpenRouter free-model quota HTTP 429; no rerun, paid fallback, or quota/secret change. Integration/Performance job remains disabled/skipped; no specialist agent run is claimed. Frontend PRs remain separate and unmerged.
+- Documentation/progress commit [3eaf7f8](https://github.com/Taylan789/MobilyaCAD/commit/3eaf7f82a89f8b5eebc65b91fd382fbd8c72aabb) was also verified at exact SHA: [CI #45044150354](https://github.com/Taylan789/MobilyaCAD/actions/runs/45044150354), [QA #45044150376](https://github.com/Taylan789/MobilyaCAD/actions/runs/45044150376), [Pages #45044150367](https://github.com/Taylan789/MobilyaCAD/actions/runs/45044150367) all succeeded.
 - Next: DOM-115 blocked mixed-family nesting/material-summary/Part-snapshot reconciliation.
 
 ## 22 Kasım 2026 11:10 TRT — DOM-108 VERIFIED
@@ -146,12 +147,12 @@
 
 ## 21 Kasım 2026 22:46 TRT — DOM-096 VERIFIED
 
-- Final code/test commit: [798e29b84731352e8249012c16e635a6a97d28f0](https://github.com/Taylan789/MobilyaCAD/commit/798e29b84731352e8249012c16e635a6a97d28f0). Changes: \`domain/production/projectQuoteRevisionComparisonFile.ts\`, \`domain/production/projectQuoteRevisionComparisonFile.test.mjs\`, \`domain/production/projectQuoteRevisionComparisonCsv.test.mjs\`.
+- Final code/test commit: [798e29b84731352e8249012c16e635a6a97d28f0](https://github.com/Taylan789/MobilyaCAD/commit/798e29b84731352e8249012c16e635a6a97d28f0). Changes: `domain/production/projectQuoteRevisionComparisonFile.ts`, `domain/production/projectQuoteRevisionComparisonFile.test.mjs`, `domain/production/projectQuoteRevisionComparisonCsv.test.mjs`.
 - Duplicate guard rejects repeated exact line snapshots per from/to side. Repeated source identity with differing quantity/price is allowed, preserving DOM-091. Inconsistent JSON/CSV category/grand totals return blocked/null payload; valid JSON v2 and CSV v3 round-trip remains exact.
 - Exact-SHA Actions: CI [#44943420344](https://github.com/Taylan789/MobilyaCAD/actions/runs/44943420344), QA [#44943420373](https://github.com/Taylan789/MobilyaCAD/actions/runs/44943420373), Pages [#44943420330](https://github.com/Taylan789/MobilyaCAD/actions/runs/44943420330) succeeded. QA: **142 frontend + 616 domain tests**, strict domain TS, production build, audit 0 vulnerabilities; lint 32 warnings / 0 errors.
 - Test site verified: https://taylan789.github.io/MobilyaCAD/.
 - Earlier iterations failed QA (DOM-091 repeated identity regression; duplicate-test diagnostic assertion; CSV metadata fixture). These were corrected and rerun; only final SHA is marked verified.
-- AI Developer [#44934045185](https://github.com/Taylan789/MobilyaCAD/actions/runs/44934045185) failed deterministically on unsupported \`push\` event; no rerun or paid/quota/secrets changes. Integration/performance lane skipped; UI PRs #140/#141 remain separate frontend ownership.
+- AI Developer [#44934045185](https://github.com/Taylan789/MobilyaCAD/actions/runs/44934045185) failed deterministically on unsupported `push` event; no rerun or paid/quota/secrets changes. Integration/performance lane skipped; UI PRs #140/#141 remain separate frontend ownership.
 - Next: DOM-097 fractional hardware + labor/operation reconciliation; INT-001 frontend/domain export contract; DOM-098 bounded comparison JSON import.
 
 ## 21 Kasım 2026 23:44 TRT — DOM-097 IMPLEMENTED, Actions verification pending
@@ -166,7 +167,7 @@
 
 ## 22 Kasım 2026 01:37 TRT — DOM-099 VERIFIED
 
-- **Code/test commit:** [24f945c0](https://github.com/Taylan789/MobilyaCAD/commit/24f945c0dd05c2653daaacdba5361460f20883b6); changed \`domain/production/projectQuoteRevisionComparisonCsv.ts\` and \`domain/production/projectQuoteRevisionComparisonCsv.test.mjs\`, plus roadmap/progress/coordination.
+- **Code/test commit:** [24f945c0](https://github.com/Taylan789/MobilyaCAD/commit/24f945c0dd05c2653daaacdba5361460f20883b6); changed `domain/production/projectQuoteRevisionComparisonCsv.ts` and `domain/production/projectQuoteRevisionComparisonCsv.test.mjs`, plus roadmap/progress/coordination.
 - CSV parser now rejects UTF-8 payloads above 1 MiB before parsing and caps records to 8 fixed rows + 2,000 line changes. CSV serializer enforces the same byte cap. v1/v2/v3 headers remain unchanged.
 - Regression tests cover a multibyte input that is under the character-count limit but over the byte limit, and 2,001 line rows in a 640,024-byte fixture; rejected imports return no comparison.
 - Exact-SHA CI [#44958138720](https://github.com/Taylan789/MobilyaCAD/actions/runs/44958138720), QA [#44958138801](https://github.com/Taylan789/MobilyaCAD/actions/runs/44958138801), and Pages [#44958138729](https://github.com/Taylan789/MobilyaCAD/actions/runs/44958138729) all succeeded. QA: **142 frontend + 621 domain tests**, strict domain TypeScript, lint 32 warnings/0 errors, production build, audit 0 vulnerabilities.
