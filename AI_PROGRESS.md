@@ -1,3 +1,12 @@
+## 22 Kasım 2026 05:03 TRT — DOM-102 implemented, exact-SHA verification pending
+
+- Legacy comparison compatibility coverage spans JSON v1/v2 and CSV v1/v2/v3: JSON v1 legacy import, JSON v2 resource-identity round-trip and partial/mismatched metadata rejection; CSV v1/v2 roll/basic metadata round-trip, CSV v3 resource identity and partial metadata rejection.
+- Added an explicit CSV v1/v2 loss contract: catalog resource identity columns absent in legacy versions are intentionally not reconstructed, while line source reference and Part provenance remain preserved. Existing v3 partial identity and unsupported-header fail-closed assertions remain.
+- Code/test change is included in the current commit; SHA is recorded in the verification follow-up. Exact-SHA GitHub Actions CI/QA and Pages are pending. Tests were not run locally in this runtime.
+- Latest AI Developer run [#44972838278](https://github.com/Taylan789/MobilyaCAD/actions/runs/44972838278) failed after commit creation due OpenRouter free-model daily HTTP 429; no paid fallback, quota/secrets change or rerun. Integration/performance job was skipped.
+- Test site https://taylan789.github.io/MobilyaCAD/ is not claimed updated for this commit until exact-SHA CI+QA+Pages succeeds.
+- Next domain slice: DOM-103 add an additive CSV parser version disclosure (formatVersion) so frontend can warn when legacy v1/v2 lacks catalog resource identity; no frontend files will be changed.
+
 ## 22 Kasım 2026 03:44 TRT — DOM-101 VERIFIED
 
 - Added adversarial regression coverage in `domain/production/projectQuoteRevisionComparisonCsv.test.mjs`: valid BOM/no-BOM and CRLF/LF/single-CR record delimiters round-trip exactly; malformed quote boundaries, trailing characters, unquoted quotes, extra blank record and unfinished quoted field fail closed with `comparison=null`.

@@ -593,15 +593,11 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 
 ## Next 5 small tasks
 
-1. DOM-098 DONE — bounded quote-comparison JSON v2 import/export: 1 MiB UTF-8 limit and 2,000 line-change limit; fail-closed, no partial payload. [Code/test 88bb19f + correction 2ed95db](https://github.com/Taylan789/MobilyaCAD/commit/2ed95db6639a1f9bdb70cb95c5f9e156f6136e2e); exact-SHA CI/QA/Pages successful.
-
-2. DOM-099 DONE — bounded CSV comparison import (1 MiB UTF-8 and 2,000 line-change rows), legacy v1/v2/v3 preservation; exact-SHA CI/QA/Pages succeeded.
-
-3. DOM-100 PLANNED — JSON v2 ↔ CSV v3 cross-format equivalence and fail-closed adversarial fixtures.
-
-4. INT-001 FRONTEND-OWNED — comparison download and production report/export integration; preserve catalog resource identity.
-
-5. INT-002/PERF-001 INTEGRATION-OWNED — adapter round-trip tests and measured CAD profiling on the isolated specialist branch. QA-003 remains BLOCKED until INT-001/INT-002 evidence.
+1. DOM-102 IN PROGRESS — legacy JSON v1/v2 and CSV v1/v2/v3 compatibility matrix, including intentional metadata loss and fail-closed cases. Exact-SHA Actions pending.
+2. DOM-103 READY — expose the parsed CSV schema version as an additive formatVersion field so the frontend can warn about legacy resource-identity limitations; parser tests and contract note, no frontend writes.
+3. INT-001 FRONTEND-OWNED — comparison download and production report/export integration; domain agent does not edit frontend files.
+4. INT-002/PERF-001 INTEGRATION-OWNED — adapter round-trip tests and measured CAD profiling on the isolated specialist branch.
+5. QA-003 BLOCKED — end-to-end export reconciliation until INT-001/INT-002 evidence is available.
 
 ## 10/10 ölçülebilir kalite kapıları (20 Kasım 2026 baseline)
 

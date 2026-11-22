@@ -742,4 +742,44 @@ test("DOM-102 CSV v3 blocks partial resource identity metadata without partial c
   const unsupported = parseProjectQuoteRevisionComparisonCsv(unsupportedHeader);
   assert.equal(unsupported.status, "blocked");
   assert.equal(unsupported.comparison, null);
+}); 
+
+test("DOM-102 legacy CSV v1/v2 intentionally omit catalog identity but retain line provenance", () => {
+  const original = readyComparisonResult();
+  const materialChange = original.comparison.lineChanges[0];
+  for (const line of [materialChange.from, materialChange.to]) {
+    line.resourceType = "material";
+    line.resourceId = "mdf-18";
+    line.resourceUnit = "m2";
+  }
+  const edgeBandLine = original.comparison.lineChanges[1].to;
+  edgeBandLine.resourceType = "edge-banding";
+  edgeBandLine.resourceId = "pvc-1";
+  edgeBandLine.resourceUnit = "mm";
+
+  const current = serializeProjectQuoteRevisionComparisonCsv(original);
+  assert.equal(current.status, "ready", current.diagnostics.join("; "));
+  const expected = structuredClone(original.comparison);
+  for (const change of expected.lineChanges) {
+    for (const line of [change.from, change.to]) {
+      if (line === null) continue;
+      delete line.resourceType;
+      delete line.resourceId;
+      delete line.resourceUnit;
+    }
+  }
+
+  for (const legacy of [
+    { version: 1, csv: toLegacyV1Csv(current.csv) },
+    { version: 2, csv: toLegacyV2Csv(current.csv) }
+  ]) {
+    const parsed = parseProjectQuoteRevisionComparisonCsv(legacy.csv);
+    assert.equal(parsed.status, "ready", "CSV v" + legacy.version + ": " + parsed.diagnostics.join("; "));
+    assert.deepEqual(parsed.comparison, expected);
+    assert.equal(parsed.comparison.lineChanges[0].from.sourceReference, "material-list-v1");
+    assert.deepEqual(parsed.comparison.lineChanges[0].from.sourcePartIds, ["part-a", "part-b"]);
+    assert.equal(parsed.comparison.lineChanges[1].to.sourceReference, "edge-catalog-mm-v1");
+    assert.equal(parsed.comparison.lineChanges[0].from.resourceType, undefined);
+    assert.equal(parsed.comparison.lineChanges[1].to.resourceId, undefined);
+  }
 });
