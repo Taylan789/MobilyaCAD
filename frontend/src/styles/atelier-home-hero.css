@@ -1,0 +1,66 @@
+/* UI-HOME-HERO-ART-001 — complete the launch-screen composition with an abstract furniture form */
+.atelier-feature-art {
+  isolation: isolate;
+  background:
+    radial-gradient(ellipse at 52% 44%, rgba(132, 163, 183, .13), transparent 58%),
+    linear-gradient(135deg, #18242d, #24323c 58%, #151f27);
+}
+.atelier-cube-front {
+  position: relative;
+  overflow: hidden;
+}
+.atelier-cube-front::before {
+  content: "";
+  position: absolute;
+  inset: 11px 10px;
+  border: 1px solid rgba(63, 78, 73, .46);
+  pointer-events: none;
+}
+.atelier-cube-front::after {
+  content: "";
+  position: absolute;
+  top: 12px;
+  bottom: 12px;
+  left: 50%;
+  width: 1px;
+  background: rgba(82, 98, 91, .48);
+  pointer-events: none;
+}
+.atelier-cube-side {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0 23px,
+    rgba(239, 222, 205, .17) 23px 24px
+  );
+}
+.atelier-art-index {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+}
+.atelier-art-index::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  background: #93b7d0;
+  box-shadow: 0 0 0 4px rgba(147, 183, 208, .1);
+}
+.atelier-art-caption {
+  letter-spacing: .14em;
+}
+@media (max-width: 560px) {
+  .atelier-feature-art {
+    height: 228px !important;
+  }
+  .atelier-art-cube {
+    transform: translate(-50%, -50%) scale(.84) !important;
+  }
+}
+@media (forced-colors: active) {
+  .atelier-art-index::before,
+  .atelier-cube-front::before,
+  .atelier-cube-front::after {
+    border-color: CanvasText;
+    background-color: CanvasText;
+  }
+}
