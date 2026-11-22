@@ -2,7 +2,7 @@
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Vector3 } from "three";
-import { Box, Focus, Maximize2, PanelTop, Square } from "lucide-react";
+import { Box, Focus, Maximize2, PanelLeft, PanelRight, PanelTop, Square } from "lucide-react";
 import {
   OrbitControls,
   Grid,
@@ -17,6 +17,7 @@ import PlacedFurniture3D from "../furniture/PlacedFurniture3D";
 import type { PlacedFurniture } from "../../types/placedFurniture";
 import { calculatePlacementIssues } from "../../engine/placementValidation";
 import "./ViewportCameraControls.css";
+import "./ViewportCameraCurrentView.css";
 
 interface Scene3DProps {
   width: number;
@@ -44,6 +45,15 @@ interface Scene3DProps {
 }
 
 type CameraOrientation = "perspective" | "top" | "front" | "back" | "left" | "right";
+
+const cameraViewLabels: Record<CameraOrientation, string> = {
+  perspective: "PERSPEKTİF",
+  top: "ÜST",
+  front: "ÖN",
+  back: "ARKA",
+  left: "SOL",
+  right: "SAĞ",
+};
 
 interface CameraCommand {
   id: number;
@@ -628,6 +638,15 @@ export default function Scene3D({
     </Canvas>
       <div className="cad-viewport-camera-tools" role="toolbar" aria-label="Kamera görünüşleri">
         <span className="cad-viewport-camera-tools__label">GÖRÜNÜŞ</span>
+        <span
+          className="cad-viewport-camera-tools__current-view"
+          data-view={activeView}
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+        >
+          {cameraViewLabels[activeView]}
+        </span>
         <button
           type="button"
           className={activeView === "perspective" ? "is-active" : ""}
@@ -680,7 +699,7 @@ export default function Scene3D({
           title="Sol görünüş"
           onClick={() => selectCameraView("left")}
         >
-          <Square aria-hidden="true" />
+          <PanelLeft aria-hidden="true" />
           <span>Sol</span>
         </button>
         <button
@@ -691,7 +710,7 @@ export default function Scene3D({
           title="Sağ görünüş"
           onClick={() => selectCameraView("right")}
         >
-          <Square aria-hidden="true" />
+          <PanelRight aria-hidden="true" />
           <span>Sağ</span>
         </button>
         <span className="cad-viewport-camera-tools__divider" />
