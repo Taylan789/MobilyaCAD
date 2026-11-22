@@ -1,0 +1,57 @@
+/* CAD tooltip surface: compact technical labels and keyboard hints. */
+[data-slot="tooltip-content"].cad-tooltip-content {
+  border: 1px solid color-mix(in srgb, var(--border) 74%, var(--ring) 26%);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--card) 82%, var(--background) 18%),
+    color-mix(in srgb, var(--background) 84%, var(--card) 16%)
+  );
+  color: var(--foreground);
+  box-shadow: 0 10px 26px color-mix(in srgb, black 34%, transparent);
+  font-size: 11px;
+  line-height: 1.45;
+  letter-spacing: 0.015em;
+}
+
+[data-slot="tooltip-arrow"].cad-tooltip-arrow {
+  background-color: color-mix(in srgb, var(--card) 82%, var(--background) 18%);
+  fill: color-mix(in srgb, var(--card) 82%, var(--background) 18%);
+}
+
+[data-slot="tooltip-content"].cad-tooltip-content [data-slot="kbd"] {
+  border: 1px solid color-mix(in srgb, var(--border) 72%, var(--foreground) 28%);
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--muted) 76%, var(--background) 24%);
+  color: var(--foreground);
+  padding: 2px 4px;
+  font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+  font-size: 10px;
+  line-height: 1.2;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-slot="tooltip-content"].cad-tooltip-content {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+@media (forced-colors: active) {
+  [data-slot="tooltip-content"].cad-tooltip-content {
+    background: Canvas;
+    color: CanvasText;
+    border: 1px solid CanvasText;
+    box-shadow: none;
+  }
+
+  [data-slot="tooltip-arrow"].cad-tooltip-arrow {
+    background: Canvas;
+    fill: Canvas;
+  }
+
+  [data-slot="tooltip-content"].cad-tooltip-content [data-slot="kbd"] {
+    background: Canvas;
+    color: CanvasText;
+    border-color: CanvasText;
+  }
+}
