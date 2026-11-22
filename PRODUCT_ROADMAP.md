@@ -1124,3 +1124,10 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 | INT-001 | Domain üretim raporu ↔ frontend adapter/export contract entegrasyonu | UI sahibinin dosyalarına dokunmadan JSON/CSV round-trip ve desteklenmeyen geometri için fail-closed kanıt |
 | INT-002 / PERF-001 | Integration/performance agent'ın adapter contract, benchmark ve profiling teslimatı | Agent'ın ayrı branch/PR ve gerçek CI kanıtı; bu otomasyon sahiplenmez veya merge etmez |
 
+
+
+## DOM-116 VERIFIED — 22 Kasım 2026
+
+- Ready nesting-batch selected/excluded IDs and full project Part snapshot are verified in project order; excluded cutout metadata is retained without entering nesting batches. Group source IDs reconcile to selected snapshots by catalog material ID, normalized 0.1 mm thickness, quantity and aggregate piece counts.
+- Test-only commit [5fd1b751](https://github.com/Taylan789/MobilyaCAD/commit/5fd1b751e0b8d1c0de5ee32ababfdf92f73f00c6); exact-SHA CI [#45063059018](https://github.com/Taylan789/MobilyaCAD/actions/runs/45063059018), QA [#45063059051](https://github.com/Taylan789/MobilyaCAD/actions/runs/45063059051), Pages [#45063058957](https://github.com/Taylan789/MobilyaCAD/actions/runs/45063058957) passed/deployed. QA 165 frontend + 642 domain tests; strict domain TS, lint 32 warnings/0 errors, build, production audit 0 vulnerabilities.
+- **Next small slices:** DOM-117 quantity/totalPieceCount reconciliation and safe-integer boundaries; DOM-118 deterministic stock-sheet group/order diagnostics; DOM-119 atomic ready-batch to cut-plan source-coverage validation. INT-001 remains frontend-owned, INT-002/PERF-001 specialist-owned.

@@ -280,10 +280,10 @@
 - **Next:** DOM-114 structured conflict provenance through nesting-batch diagnostics; UI/adapter ownership remains unchanged.
 
 
-## 22 Kasım 2026 22:48 TRT — DOM-116 IMPLEMENTED, Actions pending
+## 22 Kasım 2026 22:48 TRT — DOM-116 VERIFIED
 
-- **Kapsam:** `domain/production/projectSheetNestingBatches.test.mjs` içine ready raporun selected/excluded Part kimlikleri, tam ve sıralı snapshot, excluded cutout metadata, material ID, normalize 0.1 mm kalınlık, grup kaynak ID'leri ve quantity reconciliation için regresyon eklendi. Kullanıcı seçim sırasının proje sırasına normalize edilmesi de doğrulanıyor.
-- **Değişiklik:** Test-only; üretim davranışı/şema, frontend, adapter/performance-owned dosyalar, CNC output veya `main` değişmedi.
-- **Commit SHA:** oluşturulunca kaydedilecek. Exact-SHA CI/QA/Pages henüz bekleniyor; yerel test bu runtime'da çalıştırılamadı.
-- **Bilinen kısıt:** excluded Part'lar full snapshot'ta korunur ancak nesting batch'e dahil edilmez; cutout geometri desteklenmediği için excluded metadata yalnız snapshot doğrulaması, üretim/nesting iddiası değil.
-- **Next:** DOM-117 grouped Part quantities ve totalPieceCount kaynak snapshot'la karşılaştır; overflow/fractional quantity fail-closed.
+- **Test-only commit:** [5fd1b751](https://github.com/Taylan789/MobilyaCAD/commit/5fd1b751e0b8d1c0de5ee32ababfdf92f73f00c6). `domain/production/projectSheetNestingBatches.test.mjs` verifies selected/excluded ID separation and project order, complete canonical snapshot coverage, excluded cutout metadata preservation, and batch source/material/normalized 0.1 mm thickness/per-Part quantity/total-piece consistency.
+- **Exact-SHA CI:** [#45063059018](https://github.com/Taylan789/MobilyaCAD/actions/runs/45063059018) succeeded. **QA:** [#45063059051](https://github.com/Taylan789/MobilyaCAD/actions/runs/45063059051) succeeded — 165 frontend + 642 domain tests (0 failures), strict domain TypeScript, lint 32 warnings/0 errors, production build, production audit 0 vulnerabilities. **Pages:** [#45063058957](https://github.com/Taylan789/MobilyaCAD/actions/runs/45063058957) succeeded; test site updated: https://taylan789.github.io/MobilyaCAD/.
+- **Files:** domain regression test, AI_COORDINATION.md, PRODUCT_ROADMAP.md and AI_PROGRESS.md. No production engine/schema, frontend, adapter/performance-owned files, CNC output or `main` changed. Local tests unavailable; Actions evidence is authoritative.
+- **Known limitation:** npm install surfaced 4 moderate dependency advisories; production-only audit is clean. The excluded cutout Part remains snapshot-only, not nestable.
+- **Next:** DOM-117 grouped Part quantity and aggregate total reconciliation against canonical snapshots, including safe-integer boundaries.
