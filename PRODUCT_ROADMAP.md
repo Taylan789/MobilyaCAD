@@ -596,7 +596,9 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 1. DOM-103 DONE — [fix commit 431b044](https://github.com/Taylan789/MobilyaCAD/commit/431b044cd20d07209104f2fdd422352400c56750); exact-SHA CI #44982525644, QA #44982525656, Pages #44982525667 successful.
 2. DOM-104 DONE — [commit 614d559](https://github.com/Taylan789/MobilyaCAD/commit/614d559c902cc4038f9c177eaa31ce86045ef3fe); exact-SHA CI #44983853404, QA #44983853400, Pages #44983853533 successful.
 3. DOM-105 DONE — [correction commit 1d4503be](https://github.com/Taylan789/MobilyaCAD/commit/1d4503be5a277ec8a9eca8e1c5fc71120caee214); CI #44990018540, QA #44990018528, Pages #44990018506 successful (144 frontend + 630 domain; strict TS/build/audit passed; lint 32 warnings/0 errors).
-4. DOM-106 READY — legacy v1/v2 → canonical v3 → JSON v2 → CSV v3 cross-format round-trip; supported metadata and unavailable resource identity.
+4. DOM-106 VERIFIED — current branch SHA `9f3d8ba3a180cf18b83b9b18d528c11c6a4f80fb`; [CI #44996078563](https://github.com/Taylan789/MobilyaCAD/actions/runs/44996078563), [QA #44996078516](https://github.com/Taylan789/MobilyaCAD/actions/runs/44996078516), [Pages #44996078532](https://github.com/Taylan789/MobilyaCAD/actions/runs/44996078532) all successful.
+5. DOM-107 IN_PROGRESS — table material group overrides verified through aggregated Parts, canonical snapshot and material-consumption summary; exact-SHA Actions pending.
+6. DOM-108 READY — mixed-family invalid material references must fail closed without partial Parts.
 5. INT-001 FRONTEND-OWNED — comparison download and production report/export integration; domain agent does not edit frontend files.
 
 ## 10/10 ölçülebilir kalite kapıları (20 Kasım 2026 baseline)
@@ -1012,9 +1014,19 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - **Next:** DOM-106 legacy v1/v2 → canonical v3 → JSON v2 → CSV v3 cross-format round-trip; INT-001 frontend-owned; INT-002/PERF-001 specialist-owned; QA-003 blocked until adapter evidence.
 
 
-## DOM-106 — Legacy CSV → canonical v3 → JSON v2 → CSV v3 (IN_PROGRESS, 22 Kasım 2026)
+## DOM-106 — Legacy CSV → canonical v3 → JSON v2 → CSV v3 (VERIFIED, 22 Kasım 2026)
 
 - **Acceptance:** Both legacy CSV v1 and v2 import cases traverse canonical CSV v3, strict JSON v2 parse/serialize, and a final CSV v3 parse; every stage preserves the exact normalized comparison, supported line/roll provenance, and absent catalog identity.
 - **Coverage:** Existing DOM-105 fixtures are reused and extended; no duplicate fixtures or schema changes. Failed JSON/CSV conversion is asserted rather than treated as a successful output.
 - **Scope:** Domain regression tests only; no production serializer/schema, frontend, adapter/performance-owned files, pricing assumptions, or CNC output changes. Local execution is unavailable; exact-SHA Actions evidence is pending.
-- **Next:** DOM-107 family-specific panel material override propagation coverage; frontend JSON persistence/download adapter stays INT-001-owned, and adapter/performance work stays INT-002/PERF-001 specialist-owned.
+- **Verified:** current branch SHA `9f3d8ba3a180cf18b83b9b18d528c11c6a4f80fb`; exact-SHA [CI #44996078563](https://github.com/Taylan789/MobilyaCAD/actions/runs/44996078563), [QA #44996078516](https://github.com/Taylan789/MobilyaCAD/actions/runs/44996078516), and [Pages #44996078532](https://github.com/Taylan789/MobilyaCAD/actions/runs/44996078532) all succeeded. Local test execution unavailable; Actions is the verification evidence.
+- **Next:** DOM-107 table family material group override propagation through project Parts, snapshot restore/comparison and material consumption summary; frontend persistence remains INT-001-owned, adapter/performance work remains INT-002/PERF-001 specialist-owned.
+
+
+## DOM-107 — Table-family material group override propagation (IN_PROGRESS, 22 Kasım 2026)
+
+- **Acceptance:** Table material group overrides must remain accurate in the aggregated project Part list, canonical Part snapshots and material-consumption summary; the request must not be mutated during calculation.
+- **Coverage:** Tabletop uses an explicit 8 mm catalog override, legs use the 60 mm group material, and aprons retain the default material. Snapshot serialize/validate/compare is unchanged; summary quantities, line counts, area and volume agree with resulting Parts.
+- **Scope:** Domain regression test in `domain/production/projectProduction.test.mjs` only; no production geometry, schema, frontend, adapter/performance-owned files or CNC output changed.
+- **Verification:** Commit and exact-SHA CI/QA/Pages pending; local execution unavailable.
+- **Next:** DOM-108 mixed-family invalid material/catalog references must fail atomically with diagnostics and no partial Part list; INT-001 frontend-owned, INT-002/PERF-001 specialist-owned.

@@ -1,10 +1,19 @@
-## 22 Kasım 2026 09:31 TRT — DOM-106 IN_PROGRESS
+## 22 Kasım 2026 10:32 TRT — DOM-107 IN_PROGRESS
+
+- Added a table-family project aggregation regression: the tabletop uses an explicit 8 mm catalog override, legs use the 60 mm group material, and aprons retain the default material. The test checks Part rows, snapshot serialize/validate/compare, material summary quantity/line count/area/volume, and input immutability.
+- Files: `domain/production/projectProduction.test.mjs`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`. No production calculation/schema, frontend, adapter/performance-owned files, or machine output changed.
+- Commit and exact-SHA CI/QA/Pages verification pending; local execution unavailable, Actions evidence required.
+- Latest AI Developer [#44972838278](https://github.com/Taylan789/MobilyaCAD/actions/runs/44972838278) failed on OpenRouter free-model HTTP 429; no rerun, paid fallback, quota, or secret change.
+- Next: DOM-108 mixed-family invalid material/catalog reference atomicity and diagnostics, without frontend or specialist-owned adapter/performance files.
+
+
+## 22 Kasım 2026 09:31 TRT — DOM-106 VERIFIED
 
 - Added a cross-format regression slice to the existing legacy CSV v1/v2 fixture: import → canonical CSV v3 parse → JSON v2 serialize/parse → CSV v3 serialize/parse. Each transition checks exact normalized comparison equality, supported metadata and legacy catalog-identity omission.
 - Files: `domain/production/projectQuoteRevisionComparisonCsv.test.mjs`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`. No production serializer/schema, frontend, adapter/performance-owned file or machine-specific output changed.
-- Commit SHA and exact-SHA CI/QA/Pages verification pending. Local test execution unavailable in this runtime; do not claim success until Actions results are observed.
+- Verified on branch SHA `9f3d8ba3a180cf18b83b9b18d528c11c6a4f80fb`: [CI #44996078563](https://github.com/Taylan789/MobilyaCAD/actions/runs/44996078563), [QA #44996078516](https://github.com/Taylan789/MobilyaCAD/actions/runs/44996078516), and [Pages #44996078532](https://github.com/Taylan789/MobilyaCAD/actions/runs/44996078532) all succeeded. QA completed unit/domain tests, strict TypeScript, lint, production build and dependency audit; local test execution unavailable
 - Latest AI Developer run [#44972838278](https://github.com/Taylan789/MobilyaCAD/actions/runs/44972838278) failed with OpenRouter free-model daily quota HTTP 429; specialist job was skipped. No quota/secrets/paid fallback change or rerun.
-- Next: DOM-107 audit and extend validated panel-material override propagation to the next unsupported construction family; project JSON/frontend persistence remains frontend-owned.
+- Next: DOM-107 table-family material group override propagation through aggregated Parts, snapshot and consumption summary; project JSON/frontend persistence remains frontend-owned
 
 ## 22 Kasım 2026 08:29 TRT — DOM-105 VERIFIED
 

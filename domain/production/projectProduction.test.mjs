@@ -7,6 +7,7 @@ import {
 } from "./projectProduction.ts";
 import { BOOKSHELF_PANEL_GROUPS } from "./bookshelfConstruction.ts";
 import { calculateProjectMaterialConsumptionSummary } from "./projectMaterialSummary.ts";
+import { compareProjectPartSnapshots, createProjectPartSnapshot, validateProjectPartSnapshot } from "./projectPartSnapshot.ts";
 
 const materials = [
   { id: "mdf-18", name: "MDF Lam 18", category: "panel", thicknessesMm: [18], unit: "mm" },
@@ -363,6 +364,7 @@ test("proje agregatörü bilinmeyen mobilya ailesini cabinet olarak varsaymaz", 
 
 const tableMaterials = [
   { id: "mdf-18", name: "MDF Lam 18", category: "panel", thicknessesMm: [18], unit: "mm" },
+  { id: "mdf-8", name: "MDF Lam 8", category: "panel", thicknessesMm: [8], unit: "mm" },
   { id: "wood-60", name: "Masif 60", category: "panel", thicknessesMm: [60], unit: "mm" }
 ];
 
@@ -625,6 +627,47 @@ test("masa parçalarının malzeme özeti aynı proje Part listesinden alan, hac
       edgeCount: 0
     }
   });
+});
+
+test("masa panel grubu malzeme override'ları proje Part, snapshot ve tüketim özetinde korunur", () => {
+  const request = createTableRequest("table-panel-override");
+  request.profile.topThicknessMm = 8;
+  request.profile.materialIdByGroup = { top: "mdf-8", legs: "wood-60" };
+  const before = JSON.stringify(request);
+
+  const result = calculateCabinetProjectProduction({
+    schemaVersion: 1,
+    furniture: [request]
+  });
+  const top = result.parts.find((part) => part.id === "table-panel-override-top");
+  const legs = result.parts.find((part) => part.id === "table-panel-override-legs");
+  const apron = result.parts.find((part) => part.id === "table-panel-override-long-apron");
+
+  assert.deepEqual([top.materialId, top.material, top.thickness, top.quantity], ["mdf-8", "MDF Lam 8", 8, 1]);
+  assert.deepEqual([legs.materialId, legs.material, legs.thickness, legs.quantity], ["wood-60", "Masif 60", 60, 4]);
+  assert.deepEqual([apron.materialId, apron.material, apron.thickness, apron.quantity], ["mdf-18", "MDF Lam 18", 18, 2]);
+
+  const snapshot = createProjectPartSnapshot(result.parts);
+  const restored = validateProjectPartSnapshot(JSON.parse(JSON.stringify(snapshot)));
+  assert.deepEqual(compareProjectPartSnapshots(snapshot, restored), { changed: false, diagnostics: [] });
+  const snapshotById = new Map(restored.parts.map((entry) => [entry.id, JSON.parse(entry.snapshot)]));
+  assert.deepEqual(
+    [snapshotById.get(top.id).materialId, snapshotById.get(top.id).thickness, snapshotById.get(top.id).quantity],
+    ["mdf-8", 8, 1]
+  );
+  assert.deepEqual(
+    [snapshotById.get(legs.id).materialId, snapshotById.get(legs.id).thickness, snapshotById.get(legs.id).quantity],
+    ["wood-60", 60, 4]
+  );
+
+  const summary = calculateProjectMaterialConsumptionSummary(result);
+  const mdf8 = summary.find((entry) => entry.materialId === "mdf-8");
+  const mdf18 = summary.find((entry) => entry.materialId === "mdf-18");
+  const wood60 = summary.find((entry) => entry.materialId === "wood-60");
+  assert.deepEqual([mdf8.totalQuantity, mdf8.partLineCount, mdf8.panelAreaM2, mdf8.volumeM3], [1, 1, 0.84, 0.00672]);
+  assert.deepEqual([mdf18.totalQuantity, mdf18.partLineCount], [4, 2]);
+  assert.deepEqual([wood60.totalQuantity, wood60.partLineCount], [4, 1]);
+  assert.equal(JSON.stringify(request), before);
 });
 
 test("geçersiz masa konstrüksiyonu proje agregatöründe reddedilir", () => {
