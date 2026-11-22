@@ -3,10 +3,21 @@ import {
   type ProjectSheetCutPlanFreshnessRequest
 } from "./projectSheetCutPlanFreshness.ts";
 import type { ProjectSheetCutPlanFileResult } from "./projectSheetCutPlanFile.ts";
+import { normalizeMaterialCatalogLabel } from "./materialIdentity.ts";
 
 export interface ProjectSheetCutPlanExportRequest {
   schemaVersion: 1;
   freshness: ProjectSheetCutPlanFreshnessRequest;
+}
+
+/** Structured catalogue conflict provenance preserved for downstream diagnostic consumers. */
+export interface ProjectSheetCutPlanExportMaterialIdentityConflict {
+  materialId: string;
+  sources: Array<{
+    furnitureId: string;
+    partId: string;
+    materialLabel: string;
+  }>;
 }
 
 /** Structured source diagnostics retained from the current production report. */
@@ -16,6 +27,7 @@ export interface ProjectSheetCutPlanExportDiagnostic {
   family: string | null;
   code: string | null;
   message: string;
+  materialIdentityConflict?: ProjectSheetCutPlanExportMaterialIdentityConflict;
 }
 
 export type ProjectSheetCutPlanExportReport =
@@ -85,6 +97,62 @@ function nullableDiagnosticText(value: unknown, label: string): string | null {
   return value;
 }
 
+function requiredDiagnosticText(value: unknown, label: string): string {
+  if (typeof value !== "string" || value.trim() === "") {
+    throw new Error(label + " boş olmayan metin olmalıdır.");
+  }
+  return value;
+}
+
+function compareDiagnosticText(left: string, right: string): number {
+  return left < right ? -1 : left > right ? 1 : 0;
+}
+
+function readMaterialIdentityConflict(
+  value: unknown,
+  field: "unsupportedFurniture" | "blockedFurniture",
+  code: string,
+  furnitureId: string | null
+): ProjectSheetCutPlanExportMaterialIdentityConflict | undefined {
+  if (value === undefined) return undefined;
+  const label = field + " material identity conflict provenance";
+  if (field !== "blockedFurniture" || code !== "invalid-material" || furnitureId === null) {
+    throw new Error(label + " yalnızca furniture kimliği olan invalid-material blok tanısında bulunabilir.");
+  }
+  const conflict = record(value, label);
+  closed(conflict, ["materialId", "sources"], label);
+  const materialId = requiredDiagnosticText(conflict.materialId, label + " materialId");
+  if (!Array.isArray(conflict.sources) || conflict.sources.length < 2) {
+    throw new Error(label + " en az iki kaynak Part taşımalıdır.");
+  }
+  const sources = conflict.sources.map((source, index) => {
+    const item = record(source, label + " sources[" + index + "]");
+    closed(item, ["furnitureId", "partId", "materialLabel"], label + " sources[" + index + "]");
+    return {
+      furnitureId: requiredDiagnosticText(item.furnitureId, label + " furnitureId"),
+      partId: requiredDiagnosticText(item.partId, label + " partId"),
+      materialLabel: requiredDiagnosticText(item.materialLabel, label + " materialLabel")
+    };
+  });
+  for (let index = 1; index < sources.length; index += 1) {
+    const previous = sources[index - 1];
+    const current = sources[index];
+    const order = compareDiagnosticText(previous.furnitureId, current.furnitureId) ||
+      compareDiagnosticText(previous.partId, current.partId);
+    if (order >= 0) {
+      throw new Error(label + " kaynakları sıralı ve benzersiz olmalıdır.");
+    }
+  }
+  const distinctLabels = new Set(sources.map((source) => normalizeMaterialCatalogLabel(source.materialLabel)));
+  if (distinctLabels.size < 2) {
+    throw new Error(label + " en az iki farklı normalize katalog adı içermelidir.");
+  }
+  if (!sources.some((source) => source.furnitureId === furnitureId)) {
+    throw new Error(label + " bloklanan furniture kimliği kaynak listesinde bulunmalıdır.");
+  }
+  return { materialId, sources };
+}
+
 /**
  * Retains each domain blocker with its source and furniture context. The
  * human-readable diagnostics remain available for existing consumers.
@@ -94,6 +162,7 @@ function readProductionDiagnostics(
 ): ProjectSheetCutPlanExportDiagnostic[] {
   const diagnostics: ProjectSheetCutPlanExportDiagnostic[] = [];
   const representedMessages = new Set<string>();
+  const conflictCoverage = new Map<string, { canonical: string; sourceFurnitureIds: Set<string>; diagnosticFurnitureIds: Set<string> }>();
 
   const readEntries = (
     field: "unsupportedFurniture" | "blockedFurniture",
@@ -114,13 +183,35 @@ function readProductionDiagnostics(
       const furnitureId = nullableDiagnosticText(entry.furnitureId, field + " furnitureId");
       const family = nullableDiagnosticText(entry.family, field + " family");
       const message = entry.message;
+      const materialIdentityConflict = readMaterialIdentityConflict(
+        entry.materialIdentityConflict,
+        field,
+        entry.code,
+        furnitureId
+      );
       diagnostics.push({
         source,
         furnitureId,
         family,
         code: entry.code,
-        message
+        message,
+        ...(materialIdentityConflict === undefined ? {} : { materialIdentityConflict })
       });
+      if (materialIdentityConflict !== undefined) {
+        const canonical = JSON.stringify(materialIdentityConflict);
+        const sourceFurnitureIds = new Set(materialIdentityConflict.sources.map((item) => item.furnitureId));
+        const existing = conflictCoverage.get(materialIdentityConflict.materialId);
+        if (existing !== undefined && existing.canonical !== canonical) {
+          throw new Error("material identity conflict provenance aynı katalog kimliği için tutarlı olmalıdır.");
+        }
+        const coverage = existing ?? {
+          canonical,
+          sourceFurnitureIds,
+          diagnosticFurnitureIds: new Set<string>()
+        };
+        coverage.diagnosticFurnitureIds.add(furnitureId);
+        conflictCoverage.set(materialIdentityConflict.materialId, coverage);
+      }
       representedMessages.add(message);
     }
   };
@@ -165,6 +256,15 @@ function readProductionDiagnostics(
         code: null,
         message: report.firstError
       });
+    }
+  }
+
+  for (const [materialId, coverage] of conflictCoverage) {
+    if (
+      coverage.sourceFurnitureIds.size !== coverage.diagnosticFurnitureIds.size ||
+      [...coverage.sourceFurnitureIds].some((id) => !coverage.diagnosticFurnitureIds.has(id))
+    ) {
+      throw new Error("material identity conflict provenance tüm kaynak furniture tanılarını kapsamalıdır (" + materialId + ").");
     }
   }
 

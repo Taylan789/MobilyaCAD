@@ -1047,3 +1047,10 @@ Project JSON v1 remains legacy/read-only for this extension; an extension on v1 
 ## Structured material identity conflict provenance
 
 The diagnostic report adds the optional `blockedFurniture[].materialIdentityConflict` field for `invalid-material` identity-name conflicts. It carries the catalogue `materialId` and a deterministic `sources` list of every material-bearing Part in that conflicting ID group, including `furnitureId`, `partId`, and the original `materialLabel`. Sources are sorted by furniture ID then Part ID. Every blocked contributor receives the same complete provenance; legacy diagnostic `message`, ordering, atomic blocking, and strict aggregator behavior remain unchanged. Other diagnostic codes omit this field.
+
+
+## DOM-113 — Structured material conflict provenance through cut-plan export diagnostics
+
+- The cut-plan export gate preserves the optional `materialIdentityConflict` metadata on blocked `invalid-material` diagnostics, alongside the legacy source, furniture ID, family, code and message fields.
+- Metadata is accepted only when the catalog ID and source identifiers/labels are non-empty, sources are sorted and unique by furniture ID then Part ID, normalized labels genuinely conflict, and the blocked diagnostic's furniture ID is present in the source set. The source furniture set must be covered by diagnostics carrying the same conflict metadata; mismatched or incomplete provenance blocks the export gate.
+- Invalid metadata is fail-closed: the export report is blocked with `result=null` and `json=null`. No schema or CNC output is changed. Frontend diagnostic presentation remains UI-owned and may consume the additive optional field; it must continue to honor blocked exports and preserve the legacy message.

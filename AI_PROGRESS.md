@@ -210,3 +210,11 @@
 - Pages [#45032940318](https://github.com/Taylan789/MobilyaCAD/actions/runs/45032940318) succeeded. Test site: https://taylan789.github.io/MobilyaCAD/.
 - First attempt failed only because the new test assertion was not a callback; CI was successful, QA found the TypeError, and the test was corrected in the verified SHA. No frontend, adapter/performance-owned files, persistence/export schemas or CNC output changed.
 - Next: DOM-113 validate structured provenance consumers and fail-closed export readiness; INT-001 remains frontend-owned, INT-002/PERF-001 specialist-owned.
+
+
+## 22 Kasım 2026 18:51 TRT — DOM-113 IMPLEMENTED, Actions pending
+- **Code/test:** cut-plan export diagnostics now preserve optional structured material conflict provenance. Strict consumer validation checks the material ID, exact source fields, sorted unique source Part identities, genuinely conflicting normalized labels, blocked furniture source membership, and complete source-furniture diagnostic coverage per catalog ID. Malformed/incomplete provenance blocks; no partial JSON or cut-plan result is emitted.
+- **Tests:** one valid metadata-preservation regression plus malformed/out-of-order/duplicate/normalized-label/source-membership/code/unknown-field/incomplete-coverage cases. Assertions are fail-closed and retain legacy diagnostics.
+- **Files:** `domain/production/projectSheetCutPlanExport.ts`, `domain/production/projectSheetCutPlanExport.test.mjs`, `docs/production-domain-contract.md`, `PRODUCT_ROADMAP.md`, `AI_COORDINATION.md`. No frontend, adapter/performance-owned files, persistence schema or CNC output changed.
+- **Commit/Actions:** exact SHA and CI/QA/Pages evidence will be recorded after the initial commit completes; local execution is unavailable in this runtime.
+- **Next:** DOM-114 conflict provenance coverage/order invariants; frontend structured diagnostic display remains UI-owned and specialist INT-002/PERF-001 remains isolated.

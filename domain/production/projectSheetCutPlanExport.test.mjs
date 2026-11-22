@@ -337,3 +337,159 @@ test("valid cutout geometry remains an explicit export blocker with its original
     message: report.exportBlockers[0]
   }]);
 });
+
+
+test("DOM-113 structured material conflict provenance reaches cut-plan export diagnostics without a partial JSON", () => {
+  const parts = [part("part-1")];
+  const json = savedPlan(parts, ["part-1"]);
+  const materialIdentityConflict = {
+  "materialId": "mdf-18",
+  "sources": [
+    {
+      "furnitureId": "cabinet-1",
+      "partId": "cabinet-top",
+      "materialLabel": "MDF Lam Premium"
+    },
+    {
+      "furnitureId": "cabinet-1",
+      "partId": "cabinet-side",
+      "materialLabel": "MDF Lam Premium"
+    },
+    {
+      "furnitureId": "table-1",
+      "partId": "table-top",
+      "materialLabel": "MDF Lam 18"
+    }
+  ]
+};
+  const cabinetMessage = "mdf-18 catalog identity conflicts on cabinet-1.";
+  const tableMessage = "mdf-18 catalog identity conflicts on table-1.";
+  const report = productionReport(parts, {
+    status: "blocked",
+    canExport: false,
+    blockedFurniture: [
+      {
+        furnitureId: "cabinet-1",
+        family: "cabinet",
+        code: "invalid-material",
+        message: cabinetMessage,
+        materialIdentityConflict
+      },
+      {
+        furnitureId: "table-1",
+        family: "table",
+        code: "invalid-material",
+        message: tableMessage,
+        materialIdentityConflict
+      }
+    ],
+    firstError: cabinetMessage,
+    result: null
+  });
+  const result = createFreshProjectSheetCutPlanExport(request(json, parts, ["part-1"], report));
+
+  assertBlocked(result, "blocked", /mdf-18 catalog identity conflicts/);
+  assert.deepEqual(result.productionDiagnostics, [
+    {
+      source: "blockedFurniture",
+      furnitureId: "cabinet-1",
+      family: "cabinet",
+      code: "invalid-material",
+      message: cabinetMessage,
+      materialIdentityConflict
+    },
+    {
+      source: "blockedFurniture",
+      furnitureId: "table-1",
+      family: "table",
+      code: "invalid-material",
+      message: tableMessage,
+      materialIdentityConflict
+    }
+  ]);
+});
+
+test("DOM-113 malformed or incomplete material conflict provenance fails closed", () => {
+  const parts = [part("part-1")];
+  const json = savedPlan(parts, ["part-1"]);
+  const validSources = [{"furnitureId":"cabinet-1","partId":"cabinet-top","materialLabel":"MDF Lam Premium"},{"furnitureId":"cabinet-1","partId":"cabinet-side","materialLabel":"MDF Lam Premium"},{"furnitureId":"table-1","partId":"table-top","materialLabel":"MDF Lam 18"}];
+  const validConflict = { materialId: "mdf-18", sources: validSources };
+  const malformedCases = [
+    {
+      name: "out-of-order sources",
+      conflict: { ...validConflict, sources: [...validSources].reverse() },
+      furnitureId: "cabinet-1",
+      code: "invalid-material"
+    },
+    {
+      name: "duplicate source",
+      conflict: { ...validConflict, sources: [validSources[0], validSources[0], validSources[2]] },
+      furnitureId: "cabinet-1",
+      code: "invalid-material"
+    },
+    {
+      name: "labels normalize to one identity",
+      conflict: { materialId: "mdf-18", sources: [
+        { furnitureId: "cabinet-1", partId: "cabinet-top", materialLabel: " MDF Lam Premium " },
+        { furnitureId: "table-1", partId: "table-top", materialLabel: "mdf lam premium" }
+      ] },
+      furnitureId: "cabinet-1",
+      code: "invalid-material"
+    },
+    {
+      name: "diagnostic furniture is absent from sources",
+      conflict: validConflict,
+      furnitureId: "missing-furniture",
+      code: "invalid-material"
+    },
+    {
+      name: "non-material diagnostic code",
+      conflict: validConflict,
+      furnitureId: "cabinet-1",
+      code: "invalid-construction"
+    },
+    {
+      name: "unknown conflict field",
+      conflict: { ...validConflict, catalogName: "MDF" },
+      furnitureId: "cabinet-1",
+      code: "invalid-material"
+    },
+    {
+      name: "conflict sources are not all diagnosed",
+      conflict: validConflict,
+      furnitureId: "cabinet-1",
+      code: "invalid-material",
+      omitOtherContributor: true
+    }
+  ];
+
+  for (const malformed of malformedCases) {
+    const message = "material identity conflict provenance invalid: " + malformed.name;
+    const diagnostic = {
+      furnitureId: malformed.furnitureId,
+      family: "cabinet",
+      code: malformed.code,
+      message,
+      materialIdentityConflict: malformed.conflict
+    };
+    const report = productionReport(parts, {
+      status: "blocked",
+      canExport: false,
+      blockedFurniture: malformed.omitOtherContributor ? [diagnostic] : [
+        diagnostic,
+        {
+          furnitureId: "table-1",
+          family: "table",
+          code: "invalid-material",
+          message: "table-1 conflict",
+          materialIdentityConflict: validConflict
+        }
+      ],
+      firstError: message,
+      result: null
+    });
+    const result = createFreshProjectSheetCutPlanExport(request(json, parts, ["part-1"], report));
+    assertBlocked(result, "blocked", /provenance/i);
+    assert.deepEqual(result.productionDiagnostics, [], malformed.name);
+  }
+});
