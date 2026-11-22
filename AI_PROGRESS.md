@@ -192,7 +192,7 @@
 - Added the optional typed `materialIdentityConflict` metadata to blocked material diagnostics: catalogue `materialId`, plus a complete deterministic list of source furniture IDs, Part IDs, and original material labels. Each blocked contributor receives the complete source set; legacy message/order and atomic failure behavior are preserved.
 - Regression coverage derives expected provenance from independently calculated cabinet/bookshelf/table requests, checks every source and every blocked diagnostic, and confirms table provenance remains stable when request order is reversed.
 - Files: `domain/production/projectProduction.ts`, `domain/production/projectProduction.test.mjs`, `docs/production-domain-contract.md`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`. No frontend/**, adapter/performance-owned files, project JSON/CSV schema or CNC output changed.
-- Commit SHA and exact Actions/Pages results will be added in a follow-up documentation commit after the GitHub run reports; local tests are unavailable.
+- Final code/test commit [2cf8ff82](https://github.com/Taylan789/MobilyaCAD/commit/2cf8ff82fbae62ef8b8d7ca9bd807d2653e7ffcf) passed CI [#45032940332](https://github.com/Taylan789/MobilyaCAD/actions/runs/45032940332) and QA [#45032940341](https://github.com/Taylan789/MobilyaCAD/actions/runs/45032940341): **158 frontend + 637 domain tests**, strict domain TypeScript, lint **32 warnings/0 errors**, production build, dependency audit **0 vulnerabilities**. Pages [#45032940318](https://github.com/Taylan789/MobilyaCAD/actions/runs/45032940318) deployed successfully. Local tests unavailable; exact-SHA Actions are the evidence.
 - Next: DOM-113 structured provenance consumer validation and fail-closed export-readiness contract.
 
 
@@ -200,4 +200,13 @@
 
 - Exact-SHA CI [#45032813075](https://github.com/Taylan789/MobilyaCAD/actions/runs/45032813075) passed build/lint, but QA [#45032813113](https://github.com/Taylan789/MobilyaCAD/actions/runs/45032813113) failed one test: the new `Array.every` assertion passed a boolean rather than a callback (TypeError: `boolean false is not a function`). **636/637 domain tests passed; this was a test harness assertion error, not a reported production behavior failure.**
 - Pages [#45032813098](https://github.com/Taylan789/MobilyaCAD/actions/runs/45032813098) failed its CI+QA gate and did not deploy.
-- Corrected the assertion to a direct loop with `assert.deepEqual`; assertions are not weakened. Code commit [f59f02a](https://github.com/Taylan789/MobilyaCAD/commit/f59f02aabd830e67947967c17c906da68c9d6dd5) remains the implementation SHA; corrected test commit/verification are pending.
+- Corrected the assertion to a direct loop with `assert.deepEqual`; assertions are not weakened. Final code/test commit [2cf8ff82](https://github.com/Taylan789/MobilyaCAD/commit/2cf8ff82fbae62ef8b8d7ca9bd807d2653e7ffcf) passed CI [#45032940332](https://github.com/Taylan789/MobilyaCAD/actions/runs/45032940332) and QA [#45032940341](https://github.com/Taylan789/MobilyaCAD/actions/runs/45032940341) (**158 frontend + 637 domain tests**, strict TS, lint 32 warnings/0 errors, build, audit 0 vulnerabilities); Pages [#45032940318](https://github.com/Taylan789/MobilyaCAD/actions/runs/45032940318) deployed successfully.
+
+
+## 22 Kasım 2026 17:28 TRT — DOM-112 VERIFIED
+
+- Final code/test SHA: [2cf8ff82](https://github.com/Taylan789/MobilyaCAD/commit/2cf8ff82fbae62ef8b8d7ca9bd807d2653e7ffcf). The test callback correction is included; no assertions were weakened.
+- Exact-SHA CI [#45032940332](https://github.com/Taylan789/MobilyaCAD/actions/runs/45032940332) and QA [#45032940341](https://github.com/Taylan789/MobilyaCAD/actions/runs/45032940341) passed: **158 frontend + 637 domain tests**, strict domain TypeScript, lint **32 warnings/0 errors**, production build, and dependency audit **0 vulnerabilities**.
+- Pages [#45032940318](https://github.com/Taylan789/MobilyaCAD/actions/runs/45032940318) succeeded. Test site: https://taylan789.github.io/MobilyaCAD/.
+- First attempt failed only because the new test assertion was not a callback; CI was successful, QA found the TypeError, and the test was corrected in the verified SHA. No frontend, adapter/performance-owned files, persistence/export schemas or CNC output changed.
+- Next: DOM-113 validate structured provenance consumers and fail-closed export readiness; INT-001 remains frontend-owned, INT-002/PERF-001 specialist-owned.
