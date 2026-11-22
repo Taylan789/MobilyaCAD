@@ -1,3 +1,11 @@
+## 22 Kasım 2026 06:46 TRT — DOM-103 IMPLEMENTED, Actions pending
+
+- Quote-comparison CSV parser success results now expose the detected `formatVersion` (`1 | 2 | 3`) additively. UI can warn on legacy v1/v2 resource-identity omission without guessing from file contents; blocked imports still expose no version.
+- Code/test: `domain/production/projectQuoteRevisionComparisonCsv.ts` and `domain/production/projectQuoteRevisionComparisonCsv.test.mjs`; assertions cover v3 and legacy v1/v2 version disclosure, plus no version for blocked metadata and unsupported-header imports.
+- **Commit SHA:** recorded in the post-commit verification entry; Actions pending at this entry's creation. No local test runner was available; exact-SHA GitHub Actions is the verification source.
+- **CI/QA/Pages:** pending for this SHA. Last verified test-site deployment before this change is Pages [#44974762969](https://github.com/Taylan789/MobilyaCAD/actions/runs/44974762969) at `bb40a20`; no new site deployment is claimed yet.
+- No frontend files, adapter/performance-owned files, or machine-specific output changed. DOM-103 is additive and backward-compatible. AI Developer [#44972838278](https://github.com/Taylan789/MobilyaCAD/actions/runs/44972838278) remains failed on OpenRouter free-model daily HTTP 429; no rerun, paid fallback, quota, or secrets change.
+- **Next:** DOM-104 deterministic repeated CSV export; INT-001 remains frontend-owned, INT-002/PERF-001 specialist-owned, and QA-003 depends on both.
 ## 22 Kasım 2026 05:03 TRT — DOM-102 VERIFIED
 
 - Legacy quote-comparison matrix covers JSON v1/v2 and CSV v1/v2/v3. JSON v1 remains readable; JSON v2 preserves resource identity and rejects partial/mismatched metadata; legacy CSV v1/v2 preserves supported line/roll provenance while omitting resource identity unavailable in their columns; CSV v3 preserves complete resource identity and rejects partial metadata.

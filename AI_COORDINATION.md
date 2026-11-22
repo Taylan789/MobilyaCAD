@@ -86,12 +86,13 @@ Bu dosya dört geliştirme/denetim rolünün ortak görev panosu ve entegrasyon 
 | INT-002 | JSON/CSV adapter round-trip ve geometri/miktar sadakati için eksik entegrasyon testleri | Entegrasyon/Performans (yalnızca sahiplenilmemiş adapter/test dosyaları) | READY | test raporu ve PR |
 | QA-003 | INT-001 ve INT-002 tamamlandığında uçtan uca veri akışı ve export denetimi | Kalite Denetimi | BLOCKED: INT-001/INT-002 | SHA, PR ve gerçek Actions kanıtı |
 
-## Sıradaki 3 görev — domain sahipliği
+## Sıradaki görevler — domain/agent sahipliği
 
-1. DOM-103 READY — add CSV formatVersion disclosure so UI can explain resource-identity limitations of legacy v1/v2; additive parser contract, no frontend writes.
-2. INT-001 FRONTEND-OWNED — domain/frontend export contract and download adapter; product agent does not touch frontend files.
-3. INT-002/PERF-001 INTEGRATION-OWNED — adapter round-trip and measured CAD profiling on specialist-owned branch.
-4. QA-003 BLOCKED — end-to-end export reconciliation after INT-001/INT-002 evidence.
+1. DOM-103 IN PROGRESS — implemented additive CSV version disclosure; exact-SHA CI/QA/Pages results pending.
+2. DOM-104 READY — byte-stable repeated CSV export and round-trip invariants; no schema changes.
+3. INT-001 FRONTEND-OWNED — domain/frontend export contract and download adapter; product agent does not touch frontend files.
+4. INT-002/PERF-001 INTEGRATION-OWNED — adapter round-trip and measured CAD profiling on specialist-owned branch.
+5. QA-003 BLOCKED — end-to-end export reconciliation after INT-001/INT-002 evidence.
 
 ## Son devir kayıtları
 
@@ -428,4 +429,5 @@ Bu dosya dört geliştirme/denetim rolünün ortak görev panosu ve entegrasyon 
 | DOM-100 | JSON v2 ↔ CSV v3 comparison exact cross-format round-trip, resource/Part metadata preservation and corrupted row version fail-closed | Ürün Geliştirme | DONE — code/test f704bbd6; CI #44962373022, QA #44962373046, Pages #44962373013 successful — 142 frontend + 622 domain, 32 lint warnings/0 errors, build/audit passed | DOM-101
 | DOM-101 | Adversarial CSV quoting, embedded CRLF/BOM and record-boundary cases; fail closed without partial comparisons | Ürün Geliştirme | DONE — [commit 24b5bdc](https://github.com/Taylan789/MobilyaCAD/commit/24b5bdc358d6b8e5fa8404a063dde0f024fd3068); CI #44968313006, QA #44968312997, Pages #44968312947 successful — 142 frontend + 624 domain, strict TS/lint/build/audit | malformed quoting/row width/version and byte limits | DOM-102
 | DOM-102 | JSON v1/v2 and CSV v1/v2/v3 compatibility matrix; verify supported metadata preservation and fail closed for unsupported partial fields | Ürün Geliştirme | DONE — [fix commit 8bc5ede](https://github.com/Taylan789/MobilyaCAD/commit/8bc5ede4c2f34158929d1272ffbc253184380242), CI #44974595633, QA #44974595666 (142 frontend + 628 domain), Pages #44974595608 all successful; lint 32 warnings/0 errors, audit 0 | legacy metadata preservation/omission and strict v3 identity; no parser behavior changed | DOM-103
-| DOM-103 | Additive CSV parser formatVersion for legacy import disclosure; let UI warn about unavailable catalog identity | Ürün Geliştirme | READY | backward-compatible version field, blocked imports expose no version, parser tests and contract note | INT-001
+| DOM-103 | Additive CSV parser formatVersion for legacy import disclosure; let UI warn about unavailable catalog identity | Ürün Geliştirme | IN PROGRESS — code/test slice committed; exact-SHA Actions pending | ready parse exposes v1/v2/v3; blocked import omits version; tests and contract note | DOM-104
+| DOM-104 | Deterministic quote-comparison CSV serialization; repeated exports must be byte-identical and parse to the same comparison | Ürün Geliştirme | READY | exact serialized bytes + round-trip regression coverage, no schema changes | INT-001

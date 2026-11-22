@@ -232,6 +232,7 @@ test("CSV v3 has stable columns and round-trips exact comparison metadata", () =
 
   const parsed = parseProjectQuoteRevisionComparisonCsv(serialized.csv);
   assert.equal(parsed.status, "ready");
+  assert.equal(parsed.formatVersion, 3);
   assert.deepEqual(parsed.comparison, original.comparison);
   assert.equal(parsed.comparison?.currencyCode, "TRY");
   assert.equal(parsed.comparison?.lineChanges[0].to.unit, "m2");
@@ -733,6 +734,7 @@ test("DOM-102 CSV v3 blocks partial resource identity metadata without partial c
   const tampered = "\uFEFF" + records.map(row => row.map(encodeCsvCellForTest).join(",")).join("\r\n") + "\r\n";
   const parsed = parseProjectQuoteRevisionComparisonCsv(tampered);
   assert.equal(parsed.status, "blocked");
+  assert.equal(parsed.formatVersion, undefined);
   assert.equal(parsed.comparison, null);
   assert.ok(parsed.diagnostics.length > 0);
 
@@ -741,6 +743,7 @@ test("DOM-102 CSV v3 blocks partial resource identity metadata without partial c
     records.slice(1).map(row => row.map(encodeCsvCellForTest).join(",")).join("\r\n") + "\r\n";
   const unsupported = parseProjectQuoteRevisionComparisonCsv(unsupportedHeader);
   assert.equal(unsupported.status, "blocked");
+  assert.equal(unsupported.formatVersion, undefined);
   assert.equal(unsupported.comparison, null);
 }); 
 
@@ -775,6 +778,7 @@ test("DOM-102 legacy CSV v1/v2 intentionally omit catalog identity but retain li
   ]) {
     const parsed = parseProjectQuoteRevisionComparisonCsv(legacy.csv);
     assert.equal(parsed.status, "ready", "CSV v" + legacy.version + ": " + parsed.diagnostics.join("; "));
+    assert.equal(parsed.formatVersion, legacy.version);
     assert.deepEqual(parsed.comparison, expected);
     assert.equal(parsed.comparison.lineChanges[0].from.sourceReference, "material-list-v1");
     assert.deepEqual(parsed.comparison.lineChanges[0].from.sourcePartIds, ["part-a", "part-b"]);
