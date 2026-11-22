@@ -1,3 +1,10 @@
+## 22 Kasım 2026 08:29 TRT — DOM-105 IN_PROGRESS
+
+- Added a domain regression slice for legacy quote-comparison CSV v1/v2 import → canonical v3 export, covering supported line provenance, v2 roll metadata, intentionally absent catalog identity, canonical version/header, repeated export bytes and import immutability.
+- Files: `domain/production/projectQuoteRevisionComparisonCsv.test.mjs`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`. Production serializer/schema unchanged; no frontend or specialist-owned files changed.
+- Commit and exact-SHA CI/QA/Pages verification pending. Local test execution unavailable; do not mark verified until Actions evidence is checked.
+- Next: DOM-106 legacy-import canonical export repeatability; INT-001 frontend-owned and INT-002/PERF-001 specialist-owned; QA-003 remains blocked by integration evidence.
+
 ## 22 Kasım 2026 07:07 TRT — DOM-104 VERIFIED
 
 - Repeated quote-comparison CSV exports from the same and equivalent deep-copy inputs are byte-identical. Regression coverage also verifies UTF-8 BOM, CRLF terminator, v3 parse equality, and no input mutation.

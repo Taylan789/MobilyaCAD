@@ -593,11 +593,11 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 
 ## Next 5 small tasks
 
-1. DOM-103 DONE — [fix commit 431b044](https://github.com/Taylan789/MobilyaCAD/commit/431b044cd20d07209104f2fdd422352400c56750); exact-SHA CI #44982525644, QA #44982525656, Pages #44982525667 successful; 142 frontend + 628 domain, strict TS/build, audit 0 vulnerabilities, lint 32 warnings/0 errors.
-2. DOM-104 READY — byte-stable repeated quote-comparison CSV export and round-trip regression tests, no schema change.
-3. INT-001 FRONTEND-OWNED — comparison download and production report/export integration; domain agent does not edit frontend files.
-4. INT-002/PERF-001 INTEGRATION-OWNED — adapter round-trip tests and measured CAD profiling on the isolated specialist branch.
-5. QA-003 BLOCKED — end-to-end export reconciliation until INT-001/INT-002 evidence is available.
+1. DOM-103 DONE — [fix commit 431b044](https://github.com/Taylan789/MobilyaCAD/commit/431b044cd20d07209104f2fdd422352400c56750); exact-SHA CI #44982525644, QA #44982525656, Pages #44982525667 successful.
+2. DOM-104 DONE — [commit 614d559](https://github.com/Taylan789/MobilyaCAD/commit/614d559c902cc4038f9c177eaa31ce86045ef3fe); exact-SHA CI #44983853404, QA #44983853400, Pages #44983853533 successful.
+3. DOM-105 IN_PROGRESS — legacy quote comparison CSV v1/v2 import → canonical v3 export; supported provenance/roll metadata and missing catalog identity preserved/omitted correctly; exact-SHA Actions pending.
+4. INT-001 FRONTEND-OWNED — comparison download and production report/export integration; domain agent does not edit frontend files.
+5. INT-002/PERF-001 INTEGRATION-OWNED — adapter round-trip tests and measured CAD profiling on the isolated specialist branch.
 
 ## 10/10 ölçülebilir kalite kapıları (20 Kasım 2026 baseline)
 
@@ -999,3 +999,12 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - AI Developer [#44972838278](https://github.com/Taylan789/MobilyaCAD/actions/runs/44972838278) failed due OpenRouter free-model daily HTTP 429; integration/performance job was skipped. The failed quota-limited run was not retried; no paid fallback, secrets, or quota settings were changed.
 - UI PR [#145](https://github.com/Taylan789/MobilyaCAD/pull/145) remains draft and unmerged; its QA run [#44975896881](https://github.com/Taylan789/MobilyaCAD/actions/runs/44975896881) succeeded. It has no test-site deployment until merged and verified.
 - **Next:** DOM-105 canonical v3 export after legacy v1/v2 import, preserving supported line/roll provenance and explicitly omitting catalog identity unavailable in legacy headers. INT-001 frontend-owned; INT-002/PERF-001 specialist-owned.
+
+
+## DOM-105 — Canonical v3 export after legacy CSV import (IN_PROGRESS, 22 November 2026)
+
+- **Acceptance:** Legacy v1 and v2 comparison CSVs parse successfully, expose the detected version, and re-export through the current canonical v3 serializer without changing the parsed comparison. The v1/v2 headers cannot supply catalog resource identity; canonical v3 must leave those identity fields absent rather than infer them.
+- **Coverage slice:** v1 line/source/Part provenance and v2 roll count/length, furniture IDs, plan/price source references; canonical v3 header/version, repeated export bytes and import immutability.
+- **Scope:** domain regression tests only; no production schema, frontend, adapter/performance-owned files, pricing assumptions, or CNC output changes.
+- **Verification:** exact-SHA CI/QA/Pages results pending; no local checkout/test runner in this runtime.
+- **Next:** DOM-106 repeated canonical v3 export byte stability from legacy imports and parsed input immutability; INT-001 frontend-owned; INT-002/PERF-001 specialist-owned; QA-003 blocked until adapter evidence.

@@ -813,3 +813,137 @@ test("DOM-102 legacy CSV v1/v2 intentionally omit catalog identity but retain li
     assert.equal(parsed.comparison.lineChanges[1].to.resourceId, undefined);
   }
 });
+
+
+test("DOM-105 legacy CSV v1/v2 imports can be canonicalized to v3 without losing supported metadata", () => {
+  const version1Source = readyComparisonResult();
+  const version2Source = readyComparisonResult();
+
+  function attachCatalogIdentity(result) {
+    for (const change of result.comparison.lineChanges) {
+      for (const line of [change.from, change.to]) {
+        if (line === null) continue;
+        if (line.category === "material" && line.unit === "m2") {
+          line.resourceType = "material";
+          line.resourceId = line.sourceId;
+          line.resourceUnit = "m2";
+        } else if (line.category === "material" && line.unit === "mm") {
+          line.resourceType = "edge-banding";
+          line.resourceId = line.sourceId;
+          line.resourceUnit = "mm";
+        } else if (line.category === "material" && line.unit === "rulo") {
+          line.resourceType = "material";
+          line.resourceId = line.sourceId;
+          line.resourceUnit = "rulo";
+        }
+      }
+    }
+  }
+
+  attachCatalogIdentity(version1Source);
+  attachCatalogIdentity(version2Source);
+
+  const rollFrom = {
+    category: "material", description: "PVC rulo", quantity: 1, unit: "rulo",
+    unitPriceMinor: 1000, lineTotalMinor: 1000, currencyCode: "TRY",
+    sourceReference: "roll-prices:v1", sourceType: "production-consumption", sourceId: "pvc-roll",
+    sourcePartIds: ["part-roll-a"], rollCount: 1, rollLengthMm: 100000,
+    purchasedLengthMm: 100000, furnitureIds: ["cabinet-a"],
+    planSourceReference: "roll-spec:v1", priceSourceReference: "roll-prices:v1",
+    resourceType: "material", resourceId: "pvc-roll", resourceUnit: "rulo"
+  };
+  const rollTo = {
+    ...rollFrom, quantity: 2, unitPriceMinor: 650, lineTotalMinor: 1300,
+    sourceReference: "roll-prices:v2", rollCount: 2, purchasedLengthMm: 200000,
+    planSourceReference: "roll-spec:v2", priceSourceReference: "roll-prices:v2"
+  };
+  version2Source.comparison.lineChanges.push({ type: "changed", from: rollFrom, to: rollTo });
+  version2Source.comparison.fromGrandTotalMinor += rollFrom.lineTotalMinor;
+  version2Source.comparison.toGrandTotalMinor += rollTo.lineTotalMinor;
+  version2Source.comparison.grandTotalDeltaMinor =
+    version2Source.comparison.toGrandTotalMinor - version2Source.comparison.fromGrandTotalMinor;
+  version2Source.comparison.categoryDeltasMinor.material += rollTo.lineTotalMinor - rollFrom.lineTotalMinor;
+
+  const sourceV1 = serializeProjectQuoteRevisionComparisonCsv(version1Source);
+  const sourceV2 = serializeProjectQuoteRevisionComparisonCsv(version2Source);
+  assert.equal(sourceV1.status, "ready", sourceV1.diagnostics.join("; "));
+  assert.equal(sourceV2.status, "ready", sourceV2.diagnostics.join("; "));
+  assert.ok(sourceV1.csv);
+  assert.ok(sourceV2.csv);
+
+  const cases = [
+    { version: 1, csv: toLegacyV1Csv(sourceV1.csv) },
+    { version: 2, csv: toLegacyV2Csv(sourceV2.csv) }
+  ];
+
+  for (const legacy of cases) {
+    const imported = parseProjectQuoteRevisionComparisonCsv(legacy.csv);
+    assert.equal(imported.status, "ready", "CSV v" + legacy.version + ": " + imported.diagnostics.join("; "));
+    assert.equal(imported.formatVersion, legacy.version);
+    assert.ok(imported.comparison);
+    const importedSnapshot = structuredClone(imported.comparison);
+
+    const materialChange = importedSnapshot.lineChanges.find(change =>
+      (change.from ?? change.to)?.description === "MDF Lam 18");
+    assert.ok(materialChange);
+    assert.equal(materialChange.from.sourceReference, "material-list-v1");
+    assert.deepEqual(materialChange.from.sourcePartIds, ["part-a", "part-b"]);
+
+    const edgeBandChange = importedSnapshot.lineChanges.find(change =>
+      (change.from ?? change.to)?.description === "Kenar bandı PVC (sağ)");
+    assert.ok(edgeBandChange);
+    assert.equal(edgeBandChange.to.sourceReference, "edge-catalog-mm-v1");
+    assert.equal(edgeBandChange.to.edgeDirection, "right");
+
+    const laborChange = importedSnapshot.lineChanges.find(change =>
+      (change.from ?? change.to)?.description === "Dolap montajı");
+    assert.ok(laborChange);
+    assert.equal(laborChange.from.tariffId, "labor-hourly");
+    assertQuoteAdjustmentProvenance(importedSnapshot);
+
+    if (legacy.version === 1) {
+      assert.equal(importedSnapshot.lineChanges.some(change => (change.from ?? change.to)?.unit === "rulo"), false);
+    } else {
+      const rollChange = importedSnapshot.lineChanges.find(change => (change.from ?? change.to)?.unit === "rulo");
+      assert.ok(rollChange);
+      assert.equal(rollChange.from.rollCount, 1);
+      assert.equal(rollChange.to.rollCount, 2);
+      assert.equal(rollChange.from.rollLengthMm, 100000);
+      assert.equal(rollChange.to.purchasedLengthMm, 200000);
+      assert.deepEqual(rollChange.from.furnitureIds, ["cabinet-a"]);
+      assert.equal(rollChange.from.planSourceReference, "roll-spec:v1");
+      assert.equal(rollChange.to.priceSourceReference, "roll-prices:v2");
+    }
+
+    for (const change of importedSnapshot.lineChanges) {
+      for (const line of [change.from, change.to]) {
+        if (line === null) continue;
+        assert.equal(line.resourceType, undefined, "legacy v" + legacy.version + " must not invent catalog identity");
+        assert.equal(line.resourceId, undefined, "legacy v" + legacy.version + " must not invent catalog identity");
+        assert.equal(line.resourceUnit, undefined, "legacy v" + legacy.version + " must not invent catalog identity");
+      }
+    }
+
+    const canonical = serializeProjectQuoteRevisionComparisonCsv(imported);
+    assert.equal(canonical.status, "ready", "canonical v3 from legacy v" + legacy.version + ": " + canonical.diagnostics.join("; "));
+    assert.ok(canonical.csv);
+    assert.ok(canonical.csv.startsWith("\uFEFF"));
+    assert.ok(canonical.csv.endsWith("\r\n"));
+    const canonicalHeader = PROJECT_QUOTE_REVISION_COMPARISON_CSV_COLUMNS.map(column => '"' + column + '"').join(",");
+    assert.ok(canonical.csv.slice(1).startsWith(canonicalHeader + "\r\n"));
+    const canonicalRows = parseCsvRecordsForTest(canonical.csv);
+    assert.ok(canonicalRows.slice(1).every(row => row[1] === "3"));
+
+    const importedBeforeExport = structuredClone(imported.comparison);
+    const repeatedCanonical = serializeProjectQuoteRevisionComparisonCsv(imported);
+    assert.equal(repeatedCanonical.status, "ready");
+    assert.equal(repeatedCanonical.csv, canonical.csv);
+    assert.deepEqual(imported.comparison, importedBeforeExport);
+
+    const canonicalParsed = parseProjectQuoteRevisionComparisonCsv(canonical.csv);
+    assert.equal(canonicalParsed.status, "ready", canonicalParsed.diagnostics.join("; "));
+    assert.equal(canonicalParsed.formatVersion, 3);
+    assert.deepEqual(canonicalParsed.comparison, importedSnapshot);
+  }
+});
+
