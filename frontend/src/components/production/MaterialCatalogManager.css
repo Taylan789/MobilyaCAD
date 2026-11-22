@@ -770,3 +770,73 @@
     background: Highlight;
   }
 }
+
+
+/* UI-MATERIAL-SUMMARY-RAIL-001 — replace metric cards with a compact catalog summary rail */
+.mc-material-library__metrics {
+  gap: 0;
+  overflow: hidden;
+  border: 1px solid var(--mcl-line);
+  border-radius: 6px;
+  background: linear-gradient(145deg, rgba(31, 47, 57, .72), rgba(18, 29, 37, .82));
+}
+
+.mc-material-library__metric {
+  display: grid;
+  min-width: 0;
+  min-height: 54px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: auto auto;
+  align-items: center;
+  gap: 2px 12px;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.mc-material-library__metric + .mc-material-library__metric {
+  border-left: 1px solid var(--mcl-line);
+}
+.mc-material-library__metric > span {
+  grid-column: 1;
+  grid-row: 1;
+  line-height: 1.2;
+}
+.mc-material-library__metric > strong {
+  grid-column: 2;
+  grid-row: 1 / 3;
+  font-size: 18px;
+  line-height: 1;
+}
+.mc-material-library__metric > small {
+  grid-column: 1;
+  grid-row: 2;
+  font-size: 8px;
+  line-height: 1.25;
+}
+@media (max-width: 720px) {
+  .mc-material-library__metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .mc-material-library__metric:nth-child(3) {
+    grid-column: 1 / -1;
+    border-top: 1px solid var(--mcl-line);
+    border-left: 0;
+  }
+}
+@media (max-width: 520px) {
+  .mc-material-library__metrics { grid-template-columns: minmax(0, 1fr); }
+  .mc-material-library__metric + .mc-material-library__metric {
+    border-top: 1px solid var(--mcl-line);
+    border-left: 0;
+  }
+  .mc-material-library__metric:nth-child(3) { grid-column: auto; }
+  .mc-material-library__metric:first-child { border-top: 0; }
+}
+@media (forced-colors: active) {
+  .mc-material-library__metrics { border-color: CanvasText; }
+  .mc-material-library__metric + .mc-material-library__metric {
+    border-left-color: CanvasText;
+    border-top-color: CanvasText;
+  }
+  .mc-material-library__metric:nth-child(3) { border-top-color: CanvasText; }
+}
