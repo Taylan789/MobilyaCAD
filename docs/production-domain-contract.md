@@ -1072,3 +1072,10 @@ The diagnostic report adds the optional `blockedFurniture[].materialIdentityConf
 - Previous QA [#45051528277](https://github.com/Taylan789/MobilyaCAD/actions/runs/45051528277) found only an assertion-message mismatch (640 domain tests passed, one assertion failed); the test regex now matches the existing production diagnostic.
 - QA [#45055923801](https://github.com/Taylan789/MobilyaCAD/actions/runs/45055923801) next found duplicate source IDs only because the test flattened identical full source sets repeated across furniture diagnostics; the corrected assertion checks the unique set plus complete coverage in each diagnostic. Exact-SHA rerun is pending.
 - Previous QA [#45051528277](https://github.com/Taylan789/MobilyaCAD/actions/runs/45051528277) found only an assertion-message mismatch (640 domain tests passed, one assertion failed); the test regex now matches the existing production diagnostic. Reverification on the correction SHA is pending.
+
+## DOM-118 — Levha tanımı ve grup tanılarının deterministik sırası
+
+- Batch üretiminde levha tanımı listesi (stockSheets) sırası, hazır batch içeriğini veya grup sırasını değiştirmez. Batch grup sırası seçili proje Part'larının ilk kaynak sırasını korur.
+- Eksik/invalid grup ve kullanılmayan levha tanımı tanıları katalog materialId ve normalize edilmiş 0.1 mm kalınlık (sayısal) sırasıyla üretilir. Tanı sırası proje Part veya levha tanımı giriş sırasından bağımsızdır.
+- Yinelenen normalize malzeme/kalınlık tanımları fail-closed olarak blocked kalır; kullanılmayan tanımlar açık tanı üretir ve sessizce yok olmaz.
+- Bu slice levha seçimini/ölçülerini değiştirmez, nesting algoritmasını optimize etmez, fire/yield veya CNC üretim onayı sağlamaz.

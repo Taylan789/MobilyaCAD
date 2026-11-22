@@ -298,3 +298,11 @@
 - **Known limits:** Local tests unavailable; GitHub Actions is authoritative. npm install reports 4 moderate dependency advisories (production audit is clean). The production bundle remains oversized (1.687 MB minified JS / 472.29 KB gzip; Vite >500 kB warning). AI Developer run [#45045107407](https://github.com/Taylan789/MobilyaCAD/actions/runs/45045107407) failed due OpenRouter free-model daily 429; no rerun on stale SHA and no paid fallback. Integration/performance job is disabled; no specialist branch/PR verified.
 - **Scope:** test file and project records only; no production calculation source, frontend, adapter/performance-owned files, project schema, CNC output or `main`.
 - **Next:** DOM-118 deterministic stock-sheet group/order diagnostics; DOM-119 ready batch → cut-plan source coverage and atomic reconciliation; INT-001 UI-owned, INT-002/PERF-001 specialist-owned.
+
+## 23 Kasım 2026 00:27 TRT — DOM-118 IMPLEMENTED, Actions pending
+
+- **Code/test:** Nesting-batch diagnostics are now canonical by material ID then numeric normalized thickness, independent of source Part and stock-definition order; batch group output still preserves first-source project order. Unused stock definitions remain explicit and duplicate normalized groups fail closed.
+- **Tests:** valid stock-definition order reversal, reverse-order missing/unused diagnostics across multiple material/thickness groups, and duplicate-definition order invariance.
+- **Files:** domain/production/projectSheetNestingBatches.ts, domain/production/projectSheetNestingBatches.test.mjs, docs/production-domain-contract.md, AI_COORDINATION.md, PRODUCT_ROADMAP.md, AI_PROGRESS.md. No frontend, integration/performance-owned files, export schema, CNC output or main changed.
+- **Verification:** CI/QA/Pages will be checked for the exact commit SHA; local test execution is unavailable.
+- **Next:** DOM-119 atomic ready-batch to cut-plan source coverage reconciliation; INT-001 frontend-owned, INT-002/PERF-001 specialist-owned.

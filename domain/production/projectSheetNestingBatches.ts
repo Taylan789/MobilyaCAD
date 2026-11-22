@@ -326,18 +326,25 @@ export function createProjectSheetNestingBatches(
       });
     }
 
-    const diagnostics: string[] = [];
+    const diagnostics: {
+      materialId: string;
+      thicknessMm: number;
+      message: string;
+    }[] = [];
     const batches: ProjectSheetNestingBatchGroup[] = [];
 
     for (const [key, group] of groups) {
       const definition = definitions.get(key);
       if (!definition) {
-        diagnostics.push(
-          group.materialId +
-          " / " +
-          group.thicknessMm +
-          " mm grubu için kullanıcı tarafından tanımlanmış levha ve kerf bulunmuyor."
-        );
+        diagnostics.push({
+          materialId: group.materialId,
+          thicknessMm: group.thicknessMm,
+          message:
+            group.materialId +
+            " / " +
+            group.thicknessMm +
+            " mm grubu için kullanıcı tarafından tanımlanmış levha ve kerf bulunmuyor."
+        });
         continue;
       }
 
@@ -353,13 +360,16 @@ export function createProjectSheetNestingBatches(
       });
 
       if (batch.status !== "ready" || batch.result === null) {
-        diagnostics.push(
-          group.materialId +
-          " / " +
-          group.thicknessMm +
-          " mm grubu: " +
-          batch.diagnostics.join(" ")
-        );
+        diagnostics.push({
+          materialId: group.materialId,
+          thicknessMm: group.thicknessMm,
+          message:
+            group.materialId +
+            " / " +
+            group.thicknessMm +
+            " mm grubu: " +
+            batch.diagnostics.join(" ")
+        });
         continue;
       }
 
@@ -376,17 +386,39 @@ export function createProjectSheetNestingBatches(
         const definition = definitions.get(key);
         if (!definition) continue;
         const sheet = requireRecord(definition.sheet, "Levha");
-        diagnostics.push(
-          String(sheet.materialId) +
-          " / " +
-          String(sheet.thicknessMm) +
-          " mm levha tanımı seçili Part gruplarından hiçbirine karşılık gelmiyor."
+        const materialId = requireIdentifier(
+          sheet.materialId,
+          "Levha malzeme kimliği"
         );
+        const thicknessMm = normalizeThicknessMm(
+          sheet.thicknessMm,
+          "Levha kalınlığı"
+        );
+        diagnostics.push({
+          materialId,
+          thicknessMm,
+          message:
+            materialId +
+            " / " +
+            String(sheet.thicknessMm) +
+            " mm levha tanımı seçili Part gruplarından hiçbirine karşılık gelmiyor."
+        });
       }
     }
 
-    if (diagnostics.length > 0) {
-      return blocked(diagnostics, selectedPartIds, excludedPartIds);
+    diagnostics.sort((left, right) => {
+      if (left.materialId !== right.materialId) {
+        return left.materialId < right.materialId ? -1 : 1;
+      }
+      if (left.thicknessMm !== right.thicknessMm) {
+        return left.thicknessMm < right.thicknessMm ? -1 : 1;
+      }
+      return left.message < right.message ? -1 : left.message > right.message ? 1 : 0;
+    });
+    const diagnosticMessages = diagnostics.map((entry) => entry.message);
+
+    if (diagnosticMessages.length > 0) {
+      return blocked(diagnosticMessages, selectedPartIds, excludedPartIds);
     }
 
     return {

@@ -273,6 +273,75 @@ test("seçili Part grubuna karşılık gelmeyen fazladan levha tanımı sessizce
   );
 });
 
+test("DOM-118 stock-sheet definition order does not change batches or source group order", () => {
+  const productionReport = report([
+    part({ id: "mdf-18-side" }),
+    part({
+      id: "plywood-18-shelf",
+      material: "Kontrplak",
+      materialId: "plywood-18",
+      grainDirection: "width",
+      quantity: 3
+    }),
+    part({ id: "mdf-8-back", thickness: 8, quantity: 1 })
+  ]);
+  const definitions = [
+    stock(sheet("mdf-18", 18, "length"), 3.2),
+    stock(sheet("plywood-18", 18, "width"), 4),
+    stock(sheet("mdf-18", 8, "length"), 2.4)
+  ];
+
+  const forward = createProjectSheetNestingBatches(request(productionReport, definitions));
+  const reverse = createProjectSheetNestingBatches(request(productionReport, [...definitions].reverse()));
+
+  assert.equal(forward.status, "ready");
+  assert.deepEqual(reverse, forward);
+  assert.deepEqual(forward.result?.batches.map((batch) => batch.materialId), [
+    "mdf-18", "plywood-18", "mdf-18"
+  ]);
+});
+
+test("DOM-118 missing and unused stock diagnostics use canonical material and numeric thickness order", () => {
+  const parts = [
+    part({ id: "mdf-18" }),
+    part({ id: "plywood-18", materialId: "plywood-18", material: "Kontrplak" }),
+    part({ id: "mdf-8", thickness: 8 })
+  ];
+  const definitions = [
+    stock(sheet("mdf-18", 18)),
+    stock(sheet("oak-18", 18)),
+    stock(sheet("plywood-18", 8))
+  ];
+  const forward = assertBlocked(
+    request(report(parts), definitions),
+    /kullanıcı tarafından tanımlanmış levha|karşılık gelmiyor/
+  );
+  const reverse = assertBlocked(
+    request(report([...parts].reverse()), [...definitions].reverse()),
+    /kullanıcı tarafından tanımlanmış levha|karşılık gelmiyor/
+  );
+
+  assert.deepEqual(reverse.diagnostics, forward.diagnostics);
+  assert.deepEqual(
+    forward.diagnostics.map((message) => message.split(" / ")[0]),
+    ["mdf-18", "oak-18", "plywood-18", "plywood-18"]
+  );
+  assert.ok(forward.diagnostics[0].includes("mdf-18 / 8 mm"));
+  assert.ok(forward.diagnostics[2].includes("plywood-18 / 8 mm"));
+  assert.ok(forward.diagnostics[3].includes("plywood-18 / 18 mm"));
+});
+
+test("DOM-118 duplicate stock definition blocking diagnostics are order invariant", () => {
+  const productionReport = report([part()]);
+  const definitions = [
+    stock(sheet("mdf-18", 18)),
+    stock(sheet("mdf-18", 18.04), 4)
+  ];
+  const forward = assertBlocked(request(productionReport, definitions), /yinelenen levha tanımı/);
+  const reverse = assertBlocked(request(productionReport, [...definitions].reverse()), /yinelenen levha tanımı/);
+  assert.deepEqual(reverse.diagnostics, forward.diagnostics);
+});
+
 test("legacy Part damar yönü yalnızca kendi grubundaki açık kullanıcı eşlemesiyle tamamlanır", () => {
   const productionReport = report([
     part({ grainDirection: undefined })
