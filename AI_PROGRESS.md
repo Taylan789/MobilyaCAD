@@ -1,3 +1,12 @@
+## 22 Kasım 2026 05:03 TRT — DOM-102 fixture correction; verification still pending
+
+- Initial compatibility test commit [bba2139](https://github.com/Taylan789/MobilyaCAD/commit/bba2139138c3f1911a49380db87e45a066955a0c) added legacy CSV v1/v2 resource-identity omission assertions.
+- Exact-SHA CI [#44974489493](https://github.com/Taylan789/MobilyaCAD/actions/runs/44974489493) passed (TypeScript/production build and lint). QA [#44974489479](https://github.com/Taylan789/MobilyaCAD/actions/runs/44974489479) failed: **627/628 domain tests passed**; the new fixture conversion helpers naively split CSV cells on commas and broke JSON-array Part IDs. The production parser was not implicated.
+- Correction: legacy test converters now use the existing quote-aware test CSV record parser and cell encoder; no production code or test assertions are weakened. This fix is committed below and exact-SHA Actions are pending.
+- Pages build succeeded, but verify gate failed and deploy was skipped: [#44974489459](https://github.com/Taylan789/MobilyaCAD/actions/runs/44974489459). Latest verified test-site deployment remains [#44968555421](https://github.com/Taylan789/MobilyaCAD/actions/runs/44968555421) on SHA 87b5683.
+- AI Developer [#44972838278](https://github.com/Taylan789/MobilyaCAD/actions/runs/44972838278) failed with OpenRouter free-model daily HTTP 429; no paid fallback, quota/secrets change or rerun. Integration/performance job skipped.
+- Next: revalidate DOM-102 on the correction SHA; only then proceed to DOM-103 (additive CSV formatVersion disclosure). No frontend files changed.
+
 ## 22 Kasım 2026 05:03 TRT — DOM-102 implemented, exact-SHA verification pending
 
 - Legacy comparison compatibility coverage spans JSON v1/v2 and CSV v1/v2/v3: JSON v1 legacy import, JSON v2 resource-identity round-trip and partial/mismatched metadata rejection; CSV v1/v2 roll/basic metadata round-trip, CSV v3 resource identity and partial metadata rejection.

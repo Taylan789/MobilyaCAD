@@ -593,7 +593,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 
 ## Next 5 small tasks
 
-1. DOM-102 IN PROGRESS — legacy JSON v1/v2 and CSV v1/v2/v3 compatibility matrix, including intentional metadata loss and fail-closed cases. Exact-SHA Actions pending.
+1. DOM-102 IN PROGRESS — compatibility matrix implemented; first QA failed on a test-only CSV fixture converter (627/628), correction underway; exact-SHA Actions pending.
 2. DOM-103 READY — expose the parsed CSV schema version as an additive formatVersion field so the frontend can warn about legacy resource-identity limitations; parser tests and contract note, no frontend writes.
 3. INT-001 FRONTEND-OWNED — comparison download and production report/export integration; domain agent does not edit frontend files.
 4. INT-002/PERF-001 INTEGRATION-OWNED — adapter round-trip tests and measured CAD profiling on the isolated specialist branch.

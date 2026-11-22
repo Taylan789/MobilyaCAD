@@ -477,20 +477,20 @@ function emptyComparisonResult() {
 }
 
 function toLegacyV1Csv(csv) {
-  const records = csv.slice(1).trimEnd().split("\r\n").map(row => row.split(",").map(cell => cell.slice(1, -1).replace(/""/g, '"')));
+  const records = parseCsvRecordsForTest(csv);
   const legacyColumnCount = PROJECT_QUOTE_REVISION_COMPARISON_CSV_COLUMNS.length - 18;
   return records.map((row, index) => {
     if (index > 0) row[1] = "1";
-    return row.slice(0, legacyColumnCount).map(value => '"' + value.replace(/"/g, '""') + '"').join(",");
+    return row.slice(0, legacyColumnCount).map(encodeCsvCellForTest).join(",");
   }).join("\r\n") + "\r\n";
 }
 
 function toLegacyV2Csv(csv) {
-  const records = csv.slice(1).trimEnd().split("\r\n").map(row => row.split(",").map(cell => cell.slice(1, -1).replace(/""/g, '"')));
+  const records = parseCsvRecordsForTest(csv);
   const legacyColumnCount = PROJECT_QUOTE_REVISION_COMPARISON_CSV_COLUMNS.length - 6;
   return records.map((row, index) => {
     if (index > 0) row[1] = "2";
-    return row.slice(0, legacyColumnCount).map(value => '"' + value.replace(/"/g, '""') + '"').join(",");
+    return row.slice(0, legacyColumnCount).map(encodeCsvCellForTest).join(",");
   }).join("\r\n") + "\r\n";
 }
 
