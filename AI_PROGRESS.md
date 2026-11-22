@@ -1,8 +1,8 @@
-## 22 Kasım 2026 10:32 TRT — DOM-107 IN_PROGRESS
+## 22 Kasım 2026 10:32 TRT — DOM-107 VERIFIED
 
 - Added a table-family project aggregation regression: the tabletop uses an explicit 8 mm catalog override, legs use the 60 mm group material, and aprons retain the default material. The test checks Part rows, snapshot serialize/validate/compare, material summary quantity/line count/area/volume, and input immutability.
 - Files: `domain/production/projectProduction.test.mjs`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`. No production calculation/schema, frontend, adapter/performance-owned files, or machine output changed.
-- Commit and exact-SHA CI/QA/Pages verification pending; local execution unavailable, Actions evidence required.
+- [Commit 55d8e104](https://github.com/Taylan789/MobilyaCAD/commit/55d8e104d8842f48faad1b53f6e32230ec88eb89) passed exact-SHA [CI #44999210991](https://github.com/Taylan789/MobilyaCAD/actions/runs/44999210991), [QA #44999210952](https://github.com/Taylan789/MobilyaCAD/actions/runs/44999210952), and [Pages #44999210947](https://github.com/Taylan789/MobilyaCAD/actions/runs/44999210947). QA unit/domain tests, strict domain TypeScript, lint (32 warnings/0 errors), production build, and dependency audit (0 vulnerabilities) succeeded. Local tests unavailable; Actions provide evidence. Test site deployed: https://taylan789.github.io/MobilyaCAD/.
 - Latest AI Developer [#44972838278](https://github.com/Taylan789/MobilyaCAD/actions/runs/44972838278) failed on OpenRouter free-model HTTP 429; no rerun, paid fallback, quota, or secret change.
 - Next: DOM-108 mixed-family invalid material/catalog reference atomicity and diagnostics, without frontend or specialist-owned adapter/performance files.
 

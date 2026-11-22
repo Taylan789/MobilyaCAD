@@ -597,7 +597,8 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 2. DOM-104 DONE — [commit 614d559](https://github.com/Taylan789/MobilyaCAD/commit/614d559c902cc4038f9c177eaa31ce86045ef3fe); exact-SHA CI #44983853404, QA #44983853400, Pages #44983853533 successful.
 3. DOM-105 DONE — [correction commit 1d4503be](https://github.com/Taylan789/MobilyaCAD/commit/1d4503be5a277ec8a9eca8e1c5fc71120caee214); CI #44990018540, QA #44990018528, Pages #44990018506 successful (144 frontend + 630 domain; strict TS/build/audit passed; lint 32 warnings/0 errors).
 4. DOM-106 VERIFIED — current branch SHA `9f3d8ba3a180cf18b83b9b18d528c11c6a4f80fb`; [CI #44996078563](https://github.com/Taylan789/MobilyaCAD/actions/runs/44996078563), [QA #44996078516](https://github.com/Taylan789/MobilyaCAD/actions/runs/44996078516), [Pages #44996078532](https://github.com/Taylan789/MobilyaCAD/actions/runs/44996078532) all successful.
-5. DOM-107 IN_PROGRESS — table material group overrides verified through aggregated Parts, canonical snapshot and material-consumption summary; exact-SHA Actions pending.
+5. DOM-107 VERIFIED — [commit 55d8e104](https://github.com/Taylan789/MobilyaCAD/commit/55d8e104d8842f48faad1b53f6e32230ec88eb89); [CI #44999210991](https://github.com/Taylan789/MobilyaCAD/actions/runs/44999210991), [QA #44999210952](https://github.com/Taylan789/MobilyaCAD/actions/runs/44999210952), and [Pages #44999210947](https://github.com/Taylan789/MobilyaCAD/actions/runs/44999210947) all succeeded.
+6. DOM-108 READY — mixed-family invalid material references must fail closed without partial Parts.
 6. DOM-108 READY — mixed-family invalid material references must fail closed without partial Parts.
 5. INT-001 FRONTEND-OWNED — comparison download and production report/export integration; domain agent does not edit frontend files.
 
@@ -1023,10 +1024,10 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - **Next:** DOM-107 table family material group override propagation through project Parts, snapshot restore/comparison and material consumption summary; frontend persistence remains INT-001-owned, adapter/performance work remains INT-002/PERF-001 specialist-owned.
 
 
-## DOM-107 — Table-family material group override propagation (IN_PROGRESS, 22 Kasım 2026)
+## DOM-107 — Table-family material group override propagation (VERIFIED, 22 Kasım 2026)
 
 - **Acceptance:** Table material group overrides must remain accurate in the aggregated project Part list, canonical Part snapshots and material-consumption summary; the request must not be mutated during calculation.
 - **Coverage:** Tabletop uses an explicit 8 mm catalog override, legs use the 60 mm group material, and aprons retain the default material. Snapshot serialize/validate/compare is unchanged; summary quantities, line counts, area and volume agree with resulting Parts.
 - **Scope:** Domain regression test in `domain/production/projectProduction.test.mjs` only; no production geometry, schema, frontend, adapter/performance-owned files or CNC output changed.
-- **Verification:** Commit and exact-SHA CI/QA/Pages pending; local execution unavailable.
+- **Verification:** [commit 55d8e104](https://github.com/Taylan789/MobilyaCAD/commit/55d8e104d8842f48faad1b53f6e32230ec88eb89) verified with exact-SHA [CI #44999210991](https://github.com/Taylan789/MobilyaCAD/actions/runs/44999210991), [QA #44999210952](https://github.com/Taylan789/MobilyaCAD/actions/runs/44999210952), and [Pages #44999210947](https://github.com/Taylan789/MobilyaCAD/actions/runs/44999210947), all successful. QA unit/domain tests, strict domain TypeScript, lint (32 warnings, 0 errors), production build, and audit (0 vulnerabilities) passed. Local tests unavailable; Actions are the evidence. Test site updated: https://taylan789.github.io/MobilyaCAD/.
 - **Next:** DOM-108 mixed-family invalid material/catalog references must fail atomically with diagnostics and no partial Part list; INT-001 frontend-owned, INT-002/PERF-001 specialist-owned.
