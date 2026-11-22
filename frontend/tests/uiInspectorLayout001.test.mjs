@@ -21,7 +21,7 @@ test("inspector context and tabs have scan-first hierarchy", () => {
 });
 
 test("room and furniture dimensions use responsive grids without changing field behavior", () => {
-  assert.match(styles, /cad-tab-content\[data-state="active"\].*cad-property-section:first-child/);
+  assert.match(styles, /cad-tab-content-room\[data-state="active"\].*cad-property-section:first-child/);
   assert.match(styles, /\.cad-dimension-fields\s*\{/);
   assert.match(styles, /@media\s*\(max-width:\s*760px\)/);
 });
