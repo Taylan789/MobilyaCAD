@@ -1607,3 +1607,90 @@ test("hardwareItems alanı liste değilse proje zarfı geçersiz sayılır", () 
   assert.equal(report.result, null);
   assert.match(report.projectErrors[0], /donanım kalemleri bir liste olmalıdır/);
 });
+
+
+test("karışık mobilya ailelerinde aynı malzeme kimliğinin çelişkili katalog adları projeyi atomik bloklar", () => {
+  const cabinet = createRequest("cab-material-conflict", {
+    furniture: { material: "MDF Lam Premium", materialId: "mdf-18" }
+  });
+  cabinet.materials = materials.map((entry) =>
+    entry.id === "mdf-18" ? { ...entry, name: "MDF Lam Premium" } : entry
+  );
+  const bookshelf = createBookshelfRequest("book-material-conflict");
+  const table = createTableRequest("table-material-conflict");
+
+  const report = calculateCabinetProjectProductionWithDiagnostics({
+    schemaVersion: 1,
+    furniture: [cabinet, bookshelf, table]
+  });
+
+  assert.equal(report.status, "blocked");
+  assert.equal(report.canExport, false);
+  assert.equal(report.result, null);
+  assert.deepEqual(
+    report.blockedFurniture.map((item) => [item.furnitureId, item.code]),
+    [
+      ["cab-material-conflict", "invalid-material"],
+      ["book-material-conflict", "invalid-material"],
+      ["table-material-conflict", "invalid-material"]
+    ]
+  );
+  assert.match(report.firstError, /mdf-18.*cab-material-conflict.*MDF Lam Premium.*book-material-conflict.*MDF Lam 18/);
+  assert.match(report.blockedFurniture[1].message, /book-material-conflict/);
+  assert.match(report.blockedFurniture[2].message, /table-material-conflict/);
+});
+
+test("normalleştirilmiş katalog adları mixed family üretimde birleşir, farklı kalınlıklar ayrı özetlenir", () => {
+  const sharedMaterial = {
+    id: "mdf-multi",
+    name: "MDF Lam 18",
+    category: "panel",
+    thicknessesMm: [8, 18],
+    unit: "mm"
+  };
+  const cabinet = createRequest("cab-material-normalized", {
+    furniture: { material: "MDF Lam 18", materialId: "mdf-multi" },
+    profile: { panelThicknessMmByGroup: { top: 8 } }
+  });
+  cabinet.materials = [
+    ...materials,
+    { ...sharedMaterial, name: "MDF   Lam 18" }
+  ];
+  cabinet.panelMaterialOverrides = { top: "mdf-8" };
+
+  const bookshelf = createBookshelfRequest("book-material-normalized");
+  bookshelf.furniture.materialId = "mdf-multi";
+  bookshelf.furniture.material = "mdf lam 18";
+  bookshelf.materials = [
+    ...materials,
+    { ...sharedMaterial, name: "mdf lam 18" }
+  ];
+
+  const table = createTableRequest("table-material-normalized");
+  table.furniture.materialId = "mdf-multi";
+  table.furniture.material = "MDF Lam 18";
+  table.materials = [...tableMaterials, sharedMaterial];
+
+  const before = JSON.stringify([cabinet, bookshelf, table]);
+  const report = calculateCabinetProjectProductionWithDiagnostics({
+    schemaVersion: 1,
+    furniture: [cabinet, bookshelf, table]
+  });
+  assert.equal(report.status, "ready", JSON.stringify(report.blockedFurniture));
+  assert.ok(report.result);
+  assert.equal(JSON.stringify([cabinet, bookshelf, table]), before);
+
+  const summary = calculateProjectMaterialConsumptionSummary(report.result);
+  const shared18 = summary.find((entry) => entry.materialId === "mdf-multi" && entry.thicknessMm === 18);
+  const cabinetTop8 = summary.find((entry) => entry.materialId === "mdf-8" && entry.thicknessMm === 8);
+  assert.ok(shared18);
+  assert.deepEqual(shared18.furnitureIds, [
+    "book-material-normalized",
+    "cab-material-normalized",
+    "table-material-normalized"
+  ]);
+  assert.ok(cabinetTop8);
+  assert.deepEqual([cabinetTop8.furnitureIds, cabinetTop8.partLineCount, cabinetTop8.totalQuantity], [
+    ["cab-material-normalized"], 1, 1
+  ]);
+});

@@ -342,3 +342,24 @@ test("yinelenen BOM kimliği, çakışan donanım adı ve güvenli aralığı a�
     /güvenli sayısal aralık/
   );
 });
+
+
+test("aynı katalog kimliği farklı normalleştirilmiş adla doğrudan özete verilirse reddedilir", () => {
+  const production = createProject([
+    createRequest("cab-material-summary-name-a"),
+    createRequest("cab-material-summary-name-b")
+  ]);
+  const inconsistent = {
+    ...production,
+    parts: production.parts.map((part) =>
+      part.furnitureId === "cab-material-summary-name-b" && part.materialId === "mdf-18"
+        ? { ...part, material: "Different MDF" }
+        : part
+    )
+  };
+
+  assert.throws(
+    () => calculateProjectMaterialConsumptionSummary(inconsistent),
+    /mdf-18 katalog kimliği farklı malzeme adlarıyla/
+  );
+});

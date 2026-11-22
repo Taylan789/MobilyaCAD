@@ -163,3 +163,12 @@
 - **Test site:** https://taylan789.github.io/MobilyaCAD/ — Pages deployment confirmed; direct browser fetch was unavailable in this runtime.
 - AI Developer [#44953172176](https://github.com/Taylan789/MobilyaCAD/actions/runs/44953172176) failed on OpenRouter free-model daily HTTP 429; integration/performance specialist job skipped and no specialist branch/PR found. No quota, paid service, or secrets changed.
 - **Next:** DOM-100 cross-format JSON v2 ↔ CSV v3 integrity tests; DOM-101 adversarial CSV quoting/record boundaries; INT-001 remains frontend-owned.
+
+
+## 22 Kasım 2026 13:44 TRT — DOM-109 IMPLEMENTED, Actions pending
+
+- Cross-family catalogue IDs now require one normalized material label. Unicode compatibility normalization, case folding and whitespace collapsing treat harmless label formatting differences as equivalent; actual name conflicts block the project atomically and diagnose both source furniture/Part rows.
+- Material-consumption summary groups normalized compatible labels by ID and thickness; direct summary input rejects identity conflicts rather than splitting one catalogue identity. Tests cover cabinet/bookshelf/table conflict and compatible labels with 8/18 mm grouping.
+- Files: `domain/production/projectProduction.ts`, `projectProduction.test.mjs`, new `materialIdentity.ts`, `projectMaterialSummary.ts`, `projectMaterialSummary.test.mjs`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`. No frontend, adapter/performance-owned files, export schema or CNC output changed.
+- Commit SHA will be recorded after GitHub returns it and exact-SHA verification is inspected. CI/QA/Pages for this feature commit are pending; latest known deployed test site is https://taylan789.github.io/MobilyaCAD/ at Pages run [#45009653995](https://github.com/Taylan789/MobilyaCAD/actions/runs/45009653995).
+- AI Developer [#45004322556](https://github.com/Taylan789/MobilyaCAD/actions/runs/45004322556) failed due OpenRouter free-model daily quota HTTP 429; specialist lane skipped. No paid retry, secret or quota change. Next: DOM-110 material summary invariants.

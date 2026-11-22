@@ -1,5 +1,6 @@
 import type { CabinetProjectProductionResult } from "./projectProduction.ts";
 import { calculatePanelCutoutGeometry } from "./panelCutoutGeometry.ts";
+import { normalizeMaterialCatalogLabel } from "./materialIdentity.ts";
 
 const EDGE_KEYS = ["top", "bottom", "left", "right"] as const;
 type EdgeKey = (typeof EDGE_KEYS)[number];
@@ -370,6 +371,7 @@ export function calculateProjectMaterialConsumptionSummary(
   }
 
   const groups = new Map<string, MaterialAccumulator>();
+  const materialLabelsById = new Map<string, { normalizedLabel: string; label: string; partId: string }>();
   const seenPartIds = new Set<string>();
 
   for (const [index, rawPart] of project.parts.entries()) {
@@ -382,7 +384,28 @@ export function calculateProjectMaterialConsumptionSummary(
     }
     seenPartIds.add(part.id);
 
-    const key = JSON.stringify([part.materialId ?? null, part.material, part.thickness]);
+    if (part.materialId !== undefined) {
+      const normalizedLabel = normalizeMaterialCatalogLabel(part.material);
+      const previous = materialLabelsById.get(part.materialId);
+      if (previous !== undefined && previous.normalizedLabel !== normalizedLabel) {
+        throw new Error(
+          part.materialId + " katalog kimliği farklı malzeme adlarıyla kullanılıyor: \"" +
+          previous.label + "\" (" + previous.partId + ") ve \"" + part.material + "\" (" + part.id + ")."
+        );
+      }
+      if (previous === undefined) {
+        materialLabelsById.set(part.materialId, {
+          normalizedLabel,
+          label: part.material,
+          partId: part.id
+        });
+      }
+    }
+
+    const groupLabel = part.materialId === undefined
+      ? part.material
+      : normalizeMaterialCatalogLabel(part.material);
+    const key = JSON.stringify([part.materialId ?? null, groupLabel, part.thickness]);
     let group = groups.get(key);
     if (!group) {
       group = {

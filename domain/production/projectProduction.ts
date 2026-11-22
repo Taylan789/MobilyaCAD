@@ -10,6 +10,7 @@ import type {
 } from "./cabinetConstruction.ts";
 import { calculateDrawerBoxConstruction } from "./drawerBoxConstruction.ts";
 import { calculatePanelCutoutGeometry } from "./panelCutoutGeometry.ts";
+import { normalizeMaterialCatalogLabel } from "./materialIdentity.ts";
 import type { PanelCutoutGeometryResult } from "./panelCutoutGeometry.ts";
 import type { DrawerBoxConstructionPart } from "./drawerBoxConstruction.ts";
 import type { TableConstructionPart, TableConstructionResult } from "./tableConstruction.ts";
@@ -106,7 +107,7 @@ export type SupportedProjectFurnitureFamily = "cabinet" | "bookshelf" | "table" 
 export interface ProjectProductionFurnitureDiagnostic {
   furnitureId: string | null;
   family: string | null;
-  code: "unsupported-family" | "invalid-request" | "invalid-construction" | "invalid-drawer" | "invalid-panel-geometry" | "invalid-hardware" | "invalid-edge-banding";
+  code: "unsupported-family" | "invalid-request" | "invalid-construction" | "invalid-drawer" | "invalid-panel-geometry" | "invalid-hardware" | "invalid-edge-banding" | "invalid-material";
   message: string;
 }
 
@@ -413,6 +414,46 @@ export function calculateCabinetProjectProductionWithDiagnostics(
       supportedFurniture.push({ furnitureId, family });
     } catch (error) {
       addBlocked(furnitureId, family, "invalid-construction", diagnosticMessage(error));
+    }
+  }
+
+  // Reconcile catalogue identity across independently validated furniture-family requests.
+  // A stable material ID may not silently represent different labels in one project.
+  const materialLabelsById = new Map<string, {
+    label: string;
+    normalizedLabel: string;
+    furnitureId: string;
+    partId: string;
+  }>();
+  const reportedMaterialConflicts = new Set<string>();
+  for (const part of parts) {
+    if (part.materialId === undefined) continue;
+    const normalizedLabel = normalizeMaterialCatalogLabel(part.material);
+    const previous = materialLabelsById.get(part.materialId);
+    if (previous === undefined) {
+      materialLabelsById.set(part.materialId, {
+        label: part.material,
+        normalizedLabel,
+        furnitureId: part.furnitureId,
+        partId: part.id
+      });
+      continue;
+    }
+    if (previous.normalizedLabel === normalizedLabel) continue;
+
+    const message = part.materialId + " katalog kimliği farklı adlarla kullanılıyor: " +
+      previous.furnitureId + "/" + previous.partId + " \"" + previous.label + "\" ve " +
+      part.furnitureId + "/" + part.id + " \"" + part.material + "\".";
+    for (const conflictFurnitureId of [previous.furnitureId, part.furnitureId]) {
+      const diagnosticKey = JSON.stringify([part.materialId, conflictFurnitureId]);
+      if (reportedMaterialConflicts.has(diagnosticKey)) continue;
+      reportedMaterialConflicts.add(diagnosticKey);
+      addBlocked(
+        conflictFurnitureId,
+        familyByFurnitureId.get(conflictFurnitureId) ?? null,
+        "invalid-material",
+        message
+      );
     }
   }
 
