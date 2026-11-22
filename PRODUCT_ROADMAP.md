@@ -593,11 +593,11 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 
 ## Next 5 small tasks
 
-1. DOM-108 DONE — [test commit 5595e8c9](https://github.com/Taylan789/MobilyaCAD/commit/5595e8c9a36b4edf8dd1decb2dbfc27dc1fb7ef7); CI #45001931586, QA #45001931594 (148 frontend + 632 domain), Pages #45001931632 successful.
-2. DOM-109 READY — mixed-family material catalogue IDs must resolve to consistent normalized labels; conflicting identity is blocked.
-3. DOM-110 READY — repeated material IDs and quantity/thickness grouping remain consistent in cross-family material-consumption summaries.
-4. DOM-111 READY — multi-invalid request diagnostics and first-error selection are deterministic and fail closed.
-5. INT-001 frontend-owned — comparison/download and production export adapter contract; INT-002/PERF-001 specialist-owned profiling. QA-003 remains blocked until both integration slices are evidenced.
+1. DOM-109 DONE — [commit a6d34fe](https://github.com/Taylan789/MobilyaCAD/commit/a6d34fe17bf7eddc26f2aac97373adb61e346d03); exact-SHA CI/QA and Pages succeeded (150 frontend + 635 domain tests).
+2. DOM-110 IN PROGRESS — [test commit b03280ce](https://github.com/Taylan789/MobilyaCAD/commit/b03280ce1ba64a1982fa10b871d7b02a46f448c5); cross-family cabinet/bookshelf summary with repeated catalogue ID at 8/18 mm, quantity-weighted geometry and banding; Actions pending.
+3. DOM-111 READY — deterministic multi-invalid request diagnostics and first-error selection; fail closed across reordered input.
+4. INT-001 frontend-owned — comparison/download and production export adapter contract; document integration handoff only, no frontend edits.
+5. INT-002/PERF-001 specialist-owned — integration profiling/benchmark evidence; QA-003 remains blocked until INT-001 and specialist evidence are available.
 
 ## 10/10 ölçülebilir kalite kapıları (20 Kasım 2026 baseline)
 
