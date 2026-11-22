@@ -287,3 +287,12 @@
 - **Files:** domain regression test, AI_COORDINATION.md, PRODUCT_ROADMAP.md and AI_PROGRESS.md. No production engine/schema, frontend, adapter/performance-owned files, CNC output or `main` changed. Local tests unavailable; Actions evidence is authoritative.
 - **Known limitation:** npm install surfaced 4 moderate dependency advisories; production-only audit is clean. The excluded cutout Part remains snapshot-only, not nestable.
 - **Next:** DOM-117 grouped Part quantity and aggregate total reconciliation against canonical snapshots, including safe-integer boundaries.
+
+
+## 22 Kasım 2026 23:25 TRT — DOM-117 implemented, exact-SHA Actions pending
+
+- Added two regression tests to `domain/production/projectSheetNestingBatches.test.mjs`: canonical Part snapshot quantity/material/normalized thickness reconciliation with safe group totals; exact `Number.MAX_SAFE_INTEGER` total accepted; overflow blocks the entire nesting-batch report and does not return a partial snapshot.
+- **Scope:** test-only domain file plus `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`; no frontend, production calculation source, adapter/performance-owned files, CNC output, project schema or `main` touched. The existing production validator already contains the safe-integer guard, so this slice adds missing cross-consumer evidence rather than changing behavior.
+- Pre-change branch HEAD: `4d379f490bd9d5c0efc3a7f789007a3b7c0a36e6`; latest CI #739, QA #799, Pages #558 all succeeded; no active CI/QA/AI Developer run. Local checkout/tests are unavailable here; exact-SHA GitHub Actions are required.
+- **Commit SHA and exact Actions/Pages results:** pending commit creation and verification.
+- **Next:** DOM-118 deterministic stock-sheet group/order diagnostics, then DOM-119 ready batch → cut-plan source coverage; INT-001 UI-owned and INT-002/PERF-001 specialist-owned.

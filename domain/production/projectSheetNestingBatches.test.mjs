@@ -601,3 +601,94 @@ test("DOM-116 ready nesting batches reconcile selected/excluded snapshots with m
   assert.deepEqual(batches.map((group) => group.batch.totalPieceCount), [5, 4]);
   assert.ok(batches.every((group) => group.sourcePartIds.every((id) => !excludedPartIds.includes(id))));
 });
+
+test("DOM-117 grouped Part quantities reconcile to the canonical snapshot and safe totals", () => {
+  const productionParts = [
+    part({ id: "selected-mdf-18-a", quantity: 2 }),
+    part({ id: "selected-mdf-18-b", quantity: 3 }),
+    part({
+      id: "selected-mdf-8",
+      material: "MDF 8",
+      materialId: "mdf-8",
+      thickness: 8,
+      quantity: 4
+    }),
+    part({
+      id: "excluded-plywood",
+      material: "Kontrplak",
+      materialId: "plywood-18",
+      quantity: 6
+    })
+  ];
+  const before = JSON.stringify(productionParts);
+  const result = createProjectSheetNestingBatches(request(
+    report(productionParts),
+    [stock(sheet("mdf-18", 18)), stock(sheet("mdf-8", 8))],
+    { partIds: ["selected-mdf-8", "selected-mdf-18-b", "selected-mdf-18-a"] }
+  ));
+
+  assert.equal(result.status, "ready");
+  assert.ok(result.result);
+  assert.deepEqual(result.sourcePartIds, [
+    "selected-mdf-18-a", "selected-mdf-18-b", "selected-mdf-8"
+  ]);
+  assert.deepEqual(result.excludedPartIds, ["excluded-plywood"]);
+
+  const snapshot = validateProjectPartSnapshot(result.projectPartSnapshot);
+  const snapshotParts = new Map(snapshot.parts.map((entry) => [entry.id, JSON.parse(entry.snapshot)]));
+  const batches = result.result.batches;
+  assert.deepEqual(
+    batches.map((group) => [group.materialId, group.thicknessMm, group.sourcePartIds, group.batch.totalPieceCount]),
+    [
+      ["mdf-18", 18, ["selected-mdf-18-a", "selected-mdf-18-b"], 5],
+      ["mdf-8", 8, ["selected-mdf-8"], 4]
+    ]
+  );
+
+  for (const group of batches) {
+    let totalPieceCount = 0;
+    for (const nestingPart of group.batch.parts) {
+      const source = snapshotParts.get(nestingPart.id);
+      assert.ok(source, nestingPart.id + " must resolve in the canonical snapshot");
+      assert.equal(source.materialId, group.materialId);
+      assert.equal(Math.round(source.thickness * 10) / 10, group.thicknessMm);
+      assert.equal(nestingPart.quantity, source.quantity);
+      totalPieceCount += source.quantity;
+      assert.ok(Number.isSafeInteger(totalPieceCount), "source quantities must sum safely");
+    }
+    assert.deepEqual(group.batch.parts.map((entry) => entry.id), group.sourcePartIds);
+    assert.equal(group.batch.totalPieceCount, totalPieceCount);
+  }
+  assert.equal(JSON.stringify(productionParts), before);
+});
+
+test("DOM-117 accepts an exact safe-integer group total but blocks overflow atomically", () => {
+  const safeParts = [
+    part({ id: "safe-max-minus-one", quantity: Number.MAX_SAFE_INTEGER - 1 }),
+    part({ id: "safe-one", quantity: 1 })
+  ];
+  const safeReport = createProjectSheetNestingBatches(request(
+    report(safeParts),
+    [stock(sheet("mdf-18", 18))]
+  ));
+  assert.equal(safeReport.status, "ready");
+  assert.ok(safeReport.result);
+  assert.equal(safeReport.result.batches[0].batch.totalPieceCount, Number.MAX_SAFE_INTEGER);
+  assert.ok(Number.isSafeInteger(safeReport.result.batches[0].batch.totalPieceCount));
+
+  const overflowParts = [
+    part({ id: "overflow-max", quantity: Number.MAX_SAFE_INTEGER }),
+    part({ id: "overflow-one", quantity: 1 })
+  ];
+  const before = JSON.stringify(overflowParts);
+  const overflowReport = createProjectSheetNestingBatches(request(
+    report(overflowParts),
+    [stock(sheet("mdf-18", 18))]
+  ));
+  assert.equal(overflowReport.status, "blocked");
+  assert.equal(overflowReport.result, null);
+  assert.match(overflowReport.diagnostics.join(" "), /güvenli tam sayı aralığını/);
+  assert.deepEqual(overflowReport.sourcePartIds, ["overflow-max", "overflow-one"]);
+  assert.equal(overflowReport.projectPartSnapshot, undefined);
+  assert.equal(JSON.stringify(overflowParts), before);
+});
