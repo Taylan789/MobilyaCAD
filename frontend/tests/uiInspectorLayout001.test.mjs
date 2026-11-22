@@ -10,6 +10,7 @@ test("inspector refinement is wired into the real CAD app", () => {
   assert.match(app, /className="cad-inspector"/);
   assert.match(app, /aria-live="polite"/);
   assert.match(app, /cad-dimension-fields/);
+  assert.match(app, /cad-tab-content-room/);
 });
 
 test("inspector context and tabs have scan-first hierarchy", () => {
