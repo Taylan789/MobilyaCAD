@@ -460,3 +460,8 @@ Bu dosya dört geliştirme/denetim rolünün ortak görev panosu ve entegrasyon 
 - Blocked project nesting reports preserve validated source-aware production diagnostics through additive `productionDiagnostics`; existing string diagnostics remain and partial batch/layout results are not returned.
 - Code/test commit [751065b](https://github.com/Taylan789/MobilyaCAD/commit/751065b1437da702200696da588949bc0243596d); exact-SHA CI [#45043968666](https://github.com/Taylan789/MobilyaCAD/actions/runs/45043968666), QA [#45043968727](https://github.com/Taylan789/MobilyaCAD/actions/runs/45043968727), Pages [#45043968653](https://github.com/Taylan789/MobilyaCAD/actions/runs/45043968653) succeeded.
 - Next: DOM-115 reconcile blocked mixed-family nesting reports with material-summary and Part-snapshot consumers; UI-agent owns frontend, INT-002/PERF-001 specialist-owned, QA-003 remains blocked until INT-001/INT-002.
+
+## Current domain handoff — DOM-115 IMPLEMENTED, Actions pending (22 November 2026)
+- Added a cross-consumer regression proving blocked material-conflict source IDs reconcile with material summaries from isolated valid reports and a validated Part snapshot; blocked nesting output remains atomic and omits the full project snapshot.
+- Changes are test/contract-only; no frontend, production calculation source, adapter/performance-owned file or machine output was changed.
+- Exact-SHA CI/QA/Pages evidence pending. Next: DOM-116 ready-batch consistency checks for selected/excluded Parts and material groups.

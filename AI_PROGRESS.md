@@ -1,3 +1,12 @@
+## 22 Kasım 2026 20:43 TRT — DOM-115 IMPLEMENTED, Actions pending
+
+- Added a cross-consumer regression: blocked mixed-family material-conflict Part/furniture provenance must exactly reconcile with material summaries from isolated valid source reports and a validated full Part snapshot; no partial nesting result or project snapshot is exposed.
+- Files: `domain/production/projectSheetNestingBatches.test.mjs`, `docs/production-domain-contract.md`, `PRODUCT_ROADMAP.md`, `AI_COORDINATION.md`.
+- Test/contract-only slice; no production engine behavior/schema, frontend, adapter/performance-owned files, CNC output or `main` changes.
+- Commit SHA and exact-SHA CI/QA/Pages are pending. Local execution unavailable in this runtime; no test success is claimed before Actions.
+- AI Developer run [#45045107407](https://github.com/Taylan789/MobilyaCAD/actions/runs/45045107407) failed on OpenRouter free-model daily quota HTTP 429. No rerun/paid fallback/secret/quota changes; integration-performance job is disabled/skipped and no specialist branch was found.
+- Next: DOM-116 ready nesting-batch consistency between selected/excluded Part snapshots and material/thickness batch source groups.
+
 ## 22 Kasım 2026 19:19 TRT — DOM-114 VERIFIED
 
 - Blocked nesting-batch reports now preserve validated source-aware production diagnostics via the additive `productionDiagnostics` field; legacy human-readable diagnostics remain, and no partial batch/layout result is returned.

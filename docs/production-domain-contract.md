@@ -1060,3 +1060,11 @@ The diagnostic report adds the optional `blockedFurniture[].materialIdentityConf
 - When the source project-production report is blocked, the nesting-batch report keeps the existing human-readable `diagnostics` and adds `productionDiagnostics` only when the shared production-diagnostic parser returns validated records.
 - The additive structured diagnostics preserve source, furniture/family/code/message, and validated material-conflict catalog/source provenance. They are ordered exactly as the source report.
 - Any malformed or incomplete conflict source coverage/order fails closed: no structured diagnostics are emitted and the nesting batch remains blocked with a diagnostic message. Batch result remains null; no partial layouts are produced.
+
+
+## DOM-115 — Blocked material-conflict reconciliation across consumers
+
+- For a mixed-family production report blocked by conflicting labels for one catalogue ID, the structured conflict source set must match the Part IDs and furniture IDs surfaced by material-consumption summaries from each isolated, valid source furniture report.
+- The same conflict source IDs must be present in a validated full Part snapshot built from those isolated results. This is test evidence for provenance completeness only; isolated results must not be merged into a valid production project.
+- The blocked nesting-batch report must retain validated source diagnostics while keeping `result: null` and omitting `projectPartSnapshot`. It must not construct a misleading complete project snapshot from partial/isolated source data.
+- Regression coverage also verifies distinct conflicting labels and input immutability. No material totals are emitted for the blocked combined project and no partial nesting layout is allowed.

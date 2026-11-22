@@ -4,6 +4,8 @@ import { createProjectSheetNestingBatches } from "./projectSheetNestingBatches.t
 import { BODY_PANEL_GROUPS } from "./bodyPanelMaterials.ts";
 import { BOOKSHELF_PANEL_GROUPS } from "./bookshelfConstruction.ts";
 import { calculateCabinetProjectProductionWithDiagnostics } from "./projectProduction.ts";
+import { calculateProjectMaterialConsumptionSummary } from "./projectMaterialSummary.ts";
+import { createProjectPartSnapshot, validateProjectPartSnapshot } from "./projectPartSnapshot.ts";
 
 function part(overrides = {}) {
   return {
@@ -461,5 +463,71 @@ test("DOM-114 blocked nesting batches retain validated material-conflict source 
   );
   assert.equal(incompleteBatches.productionDiagnostics, undefined);
   assert.equal(JSON.stringify(furniture), before);
+});
+test("DOM-115 blocked mixed-family material-conflict provenance reconciles with isolated material summaries and valid Part snapshots", () => {
+  const furniture = [
+    cabinetMaterialConflictRequest("cabinet-conflict", "MDF Lam Premium"),
+    bookshelfMaterialConflictRequest("bookshelf-conflict", "MDF Lam 18")
+  ];
+  const before = JSON.stringify(furniture);
+  const blockedProduction = calculateCabinetProjectProductionWithDiagnostics({
+    schemaVersion: 1,
+    furniture
+  });
+  assert.equal(blockedProduction.status, "blocked");
+  assert.equal(blockedProduction.result, null);
+
+  const isolatedReports = furniture.map((requestValue) =>
+    calculateCabinetProjectProductionWithDiagnostics({
+      schemaVersion: 1,
+      furniture: [requestValue]
+    })
+  );
+  const isolatedParts = isolatedReports.flatMap((isolated) => {
+    assert.equal(isolated.status, "ready", isolated.firstError ?? "");
+    assert.ok(isolated.result);
+    return isolated.result.parts;
+  });
+  const snapshot = validateProjectPartSnapshot(createProjectPartSnapshot(isolatedParts));
+  assert.deepEqual(snapshot.parts.map((entry) => entry.id), isolatedParts.map((entry) => entry.id));
+
+  const materialSummaries = isolatedReports.flatMap((isolated) => {
+    assert.ok(isolated.result);
+    return calculateProjectMaterialConsumptionSummary(isolated.result);
+  });
+  const conflict = blockedProduction.blockedFurniture[0]?.materialIdentityConflict;
+  assert.ok(conflict);
+  const matchingSummaries = materialSummaries.filter((summary) => summary.materialId === conflict.materialId);
+  assert.ok(matchingSummaries.length > 0);
+  const summaryPartIds = [...new Set(matchingSummaries.flatMap((summary) => summary.partIds))].sort();
+  const summaryFurnitureIds = [...new Set(matchingSummaries.flatMap((summary) => summary.furnitureIds ?? []))].sort();
+  const conflictPartIds = conflict.sources.map((source) => source.partId).sort();
+  const conflictFurnitureIds = [...new Set(conflict.sources.map((source) => source.furnitureId))].sort();
+
+  assert.deepEqual(conflictPartIds, summaryPartIds);
+  assert.deepEqual(conflictFurnitureIds, summaryFurnitureIds);
+  assert.ok(new Set(conflict.sources.map((source) => source.materialLabel)).size > 1);
+
+  const snapshotConflictParts = snapshot.parts
+    .map((entry) => JSON.parse(entry.snapshot))
+    .filter((part) => part.materialId === conflict.materialId);
+  assert.deepEqual(snapshotConflictParts.map((part) => part.id).sort(), summaryPartIds);
+  assert.deepEqual(
+    [...new Set(snapshotConflictParts.map((part) => part.furnitureId))].sort(),
+    summaryFurnitureIds
+  );
+
+  const nestingReport = assertBlocked(
+    request(blockedProduction, []),
+    /katalog kimliği farklı malzeme adlarıyla kullanılıyor/
+  );
+  assert.equal(nestingReport.projectPartSnapshot, undefined);
+  assert.deepEqual(
+    nestingReport.productionDiagnostics?.flatMap((diagnostic) =>
+      diagnostic.materialIdentityConflict?.sources ?? []
+    ).map((source) => source.partId).sort(),
+    conflictPartIds
+  );
+  assert.deepEqual(JSON.stringify(furniture), before);
 });
 

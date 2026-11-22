@@ -1097,3 +1097,11 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - **Behavior:** the additive `productionDiagnostics` field preserves validated source-aware diagnostic records; existing human-readable `diagnostics` remain unchanged and blocked batch `result` stays null.
 - **Verification:** code/test commit [751065b](https://github.com/Taylan789/MobilyaCAD/commit/751065b1437da702200696da588949bc0243596d); exact-SHA CI [#45043968666](https://github.com/Taylan789/MobilyaCAD/actions/runs/45043968666), QA [#45043968727](https://github.com/Taylan789/MobilyaCAD/actions/runs/45043968727) and Pages [#45043968653](https://github.com/Taylan789/MobilyaCAD/actions/runs/45043968653) all successful. QA: 162 frontend + 640 domain tests, strict TypeScript, lint 32 warnings/0 errors, production build, audit 0 vulnerabilities. Test site updated: https://taylan789.github.io/MobilyaCAD/. Local test execution unavailable; Actions evidence is authoritative.
 - **Next:** DOM-115 blocked mixed-family nesting/material-summary/Part-snapshot reconciliation; INT-001 frontend-owned, INT-002/PERF-001 specialist-owned.
+
+
+## DOM-115 — Blocked mixed-family source reconciliation (READY)
+
+- **User flow:** a project blocked because two furniture families use conflicting names for the same material catalogue ID remains diagnosable without presenting partial production or nesting output.
+- **Acceptance:** conflict provenance Part/furniture IDs reconcile exactly with material summaries from isolated valid source reports and a validated Part snapshot; nesting stays blocked, `result` stays null, and the blocked report does not expose a partial `projectPartSnapshot`. Inputs remain unchanged.
+- **Scope:** cross-consumer regression test and production contract documentation only; no production behavior/schema, frontend, adapter/performance-owned files, machine-specific output, or CNC assumptions changed.
+- **Next:** DOM-116 validate the ready nesting-batch report's material-group/source snapshot consistency across selected and excluded Parts; INT-001 remains frontend-owned, INT-002/PERF-001 specialist-owned, QA-003 remains blocked until integration evidence.
