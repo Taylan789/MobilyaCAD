@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { BODY_PANEL_GROUPS } from "./bodyPanelMaterials.ts";
+import { BOOKSHELF_PANEL_GROUPS } from "./bookshelfConstruction.ts";
 import { calculateCabinetProjectProduction } from "./projectProduction.ts";
 import { calculateProjectHardwareConsumptionSummary, calculateProjectMaterialConsumptionSummary } from "./projectMaterialSummary.ts";
 
@@ -361,5 +362,137 @@ test("aynı katalog kimliği farklı normalleştirilmiş adla doğrudan özete v
   assert.throws(
     () => calculateProjectMaterialConsumptionSummary(inconsistent),
     /mdf-18 katalog kimliği farklı malzeme adlarıyla/
+  );
+});
+
+
+test("mixed-family material summary groups repeated catalogue IDs by thickness and preserves quantity-weighted geometry", () => {
+  const sharedMaterials = [
+    { id: "shared-mdf", name: "MDF Lam", category: "panel", thicknessesMm: [8, 18], unit: "mm" }
+  ];
+  const cabinet = createRequest("cabinet-dom110", {
+    panelThicknessMm: 18,
+    materialId: "shared-mdf",
+    material: "MDF Lam",
+    shelfCount: 2,
+    edgeBanding: {
+      top: { top: true, bottom: true },
+      shelf: { left: true }
+    }
+  });
+  cabinet.materials = sharedMaterials;
+
+  const bookshelfEdgeBandingByGroup = Object.fromEntries(
+    BOOKSHELF_PANEL_GROUPS.map((group) => [
+      group,
+      { ...noBanding, ...(group === "shelf" ? { left: true } : {}) }
+    ])
+  );
+  const bookshelf = {
+    schemaVersion: 1,
+    family: "bookshelf",
+    furniture: {
+      id: "bookshelf-dom110",
+      widthMm: 800,
+      heightMm: 2000,
+      depthMm: 300,
+      material: "MDF Lam",
+      materialId: "shared-mdf"
+    },
+    profile: {
+      panelThicknessMm: 8,
+      carcassStyle: "between-sides",
+      backPanel: { enabled: false },
+      shelfCount: 3,
+      edgeBandingByGroup: bookshelfEdgeBandingByGroup
+    },
+    materials: sharedMaterials
+  };
+
+  const production = createProject([cabinet, bookshelf]);
+  const summaries = calculateProjectMaterialConsumptionSummary(production);
+
+  assert.deepEqual(
+    summaries.map(({ materialId, thicknessMm }) => [materialId, thicknessMm]),
+    [["shared-mdf", 8], ["shared-mdf", 18]]
+  );
+  assert.deepEqual(
+    summaries.map(({ partLineCount, totalQuantity, furnitureIds }) => ({
+      partLineCount,
+      totalQuantity,
+      furnitureIds
+    })),
+    [
+      { partLineCount: 5, totalQuantity: 7, furnitureIds: ["bookshelf-dom110"] },
+      { partLineCount: 5, totalQuantity: 6, furnitureIds: ["cabinet-dom110"] }
+    ]
+  );
+
+  const expectedByMaterialAndThickness = new Map();
+  for (const part of production.parts) {
+    const key = JSON.stringify([part.materialId ?? null, part.material, part.thickness]);
+    let group = expectedByMaterialAndThickness.get(key);
+    if (group === undefined) {
+      group = {
+        material: part.material,
+        materialId: part.materialId,
+        thicknessMm: part.thickness,
+        partLineCount: 0,
+        totalQuantity: 0,
+        areaMm2: 0,
+        volumeMm3: 0,
+        widthEdgesLengthMm: 0,
+        lengthEdgesLengthMm: 0,
+        edgeCount: 0,
+        partIds: new Set(),
+        furnitureIds: new Set()
+      };
+      expectedByMaterialAndThickness.set(key, group);
+    }
+    const widthEdgeCount = Number(part.edgeBanding.top) + Number(part.edgeBanding.bottom);
+    const lengthEdgeCount = Number(part.edgeBanding.left) + Number(part.edgeBanding.right);
+    group.partLineCount += 1;
+    group.totalQuantity += part.quantity;
+    group.areaMm2 += part.width * part.length * part.quantity;
+    group.volumeMm3 += part.width * part.length * part.thickness * part.quantity;
+    group.widthEdgesLengthMm += part.width * widthEdgeCount * part.quantity;
+    group.lengthEdgesLengthMm += part.length * lengthEdgeCount * part.quantity;
+    group.edgeCount += (widthEdgeCount + lengthEdgeCount) * part.quantity;
+    group.partIds.add(part.id);
+    group.furnitureIds.add(part.furnitureId);
+  }
+
+  const roundTo = (value, places) => {
+    const factor = 10 ** places;
+    return Math.round(value * factor + Number.EPSILON * factor) / factor;
+  };
+  const expectedSummaries = [...expectedByMaterialAndThickness.values()]
+    .sort((a, b) =>
+      a.material.localeCompare(b.material, "tr") ||
+      (a.materialId ?? "").localeCompare(b.materialId ?? "") ||
+      a.thicknessMm - b.thicknessMm
+    )
+    .map((group) => ({
+      material: group.material,
+      materialId: group.materialId,
+      thicknessMm: group.thicknessMm,
+      partLineCount: group.partLineCount,
+      totalQuantity: group.totalQuantity,
+      partIds: [...group.partIds].sort(),
+      furnitureIds: [...group.furnitureIds].sort(),
+      panelAreaM2: roundTo(group.areaMm2 / 1_000_000, 6),
+      volumeM3: roundTo(group.volumeMm3 / 1_000_000_000, 9),
+      edgeBanding: {
+        widthEdgesLengthMm: roundTo(group.widthEdgesLengthMm, 1),
+        lengthEdgesLengthMm: roundTo(group.lengthEdgesLengthMm, 1),
+        totalLengthMm: roundTo(group.widthEdgesLengthMm + group.lengthEdgesLengthMm, 1),
+        edgeCount: group.edgeCount
+      }
+    }));
+
+  assert.deepEqual(summaries, expectedSummaries);
+  assert.equal(
+    summaries.reduce((total, group) => total + group.totalQuantity, 0),
+    production.parts.reduce((total, part) => total + part.quantity, 0)
   );
 });
