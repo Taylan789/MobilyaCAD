@@ -865,7 +865,7 @@ test("desteklenen kesitli Part ile bilinmeyen aile karışınca proje raporu kı
     furnitureId: "sofa-mixed-unsupported-cutout",
     family: "sofa",
     code: "unsupported-family",
-    message: "Projenin 2. mobilya ailesi desteklenmiyor: sofa."
+    message: "Proje mobilya ailesi desteklenmiyor: sofa."
   }]);
   assert.deepEqual(report.blockedFurniture, []);
   assert.deepEqual(report.projectErrors, []);
@@ -1630,14 +1630,67 @@ test("karışık mobilya ailelerinde aynı malzeme kimliğinin çelişkili katal
   assert.deepEqual(
     report.blockedFurniture.map((item) => [item.furnitureId, item.code]),
     [
-      ["cab-material-conflict", "invalid-material"],
       ["book-material-conflict", "invalid-material"],
+      ["cab-material-conflict", "invalid-material"],
       ["table-material-conflict", "invalid-material"]
     ]
   );
-  assert.match(report.firstError, /mdf-18.*cab-material-conflict.*MDF Lam Premium.*book-material-conflict.*MDF Lam 18/);
-  assert.match(report.blockedFurniture[1].message, /book-material-conflict/);
+  assert.match(report.firstError, /mdf-18.*book-material-conflict.*MDF Lam 18.*cab-material-conflict.*MDF Lam Premium/);
+  assert.match(report.blockedFurniture[1].message, /cab-material-conflict/);
   assert.match(report.blockedFurniture[2].message, /table-material-conflict/);
+});
+
+test("DOM-111 mixed-family diagnostics and first error remain stable when furniture order changes", () => {
+  const cabinet = createRequest("cab-material-conflict", {
+    furniture: { material: "MDF Lam Premium", materialId: "mdf-18" }
+  });
+  cabinet.materials = materials.map((entry) =>
+    entry.id === "mdf-18" ? { ...entry, name: "MDF Lam Premium" } : entry
+  );
+  const bookshelf = createBookshelfRequest("book-material-conflict");
+  const table = createTableRequest("table-material-conflict");
+  const unsupported = createBookshelfRequest("sofa-unsupported-diagnostics");
+  unsupported.family = "sofa";
+  const requests = [cabinet, bookshelf, table, unsupported];
+  const before = JSON.stringify(requests);
+
+  const forward = calculateCabinetProjectProductionWithDiagnostics({
+    schemaVersion: 1,
+    furniture: requests
+  });
+  const reverse = calculateCabinetProjectProductionWithDiagnostics({
+    schemaVersion: 1,
+    furniture: [...requests].reverse()
+  });
+
+  assert.equal(forward.status, "blocked");
+  assert.equal(forward.canExport, false);
+  assert.equal(forward.result, null);
+  assert.deepEqual(forward.blockedFurniture, reverse.blockedFurniture);
+  assert.deepEqual(forward.unsupportedFurniture, reverse.unsupportedFurniture);
+  assert.deepEqual(forward.projectErrors, reverse.projectErrors);
+  assert.equal(forward.firstError, reverse.firstError);
+  assert.deepEqual(
+    forward.blockedFurniture.map(({ furnitureId, code }) => [furnitureId, code]),
+    [
+      ["book-material-conflict", "invalid-material"],
+      ["cab-material-conflict", "invalid-material"],
+      ["table-material-conflict", "invalid-material"]
+    ]
+  );
+  assert.deepEqual(
+    forward.unsupportedFurniture.map(({ furnitureId, family, code, message }) => ({
+      furnitureId, family, code, message
+    })),
+    [{
+      furnitureId: "sofa-unsupported-diagnostics",
+      family: "sofa",
+      code: "unsupported-family",
+      message: "Proje mobilya ailesi desteklenmiyor: sofa."
+    }]
+  );
+  assert.match(forward.firstError, /mdf-18.*book-material-conflict.*cab-material-conflict/);
+  assert.equal(JSON.stringify(requests), before);
 });
 
 test("normalleştirilmiş katalog adları mixed family üretimde birleşir, farklı kalınlıklar ayrı özetlenir", () => {

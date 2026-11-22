@@ -162,7 +162,7 @@ function readFurnitureFamily(value: unknown, index: number): SupportedProjectFur
   if (value.family === "wardrobe") return "wardrobe";
   if (value.family === "tv-unit") return "tv-unit";
   if (value.family === "bathroom-vanity") return "bathroom-vanity";
-  throw new Error("Projenin " + (index + 1) + ". mobilya ailesi desteklenmiyor: " + String(value.family) + ".");
+  throw new Error("Proje mobilya ailesi desteklenmiyor: " + String(value.family) + ".");
 }
 
 function readProjectHardwareItem(value: unknown, index: number): ProjectHardwareItem {
@@ -279,6 +279,27 @@ function diagnosticFamily(value: unknown): string | null {
 
 function diagnosticMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
+}
+
+function compareText(left: string, right: string): number {
+  return left < right ? -1 : left > right ? 1 : 0;
+}
+
+function compareNullableText(left: string | null, right: string | null): number {
+  if (left === right) return 0;
+  if (left === null) return 1;
+  if (right === null) return -1;
+  return compareText(left, right);
+}
+
+function compareProductionDiagnostic(
+  left: ProjectProductionFurnitureDiagnostic,
+  right: ProjectProductionFurnitureDiagnostic
+): number {
+  return compareNullableText(left.furnitureId, right.furnitureId) ||
+    compareNullableText(left.family, right.family) ||
+    compareText(left.code, right.code) ||
+    compareText(left.message, right.message);
 }
 
 function normalizePanelMm(value: number, label: string): number {
@@ -426,8 +447,14 @@ export function calculateCabinetProjectProductionWithDiagnostics(
     partId: string;
   }>();
   const reportedMaterialConflicts = new Set<string>();
-  for (const part of parts) {
-    if (part.materialId === undefined) continue;
+  const materialIdentityParts = parts
+    .filter((part) => part.materialId !== undefined)
+    .sort((left, right) =>
+      compareText(left.materialId ?? "", right.materialId ?? "") ||
+      compareText(left.furnitureId, right.furnitureId) ||
+      compareText(left.id, right.id)
+    );
+  for (const part of materialIdentityParts) {
     const normalizedLabel = normalizeMaterialCatalogLabel(part.material);
     const previous = materialLabelsById.get(part.materialId);
     if (previous === undefined) {
@@ -737,17 +764,24 @@ export function calculateCabinetProjectProductionWithDiagnostics(
       }
     : null;
 
+  const orderedProjectErrors = [...projectErrors].sort(compareText);
+  const orderedUnsupportedFurniture = [...unsupportedFurniture].sort(compareProductionDiagnostic);
+  const orderedBlockedFurniture = [...blockedFurniture].sort(compareProductionDiagnostic);
+  const firstDiagnostic = [...orderedUnsupportedFurniture, ...orderedBlockedFurniture]
+    .sort(compareProductionDiagnostic)[0];
+  const stableFirstError = orderedProjectErrors[0] ?? firstDiagnostic?.message ?? null;
+
   return {
     schemaVersion: 1,
     status: !canCalculate ? "blocked" : isEmpty ? "empty" : "ready",
     canExport: canCalculate && !isEmpty && exportBlockers.length === 0,
     isEmpty,
     supportedFurniture,
-    unsupportedFurniture,
-    blockedFurniture,
-    projectErrors,
+    unsupportedFurniture: orderedUnsupportedFurniture,
+    blockedFurniture: orderedBlockedFurniture,
+    projectErrors: orderedProjectErrors,
     exportBlockers,
-    firstError,
+    firstError: stableFirstError,
     result
   };
 }
