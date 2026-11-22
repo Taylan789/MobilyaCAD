@@ -84,18 +84,18 @@
   border-color: #526b7b !important;
 }
 
-.cad-inspector-tabs .cad-tab-content[data-state="active"] .cad-property-section:first-child {
+.cad-tab-content-room[data-state="active"] .cad-property-section:first-child {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   align-items: start;
   gap: 11px 10px;
 }
 
-.cad-inspector-tabs .cad-tab-content[data-state="active"] .cad-property-section:first-child > .cad-section-heading {
+.cad-tab-content-room[data-state="active"] .cad-property-section:first-child > .cad-section-heading {
   grid-column: 1 / -1;
 }
 
-.cad-inspector-tabs .cad-tab-content[data-state="active"] .cad-property-section:first-child > .cad-field:last-child {
+.cad-tab-content-room[data-state="active"] .cad-property-section:first-child > .cad-field:last-child {
   grid-column: 1 / -1;
 }
 
@@ -138,11 +138,11 @@
 }
 
 @media (max-width: 760px) {
-  .cad-inspector-tabs .cad-tab-content[data-state="active"] .cad-property-section:first-child {
+  .cad-tab-content-room[data-state="active"] .cad-property-section:first-child {
     grid-template-columns: minmax(0, 1fr);
   }
-  .cad-inspector-tabs .cad-tab-content[data-state="active"] .cad-property-section:first-child > .cad-section-heading,
-  .cad-inspector-tabs .cad-tab-content[data-state="active"] .cad-property-section:first-child > .cad-field:last-child {
+  .cad-tab-content-room[data-state="active"] .cad-property-section:first-child > .cad-section-heading,
+  .cad-tab-content-room[data-state="active"] .cad-property-section:first-child > .cad-field:last-child {
     grid-column: 1;
   }
   .cad-dimension-fields {
