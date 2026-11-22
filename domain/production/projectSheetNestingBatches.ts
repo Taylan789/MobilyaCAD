@@ -1,4 +1,6 @@
 import type { CabinetProjectProductionReport } from "./projectProduction.ts";
+import { readProductionDiagnostics } from "./projectSheetCutPlanExport.ts";
+import type { ProjectSheetCutPlanExportDiagnostic } from "./projectSheetCutPlanExport.ts";
 import { createProjectSheetNestingInput } from "./projectSheetNestingInput.ts";
 import type {
   SheetGrainDirection,
@@ -47,6 +49,8 @@ export interface ProjectSheetNestingBatchesReport {
   /** Complete project Part snapshot, including Parts excluded from this nesting selection. */
   projectPartSnapshot?: ProjectPartSnapshot;
   diagnostics: string[];
+  /** Validated production diagnostics retained when the source project is blocked. */
+  productionDiagnostics?: ProjectSheetCutPlanExportDiagnostic[];
 }
 
 type RecordValue = Record<string, unknown>;
@@ -120,7 +124,8 @@ function groupKey(materialId: string, thicknessMm: number): string {
 function blocked(
   diagnostics: string[],
   sourcePartIds: string[] = [],
-  excludedPartIds: string[] = []
+  excludedPartIds: string[] = [],
+  productionDiagnostics: ProjectSheetCutPlanExportDiagnostic[] = []
 ): ProjectSheetNestingBatchesReport {
   return {
     schemaVersion: 1,
@@ -128,7 +133,8 @@ function blocked(
     result: null,
     sourcePartIds,
     excludedPartIds,
-    diagnostics
+    diagnostics,
+    ...(productionDiagnostics.length === 0 ? {} : { productionDiagnostics })
   };
 }
 
@@ -167,10 +173,11 @@ export function createProjectSheetNestingBatches(
       throw new Error("Desteklenmeyen proje üretim raporu şema sürümü.");
     }
     if (productionReport.status !== "ready") {
+      const productionDiagnostics = readProductionDiagnostics(productionReport);
       const detail = typeof productionReport.firstError === "string"
         ? productionReport.firstError
         : "Proje üretim raporu ready durumunda değil.";
-      throw new Error(detail);
+      return blocked([detail], selectedPartIds, excludedPartIds, productionDiagnostics);
     }
 
     const productionResult = requireRecord(

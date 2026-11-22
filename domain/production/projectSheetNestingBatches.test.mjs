@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { createProjectSheetNestingBatches } from "./projectSheetNestingBatches.ts";
+import { BODY_PANEL_GROUPS } from "./bodyPanelMaterials.ts";
+import { BOOKSHELF_PANEL_GROUPS } from "./bookshelfConstruction.ts";
+import { calculateCabinetProjectProductionWithDiagnostics } from "./projectProduction.ts";
 
 function part(overrides = {}) {
   return {
@@ -61,6 +64,71 @@ function request(productionReport, stockSheets, overrides = {}) {
     productionReport,
     stockSheets,
     ...overrides
+  };
+}
+
+
+function cabinetMaterialConflictRequest(id, materialLabel) {
+  const noBanding = { top: false, bottom: false, left: false, right: false };
+  return {
+    schemaVersion: 1,
+    furniture: {
+      id,
+      widthMm: 800,
+      heightMm: 720,
+      depthMm: 560,
+      material: materialLabel,
+      materialId: "mdf-18"
+    },
+    profile: {
+      panelThicknessMm: 18,
+      carcassStyle: "between-sides",
+      backPanel: { enabled: false },
+      shelfCount: 0,
+      doors: { enabled: false, count: 0 },
+      edgeBandingByGroup: Object.fromEntries(
+        BODY_PANEL_GROUPS.map((group) => [group, { ...noBanding }])
+      )
+    },
+    materials: [{
+      id: "mdf-18",
+      name: materialLabel,
+      category: "panel",
+      thicknessesMm: [18],
+      unit: "mm"
+    }]
+  };
+}
+
+function bookshelfMaterialConflictRequest(id, materialLabel) {
+  const noBanding = { top: false, bottom: false, left: false, right: false };
+  return {
+    schemaVersion: 1,
+    family: "bookshelf",
+    furniture: {
+      id,
+      widthMm: 800,
+      heightMm: 2000,
+      depthMm: 300,
+      material: materialLabel,
+      materialId: "mdf-18"
+    },
+    profile: {
+      panelThicknessMm: 18,
+      carcassStyle: "between-sides",
+      backPanel: { enabled: false },
+      shelfCount: 3,
+      edgeBandingByGroup: Object.fromEntries(
+        BOOKSHELF_PANEL_GROUPS.map((group) => [group, { ...noBanding }])
+      )
+    },
+    materials: [{
+      id: "mdf-18",
+      name: materialLabel,
+      category: "panel",
+      thicknessesMm: [18],
+      unit: "mm"
+    }]
   };
 }
 
@@ -308,3 +376,90 @@ test("boş levha tanımı, boş proje Part listesi ve yinelenen kaynak Part ID e
     /yinelenen parça kimliği/
   );
 });
+
+test("DOM-114 blocked nesting batches retain validated material-conflict source coverage and order", () => {
+  const cabinet = cabinetMaterialConflictRequest("cabinet-conflict", "MDF Lam Premium");
+  const bookshelf = bookshelfMaterialConflictRequest("bookshelf-conflict", "MDF Lam 18");
+  const furniture = [cabinet, bookshelf];
+  const before = JSON.stringify(furniture);
+  const productionReport = calculateCabinetProjectProductionWithDiagnostics({
+    schemaVersion: 1,
+    furniture
+  });
+  assert.equal(productionReport.status, "blocked");
+  assert.equal(productionReport.result, null);
+
+  const isolatedParts = furniture.flatMap((requestValue) => {
+    const isolated = calculateCabinetProjectProductionWithDiagnostics({
+      schemaVersion: 1,
+      furniture: [requestValue]
+    });
+    assert.equal(isolated.status, "ready", isolated.firstError ?? "");
+    assert.ok(isolated.result);
+    return isolated.result.parts;
+  });
+  const expectedSources = isolatedParts
+    .filter((item) => item.materialId === "mdf-18")
+    .map((item) => ({
+      furnitureId: item.furnitureId,
+      partId: item.id,
+      materialLabel: item.material
+    }))
+    .sort((left, right) =>
+      left.furnitureId < right.furnitureId ? -1 :
+        left.furnitureId > right.furnitureId ? 1 :
+          left.partId < right.partId ? -1 : left.partId > right.partId ? 1 : 0
+    );
+
+  const conflict = productionReport.blockedFurniture[0]?.materialIdentityConflict;
+  assert.ok(conflict);
+  assert.deepEqual(conflict.sources, expectedSources);
+  assert.equal(
+    new Set(conflict.sources.map((source) => JSON.stringify([source.furnitureId, source.partId]))).size,
+    expectedSources.length
+  );
+  const affectedFurnitureIds = [...new Set(expectedSources.map((source) => source.furnitureId))].sort();
+  assert.deepEqual(
+    productionReport.blockedFurniture.map((entry) => entry.furnitureId).sort(),
+    affectedFurnitureIds
+  );
+  for (const diagnostic of productionReport.blockedFurniture) {
+    assert.deepEqual(diagnostic.materialIdentityConflict, conflict);
+  }
+
+  const batches = assertBlocked(
+    request(productionReport, []),
+    /katalog kimliği farklı adlarla kullanılıyor/
+  );
+  assert.deepEqual(
+    batches.productionDiagnostics,
+    productionReport.blockedFurniture.map((entry) => ({
+      source: "blockedFurniture",
+      furnitureId: entry.furnitureId,
+      family: entry.family,
+      code: entry.code,
+      message: entry.message,
+      materialIdentityConflict: entry.materialIdentityConflict
+    }))
+  );
+
+  const reversedReport = calculateCabinetProjectProductionWithDiagnostics({
+    schemaVersion: 1,
+    furniture: [...furniture].reverse()
+  });
+  assert.deepEqual(reversedReport.blockedFurniture, productionReport.blockedFurniture);
+  const reversedBatches = createProjectSheetNestingBatches(request(reversedReport, []));
+  assert.deepEqual(reversedBatches.productionDiagnostics, batches.productionDiagnostics);
+
+  const incompleteReport = {
+    ...productionReport,
+    blockedFurniture: [productionReport.blockedFurniture[0]]
+  };
+  const incompleteBatches = assertBlocked(
+    request(incompleteReport, []),
+    /tüm kaynak furniture tanılarını kapsamalıdır/
+  );
+  assert.equal(incompleteBatches.productionDiagnostics, undefined);
+  assert.equal(JSON.stringify(furniture), before);
+});
+

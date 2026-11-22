@@ -774,12 +774,13 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 
 | ID | Sahip | Durum / kabul kriteri | Bağımlılık |
 |---|---|---|---|
-| DOM-088 | Ürün Geliştirme | VERIFIED — reordered comparison is identical; JSON/CSV byte-exact and parse round-trip; 142 frontend + 607 domain tests; [CI](https://github.com/Taylan789/MobilyaCAD/actions/runs/44901772791), [QA](https://github.com/Taylan789/MobilyaCAD/actions/runs/44901772751), [Pages](https://github.com/Taylan789/MobilyaCAD/actions/runs/44901772717) succeeded | DOM-087 |
-| DOM-089 | Ürün Geliştirme | IMPLEMENTED — detached source mapping order blocks revision creation; exact-SHA Actions pending (test commit e6eca800) | DOM-088 |
-| DOM-090 | Ürün Geliştirme | READY — compare r1→r3 in a three-revision chain; exact provenance/totals, unknown and reverse selection fail closed | DOM-089 |
-| INT-001 | Arayüz + Ürün | READY — frontend adapter consumes production domain and blocks unsupported geometry exports; round-trip tests | Production-domain contract |
-| INT-002 | Entegrasyon/Performans | READY — adapter round-trip and geometry/quantity fidelity tests; isolated specialist branch | INT-001 |
-| PERF-001 | Entegrasyon/Performans | READY — repeatable CAD scene/render baseline and measured optimization | Separate specialist ownership |
+| DOM-114 | Ürün Geliştirme | IMPLEMENTED — blocked nesting batches preserve validated source-aware material conflict diagnostics; null result and stable ordering; Actions pending | DOM-113 |
+| DOM-115 | Ürün Geliştirme | READY — reconcile blocked mixed-family nesting reports with material-summary and Part-snapshot consumers; no partial Part/batch results | DOM-114 |
+| DOM-116 | Ürün Geliştirme | READY — cross-consumer project production diagnostics/export integrity with deterministic provenance | DOM-115 |
+| INT-001 | Arayüz + Ürün | READY — frontend adapter consumes project production domain and blocks unsupported geometry export; round-trip tests | Production-domain contract |
+| INT-002 | Entegrasyon/Performans | READY — adapter round-trip and geometry/quantity fidelity tests on isolated specialist branch | INT-001 |
+
+**Parallel specialist work:** PERF-001 repeatable CAD scene/render baseline and measured profiling remains Integration/Performance-owned; QA-003 remains blocked until INT-001 and INT-002 evidence.
 
 ## DOM-077 — Quote summary / immutable revision cross-format reconciliation (VERIFIED)
 
@@ -1088,3 +1089,10 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - **Dependencies/risks:** frontend diagnostic presentation is UI-agent-owned; additive fields must not weaken the existing blocked export gate. Source labels are user/catalog text, not supplier verification.
 - **Verification:** [final code/test SHA b8fdbda7](https://github.com/Taylan789/MobilyaCAD/commit/b8fdbda7c1175afa766712c471ed8974c5ba369a); exact-SHA CI [#45041353850](https://github.com/Taylan789/MobilyaCAD/actions/runs/45041353850), QA [#45041353786](https://github.com/Taylan789/MobilyaCAD/actions/runs/45041353786) and Pages [#45041353780](https://github.com/Taylan789/MobilyaCAD/actions/runs/45041353780) all successful. QA: 162 frontend + 639 domain tests, strict shared-domain TypeScript, lint 32 warnings/0 errors, production build, production audit 0 vulnerabilities. Test site updated: https://taylan789.github.io/MobilyaCAD/. Local test execution unavailable; Actions evidence is authoritative.
 - **Next 3 slices:** DOM-114 carry structured material-conflict provenance into nesting-batch diagnostics while keeping batches/layouts null; DOM-115 reconcile blocked mixed-family reports with material-summary and Part-snapshot consumers; DOM-116 continue strict cross-format project-production export integrity. INT-001 remains frontend-owned; INT-002/PERF-001 specialist-owned.
+
+## DOM-114 — Structured production diagnostics in nesting batches (IMPLEMENTED; Actions pending, 22 November 2026)
+
+- **Acceptance:** a blocked mixed-family material-identity report passes through the nesting-batch consumer with validated, sorted, complete conflict source metadata; every contributing furniture diagnostic is present, input order does not alter the output, and incomplete source coverage fails closed.
+- **Scope:** \`projectSheetNestingBatches.ts\`, its domain regression test, the shared cut-plan diagnostic validator, and production-domain integration contract only. No frontend, specialist adapter/benchmark, project schema, machine-specific CNC output, or \`main\` changes.
+- **Behavior:** the additive \`productionDiagnostics\` field is emitted only for validated source diagnostics; the existing human-readable \`diagnostics\` remain unchanged and blocked batch \`result\` stays null.
+- **Next:** DOM-115 mixed-family nesting/material-summary/Part-snapshot reconciliation; INT-001 frontend-owned, INT-002/PERF-001 specialist-owned.

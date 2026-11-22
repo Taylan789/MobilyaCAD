@@ -157,7 +157,7 @@ function readMaterialIdentityConflict(
  * Retains each domain blocker with its source and furniture context. The
  * human-readable diagnostics remain available for existing consumers.
  */
-function readProductionDiagnostics(
+export function readProductionDiagnostics(
   report: RecordValue
 ): ProjectSheetCutPlanExportDiagnostic[] {
   const diagnostics: ProjectSheetCutPlanExportDiagnostic[] = [];

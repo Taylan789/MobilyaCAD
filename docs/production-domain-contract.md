@@ -1054,3 +1054,9 @@ The diagnostic report adds the optional `blockedFurniture[].materialIdentityConf
 - The cut-plan export gate preserves the optional `materialIdentityConflict` metadata on blocked `invalid-material` diagnostics, alongside the legacy source, furniture ID, family, code and message fields.
 - Metadata is accepted only when the catalog ID and source identifiers/labels are non-empty, sources are sorted and unique by furniture ID then Part ID, normalized labels genuinely conflict, and the blocked diagnostic's furniture ID is present in the source set. The source furniture set must be covered by diagnostics carrying the same conflict metadata; mismatched or incomplete provenance blocks the export gate.
 - Invalid metadata is fail-closed: the export report is blocked with `result=null` and `json=null`. No schema or CNC output is changed. Frontend diagnostic presentation remains UI-owned and may consume the additive optional field; it must continue to honor blocked exports and preserve the legacy message.
+
+## DOM-114 — Nesting-batch blocked diagnostic provenance
+
+- When the source project-production report is blocked, the nesting-batch report keeps the existing human-readable \`diagnostics\` and adds \`productionDiagnostics\` only when the shared production-diagnostic parser returns validated records.
+- The additive structured diagnostics preserve source, furniture/family/code/message, and validated material-conflict catalog/source provenance. They are ordered exactly as the source report.
+- Any malformed or incomplete conflict source coverage/order fails closed: no structured diagnostics are emitted and the nesting batch remains blocked with a diagnostic message. Batch result remains null; no partial layouts are produced.

@@ -453,4 +453,9 @@ Bu dosya dört geliştirme/denetim rolünün ortak görev panosu ve entegrasyon 
 
 ## Current domain handoff — DOM-113 VERIFIED (22 November 2026)
 - Structured material conflict provenance is preserved and strictly validated in cut-plan export diagnostics; invalid or incomplete source coverage blocks and returns null JSON/result. Final code/test SHA b8fdbda7; exact-SHA CI/QA/Pages all succeeded.
-- Next: DOM-114 carry structured conflict provenance into nesting-batch diagnostics; frontend presentation remains UI-agent-owned, INT-002/PERF-001 specialist-owned, QA-003 blocked until INT-001/INT-002 evidence.
+- Next: DOM-115 reconcile blocked mixed-family nesting reports with material summary and Part-snapshot consumers; frontend presentation remains UI-agent-owned, INT-002/PERF-001 specialist-owned, QA-003 blocked until INT-001/INT-002 evidence.
+
+## Current domain handoff — DOM-114 (22 November 2026)
+- Blocked project nesting reports now retain the validated source-aware production diagnostics through the additive \`productionDiagnostics\` field; legacy string diagnostics and atomic null-result behavior remain intact.
+- Exact-SHA CI/QA/Pages verification is pending. No frontend files, adapter/performance-owned tests, or machine output were changed.
+- Next: DOM-115 reconcile blocked mixed-family nesting reports with material-summary and Part-snapshot consumers.
