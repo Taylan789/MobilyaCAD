@@ -595,9 +595,9 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 
 1. DOM-103 DONE — [fix commit 431b044](https://github.com/Taylan789/MobilyaCAD/commit/431b044cd20d07209104f2fdd422352400c56750); exact-SHA CI #44982525644, QA #44982525656, Pages #44982525667 successful.
 2. DOM-104 DONE — [commit 614d559](https://github.com/Taylan789/MobilyaCAD/commit/614d559c902cc4038f9c177eaa31ce86045ef3fe); exact-SHA CI #44983853404, QA #44983853400, Pages #44983853533 successful.
-3. DOM-105 IN_PROGRESS — first exact-SHA CI #44989919137 passed; QA #44989919145 failed fixture total expectation (1,375 vs baseline 1,075); correcting helper expectations before rerun.
-4. INT-001 FRONTEND-OWNED — comparison download and production report/export integration; domain agent does not edit frontend files.
-5. INT-002/PERF-001 INTEGRATION-OWNED — adapter round-trip tests and measured CAD profiling on the isolated specialist branch.
+3. DOM-105 DONE — [correction commit 1d4503be](https://github.com/Taylan789/MobilyaCAD/commit/1d4503be5a277ec8a9eca8e1c5fc71120caee214); CI #44990018540, QA #44990018528, Pages #44990018506 successful (144 frontend + 630 domain; strict TS/build/audit passed; lint 32 warnings/0 errors).
+4. DOM-106 READY — legacy v1/v2 → canonical v3 → JSON v2 → CSV v3 cross-format round-trip; supported metadata and unavailable resource identity.
+5. INT-001 FRONTEND-OWNED — comparison download and production report/export integration; domain agent does not edit frontend files.
 
 ## 10/10 ölçülebilir kalite kapıları (20 Kasım 2026 baseline)
 
@@ -1006,5 +1006,7 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - **Acceptance:** Legacy v1 and v2 comparison CSVs parse successfully, expose the detected version, and re-export through the current canonical v3 serializer without changing the parsed comparison. The v1/v2 headers cannot supply catalog resource identity; canonical v3 must leave those identity fields absent rather than infer them.
 - **Coverage slice:** v1 line/source/Part provenance and v2 roll count/length, furniture IDs, plan/price source references; canonical v3 header/version, repeated export bytes and import immutability.
 - **Scope:** domain regression tests only; no production schema, frontend, adapter/performance-owned files, pricing assumptions, or CNC output changes.
-- **Verification:** initial CI #44989919137 succeeded; QA #44989919145 failed a fixture total assertion (v2 delta 1,375 vs helper baseline 1,075), and Pages #44989919118 failed its QA gate. No deployment occurred. Corrected expected totals are pending exact-SHA Actions; no local checkout/test runner in this runtime.
-- **Next:** DOM-106 repeated canonical v3 export byte stability from legacy imports and parsed input immutability; INT-001 frontend-owned; INT-002/PERF-001 specialist-owned; QA-003 blocked until adapter evidence.
+- **Correction:** first test commit [28ed773](https://github.com/Taylan789/MobilyaCAD/commit/28ed773e8b8dc3a266d0eead4ecb1f8c739ef488) had CI success but QA failed because a v2 fixture delta (1,375) was compared with the helper's baseline (1,075); Pages #44989919118 correctly blocked deployment. The helper now accepts explicit fixture totals; no assertions were weakened.
+- **Verified:** correction commit [1d4503be](https://github.com/Taylan789/MobilyaCAD/commit/1d4503be5a277ec8a9eca8e1c5fc71120caee214). Exact-SHA CI [#44990018540](https://github.com/Taylan789/MobilyaCAD/actions/runs/44990018540), QA [#44990018528](https://github.com/Taylan789/MobilyaCAD/actions/runs/44990018528), and Pages [#44990018506](https://github.com/Taylan789/MobilyaCAD/actions/runs/44990018506) all succeeded: **144 frontend + 630 domain tests**, strict domain TypeScript, lint **32 warnings/0 errors**, production build and audit **0 vulnerabilities**. Test-site deployment confirmed: https://taylan789.github.io/MobilyaCAD/.
+- **Scope:** domain tests/docs only; no production serializer/schema, frontend, adapter/performance-owned files, or CNC output changed.
+- **Next:** DOM-106 legacy v1/v2 → canonical v3 → JSON v2 → CSV v3 cross-format round-trip; INT-001 frontend-owned; INT-002/PERF-001 specialist-owned; QA-003 blocked until adapter evidence.
