@@ -1,3 +1,12 @@
+## 22 Kasım 2026 11:10 TRT — DOM-108 IN_PROGRESS
+
+- Added a mixed-family fail-closed regression in the project production aggregator: a cabinet with a missing material override is combined with a valid table; a valid cabinet is combined with a table whose selected material does not support its 8 mm top thickness. Both cases must return blocked, canExport=false, result=null, family-specific diagnostics, no project-level partial Parts, and leave inputs unchanged; the strict aggregator must throw.
+- Files: domain/production/projectProduction.test.mjs, AI_COORDINATION.md, PRODUCT_ROADMAP.md, AI_PROGRESS.md. No production source, frontend, adapter/performance-owned files, schema or machine output changed.
+- Commit SHA and exact-SHA CI/QA/Pages verification pending; local tests unavailable.
+- Latest AI Developer run [#44972838278](https://github.com/Taylan789/MobilyaCAD/actions/runs/44972838278) failed with OpenRouter free-model daily quota HTTP 429 (remaining 0; reset 23 Nov 2026 03:00 TRT). No rerun because quota is still exhausted; no paid fallback, secret or quota setting changed.
+- Next: DOM-109 cross-family material ID/name reconciliation; INT-001 frontend-owned and INT-002/PERF-001 specialist-owned.
+
+
 ## 22 Kasım 2026 10:32 TRT — DOM-107 VERIFIED
 
 - Added a table-family project aggregation regression: the tabletop uses an explicit 8 mm catalog override, legs use the 60 mm group material, and aprons retain the default material. The test checks Part rows, snapshot serialize/validate/compare, material summary quantity/line count/area/volume, and input immutability.

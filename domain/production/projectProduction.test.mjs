@@ -670,6 +670,69 @@ test("masa panel grubu malzeme override'ları proje Part, snapshot ve tüketim �
   assert.equal(JSON.stringify(request), before);
 });
 
+test("DOM-108 mixed-family invalid material/catalog references fail atomically", () => {
+  const invalidCabinetId = "cab-invalid-material-mixed";
+  const validTableId = "table-valid-material-mixed";
+  const invalidCabinet = createRequest(invalidCabinetId);
+  invalidCabinet.panelMaterialOverrides = { top: "missing-panel" };
+  const validTable = createTableRequest(validTableId);
+  const cabinetScenario = {
+    schemaVersion: 1,
+    furniture: [invalidCabinet, validTable]
+  };
+  const cabinetBefore = JSON.stringify(cabinetScenario);
+  const cabinetReport = calculateCabinetProjectProductionWithDiagnostics(cabinetScenario);
+
+  assert.equal(cabinetReport.status, "blocked");
+  assert.equal(cabinetReport.canExport, false);
+  assert.equal(cabinetReport.result, null);
+  assert.deepEqual(cabinetReport.supportedFurniture, [{ furnitureId: validTableId, family: "table" }]);
+  assert.deepEqual(cabinetReport.blockedFurniture.map(({ furnitureId, family, code }) => ({
+    furnitureId, family, code
+  })), [{
+    furnitureId: invalidCabinetId,
+    family: "cabinet",
+    code: "invalid-construction"
+  }]);
+  assert.match(cabinetReport.blockedFurniture[0].message, /missing-panel.*katalogda bulunamadı/);
+  assert.deepEqual(cabinetReport.projectErrors, []);
+  assert.deepEqual(cabinetReport.exportBlockers, []);
+  assert.match(cabinetReport.firstError, /missing-panel/);
+  assert.equal(JSON.stringify(cabinetScenario), cabinetBefore);
+  assert.throws(() => calculateCabinetProjectProduction(cabinetScenario), /missing-panel/);
+
+  const validCabinetId = "cab-valid-material-mixed";
+  const invalidTableId = "table-invalid-thickness-mixed";
+  const validCabinet = createRequest(validCabinetId);
+  const invalidTable = createTableRequest(invalidTableId);
+  invalidTable.profile.topThicknessMm = 8;
+  invalidTable.profile.materialIdByGroup = { top: "mdf-18" };
+  const tableScenario = {
+    schemaVersion: 1,
+    furniture: [validCabinet, invalidTable]
+  };
+  const tableBefore = JSON.stringify(tableScenario);
+  const tableReport = calculateCabinetProjectProductionWithDiagnostics(tableScenario);
+
+  assert.equal(tableReport.status, "blocked");
+  assert.equal(tableReport.canExport, false);
+  assert.equal(tableReport.result, null);
+  assert.deepEqual(tableReport.supportedFurniture, [{ furnitureId: validCabinetId, family: "cabinet" }]);
+  assert.deepEqual(tableReport.blockedFurniture.map(({ furnitureId, family, code }) => ({
+    furnitureId, family, code
+  })), [{
+    furnitureId: invalidTableId,
+    family: "table",
+    code: "invalid-construction"
+  }]);
+  assert.match(tableReport.blockedFurniture[0].message, /MDF Lam 18 için 8 mm kalınlık katalogda tanımlı değil/);
+  assert.deepEqual(tableReport.projectErrors, []);
+  assert.deepEqual(tableReport.exportBlockers, []);
+  assert.match(tableReport.firstError, /8 mm kalınlık/);
+  assert.equal(JSON.stringify(tableScenario), tableBefore);
+  assert.throws(() => calculateCabinetProjectProduction(tableScenario), /8 mm kalınlık katalogda tanımlı değil/);
+});
+
 test("geçersiz masa konstrüksiyonu proje agregatöründe reddedilir", () => {
   const invalid = createTableRequest("table-invalid");
   invalid.profile.legCount = 0;
