@@ -7,6 +7,7 @@ import { Label } from "../ui/label";
 import type { FurniturePart } from "../../types/placedFurniture";
 import type { MaterialUsageLocation } from "../../types/materialUsage";
 import "./FurniturePartInspector.css";
+import "./FurniturePartInspectorPrecision.css";
 
 interface PartMaterialOption {
   id: string;
