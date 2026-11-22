@@ -1,0 +1,180 @@
+/* UI-INSPECTOR-LAYOUT-001 — make the active context and dimensional controls scan-first. */
+.cad-inspector > div[aria-live="polite"] {
+  min-height: 48px;
+  margin: 9px 10px 0;
+  padding: 8px 9px !important;
+  border: 1px solid #3b5667 !important;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #233744 0%, #1b2b36 100%) !important;
+  box-shadow: inset 0 1px rgba(255, 255, 255, .035);
+}
+
+.cad-inspector > div[aria-live="polite"] > div:first-child {
+  border-color: #456477 !important;
+  border-radius: 6px !important;
+  background: #2b4658 !important;
+}
+
+.cad-inspector > div[aria-live="polite"] strong {
+  color: #e6f0f5 !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+}
+
+.cad-inspector > div[aria-live="polite"] span {
+  color: #9eb6c5 !important;
+  font-size: 8px !important;
+  letter-spacing: .11em !important;
+}
+
+.cad-inspector-tab-list button {
+  flex-direction: column !important;
+  min-height: 42px !important;
+  height: auto !important;
+  gap: 3px !important;
+  padding: 4px 2px !important;
+  font-size: 8px !important;
+  line-height: 1.1 !important;
+}
+
+.cad-inspector-tab-list button svg {
+  width: 13px !important;
+  height: 13px !important;
+}
+
+.cad-inspector-tab-list button[data-active="true"] {
+  color: #f0f7fb !important;
+  background: #29495d !important;
+  box-shadow: inset 0 1px rgba(255, 255, 255, .05), 0 1px 4px rgba(0, 0, 0, .12) !important;
+}
+
+.cad-property-section {
+  gap: 12px !important;
+}
+
+.cad-section-heading {
+  padding-bottom: 8px;
+  border-bottom: 1px solid #304753;
+}
+
+.cad-section-heading::before {
+  width: 3px;
+  height: 13px;
+  margin-right: 7px;
+  border-radius: 2px;
+  background: #7298b3;
+  content: "";
+}
+
+.cad-section-heading span {
+  flex: 1;
+  min-width: 0;
+}
+
+.cad-field input,
+.cad-dimension-field input,
+.cad-native-select {
+  min-width: 0 !important;
+  font-variant-numeric: tabular-nums;
+}
+
+.cad-field input:hover,
+.cad-dimension-field input:hover,
+.cad-native-select:hover {
+  border-color: #526b7b !important;
+}
+
+.cad-tab-content-room[data-state="active"] .cad-property-section:first-child {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 11px 10px;
+}
+
+.cad-tab-content-room[data-state="active"] .cad-property-section:first-child > .cad-section-heading {
+  grid-column: 1 / -1;
+}
+
+.cad-tab-content-room[data-state="active"] .cad-property-section:first-child > .cad-field:last-child {
+  grid-column: 1 / -1;
+}
+
+.cad-dimension-fields {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 10px !important;
+}
+
+.cad-dimension-fields .cad-dimension-field:last-child {
+  grid-column: 1 / -1;
+}
+
+.cad-selected-object {
+  border-color: #4b687a !important;
+  background: linear-gradient(135deg, #294150 0%, #223542 100%) !important;
+}
+
+.cad-selected-object-icon {
+  color: #d4e7f2 !important;
+  background: #38586e !important;
+  border: 1px solid #56758a;
+}
+
+.cad-summary-row {
+  min-height: 38px;
+}
+
+.cad-inspector :is(button, input, select, [role="tab"]):focus-visible {
+  outline: 2px solid #90bad6;
+  outline-offset: 2px;
+}
+
+@media (max-width: 1280px) {
+  .cad-inspector-tab-list button {
+    font-size: 8px !important;
+  }
+  .cad-inspector > div[aria-live="polite"] {
+    margin-inline: 8px;
+  }
+}
+
+@media (max-width: 760px) {
+  .cad-tab-content-room[data-state="active"] .cad-property-section:first-child {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .cad-tab-content-room[data-state="active"] .cad-property-section:first-child > .cad-section-heading,
+  .cad-tab-content-room[data-state="active"] .cad-property-section:first-child > .cad-field:last-child {
+    grid-column: 1;
+  }
+  .cad-dimension-fields {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+  .cad-dimension-fields .cad-dimension-field:last-child {
+    grid-column: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cad-inspector-tab-list button,
+  .cad-inspector :is(button, input, select) {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+@media (forced-colors: active) {
+  .cad-inspector > div[aria-live="polite"],
+  .cad-inspector-tab-list,
+  .cad-selected-object,
+  .cad-selected-object-icon {
+    border: 1px solid CanvasText !important;
+    background: Canvas !important;
+    box-shadow: none !important;
+  }
+  .cad-inspector-tab-list button[data-active="true"] {
+    color: HighlightText !important;
+    background: Highlight !important;
+  }
+  .cad-section-heading::before {
+    background: Highlight !important;
+  }
+}

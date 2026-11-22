@@ -74,6 +74,7 @@ import { MobilyaCadLogo } from "./components/brand/MobilyaCadLogo";
 import "./components/workspace/KeyboardShortcuts.css";
 import "./styles/workbench.css";
 import "./styles/workspace-viewport-fit.css";
+import "./styles/ui-inspector-layout-001.css";
 
 import Scene3D from "./components/viewport/Scene3D";
 import { DrawerBoxConfigurator } from "./components/production/DrawerBoxConfigurator";
@@ -1972,7 +1973,7 @@ function App() {
                   </TabsList>
 
                   <ScrollArea className="cad-inspector-scroll">
-                    <TabsContent value="room" className="cad-tab-content">
+                    <TabsContent value="room" className="cad-tab-content cad-tab-content-room">
                       <section className="cad-property-section">
                         <div className="cad-section-heading">
                           <span>ODA ÖLÇÜLERİ</span>
