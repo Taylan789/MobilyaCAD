@@ -261,8 +261,8 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 
 1. DOM-099 DONE — CSV import/export 1 MiB UTF-8 payload ve 2.000 satır fark limiti; eski CSV v1/v2/v3 korundu. [CI #44958138720](https://github.com/Taylan789/MobilyaCAD/actions/runs/44958138720), [QA #44958138801](https://github.com/Taylan789/MobilyaCAD/actions/runs/44958138801), [Pages #44958138729](https://github.com/Taylan789/MobilyaCAD/actions/runs/44958138729) passed.
 2. DOM-100 VERIFIED — JSON v2 ↔ CSV v3 exact round-trip, source/Part metadata preservation and corrupted row-version fail-closed; CI/QA/Pages successful.
-3. DOM-101 READY — adversarial CSV quoting/record-boundary and UTF-8/byte-limit combinations.
-4. DOM-102 PLANNED — JSON v1/v2 and CSV v1/v2/v3 legacy compatibility matrix; explicitly verify metadata preservation/loss.
+3. DOM-101 IMPLEMENTED (Actions pending) — BOM and CRLF/LF/CR boundaries plus malformed quote/row-width fail-closed regressions.
+4. DOM-102 READY — JSON v1/v2 and CSV v1/v2/v3 legacy compatibility matrix; explicitly verify metadata preservation/loss.
 5. INT-001 FRONTEND-OWNED — comparison download and production report/export contract; product agent does not edit frontend files.
 6. INT-002/PERF-001 INTEGRATION-OWNED — adapter round-trip and measured CAD profiling on the specialist-owned branch.
 7. QA-003 BLOCKED — end-to-end export reconciliation after INT-001/INT-002 evidence.
@@ -274,7 +274,15 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 - Kod/test: [f704bbd6](https://github.com/Taylan789/MobilyaCAD/commit/f704bbd6af908a1626c61c9d9aa13663ed313087). İlk deneme [5f6b3b19](https://github.com/Taylan789/MobilyaCAD/commit/5f6b3b19d33a50942e61a43f5930d160dbed9d08) serializer envelope file alanı nedeniyle QA'da başarısız oldu; düzeltildi ve yeniden doğrulandı.
 - Exact-SHA CI [#44962373022](https://github.com/Taylan789/MobilyaCAD/actions/runs/44962373022), QA [#44962373046](https://github.com/Taylan789/MobilyaCAD/actions/runs/44962373046), Pages [#44962373013](https://github.com/Taylan789/MobilyaCAD/actions/runs/44962373013) başarılı. QA: 142 frontend + 622 domain tests, strict domain type-check, lint 32 warnings/0 errors, production build, audit 0 vulnerabilities.
 - Test sitesi: https://taylan789.github.io/MobilyaCAD/ — exact-SHA Pages deployment succeeded. Bu dilim frontend görünümünü değiştirmez.
-- Next: DOM-101 adversarial CSV quoting/record-boundary tests; DOM-102 legacy-version compatibility; INT-001 frontend-owned adapter contract remains separate.
+- Next: DOM-102 JSON v1/v2 and CSV v1/v2/v3 legacy compatibility matrix; INT-001 frontend-owned adapter contract remains separate.
+
+## DOM-101 — Adversarial CSV record-boundary ve quoting testleri (IMPLEMENTED, Actions pending)
+
+- Testler BOM'lu/BOM'suz CSV ve dış kayıt ayırıcılarının CRLF, LF ve tek CR biçimlerinde karşılaştırma verisini aynen korumasını doğrular.
+- Malformed tırnak sınırları, tırnak sonrası karakter, tırnaklı olmayan alan içindeki quote, ek boş kayıt ve yarım final alanı blocked/null comparison ile sonuçlanmalıdır.
+- Parser üretim davranışı değiştirilmedi; yeni kapsam public CSV parser üzerinden regresyon testidir. DOM-099 UTF-8 1 MiB ve 2.000 satır sınırları aynen korunur.
+- Local Node testleri bu çalışma ortamında yok; exact-SHA CI/QA/Pages doğrulaması bekleniyor.
+- Next: DOM-102 legacy format compatibility matrix; INT-001 frontend-owned adapter contract.
 
 ## Üretim güvenliği ve karar sınırları
 

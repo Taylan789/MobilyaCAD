@@ -1,3 +1,11 @@
+## 22 Kasım 2026 03:44 TRT — DOM-101 test slice IMPLEMENTED, Actions pending
+
+- Added adversarial regression coverage in `domain/production/projectQuoteRevisionComparisonCsv.test.mjs`: valid BOM/no-BOM and CRLF/LF/single-CR record delimiters round-trip exactly; malformed quote boundaries, trailing characters, unquoted quotes, row-width/blank-record and unfinished quoted-field cases fail closed with `comparison=null`.
+- Production CSV parser and serializer were not changed. DOM-099's 1 MiB UTF-8 and 2,000-line limits remain unchanged.
+- Code/test commit: this commit (SHA is recorded in the verification follow-up); no local Node test runtime/checkout is available here.
+- Exact-SHA CI/QA/Pages: pending observation; test-site deployment is not yet claimed. No visible frontend change.
+- Next: DOM-102 JSON v1/v2 and CSV v1/v2/v3 compatibility matrix; INT-001 remains frontend-owned and INT-002/PERF-001 specialist-owned.
+
 ## 22 Kasım 2026 02:34 TRT — DOM-100 VERIFIED
 
 - Code/test commit: [f704bbd6](https://github.com/Taylan789/MobilyaCAD/commit/f704bbd6af908a1626c61c9d9aa13663ed313087). JSON v2 → CSV v3 → JSON v2 cross-format exact round-trip preserves catalog resource IDs/units, Part IDs and provenance; malformed CSV line-row version rejects with no partial comparison.

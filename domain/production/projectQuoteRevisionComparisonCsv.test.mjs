@@ -335,6 +335,44 @@ test("DOM-096 CSV import/export blocks duplicate line identities without partial
   assert.match(parsedDuplicate.diagnostics[0], /yineleniyor/);
 });
 
+test("DOM-101 CSV records accept BOM and CRLF/LF/CR separators without changing data", () => {
+  const original = readyComparisonResult();
+  const serialized = serializeProjectQuoteRevisionComparisonCsv(original);
+  assert.equal(serialized.status, "ready");
+  assert.ok(serialized.csv.startsWith("\uFEFF"));
+  const body = serialized.csv.slice(1);
+  const variants = [
+    ["CRLF with BOM", serialized.csv],
+    ["CRLF without BOM", body],
+    ["LF with BOM", "\uFEFF" + body.replaceAll("\r\n", "\n")],
+    ["CR with BOM", "\uFEFF" + body.replaceAll("\r\n", "\r")]
+  ];
+  for (const [label, csv] of variants) {
+    const parsed = parseProjectQuoteRevisionComparisonCsv(csv);
+    assert.equal(parsed.status, "ready", label);
+    assert.deepEqual(parsed.comparison, original.comparison, label);
+  }
+});
+
+test("DOM-101 malformed quote and record boundaries fail closed without partial comparison", () => {
+  const valid = serializeProjectQuoteRevisionComparisonCsv(readyComparisonResult());
+  assert.equal(valid.status, "ready");
+  const malformedInputs = [
+    ["characters after a closing quote", valid.csv.replace('"projectId"', '"projectId"tail')],
+    ["missing closing quote", valid.csv.replace('"projectId"', '"projectId')],
+    ["quote inside an unquoted field", valid.csv.replace('"projectId"', 'projectId"')],
+    ["unescaped quote in line text", valid.csv.replace('"MDF Lam 18"', 'MDF Lam "18"')],
+    ["extra blank record", valid.csv + "\r\n"],
+    ["unterminated final quoted field", valid.csv + '"unfinished']
+  ];
+  for (const [label, csv] of malformedInputs) {
+    const parsed = parseProjectQuoteRevisionComparisonCsv(csv);
+    assert.equal(parsed.status, "blocked", label);
+    assert.equal(parsed.comparison, null, label);
+    assert.ok(parsed.diagnostics.length > 0, label);
+  }
+});
+
 test("DOM-099 CSV comparison import enforces UTF-8 size and line-change limits without partial data", () => {
   const maxBytes = PROJECT_QUOTE_REVISION_COMPARISON_FILE_MAX_BYTES;
   const oversizedUtf8 = "\uFEFF" + "é".repeat(Math.ceil((maxBytes - 3) / 2) + 1);
