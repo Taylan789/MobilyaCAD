@@ -537,3 +537,67 @@ test("DOM-115 blocked mixed-family material-conflict provenance reconciles with 
   assert.deepEqual(JSON.stringify(furniture), before);
 });
 
+
+test("DOM-116 ready nesting batches reconcile selected/excluded snapshots with material-thickness source groups", () => {
+  const productionParts = [
+    part({ id: "selected-mdf-18-a", quantity: 2 }),
+    part({
+      id: "excluded-plywood-cutout",
+      material: "Kontrplak",
+      materialId: "plywood-18",
+      thickness: 18,
+      quantity: 7,
+      grainDirection: "width",
+      panelGeometry: { schemaVersion: 1, cutouts: [] }
+    }),
+    part({ id: "selected-mdf-18-b", thickness: 18.04, quantity: 3 }),
+    part({ id: "excluded-mdf-18", quantity: 5 }),
+    part({ id: "selected-mdf-8", material: "MDF 8", materialId: "mdf-8", thickness: 8, quantity: 4 })
+  ];
+  const allSourceIds = productionParts.map((entry) => entry.id);
+  const result = createProjectSheetNestingBatches(request(
+    report(productionParts),
+    [stock(sheet("mdf-18", 18)), stock(sheet("mdf-8", 8))],
+    { partIds: ["selected-mdf-8", "selected-mdf-18-b", "selected-mdf-18-a"] }
+  ));
+
+  assert.equal(result.status, "ready");
+  assert.ok(result.result);
+  const selectedPartIds = ["selected-mdf-18-a", "selected-mdf-18-b", "selected-mdf-8"];
+  const excludedPartIds = ["excluded-plywood-cutout", "excluded-mdf-18"];
+  assert.deepEqual(result.sourcePartIds, selectedPartIds);
+  assert.deepEqual(result.excludedPartIds, excludedPartIds);
+
+  const snapshot = validateProjectPartSnapshot(result.projectPartSnapshot);
+  assert.deepEqual(snapshot.parts.map((entry) => entry.id), allSourceIds);
+  const snapshotParts = new Map(snapshot.parts.map((entry) => [entry.id, JSON.parse(entry.snapshot)]));
+  const excludedCutout = snapshotParts.get("excluded-plywood-cutout");
+  assert.equal(excludedCutout.materialId, "plywood-18");
+  assert.equal(excludedCutout.thickness, 18);
+  assert.equal(excludedCutout.quantity, 7);
+  assert.deepEqual(excludedCutout.panelGeometry, { schemaVersion: 1, cutouts: [] });
+
+  const batches = result.result.batches;
+  assert.deepEqual(
+    batches.map((group) => [group.materialId, group.thicknessMm, group.sourcePartIds]),
+    [
+      ["mdf-18", 18, ["selected-mdf-18-a", "selected-mdf-18-b"]],
+      ["mdf-8", 8, ["selected-mdf-8"]]
+    ]
+  );
+  for (const group of batches) {
+    for (const nestingPart of group.batch.parts) {
+      const source = snapshotParts.get(nestingPart.id);
+      assert.ok(source, nestingPart.id + " must be present in the full project snapshot");
+      assert.ok(selectedPartIds.includes(nestingPart.id));
+      assert.equal(source.materialId, group.materialId);
+      assert.equal(Math.round(source.thickness * 10) / 10, group.thicknessMm);
+      assert.equal(nestingPart.materialId, group.materialId);
+      assert.equal(nestingPart.thicknessMm, group.thicknessMm);
+      assert.equal(nestingPart.quantity, source.quantity);
+    }
+    assert.deepEqual(group.batch.parts.map((entry) => entry.id), group.sourcePartIds);
+  }
+  assert.deepEqual(batches.map((group) => group.batch.totalPieceCount), [5, 4]);
+  assert.ok(batches.every((group) => group.sourcePartIds.every((id) => !excludedPartIds.includes(id))));
+});

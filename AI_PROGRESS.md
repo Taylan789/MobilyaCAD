@@ -278,3 +278,12 @@
 - **Test site:** https://taylan789.github.io/MobilyaCAD/ — deployment run succeeded on this SHA.
 - **Correction history:** e19ee858 failed one ordered-fixture assertion; dc204108 fixed fixture ordering but strict TypeScript exposed nullable narrowing; b8fdbda7 fixed the guard. No test assertions were weakened. Local test execution unavailable in this runtime.
 - **Next:** DOM-114 structured conflict provenance through nesting-batch diagnostics; UI/adapter ownership remains unchanged.
+
+
+## 22 Kasım 2026 22:48 TRT — DOM-116 IMPLEMENTED, Actions pending
+
+- **Kapsam:** `domain/production/projectSheetNestingBatches.test.mjs` içine ready raporun selected/excluded Part kimlikleri, tam ve sıralı snapshot, excluded cutout metadata, material ID, normalize 0.1 mm kalınlık, grup kaynak ID'leri ve quantity reconciliation için regresyon eklendi. Kullanıcı seçim sırasının proje sırasına normalize edilmesi de doğrulanıyor.
+- **Değişiklik:** Test-only; üretim davranışı/şema, frontend, adapter/performance-owned dosyalar, CNC output veya `main` değişmedi.
+- **Commit SHA:** oluşturulunca kaydedilecek. Exact-SHA CI/QA/Pages henüz bekleniyor; yerel test bu runtime'da çalıştırılamadı.
+- **Bilinen kısıt:** excluded Part'lar full snapshot'ta korunur ancak nesting batch'e dahil edilmez; cutout geometri desteklenmediği için excluded metadata yalnız snapshot doğrulaması, üretim/nesting iddiası değil.
+- **Next:** DOM-117 grouped Part quantities ve totalPieceCount kaynak snapshot'la karşılaştır; overflow/fractional quantity fail-closed.

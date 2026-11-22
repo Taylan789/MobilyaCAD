@@ -1111,3 +1111,16 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - **Acceptance:** conflict provenance Part/furniture IDs reconcile exactly with material summaries from isolated valid source reports and a validated Part snapshot; nesting stays blocked, `result` stays null, and the blocked report does not expose a partial `projectPartSnapshot`. Inputs remain unchanged.
 - **Scope:** cross-consumer regression test and production contract documentation only; no production behavior/schema, frontend, adapter/performance-owned files, machine-specific output, or CNC assumptions changed.
 - **Next:** DOM-116 validate the ready nesting-batch report's material-group/source snapshot consistency across selected and excluded Parts; INT-001 remains frontend-owned, INT-002/PERF-001 specialist-owned, QA-003 remains blocked until integration evidence.
+
+
+## Güncel domain öncelikleri — 22 Kasım 2026
+
+| Sıra | Dilim | Kabul kriteri / bağımlılık |
+|---|---|---|
+| DOM-116 (bu tur) | Ready nesting-batch seçimi, tam Part snapshot ve material/normalize thickness grup kaynağını birlikte doğrula | Seçilmiş/çıkarılmış kimlikler ayrık ve tam; snapshot proje sırasını korur; her batch yalnız seçili Part içerir, malzeme/kalınlık/adet kaynakla uyuşur; kesit metadata snapshot'ta kalır |
+| DOM-117 | Batch Part adetleri ve batch toplam adetini seçili kaynak snapshot ile karşılaştır | Quantity kayıpsız, toplam güvenli tam sayı, grup kaynakları birebir; overflow fail-closed; DOM-116 testine bağımlı |
+| DOM-118 | Stock-sheet tanım sırası ve kullanılmayan/duplicate group tanılarının deterministik sözleşmesi | Aynı girdi farklı sıralamayla aynı grup kimliği ve tanı sırasını üretir; kullanılmayan tanım sessizce yok olmaz |
+| DOM-119 | Ready batch → cut-plan/layout kaynak kapsamı için cross-consumer atomik doğrulama | Tüm kaynak ID/adet kapsamı reconciled; blocked/stale/unsupported durumda kısmi sonuç veya export yok; DOM-117/118 bağımlı |
+| INT-001 | Domain üretim raporu ↔ frontend adapter/export contract entegrasyonu | UI sahibinin dosyalarına dokunmadan JSON/CSV round-trip ve desteklenmeyen geometri için fail-closed kanıt |
+| INT-002 / PERF-001 | Integration/performance agent'ın adapter contract, benchmark ve profiling teslimatı | Agent'ın ayrı branch/PR ve gerçek CI kanıtı; bu otomasyon sahiplenmez veya merge etmez |
+
