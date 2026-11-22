@@ -1,0 +1,197 @@
+/* UI-WORKBENCH-SHELL-DETAIL-001
+   Technical surface hierarchy for the existing CAD shell. Geometry and panel sizing are untouched. */
+.cad-app {
+  --cad-shell-line: color-mix(in srgb, var(--cad-border) 78%, transparent);
+  --cad-shell-highlight: rgba(255, 255, 255, .035);
+  --cad-shell-blue: #789fbe;
+}
+
+.cad-app .cad-topbar {
+  background: linear-gradient(180deg, #202830 0%, #1b2229 100%);
+  box-shadow: inset 0 1px 0 var(--cad-shell-highlight);
+}
+
+.cad-app .cad-brand {
+  position: relative;
+}
+
+.cad-app .cad-document-name {
+  min-width: 0;
+  padding: 6px 10px;
+  border: 1px solid var(--cad-shell-line);
+  border-radius: 5px;
+  background: rgba(11, 16, 20, .2);
+}
+
+.cad-app .cad-document-title {
+  max-width: min(30vw, 440px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cad-app .cad-top-actions,
+.cad-app .cad-top-right {
+  min-width: 0;
+}
+
+.cad-app .cad-sidebar {
+  background: linear-gradient(180deg, #202831 0%, #1c242b 100%);
+  border-color: var(--cad-shell-line);
+  box-shadow: inset -1px 0 0 rgba(255, 255, 255, .018);
+}
+
+.cad-app .cad-sidebar-header {
+  background: rgba(9, 13, 17, .18);
+  border-bottom: 1px solid var(--cad-shell-line);
+}
+
+.cad-app .cad-sidebar-heading {
+  letter-spacing: .02em;
+}
+
+.cad-app .cad-sidebar-content {
+  scrollbar-gutter: stable;
+}
+
+.cad-app .cad-viewport-toolbar {
+  background: linear-gradient(180deg, #242e37 0%, #202831 100%);
+  border-bottom: 1px solid var(--cad-shell-line);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .025);
+}
+
+.cad-app .cad-viewport-title {
+  color: #d8e0e7;
+}
+
+.cad-app .cad-viewport-info {
+  color: #a8b5c0;
+  font-variant-numeric: tabular-nums;
+}
+
+.cad-app .cad-bottom-dock {
+  background: #1b232a;
+  border-top: 1px solid #45525e;
+  box-shadow: 0 -7px 22px rgba(4, 8, 12, .12);
+}
+
+.cad-app .cad-bottom-dock-header {
+  background: linear-gradient(180deg, #242e37 0%, #202831 100%);
+  border-bottom: 1px solid var(--cad-shell-line);
+}
+
+.cad-app .cad-bottom-dock-title strong {
+  color: #dce5ec;
+}
+
+.cad-app .cad-bottom-dock-title small {
+  color: #8493a0;
+  letter-spacing: .09em;
+}
+
+.cad-app .cad-bottom-dock-tabs {
+  gap: 2px;
+}
+
+.cad-app .cad-bottom-dock-tabs [role="tab"],
+.cad-app .cad-bottom-dock-tabs button {
+  position: relative;
+  border-radius: 4px 4px 0 0;
+  transition: color .14s ease, background-color .14s ease;
+}
+
+.cad-app .cad-bottom-dock-tabs [aria-selected="true"],
+.cad-app .cad-bottom-dock-tabs .active {
+  color: #e3edf5;
+  background: rgba(104, 151, 188, .11);
+}
+
+.cad-app .cad-bottom-dock-tabs [aria-selected="true"]::after,
+.cad-app .cad-bottom-dock-tabs .active::after {
+  position: absolute;
+  right: 8px;
+  bottom: 0;
+  left: 8px;
+  height: 2px;
+  background: var(--cad-shell-blue);
+  content: "";
+}
+
+.cad-app .cad-bottom-dock-metrics {
+  color: #91a1ae;
+  font-variant-numeric: tabular-nums;
+}
+
+.cad-app .cad-dock-table-wrap {
+  scrollbar-gutter: stable;
+}
+
+.cad-app .cad-dock-table thead {
+  background: #232d36;
+}
+
+.cad-app .cad-dock-table th {
+  color: #95a6b3;
+  font-size: 10px;
+  letter-spacing: .07em;
+  font-weight: 650;
+  border-bottom: 1px solid #3b4752;
+}
+
+.cad-app .cad-dock-table td {
+  border-bottom-color: rgba(74, 89, 102, .36);
+  font-variant-numeric: tabular-nums;
+}
+
+.cad-app .cad-dock-table tbody tr:hover {
+  background: rgba(104, 151, 188, .055);
+}
+
+.cad-app .cad-dock-empty {
+  color: #9aa9b5;
+}
+
+.cad-app .cad-statusbar {
+  background: #171e24;
+  border-top: 1px solid var(--cad-shell-line);
+  font-variant-numeric: tabular-nums;
+}
+
+.cad-app :is(button, input, select, [role="tab"], [role="button"]):focus-visible {
+  outline: 2px solid #82b3d8;
+  outline-offset: 2px;
+}
+
+@media (max-width: 1280px) {
+  .cad-app .cad-document-name {
+    padding-inline: 6px;
+  }
+
+  .cad-app .cad-document-title {
+    max-width: 22vw;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cad-app .cad-bottom-dock-tabs [role="tab"],
+  .cad-app .cad-bottom-dock-tabs button {
+    transition: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .cad-app .cad-topbar,
+  .cad-app .cad-sidebar,
+  .cad-app .cad-viewport-toolbar,
+  .cad-app .cad-bottom-dock,
+  .cad-app .cad-bottom-dock-header,
+  .cad-app .cad-statusbar {
+    background: Canvas;
+    border-color: CanvasText;
+    box-shadow: none;
+  }
+
+  .cad-app .cad-bottom-dock-tabs [aria-selected="true"]::after,
+  .cad-app .cad-bottom-dock-tabs .active::after {
+    background: Highlight;
+  }
+}
