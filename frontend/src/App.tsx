@@ -1973,7 +1973,7 @@ function App() {
                   </TabsList>
 
                   <ScrollArea className="cad-inspector-scroll">
-                    <TabsContent value="room" className="cad-tab-content">
+                    <TabsContent value="room" className="cad-tab-content cad-tab-content-room">
                       <section className="cad-property-section">
                         <div className="cad-section-heading">
                           <span>ODA ÖLÇÜLERİ</span>
