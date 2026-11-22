@@ -194,3 +194,10 @@
 - Files: `domain/production/projectProduction.ts`, `domain/production/projectProduction.test.mjs`, `docs/production-domain-contract.md`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`. No frontend/**, adapter/performance-owned files, project JSON/CSV schema or CNC output changed.
 - Commit SHA and exact Actions/Pages results will be added in a follow-up documentation commit after the GitHub run reports; local tests are unavailable.
 - Next: DOM-113 structured provenance consumer validation and fail-closed export-readiness contract.
+
+
+## 22 Kasım 2026 17:24 TRT — DOM-112 QA test correction
+
+- Exact-SHA CI [#45032813075](https://github.com/Taylan789/MobilyaCAD/actions/runs/45032813075) passed build/lint, but QA [#45032813113](https://github.com/Taylan789/MobilyaCAD/actions/runs/45032813113) failed one test: the new `Array.every` assertion passed a boolean rather than a callback (TypeError: `boolean false is not a function`). **636/637 domain tests passed; this was a test harness assertion error, not a reported production behavior failure.**
+- Pages [#45032813098](https://github.com/Taylan789/MobilyaCAD/actions/runs/45032813098) failed its CI+QA gate and did not deploy.
+- Corrected the assertion to a direct loop with `assert.deepEqual`; assertions are not weakened. Code commit [f59f02a](https://github.com/Taylan789/MobilyaCAD/commit/f59f02aabd830e67947967c17c906da68c9d6dd5) remains the implementation SHA; corrected test commit/verification are pending.

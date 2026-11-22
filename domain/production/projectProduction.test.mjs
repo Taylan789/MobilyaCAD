@@ -1657,9 +1657,9 @@ test("karışık mobilya ailelerinde aynı malzeme kimliğinin çelişkili katal
     );
   const expectedConflict = { materialId: "mdf-18", sources: expectedSources };
   assert.deepEqual(report.blockedFurniture[0].materialIdentityConflict, expectedConflict);
-  assert.ok(report.blockedFurniture.every((item =>
-    assert.deepEqual(item.materialIdentityConflict, expectedConflict)
-  ) === undefined));
+  for (const item of report.blockedFurniture) {
+    assert.deepEqual(item.materialIdentityConflict, expectedConflict);
+  }
 });
 
 test("DOM-111 mixed-family diagnostics and first error remain stable when furniture order changes", () => {
