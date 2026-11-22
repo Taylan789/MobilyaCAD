@@ -1059,7 +1059,12 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 
 ## DOM-111 — Deterministic multi-error diagnostics (IN PROGRESS)
 
-- Root cause from exact-SHA Actions on [cf4efd38](https://github.com/Taylan789/MobilyaCAD/commit/cf4efd3841197b4fc8510b2c6a779d8341c47fb6): the optional Part materialId filter was not a TypeScript type guard (strict build failed at lines 459/461), and pairwise reconciliation blocked only the first two furniture sources when another source used the same ID with a matching label.
-- Corrective slice groups Parts by material ID, narrows the ID to string, compares normalized label representatives deterministically, and blocks every furniture source sharing the conflicting catalogue ID. The project remains atomic (result=null) and no partial Part list is exposed.
-- Prior failed runs: CI [#45021592403](https://github.com/Taylan789/MobilyaCAD/actions/runs/45021592403), QA [#45021592322](https://github.com/Taylan789/MobilyaCAD/actions/runs/45021592322), Pages [#45021592354](https://github.com/Taylan789/MobilyaCAD/actions/runs/45021592354). Corrective exact-SHA Actions pending; local execution unavailable in this environment.
-- **Next:** DOM-112 additive structured conflict provenance (materialId, all source furniture/Part IDs), preserving the existing diagnostic message contract. INT-001 frontend-owned; INT-002/PERF-001 specialist-owned.
+- Prior exact-SHA CI/QA on [cf4efd38](https://github.com/Taylan789/MobilyaCAD/commit/cf4efd3841197b4fc8510b2c6a779d8341c47fb6) exposed optional materialId narrowing and pairwise-only blocking. Grouped correction [a84e371](https://github.com/Taylan789/MobilyaCAD/commit/a84e371253e647d0d2564089b324a7ee37b68b09) passed CI [#45027062785](https://github.com/Taylan789/MobilyaCAD/actions/runs/45027062785) but QA [#45027062707](https://github.com/Taylan789/MobilyaCAD/actions/runs/45027062707) failed 1/637: the diagnostic message listed conflicting label representatives but omitted the third furniture source sharing the material ID. Pages gate [#45027062794](https://github.com/Taylan789/MobilyaCAD/actions/runs/45027062794) failed/blocked.
+- This correction retains deterministic conflicting-label representatives and appends the sorted complete affected furniture-ID list to each conflict message. All contributors remain blocked, and the report still returns no partial Parts.
+- Exact-SHA verification for this correction pending; local execution unavailable.
+- **Next:** DOM-112 additive structured conflict provenance (material ID and all source furniture/Part IDs), retaining existing message compatibility.
+
+## DOM-112 — Structured material-conflict source provenance (READY)
+
+- Acceptance: additive report fields expose catalogue ID and sorted source furniture/Part identities for consumers; legacy message text, atomic blocking, deterministic order and strict validation remain unchanged.
+- Scope: domain report contract/tests and integration notes only; frontend-owned files remain untouched.

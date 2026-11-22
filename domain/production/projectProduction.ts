@@ -472,12 +472,12 @@ export function calculateCabinetProjectProductionWithDiagnostics(
         compareText(left.furnitureId, right.furnitureId) ||
         compareText(left.id, right.id)
       );
+      const affectedFurnitureIds = [...new Set(materialGroupParts.map((part) => part.furnitureId))]
+        .sort(compareText);
       const message = materialId + " katalog kimliği farklı adlarla kullanılıyor: " +
         conflictingParts.map((part) =>
           part.furnitureId + "/" + part.id + " \"" + part.material + "\""
-        ).join(" ve ") + ".";
-      const affectedFurnitureIds = [...new Set(materialGroupParts.map((part) => part.furnitureId))]
-        .sort(compareText);
+        ).join(" ve ") + ". Etkilenen mobilyalar: " + affectedFurnitureIds.join(", ") + ".";
       for (const furnitureId of affectedFurnitureIds) {
         addBlocked(
           furnitureId,
