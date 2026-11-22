@@ -594,8 +594,8 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 ## Next 5 small tasks
 
 1. DOM-109 DONE — [commit a6d34fe](https://github.com/Taylan789/MobilyaCAD/commit/a6d34fe17bf7eddc26f2aac97373adb61e346d03); exact-SHA CI/QA and Pages succeeded (150 frontend + 635 domain tests).
-2. DOM-110 IN PROGRESS — [test commit b03280ce](https://github.com/Taylan789/MobilyaCAD/commit/b03280ce1ba64a1982fa10b871d7b02a46f448c5); cross-family cabinet/bookshelf summary with repeated catalogue ID at 8/18 mm, quantity-weighted geometry and banding; Actions pending.
-3. DOM-111 READY — deterministic multi-invalid request diagnostics and first-error selection; fail closed across reordered input.
+2. DOM-110 VERIFIED — mixed-family cabinet/bookshelf material summary (8/18 mm, quantity, Part provenance, area/volume/banding); exact-SHA CI [#45015876727](https://github.com/Taylan789/MobilyaCAD/actions/runs/45015876727), QA [#45015876733](https://github.com/Taylan789/MobilyaCAD/actions/runs/45015876733) passed; Pages [#45015876696](https://github.com/Taylan789/MobilyaCAD/actions/runs/45015876696) deployed.
+3. DOM-111 IN PROGRESS — fix multi-error diagnostics: conflicting material IDs must block every furniture source sharing the ID, and strict TS narrowing must remain valid; prior SHA failed CI/QA.
 4. INT-001 frontend-owned — comparison/download and production export adapter contract; document integration handoff only, no frontend edits.
 5. INT-002/PERF-001 specialist-owned — integration profiling/benchmark evidence; QA-003 remains blocked until INT-001 and specialist evidence are available.
 
@@ -1027,7 +1027,7 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - **Coverage:** Tabletop uses an explicit 8 mm catalog override, legs use the 60 mm group material, and aprons retain the default material. Snapshot serialize/validate/compare is unchanged; summary quantities, line counts, area and volume agree with resulting Parts.
 - **Scope:** Domain regression test in `domain/production/projectProduction.test.mjs` only; no production geometry, schema, frontend, adapter/performance-owned files or CNC output changed.
 - **Verification:** [commit 55d8e104](https://github.com/Taylan789/MobilyaCAD/commit/55d8e104d8842f48faad1b53f6e32230ec88eb89) verified with exact-SHA [CI #44999210991](https://github.com/Taylan789/MobilyaCAD/actions/runs/44999210991), [QA #44999210952](https://github.com/Taylan789/MobilyaCAD/actions/runs/44999210952), and [Pages #44999210947](https://github.com/Taylan789/MobilyaCAD/actions/runs/44999210947), all successful. QA unit/domain tests, strict domain TypeScript, lint (32 warnings, 0 errors), production build, and audit (0 vulnerabilities) passed. Local tests unavailable; Actions are the evidence. Test site updated: https://taylan789.github.io/MobilyaCAD/.
-- **Next:** DOM-110 cross-family material summary test [b03280ce](https://github.com/Taylan789/MobilyaCAD/commit/b03280ce1ba64a1982fa10b871d7b02a46f448c5) is implemented; exact-SHA Actions pending. DOM-111 deterministic diagnostics next; INT-001 frontend-owned and INT-002/PERF-001 specialist-owned.
+- **Next:** DOM-111 corrective grouped catalogue identity diagnostics; then DOM-112 additive structured conflict provenance (catalog ID + all source Part/furniture IDs). INT-001 remains frontend-owned and INT-002/PERF-001 specialist-owned.
 
 
 ## DOM-108 — Mixed-family material-reference fail-closed reconciliation (VERIFIED, 22 November 2026)
@@ -1050,10 +1050,16 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - Test site deployment confirmed: https://taylan789.github.io/MobilyaCAD/.
 - Next: DOM-110 exact-SHA Actions verification; DOM-111 stable multi-error diagnostics.
 
-## DOM-110 — Mixed-family material summary invariants (IN PROGRESS)
+## DOM-110 — Mixed-family material summary invariants (VERIFIED, 22 November 2026)
 
-- Acceptance: repeated material IDs across furniture families, quantity multipliers, and distinct thickness groups preserve exact Part IDs, total quantity, net area, volume, and edge-band totals; inputs/results are immutable where expected.
+- Acceptance: repeated material IDs across cabinet/bookshelf families, quantity multipliers and distinct thicknesses preserve exact Part IDs, quantity, net area, volume and edge-band totals; inputs are immutable.
+- Test commit [b03280ce](https://github.com/Taylan789/MobilyaCAD/commit/b03280ce1ba64a1982fa10b871d7b02a46f448c5). Exact-SHA CI [#45015876727](https://github.com/Taylan789/MobilyaCAD/actions/runs/45015876727) and QA [#45015876733](https://github.com/Taylan789/MobilyaCAD/actions/runs/45015876733) succeeded; QA 150/150 frontend + 636/636 domain, strict domain TypeScript, lint 32 warnings/0 errors, production build and production dependency audit 0 vulnerabilities. Pages [#45015876696](https://github.com/Taylan789/MobilyaCAD/actions/runs/45015876696) succeeded.
+- Test site deployed: https://taylan789.github.io/MobilyaCAD/.
+- Next: DOM-111 stable multi-error diagnostics and source-wide blocking.
 
-## DOM-111 — Deterministic multi-error diagnostics (READY)
+## DOM-111 — Deterministic multi-error diagnostics (IN PROGRESS)
 
-- Acceptance: multiple invalid mixed-family requests produce stable diagnostic ordering and firstError under deterministic input order, remain blocked, and never return partial Parts. Tests must not weaken error validation.
+- Root cause from exact-SHA Actions on [cf4efd38](https://github.com/Taylan789/MobilyaCAD/commit/cf4efd3841197b4fc8510b2c6a779d8341c47fb6): the optional Part materialId filter was not a TypeScript type guard (strict build failed at lines 459/461), and pairwise reconciliation blocked only the first two furniture sources when another source used the same ID with a matching label.
+- Corrective slice groups Parts by material ID, narrows the ID to string, compares normalized label representatives deterministically, and blocks every furniture source sharing the conflicting catalogue ID. The project remains atomic (result=null) and no partial Part list is exposed.
+- Prior failed runs: CI [#45021592403](https://github.com/Taylan789/MobilyaCAD/actions/runs/45021592403), QA [#45021592322](https://github.com/Taylan789/MobilyaCAD/actions/runs/45021592322), Pages [#45021592354](https://github.com/Taylan789/MobilyaCAD/actions/runs/45021592354). Corrective exact-SHA Actions pending; local execution unavailable in this environment.
+- **Next:** DOM-112 additive structured conflict provenance (materialId, all source furniture/Part IDs), preserving the existing diagnostic message contract. INT-001 frontend-owned; INT-002/PERF-001 specialist-owned.

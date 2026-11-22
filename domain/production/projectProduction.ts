@@ -438,52 +438,58 @@ export function calculateCabinetProjectProductionWithDiagnostics(
     }
   }
 
-  // Reconcile catalogue identity across independently validated furniture-family requests.
-  // A stable material ID may not silently represent different labels in one project.
-  const materialLabelsById = new Map<string, {
-    label: string;
-    normalizedLabel: string;
-    furnitureId: string;
-    partId: string;
-  }>();
-  const reportedMaterialConflicts = new Set<string>();
+  // Reconcile catalogue identity across every Part that references the same material ID.
+  // A conflict blocks all contributing furniture, not only the first conflicting pair.
   const materialIdentityParts = parts
-    .filter((part) => part.materialId !== undefined)
+    .filter((part): part is ProjectProductionPart & { materialId: string } => part.materialId !== undefined)
     .sort((left, right) =>
-      compareText(left.materialId ?? "", right.materialId ?? "") ||
+      compareText(left.materialId, right.materialId) ||
       compareText(left.furnitureId, right.furnitureId) ||
       compareText(left.id, right.id)
     );
-  for (const part of materialIdentityParts) {
-    const normalizedLabel = normalizeMaterialCatalogLabel(part.material);
-    const previous = materialLabelsById.get(part.materialId);
-    if (previous === undefined) {
-      materialLabelsById.set(part.materialId, {
-        label: part.material,
-        normalizedLabel,
-        furnitureId: part.furnitureId,
-        partId: part.id
-      });
-      continue;
+  let materialGroupStart = 0;
+  while (materialGroupStart < materialIdentityParts.length) {
+    const materialId = materialIdentityParts[materialGroupStart].materialId;
+    let materialGroupEnd = materialGroupStart + 1;
+    while (
+      materialGroupEnd < materialIdentityParts.length &&
+      materialIdentityParts[materialGroupEnd].materialId === materialId
+    ) {
+      materialGroupEnd += 1;
     }
-    if (previous.normalizedLabel === normalizedLabel) continue;
 
-    const message = part.materialId + " katalog kimliği farklı adlarla kullanılıyor: " +
-      previous.furnitureId + "/" + previous.partId + " \"" + previous.label + "\" ve " +
-      part.furnitureId + "/" + part.id + " \"" + part.material + "\".";
-    for (const conflictFurnitureId of [previous.furnitureId, part.furnitureId]) {
-      const diagnosticKey = JSON.stringify([part.materialId, conflictFurnitureId]);
-      if (reportedMaterialConflicts.has(diagnosticKey)) continue;
-      reportedMaterialConflicts.add(diagnosticKey);
-      addBlocked(
-        conflictFurnitureId,
-        familyByFurnitureId.get(conflictFurnitureId) ?? null,
-        "invalid-material",
-        message
+    const materialGroupParts = materialIdentityParts.slice(materialGroupStart, materialGroupEnd);
+    const labelRepresentatives = new Map<string, (typeof materialIdentityParts)[number]>();
+    for (const part of materialGroupParts) {
+      const normalizedLabel = normalizeMaterialCatalogLabel(part.material);
+      if (!labelRepresentatives.has(normalizedLabel)) {
+        labelRepresentatives.set(normalizedLabel, part);
+      }
+    }
+
+    if (labelRepresentatives.size > 1) {
+      const conflictingParts = [...labelRepresentatives.values()].sort((left, right) =>
+        compareText(left.furnitureId, right.furnitureId) ||
+        compareText(left.id, right.id)
       );
+      const message = materialId + " katalog kimliği farklı adlarla kullanılıyor: " +
+        conflictingParts.map((part) =>
+          part.furnitureId + "/" + part.id + " \"" + part.material + "\""
+        ).join(" ve ") + ".";
+      const affectedFurnitureIds = [...new Set(materialGroupParts.map((part) => part.furnitureId))]
+        .sort(compareText);
+      for (const furnitureId of affectedFurnitureIds) {
+        addBlocked(
+          furnitureId,
+          familyByFurnitureId.get(furnitureId) ?? null,
+          "invalid-material",
+          message
+        );
+      }
     }
-  }
 
+    materialGroupStart = materialGroupEnd;
+  }
   const drawerRequests = (value.drawerBoxes ?? []) as readonly unknown[];
   for (const [index, request] of drawerRequests.entries()) {
     let furnitureId: string;
