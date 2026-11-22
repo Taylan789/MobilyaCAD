@@ -1,0 +1,106 @@
+name: MobilyaCAD Mobile Agent
+
+on:
+  workflow_dispatch:
+    inputs:
+      task:
+        description: "Optional mobile-focused task"
+        required: false
+        type: string
+        default: "Inspect mobile UX and implement one concrete, testable improvement."
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+  actions: write
+
+concurrency:
+  group: mobilyacad-mobile-agent
+  cancel-in-progress: false
+
+jobs:
+  mobile-agent:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - name: Guard target branch
+        run: |
+          if [ "$GITHUB_REF_NAME" != "dev/github-work" ]; then
+            echo "::error::Mobile Agent must be dispatched from dev/github-work."
+            exit 1
+          fi
+
+      - uses: actions/checkout@v4
+        with:
+          ref: dev/github-work
+          fetch-depth: 0
+
+      - name: Configure Git identity and isolated branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c "agent/mobile-$GITHUB_RUN_ID"
+
+      - name: Run OpenCode mobile specialist
+        uses: anomalyco/opencode/github@latest
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          model: openrouter/openrouter/free
+          use_github_token: true
+          prompt: |
+            You are the independent mobile UX and interaction agent for MobilyaCAD.
+            Work only on the isolated branch agent/mobile-${{ github.run_id }}.
+            Your PR must target dev/github-work only. Never touch, target, merge, or push to main.
+
+            FIRST read AI_COORDINATION.md, inspect frontend structure, open PRs, recent CI,
+            and identify existing mobile capabilities and unclaimed work.
+
+            SCOPE:
+            - ONLY modify files under frontend/**.
+            - Do not modify engine/domain/production/tests/docs/CI/workflows or desktop-owned
+              files unless they are strictly within frontend/** AND coordination clearly
+              permits a mobile-only isolated addition.
+            - Avoid overlapping active UI-agent tasks. If file ownership is unclear, report
+              a handoff instead of editing conflicting files.
+            - Do not create fake data, placeholder features, nonfunctional controls, or
+              pretend mobile CAD capabilities.
+
+            MISSION:
+            Improve the actual mobile browser experience using a touch-first design:
+            responsive workspace layout, accessible tap targets, mobile navigation,
+            selection/viewport interactions, a compact inspector (drawer or bottom sheet),
+            clear project/library access, safe viewport controls, and graceful behavior on
+            narrow screens. Preserve desktop experience and real application functionality.
+            Pick ONE small unclaimed improvement per run, implement it fully, and add or
+            update tests where feasible. Use existing project conventions.
+
+            VALIDATION:
+            Run applicable frontend tests, TypeScript checks, lint and production build.
+            If browser/device checks are unavailable, state that honestly. Do not claim
+            screenshots or device validation you did not perform.
+
+            Before finishing, summarize exact changed files, behavior, tests and risks.
+            Do not merge. Do not push to main.
+
+            USER TASK:
+            ${{ inputs.task }}
+
+      - name: Publish branch and create PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPOSITORY: ${{ github.repository }}
+          BRANCH: agent/mobile-${{ github.run_id }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "$(git rev-list --count "origin/dev/github-work..HEAD")" -eq 0 ]; then
+            echo "No completed mobile changes; skipping empty PR."
+            exit 0
+          fi
+          git push --set-upstream origin "$BRANCH"
+          gh pr create --repo "$REPOSITORY" --base dev/github-work --head "$BRANCH" \
+            --title "Mobile UX: focused improvement" \
+            --body "Autonomous Mobile Agent PR. Changes are isolated to frontend/**. Includes implementation, validation evidence, and limitations."
