@@ -28,7 +28,7 @@ test("viewport toolbar refinement is loaded after the existing CAD refinement", 
 
 test("toolbar has segmented states, compact desktop behavior and accessibility fallbacks", () => {
   assert.match(styles, /.studio-transform-tools button.active/);
-  assert.match(styles, /.studio-panel-tools button.studio-panel-toggle[aria-pressed="true"]/);
+  assert.match(styles, /\.studio-panel-tools button\.studio-panel-toggle\[aria-pressed="true"\]/);
   assert.match(styles, /:focus-visible/);
   assert.match(styles, /max-width: 1120px/);
   assert.match(styles, /max-width: 760px/);
