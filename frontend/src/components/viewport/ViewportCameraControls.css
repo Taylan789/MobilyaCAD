@@ -303,3 +303,96 @@
     background: CanvasText;
   }
 }
+
+
+/* UI-VIEWPORT-CAMERA-DOCK-RESPONSIVE-001 — bounded, keyboard-first view rail */
+.cad-viewport-camera-tools {
+  max-width: min(620px, calc(100vw - 30px));
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(145, 180, 202, 0.46) transparent;
+}
+
+.cad-viewport-camera-tools button,
+.cad-viewport-camera-tools__label,
+.cad-viewport-camera-tools__divider {
+  flex: 0 0 auto;
+}
+
+.cad-viewport-camera-tools button:nth-of-type(2) {
+  margin-inline-start: 3px;
+  border-inline-start-color: rgba(116, 145, 163, 0.22);
+}
+
+.cad-viewport-camera-tools button.is-active,
+.cad-viewport-camera-tools button[aria-pressed="true"] {
+  color: #f4f8fa;
+  background: linear-gradient(180deg, rgba(110, 154, 181, 0.38), rgba(61, 94, 115, 0.28));
+  border-color: rgba(165, 199, 220, 0.58);
+  box-shadow: inset 0 1px rgba(230, 244, 251, 0.08), 0 0 0 1px rgba(119, 163, 189, 0.08);
+}
+
+.cad-viewport-camera-tools button:focus-visible {
+  outline: 2px solid #b9d5e6;
+  outline-offset: 2px;
+  z-index: 1;
+}
+
+.cad-viewport-camera-tools button[aria-pressed="true"]::after {
+  content: "";
+  position: absolute;
+  inset: auto 6px 2px;
+  height: 1px;
+  background: #b9d5e6;
+  pointer-events: none;
+}
+
+.cad-viewport-camera-tools::-webkit-scrollbar {
+  height: 3px;
+}
+
+.cad-viewport-camera-tools::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.cad-viewport-camera-tools::-webkit-scrollbar-thumb {
+  border-radius: 2px;
+  background: rgba(145, 180, 202, 0.46);
+}
+
+@media (max-width: 560px) {
+  .cad-viewport-camera-tools {
+    max-width: calc(100vw - 16px);
+    right: 8px;
+  }
+
+  .cad-viewport-camera-tools button {
+    min-width: 30px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cad-viewport-camera-tools {
+    scroll-behavior: auto;
+  }
+
+  .cad-viewport-camera-tools button {
+    transition: none !important;
+    transform: none !important;
+  }
+}
+
+@media (forced-colors: active) {
+  .cad-viewport-camera-tools button.is-active,
+  .cad-viewport-camera-tools button[aria-pressed="true"] {
+    border-color: Highlight;
+    background: Highlight;
+    color: HighlightText;
+  }
+
+  .cad-viewport-camera-tools button[aria-pressed="true"]::after {
+    background: HighlightText;
+  }
+}
