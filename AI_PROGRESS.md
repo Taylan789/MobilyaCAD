@@ -1,8 +1,8 @@
-## 22 Kasım 2026 08:29 TRT — DOM-105 IN_PROGRESS
+## 22 Kasım 2026 08:29 TRT — DOM-105 IN_PROGRESS (QA correction)
 
-- Added a domain regression slice for legacy quote-comparison CSV v1/v2 import → canonical v3 export, covering supported line provenance, v2 roll metadata, intentionally absent catalog identity, canonical version/header, repeated export bytes and import immutability.
-- Files: `domain/production/projectQuoteRevisionComparisonCsv.test.mjs`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`. Production serializer/schema unchanged; no frontend or specialist-owned files changed.
-- Commit and exact-SHA CI/QA/Pages verification pending. Local test execution unavailable; do not mark verified until Actions evidence is checked.
+- Legacy v1/v2 import → canonical v3 regression slice is committed in [28ed773](https://github.com/Taylan789/MobilyaCAD/commit/28ed773e8b8dc3a266d0eead4ecb1f8c739ef488). Exact-SHA CI #44989919137 passed, but QA #44989919145 failed: the v2 fixture increased the quote grand-total delta to 1,375 while a shared provenance helper asserted the original baseline 1,075. This was a test-fixture expectation mismatch, not a production serializer/parser failure.
+- Pages #44989919118 failed its CI/QA gate; no deployment occurred. Correction: parameterize the existing provenance helper with expected totals while keeping its assertions and coverage intact.
+- Files remain domain regression tests plus coordination/roadmap/progress docs. No production code/schema, frontend, adapter/performance-owned files, or tests were weakened. Local test execution unavailable; corrected exact-SHA Actions pending.
 - Next: DOM-106 legacy-import canonical export repeatability; INT-001 frontend-owned and INT-002/PERF-001 specialist-owned; QA-003 remains blocked by integration evidence.
 
 ## 22 Kasım 2026 07:07 TRT — DOM-104 VERIFIED

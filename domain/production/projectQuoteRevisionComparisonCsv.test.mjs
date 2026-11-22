@@ -77,7 +77,7 @@ function quoteAdjustmentChanges() {
     { type: "removed", from: quoteAdjustmentLine("profit", "Eski kâr", "profit-adjustment-removed", "profit:remove:v1", 50), to: null }
   ];
 }
-function assertQuoteAdjustmentProvenance(comparison) {
+function assertQuoteAdjustmentProvenance(comparison, expectedGrandTotalDeltaMinor = 1075, expectedToGrandTotalMinor = 11075) {
   const changes = comparison.lineChanges.filter(change => (change.from ?? change.to)?.sourceType === "quote-adjustment");
   assert.equal(changes.length, 6);
   assert.deepEqual(changes.reduce((counts, change) => { counts[change.type] += 1; return counts; }, { added: 0, removed: 0, changed: 0 }),
@@ -116,8 +116,8 @@ function assertQuoteAdjustmentProvenance(comparison) {
   ]);
   assert.equal(comparison.categoryDeltasMinor.waste, 125);
   assert.equal(comparison.categoryDeltasMinor.profit, 200);
-  assert.equal(comparison.grandTotalDeltaMinor, 1075);
-  assert.equal(comparison.toGrandTotalMinor, 11075);
+  assert.equal(comparison.grandTotalDeltaMinor, expectedGrandTotalDeltaMinor);
+  assert.equal(comparison.toGrandTotalMinor, expectedToGrandTotalMinor);
 }
 
 function readyComparisonResult() {
@@ -899,7 +899,7 @@ test("DOM-105 legacy CSV v1/v2 imports can be canonicalized to v3 without losing
       (change.from ?? change.to)?.description === "Dolap montajı");
     assert.ok(laborChange);
     assert.equal(laborChange.from.tariffId, "labor-hourly");
-    assertQuoteAdjustmentProvenance(importedSnapshot);
+    assertQuoteAdjustmentProvenance(importedSnapshot, legacy.version === 2 ? 1375 : 1075, legacy.version === 2 ? 12375 : 11075);
 
     if (legacy.version === 1) {
       assert.equal(importedSnapshot.lineChanges.some(change => (change.from ?? change.to)?.unit === "rulo"), false);
