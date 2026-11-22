@@ -1027,7 +1027,7 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - **Coverage:** Tabletop uses an explicit 8 mm catalog override, legs use the 60 mm group material, and aprons retain the default material. Snapshot serialize/validate/compare is unchanged; summary quantities, line counts, area and volume agree with resulting Parts.
 - **Scope:** Domain regression test in `domain/production/projectProduction.test.mjs` only; no production geometry, schema, frontend, adapter/performance-owned files or CNC output changed.
 - **Verification:** [commit 55d8e104](https://github.com/Taylan789/MobilyaCAD/commit/55d8e104d8842f48faad1b53f6e32230ec88eb89) verified with exact-SHA [CI #44999210991](https://github.com/Taylan789/MobilyaCAD/actions/runs/44999210991), [QA #44999210952](https://github.com/Taylan789/MobilyaCAD/actions/runs/44999210952), and [Pages #44999210947](https://github.com/Taylan789/MobilyaCAD/actions/runs/44999210947), all successful. QA unit/domain tests, strict domain TypeScript, lint (32 warnings, 0 errors), production build, and audit (0 vulnerabilities) passed. Local tests unavailable; Actions are the evidence. Test site updated: https://taylan789.github.io/MobilyaCAD/.
-- **Next:** DOM-109 cross-family material catalogue identity reconciliation; DOM-110 mixed-family material summary invariants; DOM-111 deterministic diagnostics. INT-001 frontend-owned; INT-002/PERF-001 specialist-owned.
+- **Next:** DOM-110 cross-family material summary test [b03280ce](https://github.com/Taylan789/MobilyaCAD/commit/b03280ce1ba64a1982fa10b871d7b02a46f448c5) is implemented; exact-SHA Actions pending. DOM-111 deterministic diagnostics next; INT-001 frontend-owned and INT-002/PERF-001 specialist-owned.
 
 
 ## DOM-108 — Mixed-family material-reference fail-closed reconciliation (VERIFIED, 22 November 2026)
@@ -1048,9 +1048,9 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - Code/test commit: [a6d34fe17bf7eddc26f2aac97373adb61e346d03](https://github.com/Taylan789/MobilyaCAD/commit/a6d34fe17bf7eddc26f2aac97373adb61e346d03). Files: `domain/production/projectProduction.ts`, `projectProduction.test.mjs`, new `materialIdentity.ts`, `projectMaterialSummary.ts`, and `projectMaterialSummary.test.mjs`. No frontend, adapter/performance-owned files, export schema or CNC output changed.
 - Exact-SHA CI [#45014447877](https://github.com/Taylan789/MobilyaCAD/actions/runs/45014447877), QA [#45014447767](https://github.com/Taylan789/MobilyaCAD/actions/runs/45014447767), and Pages [#45014447798](https://github.com/Taylan789/MobilyaCAD/actions/runs/45014447798) all succeeded. QA: **150 frontend + 635 domain tests**, strict domain TS, lint 32 warnings/0 errors, production build, and audit 0 vulnerabilities.
 - Test site deployment confirmed: https://taylan789.github.io/MobilyaCAD/.
-- Next: DOM-110 mixed-family material summary invariants; DOM-111 stable multi-error diagnostics.
+- Next: DOM-110 exact-SHA Actions verification; DOM-111 stable multi-error diagnostics.
 
-## DOM-110 — Mixed-family material summary invariants (READY)
+## DOM-110 — Mixed-family material summary invariants (IN PROGRESS)
 
 - Acceptance: repeated material IDs across furniture families, quantity multipliers, and distinct thickness groups preserve exact Part IDs, total quantity, net area, volume, and edge-band totals; inputs/results are immutable where expected.
 
