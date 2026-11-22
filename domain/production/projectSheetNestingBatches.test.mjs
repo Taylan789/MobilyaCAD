@@ -522,12 +522,18 @@ test("DOM-115 blocked mixed-family material-conflict provenance reconciles with 
     /katalog kimliği farklı adlarla kullanılıyor/
   );
   assert.equal(nestingReport.projectPartSnapshot, undefined);
-  assert.deepEqual(
-    nestingReport.productionDiagnostics?.flatMap((diagnostic) =>
-      diagnostic.materialIdentityConflict?.sources ?? []
-    ).map((source) => source.partId).sort(),
-    conflictPartIds
+  const nestingConflictDiagnostics = (nestingReport.productionDiagnostics ?? [])
+    .filter((diagnostic) => diagnostic.materialIdentityConflict);
+  const nestingConflictPartIds = nestingConflictDiagnostics.flatMap((diagnostic) =>
+    diagnostic.materialIdentityConflict?.sources.map((source) => source.partId) ?? []
   );
+  assert.deepEqual([...new Set(nestingConflictPartIds)].sort(), conflictPartIds);
+  for (const diagnostic of nestingConflictDiagnostics) {
+    assert.deepEqual(
+      diagnostic.materialIdentityConflict?.sources.map((source) => source.partId).sort(),
+      conflictPartIds
+    );
+  }
   assert.deepEqual(JSON.stringify(furniture), before);
 });
 

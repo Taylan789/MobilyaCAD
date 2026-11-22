@@ -1,3 +1,12 @@
+## 22 Kasım 2026 21:30 TRT — DOM-115 ikinci QA düzeltmesi, doğrulama bekliyor
+
+- [Commit 1324c78](https://github.com/Taylan789/MobilyaCAD/commit/1324c78c7bce82b4dff5bf60f567e2355deb3dec) CI [#45055923770](https://github.com/Taylan789/MobilyaCAD/actions/runs/45055923770) başarılı; QA [#45055923801](https://github.com/Taylan789/MobilyaCAD/actions/runs/45055923801) başarısız: 640 domain testi geçti, 1 DOM-115 assertion failed. İlk regex düzeltmesi geçti; yeni hata, her blocked-furniture tanısının aynı tam conflict kaynak listesini taşıması ve testin flatten edilmiş tekrarları tekil listeyle karşılaştırmasıydı.
+- Yeni test düzeltmesi conflict kaynak Part ID'lerini unique set olarak karşılaştırıyor ve her conflict diagnostic'in kendi kaynak listesini ayrıca doğruluyor. Üretim tanı kodu değiştirilmedi; bu commit için Actions henüz tetiklenmedi.
+- Pages run [#45055923800](https://github.com/Taylan789/MobilyaCAD/actions/runs/45055923800) site build/artifact adımları başarılı; exact-SHA QA kapısı önceki QA failure nedeniyle son kontrolümde beklemede. Test site henüz yeni SHA'yı almamıştır; son başarılı deploy [#45049246309](https://github.com/Taylan789/MobilyaCAD/actions/runs/45049246309), [URL](https://taylan789.github.io/MobilyaCAD/).
+- AI Developer [#45045107407](https://github.com/Taylan789/MobilyaCAD/actions/runs/45045107407) ücretsiz model kotası HTTP 429; specialist job skipped/disabled, ayrı uzman branch/PR doğrulanmadı. Ücret/secrets/kota değişmedi.
+- Bu düzeltmenin commit SHA'sı ve exact-SHA CI/QA/Pages sonuçları sonraki progress kaydında yer alacak. Next: DOM-115 testini doğrula, ardından DOM-116 ready nesting-batch kaynak/grup tutarlılığı.
+
+
 ## 22 Kasım 2026 21:30 TRT — DOM-115 QA düzeltmesi, doğrulama bekliyor
 
 - İncelenen branch HEAD: `f909ed3a3f55b1fd1308217f15a62f9d3a76963a`. CI [#45051528250](https://github.com/Taylan789/MobilyaCAD/actions/runs/45051528250) başarılı; QA [#45051528277](https://github.com/Taylan789/MobilyaCAD/actions/runs/45051528277) başarısız: 640 domain testi geçti, yalnız DOM-115 testinin tanı mesajı regex'i gerçek metinle uyuşmadı. Üretim tanısı `katalog kimliği farklı adlarla kullanılıyor` diyor; test beklentisi `farklı malzeme adlarıyla` idi.
