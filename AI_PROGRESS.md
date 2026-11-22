@@ -323,3 +323,13 @@
 - **Initial verification:** CI [#45079989113](https://github.com/Taylan789/MobilyaCAD/actions/runs/45079989113) passed. QA [#45079989219](https://github.com/Taylan789/MobilyaCAD/actions/runs/45079989219) failed in the shared domain tests: 647 passed, 1 failed; the new test referenced `validateProjectPartSnapshot` without importing it.
 - **Correction:** added the missing test import. No production behavior was changed. The first Pages run [#45079989158](https://github.com/Taylan789/MobilyaCAD/actions/runs/45079989158) was still waiting for exact-SHA QA and is expected to be superseded by the corrected commit's deployment workflow.
 - **Correction commit:** pending SHA; new exact-SHA CI/QA/Pages runs are pending.
+
+## 23 Kasım 2026 02:05 TRT — DOM-119 VERIFIED
+
+- **Code/test:** [e778a992](https://github.com/Taylan789/MobilyaCAD/commit/e778a992b068cc6cd21b7a992427b033b8d31947). Added validator import after first QA caught it; no production behavior changed.
+- **Exact-SHA Actions:** CI [#45080100519](https://github.com/Taylan789/MobilyaCAD/actions/runs/45080100519) and QA [#45080100502](https://github.com/Taylan789/MobilyaCAD/actions/runs/45080100502) succeeded. QA: **172 frontend + 648 domain tests, 0 failures**, strict domain TypeScript, lint **32 warnings / 0 errors**, production build, audit **0 vulnerabilities**.
+- **Pages:** [#45080100538](https://github.com/Taylan789/MobilyaCAD/actions/runs/45080100538) succeeded; test site deployed: https://taylan789.github.io/MobilyaCAD/.
+- **Scope:** test only, plus product/coordination records. No production source, frontend, adapter/performance-owned files, schema, CNC output, or `main` changed.
+- **Known limitations:** bundle remains 1.687 MB JS / 472.42 KB gzip (Vite warning); npm install reports 4 moderate advisories, production audit remains clean. Local test execution unavailable; Actions evidence is authoritative.
+- **AI Developer:** [#45075174069](https://github.com/Taylan789/MobilyaCAD/actions/runs/45075174069) failed with OpenRouter free-model daily 429; specialist integration/performance job skipped. No rerun before the documented 03:00 TRT reset, no paid fallback, quota or secrets changes.
+- **Next:** DOM-120 area-summary reconciliation, then DOM-121 edge-band/material summary provenance, DOM-122 priced-consumption/quote totals. INT-001 frontend-owned, INT-002/PERF-001 specialist-owned; QA-003 blocked.

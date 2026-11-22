@@ -1151,11 +1151,11 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - Exact code/test commit: d081696ce27d6ad9f9a52604a3c47ef2a8ad4700. CI #45072743130 and QA #45072741019 succeeded (169 frontend + 647 domain tests; 0 failures, strict domain TS, lint, build, production audit 0 vulnerabilities); Pages #45072740981 succeeded.
 - Next: DOM-119 atomic ready-batch to cut-plan source coverage reconciliation. INT-001 frontend-owned; INT-002/PERF-001 specialist-owned.
 
-## DOM-119 — Nesting batch → project cut-plan source coverage (verification pending)
+## DOM-119 — Nesting batch → project cut-plan source coverage (VERIFIED)
 
 - **Acceptance:** a ready mixed-material project plan reconciles each group with its matching nesting batch and canonical Part snapshot; source material/measure/grain/quantity remain intact; every physical piece number from 1..quantity is placed exactly once; group and project placement counts agree; excluded Parts remain snapshot-only and never enter placements.
 - **Scope:** domain cross-consumer regression in `domain/production/projectSheetCutPlan.test.mjs`; no production behavior, frontend, adapter/performance-owned files, schema, CNC output, or `main`.
-- **Verification:** initial exact-SHA CI [#45079989113](https://github.com/Taylan789/MobilyaCAD/actions/runs/45079989113) passed; QA [#45079989219](https://github.com/Taylan789/MobilyaCAD/actions/runs/45079989219) found one missing test import (647/648). Import corrected; new exact-SHA CI/QA/Pages pending. Local tests unavailable; GitHub Actions is authoritative.
+- **Verification:** corrected code/test commit [e778a992](https://github.com/Taylan789/MobilyaCAD/commit/e778a992b068cc6cd21b7a992427b033b8d31947); exact-SHA CI [#45080100519](https://github.com/Taylan789/MobilyaCAD/actions/runs/45080100519), QA [#45080100502](https://github.com/Taylan789/MobilyaCAD/actions/runs/45080100502) succeeded (172 frontend + 648 domain tests, 0 failures; strict domain TypeScript, lint 32 warnings/0 errors, production build, audit 0 vulnerabilities); Pages [#45080100538](https://github.com/Taylan789/MobilyaCAD/actions/runs/45080100538) deployed successfully. Local tests unavailable; GitHub Actions is authoritative.
 - **Next:** DOM-120 project cut-plan area-summary reconciliation; DOM-121 edge-band/material summary provenance across mixed-family snapshots; DOM-122 quote-cost summary totals against priced-consumption source. INT-001 frontend-owned; INT-002/PERF-001 specialist-owned; QA-003 remains blocked until their evidence exists.
 
 ## 10/10 quality checklist — evidence-based status
