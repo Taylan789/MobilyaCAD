@@ -593,14 +593,11 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 
 ## Next 5 small tasks
 
-1. DOM-103 DONE — [fix commit 431b044](https://github.com/Taylan789/MobilyaCAD/commit/431b044cd20d07209104f2fdd422352400c56750); exact-SHA CI #44982525644, QA #44982525656, Pages #44982525667 successful.
-2. DOM-104 DONE — [commit 614d559](https://github.com/Taylan789/MobilyaCAD/commit/614d559c902cc4038f9c177eaa31ce86045ef3fe); exact-SHA CI #44983853404, QA #44983853400, Pages #44983853533 successful.
-3. DOM-105 DONE — [correction commit 1d4503be](https://github.com/Taylan789/MobilyaCAD/commit/1d4503be5a277ec8a9eca8e1c5fc71120caee214); CI #44990018540, QA #44990018528, Pages #44990018506 successful (144 frontend + 630 domain; strict TS/build/audit passed; lint 32 warnings/0 errors).
-4. DOM-106 VERIFIED — current branch SHA `9f3d8ba3a180cf18b83b9b18d528c11c6a4f80fb`; [CI #44996078563](https://github.com/Taylan789/MobilyaCAD/actions/runs/44996078563), [QA #44996078516](https://github.com/Taylan789/MobilyaCAD/actions/runs/44996078516), [Pages #44996078532](https://github.com/Taylan789/MobilyaCAD/actions/runs/44996078532) all successful.
-5. DOM-107 VERIFIED — [commit 55d8e104](https://github.com/Taylan789/MobilyaCAD/commit/55d8e104d8842f48faad1b53f6e32230ec88eb89); [CI #44999210991](https://github.com/Taylan789/MobilyaCAD/actions/runs/44999210991), [QA #44999210952](https://github.com/Taylan789/MobilyaCAD/actions/runs/44999210952), and [Pages #44999210947](https://github.com/Taylan789/MobilyaCAD/actions/runs/44999210947) all succeeded.
-6. DOM-108 READY — mixed-family invalid material references must fail closed without partial Parts.
-6. DOM-108 READY — mixed-family invalid material references must fail closed without partial Parts.
-5. INT-001 FRONTEND-OWNED — comparison download and production report/export integration; domain agent does not edit frontend files.
+1. DOM-108 DONE — [test commit 5595e8c9](https://github.com/Taylan789/MobilyaCAD/commit/5595e8c9a36b4edf8dd1decb2dbfc27dc1fb7ef7); CI #45001931586, QA #45001931594 (148 frontend + 632 domain), Pages #45001931632 successful.
+2. DOM-109 READY — mixed-family material catalogue IDs must resolve to consistent normalized labels; conflicting identity is blocked.
+3. DOM-110 READY — repeated material IDs and quantity/thickness grouping remain consistent in cross-family material-consumption summaries.
+4. DOM-111 READY — multi-invalid request diagnostics and first-error selection are deterministic and fail closed.
+5. INT-001 frontend-owned — comparison/download and production export adapter contract; INT-002/PERF-001 specialist-owned profiling. QA-003 remains blocked until both integration slices are evidenced.
 
 ## 10/10 ölçülebilir kalite kapıları (20 Kasım 2026 baseline)
 
@@ -1030,13 +1027,28 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - **Coverage:** Tabletop uses an explicit 8 mm catalog override, legs use the 60 mm group material, and aprons retain the default material. Snapshot serialize/validate/compare is unchanged; summary quantities, line counts, area and volume agree with resulting Parts.
 - **Scope:** Domain regression test in `domain/production/projectProduction.test.mjs` only; no production geometry, schema, frontend, adapter/performance-owned files or CNC output changed.
 - **Verification:** [commit 55d8e104](https://github.com/Taylan789/MobilyaCAD/commit/55d8e104d8842f48faad1b53f6e32230ec88eb89) verified with exact-SHA [CI #44999210991](https://github.com/Taylan789/MobilyaCAD/actions/runs/44999210991), [QA #44999210952](https://github.com/Taylan789/MobilyaCAD/actions/runs/44999210952), and [Pages #44999210947](https://github.com/Taylan789/MobilyaCAD/actions/runs/44999210947), all successful. QA unit/domain tests, strict domain TypeScript, lint (32 warnings, 0 errors), production build, and audit (0 vulnerabilities) passed. Local tests unavailable; Actions are the evidence. Test site updated: https://taylan789.github.io/MobilyaCAD/.
-- **Next:** DOM-108 mixed-family invalid material/catalog references fail atomically with diagnostics and no partial Part list; exact-SHA Actions pending. INT-001 frontend-owned, INT-002/PERF-001 specialist-owned.
+- **Next:** DOM-109 cross-family material catalogue identity reconciliation; DOM-110 mixed-family material summary invariants; DOM-111 deterministic diagnostics. INT-001 frontend-owned; INT-002/PERF-001 specialist-owned.
 
 
-## DOM-108 — Mixed-family material-reference fail-closed reconciliation (IN_PROGRESS, 22 November 2026)
+## DOM-108 — Mixed-family material-reference fail-closed reconciliation (VERIFIED, 22 November 2026)
 
 - Acceptance: A project containing multiple furniture families must not return a partial Part list when any family has a missing catalogue identity or a material/thickness mismatch. Diagnostics identify the blocked furniture family and ID; unaffected-family Parts are never presented as a partial exportable result.
-- Coverage slice: Cabinet carcass top override references a missing material while a valid table is present; separately, a valid cabinet is combined with a table whose 8 mm top is assigned an 18 mm-only material. Both reports must be blocked, result=null, and the strict aggregator must throw. Input requests remain unchanged.
+- Coverage: Cabinet carcass top override references a missing material while a valid table is present; separately, a valid cabinet is combined with a table whose 8 mm top is assigned an 18 mm-only material. Both reports are blocked, result=null, strict aggregation throws, and inputs remain unchanged.
 - Scope: Domain regression test only; no production geometry, frontend, adapter/performance-owned files, project schema, or CNC output changes.
-- Verification: Test and docs commit created; exact-SHA CI/QA/Pages pending. Local tests unavailable.
-- Next 5 small tasks: DOM-109 cross-family material ID/name reconciliation; DOM-110 mixed-family material-consumption summary invariants for repeated IDs and quantities; DOM-111 strict catalog override normalization across legacy and explicit families; INT-001 frontend-owned export adapter contract; INT-002/PERF-001 specialist-owned profiling. QA-003 remains blocked until INT-001/INT-002 evidence.
+- Verification: [test commit 5595e8c9](https://github.com/Taylan789/MobilyaCAD/commit/5595e8c9a36b4edf8dd1decb2dbfc27dc1fb7ef7) passed exact-SHA [CI #45001931586](https://github.com/Taylan789/MobilyaCAD/actions/runs/45001931586), [QA #45001931594](https://github.com/Taylan789/MobilyaCAD/actions/runs/45001931594), and [Pages #45001931632](https://github.com/Taylan789/MobilyaCAD/actions/runs/45001931632). QA: 148 frontend + 632 domain tests, strict domain TypeScript, lint 32 warnings/0 errors, production build, and dependency audit 0 vulnerabilities. Local execution unavailable; Actions is the evidence.
+- Test site deployment confirmed: https://taylan789.github.io/MobilyaCAD/.
+- AI Developer [#44972838278](https://github.com/Taylan789/MobilyaCAD/actions/runs/44972838278) remains blocked by OpenRouter free-model daily HTTP 429 (remaining 0; reset 23 Nov 2026 03:00 TRT); no rerun or paid fallback.
+- UI PRs #151, #149 and #147 remain draft/unmerged; visible frontend redesign is not deployed. This agent does not touch frontend files.
+
+## DOM-109 — Cross-family catalogue identity reconciliation (READY)
+
+- Same material ID across furniture-family catalogs must retain a consistent normalized label; conflicting labels should block the project instead of splitting/renaming material consumption silently. Valid different thicknesses remain separate summary groups.
+- Acceptance: mixed cabinet/table/bookcase fixture with conflicting material label fails atomically and reports stable source context; compatible IDs/names and allowed thicknesses remain ready. No partial Parts.
+
+## DOM-110 — Mixed-family material summary invariants (READY)
+
+- Acceptance: repeated material IDs across furniture families, quantity multipliers, and distinct thickness groups preserve exact Part IDs, total quantity, net area, volume, and edge-band totals; inputs/results are immutable where expected.
+
+## DOM-111 — Deterministic multi-error diagnostics (READY)
+
+- Acceptance: multiple invalid mixed-family requests produce stable diagnostic ordering and firstError under deterministic input order, remain blocked, and never return partial Parts. Tests must not weaken error validation.
