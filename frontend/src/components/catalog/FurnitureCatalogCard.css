@@ -209,3 +209,13 @@
     transform: none !important;
   }
 }
+
+/* UI-CATALOG-DIMENSIONS-001 — explicit axis order keeps library measurements unambiguous. */
+.mc-catalog-card__axis-label {
+  flex: 0 0 auto;
+  color: #8fa7b4;
+  font-size: 7px;
+  font-weight: 750;
+  letter-spacing: .06em;
+  white-space: nowrap;
+}

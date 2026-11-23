@@ -44,19 +44,19 @@ function FurniturePreview({ item }: { item: FurnitureCatalogItem }) {
         <g stroke="#c4d1d8" strokeLinejoin="round">
           <path d={`M${x} ${top} L${right} ${top} L${right + dx} ${top - dy} L${x + dx} ${top - dy} Z`} fill={item.color} fillOpacity=".95" strokeOpacity=".9" />
           <path d={`M${x} ${top} L${right} ${top} L${right} ${top + 8} L${x} ${top + 8} Z`} fill="#344a56" strokeOpacity=".65" />
-          <path d={`M${right} ${top} L${right + dx} ${top - dy} L${right + dx} ${top - dy + 8} L${right} ${top + 8} Z`} fill="url(#catalog-side-${item.id})" strokeOpacity=".55" />
+          <path d={`M${right} ${top} L${right + dx} ${top - dy} L${right + dx} ${top - dy + 8} L${right} ${top + 8} Z`} fill={`url(#catalog-side-${item.id})`} strokeOpacity=".55" />
           <path d={`M${x + 8} ${top + 8} L${x + 8} 126 M${right - 8} ${top + 8} L${right - 8} 126 M${right + dx - 8} ${top - dy + 8} L${right + dx - 8} 119`} fill="none" strokeWidth="3.2" strokeLinecap="round" strokeOpacity=".78" />
         </g>
       ) : isCountertop ? (
         <g stroke="#d5dfe4" strokeLinejoin="round">
           <path d={`M${x - 4} ${top + 8} L${right + 4} ${top + 8} L${right + dx + 4} ${top + 8 - dy} L${x + dx - 4} ${top + 8 - dy} Z`} fill={item.color} strokeOpacity=".85" />
           <path d={`M${x - 4} ${top + 8} L${right + 4} ${top + 8} L${right + 4} ${top + 16} L${x - 4} ${top + 16} Z`} fill="#53636b" strokeOpacity=".65" />
-          <path d={`M${right + 4} ${top + 8} L${right + dx + 4} ${top + 8 - dy} L${right + dx + 4} ${top + 16 - dy} L${right + 4} ${top + 16} Z`} fill="url(#catalog-side-${item.id})" strokeOpacity=".55" />
+          <path d={`M${right + 4} ${top + 8} L${right + dx + 4} ${top + 8 - dy} L${right + dx + 4} ${top + 16 - dy} L${right + 4} ${top + 16} Z`} fill={`url(#catalog-side-${item.id})`} strokeOpacity=".55" />
         </g>
       ) : (
         <g stroke="#c4d1d8" strokeLinejoin="round">
           <path d={`M${x} ${top} L${right} ${top} L${right + dx} ${top - dy} L${x + dx} ${top - dy} Z`} fill={item.color} fillOpacity=".94" strokeOpacity=".85" />
-          <path d={`M${right} ${top} L${right + dx} ${top - dy} L${right + dx} ${bottom - dy} L${right} ${bottom} Z`} fill="url(#catalog-side-${item.id})" strokeOpacity=".7" />
+          <path d={`M${right} ${top} L${right + dx} ${top - dy} L${right + dx} ${bottom - dy} L${right} ${bottom} Z`} fill={`url(#catalog-side-${item.id})`} strokeOpacity=".7" />
           <path d={`M${x} ${top} L${right} ${top} L${right} ${bottom} L${x} ${bottom} Z`} fill={`url(#catalog-front-${item.id})`} strokeOpacity=".9" />
           <path d={`M${x + 4} ${top + 4} H${right - 4}`} stroke="#fff" strokeOpacity=".25" />
           {item.type === "bookcase" ? (
@@ -114,7 +114,7 @@ export function FurnitureCatalogCard({ item, index, onAdd, onDragStart, onDragEn
       onDragEnd={onDragEnd}
       onClick={onAdd}
       title={`${item.name} modelini odaya ekle`}
-      aria-label={`${item.name}, ${dimensions} milimetre. Odaya ekle.`}
+      aria-label={`${item.name}, G × Y × D: ${dimensions} milimetre. Odaya ekle.`}
     >
       <span className="mc-catalog-card__visual">
         <span className="mc-catalog-card__serial">MC / {String(index + 1).padStart(3, "0")}</span>
@@ -124,7 +124,7 @@ export function FurnitureCatalogCard({ item, index, onAdd, onDragStart, onDragEn
       <span className="mc-catalog-card__content">
         <span className="mc-catalog-card__category">{item.category}</span>
         <strong>{item.name}</strong>
-        <span className="mc-catalog-card__dimensions"><Ruler /> {dimensions} mm</span>
+        <span className="mc-catalog-card__dimensions"><Ruler /><span className="mc-catalog-card__axis-label">G × Y × D</span>{dimensions} mm</span>
         <span className="mc-catalog-card__details">{details || "Özel ölçü modülü"}</span>
       </span>
     </button>
