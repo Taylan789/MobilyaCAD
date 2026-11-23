@@ -50,6 +50,15 @@ export interface ProjectConsumptionLinePartSource {
   edgeDirection?: ProjectEdgeBandingEdge;
 }
 
+/** Hardware BOM provenance is furniture-scoped; it never fabricates Part IDs. */
+export interface ProjectConsumptionLineHardwareSource {
+  costLineId: string;
+  hardwareId: string;
+  unit: string;
+  furnitureIds: string[];
+  sourceReferences?: string[];
+}
+
 export interface ProjectPricedConsumptionSummary {
   status: "empty" | "incomplete" | "ready" | "blocked";
   currencyCode: string | null;
@@ -60,6 +69,8 @@ export interface ProjectPricedConsumptionSummary {
   diagnostics: string[];
   /** Part provenance for material/edge-band cost lines; hardware rows are furniture-scoped. */
   linePartSources: ProjectConsumptionLinePartSource[];
+  /** BOM furniture/catalog provenance for priced hardware lines; only ready summaries expose it. */
+  lineHardwareSources: ProjectConsumptionLineHardwareSource[];
   costSummary: ProjectCostSummary | null;
 }
 
@@ -197,6 +208,7 @@ function emptySummary(): ProjectPricedConsumptionSummary {
     missingPrices: [],
     diagnostics: [],
     linePartSources: [],
+    lineHardwareSources: [],
     costSummary: null
   };
 }
@@ -215,6 +227,7 @@ function blockedSummary(
     missingPrices,
     diagnostics,
     linePartSources: [],
+    lineHardwareSources: [],
     costSummary: null
   };
 }
@@ -400,6 +413,7 @@ export function calculateProjectPricedConsumptionSummary(
 
   const costLines: ProjectCostLineInput[] = [];
   const linePartSources: ProjectConsumptionLinePartSource[] = [];
+  const lineHardwareSources: ProjectConsumptionLineHardwareSource[] = [];
   const missingPrices: ProjectCostCoverageIssue[] = [];
   let materialLineNumber = 0;
   let hardwareLineNumber = 0;
@@ -469,15 +483,25 @@ export function calculateProjectPricedConsumptionSummary(
       ));
     } else {
       hardwareLineNumber += 1;
+      const costLineId = "hardware-" + String(hardwareLineNumber).padStart(4, "0");
       addPriceLine(
         costLines,
-        "hardware-" + String(hardwareLineNumber).padStart(4, "0"),
+        costLineId,
         "hardware",
         hardware.name,
         hardware.totalQuantity,
         hardware.unit,
         price
       );
+      lineHardwareSources.push({
+        costLineId,
+        hardwareId: hardware.hardwareId,
+        unit: hardware.unit,
+        furnitureIds: [...hardware.furnitureIds].sort((a, b) => a.localeCompare(b, "tr")),
+        ...(hardware.sourceReferences === undefined
+          ? {}
+          : { sourceReferences: [...hardware.sourceReferences].sort((a, b) => a.localeCompare(b, "tr")) })
+      });
     }
   }
 
@@ -560,6 +584,7 @@ export function calculateProjectPricedConsumptionSummary(
       missingPrices,
       diagnostics: [],
       linePartSources: [],
+      lineHardwareSources: [],
       costSummary: null
     };
   }
@@ -584,6 +609,7 @@ export function calculateProjectPricedConsumptionSummary(
       missingPrices: [],
       diagnostics: [],
       linePartSources,
+      lineHardwareSources,
       costSummary
     };
   } catch (error) {

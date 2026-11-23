@@ -363,3 +363,14 @@
 - **Scope:** test/documentation only; no production algorithm, frontend, specialist-owned adapter/performance files, project schema, CNC output or main branch changed. Local test execution unavailable; GitHub Actions is authoritative.
 - **Known blockers:** AI Developer [#45091325066](https://github.com/Taylan789/MobilyaCAD/actions/runs/45091325066) still failed on OpenRouter free daily 429; reset is 24 Nov 2026 03:00 TRT. Integration/performance job skipped and no specialist branch/PR found. No paid fallback or quota/secrets changes.
 - **Next:** DOM-123 preserve hardware BOM furniture/source references in priced-consumption and quote provenance.
+
+
+## 23 Kasım 2026 05:16 TRT — DOM-123 priced-consumption hardware provenance (verification pending)
+
+- **Slice:** additive `lineHardwareSources` maps each priced hardware cost line to its hardware ID, original unit, sorted furniture IDs and optional sorted BOM source references. BOM references remain separate from price-list `sourceReference`; no hardware-to-Part IDs are fabricated.
+- **Regression:** mixed furniture and unit groups, repeated BOM source references, source-reference-free hardware, line IDs/prices, sorted source arrays, input immutability and reversed BOM/furniture order invariance; incomplete pricing exposes no partial mapping.
+- **Code/test:** commit SHA pending; `domain/production/projectHardwarePricedSource.test.mjs`.
+- **Scope:** domain priced-consumption API/test and integration contract. No frontend, quote line source/snapshot/CSV schema, CNC output, price defaults or main branch changes.
+- **Actions / Pages:** exact-SHA CI/QA and Pages runs are pending; local repository is not mounted, so GitHub Actions is the authoritative test.
+- **Known blocker:** AI Developer run [#45091325066](https://github.com/Taylan789/MobilyaCAD/actions/runs/45091325066) failed on OpenRouter free-model daily 429; quota reset is 24 Nov 2026 03:00 TRT. Do not rerun before reset; no paid fallback or secrets/quota changes.
+- **Next:** DOM-124 propagate the hardware source mapping into combined quote lineSources; DOM-125 add strict JSON/CSV persistence compatibility.
