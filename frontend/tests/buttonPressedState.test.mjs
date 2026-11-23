@@ -20,3 +20,10 @@ test("momentary pressed state has a tactile inset without affecting disabled but
   assert.ok(styles.includes('.cad-button-surface:active:not(:disabled):not([aria-disabled="true"])'));
   assert.match(styles, /inset 0 2px 3px/);
 });
+
+test("selected button states retain system-color contrast in forced-colors mode", () => {
+  assert.match(styles, /@media\s*\(forced-colors:\s*active\)/);
+  assert.match(styles, /border-color:\s*Highlight/);
+  assert.match(styles, /background:\s*Highlight/);
+  assert.match(styles, /color:\s*HighlightText/);
+});
