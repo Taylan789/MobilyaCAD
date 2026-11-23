@@ -1165,7 +1165,7 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - **Exact-SHA QA:** [#45099919275](https://github.com/Taylan789/MobilyaCAD/actions/runs/45099919275) successful — **175 frontend + 653 domain tests, 0 failures**; strict shared-domain TypeScript, lint **32 warnings / 0 errors**, production build, production dependency audit **0 vulnerabilities**. Full install reports 4 moderate dependency findings.
 - **Pages:** [#45099919290](https://github.com/Taylan789/MobilyaCAD/actions/runs/45099919290) successful; test site deployed at https://taylan789.github.io/MobilyaCAD/.
 - **Local:** test-file syntax checked with Node; full repository tests were not run locally because the repository is not mounted. Actions are authoritative.
-- **Next:** DOM-124 carry hardware provenance into quote line sources; DOM-125 strict snapshot JSON/CSV round-trip.
+- **Next:** DOM-126 quote revision/snapshot hardware provenance coverage and cross-consumer reconciliation; DOM-127 hardware BOM traceability contract review.
 
 
 ## 23 Kasım 2026 — DOM-124 combined-quote hardware provenance (VERIFIED)
@@ -1180,7 +1180,7 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 3. DOM-128 — Add strict project quote source-map identity/unit reconciliation across snapshot imports and downstream reports.
 
 
-## DOM-125 — Hardware BOM provenance persistence (implemented; Actions pending)
+## DOM-125 — Hardware BOM provenance persistence (verified — exact-SHA Actions and Pages successful)
 - Quote-summary JSON v1 now validates optional hardware BOM metadata on hardware cost lines; required identity/unit/furniture IDs are all-or-nothing, bounded and sorted/unique. Optional BOM source references are sorted/unique. Non-hardware placement is blocked.
 - CSV v1 exports four trailing hardware provenance columns and accepts both the current and legacy v1 headers. Legacy files normalize to blank optional fields and remain compatible without fabricated source mappings.
 - Automated regressions cover JSON and CSV round-trip, partial metadata, wrong category, unsorted metadata and legacy CSV compatibility.

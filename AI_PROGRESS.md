@@ -374,7 +374,7 @@
 - **Pages:** [#45099919290](https://github.com/Taylan789/MobilyaCAD/actions/runs/45099919290) successful and deployed to https://taylan789.github.io/MobilyaCAD/.
 - **Scope:** domain priced-consumption API/test + docs; no frontend, quote source/snapshot/CSV schema, CNC output, price defaults, adapter/performance files or `main` changed. Local Node syntax check passed; full test execution was Actions-only.
 - **Known blockers:** AI Developer [#45091325066](https://github.com/Taylan789/MobilyaCAD/actions/runs/45091325066) failed with OpenRouter free-model daily 429; reset is 24 Nov 2026 03:00 TRT. No rerun before reset; no paid fallback/secrets changes. Integration/performance job skipped; no specialist branch/PR found; QA-003 remains blocked. UI PR [#166](https://github.com/Taylan789/MobilyaCAD/pull/166) is still draft and not deployed.
-- **Next:** DOM-124 propagate hardware source mapping into quote lineSources; DOM-125 strict snapshot JSON/CSV persistence compatibility.
+- **Next:** DOM-126 quote revision/snapshot hardware-provenance coverage and cross-consumer reconciliation.
 
 
 ## 23 Kasım 2026 07:28 TRT — DOM-124 VERIFIED
@@ -409,3 +409,8 @@
 - Pages deployment [#45118738144](https://github.com/Taylan789/MobilyaCAD/actions/runs/45118738144) successful: https://taylan789.github.io/MobilyaCAD/. This domain-only slice updates the deployed build but makes no visible frontend redesign; UI-agent PRs remain separate and unmerged.
 - Initial QA failure was a typo in the new CSV test assertion; corrected without weakening coverage. No local tests run (repository checkout/network unavailable).
 - Next: DOM-126 quote revision/snapshot hardware-provenance coverage and cross-consumer reconciliation.
+
+
+## 23 Kasım 2026 08:38 TRT — Roadmap/contract consistency cleanup
+- Verified DOM-125 links/status and next task DOM-126 are synchronized; stale DOM-124/125 “next” wording removed. Contract separates DOM-124 and DOM-125 exact-SHA evidence correctly.
+- Documentation-only commit [0a5082f](https://github.com/Taylan789/MobilyaCAD/commit/0a5082f9efc4ca81d2cc5aee97ce842428ff0072) itself passed CI #45119088992, QA #45119089072 and Pages #45119089128. Final documentation cleanup commit pending Actions.
