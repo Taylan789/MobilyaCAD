@@ -1321,7 +1321,7 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 ## Current domain queue — 23 November 2026
 - DOM-133: VERIFIED — [commit 0944028f](https://github.com/Taylan789/MobilyaCAD/commit/0944028fdf51c3b3e4fce0f5395e74885029239a), exact-SHA CI/QA/Pages successful.
 - DOM-134: VERIFIED — [test commit cbbe098c](https://github.com/Taylan789/MobilyaCAD/commit/cbbe098cc7e86d50b9c08a2c24bf752e09c1a09b); CI/QA passed (191 frontend + 675 domain, strict TS/build, lint 34 warnings/0 errors, production audit 0 vulnerabilities); Pages [#45248747497](https://github.com/Taylan789/MobilyaCAD/actions/runs/45248747497) deployed https://taylan789.github.io/MobilyaCAD/.
-- DOM-135: IMPLEMENTED — explicit revision-level marker disclosure; exact-SHA CI/QA/Pages pending.
+- DOM-135: VERIFIED — code/test [2db79730](https://github.com/Taylan789/MobilyaCAD/commit/2db79730c805ebcc12148ac25d9362fa63591776); CI [#45256565667](https://github.com/Taylan789/MobilyaCAD/actions/runs/45256565667), QA [#45256565549](https://github.com/Taylan789/MobilyaCAD/actions/runs/45256565549), Pages [#45256565818](https://github.com/Taylan789/MobilyaCAD/actions/runs/45256565818) all succeeded (194 frontend + 676 domain tests; strict TypeScript, build, lint 34 warnings/0 errors, audit 0 vulnerabilities); deployed https://taylan789.github.io/MobilyaCAD/
 - DOM-130: remains deferred until serialization/adapter ownership is available.
 
 ### DOM-134 verified acceptance
@@ -1336,11 +1336,11 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 - Next: DOM-136 strict-vs-legacy marker coverage reconciliation; DOM-130 remains deferred until adapter ownership is available.
 
 
-## DOM-135 — Legacy source-integrity disclosure (implementation; verification pending)
+## DOM-135 — Legacy source-integrity disclosure (VERIFIED)
 - Source-map comparisons now include explicit revision-level marker fields, `fromSourceIntegrityVersion` and `toSourceIntegrityVersion`, copied from the validated audit (`1` strict; `null` legacy/missing marker).
 - Acceptance: three-revision legacy → strict v1 → legacy fixture reconciles `null / 1 / null`, unchanged source lines, zero provenance changes, immutable history; strict v1 validation remains unchanged.
 - Additive comparison response only. No export adapters, frontend, machine output, or `main` changes.
-- Exact-SHA CI/QA/Pages: pending.
+- Exact-SHA CI/QA/Pages succeeded: [CI]( https://github.com/Taylan789/MobilyaCAD/actions/runs/45256565667 ), [QA]( https://github.com/Taylan789/MobilyaCAD/actions/runs/45256565549 ), [Pages]( https://github.com/Taylan789/MobilyaCAD/actions/runs/45256565818 ). QA: 194 frontend + 676 domain tests, strict TypeScript, lint 34 warnings/0 errors, production build, audit 0 vulnerabilities. Test site deployed: https://taylan789.github.io/MobilyaCAD/
 
 ### Next domain slices
 1. DOM-136 — reconcile project-wide strict-marker and legacy-revision counts against revision audit snapshots.

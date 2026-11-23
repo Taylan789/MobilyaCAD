@@ -587,9 +587,11 @@
 - Next: DOM-135 legacy source-integrity marker disclosure. DOM-130 remains deferred until adapter ownership is available.
 
 
-## 23 Kasım 2026 23:06 TRT — DOM-135 implementation (Actions pending)
-- Added additive `fromSourceIntegrityVersion` and `toSourceIntegrityVersion` fields to source-map revision comparisons. Values are read from the validated audit: strict marker `1`, legacy/missing marker `null`; no integrity is inferred or history rewritten.
-- Regression test covers legacy → strict v1 → legacy, explicit `null / 1 / null`, unchanged source lines, zero provenance changes, valid history and immutability.
-- Files: `domain/production/projectQuoteRevision.ts`, `domain/production/projectQuoteRevision.test.mjs`, `docs/production-domain-contract.md`, `PRODUCT_ROADMAP.md`, `AI_COORDINATION.md`, `AI_PROGRESS.md`.
-- Commit SHA, exact-SHA CI/QA and Pages deployment are pending. Local Node tests are unavailable in this runtime; no test success is claimed before Actions.
-- No frontend, adapter/performance-owned files, CNC/machine output or `main` changes. Next: DOM-136 strict/legacy revision-count reconciliation. DOM-130 remains deferred until adapter ownership is available.
+## 23 Kasım 2026 23:06 TRT — DOM-135 VERIFIED
+- Code/test commit [2db79730c805ebcc12148ac25d9362fa63591776](https://github.com/Taylan789/MobilyaCAD/commit/2db79730c805ebcc12148ac25d9362fa63591776) adds `fromSourceIntegrityVersion` / `toSourceIntegrityVersion` to source-map revision comparisons. Strict marker `1` and legacy missing marker `null` are copied from the validated audit; no integrity is inferred and no history is rewritten.
+- Regression covers legacy → strict v1 → legacy (`null / 1 / null`), zero provenance deltas, unchanged line reconciliation, validated history and immutability.
+- Exact-SHA CI [#45256565667](https://github.com/Taylan789/MobilyaCAD/actions/runs/45256565667), QA [#45256565549](https://github.com/Taylan789/MobilyaCAD/actions/runs/45256565549), and Pages [#45256565818](https://github.com/Taylan789/MobilyaCAD/actions/runs/45256565818) all succeeded. QA: **194 frontend + 676 domain tests**, strict TypeScript, production build, lint **34 warnings / 0 errors**, production dependency audit **0 vulnerabilities**.
+- Test site deployed: https://taylan789.github.io/MobilyaCAD/. Local tests unavailable in this runtime; exact-SHA Actions are the verification evidence.
+- Files: `domain/production/projectQuoteRevision.ts`, `domain/production/projectQuoteRevision.test.mjs`, `docs/production-domain-contract.md`, `PRODUCT_ROADMAP.md`, `AI_COORDINATION.md`, `AI_PROGRESS.md`. No frontend, adapter/performance-owned files, CNC/machine output or `main` changes.
+- Latest AI Developer run [#45160490760](https://github.com/Taylan789/MobilyaCAD/actions/runs/45160490760) failed on OpenRouter free-model daily quota HTTP 429; integration specialist was skipped. No rerun, paid fallback, secret or quota change.
+- Next: DOM-136 strict/legacy revision-count reconciliation. DOM-130 remains deferred until adapter ownership is available.
