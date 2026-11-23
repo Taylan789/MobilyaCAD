@@ -191,7 +191,7 @@ test("CSV hardware BOM metadata must be complete and sorted", () => {
   const row = lineRowIndex(valid, "hardware-hinge");
   assert.ok(row > 0);
   assert.equal(parseProjectQuoteSummaryCsv(setCell(valid, row, "hardwareUnit", "")).status, "blocked");
-  assert.equal(parseProjectQuoteSummaryCsv(setCell(valid, row, "hardwareFurnitureIds", JSON.stringify(["cabinet-b", "cabinet-a"]))).status, "blocked);
+  assert.equal(parseProjectQuoteSummaryCsv(setCell(valid, row, "hardwareFurnitureIds", JSON.stringify(["cabinet-b", "cabinet-a"]))).status, "blocked");
 });
 
 test("CSV panel malzeme katalog kimliği yalnızca m2 kaynak satırında kabul edilir", () => {

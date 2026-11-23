@@ -397,3 +397,7 @@
 - Files: `domain/production/projectQuoteSummaryFile.ts`, `projectQuoteSummaryFile.test.mjs`, `projectQuoteSummaryCsv.ts`, `projectQuoteSummaryCsv.test.mjs`, `docs/production-domain-contract.md`, `PRODUCT_ROADMAP.md`, `AI_COORDINATION.md`. No frontend, specialist-owned adapter/performance files, machine output or `main` changed.
 - Code commit and exact-SHA CI/QA/Pages are pending; local full tests unavailable. AI Developer last run [#45091325066](https://github.com/Taylan789/MobilyaCAD/actions/runs/45091325066) failed due OpenRouter free daily quota 429; specialist job skipped, no separate integration/performance branch/PR verified.
 - Next: DOM-126 quote revision/snapshot hardware-provenance coverage and cross-consumer reconciliation.
+
+
+## 23 Kasım 2026 08:30 TRT — DOM-125 QA regresyon düzeltmesi
+- Exact-SHA QA [#45118632745](https://github.com/Taylan789/MobilyaCAD/actions/runs/45118632745) 636/637 domain test geçti; tek başarısızlık yeni CSV negatif testindeki kapanış tırnak syntax typo. CI [#45118632761](https://github.com/Taylan789/MobilyaCAD/actions/runs/45118632761) build/lint başarılı; Pages [#45118632750](https://github.com/Taylan789/MobilyaCAD/actions/runs/45118632750) QA gate nedeniyle başarısız. Testi düzeltildi, kapsam/zorluk azaltılmadı; yeni SHA Actions doğrulaması bekleniyor.
