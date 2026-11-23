@@ -1,4 +1,4 @@
-import type { CabinetProjectProductionResult } from "./projectProduction.ts";
+import type { CabinetProjectProductionResult, ProjectProductionPart } from "./projectProduction.ts";
 import { calculatePanelCutoutGeometry } from "./panelCutoutGeometry.ts";
 import { normalizeMaterialCatalogLabel } from "./materialIdentity.ts";
 
@@ -346,6 +346,83 @@ function roundTo(value: number, decimalPlaces: number): number {
  * All dimensions are millimetres. No waste, sheet yield, kerf, band thickness,
  * roll allowance, hardware, machining or CNC operation is inferred.
  */
+/**
+ * A source Part snapshot explicitly linked to one hardware BOM row.
+ * Part quantity describes the production Part row; it is not an allocation of hardware quantity.
+ */
+export interface ProjectHardwareBomTracePart {
+  partId: string;
+  name: string;
+  quantity: number;
+  material: string;
+  materialId?: string;
+  widthMm: number;
+  lengthMm: number;
+  thicknessMm: number;
+}
+
+/**
+ * Preserves each original BOM row and its own quantity/unit/source mapping.
+ * Output follows the original BOM row order; grouped costing is unchanged.
+ */
+export interface ProjectHardwareBomTraceRow {
+  bomRowId: string;
+  furnitureId: string;
+  hardwareId: string;
+  name: string;
+  bomQuantity: number;
+  unit: string;
+  sourceReference?: string;
+  /** Omitted if the source row has no explicit Part links. */
+  sourceParts?: ProjectHardwareBomTracePart[];
+}
+
+/**
+ * Returns a validated, line-level trace of the project's explicit hardware BOM.
+ * Part links are never inferred and hardware quantities are never apportioned
+ * across linked Parts. The existing grouped hardware summary remains the pricing source.
+ */
+export function calculateProjectHardwareBomTrace(
+  value: CabinetProjectProductionResult
+): ProjectHardwareBomTraceRow[] {
+  if (calculateProjectHardwareConsumptionSummary(value).length === 0) return [];
+  const hardwareItems = value.hardwareItems ?? [];
+  if (hardwareItems.some((item) => item.sourcePartIds !== undefined) {
+    // Validate linked Part quantities and dimensions before exposing their snapshots.
+    calculateProjectMaterialConsumptionSummary(value);
+  }
+  const partsById = new Map<string, ProjectProductionPart>();
+  for (const part of value.parts) partsById.set(part.id, part);
+  return hardwareItems.map((item => {
+    const sourceParts = item.sourcePartIds?.map((partId) => {
+      const part = partsById.get(partId);
+      if (part === undefined) {
+        throw new Error(item.id + " donanım kaynak Part ID'si proje parça listesinde bulunamadı: " + partId + ".");
+      }
+      return {
+        partId: part.id,
+        name: part.name,
+        quantity: part.quantity,
+        material: part.material,
+        ...(part.materialId === undefined ? {} : { materialId: part.materialId }),
+        widthMm: part.width,
+        lengthMm: part.length,
+        thicknessMm: part.thickness
+      };
+    });
+    return {
+      bomRowId: item.id,
+      furnitureId: item.furnitureId,
+      hardwareId: item.hardwareId,
+      name: item.name,
+      bomQuantity: item.quantity,
+      unit: item.unit,
+      ...(item.sourceReference === undefined ? {} : { sourceReference: item.sourceReference }),
+      ...(sourceParts === undefined ? {} : { sourceParts })
+    };
+  }));
+}
+
 export function calculateProjectMaterialConsumptionSummary(
   value: CabinetProjectProductionResult
 ): ProjectMaterialConsumptionSummary[] {

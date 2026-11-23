@@ -1143,3 +1143,14 @@ Quote-summary CSV v1 writes the four fields as additive trailing columns. The pa
 - Omitted `sourcePartIds` means the BOM row has no Part-level link. The engine does not infer links from names, hardware catalog IDs, BOM references, dimensions or furniture IDs.
 - Hardware consumption summaries expose a sorted union of explicit Part IDs for each hardware identity/unit group. This is traceability only: the aggregate summary does not allocate each hardware row's quantity to individual Parts. Preserve the original BOM rows for that finer allocation.
 - Quote source snapshots and revision JSON/CSV already carry the generic `sourcePartIds` field; the explicit mapping is passed through those existing contracts. Physical assembly suitability remains operator-verified.
+
+
+## Hardware BOM satır traceability — DOM-127b
+
+Kaynak: `domain/production/projectMaterialSummary.ts`, `calculateProjectHardwareBomTrace(projectProduction)`.
+
+- Her kullanıcı BOM satırı ayrı `bomRowId`, mobilya/hardware kimliği, açıklama, özgün `bomQuantity`, birim ve isteğe bağlı kaynak referansıyla; kaynak satır sırası korunarak döndürülür.
+- Yalnızca kullanıcı tarafından açıkça verilen `sourcePartIds` bağları sunulur. Bağlı Part snapshot'ları Part kimliği, adı, kendi üretim quantity değeri, malzeme/katalog kimliği ve mm ölçülerini içerir. Part quantity, donanım BOM miktarının o parçaya dağıtıldığı anlamına gelmez.
+- Satır kimliği, quantity, unit, katalog/hardware kimliği, aynı mobilya kapsamı, Part ID varlığı ve Part ölçü/adet doğrulamaları mevcut domain kontrolleriyle fail-closed uygulanır. Eksik bağlantı tahmin edilmez.
+- `calculateProjectHardwareConsumptionSummary` gruplu costing kaynağı olarak değişmeden kalır; bu API maliyet toplamlarını veya birim dönüşümlerini değiştirmez.
+- Frontend/export entegrasyonu henüz yapılmamıştır. JSON/CSV export hardwareItems alanını kayıpsız desteklemeden dışa aktarım blokajı korunmalıdır. CNC, bağlantı/kurulum, Part başına hardware miktar dağıtımı veya fiziksel üretim standardı hesaplanmaz.

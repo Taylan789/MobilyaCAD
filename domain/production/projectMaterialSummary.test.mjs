@@ -4,7 +4,7 @@ import test from "node:test";
 import { BODY_PANEL_GROUPS } from "./bodyPanelMaterials.ts";
 import { BOOKSHELF_PANEL_GROUPS } from "./bookshelfConstruction.ts";
 import { calculateCabinetProjectProduction } from "./projectProduction.ts";
-import { calculateProjectHardwareConsumptionSummary, calculateProjectMaterialConsumptionSummary } from "./projectMaterialSummary.ts";
+import { calculateProjectHardwareBomTrace, calculateProjectHardwareConsumptionSummary, calculateProjectMaterialConsumptionSummary } from "./projectMaterialSummary.ts";
 
 const noBanding = { top: false, bottom: false, left: false, right: false };
 const materials = [
@@ -508,4 +508,101 @@ test("mixed-family material summary groups repeated catalogue IDs by thickness a
     summaries.reduce((total, group) => total + group.totalQuantity, 0),
     production.parts.reduce((total, part) => total + part.quantity, 0)
   );
+});
+
+
+test("DOM-127b donanım BOM satır izi her satırın miktarını ve açık Part snapshot bağlantılarını korur; gruplu maliyet toplamını değiştirmez", () => {
+  const production = createProject([
+    createRequest("cab-hardware-trace-a", { shelfCount: 1 }),
+    createRequest("cab-hardware-trace-b")
+  ]);
+  const partA1 = production.parts.find((part) => part.furnitureId === "cab-hardware-trace-a" && part.id.endsWith("left-side")).id;
+  const partA2 = production.parts.find((part) => part.furnitureId === "cab-hardware-trace-a" && part.id.endsWith("right-side")).id;
+  const partA3 = production.parts.find((part) => part.furnitureId === "cab-hardware-trace-a" && part.id.endsWith("shelf")).id;
+  const partB1 = production.parts.find((part) => part.furnitureId === "cab-hardware-trace-b" && part.id.endsWith("top")).id;
+  const partSnapshot = (partId) => {
+    const part = production.parts.find((entry) => entry.id === partId);
+    return {
+      partId: part.id,
+      name: part.name,
+      quantity: part.quantity,
+      material: part.material,
+      ...(part.materialId === undefined ? {} : { materialId: part.materialId }),
+      widthMm: part.width,
+      lengthMm: part.length,
+      thicknessMm: part.thickness
+    };
+  };
+  production.hardwareItems = [
+    { id: "bom-trace-a1", furnitureId: "cab-hardware-trace-a", hardwareId: "hinge-110", name: "Menteşe", quantity: 2.5, unit: "adet", sourceReference: "catalog:hinge-a", sourcePartIds: [partA1, partA2].sort() },
+    { id: "bom-trace-a2", furnitureId: "cab-hardware-trace-a", hardwareId: "hinge-110", name: "Menteşe", quantity: 0.25, unit: "adet", sourcePartIds: [partA2] },
+    { id: "bom-trace-b1", furnitureId: "cab-hardware-trace-b", hardwareId: "hinge-110", name: "Menteşe", quantity: 3, unit: "adet", sourceReference: "catalog:hinge-b", sourcePartIds: [partB1] },
+    { id: "bom-trace-b2", furnitureId: "cab-hardware-trace-b", hardwareId: "rail-set", name: "Ray takımı", quantity: 1.5, unit: "takım", sourceReference: "catalog:rail" }
+  ];
+  const before = JSON.stringify(production);
+  const groupedBefore = calculateProjectHardwareConsumptionSummary(production);
+  const trace = calculateProjectHardwareBomTrace(production);
+
+  assert.deepEqual(trace, [
+    {
+      bomRowId: "bom-trace-a1",
+      furnitureId: "cab-hardware-trace-a",
+      hardwareId: "hinge-110",
+      name: "Menteşe",
+      bomQuantity: 2.5,
+      unit: "adet",
+      sourceReference: "catalog:hinge-a",
+      sourceParts: [partSnapshot(partA1), partSnapshot(partA2)]
+    },
+    {
+      bomRowId: "bom-trace-a2",
+      furnitureId: "cab-hardware-trace-a",
+      hardwareId: "hinge-110",
+      name: "Menteşe",
+      bomQuantity: 0.25,
+      unit: "adet",
+      sourceParts: [partSnapshot(partA2)]
+    },
+    {
+      bomRowId: "bom-trace-b1",
+      furnitureId: "cab-hardware-trace-b",
+      hardwareId: "hinge-110",
+      name: "Menteşe",
+      bomQuantity: 3,
+      unit: "adet",
+      sourceReference: "catalog:hinge-b",
+      sourceParts: [partSnapshot(partB1)]
+    },
+    {
+      bomRowId: "bom-trace-b2",
+      furnitureId: "cab-hardware-trace-b",
+      hardwareId: "rail-set",
+      name: "Ray takımı",
+      bomQuantity: 1.5,
+      unit: "takım",
+      sourceReference: "catalog:rail"
+    }
+  ]);
+  assert.equal("sourceParts" in trace[3], false);
+  assert.deepEqual(calculateProjectHardwareConsumptionSummary(production), groupedBefore);
+  assert.equal(groupedBefore[0].totalQuantity, 5.75);
+  assert.equal(groupedBefore[0].lineCount, 3);
+  assert.deepEqual(groupedBefore[0].sourcePartIds, [partA1, partA2, partB1].sort());
+  assert.deepEqual(groupedBefore[0].sourceReferences, ["catalog:hinge-a", "catalog:hinge-b"]);
+  assert.equal(JSON.stringify(production), before);
+});
+
+test("DOM-127b donanım BOM izi legacy projelerde boş ve geçersiz Part eşleşmelerinde fail-closed olur", () => {
+  assert.deepEqual(calculateProjectHardwareBomTrace(createProject([createRequest("cab-hardware-trace-legacy")])), []);
+  const production = createProject([
+    createRequest("cab-hardware-trace-invalid-a"),
+    createRequest("cab-hardware-trace-invalid-b")
+  ]);
+  const foreignPartId = production.parts.find((part) => part.furnitureId === "cab-hardware-trace-invalid-b").id;
+  production.hardwareItems = [
+    { id: "bom-trace-invalid", furnitureId: "cab-hardware-trace-invalid-a", hardwareId: "hinge", name: "Menteşe", quantity: 1, unit: "adet", sourcePartIds: [foreignPartId] }
+  ];
+  assert.throws(() => calculateProjectHardwareBomTrace(production), /farklı mobilyaya bağlı/);
+  production.hardwareItems[0].sourcePartIds = ["missing-part-id"];
+  assert.throws(() => calculateProjectHardwareBomTrace(production), /bulunamadı/);
 });

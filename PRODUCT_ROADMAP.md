@@ -1241,3 +1241,15 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 1. DOM-127b — Line-level hardware BOM traceability (per-row quantity and explicit Part associations), separate from grouped cost lines.
 2. DOM-128 — Cross-consumer quote source-map identity/unit reconciliation with fail-closed diagnostics.
 3. DOM-129 — Project export compatibility guards for production metadata.
+
+
+## DOM-127b — Hardware BOM line-level traceability (implementation; Actions pending)
+
+- `calculateProjectHardwareBomTrace` exposes each validated hardware BOM row in its original order with its independent quantity/unit/reference and exact linked Part snapshots (ID, name, production quantity, material identity and mm dimensions).
+- Part links are explicit and same-furniture only. Part quantity is descriptive production quantity; hardware quantity is not allocated to Parts. Grouped hardware consumption/costing is unchanged.
+- Automated regressions cover multiple BOM rows for one hardware identity/unit across furniture, distinct row quantities/references/Part mappings, unlinked rows, aggregate quantity/union consistency, input immutability, legacy empty projects and missing/cross-furniture links.
+- Frontend, JSON/CSV adapters, CNC and machine-specific standards remain outside this slice. Local checkout/tests unavailable; exact-SHA Actions pending.
+### Updated next domain slices
+1. DOM-128 — Cross-consumer quote source-map identity/unit reconciliation with fail-closed diagnostics.
+2. DOM-129 — Project export compatibility guards for production metadata.
+3. DOM-130 — Hardware trace persistence/export contract and schema-version compatibility; frontend-owned integration only after adapter ownership is available.

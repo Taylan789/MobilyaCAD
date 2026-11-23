@@ -526,6 +526,6 @@ Bu dosya dört geliştirme/denetim rolünün ortak görev panosu ve entegrasyon 
 | Task | Status | Scope / acceptance | Next |
 |---|---|---|---|
 | DOM-127a | DONE — CI/QA/Pages verified | Optional `hardwareItems[].sourcePartIds` is user-supplied, strict sorted/unique/non-empty, exact Part IDs, same-furniture only; hardware summary aggregates explicit union, never infers links. Existing quote/revision/JSON/CSV sourcePartIds contracts carry mapping. CI `45165232791`, QA `45165232778`, Pages `45165232708`. | DOM-127b |
-| DOM-127b | READY | Preserve per-BOM-row quantity and Part associations as line-level traceability rather than only grouped union; keep aggregate costing unchanged. | DOM-128 |
+| DOM-127b | IMPLEMENTED — Actions pending | `calculateProjectHardwareBomTrace` preserves original BOM row quantities/units/references and explicit linked Part snapshots (ID/name/Part quantity/material/mm dimensions); no quantity allocation is inferred and grouped cost summary remains unchanged. | DOM-128 |\n| DOM-128 | READY | Reconcile hardware/production quote source-map IDs, units and explicit Part links across priced consumption, revision snapshots and comparison exports; block partial or mismatched provenance. | DOM-129 |
 
 

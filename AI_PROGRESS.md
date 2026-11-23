@@ -475,3 +475,12 @@
 - Code commit: `5ecbeeec9aff394782f9df866e09b1b6445827b1`; follow-up type-check fix: `4808746daa13d4bbce55ff78657098308c4f4694`. Files: projectProduction.ts/.test.mjs, projectMaterialSummary.ts/.test.mjs, projectPricedConsumption.ts/.test.mjs, projectQuoteSummary.ts, projectQuoteRevisionHardwareProvenance.test.mjs, production-domain-contract.md, PRODUCT_ROADMAP.md, AI_COORDINATION.md, AI_PROGRESS.md.
 - Exact-SHA CI `45165232791` and QA `45165232778` **success** (unit/shared-domain tests, type-check, lint, build, production dependency audit); Pages build, exact-SHA gate and deploy `45165232708` **success**, URL: https://taylan789.github.io/MobilyaCAD/ . Local tests not run; Actions are the verification evidence.
 - AI Developer run `45160490760` failed due OpenRouter free-model daily quota 429 (remaining 0); not rerun because quota is still exhausted. Integration/performance specialist job was skipped. Frontend files and `main` untouched. Next: DOM-127b per-BOM-row Part/quantity traceability.
+
+
+## 23 Kasım 2026 15:11 TRT — DOM-127b implemented; Actions pending
+- Added `calculateProjectHardwareBomTrace`: validated source BOM rows remain separate and preserve each row's quantity/unit/reference and explicit same-furniture Part links; linked Part snapshots include Part quantity, material identity and mm dimensions. It does not allocate BOM quantity across Parts.
+- Regression tests cover multiple rows grouped under the same hardware identity, fractional line quantities, distinct Part mappings/source references, no-link rows, grouped-summary unchanged totals, input immutability, legacy empty results, missing and cross-furniture Part IDs.
+- Files: `domain/production/projectMaterialSummary.ts`, `projectMaterialSummary.test.mjs`, `docs/production-domain-contract.md`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`. No frontend, machine-specific output, adapter/performance-owned files or `main` changed.
+- Code/test SHA and exact-SHA CI/QA/Pages results pending. Local tests unavailable (no checkout); Actions is authoritative. Test site not updated until exact-SHA QA/build/deploy gate passes.
+- AI Developer run [#45160490760](https://github.com/Taylan789/MobilyaCAD/actions/runs/45160490760) failed with OpenRouter free daily quota HTTP 429; no paid fallback/secrets/quota changes. Integration/performance specialist job was skipped and no specialist PR was verified. Frontend PRs remain unmerged.
+- Next: DOM-128 cross-consumer quote source-map identity/unit reconciliation.
