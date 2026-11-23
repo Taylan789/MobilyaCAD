@@ -387,13 +387,13 @@ export function calculateProjectHardwareBomTrace(
 ): ProjectHardwareBomTraceRow[] {
   if (calculateProjectHardwareConsumptionSummary(value).length === 0) return [];
   const hardwareItems = value.hardwareItems ?? [];
-  if (hardwareItems.some((item) => item.sourcePartIds !== undefined) {
+  if (hardwareItems.some((item) => item.sourcePartIds !== undefined)) {
     // Validate linked Part quantities and dimensions before exposing their snapshots.
     calculateProjectMaterialConsumptionSummary(value);
   }
   const partsById = new Map<string, ProjectProductionPart>();
   for (const part of value.parts) partsById.set(part.id, part);
-  return hardwareItems.map((item => {
+  return hardwareItems.map((item) => {
     const sourceParts = item.sourcePartIds?.map((partId) => {
       const part = partsById.get(partId);
       if (part === undefined) {

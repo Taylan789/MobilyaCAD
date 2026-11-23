@@ -518,7 +518,6 @@ test("DOM-127b donanım BOM satır izi her satırın miktarını ve açık Part 
   ]);
   const partA1 = production.parts.find((part) => part.furnitureId === "cab-hardware-trace-a" && part.id.endsWith("left-side")).id;
   const partA2 = production.parts.find((part) => part.furnitureId === "cab-hardware-trace-a" && part.id.endsWith("right-side")).id;
-  const partA3 = production.parts.find((part) => part.furnitureId === "cab-hardware-trace-a" && part.id.endsWith("shelf")).id;
   const partB1 = production.parts.find((part) => part.furnitureId === "cab-hardware-trace-b" && part.id.endsWith("top")).id;
   const partSnapshot = (partId) => {
     const part = production.parts.find((entry) => entry.id === partId);
