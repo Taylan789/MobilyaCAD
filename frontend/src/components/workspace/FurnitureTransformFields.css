@@ -1,5 +1,5 @@
 /* UI-TRANSFORM-FIELDS-CAD-DENSITY-001 — precision controls in the furniture inspector */
-.cad-transform-panel { gap: 12px; }
+.cad-transform-panel { gap: 12px; container-type: inline-size; }
 .cad-transform-panel__heading { padding-bottom: 7px; border-bottom: 1px solid rgba(126, 155, 173, .16); }
 .cad-transform-axis-grid {
   display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; min-width: 0; padding: 7px;
@@ -62,4 +62,60 @@
 @media (forced-colors: active) {
   .cad-transform-axis-grid, .cad-transform-axis-field, .cad-transform-rotation { border-color: CanvasText; }
   .cad-transform-axis-field:focus-within { outline: 2px solid Highlight; outline-offset: 1px; }
+}
+
+
+/* UI-TRANSFORM-INSPECTOR-CONTAINER-DENSITY-001 — adapt to the actual inspector width */
+.cad-transform-axis-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.cad-transform-axis-label {
+  justify-content: flex-start;
+  gap: 6px;
+}
+.cad-transform-axis-value input {
+  text-align: right !important;
+  padding-inline: 7px !important;
+}
+.cad-transform-rotation {
+  grid-template-columns: minmax(0, 1fr) minmax(104px, .68fr);
+}
+@container (min-width: 360px) {
+  .cad-transform-axis-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .cad-transform-axis-label {
+    justify-content: center;
+  }
+}
+@container (max-width: 250px) {
+  .cad-transform-axis-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .cad-transform-rotation {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 6px;
+  }
+  .cad-transform-rotation__label {
+    flex-wrap: wrap;
+  }
+  .cad-transform-rotation__range {
+    margin-left: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cad-transform-axis-field,
+  .cad-transform-axis-value input,
+  .cad-transform-rotation__value input {
+    transition: none;
+  }
+}
+@media (forced-colors: active) {
+  .cad-transform-axis-label__letter,
+  .cad-transform-axis-value input,
+  .cad-transform-rotation__value input {
+    color: CanvasText !important;
+    background: Canvas !important;
+    border-color: CanvasText !important;
+  }
 }
