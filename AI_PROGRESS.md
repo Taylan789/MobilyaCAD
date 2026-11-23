@@ -354,11 +354,12 @@
 - **Known blockers:** INT-001 remains frontend-owned; INT-002/PERF-001 specialist-owned; QA-003 is blocked until integration evidence. AI Developer run [#45075174069](https://github.com/Taylan789/MobilyaCAD/actions/runs/45075174069) failed with OpenRouter free daily 429; logs confirm quota exhaustion. Reset passed; a safe failed-job rerun is considered after this docs update. No paid fallback or quota/secrets changes.
 - **Next:** DOM-122 reconcile priced-consumption and quote totals against source pricing/labor-operation rows.
 
-## 23 Kasım 2026 04:48 TRT — DOM-122 (verification pending)
+## 23 Kasım 2026 04:48 TRT — DOM-122 (VERIFIED)
 
-- **Slice:** Added a mixed quote regression covering priced material, hardware BOM, directional edge-band, labor, operation, explicit waste and profit; source quantities, line prices/references, per-line rounded totals, seven line-source mappings, category totals and grand total are independently reconciled.
-- **Files:** domain/production/projectQuoteSummary.test.mjs, docs/production-domain-contract.md, PRODUCT_ROADMAP.md, AI_COORDINATION.md.
-- **Commit:** pending; exact-SHA CI/QA/production-build/audit/Pages results pending.
+- **Slice:** Mixed quote regression reconciles material, hardware BOM, directional edge-band, labor, operation, explicit waste and profit; independent source quantities, pricing/source references, per-line rounded totals, all seven quote source mappings, category totals and grand total.
+- **Code/test commit:** [467627bd](https://github.com/Taylan789/MobilyaCAD/commit/467627bd1ca85e5d70ed21c451a6cecfbd1633ce); test `domain/production/projectQuoteSummary.test.mjs`.
+- **Exact-SHA Actions:** CI [#45097364302](https://github.com/Taylan789/MobilyaCAD/actions/runs/45097364302) and QA [#45097364273](https://github.com/Taylan789/MobilyaCAD/actions/runs/45097364273) passed. QA: **175 frontend + 651 domain tests, 0 failures**, strict shared-domain TypeScript, lint **32 warnings / 0 errors**, production build and production audit **0 vulnerabilities**.
+- **Pages:** [#45097364279](https://github.com/Taylan789/MobilyaCAD/actions/runs/45097364279) succeeded; test site deployed: https://taylan789.github.io/MobilyaCAD/.
 - **Scope:** test/documentation only; no production algorithm, frontend, specialist-owned adapter/performance files, project schema, CNC output or main branch changed. Local test execution unavailable; GitHub Actions is authoritative.
-- **Known blockers:** AI Developer run [#45091325066](https://github.com/Taylan789/MobilyaCAD/actions/runs/45091325066) failed again with OpenRouter free daily 429; reset is 24 Nov 2026 03:00 TRT. Integration/performance job skipped and no specialist branch/PR found. No paid fallback or quota/secrets changes.
+- **Known blockers:** AI Developer [#45091325066](https://github.com/Taylan789/MobilyaCAD/actions/runs/45091325066) still failed on OpenRouter free daily 429; reset is 24 Nov 2026 03:00 TRT. Integration/performance job skipped and no specialist branch/PR found. No paid fallback or quota/secrets changes.
 - **Next:** DOM-123 preserve hardware BOM furniture/source references in priced-consumption and quote provenance.
