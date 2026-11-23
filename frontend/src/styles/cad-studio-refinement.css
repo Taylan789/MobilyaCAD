@@ -830,3 +830,17 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 .atelier-welcome { grid-template-columns: minmax(0, 1fr) !important; }
 .atelier-welcome-copy { max-width: 760px !important; }
 .atelier-bottom-row { grid-template-columns: minmax(0, 1fr) !important; }
+
+
+/* UI-DESKTOP-DENSITY-001: preserve the central viewport on compact desktop widths. */
+@media (min-width: 1151px) and (max-width: 1360px) {
+  :root {
+    --cad-dock-left: clamp(214px, 17vw, 226px);
+    --cad-dock-right: clamp(278px, 22vw, 292px);
+  }
+
+
+  .cad-workspace-content {
+    padding: 6px 7px !important;
+  }
+}
