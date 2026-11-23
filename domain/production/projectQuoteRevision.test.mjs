@@ -9,6 +9,7 @@ import {
   appendProjectQuoteRevision,
   compareProjectQuoteRevisions,
   calculateProjectQuoteRevisionSourceMapAudit,
+  compareProjectQuoteRevisionSourceMaps,
   createProjectQuoteRevision,
   validateProjectQuoteRevisionHistory
 } from "./projectQuoteRevision.ts";
@@ -2803,4 +2804,148 @@ test("DOM-131 source-map audit returns empty for valid empty histories and block
   assert.equal(blocked.status, "blocked");
   assert.equal(blocked.audit, null);
   assert.ok(blocked.diagnostics.length > 0);
+});
+
+
+test("DOM-133 source-map provenance comparison isolates metadata changes from monetary deltas", () => {
+  const fromSnapshot = createSnapshot();
+  const toSnapshot = createSnapshot();
+  const materialSource = fromSnapshot.quoteSummary.lineSources.find(source => source.resourceType === "material");
+  assert.ok(materialSource);
+  const toMaterialSource = toSnapshot.quoteSummary.lineSources.find(source => source.costLineId === materialSource.costLineId);
+  const toMaterialLine = toSnapshot.quoteSummary.costSummary.lines.find(line => line.id === materialSource.costLineId);
+  assert.ok(toMaterialSource);
+  assert.ok(toMaterialLine);
+  toMaterialSource.sourceId = "dom-133-reassigned-source";
+  toMaterialSource.sourcePartIds = ["dom-133-reassigned-part"];
+  toMaterialLine.sourceReference = "material-catalog:dom-133-revised";
+
+  const history = {
+    projectId: "project-42",
+    revisions: [
+      createHistoryRevision({ pricingSnapshot: fromSnapshot }),
+      createHistoryRevision({
+        revisionId: "quote-r2",
+        revisionNumber: 2,
+        createdAt: "2026-11-17T11:00:00Z",
+        previousRevisionId: "quote-r1",
+        pricingSnapshot: toSnapshot
+      })
+    ]
+  };
+  const originalHistoryJson = JSON.stringify(history);
+  const result = compareProjectQuoteRevisionSourceMaps(history, "quote-r1", "quote-r2");
+  assert.equal(result.status, "ready", result.diagnostics.join("; "));
+  assert.ok(result.comparison);
+  assert.deepEqual(result.comparison.counts, {
+    addedLineCount: 0,
+    removedLineCount: 0,
+    changedLineCount: 1,
+    unchangedLineCount: result.comparison.fromLineCount - 1
+  });
+  assert.equal(result.comparison.fromLineCount, result.comparison.toLineCount);
+  assert.equal(result.comparison.changes.length, 1);
+  const changed = result.comparison.changes[0];
+  assert.equal(changed.type, "changed");
+  assert.equal(changed.costLineId, materialSource.costLineId);
+  assert.equal(changed.from.sourceId, materialSource.sourceId);
+  assert.equal(changed.to.sourceId, "dom-133-reassigned-source");
+  assert.deepEqual(changed.from.sourcePartIds, materialSource.sourcePartIds);
+  assert.deepEqual(changed.to.sourcePartIds, ["dom-133-reassigned-part"]);
+  assert.equal(changed.to.sourceReference, "material-catalog:dom-133-revised");
+  assert.equal(changed.to.unitPriceMinor, undefined);
+  assert.equal(changed.to.lineTotalMinor, undefined);
+
+  const monetary = compareProjectQuoteRevisions(history, "quote-r1", "quote-r2");
+  assert.equal(monetary.status, "ready", monetary.diagnostics.join("; "));
+  assert.equal(monetary.comparison?.grandTotalDeltaMinor, 0);
+  assert.deepEqual(monetary.comparison?.categoryDeltasMinor, {
+    material: 0, hardware: 0, labor: 0, operation: 0, waste: 0, profit: 0
+  });
+
+  const reorderedHistory = structuredClone(history);
+  for (const revision of reorderedHistory.revisions) {
+    revision.pricingSnapshot.quoteSummary.lineSources.reverse();
+    revision.pricingSnapshot.quoteSummary.costSummary.lines.reverse();
+  }
+  const reordered = compareProjectQuoteRevisionSourceMaps(reorderedHistory, "quote-r1", "quote-r2");
+  assert.equal(reordered.status, "ready", reordered.diagnostics.join("; "));
+  assert.deepEqual(reordered.comparison, result.comparison);
+  assert.equal(JSON.stringify(history), originalHistoryJson);
+  assert.ok(Object.isFrozen(result));
+  assert.ok(Object.isFrozen(result.comparison));
+  assert.ok(Object.isFrozen(result.comparison?.changes));
+});
+
+test("DOM-133 source-map provenance comparison reconciles added, removed and unchanged line IDs", () => {
+  const fromSnapshot = createSnapshot();
+  const toSnapshot = createSnapshotWithQuoteLines([{
+    line: {
+      id: "dom-133-added-material",
+      category: "material",
+      description: "DOM-133 added source",
+      quantity: 1,
+      unit: "m2",
+      unitPriceMinor: 500,
+      currencyCode: "TRY",
+      sourceReference: "material-catalog:dom-133-added"
+    },
+    source: {
+      costLineId: "dom-133-added-material",
+      sourceType: "production-consumption",
+      sourceId: "dom-133-added-source",
+      resourceType: "material",
+      resourceId: "mdf-18",
+      unit: "m2",
+      sourcePartIds: ["dom-133-added-part"]
+    }
+  }]);
+  const laborIndex = toSnapshot.quoteSummary.lineSources.findIndex(source => source.sourceType === "labor-operation");
+  assert.notEqual(laborIndex, -1);
+  const removedLabor = toSnapshot.quoteSummary.costSummary.lines[laborIndex];
+  toSnapshot.quoteSummary.costSummary.lines.splice(laborIndex, 1);
+  toSnapshot.quoteSummary.lineSources.splice(laborIndex, 1);
+  toSnapshot.quoteSummary.costSummary.categoryTotalsMinor[removedLabor.category] -= removedLabor.lineTotalMinor;
+  toSnapshot.quoteSummary.costSummary.grandTotalMinor -= removedLabor.lineTotalMinor;
+  toSnapshot.quoteSummary.costSummary.lineCount -= 1;
+  toSnapshot.quoteSummary.requiredLineCount -= 1;
+  toSnapshot.quoteSummary.pricedLineCount -= 1;
+
+  const history = {
+    projectId: "project-42",
+    revisions: [
+      createHistoryRevision({ pricingSnapshot: fromSnapshot }),
+      createHistoryRevision({
+        revisionId: "quote-r2",
+        revisionNumber: 2,
+        createdAt: "2026-11-17T11:00:00Z",
+        previousRevisionId: "quote-r1",
+        pricingSnapshot: toSnapshot
+      })
+    ]
+  };
+  const result = compareProjectQuoteRevisionSourceMaps(history, "quote-r1", "quote-r2");
+  assert.equal(result.status, "ready", result.diagnostics.join("; "));
+  assert.ok(result.comparison);
+  assert.deepEqual(result.comparison.counts, {
+    addedLineCount: 1,
+    removedLineCount: 1,
+    changedLineCount: 0,
+    unchangedLineCount: 1
+  });
+  assert.equal(result.comparison.fromLineCount, 2);
+  assert.equal(result.comparison.toLineCount, 2);
+  assert.deepEqual(result.comparison.changes.map(change => ({ type: change.type, id: change.costLineId })), [
+    { type: "removed", id: removedLabor.id },
+    { type: "added", id: "dom-133-added-material" }
+  ]);
+  const blockedMissingRevision = compareProjectQuoteRevisionSourceMaps(history, "quote-r1", "missing-revision");
+  assert.equal(blockedMissingRevision.status, "blocked");
+  assert.equal(blockedMissingRevision.comparison, null);
+  assert.ok(blockedMissingRevision.diagnostics.length > 0);
+  const invalidHistory = structuredClone(history);
+  invalidHistory.revisions[1].pricingSnapshot.quoteSummary.lineSources[0].sourceId = "";
+  const blockedInvalid = compareProjectQuoteRevisionSourceMaps(invalidHistory, "quote-r1", "quote-r2");
+  assert.equal(blockedInvalid.status, "blocked");
+  assert.equal(blockedInvalid.comparison, null);
 });

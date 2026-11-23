@@ -1498,3 +1498,186 @@ export function calculateProjectQuoteRevisionSourceMapAudit(
     return blockedSourceMapAudit(error instanceof Error ? error.message : String(error));
   }
 }
+
+
+export interface ProjectQuoteRevisionSourceMapProvenance {
+  sourceType: ProjectQuoteLineSource["sourceType"];
+  sourceId: string;
+  sourceReference?: string;
+  tariffId?: string;
+  sourcePartIds?: readonly string[];
+  resourceType?: ProjectQuoteLineSource["resourceType"];
+  resourceId?: string;
+  resourceUnit?: string;
+  edgeDirection?: ProjectCostLineEdgeDirection;
+  rollCount?: number;
+  rollLengthMm?: number;
+  purchasedLengthMm?: number;
+  furnitureIds?: readonly string[];
+  planSourceReference?: string;
+  priceSourceReference?: string;
+  hardwareId?: string;
+  hardwareUnit?: string;
+  hardwareFurnitureIds?: readonly string[];
+  hardwareSourceReferences?: readonly string[];
+}
+
+export interface ProjectQuoteRevisionSourceMapProvenanceChange {
+  type: "added" | "removed" | "changed";
+  costLineId: string;
+  from: ProjectQuoteRevisionSourceMapProvenance | null;
+  to: ProjectQuoteRevisionSourceMapProvenance | null;
+}
+
+export interface ProjectQuoteRevisionSourceMapProvenanceComparison {
+  schemaVersion: 1;
+  projectId: string;
+  fromRevisionId: string;
+  fromRevisionNumber: number;
+  toRevisionId: string;
+  toRevisionNumber: number;
+  fromLineCount: number;
+  toLineCount: number;
+  counts: {
+    addedLineCount: number;
+    removedLineCount: number;
+    changedLineCount: number;
+    unchangedLineCount: number;
+  };
+  changes: readonly ProjectQuoteRevisionSourceMapProvenanceChange[];
+}
+
+export interface ProjectQuoteRevisionSourceMapProvenanceComparisonResult {
+  status: "ready" | "blocked";
+  comparison: DeepReadonly<ProjectQuoteRevisionSourceMapProvenanceComparison> | null;
+  diagnostics: readonly string[];
+}
+
+function createSourceMapProvenanceSnapshot(
+  line: ProjectQuoteRevisionSourceMapAuditLine
+): ProjectQuoteRevisionSourceMapProvenance {
+  return {
+    sourceType: line.sourceType,
+    sourceId: line.sourceId,
+    ...(line.sourceReference === undefined ? {} : { sourceReference: line.sourceReference }),
+    ...(line.tariffId === undefined ? {} : { tariffId: line.tariffId }),
+    ...(line.sourcePartIds === undefined ? {} : { sourcePartIds: [...line.sourcePartIds] }),
+    ...(line.resourceType === undefined ? {} : { resourceType: line.resourceType }),
+    ...(line.resourceId === undefined ? {} : { resourceId: line.resourceId }),
+    ...(line.resourceUnit === undefined ? {} : { resourceUnit: line.resourceUnit }),
+    ...(line.edgeDirection === undefined ? {} : { edgeDirection: line.edgeDirection }),
+    ...(line.rollCount === undefined ? {} : { rollCount: line.rollCount }),
+    ...(line.rollLengthMm === undefined ? {} : { rollLengthMm: line.rollLengthMm }),
+    ...(line.purchasedLengthMm === undefined ? {} : { purchasedLengthMm: line.purchasedLengthMm }),
+    ...(line.furnitureIds === undefined ? {} : { furnitureIds: [...line.furnitureIds] }),
+    ...(line.planSourceReference === undefined ? {} : { planSourceReference: line.planSourceReference }),
+    ...(line.priceSourceReference === undefined ? {} : { priceSourceReference: line.priceSourceReference }),
+    ...(line.hardwareId === undefined ? {} : { hardwareId: line.hardwareId }),
+    ...(line.hardwareUnit === undefined ? {} : { hardwareUnit: line.hardwareUnit }),
+    ...(line.hardwareFurnitureIds === undefined ? {} : { hardwareFurnitureIds: [...line.hardwareFurnitureIds] }),
+    ...(line.hardwareSourceReferences === undefined ? {} : { hardwareSourceReferences: [...line.hardwareSourceReferences] })
+  };
+}
+
+function blockedSourceMapProvenanceComparison(
+  message: string
+): ProjectQuoteRevisionSourceMapProvenanceComparisonResult {
+  return deepFreeze({
+    status: "blocked" as const,
+    comparison: null,
+    diagnostics: [message]
+  });
+}
+
+/**
+ * Compares only quote source-map metadata for two revisions.
+ * Cost, quantity, unit-price and line-total changes remain in the monetary comparison API.
+ * Matching uses validated costLineId; unpaired IDs are added/removed provenance rows.
+ */
+export function compareProjectQuoteRevisionSourceMaps(
+  historyValue: unknown,
+  fromRevisionIdValue: unknown,
+  toRevisionIdValue: unknown
+): ProjectQuoteRevisionSourceMapProvenanceComparisonResult {
+  const validatedHistory = validateProjectQuoteRevisionHistory(historyValue);
+  if (validatedHistory.status !== "ready" || validatedHistory.history === null) {
+    return blockedSourceMapProvenanceComparison(
+      validatedHistory.status === "empty"
+        ? "Boş teklif geçmişinde kaynak eşlemesi karşılaştırılacak revizyon bulunmuyor."
+        : validatedHistory.diagnostics[0] ?? "Teklif revizyon geçmişi kaynak karşılaştırması için doğrulanamadı."
+    );
+  }
+
+  try {
+    const fromRevisionId = requireIdentifier(fromRevisionIdValue, "Başlangıç revizyon kimliği");
+    const toRevisionId = requireIdentifier(toRevisionIdValue, "Hedef revizyon kimliği");
+    const revisions = validatedHistory.history.revisions;
+    const fromRevision = revisions.find((revision) => revision.revisionId === fromRevisionId);
+    const toRevision = revisions.find((revision) => revision.revisionId === toRevisionId);
+    if (fromRevision === undefined || toRevision === undefined) {
+      throw new Error("Kaynak karşılaştırma revizyon kimlikleri doğrulanmış geçmişte bulunmalıdır.");
+    }
+    if (toRevision.revisionNumber <= fromRevision.revisionNumber) {
+      throw new Error("Kaynak karşılaştırma hedef revizyonu başlangıç revizyonundan daha yeni olmalıdır.");
+    }
+
+    const auditResult = calculateProjectQuoteRevisionSourceMapAudit(validatedHistory.history);
+    if (auditResult.status !== "ready" || auditResult.audit === null) {
+      throw new Error(auditResult.diagnostics[0] ?? "Kaynak haritası denetimi karşılaştırma için üretilemedi.");
+    }
+    const fromAudit = auditResult.audit.revisions.find((revision) => revision.revisionId === fromRevisionId);
+    const toAudit = auditResult.audit.revisions.find((revision) => revision.revisionId === toRevisionId);
+    if (fromAudit === undefined || toAudit === undefined) {
+      throw new Error("Kaynak karşılaştırma revizyon denetimleri doğrulanmış geçmişle eşleşmiyor.");
+    }
+
+    const fromLines = new Map(fromAudit.lines.map((line) => [line.costLineId, line]));
+    const toLines = new Map(toAudit.lines.map((line) => [line.costLineId, line]));
+    const costLineIds = [...new Set([...fromLines.keys(), ...toLines.keys()])].sort();
+    const counts = {
+      addedLineCount: 0,
+      removedLineCount: 0,
+      changedLineCount: 0,
+      unchangedLineCount: 0
+    };
+    const changes: ProjectQuoteRevisionSourceMapProvenanceChange[] = [];
+
+    for (const costLineId of costLineIds) {
+      const fromLine = fromLines.get(costLineId);
+      const toLine = toLines.get(costLineId);
+      const from = fromLine === undefined ? null : createSourceMapProvenanceSnapshot(fromLine);
+      const to = toLine === undefined ? null : createSourceMapProvenanceSnapshot(toLine);
+      if (from === null) {
+        counts.addedLineCount += 1;
+        changes.push({ type: "added", costLineId, from: null, to });
+      } else if (to === null) {
+        counts.removedLineCount += 1;
+        changes.push({ type: "removed", costLineId, from, to: null });
+      } else if (JSON.stringify(from) !== JSON.stringify(to)) {
+        counts.changedLineCount += 1;
+        changes.push({ type: "changed", costLineId, from, to });
+      } else {
+        counts.unchangedLineCount += 1;
+      }
+    }
+
+    return deepFreeze({
+      status: "ready" as const,
+      comparison: {
+        schemaVersion: 1 as const,
+        projectId: validatedHistory.history.projectId,
+        fromRevisionId,
+        fromRevisionNumber: fromRevision.revisionNumber,
+        toRevisionId,
+        toRevisionNumber: toRevision.revisionNumber,
+        fromLineCount: fromAudit.lines.length,
+        toLineCount: toAudit.lines.length,
+        counts,
+        changes
+      },
+      diagnostics: []
+    });
+  } catch (error) {
+    return blockedSourceMapProvenanceComparison(error instanceof Error ? error.message : String(error));
+  }
+}

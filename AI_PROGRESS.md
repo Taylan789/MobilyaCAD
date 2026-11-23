@@ -547,3 +547,12 @@
 - Latest AI Developer run [#45160490760](https://github.com/Taylan789/MobilyaCAD/actions/runs/45160490760) failed on OpenRouter free daily 429 quota; specialist job skipped. No retry was issued because the daily quota exhaustion is not transient and no paid fallback/secret was changed.
 - Next: DOM-133 provenance-only comparison; DOM-134 three-revision audit reconciliation; DOM-135 legacy integrity-marker disclosure.
 
+
+
+## 23 Kasım 2026 20:40 TRT — DOM-133 implementation (verification pending)
+- Added a domain-only revision source-map comparison that matches validated cost-line IDs and reports source metadata changes separately from money, quantity, unit-price and line-total arithmetic.
+- Regression coverage: source-only identity/Part/reference change with zero monetary delta; added/removed/unchanged row reconciliation; paired source/cost row reorder determinism; immutable result/input; missing revision and invalid-history fail-closed behavior.
+- Files: `domain/production/projectQuoteRevision.ts`, `domain/production/projectQuoteRevision.test.mjs`, `docs/production-domain-contract.md`, `PRODUCT_ROADMAP.md`, `AI_COORDINATION.md`, `AI_PROGRESS.md`.
+- Commit SHA and exact-SHA CI/QA/Pages evidence will be recorded after the branch update; local tests are unavailable in this runtime. Do not claim verification until Actions completes.
+- Ownership: no frontend, adapter/performance-owned files, CNC/machine output or `main` changes.
+- Next: DOM-134 three-revision source-map audit reconciliation; DOM-135 legacy integrity-marker disclosure. DOM-130 remains deferred because adapter ownership is unavailable.

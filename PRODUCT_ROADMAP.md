@@ -1308,3 +1308,18 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 1. DOM-133 — compare provenance changes independently from monetary deltas.
 2. DOM-134 — reconcile duplicate source-map identity groups across three revisions and stable ordering.
 3. DOM-135 — disclose legacy source-integrity markers without inferring strict integrity.
+
+
+## 10/10 quality gates — evidence-based, not yet achieved
+- [ ] CAD Core: measured geometry, 2D/3D sync, transforms/snap, selection/groups, undo/redo, camera and save/load integration.
+- [ ] Production: canonical Part tree, material/edge-band/hardware/waste, nesting/cost and export reconciliation.
+- [ ] UX: functional controls, clear navigation, accessibility, responsive states and recovery.
+- [ ] Performance: repeatable viewport/bundle/memory baseline with measured improvements.
+- [ ] Reliability: typed validation, backward-compatible project schemas, lossless import/export and exact-SHA CI/QA evidence.
+- [ ] Physical production: operator and machine-standard verification remains separate from automated checks.
+
+## Current domain queue — 23 November 2026
+- DOM-133: implemented in the current commit; exact-SHA CI/QA/Pages verification pending.
+- DOM-134: three-revision source-map audit reconciliation and duplicate-group ordering.
+- DOM-135: disclose legacy source-integrity marker status without inferring strict integrity.
+- DOM-130: remains deferred until serialization/adapter ownership is available.

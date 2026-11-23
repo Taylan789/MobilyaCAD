@@ -1175,3 +1175,14 @@ Hardware comparison line identity now includes the hardware catalog ID, original
 ## DOM-132 — Legacy source identity duplicate audit
 
 Quote source identity is the pair (sourceType, sourceId) within one revision. The immutable source-map audit now surfaces repeated identity groups without changing or rejecting a valid legacy revision: counts.duplicateSourceIdentityCount counts repeated groups, counts.duplicateSourceIdentityLineReferenceCount counts every cost-line reference participating in those groups, and duplicateSourceIdentities provides the exact identity and sorted costLineIds. Group order is deterministic by source type and source ID; line references are sorted lexically, so the report remains stable when source lines are reordered. Duplicate groups are revision-scoped; totals sum per-revision groups and participating references. Strict sourceIntegrityVersion: 1 history continues to reject repeated source identities, while legacy histories remain readable and audit-ready. This is diagnostic-only and does not infer or repair source mappings, alter cost totals, or persist a new export schema.
+
+
+## DOM-133 — Provenance-only quote revision comparison
+
+`compareProjectQuoteRevisionSourceMaps(history, fromRevisionId, toRevisionId)` compares validated quote source maps without mixing price arithmetic into the result. It matches lines by validated `costLineId` and reports only added, removed or changed source metadata; unchanged lines are counted but omitted from the change list. Output is deterministic by cost-line ID and deeply immutable.
+
+- Provenance fields include source identity/type/reference, tariff, Part links, resource identity/unit, edge direction, roll-plan and price references, hardware identity/scope and hardware BOM references.
+- Cost, quantity, unit-price, line-total, category/unit/currency changes are not included in this API; monetary/category deltas remain in `compareProjectQuoteRevisions`.
+- Different source metadata on a stable cost-line ID is a `changed` provenance row. New/removed cost-line IDs are `added`/`removed` rows. No source mapping is inferred.
+- Acceptance: source-only change with zero monetary delta; added/removed/unchanged reconciliation; stable order when source and cost rows are reordered together; immutable result and input; invalid/missing revision fail closed.
+- This is a domain API only. No frontend, comparison JSON/CSV schema, adapter, CNC output or machine standard is changed.
