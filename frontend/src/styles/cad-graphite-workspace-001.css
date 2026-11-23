@@ -215,3 +215,11 @@
     animation: none !important;
   }
 }
+
+/* 1280px desktop: preserve viewport breathing room while keeping both docks readable. */
+@media (min-width: 1201px) and (max-width: 1320px) {
+  .cad-app { --cad-dock-left: 244px; --cad-dock-right: 304px; }
+  .cad-sidebar-header { padding-inline: 11px !important; }
+  .cad-inspector-scroll { padding-inline: 10px !important; }
+  .cad-viewport-toolbar { padding-inline: 10px !important; }
+}
