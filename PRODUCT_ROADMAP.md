@@ -1223,7 +1223,7 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 ## DOM-126d — Comparison CSV v4 hardware BOM provenance (implementation; verification pending)
 - CSV v4 appends eight paired hardware BOM columns (ID, unit, furniture IDs and source references) while preserving v3 resource columns. Strict v1/v2/v3/v4 headers are recognized; legacy readers remain intact.
 - Acceptance: v4 hardware BOM and JSON v3 cross-format round-trip; partial/unsorted metadata fails closed; v3 resource identity remains readable; line/category/grand-total deltas reconcile. No UI or CNC output is claimed.
-- Exact-SHA CI, QA and Pages verification are pending. Frontend export integration remains frontend-owned.
+- Exact-SHA CI passed, but QA failed on ten stale CSV version assertions in shared-domain tests; fix is in progress. Pages has not deployed. Frontend export integration remains frontend-owned.
 ### Updated next domain slices
 1. DOM-127 — Hardware BOM-to-furniture/Part traceability boundary (do not infer panel Part links).
 2. DOM-128 — Quote source-map identity/unit reconciliation across consumers with fail-closed diagnostics.

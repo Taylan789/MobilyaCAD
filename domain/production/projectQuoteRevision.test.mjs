@@ -1313,7 +1313,7 @@ test("DOM-078B material catalog identity changes are separate comparison lines",
   assert.equal(materialChanges.find(change => change.type === "added").to.sourceId, toSource.sourceId);
 });
 
-test("DOM-084 catalog resource identity changes stay added/removed and survive comparison JSON v2 and CSV v3", () => {
+test("DOM-084 catalog resource identity changes stay added/removed and survive comparison JSON v2 and CSV v4", () => {
   const fromSnapshot = createSnapshot();
   const toSnapshot = createSnapshot();
   const fromLine = fromSnapshot.quoteSummary.costSummary.lines.find(line => line.category === "material");
@@ -1376,7 +1376,7 @@ test("DOM-084 catalog resource identity changes stay added/removed and survive c
 
   const csv = serializeProjectQuoteRevisionComparisonCsv(result);
   assert.equal(csv.status, "ready", csv.diagnostics.join("; "));
-  assert.equal(PROJECT_QUOTE_REVISION_COMPARISON_CSV_VERSION, 3);
+  assert.equal(PROJECT_QUOTE_REVISION_COMPARISON_CSV_VERSION, 4);
   const parsedCsv = parseProjectQuoteRevisionComparisonCsv(csv.csv);
   assert.equal(parsedCsv.status, "ready", parsedCsv.diagnostics.join("; "));
   assert.deepEqual(parsedCsv.comparison, result.comparison);
@@ -1430,7 +1430,7 @@ test("DOM-085 price source reference changes remain value changes with unchanged
 
   const csv = serializeProjectQuoteRevisionComparisonCsv(result);
   assert.equal(csv.status, "ready", csv.diagnostics.join("; "));
-  assert.equal(PROJECT_QUOTE_REVISION_COMPARISON_CSV_VERSION, 3);
+  assert.equal(PROJECT_QUOTE_REVISION_COMPARISON_CSV_VERSION, 4);
   const parsedCsv = parseProjectQuoteRevisionComparisonCsv(csv.csv);
   assert.equal(parsedCsv.status, "ready", parsedCsv.diagnostics.join("; "));
   assert.deepEqual(parsedCsv.comparison, result.comparison);
@@ -1495,7 +1495,7 @@ test("DOM-086 Part provenance-only changes split into removed and added quote li
 
   const csv = serializeProjectQuoteRevisionComparisonCsv(result);
   assert.equal(csv.status, "ready", csv.diagnostics.join("; "));
-  assert.equal(PROJECT_QUOTE_REVISION_COMPARISON_CSV_VERSION, 3);
+  assert.equal(PROJECT_QUOTE_REVISION_COMPARISON_CSV_VERSION, 4);
   const parsedCsv = parseProjectQuoteRevisionComparisonCsv(csv.csv);
   assert.equal(parsedCsv.status, "ready", parsedCsv.diagnostics.join("; "));
   assert.deepEqual(parsedCsv.comparison, result.comparison);
@@ -1647,7 +1647,7 @@ test("DOM-087 multi-line Part provenance isolates changes to the affected materi
 
   const csv = serializeProjectQuoteRevisionComparisonCsv(result);
   assert.equal(csv.status, "ready", csv.diagnostics.join("; "));
-  assert.equal(PROJECT_QUOTE_REVISION_COMPARISON_CSV_VERSION, 3);
+  assert.equal(PROJECT_QUOTE_REVISION_COMPARISON_CSV_VERSION, 4);
   const parsedCsv = parseProjectQuoteRevisionComparisonCsv(csv.csv);
   assert.equal(parsedCsv.status, "ready", parsedCsv.diagnostics.join("; "));
   assert.deepEqual(parsedCsv.comparison, result.comparison);
@@ -1899,7 +1899,7 @@ test("DOM-090 three-revision r1-to-r3 comparison preserves Part provenance, tota
 
   const csv = serializeProjectQuoteRevisionComparisonCsv(result);
   assert.equal(csv.status, "ready", csv.diagnostics.join("; "));
-  assert.equal(PROJECT_QUOTE_REVISION_COMPARISON_CSV_VERSION, 3);
+  assert.equal(PROJECT_QUOTE_REVISION_COMPARISON_CSV_VERSION, 4);
   const parsedCsv = parseProjectQuoteRevisionComparisonCsv(csv.csv);
   assert.equal(parsedCsv.status, "ready", parsedCsv.diagnostics.join("; "));
   assert.deepEqual(parsedCsv.comparison, result.comparison);
@@ -2037,7 +2037,7 @@ test("DOM-091 repeated source-line comparison across three revisions determinist
   assert.equal(orderedCsv.status, "ready", orderedCsv.diagnostics.join("; "));
   assert.equal(reorderedCsv.status, "ready", reorderedCsv.diagnostics.join("; "));
   assert.equal(reorderedCsv.csv, orderedCsv.csv);
-  assert.equal(PROJECT_QUOTE_REVISION_COMPARISON_CSV_VERSION, 3);
+  assert.equal(PROJECT_QUOTE_REVISION_COMPARISON_CSV_VERSION, 4);
   const parsedCsv = parseProjectQuoteRevisionComparisonCsv(reorderedCsv.csv);
   assert.equal(parsedCsv.status, "ready", parsedCsv.diagnostics.join("; "));
   assert.deepEqual(parsedCsv.comparison, ordered.comparison);
@@ -2191,7 +2191,7 @@ test("DOM-093 three-revision comparison isolates a single Part-provenance change
 
   const csv = serializeProjectQuoteRevisionComparisonCsv(result);
   assert.equal(csv.status, "ready", csv.diagnostics.join("; "));
-  assert.equal(PROJECT_QUOTE_REVISION_COMPARISON_CSV_VERSION, 3);
+  assert.equal(PROJECT_QUOTE_REVISION_COMPARISON_CSV_VERSION, 4);
   const parsedCsv = parseProjectQuoteRevisionComparisonCsv(csv.csv);
   assert.equal(parsedCsv.status, "ready", parsedCsv.diagnostics.join("; "));
   assert.deepEqual(parsedCsv.comparison, result.comparison);
@@ -2292,7 +2292,7 @@ test("DOM-094 three-revision comparison reconciles fractional quantity rounding 
 
   const csv = serializeProjectQuoteRevisionComparisonCsv(result);
   assert.equal(csv.status, "ready", csv.diagnostics.join("; "));
-  assert.equal(PROJECT_QUOTE_REVISION_COMPARISON_CSV_VERSION, 3);
+  assert.equal(PROJECT_QUOTE_REVISION_COMPARISON_CSV_VERSION, 4);
   const parsedCsv = parseProjectQuoteRevisionComparisonCsv(csv.csv);
   assert.equal(parsedCsv.status, "ready", parsedCsv.diagnostics.join("; "));
   assert.deepEqual(parsedCsv.comparison, result.comparison);
@@ -2451,7 +2451,7 @@ test("DOM-095 three-revision mixed-category comparison reconciles changes, remov
   assert.deepEqual(parsedJson.comparison, result.comparison);
   const csv = serializeProjectQuoteRevisionComparisonCsv(result);
   assert.equal(csv.status, "ready", csv.diagnostics.join("; "));
-  assert.equal(PROJECT_QUOTE_REVISION_COMPARISON_CSV_VERSION, 3);
+  assert.equal(PROJECT_QUOTE_REVISION_COMPARISON_CSV_VERSION, 4);
   const parsedCsv = parseProjectQuoteRevisionComparisonCsv(csv.csv);
   assert.equal(parsedCsv.status, "ready", parsedCsv.diagnostics.join("; "));
   assert.deepEqual(parsedCsv.comparison, result.comparison);
@@ -2598,7 +2598,7 @@ test("DOM-097 three-revision fractional hardware and labor/operation changes rec
 
   const csv = serializeProjectQuoteRevisionComparisonCsv(result);
   assert.equal(csv.status, "ready", csv.diagnostics.join("; "));
-  assert.equal(PROJECT_QUOTE_REVISION_COMPARISON_CSV_VERSION, 3);
+  assert.equal(PROJECT_QUOTE_REVISION_COMPARISON_CSV_VERSION, 4);
   const parsedCsv = parseProjectQuoteRevisionComparisonCsv(csv.csv);
   assert.equal(parsedCsv.status, "ready", parsedCsv.diagnostics.join("; "));
   assert.deepEqual(parsedCsv.comparison, result.comparison);

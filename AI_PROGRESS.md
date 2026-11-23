@@ -453,3 +453,9 @@
 - Comparison CSV v4 adds paired hardware BOM ID/unit/furniture/source-reference columns; v1/v2/v3 readers remain strict and compatible. Tests added for hardware metadata round-trip, partial/unsorted rejection, JSON v3 cross-format preservation and legacy v3 compatibility.
 - Code/test commit: pending creation. Exact-SHA CI, QA and Pages results pending. Local test execution unavailable because the runtime could not resolve GitHub for a read-only clone.
 - Frontend files, machine-specific output, integration/performance-owned adapters and `main` remain untouched. Next: DOM-127 hardware traceability boundary.
+
+
+## 23 Kasım 2026 13:08 TRT — DOM-126d verification correction
+- Commit `6a6f2c6c7d79bdf94505a3aa553ac0add313eeb1` added CSV v4 implementation and regression tests.
+- CI build/lint: **success** (run 45156744492). QA shared-domain suite: **failure** (run 45156744371): 656/666 pass; ten tests expected CSV version 3 but current serializer is version 4. New DOM-126d hardware-BOM test itself passed.
+- Pages build started but is gated by QA; deployment is not verified. Fixing the ten stale version assertions and the DOM-084 test title now.
