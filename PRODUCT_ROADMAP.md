@@ -1343,15 +1343,17 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 - Exact-SHA CI/QA/Pages succeeded: [CI]( https://github.com/Taylan789/MobilyaCAD/actions/runs/45256565667 ), [QA]( https://github.com/Taylan789/MobilyaCAD/actions/runs/45256565549 ), [Pages]( https://github.com/Taylan789/MobilyaCAD/actions/runs/45256565818 ). QA: 194 frontend + 676 domain tests, strict TypeScript, lint 34 warnings/0 errors, production build, audit 0 vulnerabilities. Test site deployed: https://taylan789.github.io/MobilyaCAD/
 
 ### Next domain slices
-1. DOM-137 — reconcile source-integrity coverage audit against quote revision append/read validation without changing legacy records.
+1. DOM-137 — project JSON v2 append/read cross-consumer reconciliation for strict/legacy source-integrity counts and markers.
 2. DOM-130 — hardware BOM trace persistence/export/schema compatibility; deferred until adapter ownership is available.
 3. DOM-138 — comparison export coverage for strict/legacy marker summaries; adapter ownership and round-trip evidence required.
-2. DOM-130 — hardware BOM trace persistence/export/schema compatibility; deferred until adapter ownership is available.
-3. DOM-137 — extend source-map comparison audit diagnostics with deterministic revision-level coverage summaries (after DOM-136).
+
+## DOM-136 — Strict/legacy revision integrity coverage (VERIFIED)
+- Added `calculateProjectQuoteRevisionSourceIntegrityAudit` from validated source-map audit snapshots. Strict marker `1` and legacy `null` counts reconcile to `revisionCount`; ordered markers are preserved.
+- Acceptance: legacy → strict v1 → legacy, deterministic output, immutable input/output, empty history and malformed marker fail-closed.
+- Code/test commit [384a1f94](https://github.com/Taylan789/MobilyaCAD/commit/384a1f94a031622b3db03dc5db712e62f037d30a). Exact-SHA CI [#45275145213](https://github.com/Taylan789/MobilyaCAD/actions/runs/45275145213), QA [#45275145182](https://github.com/Taylan789/MobilyaCAD/actions/runs/45275145182), Pages [#45275145114](https://github.com/Taylan789/MobilyaCAD/actions/runs/45275145114) passed: 194 frontend + 678 domain tests, strict TS, lint 34 warnings/0 errors, build and audit 0 vulnerabilities. Test site: https://taylan789.github.io/MobilyaCAD/.
 
 
-## DOM-136 — Strict/legacy revision integrity coverage (implementation; verification pending)
-- Added a domain audit that reuses validated source-map revision snapshots and reconciles project-wide `strictRevisionCount` (marker `1`) plus `legacyRevisionCount` (missing marker `null`) to `revisionCount`.
-- Per-revision IDs, order, dates and marker values are preserved. Empty histories remain empty; malformed histories fail closed without partial counts.
-- Regression coverage includes legacy → strict v1 → legacy, deterministic repeat calls, count reconciliation, deep immutability and invalid-marker rejection.
-- Exact-SHA CI/QA and Pages deployment are pending; no deployment is claimed.
+## DOM-137 — Project-file append/read integrity coverage (implementation; verification pending)
+- Project JSON v2 readback and strict/legacy integrity audit are reconciled across two append operations; a legacy revision without the marker stays legacy.
+- Acceptance: `[null, 1, 1]` markers; strict=2, legacy=1, revisionCount=3; previous-revision chain and input immutability preserved.
+- Test-only cross-consumer slice; exact-SHA Actions pending.

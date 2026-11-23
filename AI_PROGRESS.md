@@ -1,3 +1,12 @@
+## 24 Kasım 2026 02:44 TRT — DOM-137 implementation (verification pending)
+- Branch baseline HEAD: `53afb5c0710c78d012bb8b807375a56b8a3899cb`; no active CI/QA/Pages or AI Developer run at the start of this turn. Baseline exact-SHA CI [#45290469890](https://github.com/Taylan789/MobilyaCAD/actions/runs/45290469890), QA [#45290469880](https://github.com/Taylan789/MobilyaCAD/actions/runs/45290469880) and Pages [#45290470307](https://github.com/Taylan789/MobilyaCAD/actions/runs/45290470307) succeeded; QA 194 frontend + 678 domain, lint 34 warnings/0 errors, production build and audit 0 vulnerabilities.
+- DOM-136 code/test [384a1f94](https://github.com/Taylan789/MobilyaCAD/commit/384a1f94a031622b3db03dc5db712e62f037d30a) verified: CI [#45275145213](https://github.com/Taylan789/MobilyaCAD/actions/runs/45275145213), QA [#45275145182](https://github.com/Taylan789/MobilyaCAD/actions/runs/45275145182) (194 frontend + 678 domain) and Pages [#45275145114](https://github.com/Taylan789/MobilyaCAD/actions/runs/45275145114) passed.
+- DOM-137 test slice reconciles project-v2 append/read with the source-integrity audit: starts from a legacy revision without marker, appends two strict revisions, expects ordered `[null, 1, 1]`, strict=2, legacy=1, total=3, preserves revision links and immutability.
+- Files: `domain/production/projectQuoteRevisionProjectFile.test.mjs`, `docs/production-domain-contract.md`, `PRODUCT_ROADMAP.md`, `AI_COORDINATION.md`, `AI_PROGRESS.md`. Code commit SHA and exact-SHA Actions are pending; no local Node test run is claimed.
+- AI Developer run [#45278475274](https://github.com/Taylan789/MobilyaCAD/actions/runs/45278475274) failed with OpenRouter free daily quota HTTP 429 (50/50 exhausted); no paid fallback, secret/quota change or retry. Integration/performance job is disabled/skipped; no specialist branch/PR is verified. UI PR #180 and other UI PRs remain separate; no merge performed.
+- Test site baseline: https://taylan789.github.io/MobilyaCAD/; deployment for the new SHA is pending. Next: DOM-138 comparison export marker coverage; DOM-130 remains deferred under adapter ownership.
+
+
 ## 22 Kasım 2026 21:38 TRT — DOM-115 VERIFIED
 
 - Test-only commit [d04b156](https://github.com/Taylan789/MobilyaCAD/commit/d04b156fdb49ff742659194cda3938df4c607fa1): blocked mixed-family conflict kaynak Part ID'leri unique set olarak karşılaştırılıyor ve her conflict diagnostic'in kaynak kapsamı ayrı doğrulanıyor. İki önceki QA başarısızlığı yalnız assertion beklentilerinden kaynaklandı; üretim tanı kodu değiştirilmedi.

@@ -1210,3 +1210,10 @@ Source-map revision comparisons now expose revision-level `fromSourceIntegrityVe
 - Returns project-wide `revisionCount`, `strictRevisionCount` (marker `1`), `legacyRevisionCount` (missing marker represented as `null`) and an ordered per-revision marker snapshot.
 - Acceptance: per-revision markers are preserved; strict + legacy counts reconcile to `revisionCount`; empty histories remain `empty`; invalid histories or unsupported markers return `blocked` with no partial audit; input and output are immutable.
 - This audit does not upgrade legacy records, infer integrity, or alter quote arithmetic/export formats.
+
+
+## DOM-137 — Project-file append/read source-integrity reconciliation
+
+The project JSON v2 quote-history wrapper is tested as an end-to-end consumer of the strict/legacy source-integrity audit. A pre-existing legacy revision without `sourceIntegrityVersion` remains unchanged when strict v1 revisions are appended; readback and audit must agree on ordered markers and counts. Repeated appends preserve revision numbering/previous links and the original project snapshots.
+- Acceptance: legacy → strict → strict readback reports `[null, 1, 1]`, `legacyRevisionCount = 1`, `strictRevisionCount = 2`, and `revisionCount = 3`; both prior project snapshots are immutable.
+- Domain integration regression only; no frontend, export adapter, machine/CNC output or pricing arithmetic changes.

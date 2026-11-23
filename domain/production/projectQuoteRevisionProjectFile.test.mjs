@@ -10,6 +10,10 @@ import {
   readProjectQuoteRevisionHistoryFromProjectFile
 } from "./projectQuoteRevisionProjectFile.ts";
 import { serializeProjectQuoteRevisionHistoryFile } from "./projectQuoteRevisionFile.ts";
+import {
+  calculateProjectQuoteRevisionSourceIntegrityAudit,
+  createProjectQuoteRevision
+} from "./projectQuoteRevision.ts";
 
 const emptyProduction = calculateCabinetProjectProductionWithDiagnostics({
   schemaVersion: 1,
@@ -537,3 +541,75 @@ test("standalone and project-history import block version downgrade payloads", (
   assert.deepEqual(projectV1WithHistory.quoteRevisionHistory, source.history);
 });
 
+
+
+test("DOM-137 project-file append/read integrity coverage reconciles strict and legacy markers without upgrading history", () => {
+  const legacyCreated = createProjectQuoteRevision({
+    projectId: "project-42",
+    revisionId: "quote-r1",
+    revisionNumber: 1,
+    createdAt: "2026-11-17T20:00:00Z",
+    previousRevision: null,
+    pricingSnapshot: structuredClone(snapshotResult.snapshot)
+  });
+  assert.equal(legacyCreated.status, "ready");
+  assert.ok(legacyCreated.revision);
+  assert.equal(Object.prototype.hasOwnProperty.call(legacyCreated.revision, "sourceIntegrityVersion"), false);
+
+  const initialProject = createV2Project({
+    quoteRevisionHistory: {
+      schemaVersion: 1,
+      projectId: "project-42",
+      revisions: [legacyCreated.revision]
+    }
+  });
+  const initialProjectBefore = JSON.stringify(initialProject);
+  const firstAppend = appendProjectQuoteRevisionToProjectFile(initialProject, createRevision({
+    revisionId: "quote-r2",
+    createdAt: "2026-11-18T01:00:00Z"
+  }));
+
+  assert.equal(firstAppend.status, "ready");
+  assert.ok(firstAppend.project);
+  assert.equal(JSON.stringify(initialProject), initialProjectBefore);
+  const firstProjectBefore = JSON.stringify(firstAppend.project);
+
+  const firstRead = readProjectQuoteRevisionHistoryFromProjectFile(firstAppend.project);
+  assert.equal(firstRead.status, "ready");
+  assert.ok(firstRead.history);
+  assert.equal(Object.prototype.hasOwnProperty.call(firstRead.history.revisions[0], "sourceIntegrityVersion"), false);
+  assert.equal(firstRead.history.revisions[1].sourceIntegrityVersion, 1);
+
+  const firstAuditResult = calculateProjectQuoteRevisionSourceIntegrityAudit(firstRead.history);
+  assert.equal(firstAuditResult.status, "ready");
+  assert.ok(firstAuditResult.audit);
+  assert.equal(firstAuditResult.audit.revisionCount, 2);
+  assert.equal(firstAuditResult.audit.strictRevisionCount, 1);
+  assert.equal(firstAuditResult.audit.legacyRevisionCount, 1);
+  assert.deepEqual(firstAuditResult.audit.revisions.map((revision) => revision.sourceIntegrityVersion), [null, 1]);
+
+  const secondAppend = appendProjectQuoteRevisionToProjectFile(firstAppend.project, createRevision({
+    revisionId: "quote-r3",
+    createdAt: "2026-11-19T01:00:00Z"
+  }));
+  assert.equal(secondAppend.status, "ready");
+  assert.ok(secondAppend.project);
+  assert.equal(JSON.stringify(firstAppend.project), firstProjectBefore);
+  assert.equal(JSON.stringify(initialProject), initialProjectBefore);
+
+  const secondRead = readProjectQuoteRevisionHistoryFromProjectFile(secondAppend.project);
+  assert.equal(secondRead.status, "ready");
+  assert.ok(secondRead.history);
+  assert.deepEqual(secondRead.history.revisions.map((revision) => revision.revisionNumber), [1, 2, 3]);
+  assert.deepEqual(secondRead.history.revisions.map((revision) => revision.previousRevisionId), [null, "quote-r1", "quote-r2"]);
+
+  const secondAuditResult = calculateProjectQuoteRevisionSourceIntegrityAudit(secondRead.history);
+  assert.equal(secondAuditResult.status, "ready");
+  assert.ok(secondAuditResult.audit);
+  assert.equal(secondAuditResult.audit.revisionCount, 3);
+  assert.equal(secondAuditResult.audit.strictRevisionCount, 2);
+  assert.equal(secondAuditResult.audit.legacyRevisionCount, 1);
+  assert.deepEqual(secondAuditResult.audit.revisions.map((revision) => revision.sourceIntegrityVersion), [null, 1, 1]);
+  assert.ok(Object.isFrozen(secondAuditResult.audit));
+  assert.ok(Object.isFrozen(secondAuditResult.audit.revisions));
+});
