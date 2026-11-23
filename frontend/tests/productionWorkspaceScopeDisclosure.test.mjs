@@ -15,7 +15,7 @@ test("production scope notice is a collapsed native disclosure", () => {
 
 test("scope disclosure supports keyboard focus, reduced motion and high contrast", () => {
   assert.match(disclosureCss, /summary:focus-visible/);
-  assert.match(disclosureCss, /details\[open\]/);
+  assert.match(disclosureCss, /\.mc-production-studio__scope\[open\]/);
   assert.match(disclosureCss, /prefers-reduced-motion:\s*reduce/);
   assert.match(disclosureCss, /forced-colors:\s*active/);
 });
