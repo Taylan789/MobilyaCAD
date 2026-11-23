@@ -329,3 +329,212 @@
     transition: none;
   }
 }
+
+
+/* Progressive disclosure for the selected part's local position. */
+.cad-part-position-disclosure {
+  overflow: hidden;
+  border: 1px solid rgba(132, 164, 184, .22);
+  border-radius: 8px;
+  background: linear-gradient(145deg, rgba(31, 48, 60, .76), rgba(17, 28, 36, .78));
+}
+
+.cad-part-position-disclosure__summary {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 9px;
+  padding: 9px 10px;
+  color: #c3d3dc;
+  cursor: pointer;
+  list-style: none;
+}
+
+.cad-part-position-disclosure__summary::-webkit-details-marker {
+  display: none;
+}
+
+.cad-part-position-disclosure__summary::after {
+  content: "";
+  width: 7px;
+  height: 7px;
+  flex: 0 0 auto;
+  border-right: 1.5px solid #91b4ca;
+  border-bottom: 1.5px solid #91b4ca;
+  transform: rotate(45deg);
+  transition: transform 140ms ease;
+}
+
+.cad-part-position-disclosure[open] > .cad-part-position-disclosure__summary::after {
+  transform: rotate(225deg);
+}
+
+.cad-part-position-disclosure__summary:focus-visible {
+  outline: 2px solid #a9c7d8;
+  outline-offset: -2px;
+}
+
+.cad-part-position-disclosure__heading {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+}
+
+.cad-part-position-disclosure__icon {
+  display: grid;
+  width: 29px;
+  height: 29px;
+  flex: 0 0 auto;
+  place-items: center;
+  color: #b9d0df;
+  border: 1px solid rgba(145, 180, 202, .24);
+  border-radius: 6px;
+  background: rgba(105, 148, 172, .13);
+}
+
+.cad-part-position-disclosure__icon svg {
+  width: 15px;
+  height: 15px;
+}
+
+.cad-part-position-disclosure__label {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.cad-part-position-disclosure__label strong {
+  color: #c2d4df;
+  font-size: 9px;
+  font-weight: 760;
+  letter-spacing: .1em;
+}
+
+.cad-part-position-disclosure__label small {
+  color: #8198a6;
+  font-size: 8px;
+  line-height: 1.35;
+}
+
+.cad-part-position-disclosure__values {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.cad-part-position-disclosure__axis {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 4px 5px;
+  color: #b4c4cd;
+  border: 1px solid rgba(145, 180, 202, .14);
+  border-radius: 4px;
+  background: rgba(7, 15, 21, .32);
+  font-size: 8px;
+  font-variant-numeric: tabular-nums;
+}
+
+.cad-part-position-disclosure__axis b {
+  font-size: 8px;
+  font-weight: 800;
+}
+
+.cad-part-position-disclosure__axis--x b { color: #e2a2b1; }
+.cad-part-position-disclosure__axis--y b { color: #9bc9aa; }
+.cad-part-position-disclosure__axis--z b { color: #9dbfdf; }
+
+.cad-part-position-disclosure[open] > .cad-part-position-disclosure__summary {
+  border-bottom: 1px solid rgba(132, 164, 184, .16);
+}
+
+.cad-part-position-disclosure__content {
+  padding: 9px 10px 10px;
+}
+
+.cad-part-position-disclosure__content .cad-part-editor-group {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 11px;
+  border: 1px solid rgba(132, 164, 184, .16);
+  border-radius: 6px;
+  background: rgba(8, 16, 22, .22);
+}
+
+.cad-part-position-disclosure__content .cad-part-coordinate-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.cad-part-position-disclosure__content .cad-part-coordinate-grid .cad-field {
+  min-width: 0;
+}
+
+.cad-part-position-disclosure__content .cad-input-with-unit {
+  min-width: 0;
+}
+
+.cad-part-position-disclosure__content .cad-input-with-unit input {
+  min-width: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.cad-part-position-disclosure__content .cad-field-note {
+  margin: 0;
+  color: #8298a4;
+  font-size: 8px;
+  line-height: 1.5;
+}
+
+@media (max-width: 420px) {
+  .cad-part-position-disclosure__summary {
+    flex-wrap: wrap;
+  }
+
+  .cad-part-position-disclosure__values {
+    width: 100%;
+    margin-left: 37px;
+  }
+}
+
+@media (forced-colors: active) {
+  .cad-part-position-disclosure {
+    border-color: CanvasText;
+    background: Canvas;
+    color: CanvasText;
+  }
+
+  .cad-part-position-disclosure__summary {
+    color: CanvasText;
+    background: Canvas;
+  }
+
+  .cad-part-position-disclosure__summary:focus-visible {
+    outline: 2px solid Highlight;
+  }
+
+  .cad-part-position-disclosure__icon,
+  .cad-part-position-disclosure__axis {
+    color: CanvasText;
+    border-color: CanvasText;
+    background: Canvas;
+  }
+
+  .cad-part-position-disclosure__axis b {
+    color: CanvasText;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cad-part-position-disclosure__summary::after {
+    transition: none;
+  }
+}
