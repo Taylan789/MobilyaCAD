@@ -1,0 +1,80 @@
+/* UI-PRODUCTION-SCOPE-DISCLOSURE-001 — progressive disclosure for scope notes */
+.mc-production-studio__scope {
+  display: block;
+  padding: 0;
+  overflow: clip;
+}
+
+.mc-production-studio__scope > summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px;
+  list-style: none;
+  cursor: pointer;
+  user-select: none;
+}
+
+.mc-production-studio__scope > summary::-webkit-details-marker {
+  display: none;
+}
+
+.mc-production-studio__scope > summary > svg:first-child {
+  width: 15px;
+  height: 15px;
+  flex: 0 0 auto;
+  color: #c39470;
+}
+
+.mc-production-studio__scope > summary > strong {
+  flex: 1;
+  margin: 0;
+  color: #d5b49a;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.mc-production-studio__scope > summary > svg:last-child {
+  width: 13px;
+  height: 13px;
+  flex: 0 0 auto;
+  color: #9eaaaF;
+  transition: transform 140ms ease;
+}
+
+.mc-production-studio__scope[open] > summary > svg:last-child {
+  transform: rotate(180deg);
+}
+
+.mc-production-studio__scope > summary:hover {
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.mc-production-studio__scope > summary:focus-visible {
+  outline: 2px solid #789bb4;
+  outline-offset: -2px;
+}
+
+.mc-production-studio__scope > p {
+  padding: 0 10px 10px 33px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mc-production-studio__scope > summary > svg:last-child {
+    transition: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .mc-production-studio__scope {
+    border: 1px solid CanvasText;
+  }
+
+  .mc-production-studio__scope > summary:focus-visible {
+    outline-color: Highlight;
+  }
+
+  .mc-production-studio__scope > summary > svg {
+    color: CanvasText;
+  }
+}
