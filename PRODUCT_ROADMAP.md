@@ -1243,13 +1243,14 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 3. DOM-129 — Project export compatibility guards for production metadata.
 
 
-## DOM-127b — Hardware BOM line-level traceability (implementation; Actions pending)
+## DOM-127b — Hardware BOM line-level traceability (VERIFIED — exact-SHA CI/QA/Pages successful)
 
 - `calculateProjectHardwareBomTrace` exposes each validated hardware BOM row in its original order with its independent quantity/unit/reference and exact linked Part snapshots (ID, name, production quantity, material identity and mm dimensions).
 - Part links are explicit and same-furniture only. Part quantity is descriptive production quantity; hardware quantity is not allocated to Parts. Grouped hardware consumption/costing is unchanged.
 - Automated regressions cover multiple BOM rows for one hardware identity/unit across furniture, distinct row quantities/references/Part mappings, unlinked rows, aggregate quantity/union consistency, input immutability, legacy empty projects and missing/cross-furniture links.
-- Frontend, JSON/CSV adapters, CNC and machine-specific standards remain outside this slice. Local checkout/tests unavailable; exact-SHA Actions pending.
+- Frontend, JSON/CSV adapters, CNC and machine-specific standards remain outside this slice. Local tests unavailable; exact-SHA Actions are the verification evidence.
 ### Updated next domain slices
 1. DOM-128 — Cross-consumer quote source-map identity/unit reconciliation with fail-closed diagnostics.
 2. DOM-129 — Project export compatibility guards for production metadata.
 3. DOM-130 — Hardware trace persistence/export contract and schema-version compatibility; frontend-owned integration only after adapter ownership is available.
+- **Exact-SHA verification:** commit [a87c46f6](https://github.com/Taylan789/MobilyaCAD/commit/a87c46f6f0ecf57eccd327004ac1ae743ac81dc8); CI [#45173461621](https://github.com/Taylan789/MobilyaCAD/actions/runs/45173461621) and QA [#45173461653](https://github.com/Taylan789/MobilyaCAD/actions/runs/45173461653) successful (188 frontend + 668 domain tests, strict TypeScript, production build, lint 34 warnings/0 errors, audit 0 vulnerabilities); Pages [#45173461683](https://github.com/Taylan789/MobilyaCAD/actions/runs/45173461683) deployed https://taylan789.github.io/MobilyaCAD/.
