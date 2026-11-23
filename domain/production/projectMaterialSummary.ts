@@ -420,7 +420,7 @@ export function calculateProjectHardwareBomTrace(
       ...(item.sourceReference === undefined ? {} : { sourceReference: item.sourceReference }),
       ...(sourceParts === undefined ? {} : { sourceParts })
     };
-  }));
+  });
 }
 
 export function calculateProjectMaterialConsumptionSummary(
