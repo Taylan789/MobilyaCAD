@@ -35,3 +35,12 @@ test("toolbar has segmented states, compact desktop behavior and accessibility f
   assert.match(styles, /prefers-reduced-motion:\s*reduce/);
   assert.match(styles, /forced-colors:\s*active/);
 });
+
+
+test("transform and panel states are visually bound to accessible disclosure", () => {
+  assert.match(styles, /\.studio-transform-tools button\[aria-pressed="true"\]/);
+  assert.match(styles, /\.studio-transform-tools button\[aria-pressed="true"\]::after/);
+  assert.match(styles, /\.studio-panel-tools button\.studio-panel-toggle\[aria-expanded="true"\]/);
+  assert.match(styles, /\.studio-panel-tools button\.studio-panel-toggle\[aria-expanded="false"\]/);
+  assert.match(styles, /border-left:\s*1px solid/);
+});
