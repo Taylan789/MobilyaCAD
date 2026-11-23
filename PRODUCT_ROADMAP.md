@@ -1272,7 +1272,19 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - Next: DOM-130 hardware BOM trace persistence/export contract and schema-version compatibility, then DOM-131 immutable quote source-map audit summary across revision history.
 
 
-## 23 Kasım 2026 18:14 TRT — DOM-131 source-map audit (implementation; verification pending)
+## 23 Kasım 2026 18:14 TRT — DOM-131 source-map audit (VERIFIED — exact-SHA CI/QA/Pages successful)
+
+- Domain API `calculateProjectQuoteRevisionSourceMapAudit(historyValue)` validates the full quote revision chain and returns a revision-ordered, deeply immutable source-map audit with per-revision/project totals for source types, categories, price-reference rows, Part references/unique IDs, resources, hardware BOM refs and furniture scope.
+- Legacy revisions lacking `sourceIntegrityVersion` are represented as `null`; no missing provenance is inferred, prices are recalculated, or export schema changed. Empty histories return zero-count audit; malformed histories return blocked with no partial audit.
+- Regressions: mixed two-revision source counts, exact price/BOM-reference separation, Part/furniture provenance, determinism, deep-freeze, input immutability, empty/invalid fail-closed. **Exact-SHA QA: 188 frontend + 671 domain tests, all passed; strict domain TypeScript, production build, lint 34 warnings/0 errors, production audit 0 vulnerabilities.**
+- Code/test [commit 5f1fbf1f](https://github.com/Taylan789/MobilyaCAD/commit/5f1fbf1f55ff2bd45468939abf7d2e76fecd0cdf); CI [#45204878883](https://github.com/Taylan789/MobilyaCAD/actions/runs/45204878883), QA [#45204879024](https://github.com/Taylan789/MobilyaCAD/actions/runs/45204879024), Pages [#45204879129](https://github.com/Taylan789/MobilyaCAD/actions/runs/45204879129) succeeded. Test site deployed: https://taylan789.github.io/MobilyaCAD/.
+- Scope: `domain/production/projectQuoteRevision.ts`, `domain/production/projectQuoteRevision.test.mjs`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `docs/production-domain-contract.md`. No frontend, adapter/performance-owned files, CNC/machine output or `main` changes. Local tests were unavailable; Actions are the verification evidence.
+- `npm ci` reported 4 moderate vulnerabilities in the full dependency tree; production-only audit returned 0 vulnerabilities. Existing lint warnings are 34, with no lint errors.
+
+### Updated next domain slices
+1. DOM-130 — Hardware BOM trace persistence/export/schema compatibility; deferred until adapter ownership is available (integration-performance workflow is disabled).
+2. DOM-132 — Legacy revision source-map audit should surface duplicate source identities without changing or rejecting historical data.
+3. DOM-133 — Compare revision source-map provenance changes independently from monetary deltas, using existing comparison identity rules.
 
 - Added domain API `calculateProjectQuoteRevisionSourceMapAudit(historyValue)`: validates a full quote history before returning revision-ordered immutable source-line metadata and per-revision/project totals for source types, categories, price-reference rows, Part links/references/unique IDs, resources and hardware BOM/furniture provenance.
 - Legacy revisions with absent `sourceIntegrityVersion` are explicitly reported as `null`; the audit does not infer missing metadata, calculate prices or alter export formats. Empty histories yield zero-count audit; invalid histories fail atomically with no partial audit.

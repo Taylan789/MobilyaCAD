@@ -526,3 +526,13 @@
 - Pages [#45202029099](https://github.com/Taylan789/MobilyaCAD/actions/runs/45202029099) succeeded and deployed to https://taylan789.github.io/MobilyaCAD/. This was a domain/test slice; no visible UI redesign is included.
 - Changed files: `domain/production/projectQuoteRevisionExports.test.mjs`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`. No production calculation, frontend, adapter/performance-owned file, CNC/machine output or `main` changed. Local tests unavailable; exact-SHA Actions are the evidence.
 - Earlier QA fixture failures were fixed without weakening assertions. Next: DOM-130 hardware BOM trace persistence/export contract and schema compatibility; DOM-131 immutable quote source-map audit summary.
+
+
+## 23 Kasım 2026 18:14 TRT — DOM-131 VERIFIED
+
+- **Code/test SHA:** [5f1fbf1f55ff2bd45468939abf7d2e76fecd0cdf](https://github.com/Taylan789/MobilyaCAD/commit/5f1fbf1f55ff2bd45468939abf7d2e76fecd0cdf).
+- **Deliverable:** `calculateProjectQuoteRevisionSourceMapAudit` validates all quote history before returning immutable per-revision source lines/counts and global totals. It preserves price-list source references, hardware BOM references, resource/Part provenance and legacy `sourceIntegrityVersion=null`; empty and invalid histories are handled atomically.
+- **Changed files:** `domain/production/projectQuoteRevision.ts`, `domain/production/projectQuoteRevision.test.mjs`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `docs/production-domain-contract.md`.
+- **Exact-SHA Actions:** CI [#45204878883](https://github.com/Taylan789/MobilyaCAD/actions/runs/45204878883) and QA [#45204879024](https://github.com/Taylan789/MobilyaCAD/actions/runs/45204879024) succeeded. QA: **188 frontend + 671 domain tests**, strict domain TS, production build, lint 34 warnings/0 errors, production audit 0 vulnerabilities. Pages [#45204879129](https://github.com/Taylan789/MobilyaCAD/actions/runs/45204879129) deployed https://taylan789.github.io/MobilyaCAD/.
+- Local tests unavailable in this runtime. `npm ci` showed 4 moderate full-tree dependency findings; production-only audit is clean. The 34 existing lint warnings remain.
+- No frontend, adapter/performance-owned files, machine/CNC output or `main` changed. DOM-130 is deferred until adapter ownership; next domain tasks are DOM-132 legacy duplicate identity audit and DOM-133 provenance-only revision deltas.
