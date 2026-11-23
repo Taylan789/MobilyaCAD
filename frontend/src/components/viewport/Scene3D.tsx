@@ -17,6 +17,7 @@ import PlacedFurniture3D from "../furniture/PlacedFurniture3D";
 import type { PlacedFurniture } from "../../types/placedFurniture";
 import { calculatePlacementIssues } from "../../engine/placementValidation";
 import "./ViewportCameraControls.css";
+import "./ViewportCameraWorkbench.css";
 
 interface Scene3DProps {
   width: number;
