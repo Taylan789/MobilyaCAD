@@ -109,8 +109,15 @@ const costLineKeys = new Set([
 ]);
 const sourceKeys = new Set([
   "costLineId", "sourceType", "sourceId", "tariffId", "sourcePartIds",
+  "hardwareId", "hardwareUnit", "hardwareFurnitureIds", "hardwareSourceReferences",
   "resourceType", "resourceId", "unit", "edgeDirection", "rollCount", "rollLengthMm",
   "purchasedLengthMm", "furnitureIds", "planSourceReference", "priceSourceReference"
+]);
+const hardwareMetadataKeys = new Set([
+  "hardwareId", "hardwareUnit", "hardwareFurnitureIds", "hardwareSourceReferences"
+]);
+const requiredHardwareMetadataKeys = new Set([
+  "hardwareId", "hardwareUnit", "hardwareFurnitureIds"
 ]);
 const rollMetadataKeys = new Set([
   "rollCount", "rollLengthMm", "purchasedLengthMm", "furnitureIds",
@@ -444,6 +451,28 @@ function validateQuoteSummary(value: unknown, strictSourceIntegrity = false): as
     ) {
       throw new Error("Teklif kaynak metadata alanları resourceType ile birlikte kullanılmalıdır.");
     }
+
+    const hasHardwareMetadata = [...hardwareMetadataKeys].some(key =>
+      Object.prototype.hasOwnProperty.call(source, key)
+    );
+    if (hasHardwareMetadata) {
+      if (line.category !== "hardware" || source.sourceType !== "production-consumption") {
+        throw new Error("Donanım BOM metadata yalnızca production-consumption hardware satırlarında kullanılabilir.");
+      }
+      if ([...requiredHardwareMetadataKeys].some(key => !Object.prototype.hasOwnProperty.call(source, key))) {
+        throw new Error("Donanım BOM metadata kimlik, birim ve mobilya kimliklerini birlikte içermelidir.");
+      }
+      requireIdentifier(source.hardwareId, "Teklif donanım kimliği");
+      const hardwareUnit = requireText(source.hardwareUnit, "Teklif donanım birimi", 32);
+      if (hardwareUnit !== line.unit) {
+        throw new Error("Teklif donanım birimi maliyet satırı birimiyle uyuşmalıdır.");
+      }
+      validateSortedIdentifiers(source.hardwareFurnitureIds, "Teklif donanım mobilya kimlikleri");
+      if (source.hardwareSourceReferences !== undefined) {
+        validateSortedIdentifiers(source.hardwareSourceReferences, "Teklif donanım BOM kaynak referansları");
+      }
+    }
+
     if (strictSourceIntegrity) {
       const allowedCategories = source.sourceType === "production-consumption"
         ? ["material", "hardware"]

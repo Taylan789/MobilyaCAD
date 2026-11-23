@@ -1185,3 +1185,12 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - CSV v1 exports four trailing hardware provenance columns and accepts both the current and legacy v1 headers. Legacy files normalize to blank optional fields and remain compatible without fabricated source mappings.
 - Automated regressions cover JSON and CSV round-trip, partial metadata, wrong category, unsorted metadata and legacy CSV compatibility.
 - Scope: domain quote-summary JSON/CSV adapters and tests only; no UI, adapter/performance-owned files, machine output, prices or `main` changes.
+
+
+## DOM-126a — Hardware BOM provenance in quote revision snapshots (Actions pending)
+
+- Revision source validation now recognizes hardware BOM metadata on production-consumption hardware lines; identity/unit/furniture IDs are all-or-nothing, the unit must match the cost line, and optional BOM references are sorted/unique. Legacy snapshots without these fields remain valid.
+- Regression acceptance: a real priced hardware fixture preserves BOM references separately from the hardware price source through revision validation, standalone history JSON, and project-v2 embedded history; inputs remain unchanged and no Part association is invented. Partial or misplaced metadata blocks the revision.
+- Scope: domain revision validator and regression test; no frontend or machine-specific production output.
+- Exact-SHA CI/QA/Pages verification is pending for the code/test commit.
+- Next: DOM-126b project quote revision comparison snapshots plus comparison JSON/CSV provenance round-trip, then DOM-127 hardware traceability contract review.

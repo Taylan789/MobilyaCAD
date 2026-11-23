@@ -421,3 +421,11 @@
 - Latest docs cleanup [7326aea](https://github.com/Taylan789/MobilyaCAD/commit/7326aea5e4e25e3b4eb8e460bf8796a71a5fb218) passed exact-SHA CI #45119292180, QA #45119292188 and Pages #45119292242. QA: 175 frontend + 658 domain tests, strict TypeScript, production build, lint 32 warnings/0 errors, production audit 0 vulnerabilities.
 - No local test run; no manual test requested. UI agent PRs remain separate; domain-only deployment does not claim visible UI redesign.
 - AI Developer #45091325066 remains blocked by OpenRouter free-model quota HTTP 429; specialist integration/performance job/PR not found. Next DOM-126.
+
+
+## 23 Kasım 2026 10:32 TRT — DOM-126a implementation (Actions pending)
+- Current branch head was inspected; no active CI/QA/AI Developer run was present before writing. Latest exact-SHA CI, QA and Pages for prior head 823b34bf2e were successful.
+- Found a compatibility gap: quote revision strict source-key validation rejected DOM-125 hardware BOM metadata. Added hardware metadata whitelist and all-or-nothing identity/unit/furniture validation, sorted optional BOM-reference validation, and rejection outside hardware consumption lines.
+- Added regression coverage for priced hardware provenance through revision validation, standalone quote-history JSON and project-v2 embedded history, including partial/misplaced metadata blocking and input immutability.
+- Commit SHA and exact-SHA CI/QA/Pages evidence will be recorded in the verification follow-up; local full tests are unavailable because no repository checkout is mounted.
+- Next: DOM-126b revision comparison projections and comparison JSON/CSV provenance round-trip; DOM-127 traceability review remains after that.

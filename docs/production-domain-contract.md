@@ -1104,3 +1104,11 @@ The quote refuses to expose ready source mappings if a priced hardware line lack
 Quote-summary JSON v1 now accepts the additive fields `hardwareId`, `hardwareUnit`, `hardwareFurnitureIds` and optional `hardwareSourceReferences` only on production-consumption hardware cost lines. Hardware ID/unit/furniture provenance is required as a complete set; furniture IDs and BOM source references must be sorted, unique and bounded. Partial or misplaced metadata fails closed, and no hardware-to-Part relationship is fabricated.
 
 Quote-summary CSV v1 writes the four fields as additive trailing columns. The parser accepts both the new strict header and the prior v1 header: legacy rows are normalized with blank metadata fields, so existing snapshots remain readable and do not gain invented provenance. Both formats recompute cost totals through the same JSON validator. Exact-SHA verification: feature commit [6025de0](https://github.com/Taylan789/MobilyaCAD/commit/6025de0a9e5612ff7ac67deab45a6df10a94b456), test correction [332299f](https://github.com/Taylan789/MobilyaCAD/commit/332299fbb852d690031d376fe82a9f390436c55e), CI #45118738218, QA #45118738120 and Pages #45118738144 all succeeded; the test site is https://taylan789.github.io/MobilyaCAD/.
+
+
+## Quote revision hardware BOM provenance (DOM-126a)
+
+- Revision snapshot source validation accepts the additive hardware BOM fields `hardwareId`, `hardwareUnit`, `hardwareFurnitureIds` and optional `hardwareSourceReferences` only on production-consumption hardware cost lines.
+- Identity, unit and sorted unique furniture IDs are all-or-nothing; hardware unit must match the cost-line unit. Optional BOM references are sorted, unique and bounded. Price-list `sourceReference` remains distinct from BOM provenance.
+- Legacy revision snapshots without these optional fields remain valid. Hardware-to-Part IDs are not fabricated.
+- DOM-126a adds standalone quote-history JSON and project-v2 embedded-history round-trip coverage. Revision comparison projections and comparison JSON/CSV preservation remain DOM-126b.
