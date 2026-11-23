@@ -1166,12 +1166,12 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - **Performance:** bundle size, viewport frame behavior, memory, large-placement tests — specialist-owned measured baselines; current bundle-size warning remains.
 - **Reliability:** strict types, test coverage, round-trip losslessness, backward compatibility, fail-closed import/export, production audit — CI/QA evidence per exact SHA; 10/10 requires all checks and no unresolved critical risks.
 
-## DOM-120 — Project cut-plan area-summary reconciliation (23 Kasım 2026)
+## DOM-120 — Project cut-plan area-summary reconciliation (VERIFIED, 23 Kasım 2026)
 
 - **Acceptance:** each mixed-material group area summary independently reconciles stock dimensions, per-sheet trim, usable area, placement geometry, unoccupied area and sheet occupancy; project totals equal the sum of group totals and geometric occupancy is weighted across all groups rather than averaged.
 - **Fixture:** nonzero MDF trim plus a different stock size/material with multiple sheets. The test is cross-consumer and test-only; no production algorithm or export format changed.
-- **Verification:** commit and exact-SHA CI/QA/Pages pending; local tests unavailable, Actions is authoritative.
-- **Next:** DOM-121 edge-band/material summary provenance; DOM-122 priced-consumption/quote reconciliation. INT-001 remains frontend-owned and INT-002/PERF-001 specialist-owned.
+- **Verification:** code/test commit [31ca52de](https://github.com/Taylan789/MobilyaCAD/commit/31ca52de6334d4f36b0b37e7594d20affde91c16); exact-SHA CI [#45083257996](https://github.com/Taylan789/MobilyaCAD/actions/runs/45083257996), QA [#45083257987](https://github.com/Taylan789/MobilyaCAD/actions/runs/45083257987), and Pages [#45083257991](https://github.com/Taylan789/MobilyaCAD/actions/runs/45083257991) all succeeded. QA: 172 frontend + 649 domain tests, strict shared-domain TypeScript, lint 32 warnings/0 errors, production build, production audit 0 vulnerabilities. Test site deployed to https://taylan789.github.io/MobilyaCAD/. Local tests unavailable; Actions is authoritative.
+- **Next:** DOM-121 is verified; continue with DOM-122 priced-consumption/quote reconciliation. INT-001 remains frontend-owned and INT-002/PERF-001 specialist-owned.
 
 
 ## DOM-121 — Mixed-family material and edge-band summary provenance (VERIFIED)
