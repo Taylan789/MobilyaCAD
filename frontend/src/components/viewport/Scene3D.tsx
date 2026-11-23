@@ -17,6 +17,7 @@ import PlacedFurniture3D from "../furniture/PlacedFurniture3D";
 import type { PlacedFurniture } from "../../types/placedFurniture";
 import { calculatePlacementIssues } from "../../engine/placementValidation";
 import "./ViewportCameraControls.css";
+import "./ViewportCameraWorkbench.css";
 
 interface Scene3DProps {
   width: number;
@@ -715,6 +716,32 @@ export default function Scene3D({
           <span>Odakla</span>
         </button>
       </div>
+      <aside
+        className="cad-viewport-dimension-readout"
+        aria-label="Oda ölçüleri ve görünür mobilya sayısı"
+      >
+        <div className="cad-viewport-dimension-readout__header">
+          <span>ODA / ÇALIŞMA ALANI</span>
+          <small>{visibleFurniture.length} görünür mobilya</small>
+        </div>
+        <div className="cad-viewport-dimension-readout__dimensions">
+          <div>
+            <span>GENİŞLİK</span>
+            <strong>{width.toLocaleString("tr-TR")}</strong>
+            <small>mm</small>
+          </div>
+          <div>
+            <span>UZUNLUK</span>
+            <strong>{length.toLocaleString("tr-TR")}</strong>
+            <small>mm</small>
+          </div>
+          <div>
+            <span>YÜKSEKLİK</span>
+            <strong>{height.toLocaleString("tr-TR")}</strong>
+            <small>mm</small>
+          </div>
+        </div>
+      </aside>
     </>
   );
 }

@@ -1,0 +1,141 @@
+/* UI-VIEWPORT-WORKBENCH-001 — live room readout, derived only from current CAD state */
+.cad-viewport-dimension-readout {
+  position: absolute;
+  z-index: 3;
+  left: 12px;
+  bottom: 12px;
+  display: grid;
+  width: min(318px, calc(100% - 24px));
+  gap: 8px;
+  padding: 9px 10px 10px;
+  color: #d9e5ec;
+  border: 1px solid rgba(109, 143, 165, 0.46);
+  border-radius: 6px;
+  background: linear-gradient(180deg, rgba(25, 37, 46, 0.94), rgba(15, 24, 31, 0.94));
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.24), inset 0 1px rgba(238, 247, 251, 0.04);
+  backdrop-filter: blur(12px);
+  pointer-events: none;
+  user-select: none;
+  font-family: "Geist Variable", ui-sans-serif, system-ui, sans-serif;
+}
+
+.cad-viewport-dimension-readout__header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(111, 143, 164, 0.24);
+}
+
+.cad-viewport-dimension-readout__header > span {
+  color: #8fa9b9;
+  font-size: 8px;
+  font-weight: 760;
+  letter-spacing: 0.12em;
+}
+
+.cad-viewport-dimension-readout__header > small {
+  color: #a6b5c0;
+  font-size: 9px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.cad-viewport-dimension-readout__dimensions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.cad-viewport-dimension-readout__dimensions > div {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  column-gap: 4px;
+  padding-inline: 7px;
+  border-right: 1px solid rgba(111, 143, 164, 0.22);
+}
+
+.cad-viewport-dimension-readout__dimensions > div:first-child {
+  padding-left: 0;
+}
+
+.cad-viewport-dimension-readout__dimensions > div:last-child {
+  padding-right: 0;
+  border-right: 0;
+}
+
+.cad-viewport-dimension-readout__dimensions > div > span {
+  grid-column: 1 / -1;
+  overflow: hidden;
+  color: #738b9a;
+  font-size: 7px;
+  font-weight: 740;
+  letter-spacing: 0.08em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cad-viewport-dimension-readout__dimensions strong {
+  min-width: 0;
+  color: #e5edf2;
+  font-size: 12px;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.025em;
+  overflow-wrap: anywhere;
+}
+
+.cad-viewport-dimension-readout__dimensions small {
+  color: #8fa9b9;
+  font-size: 8px;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 560px) {
+  .cad-viewport-dimension-readout {
+    left: 8px;
+    bottom: 8px;
+    width: min(290px, calc(100% - 16px));
+    gap: 6px;
+    padding: 7px 8px;
+  }
+
+  .cad-viewport-dimension-readout__dimensions > div {
+    padding-inline: 5px;
+  }
+
+  .cad-viewport-dimension-readout__dimensions strong {
+    font-size: 11px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cad-viewport-dimension-readout {
+    scroll-behavior: auto;
+  }
+}
+
+@media (forced-colors: active) {
+  .cad-viewport-dimension-readout {
+    border: 1px solid CanvasText;
+    background: Canvas;
+    color: CanvasText;
+    box-shadow: none;
+    backdrop-filter: none;
+  }
+
+  .cad-viewport-dimension-readout__header,
+  .cad-viewport-dimension-readout__dimensions > div {
+    border-color: CanvasText;
+  }
+
+  .cad-viewport-dimension-readout__header > span,
+  .cad-viewport-dimension-readout__header > small,
+  .cad-viewport-dimension-readout__dimensions > div > span,
+  .cad-viewport-dimension-readout__dimensions strong,
+  .cad-viewport-dimension-readout__dimensions small {
+    color: CanvasText;
+  }
+}
