@@ -1106,9 +1106,9 @@ Quote-summary JSON v1 now accepts the additive fields `hardwareId`, `hardwareUni
 Quote-summary CSV v1 writes the four fields as additive trailing columns. The parser accepts both the new strict header and the prior v1 header: legacy rows are normalized with blank metadata fields, so existing snapshots remain readable and do not gain invented provenance. Both formats recompute cost totals through the same JSON validator. Exact-SHA verification: feature commit [6025de0](https://github.com/Taylan789/MobilyaCAD/commit/6025de0a9e5612ff7ac67deab45a6df10a94b456), test correction [332299f](https://github.com/Taylan789/MobilyaCAD/commit/332299fbb852d690031d376fe82a9f390436c55e), CI #45118738218, QA #45118738120 and Pages #45118738144 all succeeded; the test site is https://taylan789.github.io/MobilyaCAD/.
 
 
-## Quote revision hardware BOM provenance (DOM-126a)
+## Quote revision hardware BOM provenance (DOM-126a, verified)
 
-- Revision snapshot source validation accepts the additive hardware BOM fields `hardwareId`, `hardwareUnit`, `hardwareFurnitureIds` and optional `hardwareSourceReferences` only on production-consumption hardware cost lines.
-- Identity, unit and sorted unique furniture IDs are all-or-nothing; hardware unit must match the cost-line unit. Optional BOM references are sorted, unique and bounded. Price-list `sourceReference` remains distinct from BOM provenance.
-- Legacy revision snapshots without these optional fields remain valid. Hardware-to-Part IDs are not fabricated.
-- DOM-126a adds standalone quote-history JSON and project-v2 embedded-history round-trip coverage. Revision comparison projections and comparison JSON/CSV preservation remain DOM-126b.
+- Revision snapshot source validation accepts additive hardware BOM fields hardwareId, hardwareUnit, hardwareFurnitureIds and optional hardwareSourceReferences only on production-consumption hardware cost lines.
+- Identity, unit and sorted unique furniture IDs are all-or-nothing; hardware unit matches the cost-line unit. Optional BOM references are sorted, unique and bounded. Hardware price-list sourceReference remains distinct from BOM provenance.
+- Legacy revision snapshots without these optional fields remain valid; no hardware-to-Part IDs are fabricated. Regression coverage preserves provenance through standalone history JSON and project-v2 embedded history and rejects partial/misplaced metadata.
+- Verified code/test [53c72cbd](https://github.com/Taylan789/MobilyaCAD/commit/53c72cbdf8e04c9df46d2ab13b7d499fe7fae5b4); CI [#45132439080](https://github.com/Taylan789/MobilyaCAD/actions/runs/45132439080), QA [#45132439155](https://github.com/Taylan789/MobilyaCAD/actions/runs/45132439155) and Pages [#45132439031](https://github.com/Taylan789/MobilyaCAD/actions/runs/45132439031) all succeeded. Comparison projection and comparison JSON/CSV remain DOM-126b.

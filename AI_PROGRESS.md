@@ -423,9 +423,9 @@
 - AI Developer #45091325066 remains blocked by OpenRouter free-model quota HTTP 429; specialist integration/performance job/PR not found. Next DOM-126.
 
 
-## 23 Kasım 2026 10:32 TRT — DOM-126a implementation (Actions pending)
-- Current branch head was inspected; no active CI/QA/AI Developer run was present before writing. Latest exact-SHA CI, QA and Pages for prior head 823b34bf2e were successful.
-- Found a compatibility gap: quote revision strict source-key validation rejected DOM-125 hardware BOM metadata. Added hardware metadata whitelist and all-or-nothing identity/unit/furniture validation, sorted optional BOM-reference validation, and rejection outside hardware consumption lines.
-- Added regression coverage for priced hardware provenance through revision validation, standalone quote-history JSON and project-v2 embedded history, including partial/misplaced metadata blocking and input immutability.
-- Commit SHA and exact-SHA CI/QA/Pages evidence will be recorded in the verification follow-up; local full tests are unavailable because no repository checkout is mounted.
-- Next: DOM-126b revision comparison projections and comparison JSON/CSV provenance round-trip; DOM-127 traceability review remains after that.
+## 23 Kasım 2026 10:38 TRT — DOM-126a verified
+- Code/test commit: [53c72cbd](https://github.com/Taylan789/MobilyaCAD/commit/53c72cbdf8e04c9df46d2ab13b7d499fe7fae5b4); changed domain/production/projectQuoteRevision.ts, new projectQuoteRevisionHardwareProvenance.test.mjs, production-domain contract, roadmap, progress and coordination.
+- Quote revisions now accept DOM-125 hardware BOM fields with strict all-or-nothing identity/unit/furniture validation; units reconcile to the cost line, optional BOM refs remain sorted, and misplaced metadata blocks.
+- CI: [#45132439080](https://github.com/Taylan789/MobilyaCAD/actions/runs/45132439080) successful. QA: [#45132439155](https://github.com/Taylan789/MobilyaCAD/actions/runs/45132439155) successful — 175 frontend + 660 domain tests, 0 failures; strict domain TypeScript, lint 32 warnings/0 errors, production build, production dependency audit 0 vulnerabilities.
+- Pages: [#45132439031](https://github.com/Taylan789/MobilyaCAD/actions/runs/45132439031) successful; test site deployed: https://taylan789.github.io/MobilyaCAD/.
+- Known gap: revision comparison snapshots/JSON/CSV still do not expose hardware BOM metadata; next DOM-126b. Local tests unavailable (no checkout mounted); exact-SHA Actions is authoritative. AI Developer [#45091325066](https://github.com/Taylan789/MobilyaCAD/actions/runs/45091325066) failed on OpenRouter free-model quota 429; specialist job skipped and no specialist branch/PR verified. No paid fallback/quota/secrets changes.

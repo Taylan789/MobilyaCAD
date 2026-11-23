@@ -1187,10 +1187,10 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - Scope: domain quote-summary JSON/CSV adapters and tests only; no UI, adapter/performance-owned files, machine output, prices or `main` changes.
 
 
-## DOM-126a — Hardware BOM provenance in quote revision snapshots (Actions pending)
+## DOM-126a — Hardware BOM provenance in quote revision snapshots (VERIFIED, 23 November 2026)
 
-- Revision source validation now recognizes hardware BOM metadata on production-consumption hardware lines; identity/unit/furniture IDs are all-or-nothing, the unit must match the cost line, and optional BOM references are sorted/unique. Legacy snapshots without these fields remain valid.
-- Regression acceptance: a real priced hardware fixture preserves BOM references separately from the hardware price source through revision validation, standalone history JSON, and project-v2 embedded history; inputs remain unchanged and no Part association is invented. Partial or misplaced metadata blocks the revision.
-- Scope: domain revision validator and regression test; no frontend or machine-specific production output.
-- Exact-SHA CI/QA/Pages verification is pending for the code/test commit.
-- Next: DOM-126b project quote revision comparison snapshots plus comparison JSON/CSV provenance round-trip, then DOM-127 hardware traceability contract review.
+- Revision source validation recognizes hardware BOM metadata only on production-consumption hardware lines; hardware identity, unit and furniture IDs are all-or-nothing, unit matches the cost line, and optional BOM refs are sorted/unique. Legacy snapshots without these fields remain valid.
+- Regression acceptance: a priced hardware fixture preserves BOM references separately from the price source through revision validation, standalone history JSON and project-v2 embedded history. Partial/misplaced metadata blocks; no hardware-to-Part relationship is fabricated.
+- Scope: domain revision validator + regression test + contract/roadmap/progress; no frontend, machine-specific output or main.
+- Code/test [53c72cbd](https://github.com/Taylan789/MobilyaCAD/commit/53c72cbdf8e04c9df46d2ab13b7d499fe7fae5b4); exact-SHA CI [#45132439080](https://github.com/Taylan789/MobilyaCAD/actions/runs/45132439080), QA [#45132439155](https://github.com/Taylan789/MobilyaCAD/actions/runs/45132439155) passed (175 frontend + 660 domain tests; strict domain TS; lint 32 warnings/0 errors; production build; audit 0 vulnerabilities); Pages [#45132439031](https://github.com/Taylan789/MobilyaCAD/actions/runs/45132439031) deployed https://taylan789.github.io/MobilyaCAD/.
+- Next: DOM-126b comparison projection and comparison JSON/CSV provenance; then DOM-127 hardware BOM traceability review.
