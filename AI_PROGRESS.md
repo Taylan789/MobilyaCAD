@@ -365,12 +365,13 @@
 - **Next:** DOM-123 preserve hardware BOM furniture/source references in priced-consumption and quote provenance.
 
 
-## 23 Kasım 2026 05:16 TRT — DOM-123 priced-consumption hardware provenance (verification pending)
+## 23 Kasım 2026 05:23 TRT — DOM-123 VERIFIED
 
-- **Slice:** additive `lineHardwareSources` maps each priced hardware cost line to its hardware ID, original unit, sorted furniture IDs and optional sorted BOM source references. BOM references remain separate from price-list `sourceReference`; no hardware-to-Part IDs are fabricated.
-- **Regression:** mixed furniture and unit groups, repeated BOM source references, source-reference-free hardware, line IDs/prices, sorted source arrays, input immutability and reversed BOM/furniture order invariance; incomplete pricing exposes no partial mapping.
-- **Code/test:** commit SHA pending; `domain/production/projectHardwarePricedSource.test.mjs`.
-- **Scope:** domain priced-consumption API/test and integration contract. No frontend, quote line source/snapshot/CSV schema, CNC output, price defaults or main branch changes.
-- **Actions / Pages:** exact-SHA CI/QA and Pages runs are pending; local repository is not mounted, so GitHub Actions is the authoritative test.
-- **Known blocker:** AI Developer run [#45091325066](https://github.com/Taylan789/MobilyaCAD/actions/runs/45091325066) failed on OpenRouter free-model daily 429; quota reset is 24 Nov 2026 03:00 TRT. Do not rerun before reset; no paid fallback or secrets/quota changes.
-- **Next:** DOM-124 propagate the hardware source mapping into combined quote lineSources; DOM-125 add strict JSON/CSV persistence compatibility.
+- **Slice:** additive `lineHardwareSources` maps each priced hardware cost line to hardware ID, original unit, sorted furniture IDs and optional sorted BOM references. BOM references stay separate from price-list `sourceReference`; no hardware-to-Part IDs are fabricated.
+- **Regression:** two furniture IDs, multiple hardware/unit groups, repeated BOM references, source-reference-free rows, cost-line IDs/quantities/units/prices, input immutability, reversed BOM/furniture order invariance, and incomplete-pricing no-partial-mapping behavior.
+- **Code/test commit:** [2362065f](https://github.com/Taylan789/MobilyaCAD/commit/2362065f73426adce64cade856d4e4fb180c39fc); test `domain/production/projectHardwarePricedSource.test.mjs`.
+- **Exact-SHA Actions:** CI [#45099919245](https://github.com/Taylan789/MobilyaCAD/actions/runs/45099919245) and QA [#45099919275](https://github.com/Taylan789/MobilyaCAD/actions/runs/45099919275) successful. QA: **175 frontend + 653 domain tests, 0 failures**, strict shared-domain TypeScript, lint **32 warnings / 0 errors**, production build, production audit **0 vulnerabilities**. Full install reports 4 moderate dependency findings.
+- **Pages:** [#45099919290](https://github.com/Taylan789/MobilyaCAD/actions/runs/45099919290) successful and deployed to https://taylan789.github.io/MobilyaCAD/.
+- **Scope:** domain priced-consumption API/test + docs; no frontend, quote source/snapshot/CSV schema, CNC output, price defaults, adapter/performance files or `main` changed. Local Node syntax check passed; full test execution was Actions-only.
+- **Known blockers:** AI Developer [#45091325066](https://github.com/Taylan789/MobilyaCAD/actions/runs/45091325066) failed with OpenRouter free-model daily 429; reset is 24 Nov 2026 03:00 TRT. No rerun before reset; no paid fallback/secrets changes. Integration/performance job skipped; no specialist branch/PR found; QA-003 remains blocked. UI PR [#166](https://github.com/Taylan789/MobilyaCAD/pull/166) is still draft and not deployed.
+- **Next:** DOM-124 propagate hardware source mapping into quote lineSources; DOM-125 strict snapshot JSON/CSV persistence compatibility.

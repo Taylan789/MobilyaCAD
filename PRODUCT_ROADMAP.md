@@ -1122,7 +1122,9 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 | DOM-120 VERIFIED | Mixed-stock cut-plan area reconciliation | Per-sheet and project area totals/weighted occupancy independently reconcile; CI/QA/Pages passed |
 | DOM-121 VERIFIED | Mixed-family material and edge-band provenance | Canonical Part snapshot source IDs, quantities, assignments and order invariance; CI/QA/Pages passed |
 | DOM-122 VERIFIED | Quote totals cross-consumer reconciliation | CI [#45097364302](https://github.com/Taylan789/MobilyaCAD/actions/runs/45097364302), QA [#45097364273](https://github.com/Taylan789/MobilyaCAD/actions/runs/45097364273) passed (175 frontend + 651 domain; strict TypeScript, lint 32 warnings/0 errors, production build, audit 0 vulnerabilities); Pages [#45097364279](https://github.com/Taylan789/MobilyaCAD/actions/runs/45097364279) deployed |
-| DOM-123 IN PROGRESS | Hardware BOM provenance mapping in priced consumption | Cost-line identity, hardware ID, original unit, sorted furniture IDs and optional BOM source references; no Part IDs inferred |
+| DOM-123 VERIFIED | Hardware BOM provenance mapping in priced consumption | [code/test 2362065](https://github.com/Taylan789/MobilyaCAD/commit/2362065f73426adce64cade856d4e4fb180c39fc); CI [#45099919245](https://github.com/Taylan789/MobilyaCAD/actions/runs/45099919245), QA [#45099919275](https://github.com/Taylan789/MobilyaCAD/actions/runs/45099919275) passed (175 frontend + 653 domain, strict TypeScript, lint 32 warnings/0 errors, build, production audit 0); Pages [#45099919290](https://github.com/Taylan789/MobilyaCAD/actions/runs/45099919290) deployed |
+| DOM-124 READY | Hardware BOM provenance through combined quote lineSources | Hardware/resource identity, unit, furniture/source references and separate price source mapping; no Part IDs |
+| DOM-125 READY | Quote revision JSON + CSV preservation of additive hardware provenance | Strict validation, round-trip, and legacy compatibility/fail-closed coverage |
 | DOM-124 READY | Hardware BOM provenance through combined quote lineSources | Hardware/resource identity, unit, furniture/source references and separate price source mapping; no Part IDs |
 | DOM-125 READY | Quote revision JSON + CSV preservation of additive hardware provenance | Strict validation, round-trip, and legacy compatibility/fail-closed coverage |
 | INT-001 | Domain ↔ frontend adapter/export contract | UI-owned files untouched; round-trip and unsupported-geometry fail-closed proof |
@@ -1154,9 +1156,13 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - **Next:** DOM-123 hardware BOM source provenance through priced consumption and combined quote mapping. INT-001 frontend-owned; INT-002/PERF-001 specialist-owned; QA-003 remains blocked.
 
 
-## DOM-123 — Hardware BOM provenance at priced consumption (verification pending)
+## DOM-123 — Hardware BOM provenance at priced consumption (VERIFIED, 23 November 2026)
 
-- **Acceptance:** every priced hardware summary line maps by `costLineId` to its hardware ID and original unit; source furniture IDs and optional BOM references are sorted, unique and retained; BOM references remain separate from price-list references; no hardware-to-Part link is invented; source input is unchanged and reversed BOM/furniture input order yields the same mapping.
-- **Scope:** additive domain API `lineHardwareSources`, regression test and production-domain contract only. No frontend, quote line mapping, snapshot/CSV schema, pricing defaults, CNC output or main branch changes.
-- **Code/test:** commit SHA pending creation and exact-SHA Actions verification.
-- **Next:** DOM-124 propagate hardware mapping into combined quote line sources, then DOM-125 validate/preserve it in quote revision JSON and CSV.
+- **Acceptance:** each priced hardware summary line maps by `costLineId` to its hardware ID and original unit; source furniture IDs and optional BOM references are sorted, unique and retained; BOM references remain separate from price-list references; no hardware-to-Part link is invented; source input is unchanged and reversed BOM/furniture order yields the same mapping. Incomplete pricing exposes no partial source map.
+- **Scope:** additive domain API `lineHardwareSources`, regression test and production-domain contract only. No frontend, quote line mapping, snapshot/CSV schema, pricing defaults, CNC output or `main` branch changes.
+- **Code/test commit:** [2362065f](`https://github.com/Taylan789/MobilyaCAD/commit/2362065f73426adce64cade856d4e4fb180c39fc`).
+- **Exact-SHA CI:** [#45099919245](https://github.com/Taylan789/MobilyaCAD/actions/runs/45099919245) successful.
+- **Exact-SHA QA:** [#45099919275](https://github.com/Taylan789/MobilyaCAD/actions/runs/45099919275) successful — **175 frontend + 653 domain tests, 0 failures**; strict shared-domain TypeScript, lint **32 warnings / 0 errors**, production build, production dependency audit **0 vulnerabilities**. Full install reports 4 moderate dependency findings.
+- **Pages:** [#45099919290](https://github.com/Taylan789/MobilyaCAD/actions/runs/45099919290) successful; test site deployed at https://taylan789.github.io/MobilyaCAD/.
+- **Local:** test-file syntax checked with Node; full repository tests were not run locally because the repository is not mounted. Actions are authoritative.
+- **Next:** DOM-124 carry hardware provenance into quote line sources; DOM-125 strict snapshot JSON/CSV round-trip.
