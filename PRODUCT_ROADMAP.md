@@ -1194,3 +1194,15 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - Scope: domain revision validator + regression test + contract/roadmap/progress; no frontend, machine-specific output or main.
 - Code/test [53c72cbd](https://github.com/Taylan789/MobilyaCAD/commit/53c72cbdf8e04c9df46d2ab13b7d499fe7fae5b4); exact-SHA CI [#45132439080](https://github.com/Taylan789/MobilyaCAD/actions/runs/45132439080), QA [#45132439155](https://github.com/Taylan789/MobilyaCAD/actions/runs/45132439155) passed (175 frontend + 660 domain tests; strict domain TS; lint 32 warnings/0 errors; production build; audit 0 vulnerabilities); Pages [#45132439031](https://github.com/Taylan789/MobilyaCAD/actions/runs/45132439031) deployed https://taylan789.github.io/MobilyaCAD/.
 - Next: DOM-126b comparison projection and comparison JSON/CSV provenance; then DOM-127 hardware BOM traceability review.
+
+
+## 23 Kasım 2026 — DOM-126b revision comparison provenance (VERIFIED)
+- Revision comparison snapshots now carry hardware BOM ID, original unit, sorted furniture IDs and BOM source references. BOM source-only changes are included in the line-value comparison, producing a single `changed` hardware line while money/category deltas remain zero; price-list references and panel Part IDs are not conflated.
+- Code/test commit [ec937609](https://github.com/Taylan789/MobilyaCAD/commit/ec9376091721bee90605caf292b5e88af3f2748d). Exact-SHA CI [#45144318230](https://github.com/Taylan789/MobilyaCAD/actions/runs/45144318230), QA [#45144317923](https://github.com/Taylan789/MobilyaCAD/actions/runs/45144317923) and Pages [#45144317913](https://github.com/Taylan789/MobilyaCAD/actions/runs/45144317913) succeeded; deployment URL: https://taylan789.github.io/MobilyaCAD/.
+- QA evidence: 661 domain tests passed; strict domain TypeScript passed; lint 32 warnings/0 errors; production build passed; audit 0 vulnerabilities. Frontend build/lint and Pages build/deploy succeeded.
+- Comparison JSON/CSV still do not expose the new hardware fields; separate DOM-126c and DOM-126d are required. Local tests unavailable in this environment; Actions are authoritative. No frontend, adapter/performance-owned files, CNC output, or `main` changed.
+
+### Next 3 domain slices
+1. DOM-126c — Comparison JSON v3 hardware BOM metadata, strict validation, JSON v1/v2 compatibility.
+2. DOM-126d — Comparison CSV v4 BOM columns, strict round-trip and v1/v2/v3 compatibility.
+3. DOM-127 — Hardware BOM → furniture/Part traceability boundary; do not fabricate hardware-to-Part links.
