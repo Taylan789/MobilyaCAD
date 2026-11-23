@@ -273,3 +273,81 @@
     background: Canvas;
   }
 }
+
+
+/* UI-VIEWPORT-DIMENSION-READOUT-TECH-003 — legible live dimensions on compact desktop viewports */
+.cad-viewport-dimension-readout {
+  width: min(326px, calc(100% - 24px));
+  gap: 8px;
+  padding: 9px 10px 10px;
+  border-radius: 7px;
+  border-top: 1px solid rgba(160, 190, 210, .22);
+}
+
+.cad-viewport-dimension-readout__header {
+  min-height: 20px;
+  gap: 8px;
+}
+.cad-viewport-dimension-readout__header > small {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.cad-viewport-dimension-readout__dimensions > div {
+  min-height: 44px;
+  align-content: center;
+  gap: 4px 5px;
+  padding: 6px 7px;
+}
+.cad-viewport-dimension-readout__dimensions > div > span {
+  grid-column: 1 / -1;
+  line-height: 1.2;
+}
+.cad-viewport-dimension-readout__dimensions strong {
+  font-size: 14px;
+  line-height: 1.15;
+  text-align: right;
+  white-space: nowrap;
+}
+.cad-viewport-dimension-readout__dimensions small {
+  font-size: 9px;
+  line-height: 1.15;
+}
+@media (max-width: 560px) {
+  .cad-viewport-dimension-readout {
+    width: min(290px, calc(100% - 16px));
+    padding: 7px 8px;
+  }
+  .cad-viewport-dimension-readout__dimensions > div {
+    min-height: 37px;
+    padding-inline: 5px;
+  }
+  .cad-viewport-dimension-readout__dimensions strong {
+    font-size: 12px;
+  }
+}
+@media (max-height: 660px) and (min-width: 561px) {
+  .cad-viewport-dimension-readout {
+    gap: 5px;
+    padding: 6px 7px;
+  }
+  .cad-viewport-dimension-readout__dimensions > div {
+    min-height: 34px;
+    padding: 4px 6px;
+  }
+  .cad-viewport-dimension-readout__dimensions strong {
+    font-size: 12px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cad-viewport-dimension-readout {
+    transition: none;
+  }
+}
+@media (forced-colors: active) {
+  .cad-viewport-dimension-readout {
+    border-top-color: CanvasText;
+  }
+}
