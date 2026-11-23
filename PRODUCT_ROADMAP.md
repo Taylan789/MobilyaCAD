@@ -1262,3 +1262,11 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - Added regressions for hardware identity, furniture-scope and explicit Part-link changes across comparison JSON/CSV round-trips, unchanged monetary totals, hardware unit mismatch blocking, and rejection of forged changed-lines with different hardware identity.
 - Initial implementation commit [68439af3](https://github.com/Taylan789/MobilyaCAD/commit/68439af3056311ae2a1109951f36fc17abd157bc) had CI pass and QA caught only a wrong diagnostic assertion; Pages deployment was gated. Assertion correction commit [75a88485](https://github.com/Taylan789/MobilyaCAD/commit/75a884850b631716c35232c1ce699b19bb4ddedb) is verified by CI [#45190394525](https://github.com/Taylan789/MobilyaCAD/actions/runs/45190394525), QA [#45190394796](https://github.com/Taylan789/MobilyaCAD/actions/runs/45190394796), and Pages [#45190394590](https://github.com/Taylan789/MobilyaCAD/actions/runs/45190394590), all successful. QA: 188 frontend + 669 domain tests, strict domain TypeScript, lint 34 warnings/0 errors, production build, production audit 0 vulnerabilities. Test site: https://taylan789.github.io/MobilyaCAD/.
 - No frontend, adapter/performance-owned files, CNC/machine output or main changes.
+
+
+## 23 Kasım 2026 — DOM-129 hardware BOM export compatibility guard (verification pending)
+
+- Integrated regression now exercises a real production report with two hardware BOM rows through project JSON v2 revision history, standalone revision-history JSON v1, quote-summary JSON v1 and quote-summary CSV v1.
+- Acceptance: hardware catalog ID/unit, furniture scope and sorted BOM source references survive every export/import; the hardware price reference remains separate from BOM provenance; each round-trip reconciles to the original immutable quote summary.
+- Test-only slice; no production source/schema, frontend, adapter/performance-owned files, CNC/machine output or `main` changes. Local Node tests are unavailable in this runtime; exact-SHA Actions will verify.
+- Next: DOM-130 hardware BOM trace persistence/export contract and schema-version compatibility, then DOM-131 immutable quote source-map audit summary across revision history.

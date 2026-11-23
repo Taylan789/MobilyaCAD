@@ -20,10 +20,19 @@ const productionReport = calculateCabinetProjectProductionWithDiagnostics({
     materials: [{ id: "mdf-18", name: "MDF Lam 18", category: "panel", thicknessesMm: [18], unit: "mm" }]
   }]
 });
+assert.equal(productionReport.status, "ready", productionReport.diagnostics.join(" | "));
+assert.ok(productionReport.result);
+productionReport.result.hardwareItems = [
+  { id: "bom-hinge-a", furnitureId: "quote-export-cabinet", hardwareId: "hinge-110", name: "Menteşe", quantity: 2, unit: "adet", sourceReference: "bom:catalog-a" },
+  { id: "bom-hinge-z", furnitureId: "quote-export-cabinet", hardwareId: "hinge-110", name: "Menteşe", quantity: 1, unit: "adet", sourceReference: "bom:catalog-z" }
+];
 const snapshotResult = createProjectQuotePricingSnapshot({
   quotedOn: "2026-11-20",
   productionReport,
-  consumptionPriceTable: [{ resourceType: "material", resourceId: "mdf-18", unit: "m2", unitPriceMinor: 1250, currencyCode: "TRY", sourceReference: "material-prices:v1" }],
+  consumptionPriceTable: [
+    { resourceType: "material", resourceId: "mdf-18", unit: "m2", unitPriceMinor: 1250, currencyCode: "TRY", sourceReference: "material-prices:v1" },
+    { resourceType: "hardware", resourceId: "hinge-110", unit: "adet", unitPriceMinor: 700, currencyCode: "TRY", sourceReference: "hardware-prices:v1" }
+  ],
   workItems: [{ id: "assembly-labor", category: "labor", description: "Dolap montaj işçiliği", duration: 1.5, unit: "h", tariffId: "labor-hourly" }],
   tariffTable: [{ tariffId: "labor-hourly", category: "labor", unit: "h", unitPriceMinor: 2400, currencyCode: "TRY", sourceReference: "labor-tariffs:v1" }],
   consumptionPriceList: { catalogId: "workshop-materials", version: "2026-11", effectiveFrom: "2026-11-01", effectiveTo: "2026-11-30" },
@@ -39,7 +48,7 @@ function appendRevision(project, snapshot) {
   return appendProjectQuoteRevisionToProjectFile(project, { revisionId: "quote-export-r1", createdAt: "2026-11-20T19:00:00Z", pricingSnapshot: snapshot });
 }
 
-test("project history, standalone revision JSON and quote-summary JSON/CSV reconcile exactly", () => {
+test("DOM-129 project history and quote-summary JSON/CSV preserve hardware BOM provenance", () => {
   const embedded = appendRevision(createProjectV2(), snapshotResult.snapshot);
   assert.equal(embedded.status, "ready", embedded.diagnostics.join(" | "));
   assert.ok(embedded.history);
@@ -62,6 +71,7 @@ test("project history, standalone revision JSON and quote-summary JSON/CSV recon
   const jsonParsed = parseProjectQuoteSummaryFile(jsonExport.json);
   assert.equal(jsonParsed.status, "ready", jsonParsed.diagnostics.join(" | "));
   assert.deepEqual(jsonParsed.summary, summary);
+  assert.deepEqual(jsonParsed.summary.lineSources.find((source) => source.hardwareId === "hinge-110"), hardwareSource);
 
   const csvExport = serializeProjectQuoteSummaryCsv(summary);
   assert.equal(csvExport.status, "ready", csvExport.diagnostics.join(" | "));
@@ -69,6 +79,7 @@ test("project history, standalone revision JSON and quote-summary JSON/CSV recon
   const csvParsed = parseProjectQuoteSummaryCsv(csvExport.csv);
   assert.equal(csvParsed.status, "ready", csvParsed.diagnostics.join(" | "));
   assert.deepEqual(csvParsed.summary, summary);
+  assert.deepEqual(csvParsed.summary.lineSources.find((source) => source.hardwareId === "hinge-110"), hardwareSource);
 
   const materialLine = summary.costSummary.lines.find((line) => line.category === "material");
   assert.ok(materialLine);
@@ -84,6 +95,18 @@ test("project history, standalone revision JSON and quote-summary JSON/CSV recon
   assert.ok(materialSource.sourcePartIds?.length);
   assert.deepEqual(materialSource.sourcePartIds, [...materialSource.sourcePartIds].sort());
   assert.equal(new Set(materialSource.sourcePartIds).size, materialSource.sourcePartIds.length);
+
+  const hardwareLine = summary.costSummary.lines.find((line) => line.category === "hardware");
+  assert.ok(hardwareLine);
+  assert.equal(hardwareLine.unit, "adet");
+  assert.equal(hardwareLine.currencyCode, "TRY");
+  assert.equal(hardwareLine.sourceReference, "hardware-prices:v1");
+  const hardwareSource = summary.lineSources.find((source) => source.hardwareId === "hinge-110");
+  assert.ok(hardwareSource);
+  assert.equal(hardwareSource.hardwareUnit, "adet");
+  assert.deepEqual(hardwareSource.hardwareFurnitureIds, ["quote-export-cabinet"]);
+  assert.deepEqual(hardwareSource.hardwareSourceReferences, ["bom:catalog-a", "bom:catalog-z"]);
+  assert.notDeepEqual(hardwareSource.hardwareSourceReferences, [hardwareLine.sourceReference]);
 
   const laborLine = summary.costSummary.lines.find((line) => line.category === "labor");
   assert.ok(laborLine);
