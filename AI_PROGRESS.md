@@ -538,9 +538,12 @@
 - No frontend, adapter/performance-owned files, machine/CNC output or `main` changed. DOM-130 is deferred until adapter ownership; next domain tasks are DOM-132 legacy duplicate identity audit and DOM-133 provenance-only revision deltas.
 
 
-## 23 Kasım 2026 19:23 TRT — DOM-132 implementation (verification pending)
+## 23 Kasım 2026 19:32 TRT — DOM-132 VERIFIED
+- Code/test commit [7b52344dff6d848b238971060b68e9eeefda6c8d](https://github.com/Taylan789/MobilyaCAD/commit/7b52344dff6d848b238971060b68e9eeefda6c8d); legacy quote source-map audit reports duplicate source-identity groups and stable sorted cost-line references, with counts per revision and totals.
+- Regression: legacy history remains valid/ready, source mapping is immutable, duplicate line references stay stable under paired reordering, and strict integrity v1 still rejects duplicates.
+- Exact-SHA CI [#45217498055](https://github.com/Taylan789/MobilyaCAD/actions/runs/45217498055) and QA [#45217498277](https://github.com/Taylan789/MobilyaCAD/actions/runs/45217498277) passed; **191 frontend + 672 domain tests**, strict shared-domain TypeScript, production build, lint **34 warnings / 0 errors**, production dependency audit **0 vulnerabilities**.
+- Pages [#45217499095](https://github.com/Taylan789/MobilyaCAD/actions/runs/45217499095) succeeded and deployed https://taylan789.github.io/MobilyaCAD/. Local test execution unavailable; exact-SHA Actions is authoritative.
+- No frontend, adapter/performance-owned files, CNC/machine output or main changed.
+- Latest AI Developer run [#45160490760](https://github.com/Taylan789/MobilyaCAD/actions/runs/45160490760) failed on OpenRouter free daily 429 quota; specialist job skipped. No retry was issued because the daily quota exhaustion is not transient and no paid fallback/secret was changed.
+- Next: DOM-133 provenance-only comparison; DOM-134 three-revision audit reconciliation; DOM-135 legacy integrity-marker disclosure.
 
-- Added legacy quote source-map duplicate-identity diagnostics: per-revision duplicate groups, affected cost-line reference counts and deterministic sorted line IDs keyed by (sourceType, sourceId). Totals aggregate duplicate groups/references across revisions.
-- Regression checks valid legacy history remains audit-ready, input is unchanged, duplicate references remain stable after paired line reorder, and strict v1 continues rejecting duplicate identities. No production calculations, persistence adapters, frontend, CNC or machine output changed.
-- Code/test commit: pending (recorded after branch commit). Exact-SHA CI/QA/Pages: pending. Local test runner is unavailable; GitHub Actions is the verification source.
-- Next: DOM-133 provenance-only revision comparison; DOM-134 three-revision duplicate-source reconciliation; DOM-135 legacy source-integrity marker disclosure.

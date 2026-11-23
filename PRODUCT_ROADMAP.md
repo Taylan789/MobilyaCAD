@@ -1297,12 +1297,12 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 3. DOM-133 — Compare revision source-map provenance changes independently from monetary deltas, using the existing comparison identity rules.
 
 
-## 23 Kasım 2026 19:23 TRT — DOM-132 legacy duplicate source identity audit (implementation; verification pending)
+## 23 Kasım 2026 19:32 TRT — DOM-132 legacy duplicate source identity audit (VERIFIED)
 
 - User value: legacy quote revisions may contain repeated source identities that strict v1 revisions disallow. The audit now surfaces repeated (sourceType, sourceId) groups, counts the groups and every participating cost-line reference, and returns deterministic sorted cost-line IDs.
 - Acceptance: legacy history validates and audits as ready; duplicate groups are revision-scoped, stable under paired line reorder, inputs remain immutable, and strict source-integrity v1 continues to block duplicates. No source is inferred or repaired and no cost/export schema changes.
 - Changed files: domain/production/projectQuoteRevision.ts, domain/production/projectQuoteRevision.test.mjs, docs/production-domain-contract.md, AI_COORDINATION.md, PRODUCT_ROADMAP.md, AI_PROGRESS.md. Frontend and adapter/performance-owned files remain untouched.
-- Exact-SHA CI/QA/Pages: pending; local test execution is unavailable in this automation environment.
+- Exact-SHA CI [#45217498055](https://github.com/Taylan789/MobilyaCAD/actions/runs/45217498055), QA [#45217498277](https://github.com/Taylan789/MobilyaCAD/actions/runs/45217498277), and Pages [#45217499095](https://github.com/Taylan789/MobilyaCAD/actions/runs/45217499095) all succeeded; QA: 191 frontend + 672 domain tests, strict TypeScript, production build, lint 34 warnings/0 errors, production audit 0 vulnerabilities. Test site: https://taylan789.github.io/MobilyaCAD/; local test execution unavailable.
 
 ### Next domain slices
 1. DOM-133 — compare provenance changes independently from monetary deltas.
