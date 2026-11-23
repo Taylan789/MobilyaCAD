@@ -329,3 +329,71 @@
     transition: none;
   }
 }
+
+
+/* UI-PART-INSPECTOR-DISCLOSURE-001 — keep local coordinates available without competing with primary dimensions. */
+.cad-part-position-disclosure {
+  overflow: hidden;
+  border: 1px solid rgba(132, 164, 184, .2);
+  border-radius: 8px;
+  background: rgba(17, 28, 36, .46);
+}
+.cad-part-position-disclosure > summary {
+  display: flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 10px;
+  color: #b9cbd5;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+.cad-part-position-disclosure > summary::-webkit-details-marker { display: none; }
+.cad-part-position-disclosure > summary > svg:first-child {
+  width: 15px;
+  height: 15px;
+  flex: 0 0 auto;
+  color: #9bbbd0;
+}
+.cad-part-position-disclosure__copy {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+.cad-part-position-disclosure__copy strong { color: #dce7ed; font-size: 10px; font-weight: 700; }
+.cad-part-position-disclosure__copy small { color: #8298a5; font-size: 8px; }
+.cad-part-position-disclosure__units {
+  margin-left: auto;
+  color: #8fa5b3;
+  font-size: 8px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.cad-part-position-disclosure > summary > svg:last-child {
+  width: 13px;
+  height: 13px;
+  flex: 0 0 auto;
+  color: #7f96a4;
+  transition: transform 140ms ease;
+}
+.cad-part-position-disclosure[open] > summary {
+  border-bottom: 1px solid rgba(132, 164, 184, .14);
+  background: rgba(42, 62, 75, .3);
+}
+.cad-part-position-disclosure[open] > summary > svg:last-child { transform: rotate(180deg); }
+.cad-part-position-disclosure > summary:focus-visible { outline: 2px solid #a9c7d8; outline-offset: -2px; }
+.cad-part-position-disclosure__content { display: grid; gap: 8px; padding: 10px; }
+.cad-part-position-disclosure__content .cad-part-coordinate-grid { padding: 0; border: 0; background: transparent; }
+.cad-part-position-disclosure__content .cad-field-note { margin: 0; }
+@media (max-width: 560px) {
+  .cad-part-position-disclosure > summary { gap: 6px; padding-inline: 8px; }
+  .cad-part-position-disclosure__units { font-size: 7px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cad-part-position-disclosure > summary > svg:last-child { transition: none; }
+}
+@media (forced-colors: active) {
+  .cad-part-position-disclosure, .cad-part-position-disclosure > summary { border-color: CanvasText; }
+  .cad-part-position-disclosure > summary:focus-visible { outline-color: Highlight; }
+}

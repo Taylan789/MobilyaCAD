@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Layers3, MapPin, Move3D, Palette, Ruler } from "lucide-react";
+import { ChevronDown, Layers3, MapPin, Move3D, Palette, Ruler } from "lucide-react";
 
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
@@ -241,12 +241,18 @@ export function FurniturePartInspector({
         </div>
       </div>
 
-      <div className="cad-part-editor-group">
-        <div className="cad-part-editor-heading">
-          <span><Move3D /> YEREL KONUM</span>
-          <small>mm</small>
-        </div>
-        <div className="cad-part-coordinate-grid">
+      <details className="cad-part-position-disclosure">
+        <summary aria-controls="cad-part-position-fields">
+          <Move3D aria-hidden="true" />
+          <span className="cad-part-position-disclosure__copy">
+            <strong>Yerel konum</strong>
+            <small>Mobilya merkezine göre</small>
+          </span>
+          <small className="cad-part-position-disclosure__units">X · Y · Z / mm</small>
+          <ChevronDown aria-hidden="true" />
+        </summary>
+        <div className="cad-part-position-disclosure__content">
+          <div id="cad-part-position-fields" className="cad-part-coordinate-grid" role="group" aria-label="Parça konumu, milimetre">
           {axes.map((axis) => (
             <div className="cad-field min-w-0" key={axis.key}>
               <Label htmlFor={`selected-part-position-${axis.key}`}>
@@ -275,13 +281,13 @@ export function FurniturePartInspector({
               </div>
             </div>
           ))}
+          </div>
+          <p className="cad-field-note">
+            X, Y ve Z değerleri parçanın mobilya merkezine göre yerel konumudur.
+            Değişiklikler 3D önizlemeye ve proje verisine uygulanır.
+          </p>
         </div>
-        <p className="cad-field-note">
-          X, Y ve Z değerleri parçanın mobilya merkezine göre yerel konumudur.
-          Değişiklikler 3D önizlemeye ve proje verisine uygulanır.
-        </p>
-      </div>
-
+      </details>
       <div className="cad-part-material-group">
         <div className="cad-part-editor-heading">
           <span><Palette /> MALZEME ATAMASI</span>
