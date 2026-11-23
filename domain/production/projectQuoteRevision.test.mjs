@@ -8,6 +8,7 @@ import { calculateProjectCostLineTotalMinor } from "./projectCostSummary.ts";
 import {
   appendProjectQuoteRevision,
   compareProjectQuoteRevisions,
+  calculateProjectQuoteRevisionSourceMapAudit,
   createProjectQuoteRevision,
   validateProjectQuoteRevisionHistory
 } from "./projectQuoteRevision.ts";
@@ -2602,4 +2603,136 @@ test("DOM-097 three-revision fractional hardware and labor/operation changes rec
   const parsedCsv = parseProjectQuoteRevisionComparisonCsv(csv.csv);
   assert.equal(parsedCsv.status, "ready", parsedCsv.diagnostics.join("; "));
   assert.deepEqual(parsedCsv.comparison, result.comparison);
+});
+
+
+function createDom131AuditSnapshot() {
+  const snapshot = createSnapshot();
+  const quoteSummary = snapshot.quoteSummary;
+  const costSummary = quoteSummary.costSummary;
+  assert.ok(costSummary);
+  const materialSource = quoteSummary.lineSources.find(
+    source => source.sourceType === "production-consumption" && source.sourcePartIds !== undefined
+  );
+  assert.ok(materialSource?.sourcePartIds);
+  const sourcePartIds = [...materialSource.sourcePartIds];
+
+  const hardwareLineTotalMinor = calculateProjectCostLineTotalMinor(2, 500);
+  costSummary.lines.push({
+    id: "dom-131-hardware",
+    category: "hardware",
+    description: "Menteşe BOM satırı",
+    quantity: 2,
+    unit: "adet",
+    unitPriceMinor: 500,
+    lineTotalMinor: hardwareLineTotalMinor,
+    currencyCode: costSummary.currencyCode,
+    sourceReference: "price-list:hinge-110"
+  });
+  quoteSummary.lineSources.push({
+    costLineId: "dom-131-hardware",
+    sourceType: "production-consumption",
+    sourceId: "bom-hinge-1",
+    sourcePartIds,
+    hardwareId: "hinge-110",
+    hardwareUnit: "adet",
+    hardwareFurnitureIds: ["revision-cabinet-1"],
+    hardwareSourceReferences: ["bom-source-a", "bom-source-b"]
+  });
+  costSummary.categoryTotalsMinor.hardware += hardwareLineTotalMinor;
+  costSummary.grandTotalMinor += hardwareLineTotalMinor;
+
+  const profitLineTotalMinor = calculateProjectCostLineTotalMinor(1, 250);
+  costSummary.lines.push({
+    id: "dom-131-profit",
+    category: "profit",
+    description: "Kullanıcı girdili kâr",
+    quantity: 1,
+    unit: "kalem",
+    unitPriceMinor: 250,
+    lineTotalMinor: profitLineTotalMinor,
+    currencyCode: costSummary.currencyCode,
+    sourceReference: "quote-adjustment:profit-1"
+  });
+  quoteSummary.lineSources.push({
+    costLineId: "dom-131-profit",
+    sourceType: "quote-adjustment",
+    sourceId: "profit-1"
+  });
+  costSummary.categoryTotalsMinor.profit += profitLineTotalMinor;
+  costSummary.grandTotalMinor += profitLineTotalMinor;
+  costSummary.lineCount = costSummary.lines.length;
+  quoteSummary.requiredLineCount += 2;
+  quoteSummary.pricedLineCount += 2;
+  return snapshot;
+}
+
+test("DOM-131 immutable quote source-map audit preserves per-revision trace counts and exact provenance", () => {
+  const secondSnapshot = createDom131AuditSnapshot();
+  const history = createTwoRevisionHistory({ pricingSnapshot: secondSnapshot });
+  const originalHistoryJson = JSON.stringify(history);
+  const result = calculateProjectQuoteRevisionSourceMapAudit(history);
+  assert.equal(result.status, "ready");
+  assert.ok(result.audit);
+  assert.equal(result.audit.projectId, "project-42");
+  assert.equal(result.audit.revisionCount, 2);
+  assert.equal(result.audit.revisions.length, 2);
+  assert.equal(result.audit.revisions[0].sourceIntegrityVersion, null);
+  assert.equal(result.audit.revisions[1].sourceIntegrityVersion, null);
+  assert.equal(result.audit.revisions[0].counts.lineCount, snapshotResult.snapshot.quoteSummary.costSummary.lines.length);
+  assert.equal(result.audit.revisions[1].counts.lineCount, secondSnapshot.quoteSummary.costSummary.lines.length);
+  assert.deepEqual(result.audit.revisions[1].counts.sourceTypeCounts, {
+    "production-consumption": 2,
+    "labor-operation": 1,
+    "quote-adjustment": 1
+  });
+  assert.deepEqual(result.audit.revisions[1].counts.categoryCounts, {
+    material: 1, hardware: 1, labor: 1, operation: 0, waste: 0, profit: 1
+  });
+  assert.equal(result.audit.revisions[1].counts.hardwareLineCount, 1);
+  assert.equal(result.audit.revisions[1].counts.hardwareFurnitureReferenceCount, 1);
+  assert.equal(result.audit.revisions[1].counts.uniqueHardwareFurnitureIdCount, 1);
+  assert.equal(result.audit.revisions[1].counts.hardwareBomReferenceCount, 2);
+  assert.equal(result.audit.revisions[1].counts.uniqueHardwareBomReferenceCount, 2);
+  assert.equal(result.audit.revisions[1].counts.partReferenceCount, secondSnapshot.quoteSummary.lineSources.reduce(
+    (count, source) => count + (source.sourcePartIds?.length ?? 0), 0
+  ));
+  const hardwareSource = result.audit.revisions[1].lines.find(line => line.costLineId === "dom-131-hardware");
+  assert.ok(hardwareSource);
+  assert.equal(hardwareSource.sourceReference, "price-list:hinge-110");
+  assert.deepEqual(hardwareSource.hardwareSourceReferences, ["bom-source-a", "bom-source-b"]);
+  assert.deepEqual(hardwareSource.hardwareFurnitureIds, ["revision-cabinet-1"]);
+  assert.deepEqual(hardwareSource.sourcePartIds, secondSnapshot.quoteSummary.lineSources.find(
+    source => source.sourceId === "bom-hinge-1"
+  )?.sourcePartIds);
+  assert.equal(result.audit.totals.lineCount, result.audit.revisions.reduce((sum, revision) => sum + revision.counts.lineCount, 0));
+  assert.equal(result.audit.totals.uniquePartIdCount, new Set(result.audit.revisions.flatMap(
+    revision => revision.lines.flatMap(line => line.sourcePartIds ?? [])
+  )).size);
+  assert.equal(JSON.stringify(history), originalHistoryJson);
+  assert.ok(Object.isFrozen(result));
+  assert.ok(Object.isFrozen(result.audit));
+  assert.ok(Object.isFrozen(result.audit.revisions));
+  assert.ok(Object.isFrozen(result.audit.revisions[1].lines));
+  assert.ok(Object.isFrozen(hardwareSource.hardwareSourceReferences));
+  assert.deepEqual(result.audit, calculateProjectQuoteRevisionSourceMapAudit(history).audit);
+});
+
+test("DOM-131 source-map audit returns empty for valid empty histories and blocked without partial audit for invalid histories", () => {
+  const empty = calculateProjectQuoteRevisionSourceMapAudit({ projectId: "project-42", revisions: [] });
+  assert.equal(empty.status, "empty");
+  assert.ok(empty.audit);
+  assert.equal(empty.audit.revisionCount, 0);
+  assert.deepEqual(empty.audit.revisions, []);
+  assert.equal(empty.audit.totals.lineCount, 0);
+  assert.deepEqual(empty.audit.totals.sourceTypeCounts, {
+    "production-consumption": 0, "labor-operation": 0, "quote-adjustment": 0
+  });
+
+  const invalidHistory = createTwoRevisionHistory();
+  invalidHistory.revisions[0].pricingSnapshot.quoteSummary.lineSources[0].sourceId = "";
+  const blocked = calculateProjectQuoteRevisionSourceMapAudit(invalidHistory);
+  assert.equal(blocked.status, "blocked");
+  assert.equal(blocked.audit, null);
+  assert.ok(blocked.diagnostics.length > 0);
 });

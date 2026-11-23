@@ -1159,3 +1159,14 @@ Kaynak: `domain/production/projectMaterialSummary.ts`, `calculateProjectHardware
 ## DOM-128 — Hardware identity in quote revision comparison
 
 Hardware comparison line identity now includes the hardware catalog ID, original hardware unit, sorted furniture scope and explicit source Part IDs. A change in any of these identity fields is represented as separate removed/added lines, not a single changed line that could obscure the source mapping. BOM source references remain value-only: reference changes can still appear as one changed line when the hardware identity and source scope are unchanged. Comparison JSON and CSV validators enforce the same changed-line identity boundary; hardware units must still equal the cost line unit. This is quote/revision provenance only and does not claim per-Part hardware quantity allocation or machine-ready output.
+
+
+## DOM-131 — Immutable quote revision source-map audit
+
+`calculateProjectQuoteRevisionSourceMapAudit(historyValue)` accepts a project quote revision history and validates the complete history before producing an audit. The result is revision-ordered and deeply immutable. Each revision reports source-map lines and aggregate counts for cost/source rows, explicit Part links, unique Part IDs, resource identities, hardware BOM references/furniture scope, labor-operation mappings, adjustment mappings, price-reference rows, source types and cost categories.
+
+- Ready histories return the full audit; a valid empty history returns an empty audit with zero counts.
+- Invalid history returns `status: blocked`, `audit: null`, and diagnostics—no partial revision is emitted.
+- The audit copies only validated source metadata. It does not infer missing Part links, normalize hardware quantities, calculate costs, or add any JSON/CSV persistence schema.
+- Cost-line `sourceReference` remains separate from hardware BOM `hardwareSourceReferences` and edge-band plan/price references. Legacy revisions with no `sourceIntegrityVersion` remain visible as `null`; no strict source integrity is retroactively claimed.
+- Acceptance: two-revision mixed-source fixture, exact metadata separation, count reconciliation, deterministic output, deep-freeze and input-immutability; empty and invalid histories fail safely.

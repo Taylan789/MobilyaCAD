@@ -1188,3 +1188,268 @@ export function compareProjectQuoteRevisions(
     return blockedComparison(error instanceof Error ? error.message : String(error));
   }
 }
+
+
+export interface ProjectQuoteRevisionSourceMapAuditCounts {
+  lineCount: number;
+  sourceReferenceLineCount: number;
+  partLinkedLineCount: number;
+  partReferenceCount: number;
+  uniquePartIdCount: number;
+  resourceLineCount: number;
+  hardwareLineCount: number;
+  hardwareFurnitureReferenceCount: number;
+  uniqueHardwareFurnitureIdCount: number;
+  hardwareBomReferenceCount: number;
+  uniqueHardwareBomReferenceCount: number;
+  laborOperationLineCount: number;
+  quoteAdjustmentLineCount: number;
+  sourceTypeCounts: Record<ProjectQuoteLineSource["sourceType"], number>;
+  categoryCounts: Record<ProjectQuoteCostCategory, number>;
+}
+
+export interface ProjectQuoteRevisionSourceMapAuditLine {
+  costLineId: string;
+  category: ProjectQuoteCostCategory;
+  costLineUnit: string;
+  currencyCode: string;
+  sourceType: ProjectQuoteLineSource["sourceType"];
+  sourceId: string;
+  sourceReference?: string;
+  tariffId?: string;
+  sourcePartIds?: readonly string[];
+  resourceType?: ProjectQuoteLineSource["resourceType"];
+  resourceId?: string;
+  resourceUnit?: string;
+  edgeDirection?: ProjectCostLineEdgeDirection;
+  rollCount?: number;
+  rollLengthMm?: number;
+  purchasedLengthMm?: number;
+  furnitureIds?: readonly string[];
+  planSourceReference?: string;
+  priceSourceReference?: string;
+  hardwareId?: string;
+  hardwareUnit?: string;
+  hardwareFurnitureIds?: readonly string[];
+  hardwareSourceReferences?: readonly string[];
+}
+
+export interface ProjectQuoteRevisionSourceMapAuditRevision {
+  revisionId: string;
+  revisionNumber: number;
+  createdAt: string;
+  sourceIntegrityVersion: 1 | null;
+  counts: ProjectQuoteRevisionSourceMapAuditCounts;
+  lines: readonly ProjectQuoteRevisionSourceMapAuditLine[];
+}
+
+export interface ProjectQuoteRevisionSourceMapAudit {
+  schemaVersion: 1;
+  projectId: string;
+  revisionCount: number;
+  totals: ProjectQuoteRevisionSourceMapAuditCounts;
+  revisions: readonly ProjectQuoteRevisionSourceMapAuditRevision[];
+}
+
+export interface ProjectQuoteRevisionSourceMapAuditResult {
+  status: "ready" | "empty" | "blocked";
+  audit: DeepReadonly<ProjectQuoteRevisionSourceMapAudit> | null;
+  diagnostics: readonly string[];
+}
+
+function createSourceMapAuditCounts(): ProjectQuoteRevisionSourceMapAuditCounts {
+  return {
+    lineCount: 0,
+    sourceReferenceLineCount: 0,
+    partLinkedLineCount: 0,
+    partReferenceCount: 0,
+    uniquePartIdCount: 0,
+    resourceLineCount: 0,
+    hardwareLineCount: 0,
+    hardwareFurnitureReferenceCount: 0,
+    uniqueHardwareFurnitureIdCount: 0,
+    hardwareBomReferenceCount: 0,
+    uniqueHardwareBomReferenceCount: 0,
+    laborOperationLineCount: 0,
+    quoteAdjustmentLineCount: 0,
+    sourceTypeCounts: {
+      "production-consumption": 0,
+      "labor-operation": 0,
+      "quote-adjustment": 0
+    },
+    categoryCounts: {
+      material: 0,
+      hardware: 0,
+      labor: 0,
+      operation: 0,
+      waste: 0,
+      profit: 0
+    }
+  };
+}
+
+function addSourceMapAuditCounts(
+  target: ProjectQuoteRevisionSourceMapAuditCounts,
+  source: ProjectQuoteRevisionSourceMapAuditCounts
+): void {
+  target.lineCount += source.lineCount;
+  target.sourceReferenceLineCount += source.sourceReferenceLineCount;
+  target.partLinkedLineCount += source.partLinkedLineCount;
+  target.partReferenceCount += source.partReferenceCount;
+  target.resourceLineCount += source.resourceLineCount;
+  target.hardwareLineCount += source.hardwareLineCount;
+  target.hardwareFurnitureReferenceCount += source.hardwareFurnitureReferenceCount;
+  target.hardwareBomReferenceCount += source.hardwareBomReferenceCount;
+  target.laborOperationLineCount += source.laborOperationLineCount;
+  target.quoteAdjustmentLineCount += source.quoteAdjustmentLineCount;
+  for (const sourceType of ["production-consumption", "labor-operation", "quote-adjustment"] as const) {
+    target.sourceTypeCounts[sourceType] += source.sourceTypeCounts[sourceType];
+  }
+  for (const category of ["material", "hardware", "labor", "operation", "waste", "profit"] as const) {
+    target.categoryCounts[category] += source.categoryCounts[category];
+  }
+}
+
+function blockedSourceMapAudit(message: string): ProjectQuoteRevisionSourceMapAuditResult {
+  return deepFreeze({
+    status: "blocked" as const,
+    audit: null,
+    diagnostics: [message]
+  });
+}
+
+/**
+ * Produces an immutable, revision-ordered audit of quote source mappings.
+ * It validates the full history first and never infers Part, hardware or price references.
+ */
+export function calculateProjectQuoteRevisionSourceMapAudit(
+  historyValue: unknown
+): ProjectQuoteRevisionSourceMapAuditResult {
+  const validatedHistory = validateProjectQuoteRevisionHistory(historyValue);
+  if (validatedHistory.status === "blocked" || validatedHistory.history === null) {
+    return blockedSourceMapAudit(
+      validatedHistory.diagnostics[0] ?? "Teklif revizyon geçmişi kaynak denetimi için doğrulanamadı."
+    );
+  }
+
+  try {
+    const history = validatedHistory.history;
+    const totals = createSourceMapAuditCounts();
+    const revisionAudits: ProjectQuoteRevisionSourceMapAuditRevision[] = [];
+    const allPartIds = new Set<string>();
+    const allHardwareFurnitureIds = new Set<string>();
+    const allHardwareBomReferences = new Set<string>();
+
+    for (const revision of history.revisions) {
+      const quoteSummary = revision.pricingSnapshot.quoteSummary;
+      const costSummary = quoteSummary.costSummary;
+      if (costSummary === null || costSummary.lines.length !== quoteSummary.lineSources.length) {
+        throw new Error("Teklif revizyon kaynak denetimi maliyet/kaynak satır eşleşmesi olmadan üretilemez.");
+      }
+
+      const counts = createSourceMapAuditCounts();
+      const partIds = new Set<string>();
+      const hardwareFurnitureIds = new Set<string>();
+      const hardwareBomReferences = new Set<string>();
+      const lines: ProjectQuoteRevisionSourceMapAuditLine[] = [];
+
+      for (let index = 0; index < costSummary.lines.length; index += 1) {
+        const costLine = costSummary.lines[index];
+        const source = quoteSummary.lineSources[index];
+        if (costLine === undefined || source === undefined || source.costLineId !== costLine.id) {
+          throw new Error("Teklif revizyon kaynak denetimi doğrulanmış satır kimliğini koruyamadı.");
+        }
+
+        counts.lineCount += 1;
+        counts.sourceTypeCounts[source.sourceType] += 1;
+        counts.categoryCounts[costLine.category] += 1;
+        if (typeof costLine.sourceReference === "string" && costLine.sourceReference.length > 0) {
+          counts.sourceReferenceLineCount += 1;
+        }
+        if (source.sourcePartIds !== undefined) {
+          counts.partLinkedLineCount += 1;
+          counts.partReferenceCount += source.sourcePartIds.length;
+          for (const partId of source.sourcePartIds) {
+            partIds.add(partId);
+            allPartIds.add(partId);
+          }
+        }
+        if (source.resourceType !== undefined) counts.resourceLineCount += 1;
+        if (source.hardwareId !== undefined) counts.hardwareLineCount += 1;
+        if (source.hardwareFurnitureIds !== undefined) {
+          counts.hardwareFurnitureReferenceCount += source.hardwareFurnitureIds.length;
+          for (const furnitureId of source.hardwareFurnitureIds) {
+            hardwareFurnitureIds.add(furnitureId);
+            allHardwareFurnitureIds.add(furnitureId);
+          }
+        }
+        if (source.hardwareSourceReferences !== undefined) {
+          counts.hardwareBomReferenceCount += source.hardwareSourceReferences.length;
+          for (const reference of source.hardwareSourceReferences) {
+            hardwareBomReferences.add(reference);
+            allHardwareBomReferences.add(reference);
+          }
+        }
+        if (source.sourceType === "labor-operation") counts.laborOperationLineCount += 1;
+        if (source.sourceType === "quote-adjustment") counts.quoteAdjustmentLineCount += 1;
+
+        lines.push({
+          costLineId: costLine.id,
+          category: costLine.category,
+          costLineUnit: costLine.unit,
+          currencyCode: costLine.currencyCode,
+          sourceType: source.sourceType,
+          sourceId: source.sourceId,
+          ...(costLine.sourceReference === undefined ? {} : { sourceReference: costLine.sourceReference }),
+          ...(source.tariffId === undefined ? {} : { tariffId: source.tariffId }),
+          ...(source.sourcePartIds === undefined ? {} : { sourcePartIds: [...source.sourcePartIds] }),
+          ...(source.resourceType === undefined ? {} : { resourceType: source.resourceType }),
+          ...(source.resourceId === undefined ? {} : { resourceId: source.resourceId }),
+          ...(source.unit === undefined ? {} : { resourceUnit: source.unit }),
+          ...(source.edgeDirection === undefined ? {} : { edgeDirection: source.edgeDirection }),
+          ...(source.rollCount === undefined ? {} : { rollCount: source.rollCount }),
+          ...(source.rollLengthMm === undefined ? {} : { rollLengthMm: source.rollLengthMm }),
+          ...(source.purchasedLengthMm === undefined ? {} : { purchasedLengthMm: source.purchasedLengthMm }),
+          ...(source.furnitureIds === undefined ? {} : { furnitureIds: [...source.furnitureIds] }),
+          ...(source.planSourceReference === undefined ? {} : { planSourceReference: source.planSourceReference }),
+          ...(source.priceSourceReference === undefined ? {} : { priceSourceReference: source.priceSourceReference }),
+          ...(source.hardwareId === undefined ? {} : { hardwareId: source.hardwareId }),
+          ...(source.hardwareUnit === undefined ? {} : { hardwareUnit: source.hardwareUnit }),
+          ...(source.hardwareFurnitureIds === undefined ? {} : { hardwareFurnitureIds: [...source.hardwareFurnitureIds] }),
+          ...(source.hardwareSourceReferences === undefined ? {} : { hardwareSourceReferences: [...source.hardwareSourceReferences] })
+        });
+      }
+
+      counts.uniquePartIdCount = partIds.size;
+      counts.uniqueHardwareFurnitureIdCount = hardwareFurnitureIds.size;
+      counts.uniqueHardwareBomReferenceCount = hardwareBomReferences.size;
+      addSourceMapAuditCounts(totals, counts);
+      revisionAudits.push({
+        revisionId: revision.revisionId,
+        revisionNumber: revision.revisionNumber,
+        createdAt: revision.createdAt,
+        sourceIntegrityVersion: revision.sourceIntegrityVersion ?? null,
+        counts,
+        lines
+      });
+    }
+
+    totals.uniquePartIdCount = allPartIds.size;
+    totals.uniqueHardwareFurnitureIdCount = allHardwareFurnitureIds.size;
+    totals.uniqueHardwareBomReferenceCount = allHardwareBomReferences.size;
+
+    return deepFreeze({
+      status: validatedHistory.status,
+      audit: {
+        schemaVersion: 1 as const,
+        projectId: history.projectId,
+        revisionCount: history.revisions.length,
+        totals,
+        revisions: revisionAudits
+      },
+      diagnostics: []
+    });
+  } catch (error) {
+    return blockedSourceMapAudit(error instanceof Error ? error.message : String(error));
+  }
+}

@@ -538,3 +538,10 @@ Bu dosya dört geliştirme/denetim rolünün ortak görev panosu ve entegrasyon 
 - Automated regressions cover add/remove semantics and JSON/CSV round-trip; strict validators block wrong units and forged changed lines across hardware identity.
 - Initial implementation 68439af3056311ae2a1109951f36fc17abd157bc had one QA assertion wording failure; corrected test-only commit 75a884850b631716c35232c1ce699b19bb4ddedb verified by CI #45190394525, QA #45190394796 and Pages #45190394590, all successful.
 - Next domain slice: DOM-129 production metadata export/import compatibility guards.
+
+
+## DOM-130 / DOM-131 follow-up ownership (23 Kasım 2026)
+| ID | Görev | Sahip | Durum | Kabul / teslim kanıtı | Bağımlılık |
+|---|---|---|---|---|---|
+| DOM-130 | Hardware BOM trace JSON persistence/export and schema compatibility | Entegrasyon/adapter owner + Ürün | DEFERRED — adapter/serialization files remain out of product-agent scope; integration-performance workflow is disabled and no active specialist branch/run is verified. Do not modify project-file or quote export adapters. | strict versioned envelope, legacy read/write, sourcePartIds/BOM metadata round-trip and fail-closed fixtures | adapter ownership/agent availability |
+| DOM-131 | Immutable quote source-map audit summary across revisions | Ürün Geliştirme | IMPLEMENTED — exact-SHA CI/QA/Pages verification pending | two-revision source audit; counts and metadata separation; determinism, input immutability, deep freeze; empty/invalid history | validated revision history |

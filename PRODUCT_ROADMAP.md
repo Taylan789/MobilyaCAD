@@ -1270,3 +1270,16 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - Acceptance: hardware catalog ID/unit, furniture scope and sorted BOM source references survive every export/import; the hardware price reference remains separate from BOM provenance; each round-trip reconciles to the original immutable quote summary.
 - Test-only slice; no production source/schema, frontend, adapter/performance-owned files, CNC/machine output or `main` changes. Local Node tests are unavailable in this runtime. First QA exposed a fixture assertion using a nonexistent `diagnostics` field; the follow-up QA then caught a `hardwareSource` temporal-dead-zone error in assertion ordering. The test now moves metadata comparisons after declaration. Exact-SHA CI/QA/Pages for the correction are pending.
 - Next: DOM-130 hardware BOM trace persistence/export contract and schema-version compatibility, then DOM-131 immutable quote source-map audit summary across revision history.
+
+
+## 23 Kasım 2026 18:14 TRT — DOM-131 source-map audit (implementation; verification pending)
+
+- Added domain API `calculateProjectQuoteRevisionSourceMapAudit(historyValue)`: validates a full quote history before returning revision-ordered immutable source-line metadata and per-revision/project totals for source types, categories, price-reference rows, Part links/references/unique IDs, resources and hardware BOM/furniture provenance.
+- Legacy revisions with absent `sourceIntegrityVersion` are explicitly reported as `null`; the audit does not infer missing metadata, calculate prices or alter export formats. Empty histories yield zero-count audit; invalid histories fail atomically with no partial audit.
+- Acceptance: mixed two-revision fixture verifies counts, hardware price reference vs BOM refs, Part/furniture traceability, deterministic result, deep freeze and input immutability; empty and malformed-history cases.
+- No frontend, export adapters, CNC/machine output or main changes.
+
+### Updated next domain slices
+1. DOM-130 — Hardware BOM trace persistence/export/schema compatibility; deferred until adapter ownership is available (integration-performance workflow is disabled).
+2. DOM-132 — Legacy revision source-map audit should surface duplicate source identities without changing or rejecting historical data.
+3. DOM-133 — Compare revision source-map provenance changes independently from monetary deltas, using the existing comparison identity rules.
