@@ -1307,7 +1307,7 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 ### Next domain slices
 1. DOM-133 — compare provenance changes independently from monetary deltas.
 2. DOM-134 — reconcile duplicate source-map identity groups across three revisions and stable ordering.
-3. DOM-135 — disclose legacy source-integrity markers without inferring strict integrity.
+3. DOM-135 — disclose legacy source-integrity markers without inferring strict integrity (verified).
 
 
 ## 10/10 quality gates — evidence-based, not yet achieved
@@ -1321,7 +1321,7 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 ## Current domain queue — 23 November 2026
 - DOM-133: VERIFIED — [commit 0944028f](https://github.com/Taylan789/MobilyaCAD/commit/0944028fdf51c3b3e4fce0f5395e74885029239a), exact-SHA CI/QA/Pages successful.
 - DOM-134: VERIFIED — [test commit cbbe098c](https://github.com/Taylan789/MobilyaCAD/commit/cbbe098cc7e86d50b9c08a2c24bf752e09c1a09b); CI/QA passed (191 frontend + 675 domain, strict TS/build, lint 34 warnings/0 errors, production audit 0 vulnerabilities); Pages [#45248747497](https://github.com/Taylan789/MobilyaCAD/actions/runs/45248747497) deployed https://taylan789.github.io/MobilyaCAD/.
-- DOM-135: READY — disclose legacy source-integrity marker status without inferring strict integrity.
+- DOM-135: IMPLEMENTED — explicit revision-level marker disclosure; exact-SHA CI/QA/Pages pending.
 - DOM-130: remains deferred until serialization/adapter ownership is available.
 
 ### DOM-134 verified acceptance
@@ -1333,4 +1333,16 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 - The existing audit API remains the source of truth; no production behavior or export schema was introduced.
 - Exact-SHA code/test commit [cbbe098c](https://github.com/Taylan789/MobilyaCAD/commit/cbbe098cc7e86d50b9c08a2c24bf752e09c1a09b) CI [#45248747459](https://github.com/Taylan789/MobilyaCAD/actions/runs/45248747459), QA [#45248747535](https://github.com/Taylan789/MobilyaCAD/actions/runs/45248747535) and Pages [#45248747497](https://github.com/Taylan789/MobilyaCAD/actions/runs/45248747497) all succeeded. QA: 191 frontend + 675 domain tests, strict TypeScript, lint 34 warnings/0 errors, production build, audit 0 vulnerabilities. Test site: https://taylan789.github.io/MobilyaCAD/.
 - Local Node tests unavailable in this runtime; exact-SHA Actions are the evidence. No frontend, adapter, CNC/machine output or main changes.
-- Next: DOM-135 legacy source-integrity disclosure; DOM-130 remains deferred until adapter ownership is available.
+- Next: DOM-136 strict-vs-legacy marker coverage reconciliation; DOM-130 remains deferred until adapter ownership is available.
+
+
+## DOM-135 — Legacy source-integrity disclosure (implementation; verification pending)
+- Source-map comparisons now include explicit revision-level marker fields, `fromSourceIntegrityVersion` and `toSourceIntegrityVersion`, copied from the validated audit (`1` strict; `null` legacy/missing marker).
+- Acceptance: three-revision legacy → strict v1 → legacy fixture reconciles `null / 1 / null`, unchanged source lines, zero provenance changes, immutable history; strict v1 validation remains unchanged.
+- Additive comparison response only. No export adapters, frontend, machine output, or `main` changes.
+- Exact-SHA CI/QA/Pages: pending.
+
+### Next domain slices
+1. DOM-136 — reconcile project-wide strict-marker and legacy-revision counts against revision audit snapshots.
+2. DOM-130 — hardware BOM trace persistence/export/schema compatibility; deferred until adapter ownership is available.
+3. DOM-137 — extend source-map comparison audit diagnostics with deterministic revision-level coverage summaries (after DOM-136).

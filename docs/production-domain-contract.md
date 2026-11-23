@@ -1194,3 +1194,11 @@ The source-map audit is checked across three consecutive quote revisions with re
 
 - Acceptance: three valid revisions with two duplicate identity groups each; exact revision-local group/reference counts; project additive totals and unique-ID totals reconcile; reversing paired cost/source rows leaves the audit summary stable; input remains unchanged and duplicate-group arrays are immutable.
 - Test-only contract guard for the existing audit API; no schema, export, monetary calculation, CNC output or machine standard is changed.
+
+
+## DOM-135 — Explicit legacy/strict source-integrity marker disclosure
+
+Source-map revision comparisons now expose revision-level `fromSourceIntegrityVersion` and `toSourceIntegrityVersion` values from the validated source-map audit. A value of `1` means the strict source-integrity marker is present; `null` explicitly means the legacy revision has no marker. The comparison does not infer strict integrity from a well-formed legacy revision, does not rewrite history, and does not treat marker presence as a line-provenance delta. Strict v1 validation rules are unchanged.
+
+- Acceptance: a legacy → strict v1 → legacy chain reports `null / 1 / null`; both comparisons retain unchanged line counts and zero provenance changes; history is immutable and valid.
+- Additive domain comparison contract only. No project/revision schema, export adapter, frontend, CNC output or machine standard is changed.

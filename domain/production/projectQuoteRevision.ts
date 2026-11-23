@@ -1536,6 +1536,8 @@ export interface ProjectQuoteRevisionSourceMapProvenanceComparison {
   fromRevisionNumber: number;
   toRevisionId: string;
   toRevisionNumber: number;
+  fromSourceIntegrityVersion: 1 | null;
+  toSourceIntegrityVersion: 1 | null;
   fromLineCount: number;
   toLineCount: number;
   counts: {
@@ -1670,6 +1672,8 @@ export function compareProjectQuoteRevisionSourceMaps(
         fromRevisionNumber: fromRevision.revisionNumber,
         toRevisionId,
         toRevisionNumber: toRevision.revisionNumber,
+        fromSourceIntegrityVersion: fromAudit.sourceIntegrityVersion,
+        toSourceIntegrityVersion: toAudit.sourceIntegrityVersion,
         fromLineCount: fromAudit.lines.length,
         toLineCount: toAudit.lines.length,
         counts,

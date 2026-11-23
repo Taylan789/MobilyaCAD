@@ -2951,6 +2951,60 @@ test("DOM-133 source-map provenance comparison reconciles added, removed and unc
 });
 
 
+test("DOM-135 source-map comparison explicitly discloses strict and legacy integrity markers", () => {
+  const history = {
+    projectId: "project-42",
+    revisions: [
+      createHistoryRevision(),
+      createHistoryRevision({
+        revisionId: "quote-r2",
+        revisionNumber: 2,
+        createdAt: "2026-11-17T11:00:00Z",
+        previousRevisionId: "quote-r1",
+        sourceIntegrityVersion: 1
+      }),
+      createHistoryRevision({
+        revisionId: "quote-r3",
+        revisionNumber: 3,
+        createdAt: "2026-11-17T12:00:00Z",
+        previousRevisionId: "quote-r2"
+      })
+    ]
+  };
+  const originalHistoryJson = JSON.stringify(history);
+  assert.equal(history.revisions[0].sourceIntegrityVersion, undefined);
+  assert.equal(history.revisions[2].sourceIntegrityVersion, undefined);
+
+  const validated = validateProjectQuoteRevisionHistory(history);
+  assert.equal(validated.status, "ready", validated.diagnostics.join("; "));
+  const audit = calculateProjectQuoteRevisionSourceMapAudit(history);
+  assert.equal(audit.status, "ready", audit.diagnostics.join("; "));
+  assert.deepEqual(audit.audit?.revisions.map(revision => revision.sourceIntegrityVersion), [null, 1, null]);
+
+  const legacyToStrict = compareProjectQuoteRevisionSourceMaps(history, "quote-r1", "quote-r2");
+  assert.equal(legacyToStrict.status, "ready", legacyToStrict.diagnostics.join("; "));
+  assert.ok(legacyToStrict.comparison);
+  assert.equal(legacyToStrict.comparison.fromSourceIntegrityVersion, null);
+  assert.equal(legacyToStrict.comparison.toSourceIntegrityVersion, 1);
+  assert.deepEqual(legacyToStrict.comparison.counts, {
+    addedLineCount: 0,
+    removedLineCount: 0,
+    changedLineCount: 0,
+    unchangedLineCount: legacyToStrict.comparison.fromLineCount
+  });
+  assert.deepEqual(legacyToStrict.comparison.changes, []);
+
+  const strictToLegacy = compareProjectQuoteRevisionSourceMaps(history, "quote-r2", "quote-r3");
+  assert.equal(strictToLegacy.status, "ready", strictToLegacy.diagnostics.join("; "));
+  assert.ok(strictToLegacy.comparison);
+  assert.equal(strictToLegacy.comparison.fromSourceIntegrityVersion, 1);
+  assert.equal(strictToLegacy.comparison.toSourceIntegrityVersion, null);
+  assert.deepEqual(strictToLegacy.comparison.changes, []);
+  assert.equal(JSON.stringify(history), originalHistoryJson);
+  assert.ok(Object.isFrozen(legacyToStrict.comparison));
+  assert.ok(Object.isFrozen(strictToLegacy.comparison));
+});
+
 test("DOM-134 three-revision source-map audit reconciles duplicate groups and project-wide unique identities", () => {
   const fixtures = [1, 2, 3].map(revisionNumber => {
     const snapshot = createDom131AuditSnapshot();
