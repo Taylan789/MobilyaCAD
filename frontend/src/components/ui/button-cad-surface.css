@@ -145,3 +145,13 @@
   border-color: color-mix(in srgb, var(--ring) 58%, var(--border) 42%);
   box-shadow: inset 0 2px 3px color-mix(in srgb, black 24%, transparent);
 }
+
+@media (forced-colors: active) {
+  .cad-button-surface[aria-pressed="true"]:not(:disabled):not([aria-disabled="true"]):not([data-cad-variant="link"]) {
+    border-color: Highlight;
+    background: Highlight;
+    background-image: none;
+    color: HighlightText;
+    box-shadow: none;
+  }
+}
