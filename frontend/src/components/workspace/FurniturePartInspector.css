@@ -329,3 +329,309 @@
     transition: none;
   }
 }
+
+
+/* UI-PART-INSPECTOR-001 — compact, selection-aware technical editor */
+.cad-part-inspector {
+  display: grid !important;
+  gap: 10px !important;
+  padding: 8px 1px 14px !important;
+  container-name: part-inspector;
+  container-type: inline-size;
+}
+
+.cad-part-inspector > :not([hidden]) ~ :not([hidden]) {
+  margin-block-start: 0 !important;
+}
+
+.cad-part-inspector > .cad-section-heading {
+  min-height: 26px;
+  align-items: center;
+  padding: 0 2px 8px;
+  border-bottom: 1px solid rgba(143, 174, 192, 0.18);
+}
+
+.cad-part-inspector .cad-selected-object {
+  display: grid;
+  min-width: 0;
+  min-height: 54px;
+  grid-template-columns: 34px minmax(0, 1fr) 8px;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 10px !important;
+  border-radius: 7px !important;
+}
+
+.cad-part-inspector .cad-selected-object > div:nth-child(2) {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+}
+
+.cad-part-inspector .cad-selected-object > div:nth-child(2) strong {
+  overflow: hidden;
+  color: #edf3f6;
+  font-size: 11px;
+  font-weight: 680;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cad-part-inspector .cad-selected-object > div:nth-child(2) small {
+  color: #9eb0ba;
+  font-size: 9px;
+  line-height: 1.35;
+}
+
+.cad-part-inspector .cad-selected-object-icon {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+}
+
+.cad-part-inspector .cad-selected-object-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.cad-part-inspector .cad-part-live-indicator {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #82b29a;
+  box-shadow: 0 0 0 3px rgba(130, 178, 154, 0.12);
+}
+
+.cad-part-inspector > .cad-field {
+  display: grid;
+  gap: 5px;
+  margin: 0 !important;
+  padding: 0 1px;
+}
+
+.cad-part-inspector > .cad-field label,
+.cad-part-inspector .cad-dimension-field label,
+.cad-part-inspector .cad-part-coordinate-grid .cad-field label {
+  color: #aebdc6 !important;
+  font-size: 9px !important;
+  font-weight: 650 !important;
+  letter-spacing: 0.015em;
+}
+
+.cad-part-inspector > .cad-field input {
+  min-height: 36px !important;
+  height: 36px !important;
+  padding-inline: 10px !important;
+  font-size: 11px !important;
+}
+
+.cad-part-inspector .cad-part-editor-group {
+  display: grid;
+  min-width: 0;
+  gap: 10px;
+  padding: 11px;
+  border: 1px solid rgba(143, 174, 192, 0.18);
+  border-radius: 7px;
+  background: linear-gradient(150deg, rgba(31, 47, 57, 0.78), rgba(21, 34, 42, 0.82));
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.018);
+}
+
+.cad-part-inspector .cad-part-editor-heading {
+  display: flex;
+  min-height: 19px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 0;
+}
+
+.cad-part-inspector .cad-part-editor-heading > span {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 7px;
+  color: #b9cbd5;
+  font-size: 8px;
+  font-weight: 760;
+  letter-spacing: 0.12em;
+}
+
+.cad-part-inspector .cad-part-editor-heading > span svg {
+  width: 13px;
+  height: 13px;
+  flex: 0 0 auto;
+  color: #91b4ca;
+}
+
+.cad-part-inspector .cad-part-editor-heading > small {
+  flex: 0 0 auto;
+  color: #8196a2;
+  font-size: 8px;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  font-variant-numeric: tabular-nums;
+}
+
+.cad-part-inspector .cad-dimension-fields,
+.cad-part-inspector .cad-part-coordinate-grid {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.cad-part-inspector .cad-dimension-field,
+.cad-part-inspector .cad-part-coordinate-grid .cad-field {
+  display: grid;
+  min-width: 0;
+  align-content: start;
+  gap: 5px;
+  margin: 0 !important;
+}
+
+.cad-part-inspector .cad-input-with-unit {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  align-items: center;
+}
+
+.cad-part-inspector .cad-input-with-unit input {
+  width: 100%;
+  min-width: 0;
+  min-height: 36px !important;
+  height: 36px !important;
+  padding: 0 31px 0 8px !important;
+  color: #edf3f6 !important;
+  border-color: rgba(143, 174, 192, 0.28) !important;
+  border-radius: 5px !important;
+  background: #101a21 !important;
+  font-size: 10px !important;
+  font-variant-numeric: tabular-nums;
+}
+
+.cad-part-inspector .cad-input-with-unit > span {
+  position: absolute;
+  right: 7px;
+  color: #8298a5 !important;
+  font-size: 8px !important;
+  font-weight: 650;
+  pointer-events: none;
+}
+
+.cad-part-inspector .cad-input-with-unit input:focus-visible,
+.cad-part-inspector .cad-part-material-select:focus-visible {
+  outline: 2px solid #a9c7d8;
+  outline-offset: 2px;
+  border-color: #a9c7d8 !important;
+}
+
+.cad-part-inspector .cad-part-axis-label {
+  display: inline-grid;
+  width: 17px;
+  height: 17px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid currentColor;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.035);
+  font-size: 8px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.cad-part-inspector .cad-part-axis-label.text-rose-500 { color: #e49b9b !important; }
+.cad-part-inspector .cad-part-axis-label.text-emerald-600 { color: #8fc3a5 !important; }
+.cad-part-inspector .cad-part-axis-label.text-sky-600 { color: #91b9d1 !important; }
+
+.cad-part-inspector .cad-field-note {
+  margin: 0;
+  padding: 7px 9px;
+  border-left: 2px solid rgba(145, 180, 202, 0.34);
+  background: rgba(145, 180, 202, 0.045);
+  color: #91a4af !important;
+  font-size: 8px !important;
+  line-height: 1.5 !important;
+}
+
+.cad-part-inspector .cad-part-production-note {
+  display: grid;
+  gap: 5px;
+  padding: 9px 10px;
+  border: 1px solid rgba(195, 148, 112, 0.2);
+  border-radius: 6px;
+  background: rgba(146, 116, 93, 0.07);
+}
+
+.cad-part-inspector .cad-part-production-note > span {
+  color: #c69d7f;
+  font-size: 8px;
+  font-weight: 780;
+  letter-spacing: 0.13em;
+}
+
+.cad-part-inspector .cad-part-production-note > p {
+  margin: 0;
+  color: #b5a394;
+  font-size: 8px;
+  line-height: 1.55;
+}
+
+.cad-part-inspector > .cad-full-button {
+  min-height: 34px;
+  justify-content: center;
+  border-color: rgba(145, 180, 202, 0.25);
+  border-radius: 5px;
+  color: #c3d3dc;
+  background: rgba(145, 180, 202, 0.045);
+  font-size: 9px;
+}
+
+.cad-part-inspector > .cad-full-button:hover {
+  border-color: rgba(145, 180, 202, 0.48);
+  background: rgba(145, 180, 202, 0.1);
+}
+
+@container part-inspector (max-width: 280px) {
+  .cad-part-inspector .cad-dimension-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .cad-part-inspector .cad-part-coordinate-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 5px;
+  }
+
+  .cad-part-inspector .cad-part-editor-group {
+    padding: 9px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cad-part-inspector *,
+  .cad-part-inspector *::before,
+  .cad-part-inspector *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
+@media (forced-colors: active) {
+  .cad-part-inspector .cad-part-editor-group,
+  .cad-part-inspector .cad-part-production-note,
+  .cad-part-inspector .cad-part-material-group {
+    border: 1px solid CanvasText;
+  }
+
+  .cad-part-inspector .cad-input-with-unit input,
+  .cad-part-inspector .cad-part-material-select {
+    border: 1px solid FieldText !important;
+  }
+
+  .cad-part-inspector .cad-part-live-indicator {
+    outline: 1px solid CanvasText;
+  }
+}
