@@ -7,12 +7,12 @@ export function MobilyaCadLogo({ className = "", tone = "light", descriptor = "S
       <span className="mc-brand__mark" aria-hidden="true">
         <svg viewBox="0 0 52 52" fill="none" focusable="false">
           <rect x="1.5" y="1.5" width="49" height="49" rx="13" fill="#17222B" stroke="#43535E" />
-          <path d="M10 14 26 6 42 14V38L26 46 10 38V14Z" stroke="#D8E1E6" strokeWidth="1.45" strokeLinejoin="round" />
-          <path d="M17 35V17L26 24L35 17V35" stroke="#8FB2C8" strokeWidth="2" strokeLinecap="square" strokeLinejoin="round" />
-          <path d="M17 28H35" stroke="#C39470" strokeWidth="1.8" strokeLinecap="round" />
-          <path d="M22 28V35M30 28V35" stroke="#C39470" strokeWidth="1.35" strokeLinecap="round" />
-          <path d="M10 14 17 17M42 14 35 17" stroke="#D8E1E6" strokeOpacity=".7" strokeWidth="1.2" />
-          <circle cx="26" cy="28" r="1.7" fill="#E1B48F" />
+          <path d="M10 14.25 26 6.5 42 14.25v23.5L26 45.5 10 37.75Z" stroke="#D8E1E6" strokeWidth="1.45" strokeLinejoin="round" />
+          <path d="M10 14.25 26 22 42 14.25" stroke="#D8E1E6" strokeOpacity=".7" strokeWidth="1.2" strokeLinejoin="round" />
+          <path d="M16.5 17.4v18.2L26 40.2l9.5-4.6V17.4" stroke="#8FB2C8" strokeWidth="1.9" strokeLinecap="square" strokeLinejoin="round" />
+          <path d="M16.5 27.2h19" stroke="#C39470" strokeWidth="1.7" strokeLinecap="round" />
+          <path d="M21.8 27.2v7.3M30.2 27.2v7.3" stroke="#C39470" strokeWidth="1.25" strokeLinecap="round" />
+          <circle cx="26" cy="27.2" r="1.6" fill="#E1B48F" />
         </svg>
       </span>
       <span className="mc-brand__copy">
