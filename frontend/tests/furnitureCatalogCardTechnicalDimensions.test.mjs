@@ -7,7 +7,7 @@ const styles = readFileSync(new URL("../src/components/catalog/FurnitureCatalogC
 
 test("catalog preview side faces reference the per-item gradient IDs", () => {
   const sideReference = "fill={`url(#catalog-side-${item.id})`}";
-  assert.equal(component.split(sideReference).length - 1, 2);
+  assert.equal(component.split(sideReference).length - 1, 3);
   assert.ok(!component.includes('fill="url(#catalog-side-${item.id})"'));
 });
 
