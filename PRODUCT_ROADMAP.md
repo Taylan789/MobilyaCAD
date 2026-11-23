@@ -1319,13 +1319,13 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - [ ] Physical production: operator and machine-standard verification remains separate from automated checks.
 
 ## Current domain queue — 23 November 2026
-- DOM-133: VERIFIED — [code/test commit 0944028f](https://github.com/Taylan789/MobilyaCAD/commit/0944028fdf51c3b3e4fce0f5395e74885029239a), exact-SHA CI/QA/Pages successful (191 frontend + 674 domain tests; strict TS/build, lint 34 warnings/0 errors, production audit 0; Pages deployed).
-- DOM-134: IN PROGRESS — three-revision source-map audit reconciliation, revision-local duplicate-group ordering and project-wide unique-ID accounting; exact-SHA CI/QA/Pages pending.
+- DOM-133: VERIFIED — [commit 0944028f](https://github.com/Taylan789/MobilyaCAD/commit/0944028fdf51c3b3e4fce0f5395e74885029239a), exact-SHA CI/QA/Pages successful.
+- DOM-134: VERIFIED — [test commit cbbe098c](https://github.com/Taylan789/MobilyaCAD/commit/cbbe098cc7e86d50b9c08a2c24bf752e09c1a09b); CI/QA passed (191 frontend + 675 domain, strict TS/build, lint 34 warnings/0 errors, production audit 0 vulnerabilities); Pages [#45248747497](https://github.com/Taylan789/MobilyaCAD/actions/runs/45248747497) deployed https://taylan789.github.io/MobilyaCAD/.
 - DOM-135: READY — disclose legacy source-integrity marker status without inferring strict integrity.
 - DOM-130: remains deferred until serialization/adapter ownership is available.
 
-### DOM-134 acceptance
-Three valid quote revisions must reconcile revision-local duplicate groups, line-reference counts, additive project totals and project-wide unique Part/hardware identities. Paired cost/source row reordering must leave the audit summary stable; source history is immutable and no integrity marker or provenance is inferred.
+### DOM-134 verified acceptance
+Three valid quote revisions reconcile revision-local duplicate groups, line-reference counts, additive project totals and project-wide unique Part/hardware identities. Paired cost/source row reordering leaves the audit summary stable; source history is immutable and duplicate-group output is deeply frozen.
 
 
 ## DOM-134 — Three-revision source-map audit reconciliation

@@ -579,8 +579,9 @@
 - Pages deploy run [#45232393061](https://github.com/Taylan789/MobilyaCAD/actions/runs/45232393061) deployed the documentation commit and verified https://taylan789.github.io/MobilyaCAD/.
 
 
-## 23 Kasım 2026 22:19 TRT — DOM-134 three-revision source-map audit regression (verification pending)
-- Added a three-revision contract test for the existing immutable quote source-map audit: two revision-local duplicate identity groups per revision, sorted source-type/source-ID and cost-line ordering, additive project totals, project-wide unique Part/hardware IDs, and stable audit summaries after paired row reordering.
-- Acceptance also checks input immutability and deep-frozen duplicate-group data. No production calculations, export schemas/adapters, frontend files, CNC/machine output, or main changes.
-- Commit SHA will be recorded after the branch update; exact-SHA CI, QA and Pages deployment are pending. Local tests are unavailable in this runtime.
-- Next: DOM-135 legacy source-integrity marker disclosure; DOM-130 remains deferred because adapter ownership is unavailable.
+## 23 Kasım 2026 22:19 TRT — DOM-134 VERIFIED
+- Test-only commit [cbbe098c](https://github.com/Taylan789/MobilyaCAD/commit/cbbe098cc7e86d50b9c08a2c24bf752e09c1a09b) adds three-revision coverage for two revision-local duplicate identity groups per revision, deterministic group/line-ID ordering, additive count reconciliation and project-wide unique Part/hardware IDs. Paired source/cost-row reversal leaves the audit summary unchanged; input and nested output remain immutable.
+- Exact-SHA CI [#45248747459](https://github.com/Taylan789/MobilyaCAD/actions/runs/45248747459) and QA [#45248747535](https://github.com/Taylan789/MobilyaCAD/actions/runs/45248747535) passed: **191 frontend + 675 domain tests**, strict shared-domain TypeScript, lint **34 warnings / 0 errors**, production build, and production dependency audit **0 vulnerabilities**. Pages [#45248747497](https://github.com/Taylan789/MobilyaCAD/actions/runs/45248747497) succeeded; test site: https://taylan789.github.io/MobilyaCAD/.
+- Local tests are unavailable in this runtime; exact-SHA Actions are the evidence. No production calculation, export schema/adapter, frontend, CNC/machine output or main changes.
+- Latest AI Developer run [#45160490760](https://github.com/Taylan789/MobilyaCAD/actions/runs/45160490760) failed on OpenRouter free daily quota HTTP 429; specialist job skipped. No paid fallback, secret/quota change or retry was made.
+- Next: DOM-135 legacy source-integrity marker disclosure. DOM-130 remains deferred until adapter ownership is available.
