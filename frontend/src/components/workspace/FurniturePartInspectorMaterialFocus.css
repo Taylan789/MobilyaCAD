@@ -1,0 +1,198 @@
+/* UI-INSPECTOR-MATERIAL-CLARITY-001 — make the live material assignment read as a compact technical control. */
+.cad-part-material-group {
+  position: relative;
+  gap: 12px;
+  padding: 12px 12px 12px 14px;
+  border-color: rgba(128, 166, 191, 0.28);
+  border-radius: 10px;
+  background:
+    linear-gradient(180deg, rgba(36, 52, 63, 0.74), rgba(19, 31, 39, 0.78));
+}
+
+.cad-part-material-group::before {
+  position: absolute;
+  top: 12px;
+  bottom: 12px;
+  left: 0;
+  width: 2px;
+  border-radius: 2px;
+  background: rgba(117, 174, 209, 0.78);
+  content: "";
+  pointer-events: none;
+}
+
+.cad-part-material-group .cad-part-editor-heading > span {
+  color: #d0dee7;
+  font-size: 10px;
+  letter-spacing: 0.09em;
+}
+
+.cad-part-material-group .cad-part-editor-heading > span svg {
+  width: 15px;
+  height: 15px;
+}
+
+.cad-part-material-group .cad-part-editor-heading > small {
+  color: #94adbd;
+  letter-spacing: 0.08em;
+}
+
+.cad-part-material-summary {
+  align-items: flex-start;
+  gap: 9px;
+  padding: 11px;
+  border-color: rgba(145, 180, 202, 0.22);
+  border-radius: 8px;
+  background: rgba(8, 17, 24, 0.5);
+}
+
+.cad-part-material-summary__icon {
+  width: 36px;
+  height: 36px;
+  border-color: rgba(145, 180, 202, 0.28);
+  background: rgba(105, 148, 172, 0.16);
+}
+
+.cad-part-material-summary__copy strong {
+  color: #f0f5f8;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.cad-part-material-summary__copy small {
+  color: #a8bac6;
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.cad-part-material-summary__copy > code {
+  color: #9fb8c8;
+  font-size: 9px;
+}
+
+.cad-part-material-thickness {
+  padding: 5px 7px;
+  color: #d4e2eb;
+  border-color: rgba(145, 180, 202, 0.28);
+  background: rgba(145, 180, 202, 0.1);
+  font-size: 10px;
+}
+
+.cad-part-material-source {
+  padding: 4px 6px;
+  font-size: 8px;
+  line-height: 1.2;
+}
+
+.cad-part-material-source.is-custom {
+  color: #f0c8a8;
+}
+
+.cad-part-material-source.is-missing {
+  color: #f0b8b2;
+}
+
+.cad-part-material-source.is-unassigned {
+  color: #c0cbd2;
+}
+
+.cad-part-material-group .cad-field > label {
+  color: #c2d0d9;
+  font-size: 10px;
+}
+
+.cad-part-material-select {
+  min-height: 44px;
+  padding-inline: 12px 34px;
+  border-color: rgba(133, 161, 178, 0.38);
+  border-radius: 8px;
+  background-color: #0e1a22;
+  font-size: 12px;
+}
+
+.cad-part-material-select:hover {
+  border-color: rgba(145, 180, 202, 0.65);
+  background-color: #13232e;
+}
+
+.cad-part-material-select:focus-visible {
+  outline-offset: 3px;
+  box-shadow: 0 0 0 3px rgba(113, 163, 195, 0.16);
+}
+
+.cad-part-material-manage {
+  min-height: 38px;
+  border-radius: 7px;
+  font-size: 11px;
+}
+
+.cad-part-material-note {
+  color: #a1b3bd;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.cad-part-material-usage > summary {
+  min-height: 40px;
+  font-size: 10px;
+}
+
+.cad-part-material-usage > summary:focus-visible,
+.cad-part-material-usage__list button:focus-visible {
+  outline: 2px solid #a9c7d8;
+  outline-offset: 2px;
+}
+
+.cad-part-material-usage[open] > summary {
+  border-bottom: 1px solid rgba(132, 164, 184, 0.18);
+  background: rgba(42, 62, 75, 0.28);
+}
+
+.cad-part-material-usage__list button {
+  padding: 8px;
+  border-color: rgba(145, 180, 202, 0.2);
+  border-radius: 5px;
+}
+
+@media (max-width: 560px) {
+  .cad-part-material-group {
+    padding: 11px 10px 11px 12px;
+  }
+
+  .cad-part-material-summary {
+    flex-wrap: wrap;
+  }
+
+  .cad-part-material-summary__copy {
+    flex-basis: calc(100% - 45px);
+  }
+
+  .cad-part-material-thickness {
+    margin-left: 45px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cad-part-material-usage__list button {
+    transition: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .cad-part-material-group,
+  .cad-part-material-summary,
+  .cad-part-material-select,
+  .cad-part-material-usage {
+    border-color: CanvasText;
+  }
+
+  .cad-part-material-group::before {
+    background: Highlight;
+  }
+
+  .cad-part-material-select:focus-visible,
+  .cad-part-material-usage > summary:focus-visible,
+  .cad-part-material-usage__list button:focus-visible {
+    outline-color: Highlight;
+  }
+}
