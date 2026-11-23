@@ -1124,9 +1124,9 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 | DOM-122 VERIFIED | Quote totals cross-consumer reconciliation | CI [#45097364302](https://github.com/Taylan789/MobilyaCAD/actions/runs/45097364302), QA [#45097364273](https://github.com/Taylan789/MobilyaCAD/actions/runs/45097364273) passed (175 frontend + 651 domain; strict TypeScript, lint 32 warnings/0 errors, production build, audit 0 vulnerabilities); Pages [#45097364279](https://github.com/Taylan789/MobilyaCAD/actions/runs/45097364279) deployed |
 | DOM-123 VERIFIED | Hardware BOM provenance mapping in priced consumption | [code/test 2362065](https://github.com/Taylan789/MobilyaCAD/commit/2362065f73426adce64cade856d4e4fb180c39fc); CI [#45099919245](https://github.com/Taylan789/MobilyaCAD/actions/runs/45099919245), QA [#45099919275](https://github.com/Taylan789/MobilyaCAD/actions/runs/45099919275) passed (175 frontend + 653 domain, strict TypeScript, lint 32 warnings/0 errors, build, production audit 0); Pages [#45099919290](https://github.com/Taylan789/MobilyaCAD/actions/runs/45099919290) deployed |
 | DOM-124 READY | Hardware BOM provenance through combined quote lineSources | Hardware/resource identity, unit, furniture/source references and separate price source mapping; no Part IDs |
-| DOM-125 READY | Quote revision JSON + CSV preservation of additive hardware provenance | Strict validation, round-trip, and legacy compatibility/fail-closed coverage |
+| DOM-125 IMPLEMENTED (Actions pending) | Quote revision JSON + CSV preservation of additive hardware provenance | Strict validation, round-trip, and legacy compatibility/fail-closed coverage |
 | DOM-124 READY | Hardware BOM provenance through combined quote lineSources | Hardware/resource identity, unit, furniture/source references and separate price source mapping; no Part IDs |
-| DOM-125 READY | Quote revision JSON + CSV preservation of additive hardware provenance | Strict validation, round-trip, and legacy compatibility/fail-closed coverage |
+| DOM-125 IMPLEMENTED (Actions pending) | Quote revision JSON + CSV preservation of additive hardware provenance | Strict validation, round-trip, and legacy compatibility/fail-closed coverage |
 | INT-001 | Domain ↔ frontend adapter/export contract | UI-owned files untouched; round-trip and unsupported-geometry fail-closed proof |
 | INT-002 / PERF-001 | Specialist-owned adapter integration/performance | Separate specialist branch/PR and measurable CI evidence; not owned/merged here |
 
@@ -1175,6 +1175,13 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - **Compatibility:** strict quote JSON/CSV v1 serializers reject new hardware-source metadata rather than dropping it; DOM-125 will add validated round-trip support.
 
 ### Next 3 domain slices
-1. DOM-125 — Strict quote-summary JSON/CSV v1 hardware-provenance round-trip; validate field shapes, sort/uniqueness, legacy files and fail-closed incomplete metadata.
-2. DOM-126 — Quote revision/snapshot hardware provenance coverage and cross-consumer reconciliation after DOM-125 export compatibility.
-3. DOM-127 — Re-evaluate hardware BOM → furniture/Part traceability contract; keep hardware-to-Part links absent unless a real relationship is supplied.
+1. DOM-126 — Quote revision/snapshot hardware provenance coverage and cross-consumer reconciliation using the validated DOM-125 JSON/CSV.
+2. DOM-127 — Re-evaluate hardware BOM → furniture/Part traceability contract; keep hardware-to-Part links absent unless a real relationship is supplied.
+3. DOM-128 — Add strict project quote source-map identity/unit reconciliation across snapshot imports and downstream reports.
+
+
+## DOM-125 — Hardware BOM provenance persistence (implemented; Actions pending)
+- Quote-summary JSON v1 now validates optional hardware BOM metadata on hardware cost lines; required identity/unit/furniture IDs are all-or-nothing, bounded and sorted/unique. Optional BOM source references are sorted/unique. Non-hardware placement is blocked.
+- CSV v1 exports four trailing hardware provenance columns and accepts both the current and legacy v1 headers. Legacy files normalize to blank optional fields and remain compatible without fabricated source mappings.
+- Automated regressions cover JSON and CSV round-trip, partial metadata, wrong category, unsorted metadata and legacy CSV compatibility.
+- Scope: domain quote-summary JSON/CSV adapters and tests only; no UI, adapter/performance-owned files, machine output, prices or `main` changes.

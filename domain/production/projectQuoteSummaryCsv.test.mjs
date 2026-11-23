@@ -26,7 +26,7 @@ function readySummary() {
   const lineSources = [
     { costLineId: "material-mdf", sourceType: "production-consumption", sourceId: "mdf-18", sourcePartIds: ["part-a", "part-b"], resourceType: "material", resourceId: "mdf-18", unit: "m2" },
     { costLineId: "material-edge", sourceType: "production-consumption", sourceId: "pvc-edge", sourcePartIds: ["part-a", "part-b"], resourceType: "edge-banding", resourceId: "pvc-edge", unit: "mm", edgeDirection: "right" },
-    { costLineId: "hardware-hinge", sourceType: "production-consumption", sourceId: "hinge-01", sourcePartIds: ["part-hinge"] },
+    { costLineId: "hardware-hinge", sourceType: "production-consumption", sourceId: "hinge-01", hardwareId: "hinge-01", hardwareUnit: "adet", hardwareFurnitureIds: ["cabinet-a", "cabinet-b"], hardwareSourceReferences: ["bom:door-a", "bom:drawer-b"] },
     { costLineId: "labor-install", sourceType: "labor-operation", sourceId: "installation", tariffId: "labor-hourly" },
     { costLineId: "operation-drill", sourceType: "labor-operation", sourceId: "drilling", tariffId: "operation-drill" },
     { costLineId: "waste-line", sourceType: "quote-adjustment", sourceId: "waste" },
@@ -162,6 +162,36 @@ test("ready CSV v1 round-trips all cost categories, units, line IDs and provenan
   assert.equal(roll?.rollCount, 2);
   assert.equal(roll?.purchasedLengthMm, 200000);
   assert.equal(roll?.priceSourceReference, "roll-price:v1");
+  const hardware = parsed.summary?.lineSources.find((source) => source.costLineId === "hardware-hinge");
+  assert.equal(hardware?.hardwareId, "hinge-01");
+  assert.equal(hardware?.hardwareUnit, "adet");
+  assert.deepEqual(hardware?.hardwareFurnitureIds, ["cabinet-a", "cabinet-b"]);
+  assert.deepEqual(hardware?.hardwareSourceReferences, ["bom:door-a", "bom:drawer-b"]);
+});
+
+test("legacy CSV v1 without hardware columns remains compatible and does not invent provenance", () => {
+  const original = readySummary();
+  const legacy = clone(original);
+  const hardware = legacy.lineSources.find((source) => source.costLineId === "hardware-hinge");
+  delete hardware.hardwareId;
+  delete hardware.hardwareUnit;
+  delete hardware.hardwareFurnitureIds;
+  delete hardware.hardwareSourceReferences;
+  const currentCsv = serializeProjectQuoteSummaryCsv(original);
+  assert.equal(currentCsv.status, "ready", currentCsv.diagnostics.join(" | "));
+  const oldRecords = parseRecords(currentCsv.csv).map((row) => row.slice(0, -4));
+  const parsed = parseProjectQuoteSummaryCsv(encodeRecords(oldRecords));
+  assert.equal(parsed.status, "ready", parsed.diagnostics.join(" | "));
+  assert.deepEqual(parsed.summary, normalize(legacy));
+  assert.equal(parsed.summary?.lineSources.find((source) => source.costLineId === "hardware-hinge")?.hardwareId, undefined);
+});
+
+test("CSV hardware BOM metadata must be complete and sorted", () => {
+  const valid = serializeProjectQuoteSummaryCsv(readySummary()).csv;
+  const row = lineRowIndex(valid, "hardware-hinge");
+  assert.ok(row > 0);
+  assert.equal(parseProjectQuoteSummaryCsv(setCell(valid, row, "hardwareUnit", "")).status, "blocked");
+  assert.equal(parseProjectQuoteSummaryCsv(setCell(valid, row, "hardwareFurnitureIds", JSON.stringify(["cabinet-b", "cabinet-a"]))).status, "blocked);
 });
 
 test("CSV panel malzeme katalog kimliği yalnızca m2 kaynak satırında kabul edilir", () => {

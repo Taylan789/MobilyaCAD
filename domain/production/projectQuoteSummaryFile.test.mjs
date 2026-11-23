@@ -63,6 +63,28 @@ function clone(value) {
   return JSON.parse(JSON.stringify(value));
 }
 
+function withHardwareLine(summary) {
+  const result = clone(summary);
+  const line = {
+    id: "hardware-hinge", category: "hardware", description: "Menteşe", quantity: 4,
+    unit: "adet", unitPriceMinor: 125, currencyCode: "TRY",
+    sourceReference: "hardware-price:v1", lineTotalMinor: 500
+  };
+  result.costSummary.lines.push(line);
+  result.costSummary.lineCount += 1;
+  result.costSummary.categoryTotalsMinor.hardware += line.lineTotalMinor;
+  result.costSummary.grandTotalMinor += line.lineTotalMinor;
+  result.requiredLineCount += 1;
+  result.pricedLineCount += 1;
+  result.lineSources.push({
+    costLineId: line.id, sourceType: "production-consumption", sourceId: "hinge-bom",
+    hardwareId: "hinge-01", hardwareUnit: "adet",
+    hardwareFurnitureIds: ["cabinet-a", "cabinet-b"],
+    hardwareSourceReferences: ["bom:door-a", "bom:drawer-b"]
+  });
+  return result;
+}
+
 function fileFor(summary) {
   const result = serialize(summary);
   assert.equal(result.status, "ready");
@@ -89,6 +111,35 @@ test("ready quote JSON v1 round-trips exact line units, currency and source prov
   assert.equal(parsed.summary.lineSources[1].planSourceReference, "roll-plan:v1");
   assert.equal(parsed.summary.lineSources[1].priceSourceReference, "roll-price:v1");
   assert.deepEqual(parse(serialize(parsed.summary).json), parsed);
+});
+
+test("hardware BOM source metadata round-trips and preserves separate quote references", () => {
+  const source = withHardwareLine(readySummary());
+  const exported = serialize(source);
+  assert.equal(exported.status, "ready", exported.diagnostics[0]);
+  const parsed = parse(exported.json);
+  assert.equal(parsed.status, "ready", parsed.diagnostics[0]);
+  assert.deepEqual(parsed.summary, source);
+  const hardware = parsed.summary.lineSources.find(item => item.costLineId === "hardware-hinge");
+  assert.deepEqual(hardware, source.lineSources.at(-1));
+  assert.equal(hardware.hardwareId, "hinge-01");
+  assert.equal(hardware.hardwareUnit, "adet");
+  assert.deepEqual(hardware.hardwareFurnitureIds, ["cabinet-a", "cabinet-b"]);
+  assert.deepEqual(hardware.hardwareSourceReferences, ["bom:door-a", "bom:drawer-b"]);
+});
+
+test("hardware BOM source metadata is complete, sorted and restricted to hardware consumption", () => {
+  const missingUnit = fileFor(withHardwareLine(readySummary()));
+  delete missingUnit.summary.lineSources.at(-1).hardwareUnit;
+  assert.match(parse(JSON.stringify(missingUnit)).diagnostics[0], /kimlik, birim ve mobilya kimliklerini birlikte/);
+
+  const unsorted = fileFor(withHardwareLine(readySummary()));
+  unsorted.summary.lineSources.at(-1).hardwareSourceReferences = ["bom:z", "bom:a"];
+  assert.match(parse(JSON.stringify(unsorted)).diagnostics[0], /sıralı ve benzersiz/);
+
+  const nonHardware = JSON.parse(serialize(readySummary()).json);
+  Object.assign(nonHardware.summary.lineSources[0], { hardwareId: "hinge-01", hardwareUnit: "adet", hardwareFurnitureIds: ["cabinet-a"] });
+  assert.match(parse(JSON.stringify(nonHardware)).diagnostics[0], /yalnızca üretim tüketimi donanım satırında/);
 });
 
 test("panel malzeme kaynak metadata katalog kimliği ve m2/Part eşleşmesini zorunlu kılar", () => {

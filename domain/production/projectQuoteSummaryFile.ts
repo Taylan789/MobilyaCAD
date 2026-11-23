@@ -52,7 +52,8 @@ const lineSourceKeys = new Set([
   "costLineId", "sourceType", "sourceId", "tariffId", "sourcePartIds",
   "resourceType", "resourceId", "unit", "edgeDirection", "rollCount",
   "rollLengthMm", "purchasedLengthMm", "furnitureIds", "planSourceReference",
-  "priceSourceReference"
+  "priceSourceReference", "hardwareId", "hardwareUnit", "hardwareFurnitureIds",
+  "hardwareSourceReferences"
 ]);
 const edgeDirections = ["top", "bottom", "left", "right"] as const;
 const identifierPattern = /^[a-z0-9][a-z0-9._-]{0,63}$/;
@@ -220,6 +221,23 @@ function validateLineSource(
     result.tariffId = requireIdentifier(value.tariffId, label + " tarife kimliği");
   } else if (hasOwn(value, "tariffId")) {
     throw new Error(label + " tarife kimliği yalnızca işçilik/operasyon kaynaklarında kullanılabilir.");
+  }
+
+  const hardwareFieldsPresent = ["hardwareId", "hardwareUnit", "hardwareFurnitureIds", "hardwareSourceReferences"]
+    .some(key => hasOwn(value, key));
+  if (hardwareFieldsPresent) {
+    if (sourceType !== "production-consumption" || costLine.category !== "hardware") {
+      throw new Error(label + " donanım BOM kaynak metadata'sı yalnızca üretim tüketimi donanım satırında kullanılabilir.");
+    }
+    if (!hasOwn(value, "hardwareId") || !hasOwn(value, "hardwareUnit") || !hasOwn(value, "hardwareFurnitureIds")) {
+      throw new Error(label + " donanım BOM kaynak metadata'sı kimlik, birim ve mobilya kimliklerini birlikte gerektirir.");
+    }
+    result.hardwareId = requireIdentifier(value.hardwareId, label + " donanım kimliği");
+    result.hardwareUnit = requireText(value.hardwareUnit, label + " donanım birimi", 32);
+    result.hardwareFurnitureIds = validateSortedTextArray(value.hardwareFurnitureIds, label + " donanım mobilya kimlikleri", true);
+    if (hasOwn(value, "hardwareSourceReferences")) {
+      result.hardwareSourceReferences = validateSortedTextArray(value.hardwareSourceReferences, label + " donanım BOM kaynak referansları", false);
+    }
   }
 
   const resourceFieldsPresent = ["resourceType", "resourceId", "unit", "edgeDirection"].some(key => hasOwn(value, key));

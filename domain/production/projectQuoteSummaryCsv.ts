@@ -19,7 +19,8 @@ export const PROJECT_QUOTE_SUMMARY_CSV_COLUMNS = [
   "lineTotalMinor", "sourceReference", "costEdgeDirection", "sourceEdgeDirection",
   "sourceType", "sourceId", "tariffId", "sourcePartIds", "resourceType",
   "resourceId", "rollCount", "rollLengthMm", "purchasedLengthMm", "furnitureIds",
-  "planSourceReference", "priceSourceReference"
+  "planSourceReference", "priceSourceReference", "hardwareId", "hardwareUnit",
+  "hardwareFurnitureIds", "hardwareSourceReferences"
 ] as const;
 
 export interface ProjectQuoteSummaryCsvSerializationResult {
@@ -35,6 +36,7 @@ export interface ProjectQuoteSummaryCsvParseResult {
 }
 
 const columns = PROJECT_QUOTE_SUMMARY_CSV_COLUMNS;
+const legacyColumns = columns.slice(0, -4);
 const columnIndex = new Map<string, number>(columns.map((column, index) => [column, index]));
 const lineColumns = columns.slice(9);
 const maxCsvLength = 5_000_000;
@@ -247,6 +249,10 @@ function costLineRow(
   row[28] = source.furnitureIds === undefined ? "" : JSON.stringify(source.furnitureIds);
   row[29] = source.planSourceReference ?? "";
   row[30] = source.priceSourceReference ?? "";
+  row[31] = source.hardwareId ?? "";
+  row[32] = source.hardwareUnit ?? "";
+  row[33] = source.hardwareFurnitureIds === undefined ? "" : JSON.stringify(source.hardwareFurnitureIds);
+  row[34] = source.hardwareSourceReferences === undefined ? "" : JSON.stringify(source.hardwareSourceReferences);
   return row;
 }
 
@@ -275,14 +281,26 @@ export function serializeProjectQuoteSummaryCsv(value: unknown): ProjectQuoteSum
 export function parseProjectQuoteSummaryCsv(csvValue: unknown): ProjectQuoteSummaryCsvParseResult {
   if (typeof csvValue !== "string") return blockedParse("Teklif CSV dosyası metin olmalıdır.");
   try {
-    const records = parseCsvRecords(csvValue);
+    let records = parseCsvRecords(csvValue);
     if (records.length < 2) throw new Error("Teklif CSV başlık ve metadata satırı içermelidir.");
     const header = records[0];
-    if (header.length !== columns.length || header.some((value, index) => value !== columns[index])) {
+    const currentHeader = header.length === columns.length && header.every((value, index) => value === columns[index]);
+    const legacyHeader = header.length === legacyColumns.length && header.every((value, index) => value === legacyColumns[index]);
+    if (!currentHeader && !legacyHeader) {
       throw new Error("Teklif CSV sütun başlığı desteklenen v1 sözleşmesiyle uyuşmuyor.");
     }
+    if (legacyHeader) {
+      for (const row of records) {
+        if (row.length !== legacyColumns.length) throw new Error("Eski CSV satır sütun sayısı sözleşmayla uyuşmuyor.");
+      }
+      records = records.map(row => [...row, ...Array(columns.length - legacyColumns.length).fill("")]);
+      records[0] = [...columns];
+    } else {
+      for (const row of records.slice(1)) {
+        if (row.length !== columns.length) throw new Error("CSV satır sütun sayısı sözleşmayla uyuşmuyor.");
+      }
+    }
     for (const row of records.slice(1)) {
-      if (row.length !== columns.length) throw new Error("CSV satır sütun sayısı sözleşmayla uyuşmuyor.");
       if (cell(row, "format") !== PROJECT_QUOTE_SUMMARY_CSV_FORMAT ||
           cell(row, "formatVersion") !== String(PROJECT_QUOTE_SUMMARY_CSV_VERSION)) {
         throw new Error("Teklif CSV biçimi veya sürümü desteklenmiyor.");
@@ -350,6 +368,10 @@ export function parseProjectQuoteSummaryCsv(csvValue: unknown): ProjectQuoteSumm
       const furnitureIds = parseStringArrayCell(cell(row, "furnitureIds"), "CSV mobilya ID");
       const planSourceReference = cell(row, "planSourceReference");
       const priceSourceReference = cell(row, "priceSourceReference");
+      const hardwareId = cell(row, "hardwareId");
+      const hardwareUnit = cell(row, "hardwareUnit");
+      const hardwareFurnitureIds = parseStringArrayCell(cell(row, "hardwareFurnitureIds"), "CSV donanım mobilya ID");
+      const hardwareSourceReferences = parseStringArrayCell(cell(row, "hardwareSourceReferences"), "CSV donanım BOM kaynak referansı");
 
       lines.push({
         id: lineId,
@@ -380,7 +402,11 @@ export function parseProjectQuoteSummaryCsv(csvValue: unknown): ProjectQuoteSumm
         ...(purchasedLengthMm === undefined ? {} : { purchasedLengthMm }),
         ...(furnitureIds === undefined ? {} : { furnitureIds }),
         ...(planSourceReference === "" ? {} : { planSourceReference }),
-        ...(priceSourceReference === "" ? {} : { priceSourceReference })
+        ...(priceSourceReference === "" ? {} : { priceSourceReference }),
+        ...(hardwareId === "" ? {} : { hardwareId }),
+        ...(hardwareUnit === "" ? {} : { hardwareUnit }),
+        ...(hardwareFurnitureIds === undefined ? {} : { hardwareFurnitureIds }),
+        ...(hardwareSourceReferences === undefined ? {} : { hardwareSourceReferences })
       });
     }
 
