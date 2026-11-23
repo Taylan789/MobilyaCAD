@@ -18,7 +18,13 @@ function widthAt(rule, viewportWidth) {
   return Math.max(rule.min, Math.min(rule.max, rule.vw * viewportWidth / 100 + rule.offset));
 }
 
-test("desktop dock widths scale continuously without the former breakpoint jumps", () => {
+function viewportAt(viewportWidth, sidebar, inspector) {
+  const gap = Math.max(6, Math.min(9, viewportWidth * 0.0045));
+  const padding = Math.max(6, Math.min(9, viewportWidth * 0.005));
+  return viewportWidth - widthAt(sidebar, viewportWidth) - widthAt(inspector, viewportWidth) - gap - 2 * padding;
+}
+
+test("desktop dock widths scale continuously and release more width to the model viewport", () => {
   assert.match(css, /@media\s*\(min-width:\s*1101px\)\s*and\s*\(max-width:\s*1919px\)/);
   assert.match(css, /@media\s*\(min-width:\s*1920px\)/);
   assert.doesNotMatch(css, /1361|1600/);
@@ -27,9 +33,20 @@ test("desktop dock widths scale continuously without the former breakpoint jumps
   const inspector = readLinearClamp(".cad-inspector", "flex-basis");
 
   assert.ok(Math.abs(widthAt(sidebar, 1101) - 232) < 0.1);
-  assert.ok(Math.abs(widthAt(inspector, 1101) - 272) < 0.1);
-  assert.ok(Math.abs(widthAt(sidebar, 1919) - 294) < 0.1);
-  assert.ok(Math.abs(widthAt(inspector, 1919) - 352) < 0.1);
+  assert.ok(Math.abs(widthAt(inspector, 1101) - 260) < 0.1);
+  assert.ok(Math.abs(widthAt(sidebar, 1280) - 232.04) < 0.1);
+  assert.ok(Math.abs(widthAt(inspector, 1280) - 260) < 0.1);
+  assert.ok(Math.abs(widthAt(sidebar, 1440) - 242.92) < 0.1);
+  assert.ok(Math.abs(widthAt(inspector, 1440) - 266.56) < 0.1);
+  assert.ok(Math.abs(widthAt(sidebar, 1919) - 275.492) < 0.1);
+  assert.ok(Math.abs(widthAt(inspector, 1919) - 302) < 0.1);
+
+  const wideDesktop = css.slice(css.indexOf("@media (min-width: 1920px)"));
+  assert.match(wideDesktop, /\.cad-sidebar[\s\S]*?flex-basis:\s*276px/);
+  assert.match(wideDesktop, /\.cad-inspector[\s\S]*?flex-basis:\s*302px/);
+
+  assert.ok(viewportAt(1280, sidebar, inspector) > 769);
+  assert.ok(viewportAt(1440, sidebar, inspector) > 900);
 
   for (let viewportWidth = 1101; viewportWidth <= 1919; viewportWidth += 1) {
     assert.ok(widthAt(sidebar, viewportWidth) >= widthAt(sidebar, viewportWidth - 1) || viewportWidth === 1101);
@@ -38,8 +55,8 @@ test("desktop dock widths scale continuously without the former breakpoint jumps
 });
 
 test("spacing, toolbar and inspector controls scale within bounds and reduced-motion remains supported", () => {
-  assert.match(css, /gap:\s*clamp\(7px,\s*0\.52vw,\s*10px\)/);
-  assert.match(css, /padding:\s*clamp\(8px,\s*0\.63vw,\s*12px\)/);
+  assert.match(css, /gap:\s*clamp\(6px,\s*0\.45vw,\s*9px\)/);
+  assert.match(css, /padding:\s*clamp\(6px,\s*0\.5vw,\s*9px\)/);
   assert.match(css, /\.cad-viewport-toolbar[\s\S]*?height:\s*clamp\(48px/);
   assert.match(css, /\.cad-inspector-tab-list button[\s\S]*?height:\s*clamp\(31px/);
   assert.match(css, /@media\s*\(prefers-reduced-motion:\s*reduce\)[\s\S]*?transition:\s*none/s);
