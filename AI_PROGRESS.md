@@ -437,3 +437,11 @@
 - **Test site:** Pages deployment [#45144317913](https://github.com/Taylan789/MobilyaCAD/actions/runs/45144317913) succeeded at https://taylan789.github.io/MobilyaCAD/ for this exact SHA.
 - **Known limits:** comparison JSON/CSV hardware fields are not yet implemented; no local checkout/manual test, CNC/machine output, UI, integration/performance-owned files or `main` changes. AI Developer run [#45091325066](https://github.com/Taylan789/MobilyaCAD/actions/runs/45091325066) remains quota-blocked (OpenRouter free-model daily 429); specialist integration/performance evidence is not present.
 - **Next:** DOM-126c comparison JSON v3, then DOM-126d CSV v4 and DOM-127 traceability review.
+
+
+## 23 Kasım 2026 12:23 TRT — DOM-126c JSON v3 implementation (Actions pending)
+- Added conditional comparison JSON v3: hardware BOM metadata (`hardwareId`, `hardwareUnit`, sorted `hardwareFurnitureIds`, optional sorted `hardwareSourceReferences`) is allowed only on production-consumption hardware lines and must be complete, unit-consistent and fail-closed. Existing no-BOM exports remain JSON v2 to preserve cross-format consumers; JSON v1/v2 import remains supported.
+- Added regression tests for v3 round-trip, BOM-source-only metadata, partial/misplaced/mismatched/empty or unsorted fields, and legacy v1/v2 compatibility/rejection. No CSV adapter or frontend files changed.
+- Commit SHA: pending post-commit reference. Exact-SHA CI/QA/Pages: pending. No local checkout/test runner available in this runtime.
+- Baseline branch SHA `9a27bd6` had successful CI #45144607157, QA #45144607197 and Pages #45144607166. No active dev/github-work AI Developer or QA run; the last AI Developer run remains free-model HTTP 429 quota-blocked and integration/performance job is disabled.
+- Next: DOM-126d comparison CSV v4 hardware BOM columns with v1/v2/v3 compatibility, followed by DOM-127 hardware-to-furniture/Part traceability boundary review.

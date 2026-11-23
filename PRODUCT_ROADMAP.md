@@ -1206,3 +1206,15 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 1. DOM-126c — Comparison JSON v3 hardware BOM metadata, strict validation, JSON v1/v2 compatibility.
 2. DOM-126d — Comparison CSV v4 BOM columns, strict round-trip and v1/v2/v3 compatibility.
 3. DOM-127 — Hardware BOM → furniture/Part traceability boundary; do not fabricate hardware-to-Part links.
+
+
+## 23 Kasım 2026 — DOM-126c comparison JSON v3 (implementation; Actions pending)
+
+- Comparison JSON remains v2 for comparisons without hardware BOM fields, keeping older consumers compatible. Hardware BOM metadata triggers strict v3 export; parser continues accepting v1/v2.
+- v3 supports BOM identity/unit/furniture IDs and optional source references only on hardware production-consumption lines. All required metadata is atomic; units must match; IDs/references must be sorted and unique. Partial/misplaced/invalid input returns no partial file/comparison. No hardware-to-Part mapping is inferred.
+- Acceptance: v3 round-trip and invalid metadata regressions; legacy v1/v2 readers; exact-SHA CI, QA and Pages pending. CSV hardware provenance remains a separate v4 task.
+
+### Next 3 domain slices
+1. DOM-126d — Comparison CSV v4 hardware BOM columns, strict round-trip and v1/v2/v3 compatibility.
+2. DOM-127 — Hardware BOM → furniture/Part traceability boundary; preserve absent links unless a real relationship is provided.
+3. DOM-128 — Cross-consumer quote source-map identity/unit reconciliation with fail-closed import/report checks.

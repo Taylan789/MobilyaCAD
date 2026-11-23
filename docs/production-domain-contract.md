@@ -1119,3 +1119,11 @@ Quote-summary CSV v1 writes the four fields as additive trailing columns. The pa
 - Regression uses two real quote revisions from the same production/pricing fixture, changes only the hardware BOM source references, and asserts one `changed` line with unchanged hardware category/grand total.
 - Verified commit/test [ec937609](https://github.com/Taylan789/MobilyaCAD/commit/ec9376091721bee90605caf292b5e88af3f2748d), CI [#45144318230](https://github.com/Taylan789/MobilyaCAD/actions/runs/45144318230), QA [#45144317923](https://github.com/Taylan789/MobilyaCAD/actions/runs/45144317923) and Pages [#45144317913](https://github.com/Taylan789/MobilyaCAD/actions/runs/45144317913) all successful. Test site: https://taylan789.github.io/MobilyaCAD/.
 - Comparison JSON/CSV still omit hardware BOM fields; their versioned adapters are separate DOM-126c/d. No frontend or machine-specific output was added.
+
+
+## DOM-126c — Hardware BOM provenance in revision-comparison JSON v3
+
+- Comparison JSON export stays at v2 when no hardware BOM metadata is present, preserving existing cross-format consumers. When hardware BOM fields are present, the serializer emits v3; v1 and v2 readers remain supported.
+- JSON v3 accepts both existing catalog resource identity and the hardware-only fields `hardwareId`, `hardwareUnit`, `hardwareFurnitureIds`, and optional `hardwareSourceReferences`. Identity, unit and furniture IDs are all-or-nothing; unit must equal the cost-line unit; identifier arrays must be sorted, unique and bounded. BOM fields are only valid on `hardware` / `production-consumption` lines.
+- Partial, misplaced, mismatched-unit, empty/unsorted metadata and BOM fields in legacy v1/v2 envelopes are rejected atomically with no partial file/comparison. BOM furniture references do not infer Part IDs; hardware `sourcePartIds` remains absent unless separately supplied by a validated source.
+- Acceptance is covered by JSON v3 round-trip and fail-closed regression tests, while legacy JSON v1/v2 fixtures remain valid. CSV v4 hardware fields are a separate DOM-126d slice.

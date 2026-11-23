@@ -13,7 +13,7 @@ export const PROJECT_QUOTE_REVISION_COMPARISON_MAX_LINE_CHANGES = 2_000;
 
 export interface ProjectQuoteRevisionComparisonFile {
   fileType: typeof PROJECT_QUOTE_REVISION_COMPARISON_FILE_TYPE;
-  schemaVersion: 1 | 2;
+  schemaVersion: 1 | 2 | 3;
   comparison: ProjectQuoteRevisionComparison;
 }
 
@@ -46,6 +46,9 @@ const baseLineKeys = new Set([
 ]);
 const resourceLineKeys = new Set(["resourceType", "resourceId", "resourceUnit"]);
 const lineKeysV2 = new Set([...baseLineKeys, ...resourceLineKeys]);
+const hardwareMetadataKeys = new Set(["hardwareId", "hardwareUnit", "hardwareFurnitureIds", "hardwareSourceReferences"]);
+const requiredHardwareMetadataKeys = new Set(["hardwareId", "hardwareUnit", "hardwareFurnitureIds"]);
+const lineKeysV3 = new Set([...lineKeysV2, ...hardwareMetadataKeys]);
 const categories: readonly ProjectQuoteCostCategory[] = [
   "material", "hardware", "labor", "operation", "waste", "profit"
 ];
@@ -150,9 +153,9 @@ function requireRollLengthTenths(value: unknown, label: string, maximumMm?: numb
   return tenths;
 }
 
-function validateLine(value: unknown, currencyCode: string, allowResourceIdentity: boolean): ProjectQuoteRevisionCostLineSnapshot {
+function validateLine(value: unknown, currencyCode: string, allowResourceIdentity: boolean, allowHardwareBom: boolean): ProjectQuoteRevisionCostLineSnapshot {
   if (!isRecord(value)) throw new Error("Teklif fark satırı geçerli bir nesne olmalıdır.");
-  requireAllowedKeys(value, allowResourceIdentity ? lineKeysV2 : baseLineKeys, "Teklif fark satırı");
+  requireAllowedKeys(value, allowHardwareBom ? lineKeysV3 : allowResourceIdentity ? lineKeysV2 : baseLineKeys, "Teklif fark satırı");
   requireRequiredKeys(value, new Set([
     "category", "description", "quantity", "unit", "unitPriceMinor",
     "lineTotalMinor", "currencyCode", "sourceType", "sourceId"
@@ -213,6 +216,26 @@ function validateLine(value: unknown, currencyCode: string, allowResourceIdentit
     }
   }
 
+  const hasHardwareMetadata = [...hardwareMetadataKeys].some(key => Object.prototype.hasOwnProperty.call(value, key));
+  let hardwareId: string | undefined;
+  let hardwareUnit: string | undefined;
+  let hardwareFurnitureIds: string[] | undefined;
+  let hardwareSourceReferences: string[] | undefined;
+  if (hasHardwareMetadata) {
+    if (!allowHardwareBom) throw new Error("Donanım BOM metadata yalnızca JSON v3 satırlarında kullanılabilir.");
+    if (category !== "hardware" || sourceType !== "production-consumption") {
+      throw new Error("Donanım BOM metadata yalnızca production-consumption hardware satırlarında kullanılabilir.");
+    }
+    requireRequiredKeys(value, requiredHardwareMetadataKeys, "Donanım BOM metadata");
+    hardwareId = requireIdentifier(value.hardwareId, "Donanım BOM kimliği");
+    hardwareUnit = requireText(value.hardwareUnit, "Donanım BOM birimi", 32);
+    if (hardwareUnit !== unit) throw new Error("Donanım BOM birimi maliyet satırı birimiyle uyuşmalıdır.");
+    hardwareFurnitureIds = requireSortedIdentifiers(value.hardwareFurnitureIds, "Donanım BOM mobilya kimlikleri");
+    if (value.hardwareSourceReferences !== undefined) {
+      hardwareSourceReferences = requireSortedIdentifiers(value.hardwareSourceReferences, "Donanım BOM kaynak referansları");
+    }
+  }
+
   const hasRollMetadata = [...rollMetadataKeys].some(key => Object.prototype.hasOwnProperty.call(value, key));
   let rollCount: number | undefined;
   let rollLengthMm: number | undefined;
@@ -265,6 +288,10 @@ function validateLine(value: unknown, currencyCode: string, allowResourceIdentit
     ...(resourceType === undefined ? {} : { resourceType }),
     ...(resourceId === undefined ? {} : { resourceId }),
     ...(resourceUnit === undefined ? {} : { resourceUnit }),
+    ...(hardwareId === undefined ? {} : { hardwareId }),
+    ...(hardwareUnit === undefined ? {} : { hardwareUnit }),
+    ...(hardwareFurnitureIds === undefined ? {} : { hardwareFurnitureIds }),
+    ...(hardwareSourceReferences === undefined ? {} : { hardwareSourceReferences }),
     ...(tariffId === undefined ? {} : { tariffId }),
     ...(sourcePartIds === undefined ? {} : { sourcePartIds }),
     ...(edgeDirection === undefined ? {} : { edgeDirection: edgeDirection as ProjectQuoteRevisionCostLineSnapshot["edgeDirection"] }),
@@ -328,7 +355,7 @@ function sameChangedLineIdentity(
   );
 }
 
-function validateComparison(value: unknown, allowResourceIdentity: boolean): ProjectQuoteRevisionComparison {
+function validateComparison(value: unknown, allowResourceIdentity: boolean, allowHardwareBom: boolean): ProjectQuoteRevisionComparison {
   if (!isRecord(value)) throw new Error("Teklif revizyon karşılaştırması geçerli bir nesne olmalıdır.");
   requireExactKeys(value, comparisonKeys, "Teklif revizyon karşılaştırması");
   if (value.schemaVersion !== 1) throw new Error("Desteklenmeyen teklif karşılaştırma sürümü.");
@@ -386,8 +413,8 @@ function validateComparison(value: unknown, allowResourceIdentity: boolean): Pro
     if (type === "changed" && (entry.from === null || entry.to === null)) {
       throw new Error("Değişen satır her iki revizyonda da bulunmalıdır.");
     }
-    const from = entry.from === null ? null : validateLine(entry.from, currencyCode, allowResourceIdentity);
-    const to = entry.to === null ? null : validateLine(entry.to, currencyCode, allowResourceIdentity);
+    const from = entry.from === null ? null : validateLine(entry.from, currencyCode, allowResourceIdentity, allowHardwareBom);
+    const to = entry.to === null ? null : validateLine(entry.to, currencyCode, allowResourceIdentity, allowHardwareBom);
     if (from !== null) requireUniqueComparisonLineIdentity(from, fromIdentities, "Başlangıç");
     if (to !== null) requireUniqueComparisonLineIdentity(to, toIdentities, "Hedef");
     if (type === "changed" && from !== null && to !== null && !sameChangedLineIdentity(from, to)) {
@@ -441,10 +468,13 @@ export function serializeProjectQuoteRevisionComparisonFile(
     if (!Array.isArray(resultValue.diagnostics) || resultValue.diagnostics.length !== 0) {
       throw new Error("Hazır teklif karşılaştırması tanı/engel içermemelidir.");
     }
-    const comparison = validateComparison(resultValue.comparison, true);
+    const comparison = validateComparison(resultValue.comparison, true, true);
+    const hasHardwareBomMetadata = comparison.lineChanges.some(change =>
+      [change.from, change.to].some(line => line !== null && [...hardwareMetadataKeys].some(key => Object.prototype.hasOwnProperty.call(line, key)))
+    );
     const file: ProjectQuoteRevisionComparisonFile = {
       fileType: PROJECT_QUOTE_REVISION_COMPARISON_FILE_TYPE,
-      schemaVersion: 2,
+      schemaVersion: hasHardwareBomMetadata ? 3 : 2,
       comparison
     };
     const json = JSON.stringify(file);
@@ -459,7 +489,7 @@ export function serializeProjectQuoteRevisionComparisonFile(
   }
 }
 
-/** Parses strict legacy JSON v1 or resource-aware JSON v2 comparison envelopes. */
+/** Parses strict legacy JSON v1, resource-aware JSON v2, or hardware-BOM-aware JSON v3 comparison envelopes. */
 export function parseProjectQuoteRevisionComparisonFile(
   jsonValue: unknown
 ): ProjectQuoteRevisionComparisonFileParseResult {
@@ -480,9 +510,9 @@ export function parseProjectQuoteRevisionComparisonFile(
     if (parsed.fileType !== PROJECT_QUOTE_REVISION_COMPARISON_FILE_TYPE) {
       throw new Error("Dosya türü MobilyaCAD teklif karşılaştırması değildir.");
     }
-    if (parsed.schemaVersion !== 1 && parsed.schemaVersion !== 2) throw new Error("Desteklenmeyen teklif karşılaştırma JSON sürümü.");
-    const schemaVersion = parsed.schemaVersion as 1 | 2;
-    const comparison = deepFreeze(validateComparison(parsed.comparison, schemaVersion === 2));
+    if (parsed.schemaVersion !== 1 && parsed.schemaVersion !== 2 && parsed.schemaVersion !== 3) throw new Error("Desteklenmeyen teklif karşılaştırma JSON sürümü.");
+    const schemaVersion = parsed.schemaVersion as 1 | 2 | 3;
+    const comparison = deepFreeze(validateComparison(parsed.comparison, schemaVersion >= 2, schemaVersion === 3));
     const file = deepFreeze({
       fileType: PROJECT_QUOTE_REVISION_COMPARISON_FILE_TYPE,
       schemaVersion,

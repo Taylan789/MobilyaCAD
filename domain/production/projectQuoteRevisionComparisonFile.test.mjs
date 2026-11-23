@@ -349,7 +349,7 @@ test("unknown fields and unsupported comparison versions are rejected during par
   assert.equal(unknownResult.comparison, null);
 
   const unsupported = JSON.parse(valid.json);
-  unsupported.schemaVersion = 3;
+  unsupported.schemaVersion = 4;
   const unsupportedResult = parseProjectQuoteRevisionComparisonFile(JSON.stringify(unsupported));
   assert.equal(unsupportedResult.status, "blocked");
   assert.equal(unsupportedResult.comparison, null);
@@ -548,4 +548,163 @@ test("DOM-098 JSON serializer refuses payloads above 1 MiB", () => {
   assert.equal(serialized.status, "blocked");
   assert.equal(serialized.json, null);
   assert.match(serialized.diagnostics[0], /1 MiB/);
+});
+
+test("DOM-126c comparison JSON v3 round-trips hardware BOM identity, unit and sorted provenance without monetary delta", () => {
+  const original = readyComparisonResult();
+  const materialChange = original.comparison.lineChanges[0];
+  for (const line of [materialChange.from, materialChange.to]) {
+    line.resourceType = "material";
+    line.resourceId = "mdf-18";
+    line.resourceUnit = "m2";
+  }
+  const hardwareFrom = {
+    category: "hardware", description: "Menteşe", quantity: 3, unit: "adet",
+    unitPriceMinor: 700, lineTotalMinor: 2100, currencyCode: "TRY",
+    sourceReference: "hardware-price:v1", sourceType: "production-consumption", sourceId: "hinge-110",
+    hardwareId: "hinge-110", hardwareUnit: "adet", hardwareFurnitureIds: ["cabinet-a"],
+    hardwareSourceReferences: ["bom:catalog-a", "bom:catalog-z"]
+  };
+  const hardwareTo = {
+    ...hardwareFrom,
+    hardwareSourceReferences: ["bom:catalog-a", "bom:catalog-m", "bom:catalog-z"]
+  };
+  original.comparison.lineChanges.push({ type: "changed", from: hardwareFrom, to: hardwareTo });
+
+  const serialized = serializeProjectQuoteRevisionComparisonFile(original);
+  assert.equal(serialized.status, "ready", serialized.diagnostics.join("; "));
+  assert.ok(serialized.json);
+  const envelope = JSON.parse(serialized.json);
+  assert.equal(envelope.schemaVersion, 3);
+  const parsed = parseProjectQuoteRevisionComparisonFile(serialized.json);
+  assert.equal(parsed.status, "ready", parsed.diagnostics.join("; "));
+  assert.equal(parsed.file.schemaVersion, 3);
+  assert.deepEqual(parsed.comparison, original.comparison);
+  const hardwareChange = parsed.comparison.lineChanges.find(change => (change.from ?? change.to)?.hardwareId === "hinge-110");
+  assert.ok(hardwareChange);
+  assert.equal(hardwareChange.type, "changed");
+  assert.deepEqual(hardwareChange.from.hardwareFurnitureIds, ["cabinet-a"]);
+  assert.deepEqual(hardwareChange.from.hardwareSourceReferences, ["bom:catalog-a", "bom:catalog-z"]);
+  assert.deepEqual(hardwareChange.to.hardwareSourceReferences, ["bom:catalog-a", "bom:catalog-m", "bom:catalog-z"]);
+  assert.equal(hardwareChange.from.sourcePartIds, undefined);
+  assert.equal(parsed.comparison.grandTotalDeltaMinor, 1075);
+  assert.equal(parsed.comparison.categoryDeltasMinor.hardware, 0);
+  assert.ok(Object.isFrozen(hardwareChange.to.hardwareFurnitureIds));
+});
+
+test("DOM-126c JSON v3 hardware BOM metadata rejects partial, misplaced, mismatched and unsorted data atomically", () => {
+  const original = readyComparisonResult();
+  const hardwareLine = {
+    category: "hardware", description: "Menteşe", quantity: 1, unit: "adet",
+    unitPriceMinor: 0, lineTotalMinor: 0, currencyCode: "TRY",
+    sourceType: "production-consumption", sourceId: "hinge-110",
+    hardwareId: "hinge-110", hardwareUnit: "adet", hardwareFurnitureIds: ["cabinet-a"],
+    hardwareSourceReferences: ["bom:catalog-a", "bom:catalog-z"]
+  };
+  original.comparison.lineChanges.push({ type: "added", from: null, to: hardwareLine });
+  const valid = serializeProjectQuoteRevisionComparisonFile(original);
+  assert.equal(valid.status, "ready", valid.diagnostics.join("; "));
+  assert.equal(JSON.parse(valid.json).schemaVersion, 3);
+
+  const mutations = [
+    ["partial", line => { delete line.hardwareUnit; }],
+    ["mismatched unit", line => { line.hardwareUnit = "paket"; }],
+    ["unsorted furniture IDs", line => { line.hardwareFurnitureIds = ["cabinet-z", "cabinet-a"]; }],
+    ["unsorted BOM references", line => { line.hardwareSourceReferences = ["bom:catalog-z", "bom:catalog-a"]; }],
+    ["empty BOM references", line => { line.hardwareSourceReferences = []; }]
+  ];
+  for (const [label, mutate] of mutations) {
+    const candidate = JSON.parse(valid.json);
+    const target = candidate.comparison.lineChanges.at(-1).to;
+    mutate(target);
+    const parsed = parseProjectQuoteRevisionComparisonFile(JSON.stringify(candidate));
+    assert.equal(parsed.status, "blocked", label);
+    assert.equal(parsed.file, null, label);
+    assert.equal(parsed.comparison, null, label);
+    const serialized = serializeProjectQuoteRevisionComparisonFile({
+      status: "ready", comparison: candidate.comparison, diagnostics: []
+    });
+    assert.equal(serialized.status, "blocked", label);
+    assert.equal(serialized.json, null, label);
+  }
+
+  const misplaced = JSON.parse(valid.json);
+  const materialLine = misplaced.comparison.lineChanges[0].to;
+  Object.assign(materialLine, {
+    hardwareId: "hinge-110", hardwareUnit: "m2", hardwareFurnitureIds: ["cabinet-a"]
+  });
+  const misplacedParsed = parseProjectQuoteRevisionComparisonFile(JSON.stringify(misplaced));
+  assert.equal(misplacedParsed.status, "blocked");
+  assert.equal(misplacedParsed.file, null);
+  assert.equal(misplacedParsed.comparison, null);
+
+  const nonHardwareSource = JSON.parse(valid.json);
+  nonHardwareSource.comparison.lineChanges.at(-1).to.sourceType = "quote-adjustment";
+  assert.equal(parseProjectQuoteRevisionComparisonFile(JSON.stringify(nonHardwareSource)).status, "blocked");
+});
+
+test("DOM-126c JSON v1 and v2 readers remain compatible and reject hardware BOM metadata", () => {
+  const original = readyComparisonResult();
+  const legacyV1 = structuredClone(original.comparison);
+  const legacyV2 = structuredClone(original.comparison);
+  const materialChange = legacyV2.lineChanges[0];
+  for (const line of [materialChange.from, materialChange.to]) {
+    line.resourceType = "material";
+    line.resourceId = "mdf-18";
+    line.resourceUnit = "m2";
+  }
+  const edgeLine = legacyV2.lineChanges[1].to;
+  edgeLine.resourceType = "edge-banding";
+  edgeLine.resourceId = "pvc-1";
+  edgeLine.resourceUnit = "mm";
+
+  for (const legacy of [
+    { version: 1, comparison: legacyV1 },
+    { version: 2, comparison: legacyV2 }
+  ]) {
+    const parsed = parseProjectQuoteRevisionComparisonFile(JSON.stringify({
+      fileType: PROJECT_QUOTE_REVISION_COMPARISON_FILE_TYPE,
+      schemaVersion: legacy.version,
+      comparison: legacy.comparison
+    }));
+    assert.equal(parsed.status, "ready", "legacy v" + legacy.version + ": " + parsed.diagnostics.join("; "));
+    assert.equal(parsed.file.schemaVersion, legacy.version);
+    assert.deepEqual(parsed.comparison, legacy.comparison);
+  }
+
+  const hardwareV2 = structuredClone(legacyV2);
+  hardwareV2.lineChanges.push({
+    type: "added", from: null, to: {
+      category: "hardware", description: "Menteşe", quantity: 1, unit: "adet",
+      unitPriceMinor: 0, lineTotalMinor: 0, currencyCode: "TRY",
+      sourceType: "production-consumption", sourceId: "hinge-110",
+      hardwareId: "hinge-110", hardwareUnit: "adet", hardwareFurnitureIds: ["cabinet-a"]
+    }
+  });
+  const parsedV2Hardware = parseProjectQuoteRevisionComparisonFile(JSON.stringify({
+    fileType: PROJECT_QUOTE_REVISION_COMPARISON_FILE_TYPE,
+    schemaVersion: 2,
+    comparison: hardwareV2
+  }));
+  assert.equal(parsedV2Hardware.status, "blocked");
+  assert.equal(parsedV2Hardware.file, null);
+  assert.equal(parsedV2Hardware.comparison, null);
+
+  const hardwareV1 = structuredClone(legacyV1);
+  hardwareV1.lineChanges.push({
+    type: "added", from: null, to: {
+      category: "hardware", description: "Menteşe", quantity: 1, unit: "adet",
+      unitPriceMinor: 0, lineTotalMinor: 0, currencyCode: "TRY",
+      sourceType: "production-consumption", sourceId: "hinge-110",
+      hardwareId: "hinge-110", hardwareUnit: "adet", hardwareFurnitureIds: ["cabinet-a"]
+    }
+  });
+  const parsedV1Hardware = parseProjectQuoteRevisionComparisonFile(JSON.stringify({
+    fileType: PROJECT_QUOTE_REVISION_COMPARISON_FILE_TYPE,
+    schemaVersion: 1,
+    comparison: hardwareV1
+  }));
+  assert.equal(parsedV1Hardware.status, "blocked");
+  assert.equal(parsedV1Hardware.file, null);
+  assert.equal(parsedV1Hardware.comparison, null);
 });
