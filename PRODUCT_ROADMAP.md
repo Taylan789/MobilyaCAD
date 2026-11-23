@@ -1329,8 +1329,8 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 
 
 ## DOM-134 — Three-revision source-map audit reconciliation
-- Extend regression evidence over three revisions with two legacy duplicate identity groups per revision. Keep duplicate groups revision-scoped and deterministic (source type/source ID, then lexical cost-line IDs).
-- Reconcile additive project counts to revision totals; project-wide unique Part, hardware-furniture and BOM identities are deduplicated across revisions. Paired cost/source row reversal must preserve the summary.
-- No new production behavior or export schema is introduced by this test-only slice; the existing audit API remains the single source of truth.
-- Verification: exact-SHA CI/QA/Pages pending; local Node tests unavailable.
-- Next: DOM-135 legacy source-integrity disclosure; DOM-130 remains blocked on adapter ownership.
+- Three-revision test verifies two legacy duplicate identity groups per revision, deterministic group/source/line-ID ordering, revision-local and project-wide counts, unique Part/hardware/BOM identities, and stable summaries after paired source/cost row reversal.
+- The existing audit API remains the source of truth; no production behavior or export schema was introduced.
+- Exact-SHA code/test commit [cbbe098c](https://github.com/Taylan789/MobilyaCAD/commit/cbbe098cc7e86d50b9c08a2c24bf752e09c1a09b) CI [#45248747459](https://github.com/Taylan789/MobilyaCAD/actions/runs/45248747459), QA [#45248747535](https://github.com/Taylan789/MobilyaCAD/actions/runs/45248747535) and Pages [#45248747497](https://github.com/Taylan789/MobilyaCAD/actions/runs/45248747497) all succeeded. QA: 191 frontend + 675 domain tests, strict TypeScript, lint 34 warnings/0 errors, production build, audit 0 vulnerabilities. Test site: https://taylan789.github.io/MobilyaCAD/.
+- Local Node tests unavailable in this runtime; exact-SHA Actions are the evidence. No frontend, adapter, CNC/machine output or main changes.
+- Next: DOM-135 legacy source-integrity disclosure; DOM-130 remains deferred until adapter ownership is available.
