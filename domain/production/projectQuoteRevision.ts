@@ -1243,6 +1243,25 @@ export interface ProjectQuoteRevisionSourceMapAuditLine {
   hardwareSourceReferences?: readonly string[];
 }
 
+export interface ProjectQuoteRevisionSourceIntegrityAuditRevision {
+  revisionId: string;
+  revisionNumber: number;
+  createdAt: string;
+  sourceIntegrityVersion: 1 | null;
+}
+export interface ProjectQuoteRevisionSourceIntegrityAudit {
+  schemaVersion: 1;
+  projectId: string;
+  revisionCount: number;
+  strictRevisionCount: number;
+  legacyRevisionCount: number;
+  revisions: readonly ProjectQuoteRevisionSourceIntegrityAuditRevision[];
+}
+export interface ProjectQuoteRevisionSourceIntegrityAuditResult {
+  status: "ready" | "empty" | "blocked";
+  audit: DeepReadonly<ProjectQuoteRevisionSourceIntegrityAudit> | null;
+  diagnostics: readonly string[];
+}
 export interface ProjectQuoteRevisionSourceMapAuditRevision {
   revisionId: string;
   revisionNumber: number;
@@ -1499,6 +1518,76 @@ export function calculateProjectQuoteRevisionSourceMapAudit(
   }
 }
 
+
+function blockedSourceIntegrityAudit(message: string): ProjectQuoteRevisionSourceIntegrityAuditResult {
+  return deepFreeze({
+    status: "blocked" as const,
+    audit: null,
+    diagnostics: [message]
+  });
+}
+
+/**
+ * Reconciles strict (sourceIntegrityVersion 1) and legacy (missing marker)
+ * revisions using the already validated, immutable source-map audit snapshots.
+ */
+export function calculateProjectQuoteRevisionSourceIntegrityAudit(
+  historyValue: unknown
+): ProjectQuoteRevisionSourceIntegrityAuditResult {
+  const sourceMapResult = calculateProjectQuoteRevisionSourceMapAudit(historyValue);
+  if (sourceMapResult.status === "blocked" || sourceMapResult.audit === null) {
+    return blockedSourceIntegrityAudit(
+      sourceMapResult.diagnostics[0] ?? "Teklif revizyon geçmişi bütünlük kapsamı için doğrulanamadı."
+    );
+  }
+
+  try {
+    const sourceMapAudit = sourceMapResult.audit;
+    if (sourceMapAudit.revisions.length !== sourceMapAudit.revisionCount) {
+      throw new Error("Bütünlük kapsamı revizyon denetim sayısı ile revisionCount eşleşmiyor.");
+    }
+
+    let strictRevisionCount = 0;
+    let legacyRevisionCount = 0;
+    const revisions: ProjectQuoteRevisionSourceIntegrityAuditRevision[] = [];
+
+    for (const revision of sourceMapAudit.revisions) {
+      if (revision.sourceIntegrityVersion === 1) {
+        strictRevisionCount += 1;
+      } else if (revision.sourceIntegrityVersion === null) {
+        legacyRevisionCount += 1;
+      } else {
+        throw new Error("Revizyon kaynak bütünlüğü işareti desteklenen değerlerden biri değil.");
+      }
+
+      revisions.push({
+        revisionId: revision.revisionId,
+        revisionNumber: revision.revisionNumber,
+        createdAt: revision.createdAt,
+        sourceIntegrityVersion: revision.sourceIntegrityVersion
+      });
+    }
+
+    if (strictRevisionCount + legacyRevisionCount !== sourceMapAudit.revisionCount) {
+      throw new Error("Strict ve legacy revizyon sayıları proje revisionCount değerini karşılamıyor.");
+    }
+
+    return deepFreeze({
+      status: sourceMapResult.status,
+      audit: {
+        schemaVersion: 1 as const,
+        projectId: sourceMapAudit.projectId,
+        revisionCount: sourceMapAudit.revisionCount,
+        strictRevisionCount,
+        legacyRevisionCount,
+        revisions
+      },
+      diagnostics: []
+    });
+  } catch (error) {
+    return blockedSourceIntegrityAudit(error instanceof Error ? error.message : String(error));
+  }
+}
 
 export interface ProjectQuoteRevisionSourceMapProvenance {
   sourceType: ProjectQuoteLineSource["sourceType"];

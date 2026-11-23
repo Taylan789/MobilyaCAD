@@ -9,6 +9,7 @@ import {
   appendProjectQuoteRevision,
   compareProjectQuoteRevisions,
   calculateProjectQuoteRevisionSourceMapAudit,
+  calculateProjectQuoteRevisionSourceIntegrityAudit,
   compareProjectQuoteRevisionSourceMaps,
   createProjectQuoteRevision,
   validateProjectQuoteRevisionHistory
@@ -3180,4 +3181,64 @@ test("DOM-134 three-revision source-map audit reconciles duplicate groups and pr
   assert.ok(Object.isFrozen(audit));
   assert.ok(Object.isFrozen(audit.revisions[0].duplicateSourceIdentities));
   assert.ok(Object.isFrozen(audit.revisions[0].duplicateSourceIdentities[0].costLineIds));
+});
+
+test("DOM-136 project integrity audit reconciles strict and legacy revision coverage", () => {
+  const history = {
+    projectId: "project-42",
+    revisions: [
+      createHistoryRevision(),
+      createHistoryRevision({
+        revisionId: "quote-r2",
+        revisionNumber: 2,
+        createdAt: "2026-11-17T11:00:00Z",
+        previousRevisionId: "quote-r1",
+        sourceIntegrityVersion: 1
+      }),
+      createHistoryRevision({
+        revisionId: "quote-r3",
+        revisionNumber: 3,
+        createdAt: "2026-11-17T12:00:00Z",
+        previousRevisionId: "quote-r2"
+      })
+    ]
+  };
+  const originalHistoryJson = JSON.stringify(history);
+  const sourceMapAudit = calculateProjectQuoteRevisionSourceMapAudit(history);
+  assert.equal(sourceMapAudit.status, "ready");
+  assert.ok(sourceMapAudit.audit);
+
+  const result = calculateProjectQuoteRevisionSourceIntegrityAudit(history);
+  assert.equal(result.status, "ready", result.diagnostics.join("; "));
+  assert.ok(result.audit);
+  assert.equal(result.audit.revisionCount, sourceMapAudit.audit.revisionCount);
+  assert.equal(result.audit.revisionCount, 3);
+  assert.equal(result.audit.strictRevisionCount, 1);
+  assert.equal(result.audit.legacyRevisionCount, 2);
+  assert.equal(result.audit.strictRevisionCount + result.audit.legacyRevisionCount, result.audit.revisionCount);
+  assert.deepEqual(result.audit.revisions.map(revision => revision.sourceIntegrityVersion), [null, 1, null]);
+  assert.deepEqual(result.audit.revisions.map(revision => revision.revisionId), ["quote-r1", "quote-r2", "quote-r3"]);
+  assert.deepEqual(calculateProjectQuoteRevisionSourceIntegrityAudit(history), result);
+  assert.equal(JSON.stringify(history), originalHistoryJson);
+  assert.ok(Object.isFrozen(result));
+  assert.ok(Object.isFrozen(result.audit));
+  assert.ok(Object.isFrozen(result.audit.revisions));
+  assert.ok(Object.isFrozen(result.audit.revisions[0]));
+});
+
+test("DOM-136 integrity audit preserves empty histories and blocks malformed markers without partial counts", () => {
+  const empty = calculateProjectQuoteRevisionSourceIntegrityAudit({ projectId: "project-42", revisions: [] });
+  assert.equal(empty.status, "empty");
+  assert.ok(empty.audit);
+  assert.equal(empty.audit.revisionCount, 0);
+  assert.equal(empty.audit.strictRevisionCount, 0);
+  assert.equal(empty.audit.legacyRevisionCount, 0);
+  assert.deepEqual(empty.audit.revisions, []);
+
+  const invalidHistory = createTwoRevisionHistory();
+  invalidHistory.revisions[0].sourceIntegrityVersion = 2;
+  const blocked = calculateProjectQuoteRevisionSourceIntegrityAudit(invalidHistory);
+  assert.equal(blocked.status, "blocked");
+  assert.equal(blocked.audit, null);
+  assert.ok(blocked.diagnostics.length > 0);
 });

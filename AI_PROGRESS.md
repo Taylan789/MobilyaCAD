@@ -595,3 +595,12 @@
 - Files: `domain/production/projectQuoteRevision.ts`, `domain/production/projectQuoteRevision.test.mjs`, `docs/production-domain-contract.md`, `PRODUCT_ROADMAP.md`, `AI_COORDINATION.md`, `AI_PROGRESS.md`. No frontend, adapter/performance-owned files, CNC/machine output or `main` changes.
 - Latest AI Developer run [#45160490760](https://github.com/Taylan789/MobilyaCAD/actions/runs/45160490760) failed on OpenRouter free-model daily quota HTTP 429; integration specialist was skipped. No rerun, paid fallback, secret or quota change.
 - Next: DOM-136 strict/legacy revision-count reconciliation. DOM-130 remains deferred until adapter ownership is available.
+
+
+
+## 24 Kasım 2026 00:55 TRT — DOM-136 implementation (verification pending)
+- Added `calculateProjectQuoteRevisionSourceIntegrityAudit`: strict marker `1` and legacy `null` counts derived from validated source-map audit snapshots, with project revision-count reconciliation and ordered per-revision markers.
+- Regression coverage: legacy → strict v1 → legacy, strict/legacy totals equal revisionCount, repeat-call determinism, input/output immutability, empty history and malformed marker fail-closed.
+- Files: `domain/production/projectQuoteRevision.ts`, `domain/production/projectQuoteRevision.test.mjs`, `docs/production-domain-contract.md`, `PRODUCT_ROADMAP.md`, `AI_COORDINATION.md`, `AI_PROGRESS.md`. Commit SHA is reported in the run notification.
+- CI/QA/Pages exact-SHA verification pending. This runtime can read commit-associated PR runs and commit status, but no push-run/check-run listing is exposed; therefore no Actions success or deployment is claimed. Test site remains https://taylan789.github.io/MobilyaCAD/ until deployment is verified.
+- No frontend, adapter/performance-owned files, machine/CNC output or `main` changes. Next: DOM-137 append/read integrity coverage reconciliation; DOM-130 remains adapter-owned/deferred.

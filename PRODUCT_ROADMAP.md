@@ -1343,6 +1343,15 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 - Exact-SHA CI/QA/Pages succeeded: [CI]( https://github.com/Taylan789/MobilyaCAD/actions/runs/45256565667 ), [QA]( https://github.com/Taylan789/MobilyaCAD/actions/runs/45256565549 ), [Pages]( https://github.com/Taylan789/MobilyaCAD/actions/runs/45256565818 ). QA: 194 frontend + 676 domain tests, strict TypeScript, lint 34 warnings/0 errors, production build, audit 0 vulnerabilities. Test site deployed: https://taylan789.github.io/MobilyaCAD/
 
 ### Next domain slices
-1. DOM-136 — reconcile project-wide strict-marker and legacy-revision counts against revision audit snapshots.
+1. DOM-137 — reconcile source-integrity coverage audit against quote revision append/read validation without changing legacy records.
+2. DOM-130 — hardware BOM trace persistence/export/schema compatibility; deferred until adapter ownership is available.
+3. DOM-138 — comparison export coverage for strict/legacy marker summaries; adapter ownership and round-trip evidence required.
 2. DOM-130 — hardware BOM trace persistence/export/schema compatibility; deferred until adapter ownership is available.
 3. DOM-137 — extend source-map comparison audit diagnostics with deterministic revision-level coverage summaries (after DOM-136).
+
+
+## DOM-136 — Strict/legacy revision integrity coverage (implementation; verification pending)
+- Added a domain audit that reuses validated source-map revision snapshots and reconciles project-wide `strictRevisionCount` (marker `1`) plus `legacyRevisionCount` (missing marker `null`) to `revisionCount`.
+- Per-revision IDs, order, dates and marker values are preserved. Empty histories remain empty; malformed histories fail closed without partial counts.
+- Regression coverage includes legacy → strict v1 → legacy, deterministic repeat calls, count reconciliation, deep immutability and invalid-marker rejection.
+- Exact-SHA CI/QA and Pages deployment are pending; no deployment is claimed.

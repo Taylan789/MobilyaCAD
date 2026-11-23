@@ -1202,3 +1202,11 @@ Source-map revision comparisons now expose revision-level `fromSourceIntegrityVe
 
 - Acceptance: a legacy → strict v1 → legacy chain reports `null / 1 / null`; both comparisons retain unchanged line counts and zero provenance changes; history is immutable and valid.
 - Additive domain comparison contract only. No project/revision schema, export adapter, frontend, CNC output or machine standard is changed.
+
+
+## DOM-136 — Project strict/legacy source-integrity coverage audit
+
+- API: `calculateProjectQuoteRevisionSourceIntegrityAudit(historyValue)`, built from the validated immutable source-map audit snapshots.
+- Returns project-wide `revisionCount`, `strictRevisionCount` (marker `1`), `legacyRevisionCount` (missing marker represented as `null`) and an ordered per-revision marker snapshot.
+- Acceptance: per-revision markers are preserved; strict + legacy counts reconcile to `revisionCount`; empty histories remain `empty`; invalid histories or unsupported markers return `blocked` with no partial audit; input and output are immutable.
+- This audit does not upgrade legacy records, infer integrity, or alter quote arithmetic/export formats.
