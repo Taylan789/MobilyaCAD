@@ -139,3 +139,137 @@
     color: CanvasText;
   }
 }
+
+/* UI-VIEWPORT-DIMENSION-HUD-002 — make live room measurements read like a compact instrument panel. */
+.cad-viewport-dimension-readout {
+  width: min(304px, calc(100% - 24px));
+  gap: 7px;
+  padding: 8px 9px 9px;
+  border-color: rgba(116, 151, 173, .5);
+  border-left: 2px solid #7699b0;
+  background: linear-gradient(180deg, rgba(25, 39, 49, .96), rgba(13, 22, 29, .96));
+  box-shadow: 0 9px 24px rgba(0, 0, 0, .26), inset 0 1px rgba(236, 246, 251, .045);
+}
+
+.cad-viewport-dimension-readout__header {
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 6px;
+  border-bottom-color: rgba(118, 151, 172, .3);
+}
+
+.cad-viewport-dimension-readout__header > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #a9c0cf;
+  font-size: 8px;
+  letter-spacing: .13em;
+}
+
+.cad-viewport-dimension-readout__header > span::before {
+  width: 6px;
+  height: 6px;
+  flex: 0 0 auto;
+  content: "";
+  border-radius: 2px;
+  background: #8db7d2;
+  box-shadow: 0 0 0 3px rgba(141, 183, 210, .1);
+}
+
+.cad-viewport-dimension-readout__header > small {
+  padding: 3px 6px;
+  color: #b5c5ce;
+  background: rgba(112, 143, 162, .1);
+  border: 1px solid rgba(112, 143, 162, .22);
+  border-radius: 4px;
+  font-size: 8px;
+}
+
+.cad-viewport-dimension-readout__dimensions {
+  gap: 4px;
+}
+
+.cad-viewport-dimension-readout__dimensions > div {
+  position: relative;
+  gap: 3px;
+  padding: 5px 7px 6px;
+  border-right: 0;
+  border-radius: 3px;
+  background: rgba(107, 139, 158, .075);
+}
+
+.cad-viewport-dimension-readout__dimensions > div:first-child,
+.cad-viewport-dimension-readout__dimensions > div:last-child {
+  padding-inline: 7px;
+}
+
+.cad-viewport-dimension-readout__dimensions > div::before {
+  position: absolute;
+  inset: 5px auto 5px 0;
+  width: 2px;
+  content: "";
+  border-radius: 2px;
+  background: #82abc6;
+}
+
+.cad-viewport-dimension-readout__dimensions > div:nth-child(2)::before {
+  background: #c39470;
+}
+
+.cad-viewport-dimension-readout__dimensions > div:nth-child(3)::before {
+  background: #8eaf99;
+}
+
+.cad-viewport-dimension-readout__dimensions > div > span {
+  color: #94aab8;
+  font-size: 7px;
+  letter-spacing: .09em;
+}
+
+.cad-viewport-dimension-readout__dimensions strong {
+  font-size: 13px;
+  letter-spacing: -.035em;
+}
+
+.cad-viewport-dimension-readout__dimensions small {
+  color: #9eb5c4;
+  font-size: 8px;
+}
+
+@media (max-width: 560px) {
+  .cad-viewport-dimension-readout {
+    width: min(286px, calc(100% - 16px));
+    gap: 5px;
+    padding: 7px 8px;
+  }
+
+  .cad-viewport-dimension-readout__dimensions {
+    gap: 3px;
+  }
+
+  .cad-viewport-dimension-readout__dimensions > div {
+    padding-inline: 6px;
+  }
+
+  .cad-viewport-dimension-readout__dimensions > div:first-child,
+  .cad-viewport-dimension-readout__dimensions > div:last-child {
+    padding-inline: 6px;
+  }
+
+  .cad-viewport-dimension-readout__dimensions strong {
+    font-size: 11px;
+  }
+}
+
+@media (forced-colors: active) {
+  .cad-viewport-dimension-readout__header > span::before,
+  .cad-viewport-dimension-readout__dimensions > div::before {
+    background: Highlight;
+    box-shadow: none;
+  }
+
+  .cad-viewport-dimension-readout__dimensions > div {
+    background: Canvas;
+  }
+}
