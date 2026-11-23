@@ -199,6 +199,7 @@ function App() {
   const [workspaceMode, setWorkspaceMode] = useState<"design" | "production">("design");
   const [productionSection, setProductionSection] = useState<"report" | "materials">("report");
   const [bottomPanelTab, setBottomPanelTab] = useState<"parts" | "materials" | "issues">("parts");
+  const [bottomPanelCollapsed, setBottomPanelCollapsed] = useState(false);
 
   const mobileCatalogHidden = isCompactViewport && mobilePanel !== "catalog";
   const mobileInspectorHidden = isCompactViewport
@@ -1809,7 +1810,7 @@ function App() {
           </SidebarContent>
           </Sidebar>
 
-          <div className="cad-main-area">
+          <div className={`cad-main-area${bottomPanelCollapsed ? " cad-main-area--dock-collapsed" : ""}`}>
             <div className="studio-workspace-heading">
               <div className="studio-breadcrumb" aria-label="Proje konumu">
                 <span>PROJELER</span>
@@ -2267,7 +2268,7 @@ function App() {
                 </Tabs>
               </aside>
             </div>
-            <section className="cad-bottom-dock" aria-label="Proje üretim ve parça paneli">
+            <section className={`cad-bottom-dock${bottomPanelCollapsed ? " cad-bottom-dock--collapsed" : ""}`} aria-label="Proje üretim ve parça paneli">
               <div className="cad-bottom-dock-header">
                 <div className="cad-bottom-dock-title"><span className="cad-dock-grip" /><div><strong>Üretim masası</strong><small>PROJE VERİLERİ · CANLI HESAP</small></div></div>
                 <div className="cad-bottom-dock-tabs" role="tablist" aria-label="Alt panel sekmeleri">
@@ -2276,8 +2277,9 @@ function App() {
                   <button type="button" role="tab" aria-selected={bottomPanelTab === "issues"} className={bottomPanelTab === "issues" ? "active" : ""} onClick={() => setBottomPanelTab("issues")}>Kontroller <b>{projectProduction.errors.length + projectProduction.blockedFurniture.length + projectProduction.unsupportedFurniture.length}</b></button>
                 </div>
                 <div className="cad-bottom-dock-metrics"><span>{furniture.length} mobilya</span><i /> <span>{productionParts.length} parça</span><i /> <span>{materials.length} malzeme</span></div>
+                <button type="button" className="cad-bottom-dock-toggle" aria-label={bottomPanelCollapsed ? "Üretim masasını genişlet" : "Üretim masasını daralt"} aria-expanded={!bottomPanelCollapsed} aria-controls="cad-bottom-dock-body" onClick={() => setBottomPanelCollapsed((current) => !current)}><ChevronDown aria-hidden="true" /><span>{bottomPanelCollapsed ? "Genişlet" : "Daralt"}</span></button>
               </div>
-              <div className="cad-bottom-dock-body">
+              <div id="cad-bottom-dock-body" className="cad-bottom-dock-body" aria-hidden={bottomPanelCollapsed} inert={bottomPanelCollapsed}>
                 {bottomPanelTab === "parts" && (productionParts.length > 0 ? (
                   <div className="cad-dock-table-wrap"><table className="cad-dock-table"><thead><tr><th>PARÇA</th><th>MOBİLYA</th><th>EN</th><th>BOY</th><th>KALINLIK</th><th>ADET</th><th>MALZEME</th></tr></thead><tbody>
                     {productionParts.slice(0, 80).map((part) => <tr key={part.id}><td><strong>{part.name}</strong></td><td>{projectProduction.furnitureNames.get(part.furnitureId) ?? "—"}</td><td>{part.width} mm</td><td>{part.length} mm</td><td>{part.thickness} mm</td><td>{part.quantity}</td><td>{part.material || "Atanmamış"}</td></tr>)}
