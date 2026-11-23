@@ -490,7 +490,14 @@
 
 - Reconciled quote revision comparison identity across the engine and strict comparison JSON/CSV validator: hardware catalog ID, hardware unit, furniture scope and explicit Part links are identity fields. Source-reference-only changes remain value changes.
 - Regression coverage exercises hardware ID, furniture scope and Part-link changes as removed/added pairs through JSON and CSV round-trips; monetary deltas remain zero. Wrong hardware unit is blocked, and forged changed-line metadata with different hardware identity fails JSON and CSV serialization.
-- Code/test/docs commit: pending. Exact-SHA CI/QA/Pages pending; no local full test run (repository is not mounted).
+- Code/test/docs initial commit [68439af3](https://github.com/Taylan789/MobilyaCAD/commit/68439af3056311ae2a1109951f36fc17abd157bc). CI [#45190007818](https://github.com/Taylan789/MobilyaCAD/actions/runs/45190007818) passed; QA [#45190007996](https://github.com/Taylan789/MobilyaCAD/actions/runs/45190007996) failed only because the new unit-mismatch regression expected different diagnostic wording. The validator correctly blocked the mismatch. Pages build [#45190007847](https://github.com/Taylan789/MobilyaCAD/actions/runs/45190007847) succeeded but the exact-SHA gate failed and deployment was skipped. Correcting the assertion; full local test execution unavailable.
 - Verified preceding SHA 7c674ce50588d43a6a86881fc674eadbf75ecc82 had CI [#45174000820](https://github.com/Taylan789/MobilyaCAD/actions/runs/45174000820), QA [#45174000901](https://github.com/Taylan789/MobilyaCAD/actions/runs/45174000901), Pages [#45174000796](https://github.com/Taylan789/MobilyaCAD/actions/runs/45174000796) all successful. Test site: https://taylan789.github.io/MobilyaCAD/.
 - AI Developer [#45160490760](https://github.com/Taylan789/MobilyaCAD/actions/runs/45160490760) log confirmed OpenRouter free-model daily quota 429 (limit 50, remaining 0); integration/performance job skipped. No paid fallback, secret or quota changes. No specialist PR verified.
 - No frontend, adapter/performance-owned files, CNC output or main changes. Next: DOM-129 lossless production metadata import/export compatibility guards.
+
+
+## 23 Kasım 2026 16:55 TRT — DOM-128 QA assertion correction (verification pending)
+
+- QA log confirmed the feature comparisons passed; failure was the wrong expected diagnostic text in the unit-mismatch regression. Actual validator message: “Teklif donanım birimi maliyet satırı birimiyle uyuşmalıdır.”
+- Corrected only the assertion; production logic unchanged in this follow-up.
+- Follow-up commit pending; exact-SHA CI/QA/Pages checks pending.

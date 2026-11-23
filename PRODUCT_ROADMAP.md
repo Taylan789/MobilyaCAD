@@ -1256,9 +1256,9 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - **Exact-SHA verification:** commit [a87c46f6](https://github.com/Taylan789/MobilyaCAD/commit/a87c46f6f0ecf57eccd327004ac1ae743ac81dc8); CI [#45173461621](https://github.com/Taylan789/MobilyaCAD/actions/runs/45173461621) and QA [#45173461653](https://github.com/Taylan789/MobilyaCAD/actions/runs/45173461653) successful (188 frontend + 668 domain tests, strict TypeScript, production build, lint 34 warnings/0 errors, audit 0 vulnerabilities); Pages [#45173461683](https://github.com/Taylan789/MobilyaCAD/actions/runs/45173461683) deployed https://taylan789.github.io/MobilyaCAD/.
 
 
-## DOM-128 — Hardware quote comparison identity reconciliation (implementation; Actions pending)
+## DOM-128 — Hardware quote comparison identity reconciliation (implementation; QA correction pending)
 
 - Revision comparison identity now includes hardware catalog ID, hardware unit, furniture scope and explicit Part IDs. Catalog/scope/Part mapping changes are reported as removed + added rather than incorrectly paired as a changed line; BOM source-reference-only changes remain value changes.
 - Added regressions for hardware identity, furniture-scope and explicit Part-link changes across comparison JSON/CSV round-trips, unchanged monetary totals, hardware unit mismatch blocking, and rejection of forged changed-lines with different hardware identity.
-- Code/test/docs commit: pending creation. Exact-SHA CI, QA and Pages verification pending; no local full test run.
+- Code/test/docs initial commit [68439af3](https://github.com/Taylan789/MobilyaCAD/commit/68439af3056311ae2a1109951f36fc17abd157bc). CI [#45190007818](https://github.com/Taylan789/MobilyaCAD/actions/runs/45190007818) passed; QA [#45190007996](https://github.com/Taylan789/MobilyaCAD/actions/runs/45190007996) failed on the unit-mismatch test's expected diagnostic text (the validator blocked the mismatch); Pages build succeeded but deployment was gated. Correcting the assertion; exact-SHA checks pending.
 - No frontend, adapter/performance-owned files, CNC/machine output or main changes.

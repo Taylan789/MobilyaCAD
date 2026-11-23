@@ -366,7 +366,7 @@ test("DOM-128 hardware catalog identity and explicit source-map changes are add/
   wrongUnitSource.hardwareUnit = "mm";
   const wrongUnitRevision = createRevision(wrongUnit);
   assert.equal(wrongUnitRevision.status, "blocked");
-  assert.match(wrongUnitRevision.diagnostics.join("; "), /Donanım BOM birimi maliyet satırı birimiyle uyuşmalıdır/);
+  assert.match(wrongUnitRevision.diagnostics.join("; "), /Teklif donanım birimi maliyet satırı birimiyle uyuşmalıdır/);
 
   const secondSnapshot = structuredClone(snapshot);
   const changedHardwareSource = secondSnapshot.quoteSummary.lineSources.find(source => source.hardwareId === "hinge-110");
