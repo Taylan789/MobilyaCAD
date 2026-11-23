@@ -1168,11 +1168,11 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - **Next:** DOM-124 carry hardware provenance into quote line sources; DOM-125 strict snapshot JSON/CSV round-trip.
 
 
-## 23 Kasım 2026 — DOM-124 combined-quote hardware provenance (implementation; Actions pending)
-- Quote source mapping now carries hardware ID, original BOM unit, sorted furniture IDs and optional BOM source references in hardware-specific fields. The hardware price-list `sourceReference` stays on the priced cost line; no hardware-to-Part association is inferred.
+## 23 Kasım 2026 — DOM-124 combined-quote hardware provenance (VERIFIED)
+- Quote source mapping carries hardware ID, original BOM unit, sorted furniture IDs and optional BOM source references in hardware-specific fields. Hardware price-list `sourceReference` remains on the priced cost line; no hardware-to-Part association is inferred.
 - Ready quote generation fails closed when a priced hardware line lacks exactly one source map. Regression coverage uses two furniture records, repeated BOM references and reversed input order.
-- **Compatibility note:** strict quote JSON/CSV v1 serializers reject the new optional hardware source fields until DOM-125; they do not silently discard them. This is the next integration slice.
-- CI/QA/Pages exact-SHA verification pending; do not claim deployment until Pages run succeeds.
+- **Code/test:** [2621c51c](https://github.com/Taylan789/MobilyaCAD/commit/2621c51cfc507627f5b5b929f7a71e0995d38449). CI [#45111962178](https://github.com/Taylan789/MobilyaCAD/actions/runs/45111962178), QA [#45111961982](https://github.com/Taylan789/MobilyaCAD/actions/runs/45111961982) passed (**175 frontend + 654 domain tests**; strict TypeScript, lint 32 warnings/0 errors, production build, audit 0 vulnerabilities). Pages [#45111961983](https://github.com/Taylan789/MobilyaCAD/actions/runs/45111961983) deployed to https://taylan789.github.io/MobilyaCAD/.
+- **Compatibility:** strict quote JSON/CSV v1 serializers reject new hardware-source metadata rather than dropping it; DOM-125 will add validated round-trip support.
 
 ### Next 3 domain slices
 1. DOM-125 — Strict quote-summary JSON/CSV v1 hardware-provenance round-trip; validate field shapes, sort/uniqueness, legacy files and fail-closed incomplete metadata.

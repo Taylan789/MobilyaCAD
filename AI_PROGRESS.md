@@ -377,11 +377,15 @@
 - **Next:** DOM-124 propagate hardware source mapping into quote lineSources; DOM-125 strict snapshot JSON/CSV persistence compatibility.
 
 
-## 23 Kasım 2026 07:20 TRT — DOM-124 IMPLEMENTED (Actions pending)
+## 23 Kasım 2026 07:28 TRT — DOM-124 VERIFIED
 
 - Combined quote `lineSources` now carry hardware BOM identity (`hardwareId`), original unit, sorted furniture IDs and optional BOM source references in dedicated fields; the price-list `sourceReference` remains on the priced cost line and is never conflated with BOM references.
-- Added fail-closed coverage checks: every priced hardware cost line must have exactly one matching source map; no hardware Part IDs are fabricated. Added a mixed two-furniture regression with duplicate/unsorted BOM references and reversed-input invariance.
-- Code/test and docs commit SHA: pending commit creation. Exact-SHA CI/QA/Pages: pending; no local full-suite run.
-- Known compatibility boundary: strict quote JSON/CSV v1 currently rejects the new optional hardware provenance fields rather than dropping them. DOM-125 will add validated round-trip support; this slice intentionally does not relax strict export.
-- AI Developer run [#45091325066](https://github.com/Taylan789/MobilyaCAD/actions/runs/45091325066) logs confirm OpenRouter free-model daily quota HTTP 429. No rerun before the documented reset (24 Nov 03:00 TRT); specialist job skipped and no integration/performance branch or PR verified.
+- Fail-closed coverage checks require exactly one source map for every priced hardware line; no hardware Part IDs are fabricated. The mixed two-furniture regression covers repeated/unsorted BOM references, input immutability and reversed-input invariance.
+- **Code/test commit:** [2621c51c](https://github.com/Taylan789/MobilyaCAD/commit/2621c51cfc507627f5b5b929f7a71e0995d38449).
+- **Exact-SHA CI:** [#45111962178](https://github.com/Taylan789/MobilyaCAD/actions/runs/45111962178) successful; build and lint jobs passed.
+- **Exact-SHA QA:** [#45111961982](https://github.com/Taylan789/MobilyaCAD/actions/runs/45111961982) successful — **175 frontend + 654 domain tests, 0 failures**, strict shared-domain TypeScript, lint **32 warnings / 0 errors**, production build and production audit **0 vulnerabilities**.
+- **Pages:** [#45111961983](https://github.com/Taylan789/MobilyaCAD/actions/runs/45111961983) successful; test site deployed: https://taylan789.github.io/MobilyaCAD/.
+- **Scope:** quote domain source/test + roadmap/progress/coordination/domain contract; no frontend, adapter/performance-owned files, quote JSON/CSV validator, CNC output or `main` changed. Local full suite unavailable; Actions is authoritative.
+- **Known compatibility boundary:** strict quote JSON/CSV v1 rejects new hardware-source metadata rather than silently dropping it; DOM-125 adds validated round-trip support.
+- AI Developer [#45091325066](https://github.com/Taylan789/MobilyaCAD/actions/runs/45091325066) logs confirm OpenRouter free-model daily quota HTTP 429; reset is 24 Nov 2026 03:00 TRT. No rerun before reset; specialist job skipped and no integration/performance branch or PR verified.
 - Next: DOM-125 strict quote-summary JSON/CSV v1 compatibility for hardware-specific provenance.
