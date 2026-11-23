@@ -1343,9 +1343,9 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 - Exact-SHA CI/QA/Pages succeeded: [CI]( https://github.com/Taylan789/MobilyaCAD/actions/runs/45256565667 ), [QA]( https://github.com/Taylan789/MobilyaCAD/actions/runs/45256565549 ), [Pages]( https://github.com/Taylan789/MobilyaCAD/actions/runs/45256565818 ). QA: 194 frontend + 676 domain tests, strict TypeScript, lint 34 warnings/0 errors, production build, audit 0 vulnerabilities. Test site deployed: https://taylan789.github.io/MobilyaCAD/
 
 ### Next domain slices
-1. DOM-137 — project JSON v2 append/read cross-consumer reconciliation for strict/legacy source-integrity counts and markers.
-2. DOM-130 — hardware BOM trace persistence/export/schema compatibility; deferred until adapter ownership is available.
-3. DOM-138 — comparison export coverage for strict/legacy marker summaries; adapter ownership and round-trip evidence required.
+1. DOM-139 — explicit stock-sheet purchase cost per validated nesting group, with user prices and no automatic quote integration.
+2. DOM-138 — strict/legacy marker comparison export compatibility; deferred until adapter ownership and round-trip evidence.
+3. DOM-130 — hardware BOM trace persistence/export/schema compatibility; deferred until adapter ownership is available.
 
 ## DOM-136 — Strict/legacy revision integrity coverage (VERIFIED)
 - Added `calculateProjectQuoteRevisionSourceIntegrityAudit` from validated source-map audit snapshots. Strict marker `1` and legacy `null` counts reconcile to `revisionCount`; ordered markers are preserved.
@@ -1353,7 +1353,13 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 - Code/test commit [384a1f94](https://github.com/Taylan789/MobilyaCAD/commit/384a1f94a031622b3db03dc5db712e62f037d30a). Exact-SHA CI [#45275145213](https://github.com/Taylan789/MobilyaCAD/actions/runs/45275145213), QA [#45275145182](https://github.com/Taylan789/MobilyaCAD/actions/runs/45275145182), Pages [#45275145114](https://github.com/Taylan789/MobilyaCAD/actions/runs/45275145114) passed: 194 frontend + 678 domain tests, strict TS, lint 34 warnings/0 errors, build and audit 0 vulnerabilities. Test site: https://taylan789.github.io/MobilyaCAD/.
 
 
-## DOM-137 — Project-file append/read integrity coverage (implementation; verification pending)
-- Project JSON v2 readback and strict/legacy integrity audit are reconciled across two append operations; a legacy revision without the marker stays legacy.
-- Acceptance: `[null, 1, 1]` markers; strict=2, legacy=1, revisionCount=3; previous-revision chain and input immutability preserved.
-- Test-only cross-consumer slice; exact-SHA Actions pending.
+## DOM-137 — Project-file append/read integrity coverage (VERIFIED)
+- Project JSON v2 append/read and strict/legacy audit reconciliation are covered across two append operations. A legacy revision without the marker remains legacy; the two appended revisions are strict.
+- Acceptance: ordered markers `[null, 1, 1]`, strict=2, legacy=1, revisionCount=3; previous links, numbering and input immutability.
+- Code/test [commit 4f67c7d6](https://github.com/Taylan789/MobilyaCAD/commit/4f67c7d6d205f054faef866e93bc574b23bbf613); exact-SHA CI [#45292256838](https://github.com/Taylan789/MobilyaCAD/actions/runs/45292256838), QA [#45292256730](https://github.com/Taylan789/MobilyaCAD/actions/runs/45292256730), Pages [#45292256696](https://github.com/Taylan789/MobilyaCAD/actions/runs/45292256696) successful. QA: 201 frontend + 679 domain tests, strict TS, lint 34 warnings/0 errors, production build, audit 0 vulnerabilities. Test site: https://taylan789.github.io/MobilyaCAD/.
+
+
+## DOM-139 READY — Explicit nesting stock-sheet cost summary
+- User flow: supply a validated cut plan and explicit price per stock sheet for every material/thickness group. The domain reports sheet count × per-sheet price and currency/source references.
+- Acceptance: exact group mapping; safe integer minor-unit prices; homogeneous currency; missing/unused definitions block atomically; deterministic output, immutable inputs; no inferred price, waste/yield or quote integration.
+- Dependency: DOM-120 validated project cut-plan area groups. Keep stock purchase cost distinct from net-area material cost to avoid double-counting.
