@@ -1264,7 +1264,7 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - No frontend, adapter/performance-owned files, CNC/machine output or main changes.
 
 
-## 23 Kasım 2026 — DOM-129 hardware BOM export compatibility guard (second QA correction pending)
+## 23 Kasım 2026 — DOM-129 hardware BOM export compatibility guard (VERIFIED — exact-SHA CI/QA/Pages successful)
 
 - Integrated regression now exercises a real production report with two hardware BOM rows through project JSON v2 revision history, standalone revision-history JSON v1, quote-summary JSON v1 and quote-summary CSV v1.
 - Acceptance: hardware catalog ID/unit, furniture scope and sorted BOM source references survive every export/import; the hardware price reference remains separate from BOM provenance; each round-trip reconciles to the original immutable quote summary.

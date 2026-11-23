@@ -517,3 +517,12 @@
 - Correction commit [51da41df](https://github.com/Taylan789/MobilyaCAD/commit/51da41dfdc38b4cd39366d1d10a6310a3935b086) CI [#45201700181](https://github.com/Taylan789/MobilyaCAD/actions/runs/45201700181) successful; QA [#45201699809](https://github.com/Taylan789/MobilyaCAD/actions/runs/45201699809) failed only in the new integration test: `hardwareSource` was read before its declaration (ReferenceError). Pages [#45201699855](https://github.com/Taylan789/MobilyaCAD/actions/runs/45201699855) exact-SHA gate failed, deployment skipped.
 - Correction moves JSON/CSV source-map comparisons after the source declaration. No production behavior, serializer schema, or test assertions are weakened. This remains a test-only export-compatibility slice; local tests unavailable.
 - Next: corrected exact-SHA CI/QA/Pages; DOM-129 is not VERIFIED until those results succeed.
+
+
+## 23 Kasım 2026 18:18 TRT — DOM-129 VERIFIED
+
+- Final code/test commit [16d64031](https://github.com/Taylan789/MobilyaCAD/commit/16d640313b056c57385fbbdbc8a93ccb1d921147) corrected assertion ordering. DOM-129 now proves hardware BOM provenance (catalog ID/unit, furniture IDs, sorted BOM source references) survives project JSON v2 revision history, standalone history JSON v1, quote-summary JSON v1 and CSV v1; price source reference remains separate from BOM provenance.
+- Exact-SHA CI [#45201700181](https://github.com/Taylan789/MobilyaCAD/actions/runs/45201700181) and QA [#45202029123](https://github.com/Taylan789/MobilyaCAD/actions/runs/45202029123) succeeded. QA: **188 frontend + 669 domain tests**, strict shared-domain TypeScript, lint **34 warnings / 0 errors**, production build and dependency audit **0 vulnerabilities**.
+- Pages [#45202029099](https://github.com/Taylan789/MobilyaCAD/actions/runs/45202029099) succeeded and deployed to https://taylan789.github.io/MobilyaCAD/. This was a domain/test slice; no visible UI redesign is included.
+- Changed files: `domain/production/projectQuoteRevisionExports.test.mjs`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`. No production calculation, frontend, adapter/performance-owned file, CNC/machine output or `main` changed. Local tests unavailable; exact-SHA Actions are the evidence.
+- Earlier QA fixture failures were fixed without weakening assertions. Next: DOM-130 hardware BOM trace persistence/export contract and schema compatibility; DOM-131 immutable quote source-map audit summary.
