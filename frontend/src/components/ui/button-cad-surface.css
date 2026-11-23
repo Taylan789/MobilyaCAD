@@ -100,3 +100,58 @@
     border-color: Mark;
   }
 }
+
+
+/* UI-BUTTON-PRESSED-STATE-001 — expose persistent and momentary states for CAD toggles. */
+.cad-button-surface[aria-pressed="true"]:not(:disabled):not([aria-disabled="true"]):not([data-cad-variant="link"]) {
+  border-color: color-mix(in srgb, var(--ring) 64%, var(--border) 36%);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, white 9%, transparent),
+    0 0 0 1px color-mix(in srgb, var(--ring) 16%, transparent);
+}
+
+.cad-button-surface[data-cad-variant="default"][aria-pressed="true"]:not(:disabled):not([aria-disabled="true"]) {
+  background-image: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--primary) 84%, black 16%),
+    color-mix(in srgb, var(--primary) 78%, black 22%)
+  );
+}
+.cad-button-surface[data-cad-variant="outline"][aria-pressed="true"]:not(:disabled):not([aria-disabled="true"]) {
+  background-image: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--ring) 14%, var(--background) 86%),
+    color-mix(in srgb, var(--ring) 9%, var(--background) 91%)
+  );
+}
+.cad-button-surface[data-cad-variant="secondary"][aria-pressed="true"]:not(:disabled):not([aria-disabled="true"]) {
+  background-image: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--ring) 12%, var(--secondary) 88%),
+    color-mix(in srgb, var(--ring) 8%, var(--secondary) 92%)
+  );
+}
+.cad-button-surface[data-cad-variant="ghost"][aria-pressed="true"]:not(:disabled):not([aria-disabled="true"]) {
+  background-color: color-mix(in srgb, var(--ring) 13%, var(--muted) 87%);
+}
+.cad-button-surface[data-cad-variant="destructive"][aria-pressed="true"]:not(:disabled):not([aria-disabled="true"]) {
+  background-image: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--destructive) 18%, var(--background) 82%),
+    color-mix(in srgb, var(--destructive) 12%, var(--background) 88%)
+  );
+}
+.cad-button-surface:active:not(:disabled):not([aria-disabled="true"]) {
+  border-color: color-mix(in srgb, var(--ring) 58%, var(--border) 42%);
+  box-shadow: inset 0 2px 3px color-mix(in srgb, black 24%, transparent);
+}
+
+@media (forced-colors: active) {
+  .cad-button-surface[aria-pressed="true"]:not(:disabled):not([aria-disabled="true"]):not([data-cad-variant="link"]) {
+    border-color: Highlight;
+    background: Highlight;
+    background-image: none;
+    color: HighlightText;
+    box-shadow: none;
+  }
+}
