@@ -1,5 +1,6 @@
 import { Plus, Ruler } from "lucide-react";
 import type { FurnitureCatalogItem } from "../../data/furnitureCatalog";
+import { getFurnitureCatalogCardDetails } from "./furnitureCatalogCardDetails";
 
 interface FurnitureCatalogCardProps {
   item: FurnitureCatalogItem;
@@ -90,12 +91,8 @@ function FurniturePreview({ item }: { item: FurnitureCatalogItem }) {
   );
 }
 
-export function FurnitureCatalogCard({ item, index, onAdd, onDragStart, onDragEnd }: FurnitureCatalogCardProps) {
-  const details = [
-    item.doorCount ? `${item.doorCount} kapak` : "",
-    item.drawerCount ? `${item.drawerCount} çekmece` : "",
-    item.shelfCount ? `${item.shelfCount} raf` : "",
-  ].filter(Boolean).join(" · ");
+export function FurnitureCatalogCard({ item, onAdd, onDragStart, onDragEnd }: FurnitureCatalogCardProps) {
+  const details = getFurnitureCatalogCardDetails(item);
 
   const dimensions = [item.width, item.height, item.depth]
     .map((value) => value.toLocaleString("tr-TR"))
@@ -117,7 +114,6 @@ export function FurnitureCatalogCard({ item, index, onAdd, onDragStart, onDragEn
       aria-label={`${item.name}, ${dimensions} milimetre. Odaya ekle.`}
     >
       <span className="mc-catalog-card__visual">
-        <span className="mc-catalog-card__serial">MC / {String(index + 1).padStart(3, "0")}</span>
         <FurniturePreview item={item} />
         <span className="mc-catalog-card__add" aria-hidden="true"><Plus /></span>
       </span>
@@ -125,7 +121,7 @@ export function FurnitureCatalogCard({ item, index, onAdd, onDragStart, onDragEn
         <span className="mc-catalog-card__category">{item.category}</span>
         <strong>{item.name}</strong>
         <span className="mc-catalog-card__dimensions"><Ruler /> {dimensions} mm</span>
-        <span className="mc-catalog-card__details">{details || "Özel ölçü modülü"}</span>
+        {details && <span className="mc-catalog-card__details">{details}</span>}
       </span>
     </button>
   );
