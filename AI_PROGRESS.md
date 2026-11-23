@@ -501,3 +501,12 @@
 - QA log confirmed the feature comparisons passed; failure was the wrong expected diagnostic text in the unit-mismatch regression. Actual validator message: “Teklif donanım birimi maliyet satırı birimiyle uyuşmalıdır.”
 - Corrected only the assertion; production logic unchanged in this follow-up.
 - Follow-up commit [75a88485](https://github.com/Taylan789/MobilyaCAD/commit/75a884850b631716c35232c1ce699b19bb4ddedb). CI [#45190394525](https://github.com/Taylan789/MobilyaCAD/actions/runs/45190394525) and QA [#45190394796](https://github.com/Taylan789/MobilyaCAD/actions/runs/45190394796) passed: 188 frontend + 669 domain tests, strict domain TypeScript, lint 34 warnings/0 errors, production build, audit 0 vulnerabilities. Pages [#45190394590](https://github.com/Taylan789/MobilyaCAD/actions/runs/45190394590) succeeded and deployed this SHA to https://taylan789.github.io/MobilyaCAD/. Local full tests were not run.
+
+
+## 23 Kasım 2026 18:05 TRT — DOM-129 QA düzeltmesi, doğrulama bekliyor
+
+- İlk test commit [55377614](https://github.com/Taylan789/MobilyaCAD/commit/553776146bdb2d049336bf5d19ac76bfebc76caa) CI [#45201279037](https://github.com/Taylan789/MobilyaCAD/actions/runs/45201279037) başarılı; QA [#45201278908](https://github.com/Taylan789/MobilyaCAD/actions/runs/45201278908) başarısız: test fixture raporun `firstError` alanını kullanması gerekirken olmayan `diagnostics` alanına erişti. DOM-129 test yüklemesi durdu; 666 test geçti, 1 test modülü başarısız.
+- Pages [#45201279068](https://github.com/Taylan789/MobilyaCAD/actions/runs/45201279068) exact-SHA QA kapısında durdu; test sitesi bu commit'e deploy edilmedi.
+- Düzeltme: rapor hata mesajı `firstError` üzerinden alındı; hardware source-map assertions JSON/CSV parse sonuçlarını karşılaştırmadan önce tanımlandı. Üretim davranışı veya test kriteri gevşetilmedi.
+- Kapsam yalnızca `domain/production/projectQuoteRevisionExports.test.mjs`, koordinasyon, roadmap ve progress; frontend, adapter/performance-owned dosyalar, CNC ve `main` değişmedi. Yerel test çalıştırılmadı.
+- Next: corrected DOM-129 exact-SHA CI/QA/Pages; başarılı Actions kanıtı olmadan doğrulanmış sayma.

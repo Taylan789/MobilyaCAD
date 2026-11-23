@@ -20,7 +20,7 @@ const productionReport = calculateCabinetProjectProductionWithDiagnostics({
     materials: [{ id: "mdf-18", name: "MDF Lam 18", category: "panel", thicknessesMm: [18], unit: "mm" }]
   }]
 });
-assert.equal(productionReport.status, "ready", productionReport.diagnostics.join(" | "));
+assert.equal(productionReport.status, "ready", productionReport.firstError ?? "Üretim raporu hazır olmalıdır.");
 assert.ok(productionReport.result);
 productionReport.result.hardwareItems = [
   { id: "bom-hinge-a", furnitureId: "quote-export-cabinet", hardwareId: "hinge-110", name: "Menteşe", quantity: 2, unit: "adet", sourceReference: "bom:catalog-a" },

@@ -1264,9 +1264,9 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - No frontend, adapter/performance-owned files, CNC/machine output or main changes.
 
 
-## 23 Kasım 2026 — DOM-129 hardware BOM export compatibility guard (verification pending)
+## 23 Kasım 2026 — DOM-129 hardware BOM export compatibility guard (QA correction pending)
 
 - Integrated regression now exercises a real production report with two hardware BOM rows through project JSON v2 revision history, standalone revision-history JSON v1, quote-summary JSON v1 and quote-summary CSV v1.
 - Acceptance: hardware catalog ID/unit, furniture scope and sorted BOM source references survive every export/import; the hardware price reference remains separate from BOM provenance; each round-trip reconciles to the original immutable quote summary.
-- Test-only slice; no production source/schema, frontend, adapter/performance-owned files, CNC/machine output or `main` changes. Local Node tests are unavailable in this runtime; exact-SHA Actions will verify.
+- Test-only slice; no production source/schema, frontend, adapter/performance-owned files, CNC/machine output or `main` changes. Local Node tests are unavailable in this runtime. First QA exposed a fixture assertion using a nonexistent `diagnostics` field on the project production report; the assertion now uses its `firstError` contract and hardware metadata comparisons are placed after source-map setup. Exact-SHA CI/QA/Pages for the correction are pending.
 - Next: DOM-130 hardware BOM trace persistence/export contract and schema-version compatibility, then DOM-131 immutable quote source-map audit summary across revision history.
