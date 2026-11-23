@@ -553,7 +553,7 @@
 - Added a domain-only revision source-map comparison that matches validated cost-line IDs and reports source metadata changes separately from money, quantity, unit-price and line-total arithmetic.
 - Regression coverage: source-only identity/Part/reference change with zero monetary delta; added/removed/unchanged row reconciliation; paired source/cost row reorder determinism; immutable result/input; missing revision and invalid-history fail-closed behavior.
 - Files: `domain/production/projectQuoteRevision.ts`, `domain/production/projectQuoteRevision.test.mjs`, `docs/production-domain-contract.md`, `PRODUCT_ROADMAP.md`, `AI_COORDINATION.md`, `AI_PROGRESS.md`.
-- Commit SHA and exact-SHA CI/QA/Pages evidence will be recorded after the branch update; local tests are unavailable in this runtime. Do not claim verification until Actions completes.
+- Corrected code/test commit [0944028fdf51c3b3e4fce0f5395e74885029239a](https://github.com/Taylan789/MobilyaCAD/commit/0944028fdf51c3b3e4fce0f5395e74885029239a) is verified by CI [#45231997148](https://github.com/Taylan789/MobilyaCAD/actions/runs/45231997148), QA [#45231996953](https://github.com/Taylan789/MobilyaCAD/actions/runs/45231996953) and Pages [#45231997189](https://github.com/Taylan789/MobilyaCAD/actions/runs/45231997189); local tests are unavailable in this runtime.
 - Ownership: no frontend, adapter/performance-owned files, CNC/machine output or `main` changes.
 - Next: DOM-134 three-revision source-map audit reconciliation; DOM-135 legacy integrity-marker disclosure. DOM-130 remains deferred because adapter ownership is unavailable.
 
@@ -566,9 +566,14 @@
 
 
 ## 23 Kasım 2026 20:40 TRT — DOM-133 VERIFIED
-- **Code/test commit:** [0944028fdf51c3b3e4f4ce0f5395e74885029239a](https://github.com/Taylan789/MobilyaCAD/commit/0944028fdf51c3b3e4f4ce0f5395e74885029239a).
+- **Code/test commit:** [0944028fdf51c3b3e4fce0f5395e74885029239a](https://github.com/Taylan789/MobilyaCAD/commit/0944028fdf51c3b3e4fce0f5395e74885029239a).
 - Exact-SHA CI [#45231997148](https://github.com/Taylan789/MobilyaCAD/actions/runs/45231997148) and QA [#45231996953](https://github.com/Taylan789/MobilyaCAD/actions/runs/45231996953) passed; QA **191 frontend + 674 domain tests**, strict domain TypeScript, production build, lint **34 warnings / 0 errors**, production dependency audit **0 vulnerabilities**.
 - Pages [#45231997189](https://github.com/Taylan789/MobilyaCAD/actions/runs/45231997189) succeeded; test site deployed: https://taylan789.github.io/MobilyaCAD/.
 - Initial QA failure was only the new deterministic-order expectation; corrected expected lexical costLineId order without changing production behavior or weakening tests. Exact-SHA revalidation passed.
 - Local test execution unavailable in this runtime; Actions is the verification evidence. No frontend, adapter/performance-owned files, CNC/machine output or `main` changed.
 - Next: DOM-134 three-revision source-map audit reconciliation; DOM-135 legacy source-integrity disclosure. DOM-130 remains deferred due adapter ownership.
+
+
+## 23 Kasım 2026 20:40 TRT — documentation SHA bb794e2f verified
+- Documentation/coordination commit [bb794e2fdcc4ec4b4d9e9b081239f36eeaf42de0](https://github.com/Taylan789/MobilyaCAD/commit/bb794e2fdcc4ec4b4d9e9b081239f36eeaf42de0) exact-SHA CI [#45232392957](https://github.com/Taylan789/MobilyaCAD/actions/runs/45232392957), QA [#45232393080](https://github.com/Taylan789/MobilyaCAD/actions/runs/45232393080) and Pages [#45232393061](https://github.com/Taylan789/MobilyaCAD/actions/runs/45232393061) all succeeded.
+- Pages deploy run [#45232393061](https://github.com/Taylan789/MobilyaCAD/actions/runs/45232393061) deployed the documentation commit and verified https://taylan789.github.io/MobilyaCAD/.
