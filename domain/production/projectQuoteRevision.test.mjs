@@ -2718,6 +2718,74 @@ test("DOM-131 immutable quote source-map audit preserves per-revision trace coun
   assert.deepEqual(result.audit, calculateProjectQuoteRevisionSourceMapAudit(history).audit);
 });
 
+test("DOM-132 legacy quote audit surfaces duplicate source identities with stable line references", () => {
+  const secondSnapshot = createSnapshot();
+  const quoteSummary = secondSnapshot.quoteSummary;
+  const costSummary = quoteSummary.costSummary;
+  assert.ok(costSummary);
+  const materialSource = quoteSummary.lineSources.find(
+    source => source.sourceType === "production-consumption" && source.resourceType === "material"
+  );
+  assert.ok(materialSource);
+  const sourceIdentityCount = quoteSummary.lineSources.filter(
+    source => source.sourceType === materialSource.sourceType && source.sourceId === materialSource.sourceId
+  ).length;
+  assert.equal(sourceIdentityCount, 1);
+  const originalCostLine = costSummary.lines.find(line => line.id === materialSource.costLineId);
+  assert.ok(originalCostLine);
+
+  const duplicateLineIds = ["dom-132-duplicate-a", "dom-132-duplicate-b"];
+  for (const duplicateLineId of duplicateLineIds) {
+    const duplicateCostLine = { ...originalCostLine, id: duplicateLineId };
+    const duplicateSource = structuredClone(materialSource);
+    duplicateSource.costLineId = duplicateLineId;
+    costSummary.lines.push(duplicateCostLine);
+    quoteSummary.lineSources.push(duplicateSource);
+    costSummary.categoryTotalsMinor[duplicateCostLine.category] += duplicateCostLine.lineTotalMinor;
+    costSummary.grandTotalMinor += duplicateCostLine.lineTotalMinor;
+    costSummary.lineCount += 1;
+    quoteSummary.requiredLineCount += 1;
+    quoteSummary.pricedLineCount += 1;
+  }
+
+  const history = createTwoRevisionHistory({ pricingSnapshot: secondSnapshot });
+  assert.equal(validateProjectQuoteRevisionHistory(history).status, "ready");
+  assert.equal(history.revisions[1].sourceIntegrityVersion, undefined);
+  const originalHistoryJson = JSON.stringify(history);
+  const result = calculateProjectQuoteRevisionSourceMapAudit(history);
+  assert.equal(result.status, "ready");
+  assert.ok(result.audit);
+
+  const expectedIdentity = {
+    sourceType: materialSource.sourceType,
+    sourceId: materialSource.sourceId,
+    costLineIds: [materialSource.costLineId, ...duplicateLineIds].sort()
+  };
+  assert.deepEqual(result.audit.revisions[0].duplicateSourceIdentities, []);
+  assert.equal(result.audit.revisions[0].counts.duplicateSourceIdentityCount, 0);
+  assert.equal(result.audit.revisions[0].counts.duplicateSourceIdentityLineReferenceCount, 0);
+  assert.deepEqual(result.audit.revisions[1].duplicateSourceIdentities, [expectedIdentity]);
+  assert.equal(result.audit.revisions[1].counts.duplicateSourceIdentityCount, 1);
+  assert.equal(result.audit.revisions[1].counts.duplicateSourceIdentityLineReferenceCount, 3);
+  assert.equal(result.audit.totals.duplicateSourceIdentityCount, 1);
+  assert.equal(result.audit.totals.duplicateSourceIdentityLineReferenceCount, 3);
+  assert.equal(JSON.stringify(history), originalHistoryJson);
+
+  const reorderedHistory = structuredClone(history);
+  const reorderedQuote = reorderedHistory.revisions[1].pricingSnapshot.quoteSummary;
+  reorderedQuote.lineSources.reverse();
+  reorderedQuote.costSummary.lines.reverse();
+  const reorderedAudit = calculateProjectQuoteRevisionSourceMapAudit(reorderedHistory);
+  assert.equal(reorderedAudit.status, "ready");
+  assert.deepEqual(reorderedAudit.audit?.revisions[1].duplicateSourceIdentities, [expectedIdentity]);
+
+  const strictHistory = structuredClone(history);
+  strictHistory.revisions[1].sourceIntegrityVersion = 1;
+  const strictResult = validateProjectQuoteRevisionHistory(strictHistory);
+  assert.equal(strictResult.status, "blocked");
+  assert.match(strictResult.diagnostics[0], /yinelenemez/);
+});
+
 test("DOM-131 source-map audit returns empty for valid empty histories and blocked without partial audit for invalid histories", () => {
   const empty = calculateProjectQuoteRevisionSourceMapAudit({ projectId: "project-42", revisions: [] });
   assert.equal(empty.status, "empty");

@@ -1295,3 +1295,16 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 1. DOM-130 — Hardware BOM trace persistence/export/schema compatibility; deferred until adapter ownership is available (integration-performance workflow is disabled).
 2. DOM-132 — Legacy revision source-map audit should surface duplicate source identities without changing or rejecting historical data.
 3. DOM-133 — Compare revision source-map provenance changes independently from monetary deltas, using the existing comparison identity rules.
+
+
+## 23 Kasım 2026 19:23 TRT — DOM-132 legacy duplicate source identity audit (implementation; verification pending)
+
+- User value: legacy quote revisions may contain repeated source identities that strict v1 revisions disallow. The audit now surfaces repeated (sourceType, sourceId) groups, counts the groups and every participating cost-line reference, and returns deterministic sorted cost-line IDs.
+- Acceptance: legacy history validates and audits as ready; duplicate groups are revision-scoped, stable under paired line reorder, inputs remain immutable, and strict source-integrity v1 continues to block duplicates. No source is inferred or repaired and no cost/export schema changes.
+- Changed files: domain/production/projectQuoteRevision.ts, domain/production/projectQuoteRevision.test.mjs, docs/production-domain-contract.md, AI_COORDINATION.md, PRODUCT_ROADMAP.md, AI_PROGRESS.md. Frontend and adapter/performance-owned files remain untouched.
+- Exact-SHA CI/QA/Pages: pending; local test execution is unavailable in this automation environment.
+
+### Next domain slices
+1. DOM-133 — compare provenance changes independently from monetary deltas.
+2. DOM-134 — reconcile duplicate source-map identity groups across three revisions and stable ordering.
+3. DOM-135 — disclose legacy source-integrity markers without inferring strict integrity.

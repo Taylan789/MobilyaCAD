@@ -536,3 +536,11 @@
 - **Exact-SHA Actions:** CI [#45204878883](https://github.com/Taylan789/MobilyaCAD/actions/runs/45204878883) and QA [#45204879024](https://github.com/Taylan789/MobilyaCAD/actions/runs/45204879024) succeeded. QA: **188 frontend + 671 domain tests**, strict domain TS, production build, lint 34 warnings/0 errors, production audit 0 vulnerabilities. Pages [#45204879129](https://github.com/Taylan789/MobilyaCAD/actions/runs/45204879129) deployed https://taylan789.github.io/MobilyaCAD/.
 - Local tests unavailable in this runtime. `npm ci` showed 4 moderate full-tree dependency findings; production-only audit is clean. The 34 existing lint warnings remain.
 - No frontend, adapter/performance-owned files, machine/CNC output or `main` changed. DOM-130 is deferred until adapter ownership; next domain tasks are DOM-132 legacy duplicate identity audit and DOM-133 provenance-only revision deltas.
+
+
+## 23 Kasım 2026 19:23 TRT — DOM-132 implementation (verification pending)
+
+- Added legacy quote source-map duplicate-identity diagnostics: per-revision duplicate groups, affected cost-line reference counts and deterministic sorted line IDs keyed by (sourceType, sourceId). Totals aggregate duplicate groups/references across revisions.
+- Regression checks valid legacy history remains audit-ready, input is unchanged, duplicate references remain stable after paired line reorder, and strict v1 continues rejecting duplicate identities. No production calculations, persistence adapters, frontend, CNC or machine output changed.
+- Code/test commit: pending (recorded after branch commit). Exact-SHA CI/QA/Pages: pending. Local test runner is unavailable; GitHub Actions is the verification source.
+- Next: DOM-133 provenance-only revision comparison; DOM-134 three-revision duplicate-source reconciliation; DOM-135 legacy source-integrity marker disclosure.

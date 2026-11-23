@@ -1204,8 +1204,17 @@ export interface ProjectQuoteRevisionSourceMapAuditCounts {
   uniqueHardwareBomReferenceCount: number;
   laborOperationLineCount: number;
   quoteAdjustmentLineCount: number;
+  duplicateSourceIdentityCount: number;
+  duplicateSourceIdentityLineReferenceCount: number;
   sourceTypeCounts: Record<ProjectQuoteLineSource["sourceType"], number>;
   categoryCounts: Record<ProjectQuoteCostCategory, number>;
+}
+
+
+export interface ProjectQuoteRevisionSourceMapAuditDuplicateIdentity {
+  sourceType: ProjectQuoteLineSource["sourceType"];
+  sourceId: string;
+  costLineIds: readonly string[];
 }
 
 export interface ProjectQuoteRevisionSourceMapAuditLine {
@@ -1240,6 +1249,7 @@ export interface ProjectQuoteRevisionSourceMapAuditRevision {
   createdAt: string;
   sourceIntegrityVersion: 1 | null;
   counts: ProjectQuoteRevisionSourceMapAuditCounts;
+  duplicateSourceIdentities: readonly ProjectQuoteRevisionSourceMapAuditDuplicateIdentity[];
   lines: readonly ProjectQuoteRevisionSourceMapAuditLine[];
 }
 
@@ -1272,6 +1282,8 @@ function createSourceMapAuditCounts(): ProjectQuoteRevisionSourceMapAuditCounts 
     uniqueHardwareBomReferenceCount: 0,
     laborOperationLineCount: 0,
     quoteAdjustmentLineCount: 0,
+    duplicateSourceIdentityCount: 0,
+    duplicateSourceIdentityLineReferenceCount: 0,
     sourceTypeCounts: {
       "production-consumption": 0,
       "labor-operation": 0,
@@ -1302,6 +1314,8 @@ function addSourceMapAuditCounts(
   target.hardwareBomReferenceCount += source.hardwareBomReferenceCount;
   target.laborOperationLineCount += source.laborOperationLineCount;
   target.quoteAdjustmentLineCount += source.quoteAdjustmentLineCount;
+  target.duplicateSourceIdentityCount += source.duplicateSourceIdentityCount;
+  target.duplicateSourceIdentityLineReferenceCount += source.duplicateSourceIdentityLineReferenceCount;
   for (const sourceType of ["production-consumption", "labor-operation", "quote-adjustment"] as const) {
     target.sourceTypeCounts[sourceType] += source.sourceTypeCounts[sourceType];
   }
@@ -1351,6 +1365,11 @@ export function calculateProjectQuoteRevisionSourceMapAudit(
       const partIds = new Set<string>();
       const hardwareFurnitureIds = new Set<string>();
       const hardwareBomReferences = new Set<string>();
+      const sourceIdentityLineReferences = new Map<string, {
+        sourceType: ProjectQuoteLineSource["sourceType"];
+        sourceId: string;
+        costLineIds: string[];
+      }>();
       const lines: ProjectQuoteRevisionSourceMapAuditLine[] = [];
 
       for (let index = 0; index < costSummary.lines.length; index += 1) {
@@ -1359,6 +1378,14 @@ export function calculateProjectQuoteRevisionSourceMapAudit(
         if (costLine === undefined || source === undefined || source.costLineId !== costLine.id) {
           throw new Error("Teklif revizyon kaynak denetimi doğrulanmış satır kimliğini koruyamadı.");
         }
+
+        const sourceIdentityKey = JSON.stringify([source.sourceType, source.sourceId]);
+        let sourceIdentityReferences = sourceIdentityLineReferences.get(sourceIdentityKey);
+        if (sourceIdentityReferences === undefined) {
+          sourceIdentityReferences = { sourceType: source.sourceType, sourceId: source.sourceId, costLineIds: [] };
+          sourceIdentityLineReferences.set(sourceIdentityKey, sourceIdentityReferences);
+        }
+        sourceIdentityReferences.costLineIds.push(costLine.id);
 
         counts.lineCount += 1;
         counts.sourceTypeCounts[source.sourceType] += 1;
@@ -1420,6 +1447,23 @@ export function calculateProjectQuoteRevisionSourceMapAudit(
         });
       }
 
+      const duplicateSourceIdentities = [...sourceIdentityLineReferences.values()]
+        .filter((identity) => identity.costLineIds.length > 1)
+        .map((identity) => ({
+          sourceType: identity.sourceType,
+          sourceId: identity.sourceId,
+          costLineIds: [...identity.costLineIds].sort()
+        }))
+        .sort((left, right) => {
+          if (left.sourceType !== right.sourceType) return left.sourceType < right.sourceType ? -1 : 1;
+          if (left.sourceId === right.sourceId) return 0;
+          return left.sourceId < right.sourceId ? -1 : 1;
+        });
+      counts.duplicateSourceIdentityCount = duplicateSourceIdentities.length;
+      counts.duplicateSourceIdentityLineReferenceCount = duplicateSourceIdentities.reduce(
+        (count, identity) => count + identity.costLineIds.length,
+        0
+      );
       counts.uniquePartIdCount = partIds.size;
       counts.uniqueHardwareFurnitureIdCount = hardwareFurnitureIds.size;
       counts.uniqueHardwareBomReferenceCount = hardwareBomReferences.size;
@@ -1430,6 +1474,7 @@ export function calculateProjectQuoteRevisionSourceMapAudit(
         createdAt: revision.createdAt,
         sourceIntegrityVersion: revision.sourceIntegrityVersion ?? null,
         counts,
+        duplicateSourceIdentities,
         lines
       });
     }

@@ -1170,3 +1170,8 @@ Hardware comparison line identity now includes the hardware catalog ID, original
 - The audit copies only validated source metadata. It does not infer missing Part links, normalize hardware quantities, calculate costs, or add any JSON/CSV persistence schema.
 - Cost-line `sourceReference` remains separate from hardware BOM `hardwareSourceReferences` and edge-band plan/price references. Legacy revisions with no `sourceIntegrityVersion` remain visible as `null`; no strict source integrity is retroactively claimed.
 - Acceptance: two-revision mixed-source fixture, exact metadata separation, count reconciliation, deterministic output, deep-freeze and input-immutability; empty and invalid histories fail safely.
+
+
+## DOM-132 — Legacy source identity duplicate audit
+
+Quote source identity is the pair (sourceType, sourceId) within one revision. The immutable source-map audit now surfaces repeated identity groups without changing or rejecting a valid legacy revision: counts.duplicateSourceIdentityCount counts repeated groups, counts.duplicateSourceIdentityLineReferenceCount counts every cost-line reference participating in those groups, and duplicateSourceIdentities provides the exact identity and sorted costLineIds. Group order is deterministic by source type and source ID; line references are sorted lexically, so the report remains stable when source lines are reordered. Duplicate groups are revision-scoped; totals sum per-revision groups and participating references. Strict sourceIntegrityVersion: 1 history continues to reject repeated source identities, while legacy histories remain readable and audit-ready. This is diagnostic-only and does not infer or repair source mappings, alter cost totals, or persist a new export schema.
