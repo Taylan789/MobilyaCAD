@@ -468,9 +468,10 @@
 - Next: DOM-127 hardware BOM-to-furniture/Part traceability boundary; no UI/CNC mapping is claimed.
 
 
-## 23 Kasım 2026 14:07 TRT — DOM-127a explicit hardware BOM-to-Part mapping (verification pending)
-- Added optional `sourcePartIds` to project hardware BOM rows. Production validation rejects empty/oversized, unsorted/duplicate, unknown Part IDs and links to Parts belonging to another furniture item; missing links remain absent.
-- Hardware consumption summary now validates and aggregates only explicitly supplied Part IDs. Priced-consumption and quote source mappings carry the explicit Part-ID union through existing revision/history and comparison JSON v3/CSV v4 contracts; no Part links are inferred.
-- Added regressions in production, hardware/material summary, priced-consumption and quote revision provenance tests, including standalone/project-v2 history and comparison JSON/CSV round-trip.
-- Code/test/docs commit SHA: pending. Exact-SHA CI, QA, production build and Pages deployment: pending. Local tests unavailable in this remote-only runtime; do not claim Actions success before run results.
-- Frontend files, adapters/machine-specific output, other agent branches/PRs and `main` untouched. Next: DOM-127b line-level BOM Part/quantity traceability (the current grouped union is not a per-Part quantity allocation).
+## 23 Kasım 2026 14:07 TRT — DOM-127a explicit hardware BOM-to-Part mapping (verified)
+- Added optional `hardwareItems[].sourcePartIds`; production rejects empty/oversized, unsorted/duplicate, unknown Part IDs and cross-furniture mappings. No link is inferred when absent.
+- Hardware summary aggregates explicit Part-ID union; priced-consumption and quote source metadata carry it through revision/history and comparison JSON v3/CSV v4. The grouped summary does not allocate hardware quantities per Part.
+- Domain regressions added for valid/invalid mapping, summary aggregation, priced source map, standalone/project-v2 revision history, and comparison JSON/CSV round-trip.
+- Code commit: `5ecbeeec9aff394782f9df866e09b1b6445827b1`; follow-up type-check fix: `4808746daa13d4bbce55ff78657098308c4f4694`. Files: projectProduction.ts/.test.mjs, projectMaterialSummary.ts/.test.mjs, projectPricedConsumption.ts/.test.mjs, projectQuoteSummary.ts, projectQuoteRevisionHardwareProvenance.test.mjs, production-domain-contract.md, PRODUCT_ROADMAP.md, AI_COORDINATION.md, AI_PROGRESS.md.
+- Exact-SHA CI `45165232791` and QA `45165232778` **success** (unit/shared-domain tests, type-check, lint, build, production dependency audit); Pages build, exact-SHA gate and deploy `45165232708` **success**, URL: https://taylan789.github.io/MobilyaCAD/ . Local tests not run; Actions are the verification evidence.
+- AI Developer run `45160490760` failed due OpenRouter free-model daily quota 429 (remaining 0); not rerun because quota is still exhausted. Integration/performance specialist job was skipped. Frontend files and `main` untouched. Next: DOM-127b per-BOM-row Part/quantity traceability.

@@ -1230,12 +1230,12 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 3. DOM-129 — Project export compatibility guards for production metadata.
 
 
-## 23 Kasım 2026 — DOM-127a explicit hardware BOM-to-Part mapping
+## 23 Kasım 2026 — DOM-127a explicit hardware BOM-to-Part mapping (verified)
 
-- **Delivered slice (verification pending):** optional `hardwareItems[].sourcePartIds` allows explicit user links only; exact Part IDs are checked against the current production project and must belong to the BOM row's furniture. Empty/oversized, unsorted/duplicate, missing or cross-furniture links fail closed. The hardware summary aggregates an explicit sorted Part-ID union; no automatic mapping is inferred.
-- **Existing consumers:** priced consumption and quote line-source snapshots carry the explicit Part-ID union using the already-supported `sourcePartIds` metadata. Revision history, comparison JSON v3 and CSV v4 compatibility are regression-tested.
-- **Limitation:** grouped hardware summaries report association only, not a quantity allocation for each Part. Original BOM rows remain the source of per-row quantities.
-- **Verification:** exact-SHA Actions/QA/Pages pending; local tests unavailable. Do not present this as CNC/machine validation or a per-Part quantity report.
+- **Delivered:** optional `hardwareItems[].sourcePartIds` is explicit-only; exact Part IDs must exist in the same production project and belong to the BOM row's furniture. Empty/oversized, unsorted/duplicate, missing or cross-furniture mappings fail closed. The hardware summary aggregates the explicit sorted Part-ID union.
+- **Existing consumers:** priced consumption and quote line-source snapshots carry the union using `sourcePartIds`; revision history, comparison JSON v3 and CSV v4 preserve it.
+- **Limitation:** grouped hardware summaries do not allocate each row's quantity to individual Parts. Keep original BOM rows for per-row quantity association. No CNC/machine validation is implied.
+- **Verification:** code `4808746daa13d4bbce55ff78657098308c4f4694`; CI `45165232791`, QA `45165232778`, Pages `45165232708` all successful. Local tests unavailable; exact-SHA Actions evidence is used.
 
 ### Updated next domain slices
 1. DOM-127b — Line-level hardware BOM traceability (per-row quantity and explicit Part associations), separate from grouped cost lines.

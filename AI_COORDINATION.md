@@ -525,7 +525,7 @@ Bu dosya dört geliştirme/denetim rolünün ortak görev panosu ve entegrasyon 
 
 | Task | Status | Scope / acceptance | Next |
 |---|---|---|---|
-| DOM-127a | DONE in code/test commit; Actions verification pending | Optional `hardwareItems[].sourcePartIds` is user-supplied, strict sorted/unique/non-empty, exact Part IDs, same-furniture only; hardware consumption summary aggregates the explicit union and never infers a link. Quote/revision/JSON/CSV reuse existing sourcePartIds contracts. | DOM-127b |
-| DOM-127b | READY | Preserve per-BOM-row quantity and Part associations as line-level traceability rather than only a grouped union; keep aggregate costing unchanged. | DOM-128 |
+| DOM-127a | DONE — CI/QA/Pages verified | Optional `hardwareItems[].sourcePartIds` is user-supplied, strict sorted/unique/non-empty, exact Part IDs, same-furniture only; hardware summary aggregates explicit union, never infers links. Existing quote/revision/JSON/CSV sourcePartIds contracts carry mapping. CI `45165232791`, QA `45165232778`, Pages `45165232708`. | DOM-127b |
+| DOM-127b | READY | Preserve per-BOM-row quantity and Part associations as line-level traceability rather than only grouped union; keep aggregate costing unchanged. | DOM-128 |
 
 
