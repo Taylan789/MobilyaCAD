@@ -500,4 +500,4 @@
 
 - QA log confirmed the feature comparisons passed; failure was the wrong expected diagnostic text in the unit-mismatch regression. Actual validator message: “Teklif donanım birimi maliyet satırı birimiyle uyuşmalıdır.”
 - Corrected only the assertion; production logic unchanged in this follow-up.
-- Follow-up commit pending; exact-SHA CI/QA/Pages checks pending.
+- Follow-up commit [75a88485](https://github.com/Taylan789/MobilyaCAD/commit/75a884850b631716c35232c1ce699b19bb4ddedb). CI [#45190394525](https://github.com/Taylan789/MobilyaCAD/actions/runs/45190394525) and QA [#45190394796](https://github.com/Taylan789/MobilyaCAD/actions/runs/45190394796) passed: 188 frontend + 669 domain tests, strict domain TypeScript, lint 34 warnings/0 errors, production build, audit 0 vulnerabilities. Pages [#45190394590](https://github.com/Taylan789/MobilyaCAD/actions/runs/45190394590) succeeded and deployed this SHA to https://taylan789.github.io/MobilyaCAD/. Local full tests were not run.

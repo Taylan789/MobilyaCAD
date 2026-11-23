@@ -527,7 +527,7 @@ Bu dosya dört geliştirme/denetim rolünün ortak görev panosu ve entegrasyon 
 |---|---|---|---|
 | DOM-127a | DONE — CI/QA/Pages verified | Optional `hardwareItems[].sourcePartIds` is user-supplied, strict sorted/unique/non-empty, exact Part IDs, same-furniture only; hardware summary aggregates explicit union, never infers links. Existing quote/revision/JSON/CSV sourcePartIds contracts carry mapping. CI `45165232791`, QA `45165232778`, Pages `45165232708`. | DOM-127b |
 | DOM-127b | DONE — exact-SHA CI/QA/Pages verified | `calculateProjectHardwareBomTrace` preserves each BOM row quantity/unit/reference and explicit linked Part snapshots; grouped costing unchanged. CI [#45173461621](https://github.com/Taylan789/MobilyaCAD/actions/runs/45173461621), QA [#45173461653](https://github.com/Taylan789/MobilyaCAD/actions/runs/45173461653) (188 frontend + 668 domain tests; strict TypeScript/build/audit passed), Pages [#45173461683](https://github.com/Taylan789/MobilyaCAD/actions/runs/45173461683) deployed. | DOM-128 |
-| DOM-128 | IMPLEMENTED — CI passed; QA assertion correction pending | Quote revision comparison identity now includes hardware catalog ID, unit, furniture scope and explicit Part links; JSON/CSV reject changed-line identity mismatch. | DOM-129 |
+| DOM-128 | DONE — exact-SHA CI/QA/Pages verified | Hardware ID/unit, furniture scope and explicit Part IDs are comparison identity; identity changes become add/remove. CI #45190394525, QA #45190394796 (188 frontend + 669 domain tests), Pages #45190394590 successful. | DOM-129 |
 
 
 
@@ -535,5 +535,5 @@ Bu dosya dört geliştirme/denetim rolünün ortak görev panosu ve entegrasyon 
 ## DOM-128 implementation handoff (verification pending)
 - Hardware catalog ID, hardware unit, furniture scope and explicit Part IDs are now included in revision comparison matching identity; source-reference changes remain value-only.
 - Automated regressions cover add/remove semantics and JSON/CSV round-trip; strict validators block wrong units and forged changed lines across hardware identity.
-- Initial commit 68439af3056311ae2a1109951f36fc17abd157bc; CI passed (#45190007818), QA failed on expected diagnostic text (#45190007996), Pages deployment gated (#45190007847). Assertion-only correction underway.
+- Initial implementation 68439af3056311ae2a1109951f36fc17abd157bc had one QA assertion wording failure; corrected test-only commit 75a884850b631716c35232c1ce699b19bb4ddedb verified by CI #45190394525, QA #45190394796 and Pages #45190394590, all successful.
 - Next domain slice: DOM-129 production metadata export/import compatibility guards.
