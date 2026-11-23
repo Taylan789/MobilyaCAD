@@ -75,6 +75,7 @@ import "./components/workspace/KeyboardShortcuts.css";
 import "./styles/workbench.css";
 import "./styles/workspace-viewport-fit.css";
 import "./styles/ui-inspector-layout-001.css";
+import "./styles/cad-graphite-workspace-001.css";
 
 import Scene3D from "./components/viewport/Scene3D";
 import { DrawerBoxConfigurator } from "./components/production/DrawerBoxConfigurator";
