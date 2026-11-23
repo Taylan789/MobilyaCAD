@@ -5,6 +5,7 @@ import { BODY_PANEL_GROUPS } from "./bodyPanelMaterials.ts";
 import { calculateCabinetProjectProductionWithDiagnostics } from "./projectProduction.ts";
 import { createProjectQuotePricingSnapshot } from "./projectQuotePricingSnapshot.ts";
 import {
+  compareProjectQuoteRevisions,
   createProjectQuoteRevision,
   validateProjectQuoteRevisionHistory
 } from "./projectQuoteRevision.ts";
@@ -209,4 +210,46 @@ test("DOM-126a revision snapshots reject partial or misplaced hardware BOM metad
   const misplacedResult = createRevision(misplaced);
   assert.equal(misplacedResult.status, "blocked");
   assert.match(misplacedResult.diagnostics[0], /yalnızca production-consumption hardware/);
+});
+
+
+test("DOM-126b hardware BOM source changes appear in revision comparisons without changing monetary totals", () => {
+  const first = createRevision(snapshot);
+  assert.equal(first.status, "ready", first.diagnostics.join("; "));
+  assert.ok(first.revision);
+  const secondSnapshot = structuredClone(snapshot);
+  const secondHardwareSource = secondSnapshot.quoteSummary.lineSources.find(source => source.hardwareId === "hinge-110");
+  assert.ok(secondHardwareSource);
+  secondHardwareSource.hardwareSourceReferences = ["bom:catalog-a", "bom:catalog-m", "bom:catalog-z"];
+  const second = createProjectQuoteRevision({
+    projectId,
+    revisionId: revisionId + "-2",
+    revisionNumber: 2,
+    createdAt: "2026-11-23T08:00:00Z",
+    previousRevision: {
+      projectId,
+      revisionId: first.revision.revisionId,
+      revisionNumber: first.revision.revisionNumber,
+      createdAt: first.revision.createdAt
+    },
+    sourceIntegrityVersion: 1,
+    pricingSnapshot: secondSnapshot
+  });
+  assert.equal(second.status, "ready", second.diagnostics.join("; "));
+  assert.ok(second.revision);
+  const history = validateProjectQuoteRevisionHistory({ projectId, revisions: [first.revision, second.revision] });
+  assert.equal(history.status, "ready", history.diagnostics.join("; "));
+  assert.ok(history.history);
+  const comparisonResult = compareProjectQuoteRevisions(history.history, first.revision.revisionId, second.revision.revisionId);
+  assert.equal(comparisonResult.status, "ready", comparisonResult.diagnostics.join("; "));
+  assert.ok(comparisonResult.comparison);
+  assert.equal(comparisonResult.comparison.lineChanges.length, 1);
+  const hardwareChange = comparisonResult.comparison.lineChanges[0];
+  assert.equal(hardwareChange.type, "changed");
+  assert.deepEqual(hardwareChange.from.hardwareSourceReferences, ["bom:catalog-a", "bom:catalog-z"]);
+  assert.deepEqual(hardwareChange.to.hardwareSourceReferences, ["bom:catalog-a", "bom:catalog-m", "bom:catalog-z"]);
+  assert.deepEqual(hardwareChange.from.hardwareFurnitureIds, ["revision-cabinet-1"]);
+  assert.deepEqual(hardwareChange.to.hardwareFurnitureIds, ["revision-cabinet-1"]);
+  assert.equal(comparisonResult.comparison.grandTotalDeltaMinor, 0);
+  assert.equal(comparisonResult.comparison.categoryDeltasMinor.hardware, 0);
 });

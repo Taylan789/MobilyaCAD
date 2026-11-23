@@ -890,6 +890,10 @@ export interface ProjectQuoteRevisionCostLineSnapshot {
   furnitureIds?: readonly string[];
   planSourceReference?: string;
   priceSourceReference?: string;
+  hardwareId?: string;
+  hardwareUnit?: string;
+  hardwareFurnitureIds?: readonly string[];
+  hardwareSourceReferences?: readonly string[];
 }
 
 export interface ProjectQuoteRevisionLineChange {
@@ -948,7 +952,11 @@ function createRevisionComparisonLineSnapshot(
     ...(source.purchasedLengthMm === undefined ? {} : { purchasedLengthMm: source.purchasedLengthMm }),
     ...(source.furnitureIds === undefined ? {} : { furnitureIds: [...source.furnitureIds] }),
     ...(source.planSourceReference === undefined ? {} : { planSourceReference: source.planSourceReference }),
-    ...(source.priceSourceReference === undefined ? {} : { priceSourceReference: source.priceSourceReference })
+    ...(source.priceSourceReference === undefined ? {} : { priceSourceReference: source.priceSourceReference }),
+    ...(source.hardwareId === undefined ? {} : { hardwareId: source.hardwareId }),
+    ...(source.hardwareUnit === undefined ? {} : { hardwareUnit: source.hardwareUnit }),
+    ...(source.hardwareFurnitureIds === undefined ? {} : { hardwareFurnitureIds: [...source.hardwareFurnitureIds] }),
+    ...(source.hardwareSourceReferences === undefined ? {} : { hardwareSourceReferences: [...source.hardwareSourceReferences] })
   };
 }
 
@@ -992,6 +1000,10 @@ function revisionComparisonLineValue(line: RevisionComparisonLine): string {
     snapshot.furnitureIds ?? [],
     snapshot.planSourceReference ?? null,
     snapshot.priceSourceReference ?? null,
+    snapshot.hardwareId ?? null,
+    snapshot.hardwareUnit ?? null,
+    snapshot.hardwareFurnitureIds ?? [],
+    snapshot.hardwareSourceReferences ?? [],
     line.resourceType ?? null,
     line.resourceId ?? null,
     line.resourceUnit ?? null
