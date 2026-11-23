@@ -447,3 +447,9 @@
 - AI Developer attempt 3 [#45091325066](https://github.com/Taylan789/MobilyaCAD/actions/runs/45091325066) failed again; its job-log endpoint returned 404/BlobNotFound, so no new error detail was available. The run did not move branch HEAD. Integration/performance specialist job was skipped; no integration-performance PR is open. UI agent PRs remain separate and unmerged; frontend files were not changed here.
 - Local tests could not be run because the repository is not mounted in this runtime; exact-SHA Actions are authoritative.
 - Next: DOM-126d comparison CSV v4 BOM columns and v1/v2/v3 compatibility, then DOM-127 traceability boundary review.
+
+
+## 23 Kasım 2026 13:08 TRT — DOM-126d CSV v4 implementation (verification pending)
+- Comparison CSV v4 adds paired hardware BOM ID/unit/furniture/source-reference columns; v1/v2/v3 readers remain strict and compatible. Tests added for hardware metadata round-trip, partial/unsorted rejection, JSON v3 cross-format preservation and legacy v3 compatibility.
+- Code/test commit: pending creation. Exact-SHA CI, QA and Pages results pending. Local test execution unavailable because the runtime could not resolve GitHub for a read-only clone.
+- Frontend files, machine-specific output, integration/performance-owned adapters and `main` remain untouched. Next: DOM-127 hardware traceability boundary.

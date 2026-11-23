@@ -179,7 +179,7 @@ function readyComparisonResult() {
   };
 }
 
-test("CSV v3 preserves catalog identity and blocks partial or mismatched metadata", () => {
+test("CSV v4 preserves catalog identity and blocks partial or mismatched metadata", () => {
   const original = readyComparisonResult();
   const materialChange = original.comparison.lineChanges[0];
   for (const line of [materialChange.from, materialChange.to]) {
@@ -195,9 +195,10 @@ test("CSV v3 preserves catalog identity and blocks partial or mismatched metadat
   const serialized = serializeProjectQuoteRevisionComparisonCsv(original);
   assert.equal(serialized.status, "ready", serialized.diagnostics.join("; "));
   assert.ok(serialized.csv);
-  assert.equal(PROJECT_QUOTE_REVISION_COMPARISON_CSV_VERSION, 3);
+  assert.equal(PROJECT_QUOTE_REVISION_COMPARISON_CSV_VERSION, 4);
   assert.match(serialized.csv, /"fromResourceType","toResourceType","fromResourceId","toResourceId","fromResourceUnit","toResourceUnit"/);
-  assert.match(serialized.csv, /"MobilyaCADQuoteRevisionComparisonCsv","3","line"/);
+  assert.match(serialized.csv, /"fromHardwareId","toHardwareId","fromHardwareUnit","toHardwareUnit","fromHardwareFurnitureIds","toHardwareFurnitureIds","fromHardwareSourceReferences","toHardwareSourceReferences"/);
+  assert.match(serialized.csv, /"MobilyaCADQuoteRevisionComparisonCsv","4","line"/);
   const parsed = parseProjectQuoteRevisionComparisonCsv(serialized.csv);
   assert.equal(parsed.status, "ready", parsed.diagnostics.join("; "));
   assert.deepEqual(parsed.comparison, original.comparison);
@@ -220,7 +221,7 @@ test("CSV v3 preserves catalog identity and blocks partial or mismatched metadat
   assert.match(mismatchResult.diagnostics[0], /katalog kaynak/i);
 });
 
-test("CSV v3 has stable columns and round-trips exact comparison metadata", () => {
+test("CSV v4 has stable columns and round-trips exact comparison metadata", () => {
   const original = readyComparisonResult();
   const serialized = serializeProjectQuoteRevisionComparisonCsv(original);
   assert.equal(serialized.status, "ready");
@@ -228,11 +229,11 @@ test("CSV v3 has stable columns and round-trips exact comparison metadata", () =
   assert.ok(serialized.csv.startsWith("\uFEFF"));
   const header = PROJECT_QUOTE_REVISION_COMPARISON_CSV_COLUMNS.map((column => '"' + column + '"')).join(",");
   assert.ok(serialized.csv.slice(1).startsWith(header + "\r\n"));
-  assert.equal(serialized.csv.split('"MobilyaCADQuoteRevisionComparisonCsv","3","line"').length - 1, 9);
+  assert.equal(serialized.csv.split('"MobilyaCADQuoteRevisionComparisonCsv","4","line"').length - 1, 9);
 
   const parsed = parseProjectQuoteRevisionComparisonCsv(serialized.csv);
   assert.equal(parsed.status, "ready");
-  assert.equal(parsed.formatVersion, 3);
+  assert.equal(parsed.formatVersion, 4);
   assert.equal(Object.keys(parsed).includes("formatVersion"), false);
   assert.deepEqual(parsed.comparison, original.comparison);
   assert.equal(parsed.comparison?.currencyCode, "TRY");
@@ -263,7 +264,7 @@ test("DOM-104 repeated CSV exports are byte-stable and round-trip without mutati
   for (const csv of csvs) {
     const parsed = parseProjectQuoteRevisionComparisonCsv(csv);
     assert.equal(parsed.status, "ready", parsed.diagnostics.join("; "));
-    assert.equal(parsed.formatVersion, 3);
+    assert.equal(parsed.formatVersion, 4);
     assert.deepEqual(parsed.comparison, comparisonSnapshot);
   }
   assert.deepEqual(original.comparison, comparisonSnapshot);
@@ -503,9 +504,95 @@ function emptyComparisonResult() {
   return result;
 }
 
+
+function hardwareBOMComparisonResult() {
+  const result = emptyComparisonResult();
+  const from = {
+    category: "hardware", description: "Menteşe seti", quantity: 2, unit: "adet",
+    unitPriceMinor: 50, lineTotalMinor: 100, currencyCode: "TRY",
+    sourceReference: "hardware-price:v1", sourceType: "production-consumption", sourceId: "hinge-line",
+    hardwareId: "hinge-bom-01", hardwareUnit: "adet", hardwareFurnitureIds: ["cabinet-a", "cabinet-b"],
+    hardwareSourceReferences: ["bom-source-1", "bom-source-2"]
+  };
+  const to = { ...from, unitPriceMinor: 75, lineTotalMinor: 150, sourceReference: "hardware-price:v2",
+    hardwareSourceReferences: ["bom-source-2", "bom-source-3"] };
+  result.comparison.lineChanges = [{ type: "changed", from, to }];
+  result.comparison.fromGrandTotalMinor = 10000;
+  result.comparison.toGrandTotalMinor = 10050;
+  result.comparison.grandTotalDeltaMinor = 50;
+  result.comparison.categoryDeltasMinor.hardware = 50;
+  return result;
+}
+test("DOM-126d CSV v4 round-trips hardware BOM provenance and rejects partial or unsorted metadata", () => {
+  const original = hardwareBOMComparisonResult();
+  const serialized = serializeProjectQuoteRevisionComparisonCsv(original);
+  assert.equal(serialized.status, "ready", serialized.diagnostics.join("; "));
+  assert.ok(serialized.csv);
+  assert.equal(PROJECT_QUOTE_REVISION_COMPARISON_CSV_VERSION, 4);
+  assert.match(serialized.csv, /"fromHardwareId","toHardwareId","fromHardwareUnit","toHardwareUnit","fromHardwareFurnitureIds","toHardwareFurnitureIds","fromHardwareSourceReferences","toHardwareSourceReferences"/);
+  const parsed = parseProjectQuoteRevisionComparisonCsv(serialized.csv);
+  assert.equal(parsed.status, "ready", parsed.diagnostics.join("; "));
+  assert.equal(parsed.formatVersion, 4);
+  assert.deepEqual(parsed.comparison, original.comparison);
+  assert.equal(Object.keys(parsed).includes("formatVersion"), false);
+
+  const jsonExport = serializeProjectQuoteRevisionComparisonFile(original);
+  assert.equal(jsonExport.status, "ready", jsonExport.diagnostics.join("; "));
+  assert.equal(JSON.parse(jsonExport.json).schemaVersion, 3);
+  const jsonParsed = parseProjectQuoteRevisionComparisonFile(jsonExport.json);
+  assert.equal(jsonParsed.status, "ready", jsonParsed.diagnostics.join("; "));
+  assert.deepEqual(jsonParsed.comparison, original.comparison);
+
+  const records = parseCsvRecordsForTest(serialized.csv);
+  const header = records[0];
+  const index = name => header.indexOf(name);
+  const lineIndex = records.findIndex(row => row[index("rowType")] === "line");
+  assert.ok(lineIndex > 0);
+
+  const partialRecords = records.map(row => [...row]);
+  partialRecords[lineIndex][index("toHardwareUnit")] = "";
+  const partialCsv = "\uFEFF" + partialRecords.map(row => row.map(encodeCsvCellForTest).join(",")).join("\r\n") + "\r\n";
+  const partial = parseProjectQuoteRevisionComparisonCsv(partialCsv);
+  assert.equal(partial.status, "blocked");
+  assert.equal(partial.comparison, null);
+  assert.equal(partial.formatVersion, undefined);
+
+  const unsortedRecords = records.map(row => [...row]);
+  unsortedRecords[lineIndex][index("toHardwareSourceReferences")] = JSON.stringify(["bom-source-3", "bom-source-2"]);
+  const unsortedCsv = "\uFEFF" + unsortedRecords.map(row => row.map(encodeCsvCellForTest).join(",")).join("\r\n") + "\r\n";
+  const unsorted = parseProjectQuoteRevisionComparisonCsv(unsortedCsv);
+  assert.equal(unsorted.status, "blocked");
+  assert.equal(unsorted.comparison, null);
+  assert.equal(unsorted.formatVersion, undefined);
+});
+
+test("legacy CSV v3 still round-trips resource identity without hardware BOM columns", () => {
+  const original = readyComparisonResult();
+  for (const line of [original.comparison.lineChanges[0].from, original.comparison.lineChanges[0].to]) {
+    line.resourceType = "material";
+    line.resourceId = "mdf-18";
+    line.resourceUnit = "m2";
+  }
+  const edgeBandLine = original.comparison.lineChanges[1].to;
+  edgeBandLine.resourceType = "edge-banding";
+  edgeBandLine.resourceId = "pvc-1";
+  edgeBandLine.resourceUnit = "mm";
+
+  const v4 = serializeProjectQuoteRevisionComparisonCsv(original);
+  assert.equal(v4.status, "ready", v4.diagnostics.join("; "));
+  const v3 = toLegacyV3Csv(v4.csv);
+  const parsed = parseProjectQuoteRevisionComparisonCsv(v3);
+  assert.equal(parsed.status, "ready", parsed.diagnostics.join("; "));
+  assert.equal(parsed.formatVersion, 3);
+  assert.deepEqual(parsed.comparison, original.comparison);
+  assert.equal(parsed.comparison.lineChanges[0].from.resourceId, "mdf-18");
+  assert.equal(parsed.comparison.lineChanges[1].to.resourceUnit, "mm");
+  assert.doesNotMatch(v3.split("\r\n", 1)[0], /HardwareId|HardwareUnit|HardwareFurnitureIds|HardwareSourceReferences/);
+});
+
 function toLegacyV1Csv(csv) {
   const records = parseCsvRecordsForTest(csv);
-  const legacyColumnCount = PROJECT_QUOTE_REVISION_COMPARISON_CSV_COLUMNS.length - 18;
+  const legacyColumnCount = PROJECT_QUOTE_REVISION_COMPARISON_CSV_COLUMNS.length - 26;
   return records.map((row, index) => {
     if (index > 0) row[1] = "1";
     return row.slice(0, legacyColumnCount).map(encodeCsvCellForTest).join(",");
@@ -514,14 +601,24 @@ function toLegacyV1Csv(csv) {
 
 function toLegacyV2Csv(csv) {
   const records = parseCsvRecordsForTest(csv);
-  const legacyColumnCount = PROJECT_QUOTE_REVISION_COMPARISON_CSV_COLUMNS.length - 6;
+  const legacyColumnCount = PROJECT_QUOTE_REVISION_COMPARISON_CSV_COLUMNS.length - 14;
   return records.map((row, index) => {
     if (index > 0) row[1] = "2";
     return row.slice(0, legacyColumnCount).map(encodeCsvCellForTest).join(",");
   }).join("\r\n") + "\r\n";
 }
 
-test("DOM-072 CSV v3 round-trip preserves roll count, lengths and source references", () => {
+
+function toLegacyV3Csv(csv) {
+  const records = parseCsvRecordsForTest(csv);
+  const legacyColumnCount = PROJECT_QUOTE_REVISION_COMPARISON_CSV_COLUMNS.length - 8;
+  return records.map((row, index) => {
+    if (index > 0) row[1] = "3";
+    return row.slice(0, legacyColumnCount).map(encodeCsvCellForTest).join(",");
+  }).join("\r\n") + "\r\n";
+}
+
+test("DOM-072 CSV v4 round-trip preserves roll count, lengths and source references", () => {
   const original = readyComparisonResult();
   const from = {
     category: "material", description: "PVC rulo satın alımı", quantity: 1, unit: "rulo",
@@ -605,7 +702,7 @@ test("DOM-072 legacy CSV v1 without roll metadata remains readable", () => {
 });
 
 
-test("DOM-100 JSON v2 and CSV v3 preserve comparison data across cross-format round-trips and fail closed", () => {
+test("DOM-100 JSON v2 and CSV v4 preserve comparison data across cross-format round-trips and fail closed", () => {
   const original = readyComparisonResult();
   for (const line of [original.comparison.lineChanges[0].from, original.comparison.lineChanges[0].to]) {
     line.resourceType = "material";
@@ -631,7 +728,7 @@ test("DOM-100 JSON v2 and CSV v3 preserve comparison data across cross-format ro
   });
   assert.equal(csvExport.status, "ready", csvExport.diagnostics.join("; "));
   assert.ok(csvExport.csv);
-  assert.equal(PROJECT_QUOTE_REVISION_COMPARISON_CSV_VERSION, 3);
+  assert.equal(PROJECT_QUOTE_REVISION_COMPARISON_CSV_VERSION, 4);
   const csvImport = parseProjectQuoteRevisionComparisonCsv(csvExport.csv);
   assert.equal(csvImport.status, "ready", csvImport.diagnostics.join("; "));
   assert.deepEqual(csvImport.comparison, original.comparison);
@@ -643,8 +740,8 @@ test("DOM-100 JSON v2 and CSV v3 preserve comparison data across cross-format ro
   assert.deepEqual(finalJsonImport.comparison, original.comparison);
 
   const corruptedCsv = csvExport.csv.replaceAll(
-    '"MobilyaCADQuoteRevisionComparisonCsv","3","line"',
-    '"MobilyaCADQuoteRevisionComparisonCsv","4","line"'
+    '"MobilyaCADQuoteRevisionComparisonCsv","4","line"',
+    '"MobilyaCADQuoteRevisionComparisonCsv","5","line"'
   );
   assert.notEqual(corruptedCsv, csvExport.csv);
   const rejectedCsv = parseProjectQuoteRevisionComparisonCsv(corruptedCsv);
@@ -733,7 +830,7 @@ test("DOM-102 CSV v2 round-trip preserves roll metadata without resource columns
   assert.equal(rollChange.to.resourceType, undefined);
 });
 
-test("DOM-102 CSV v3 blocks partial resource identity metadata without partial comparison", () => {
+test("DOM-102 CSV v4 blocks partial resource identity metadata without partial comparison", () => {
   const original = readyComparisonResult();
   const materialChange = original.comparison.lineChanges[0];
   for (const line of [materialChange.from, materialChange.to]) {
@@ -815,7 +912,7 @@ test("DOM-102 legacy CSV v1/v2 intentionally omit catalog identity but retain li
 });
 
 
-test("DOM-105/106 legacy CSV v1/v2 imports preserve supported metadata across canonical CSV and JSON round-trips", () => {
+test("DOM-105/106 legacy CSV v1/v2 imports preserve supported metadata across canonical CSV v4 and JSON round-trips", () => {
   const version1Source = readyComparisonResult();
   const version2Source = readyComparisonResult();
 
@@ -925,14 +1022,14 @@ test("DOM-105/106 legacy CSV v1/v2 imports preserve supported metadata across ca
     }
 
     const canonical = serializeProjectQuoteRevisionComparisonCsv(imported);
-    assert.equal(canonical.status, "ready", "canonical v3 from legacy v" + legacy.version + ": " + canonical.diagnostics.join("; "));
+    assert.equal(canonical.status, "ready", "canonical v4 from legacy v" + legacy.version + ": " + canonical.diagnostics.join("; "));
     assert.ok(canonical.csv);
     assert.ok(canonical.csv.startsWith("\uFEFF"));
     assert.ok(canonical.csv.endsWith("\r\n"));
     const canonicalHeader = PROJECT_QUOTE_REVISION_COMPARISON_CSV_COLUMNS.map(column => '"' + column + '"').join(",");
     assert.ok(canonical.csv.slice(1).startsWith(canonicalHeader + "\r\n"));
     const canonicalRows = parseCsvRecordsForTest(canonical.csv);
-    assert.ok(canonicalRows.slice(1).every(row => row[1] === "3"));
+    assert.ok(canonicalRows.slice(1).every(row => row[1] === "4"));
 
     const importedBeforeExport = structuredClone(imported.comparison);
     const repeatedCanonical = serializeProjectQuoteRevisionComparisonCsv(imported);
@@ -942,7 +1039,7 @@ test("DOM-105/106 legacy CSV v1/v2 imports preserve supported metadata across ca
 
     const canonicalParsed = parseProjectQuoteRevisionComparisonCsv(canonical.csv);
     assert.equal(canonicalParsed.status, "ready", canonicalParsed.diagnostics.join("; "));
-    assert.equal(canonicalParsed.formatVersion, 3);
+    assert.equal(canonicalParsed.formatVersion, 4);
     assert.deepEqual(canonicalParsed.comparison, importedSnapshot);
 
     const jsonV2 = serializeProjectQuoteRevisionComparisonFile({
@@ -967,11 +1064,11 @@ test("DOM-105/106 legacy CSV v1/v2 imports preserve supported metadata across ca
       comparison: jsonParsed.comparison,
       diagnostics: []
     });
-    assert.equal(csvAfterJson.status, "ready", "CSV v3 after JSON v2 from legacy v" + legacy.version + ": " + csvAfterJson.diagnostics.join("; "));
+    assert.equal(csvAfterJson.status, "ready", "CSV v4 after JSON v2 from legacy v" + legacy.version + ": " + csvAfterJson.diagnostics.join("; "));
     assert.ok(csvAfterJson.csv);
     const finalCsvParsed = parseProjectQuoteRevisionComparisonCsv(csvAfterJson.csv);
     assert.equal(finalCsvParsed.status, "ready", finalCsvParsed.diagnostics.join("; "));
-    assert.equal(finalCsvParsed.formatVersion, 3);
+    assert.equal(finalCsvParsed.formatVersion, 4);
     assert.deepEqual(finalCsvParsed.comparison, importedSnapshot);
   }
 });

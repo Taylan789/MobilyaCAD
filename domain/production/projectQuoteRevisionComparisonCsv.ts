@@ -12,7 +12,7 @@ import type {
 } from "./projectQuoteRevision.ts";
 
 export const PROJECT_QUOTE_REVISION_COMPARISON_CSV_FORMAT = "MobilyaCADQuoteRevisionComparisonCsv" as const;
-export const PROJECT_QUOTE_REVISION_COMPARISON_CSV_VERSION = 3 as const;
+export const PROJECT_QUOTE_REVISION_COMPARISON_CSV_VERSION = 4 as const;
 
 const legacyColumnsV1 = [
   "format", "formatVersion", "rowType", "projectId",
@@ -34,9 +34,17 @@ const legacyColumnsV2 = [
   "fromPlanSourceReference", "toPlanSourceReference", "fromPriceSourceReference", "toPriceSourceReference"
 ] as const;
 
-export const PROJECT_QUOTE_REVISION_COMPARISON_CSV_COLUMNS = [
+const legacyColumnsV3 = [
   ...legacyColumnsV2,
   "fromResourceType", "toResourceType", "fromResourceId", "toResourceId", "fromResourceUnit", "toResourceUnit"
+] as const;
+const hardwareBomColumns = [
+  "fromHardwareId", "toHardwareId", "fromHardwareUnit", "toHardwareUnit",
+  "fromHardwareFurnitureIds", "toHardwareFurnitureIds",
+  "fromHardwareSourceReferences", "toHardwareSourceReferences"
+] as const;
+export const PROJECT_QUOTE_REVISION_COMPARISON_CSV_COLUMNS = [
+  ...legacyColumnsV3, ...hardwareBomColumns
 ] as const;
 
 export interface ProjectQuoteRevisionComparisonCsvSerializationResult {
@@ -48,7 +56,7 @@ export interface ProjectQuoteRevisionComparisonCsvSerializationResult {
 export interface ProjectQuoteRevisionComparisonCsvParseResult {
   status: "ready" | "blocked";
   /** CSV header version, available only on success; non-enumerable to preserve strict serializer compatibility. */
-  formatVersion?: 1 | 2 | 3;
+  formatVersion?: 1 | 2 | 3 | 4;
   comparison: ProjectQuoteRevisionComparison | null;
   diagnostics: readonly string[];
 }
@@ -60,6 +68,7 @@ const columns = PROJECT_QUOTE_REVISION_COMPARISON_CSV_COLUMNS;
 const columnIndex = new Map<string, number>(columns.map((column, index) => [column, index] as const));
 const legacyColumnIndexV1 = new Map<string, number>(legacyColumnsV1.map((column, index) => [column, index] as const));
 const legacyColumnIndexV2 = new Map<string, number>(legacyColumnsV2.map((column, index) => [column, index] as const));
+const legacyColumnIndexV3 = new Map<string, number>(legacyColumnsV3.map((column, index) => [column, index] as const));
 const lineColumns = columns.slice(15);
 const sideRequiredFields = [
   "Description", "Quantity", "Unit", "UnitPriceMinor", "LineTotalMinor",
@@ -113,23 +122,29 @@ function lineChangeValues(
   from: ProjectQuoteRevisionCostLineSnapshot | null,
   to: ProjectQuoteRevisionCostLineSnapshot | null
 ): unknown[] {
-  const fromValues = from === null ? Array(21).fill("") : [
+  const fromValues = from === null ? Array(25).fill("") : [
     from.description, from.quantity, from.unit, from.unitPriceMinor, from.lineTotalMinor,
     from.currencyCode, from.sourceReference ?? "", from.sourceType, from.sourceId,
     from.tariffId ?? "", from.sourcePartIds === undefined ? "" : JSON.stringify(from.sourcePartIds),
     from.edgeDirection ?? "", from.rollCount ?? "", from.rollLengthMm ?? "",
     from.purchasedLengthMm ?? "", from.furnitureIds === undefined ? "" : JSON.stringify(from.furnitureIds),
     from.planSourceReference ?? "", from.priceSourceReference ?? "",
-    from.resourceType ?? "", from.resourceId ?? "", from.resourceUnit ?? ""
+    from.resourceType ?? "", from.resourceId ?? "", from.resourceUnit ?? "",
+    from.hardwareId ?? "", from.hardwareUnit ?? "",
+    from.hardwareFurnitureIds === undefined ? "" : JSON.stringify(from.hardwareFurnitureIds),
+    from.hardwareSourceReferences === undefined ? "" : JSON.stringify(from.hardwareSourceReferences)
   ];
-  const toValues = to === null ? Array(21).fill("") : [
+  const toValues = to === null ? Array(25).fill("") : [
     to.description, to.quantity, to.unit, to.unitPriceMinor, to.lineTotalMinor,
     to.currencyCode, to.sourceReference ?? "", to.sourceType, to.sourceId,
     to.tariffId ?? "", to.sourcePartIds === undefined ? "" : JSON.stringify(to.sourcePartIds),
     to.edgeDirection ?? "", to.rollCount ?? "", to.rollLengthMm ?? "",
     to.purchasedLengthMm ?? "", to.furnitureIds === undefined ? "" : JSON.stringify(to.furnitureIds),
     to.planSourceReference ?? "", to.priceSourceReference ?? "",
-    to.resourceType ?? "", to.resourceId ?? "", to.resourceUnit ?? ""
+    to.resourceType ?? "", to.resourceId ?? "", to.resourceUnit ?? "",
+    to.hardwareId ?? "", to.hardwareUnit ?? "",
+    to.hardwareFurnitureIds === undefined ? "" : JSON.stringify(to.hardwareFurnitureIds),
+    to.hardwareSourceReferences === undefined ? "" : JSON.stringify(to.hardwareSourceReferences)
   ];
   return [
     fromValues[0], toValues[0],
@@ -152,7 +167,11 @@ function lineChangeValues(
     fromValues[17], toValues[17],
     fromValues[18], toValues[18],
     fromValues[19], toValues[19],
-    fromValues[20], toValues[20]
+    fromValues[20], toValues[20],
+    fromValues[21], toValues[21],
+    fromValues[22], toValues[22],
+    fromValues[23], toValues[23],
+    fromValues[24], toValues[24]
   ];
 }
 
@@ -232,6 +251,11 @@ function cell(row: readonly string[], name: string, indexMap = columnIndex): str
   return row[index] ?? "";
 }
 
+function parseStringListCell(value: string, label: string): string[] {
+  const parsed: unknown = JSON.parse(value);
+  if (!Array.isArray(parsed) || parsed.some((item) => typeof item !== "string")) throw new Error(label + " JSON string listesi olmalıdır.");
+  return parsed as string[];
+}
 function parseIntegerCell(value: string, label: string, minimum = Number.MIN_SAFE_INTEGER): number {
   if (!/^-?(?:0|[1-9]\d*)$/.test(value)) throw new Error(label + " tam sayı olmalıdır.");
   const number = Number(value);
@@ -262,7 +286,7 @@ function parseLineSide(
   side: "from" | "to",
   category: ProjectQuoteCostCategory,
   indexMap: Map<string, number>,
-  version: 1 | 2 | 3
+  version: 1 | 2 | 3 | 4
 ): ProjectQuoteRevisionCostLineSnapshot | null {
   const names = [
     side + "Description", side + "Quantity", side + "Unit", side + "UnitPriceMinor",
@@ -273,8 +297,11 @@ function parseLineSide(
       side + "RollCount", side + "RollLengthMm", side + "PurchasedLengthMm",
       side + "FurnitureIds", side + "PlanSourceReference", side + "PriceSourceReference"
     ] : []),
-    ...(version === 3 ? [
+    ...(version >= 3 ? [
       side + "ResourceType", side + "ResourceId", side + "ResourceUnit"
+    ] : []),
+    ...(version === 4 ? [
+      side + "HardwareId", side + "HardwareUnit", side + "HardwareFurnitureIds", side + "HardwareSourceReferences"
     ] : [])
   ] as const;
   const values = names.map((name) => cell(row, name, indexMap));
@@ -301,9 +328,15 @@ function parseLineSide(
   const furnitureIdsCell = version >= 2 ? cell(row, side + "FurnitureIds", indexMap) : "";
   const planSourceReference = version >= 2 ? cell(row, side + "PlanSourceReference", indexMap) : "";
   const priceSourceReference = version >= 2 ? cell(row, side + "PriceSourceReference", indexMap) : "";
-  const resourceTypeCell = version === 3 ? cell(row, side + "ResourceType", indexMap) : "";
-  const resourceIdCell = version === 3 ? cell(row, side + "ResourceId", indexMap) : "";
-  const resourceUnitCell = version === 3 ? cell(row, side + "ResourceUnit", indexMap) : "";
+  const resourceTypeCell = version >= 3 ? cell(row, side + "ResourceType", indexMap) : "";
+  const resourceIdCell = version >= 3 ? cell(row, side + "ResourceId", indexMap) : "";
+  const resourceUnitCell = version >= 3 ? cell(row, side + "ResourceUnit", indexMap) : "";
+  const hardwareIdCell = version === 4 ? cell(row, side + "HardwareId", indexMap) : "";
+  const hardwareUnitCell = version === 4 ? cell(row, side + "HardwareUnit", indexMap) : "";
+  const hardwareFurnitureIdsCell = version === 4 ? cell(row, side + "HardwareFurnitureIds", indexMap) : "";
+  const hardwareSourceReferencesCell = version === 4 ? cell(row, side + "HardwareSourceReferences", indexMap) : "";
+  const hardwareFurnitureIds = hardwareFurnitureIdsCell === "" ? undefined : parseStringListCell(hardwareFurnitureIdsCell, "CSV donanım mobilya ID alanı");
+  const hardwareSourceReferences = hardwareSourceReferencesCell === "" ? undefined : parseStringListCell(hardwareSourceReferencesCell, "CSV donanım kaynak referansları");
   let furnitureIds: string[] | undefined;
   if (furnitureIdsCell !== "") {
     const parsed: unknown = JSON.parse(furnitureIdsCell);
@@ -334,7 +367,11 @@ function parseLineSide(
     ...(priceSourceReference === "" ? {} : { priceSourceReference }),
     ...(resourceTypeCell === "" ? {} : { resourceType: resourceTypeCell as ProjectQuoteRevisionCostLineSnapshot["resourceType"] }),
     ...(resourceIdCell === "" ? {} : { resourceId: resourceIdCell }),
-    ...(resourceUnitCell === "" ? {} : { resourceUnit: resourceUnitCell })
+    ...(resourceUnitCell === "" ? {} : { resourceUnit: resourceUnitCell }),
+    ...(hardwareIdCell === "" ? {} : { hardwareId: hardwareIdCell }),
+    ...(hardwareUnitCell === "" ? {} : { hardwareUnit: hardwareUnitCell }),
+    ...(hardwareFurnitureIds === undefined ? {} : { hardwareFurnitureIds }),
+    ...(hardwareSourceReferences === undefined ? {} : { hardwareSourceReferences })
   };
 }
 
@@ -375,7 +412,7 @@ export function serializeProjectQuoteRevisionComparisonCsv(
   });
 }
 
-/** Parse strict v1/v2/v3 CSV; reconstructed comparisons must pass the domain JSON validator. */
+/** Parse strict v1/v2/v3/v4 CSV; reconstructed comparisons must pass the domain JSON validator. */
 export function parseProjectQuoteRevisionComparisonCsv(
   csvValue: unknown
 ): ProjectQuoteRevisionComparisonCsvParseResult {
@@ -384,15 +421,17 @@ export function parseProjectQuoteRevisionComparisonCsv(
     const records = parseCsvRecords(csvValue);
     if (records.length < 8) throw new Error("CSV genel toplam ve altı kategori satırını içermelidir.");
     const header = records[0];
-    const version: 1 | 2 | 3 = header.length === legacyColumnsV1.length && header.every((value, index) => value === legacyColumnsV1[index])
-      ? 1
-      : header.length === legacyColumnsV2.length && header.every((value, index) => value === legacyColumnsV2[index])
-        ? 2
-        : header.length === columns.length && header.every((value, index) => value === columns[index])
-          ? 3
-          : (() => { throw new Error("Teklif karşılaştırma CSV sütun başlığı desteklenen v1/v2/v3 sözleşmesiyle uyuşmuyor."); })();
-    const indexMap = version === 1 ? legacyColumnIndexV1 : version === 2 ? legacyColumnIndexV2 : columnIndex;
-    const lineColumnsForVersion = header.slice(15);
+    const version: 1 | 2 | 3 | 4 = header.length === legacyColumnsV1.length && header.every((value, index) => value === legacyColumnsV1[index])
+    ? 1
+    : header.length === legacyColumnsV2.length && header.every((value, index) => value === legacyColumnsV2[index])
+    ? 2
+    : header.length === legacyColumnsV3.length && header.every((value, index) => value === legacyColumnsV3[index])
+    ? 3
+    : header.length === columns.length && header.every((value, index) => value === columns[index])
+    ? 4
+    : (() => { throw new Error("Teklif karşılaştırma CSV sütun başlığı desteklenen v1/v2/v3/v4 sözleşmesiyle uyuşmuyor."); })();
+    const indexMap = version === 1 ? legacyColumnIndexV1 : version === 2 ? legacyColumnIndexV2 : version === 3 ? legacyColumnIndexV3 : columnIndex;
+const lineColumnsForVersion = header.slice(15);
     for (const row of records.slice(1)) {
       if (row.length !== header.length) throw new Error("CSV satır sütun sayısı sözleşmeyle uyuşmuyor.");
       if (cell(row, "format", indexMap) !== PROJECT_QUOTE_REVISION_COMPARISON_CSV_FORMAT ||
