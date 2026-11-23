@@ -830,3 +830,33 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 .atelier-welcome { grid-template-columns: minmax(0, 1fr) !important; }
 .atelier-welcome-copy { max-width: 760px !important; }
 .atelier-bottom-row { grid-template-columns: minmax(0, 1fr) !important; }
+
+
+/* The dock tabs are the source of truth for counts; avoid repeating the same figures as header metrics. */
+.cad-bottom-dock-metrics { display: none !important; }
+.cad-bottom-dock-tabs { min-width: 0; gap: 3px; }
+.cad-bottom-dock-tabs button { flex: 0 0 auto; padding-inline: 9px; white-space: nowrap; }
+.cad-dock-part-select {
+  padding: 0;
+  color: #e2ebf0;
+  background: transparent;
+  border: 0;
+  font: inherit;
+  font-weight: 650;
+  text-align: left;
+  cursor: pointer;
+}
+.cad-dock-part-select:hover { color: #b9d5e8; text-decoration: underline; text-underline-offset: 3px; }
+.cad-dock-part-select:focus-visible {
+  outline: 2px solid #78a9d1;
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+@media (min-width: 761px) and (max-width: 1360px) {
+  .cad-bottom-dock-tabs button { padding-inline: 7px; }
+}
+@media (max-width: 760px) {
+  .cad-bottom-dock-header { overflow-x: auto; overflow-y: hidden; scrollbar-width: thin; }
+  .cad-bottom-dock-tabs { flex: 0 0 auto; }
+}
+
