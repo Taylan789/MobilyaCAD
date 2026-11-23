@@ -404,7 +404,7 @@
 
 
 ## 23 Kasım 2026 08:36 TRT — DOM-125 doğrulandı
-- Kod/test: [6025de0](https://github.com/Taylan789/MobilyaCAD/commit/6025de0a9e5612ff7ac67deab45a6df10a94b456); test assertion correction: [332299f](https://github.com/Taylan789/MobilyaCAD/commit/332299fbb852d690031d376fe82a9f390436c55e). Final branch SHA: 332299fbb852d690031d376fe82a9f390436c55e.
+- Feature commit: [6025de0](https://github.com/Taylan789/MobilyaCAD/commit/6025de0a9e5612ff7ac67deab45a6df10a94b456); CSV test assertion correction: [332299f](https://github.com/Taylan789/MobilyaCAD/commit/332299fbb852d690031d376fe82a9f390436c55e). This entry's code SHA was 332299f; current branch includes documentation-only follow-ups.
 - Exact-SHA CI [#45118738218](https://github.com/Taylan789/MobilyaCAD/actions/runs/45118738218) successful (production build + lint); QA [#45118738120](https://github.com/Taylan789/MobilyaCAD/actions/runs/45118738120) successful — 175 frontend + 658 domain tests, strict domain TypeScript, lint 32 warnings/0 errors, production build, production audit 0 vulnerabilities.
 - Pages deployment [#45118738144](https://github.com/Taylan789/MobilyaCAD/actions/runs/45118738144) successful: https://taylan789.github.io/MobilyaCAD/. This domain-only slice updates the deployed build but makes no visible frontend redesign; UI-agent PRs remain separate and unmerged.
 - Initial QA failure was a typo in the new CSV test assertion; corrected without weakening coverage. No local tests run (repository checkout/network unavailable).
@@ -413,4 +413,11 @@
 
 ## 23 Kasım 2026 08:38 TRT — Roadmap/contract consistency cleanup
 - Verified DOM-125 links/status and next task DOM-126 are synchronized; stale DOM-124/125 “next” wording removed. Contract separates DOM-124 and DOM-125 exact-SHA evidence correctly.
-- Documentation-only commit [0a5082f](https://github.com/Taylan789/MobilyaCAD/commit/0a5082f9efc4ca81d2cc5aee97ce842428ff0072) itself passed CI #45119088992, QA #45119089072 and Pages #45119089128. Final documentation cleanup commit pending Actions.
+- Documentation-only commit [0a5082f](https://github.com/Taylan789/MobilyaCAD/commit/0a5082f9efc4ca81d2cc5aee97ce842428ff0072) passed CI #45119088992, QA #45119089072 and Pages #45119089128. Final cleanup [7326aea](https://github.com/Taylan789/MobilyaCAD/commit/7326aea5e4e25e3b4eb8e460bf8796a71a5fb218) passed CI #45119292180, QA #45119292188 and Pages #45119292242.
+
+
+## 23 Kasım 2026 08:42 TRT — Final SHA and documentation verification
+- Current checked branch head before this record: [7326aea](https://github.com/Taylan789/MobilyaCAD/commit/7326aea5e4e25e3b4eb8e460bf8796a71a5fb218). Feature [6025de0](https://github.com/Taylan789/MobilyaCAD/commit/6025de0a9e5612ff7ac67deab45a6df10a94b456) and CSV test correction [332299f](https://github.com/Taylan789/MobilyaCAD/commit/332299fbb852d690031d376fe82a9f390436c55e) are verified by exact-SHA CI/QA/Pages #45118738218 / #45118738120 / #45118738144.
+- Latest docs cleanup [7326aea](https://github.com/Taylan789/MobilyaCAD/commit/7326aea5e4e25e3b4eb8e460bf8796a71a5fb218) passed exact-SHA CI #45119292180, QA #45119292188 and Pages #45119292242. QA: 175 frontend + 658 domain tests, strict TypeScript, production build, lint 32 warnings/0 errors, production audit 0 vulnerabilities.
+- No local test run; no manual test requested. UI agent PRs remain separate; domain-only deployment does not claim visible UI redesign.
+- AI Developer #45091325066 remains blocked by OpenRouter free-model quota HTTP 429; specialist integration/performance job/PR not found. Next DOM-126.
