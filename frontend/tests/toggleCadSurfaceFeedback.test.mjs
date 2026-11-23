@@ -23,7 +23,7 @@ test("hover, focus, active and disabled feedback stay explicit", () => {
   assert.ok(styles.includes(".cad-toggle-surface:hover:not(:disabled)"));
   assert.ok(styles.includes(".cad-toggle-surface:focus-visible"));
   assert.ok(styles.includes(".cad-toggle-surface:active:not(:disabled)"));
-  assert.ok(styles.includes(".cad-toggle-surface[aria-disabled=\"true\]"));
+  assert.ok(styles.includes('[aria-disabled="true"]'));
 });
 
 test("toggle feedback respects reduced motion and Windows forced colors", () => {
