@@ -1,0 +1,79 @@
+/* UI-PART-SELECTION-CALLOUT-001 — readable live part metadata in the 3D viewport */
+.cad-part-selection-callout {
+  box-sizing: border-box;
+  display: grid;
+  gap: 3px;
+  min-width: 150px;
+  max-width: min(280px, calc(100vw - 24px));
+  padding: 8px 10px;
+  border: 1px solid #4b6576;
+  border-radius: 7px;
+  background: linear-gradient(180deg, rgba(29, 43, 54, .97), rgba(17, 27, 35, .97));
+  box-shadow: 0 8px 20px rgba(0, 0, 0, .28), inset 0 1px rgba(255, 255, 255, .035);
+  backdrop-filter: blur(5px);
+  color: #e2ebf1;
+  font-family: "Geist Variable", sans-serif;
+  font-size: 11px;
+  line-height: 1.35;
+  text-align: left;
+  white-space: normal;
+  pointer-events: none;
+  user-select: none;
+}
+
+.cad-part-selection-callout span {
+  display: block;
+  color: #dce8ef;
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.cad-part-selection-callout strong {
+  display: block;
+  color: #a6c7df;
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: .015em;
+}
+
+.cad-part-selection-callout small {
+  display: block;
+  overflow: hidden;
+  color: #91a5b3;
+  font-size: 9px;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 560px) {
+  .cad-part-selection-callout {
+    min-width: 132px;
+    max-width: calc(100vw - 24px);
+    padding: 7px 9px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cad-part-selection-callout {
+    animation: none;
+    transition: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .cad-part-selection-callout {
+    color: CanvasText;
+    background: Canvas;
+    border: 1px solid CanvasText;
+    box-shadow: none;
+    backdrop-filter: none;
+  }
+
+  .cad-part-selection-callout span,
+  .cad-part-selection-callout strong,
+  .cad-part-selection-callout small {
+    color: CanvasText;
+  }
+}
