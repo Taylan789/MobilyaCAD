@@ -563,3 +563,12 @@
 - Pages [#45231664060](https://github.com/Taylan789/MobilyaCAD/actions/runs/45231664060) built successfully but its exact-SHA CI/QA gate failed; deploy was skipped. No broken version was published.
 - Correction changes the expected added/removed row order to match lexical costLineId sorting. Assertions and production behavior are unchanged; no tests were weakened. Corrected commit SHA and exact-SHA Actions results are pending.
 - Next: DOM-134 three-revision source-map audit reconciliation; DOM-135 legacy source-integrity disclosure. DOM-130 stays deferred due adapter ownership.
+
+
+## 23 Kasım 2026 20:40 TRT — DOM-133 VERIFIED
+- **Code/test commit:** [0944028fdf51c3b3e4f4ce0f5395e74885029239a](https://github.com/Taylan789/MobilyaCAD/commit/0944028fdf51c3b3e4f4ce0f5395e74885029239a).
+- Exact-SHA CI [#45231997148](https://github.com/Taylan789/MobilyaCAD/actions/runs/45231997148) and QA [#45231996953](https://github.com/Taylan789/MobilyaCAD/actions/runs/45231996953) passed; QA **191 frontend + 674 domain tests**, strict domain TypeScript, production build, lint **34 warnings / 0 errors**, production dependency audit **0 vulnerabilities**.
+- Pages [#45231997189](https://github.com/Taylan789/MobilyaCAD/actions/runs/45231997189) succeeded; test site deployed: https://taylan789.github.io/MobilyaCAD/.
+- Initial QA failure was only the new deterministic-order expectation; corrected expected lexical costLineId order without changing production behavior or weakening tests. Exact-SHA revalidation passed.
+- Local test execution unavailable in this runtime; Actions is the verification evidence. No frontend, adapter/performance-owned files, CNC/machine output or `main` changed.
+- Next: DOM-134 three-revision source-map audit reconciliation; DOM-135 legacy source-integrity disclosure. DOM-130 remains deferred due adapter ownership.
