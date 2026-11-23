@@ -71,7 +71,6 @@ test("DOM-129 project history and quote-summary JSON/CSV preserve hardware BOM p
   const jsonParsed = parseProjectQuoteSummaryFile(jsonExport.json);
   assert.equal(jsonParsed.status, "ready", jsonParsed.diagnostics.join(" | "));
   assert.deepEqual(jsonParsed.summary, summary);
-  assert.deepEqual(jsonParsed.summary.lineSources.find((source) => source.hardwareId === "hinge-110"), hardwareSource);
 
   const csvExport = serializeProjectQuoteSummaryCsv(summary);
   assert.equal(csvExport.status, "ready", csvExport.diagnostics.join(" | "));
@@ -79,7 +78,6 @@ test("DOM-129 project history and quote-summary JSON/CSV preserve hardware BOM p
   const csvParsed = parseProjectQuoteSummaryCsv(csvExport.csv);
   assert.equal(csvParsed.status, "ready", csvParsed.diagnostics.join(" | "));
   assert.deepEqual(csvParsed.summary, summary);
-  assert.deepEqual(csvParsed.summary.lineSources.find((source) => source.hardwareId === "hinge-110"), hardwareSource);
 
   const materialLine = summary.costSummary.lines.find((line) => line.category === "material");
   assert.ok(materialLine);
@@ -107,6 +105,8 @@ test("DOM-129 project history and quote-summary JSON/CSV preserve hardware BOM p
   assert.deepEqual(hardwareSource.hardwareFurnitureIds, ["quote-export-cabinet"]);
   assert.deepEqual(hardwareSource.hardwareSourceReferences, ["bom:catalog-a", "bom:catalog-z"]);
   assert.notDeepEqual(hardwareSource.hardwareSourceReferences, [hardwareLine.sourceReference]);
+  assert.deepEqual(jsonParsed.summary.lineSources.find((source) => source.hardwareId === "hinge-110"), hardwareSource);
+  assert.deepEqual(csvParsed.summary.lineSources.find((source) => source.hardwareId === "hinge-110"), hardwareSource);
 
   const laborLine = summary.costSummary.lines.find((line) => line.category === "labor");
   assert.ok(laborLine);

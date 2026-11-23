@@ -510,3 +510,10 @@
 - Düzeltme: rapor hata mesajı `firstError` üzerinden alındı; hardware source-map assertions JSON/CSV parse sonuçlarını karşılaştırmadan önce tanımlandı. Üretim davranışı veya test kriteri gevşetilmedi.
 - Kapsam yalnızca `domain/production/projectQuoteRevisionExports.test.mjs`, koordinasyon, roadmap ve progress; frontend, adapter/performance-owned dosyalar, CNC ve `main` değişmedi. Yerel test çalıştırılmadı.
 - Next: corrected DOM-129 exact-SHA CI/QA/Pages; başarılı Actions kanıtı olmadan doğrulanmış sayma.
+
+
+## 23 Kasım 2026 18:10 TRT — DOM-129 ikinci QA düzeltmesi
+
+- Correction commit [51da41df](https://github.com/Taylan789/MobilyaCAD/commit/51da41dfdc38b4cd39366d1d10a6310a3935b086) CI [#45201700181](https://github.com/Taylan789/MobilyaCAD/actions/runs/45201700181) successful; QA [#45201699809](https://github.com/Taylan789/MobilyaCAD/actions/runs/45201699809) failed only in the new integration test: `hardwareSource` was read before its declaration (ReferenceError). Pages [#45201699855](https://github.com/Taylan789/MobilyaCAD/actions/runs/45201699855) exact-SHA gate failed, deployment skipped.
+- Correction moves JSON/CSV source-map comparisons after the source declaration. No production behavior, serializer schema, or test assertions are weakened. This remains a test-only export-compatibility slice; local tests unavailable.
+- Next: corrected exact-SHA CI/QA/Pages; DOM-129 is not VERIFIED until those results succeed.
