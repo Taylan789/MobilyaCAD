@@ -59,7 +59,10 @@ function createReport(options = {}) {
 
   return calculateCabinetProjectProductionWithDiagnostics({
     schemaVersion: 1,
-    furniture: options.empty === true ? [] : [request]
+    furniture: options.empty === true ? [] : [
+      request,
+      ...(options.additionalFurnitureIds ?? []).map((id) => ({ ...request, furniture: { ...request.furniture, id } }))
+    ]
   });
 }
 
@@ -587,4 +590,56 @@ test("DOM-122 quote totals reconcile independently with priced consumption, labo
     labor: expectedTotals.labor, operation: expectedTotals.operation, waste: expectedTotals.waste, profit: expectedTotals.profit
   });
   assert.equal(quote.costSummary.grandTotalMinor, expectedQuote.reduce((sum, row) => sum + row[7], 0));
+});
+
+
+test("DOM-124 combined quote line sources carry hardware BOM provenance separately from price references", () => {
+  const hardwareItems = [
+    { id: "bom-hinge-z", furnitureId: "quote-cabinet-2", hardwareId: "hinge-110", name: "Menteşe", quantity: 2, unit: "adet", sourceReference: "bom:catalog-z" },
+    { id: "bom-hinge-a", furnitureId: "quote-cabinet-1", hardwareId: "hinge-110", name: "Menteşe", quantity: 1, unit: "adet", sourceReference: "bom:catalog-a" },
+    { id: "bom-hinge-a2", furnitureId: "quote-cabinet-2", hardwareId: "hinge-110", name: "Menteşe", quantity: 0.5, unit: "adet", sourceReference: "bom:catalog-a" }
+  ];
+  const report = createReport({ additionalFurnitureIds: ["quote-cabinet-2"] });
+  assert.equal(report.status, "ready", report.firstError ?? "İki mobilyalı üretim raporu hazır olmalıdır.");
+  assert.ok(report.result);
+  report.result.hardwareItems = hardwareItems;
+  const inputBefore = JSON.stringify(report.result.hardwareItems);
+  const prices = [
+    price("material", "mdf-18", "m2", 1250),
+    { ...price("hardware", "hinge-110", "adet", 700, "TRY"), sourceReference: "hardware-price:v2" }
+  ];
+  const consumption = calculateProjectPricedConsumptionSummary(report, prices);
+  const quote = calculateProjectQuoteSummary(report, prices, [], []);
+  assert.equal(consumption.status, "ready");
+  assert.equal(quote.status, "ready");
+  assert.equal(JSON.stringify(report.result.hardwareItems), inputBefore);
+
+  const hardwareSource = quote.lineSources.find((source) => source.sourceId === "hardware-0001");
+  assert.deepEqual(hardwareSource, {
+    costLineId: "consumption-0002",
+    sourceType: "production-consumption",
+    sourceId: "hardware-0001",
+    hardwareId: "hinge-110",
+    hardwareUnit: "adet",
+    hardwareFurnitureIds: ["quote-cabinet-1", "quote-cabinet-2"],
+    hardwareSourceReferences: ["bom:catalog-a", "bom:catalog-z"]
+  });
+  assert.equal(hardwareSource.sourcePartIds, undefined);
+  assert.equal(hardwareSource.resourceType, undefined);
+  assert.equal(hardwareSource.resourceId, undefined);
+  assert.equal(hardwareSource.hardwareUnit, consumption.lineHardwareSources[0].unit);
+  assert.deepEqual(hardwareSource.hardwareFurnitureIds, consumption.lineHardwareSources[0].furnitureIds);
+  assert.deepEqual(hardwareSource.hardwareSourceReferences, consumption.lineHardwareSources[0].sourceReferences);
+  const hardwareCostLine = quote.costSummary.lines.find((line) => line.category === "hardware");
+  assert.equal(hardwareCostLine.sourceReference, "hardware-price:v2");
+  assert.notDeepEqual(hardwareSource.hardwareSourceReferences, [hardwareCostLine.sourceReference]);
+
+  const reversedReport = createReport({ additionalFurnitureIds: ["quote-cabinet-2"] });
+  reversedReport.result.hardwareItems = [...hardwareItems].reverse();
+  const reversedQuote = calculateProjectQuoteSummary(reversedReport, prices, [], []);
+  assert.equal(reversedQuote.status, "ready");
+  assert.deepEqual(
+    reversedQuote.lineSources.find((source) => source.sourceId === "hardware-0001"),
+    hardwareSource
+  );
 });

@@ -6,6 +6,7 @@ import {
 import {
   calculateProjectPricedConsumptionSummary,
   type ProjectCostCoverageIssue,
+  type ProjectConsumptionLineHardwareSource,
   type ProjectPricedConsumptionSummary
 } from "./projectPricedConsumption.ts";
 import {
@@ -27,6 +28,11 @@ export interface ProjectQuoteLineSource {
   sourceType: "production-consumption" | "labor-operation" | "quote-adjustment";
   sourceId: string;
   tariffId?: string;
+  /** Hardware BOM identity is separate from the hardware price-list reference. */
+  hardwareId?: string;
+  hardwareUnit?: string;
+  hardwareFurnitureIds?: string[];
+  hardwareSourceReferences?: string[];
   /** Sorted unique production Part IDs for grouped consumption rows, when available. */
   sourcePartIds?: string[];
   /** Resource identity and units are machine-readable; descriptions are display-only. */
@@ -79,6 +85,23 @@ function resolveQuoteOptions(value: unknown): ResolvedQuoteOptions {
   if (!Array.isArray(value.edgeBandingRollSpecs) || !Array.isArray(value.edgeBandingRollPriceTable)) throw new Error("Roll modu açık rulo ölçüleri ve rulo fiyat tablosu listelerini gerektirir.");
   return { edgeBandingPricingMode: "roll", edgeBandingRollSpecs: value.edgeBandingRollSpecs, edgeBandingRollPriceTable: value.edgeBandingRollPriceTable };
 }
+function hasCompleteHardwareSourceCoverage(consumption: ProjectPricedConsumptionSummary): boolean {
+  if (consumption.status !== "ready") return true;
+  if (consumption.costSummary === null) return false;
+  const hardwareLines = consumption.costSummary.lines.filter((line) => line.category === "hardware");
+  const sourceIds = new Set<string>();
+  for (const source of consumption.lineHardwareSources) {
+    if (sourceIds.has(source.costLineId) ||
+      !hardwareLines.some((line) => line.id === source.costLineId) ||
+      source.hardwareId.trim() === "" || source.unit.trim() === "" || source.furnitureIds.length === 0) {
+      return false;
+    }
+    sourceIds.add(source.costLineId);
+  }
+  return sourceIds.size === hardwareLines.length && hardwareLines.every((line) => sourceIds.has(line.id));
+}
+
+
 function diagnosticMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
@@ -246,8 +269,13 @@ export function calculateProjectQuoteSummary(
     };
   }
 
+  const hardwareSourceCoverageValid = hasCompleteHardwareSourceCoverage(consumption);
+  const hardwareSourceByCostLine = new Map<string, ProjectConsumptionLineHardwareSource>(
+    consumption.lineHardwareSources.map((source) => [source.costLineId, source])
+  );
+
   if (
-    (consumption.status === "ready" && consumption.costSummary === null) ||
+    (consumption.status === "ready" && (consumption.costSummary === null || !hardwareSourceCoverageValid)) ||
     (laborOperation.status === "ready" && (laborOperation.costSummary === null || laborOperation.lines.length !== laborOperation.requiredLineCount)) ||
     (rollCostSummary?.status === "ready" && (rollCostSummary.costSummary === null || rollCostSummary.costSummary.lineCount !== rollRequiredLineCount || rollCostSummary.lineSources.length !== rollRequiredLineCount))
   ) {
@@ -258,7 +286,9 @@ export function calculateProjectQuoteSummary(
       pricedLineCount,
       missingPrices,
       missingTariffs,
-      diagnostics: [...diagnostics, "Hazır alt maliyet özeti doğrulanmış satırlarını içermiyor."],
+      diagnostics: [...diagnostics, hardwareSourceCoverageValid
+        ? "Hazır alt maliyet özeti doğrulanmış satırlarını içermiyor."
+        : "Hazır hardware BOM kaynak eşlemesi tüm fiyatlı hardware satırlarını benzersiz biçimde kapsamıyor."],
       lineSources: [],
       costSummary: null
     };
@@ -272,10 +302,19 @@ export function calculateProjectQuoteSummary(
     const costLineId = quoteLineId("consumption", index);
     costLines.push(toCostLine(line, costLineId));
     const partSource = consumption.linePartSources.find((source) => source.costLineId === line.id);
+    const hardwareSource = line.category === "hardware" ? hardwareSourceByCostLine.get(line.id) : undefined;
     lineSources.push({
       costLineId,
       sourceType: "production-consumption",
       sourceId: line.id,
+      ...(hardwareSource === undefined ? {} : {
+        hardwareId: hardwareSource.hardwareId,
+        hardwareUnit: hardwareSource.unit,
+        hardwareFurnitureIds: [...hardwareSource.furnitureIds],
+        ...(hardwareSource.sourceReferences === undefined
+          ? {}
+          : { hardwareSourceReferences: [...hardwareSource.sourceReferences] })
+      }),
       ...(partSource === undefined ? {} : {
         sourcePartIds: [...partSource.sourcePartIds],
         ...(partSource.resourceType === undefined ? {} : {

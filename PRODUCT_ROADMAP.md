@@ -1166,3 +1166,15 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - **Pages:** [#45099919290](https://github.com/Taylan789/MobilyaCAD/actions/runs/45099919290) successful; test site deployed at https://taylan789.github.io/MobilyaCAD/.
 - **Local:** test-file syntax checked with Node; full repository tests were not run locally because the repository is not mounted. Actions are authoritative.
 - **Next:** DOM-124 carry hardware provenance into quote line sources; DOM-125 strict snapshot JSON/CSV round-trip.
+
+
+## 23 Kasım 2026 — DOM-124 combined-quote hardware provenance (implementation; Actions pending)
+- Quote source mapping now carries hardware ID, original BOM unit, sorted furniture IDs and optional BOM source references in hardware-specific fields. The hardware price-list `sourceReference` stays on the priced cost line; no hardware-to-Part association is inferred.
+- Ready quote generation fails closed when a priced hardware line lacks exactly one source map. Regression coverage uses two furniture records, repeated BOM references and reversed input order.
+- **Compatibility note:** strict quote JSON/CSV v1 serializers reject the new optional hardware source fields until DOM-125; they do not silently discard them. This is the next integration slice.
+- CI/QA/Pages exact-SHA verification pending; do not claim deployment until Pages run succeeds.
+
+### Next 3 domain slices
+1. DOM-125 — Strict quote-summary JSON/CSV v1 hardware-provenance round-trip; validate field shapes, sort/uniqueness, legacy files and fail-closed incomplete metadata.
+2. DOM-126 — Quote revision/snapshot hardware provenance coverage and cross-consumer reconciliation after DOM-125 export compatibility.
+3. DOM-127 — Re-evaluate hardware BOM → furniture/Part traceability contract; keep hardware-to-Part links absent unless a real relationship is supplied.

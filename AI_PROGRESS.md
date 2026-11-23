@@ -375,3 +375,13 @@
 - **Scope:** domain priced-consumption API/test + docs; no frontend, quote source/snapshot/CSV schema, CNC output, price defaults, adapter/performance files or `main` changed. Local Node syntax check passed; full test execution was Actions-only.
 - **Known blockers:** AI Developer [#45091325066](https://github.com/Taylan789/MobilyaCAD/actions/runs/45091325066) failed with OpenRouter free-model daily 429; reset is 24 Nov 2026 03:00 TRT. No rerun before reset; no paid fallback/secrets changes. Integration/performance job skipped; no specialist branch/PR found; QA-003 remains blocked. UI PR [#166](https://github.com/Taylan789/MobilyaCAD/pull/166) is still draft and not deployed.
 - **Next:** DOM-124 propagate hardware source mapping into quote lineSources; DOM-125 strict snapshot JSON/CSV persistence compatibility.
+
+
+## 23 Kasım 2026 07:20 TRT — DOM-124 IMPLEMENTED (Actions pending)
+
+- Combined quote `lineSources` now carry hardware BOM identity (`hardwareId`), original unit, sorted furniture IDs and optional BOM source references in dedicated fields; the price-list `sourceReference` remains on the priced cost line and is never conflated with BOM references.
+- Added fail-closed coverage checks: every priced hardware cost line must have exactly one matching source map; no hardware Part IDs are fabricated. Added a mixed two-furniture regression with duplicate/unsorted BOM references and reversed-input invariance.
+- Code/test and docs commit SHA: pending commit creation. Exact-SHA CI/QA/Pages: pending; no local full-suite run.
+- Known compatibility boundary: strict quote JSON/CSV v1 currently rejects the new optional hardware provenance fields rather than dropping them. DOM-125 will add validated round-trip support; this slice intentionally does not relax strict export.
+- AI Developer run [#45091325066](https://github.com/Taylan789/MobilyaCAD/actions/runs/45091325066) logs confirm OpenRouter free-model daily quota HTTP 429. No rerun before the documented reset (24 Nov 03:00 TRT); specialist job skipped and no integration/performance branch or PR verified.
+- Next: DOM-125 strict quote-summary JSON/CSV v1 compatibility for hardware-specific provenance.
