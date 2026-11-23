@@ -714,7 +714,7 @@ export function calculateProjectHardwareConsumptionSummary(
   const findProjectPart = (partId: string): Record<string, unknown> | undefined => {
     if (partById === null) {
       const indexedParts = new Map<string, Record<string, unknown>>();
-      for (const [partIndex, rawPart] of project.parts.entries()) {
+      for (const [partIndex, rawPart] of (project.parts as readonly unknown[]).entries()) {
         const part = requireRecord(rawPart, "Projenin " + (partIndex + 1) + ". üretim parçası");
         const id = requireIdentifier(part.id, "Proje Part kimliği");
         if (indexedParts.has(id)) throw new Error("Proje Part listesinde yinelenen kimlik: " + id + ".");
