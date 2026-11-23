@@ -329,3 +329,32 @@
     transition: none;
   }
 }
+
+/* Keyboard affordance for the material-usage disclosure and location rows. */
+.cad-part-material-usage > summary:focus-visible,
+.cad-part-material-usage__list button:focus-visible {
+  outline: 2px solid #a9c7d8;
+  outline-offset: 2px;
+  border-color: #a9c7d8;
+}
+.cad-part-material-usage__list button {
+  min-height: 40px;
+}
+@media (forced-colors: active) {
+  .cad-part-material-usage > summary,
+  .cad-part-material-usage__list button {
+    color: ButtonText;
+    border-color: ButtonText;
+    background: ButtonFace;
+  }
+  .cad-part-material-usage__list button > span,
+  .cad-part-material-usage__list button > strong,
+  .cad-part-material-usage__list button > small,
+  .cad-part-material-usage > summary svg {
+    color: ButtonText;
+  }
+  .cad-part-material-usage > summary:focus-visible,
+  .cad-part-material-usage__list button:focus-visible {
+    outline-color: Highlight;
+  }
+}
