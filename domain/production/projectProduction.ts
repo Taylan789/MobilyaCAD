@@ -62,7 +62,10 @@ export interface ProjectHardwareItem {
   quantity: number;
   unit: string;
   sourceReference?: string;
+  /** Optional exact Part links supplied by the user; absent links are never inferred. */
+  sourcePartIds?: string[];
 }
+
 
 /** Explicit catalogue identity and price unit for one Part or one directional edge. */
 export interface ProjectEdgeBandingAssignment {
@@ -178,7 +181,7 @@ function readFurnitureFamily(value: unknown, index: number): SupportedProjectFur
 
 function readProjectHardwareItem(value: unknown, index: number): ProjectHardwareItem {
   const entry = requireRecord(value, "Projenin " + (index + 1) + ". donanım kalemi");
-  const allowed = ["id", "furnitureId", "hardwareId", "name", "quantity", "unit", "sourceReference"];
+  const allowed = ["id", "furnitureId", "hardwareId", "name", "quantity", "unit", "sourceReference", "sourcePartIds"];
   const unknownKey = Object.keys(entry).find((key) => !allowed.includes(key));
   if (unknownKey !== undefined) throw new Error("Donanım kaleminde desteklenmeyen alan: " + unknownKey + ".");
   const readText = (raw: unknown, label: string): string => {
@@ -199,9 +202,24 @@ function readProjectHardwareItem(value: unknown, index: number): ProjectHardware
   const sourceReference = entry.sourceReference === undefined
     ? undefined
     : readText(entry.sourceReference, id + " kaynak referansı");
+  const sourcePartIds = entry.sourcePartIds === undefined
+    ? undefined
+    : (() => {
+      if (!Array.isArray(entry.sourcePartIds) || entry.sourcePartIds.length === 0 || entry.sourcePartIds.length > 10000) {
+        throw new Error(id + " donanım kaynak Part ID listesi 1-10.000 arası öğe içermelidir.");
+      }
+      const partIds = entry.sourcePartIds.map((partId, partIndex) =>
+        readText(partId, id + " kaynak Part ID " + (partIndex + 1))
+      );
+      if (partIds.some((partId, partIndex) => partIndex > 0 && partIds[partIndex - 1] >= partId)) {
+        throw new Error(id + " kaynak Part ID listesi sıralı ve benzersiz olmalıdır.");
+      }
+      return partIds;
+    })();
   return {
     id, furnitureId, hardwareId, name, quantity: entry.quantity, unit,
-    ...(sourceReference === undefined ? {} : { sourceReference })
+    ...(sourceReference === undefined ? {} : { sourceReference }),
+    ...(sourcePartIds === undefined ? {} : { sourcePartIds })
   };
 }
 
@@ -599,6 +617,7 @@ export function calculateCabinetProjectProductionWithDiagnostics(
     }
   }
 
+  const partById = new Map<string, ProjectProductionPart>(parts.map((part) => [part.id, part] as const));
   const hardwareRequests = (value.hardwareItems ?? []) as readonly unknown[];
   for (const [index, request] of hardwareRequests.entries()) {
     let item: ProjectHardwareItem;
@@ -619,6 +638,19 @@ export function calculateCabinetProjectProductionWithDiagnostics(
         item.furnitureId + " mobilyasının konstrüksiyonu doğrulanmadığı için donanım kalemi eklenemedi.");
       continue;
     }
+    if (item.sourcePartIds !== undefined) {
+      const invalidSourcePartId = item.sourcePartIds.find((partId) => {
+        const part = partById.get(partId);
+        return part === undefined || part.furnitureId !== item.furnitureId;
+      });
+      if (invalidSourcePartId !== undefined) {
+        const linkedPart = partById.get(invalidSourcePartId);
+        addBlocked(item.furnitureId, family, "invalid-hardware", linkedPart === undefined
+          ? item.id + " donanım kaleminin kaynak Part ID'si proje parça listesinde bulunamadı: " + invalidSourcePartId + "."
+          : item.id + " donanım kaleminin kaynak Part ID'si farklı mobilyaya bağlı: " + invalidSourcePartId + ".");
+        continue;
+      }
+    }
     if (seenHardwareItemIds.has(item.id)) {
       addBlocked(item.furnitureId, family, "invalid-hardware",
         "Yinelenen donanım kalemi kimliği: " + item.id + ".");
@@ -629,7 +661,6 @@ export function calculateCabinetProjectProductionWithDiagnostics(
   }
 
   const panelCutoutRequests = (value.panelCutouts ?? []) as readonly unknown[];
-  const partById = new Map<string, ProjectProductionPart>(parts.map((part) => [part.id, part] as const));
   const panelGeometryByPartId = new Map<string, PanelCutoutGeometryResult>();
   const seenPanelCutoutPartIds = new Set<string>();
 

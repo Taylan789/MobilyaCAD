@@ -621,6 +621,8 @@ export interface ProjectHardwareConsumptionSummary {
   totalQuantity: number;
   furnitureCount: number;
   furnitureIds: string[];
+  /** Sorted union of explicitly linked production Part IDs; absent when no BOM row maps Parts. */
+  sourcePartIds?: string[];
   /** Unique user-supplied references; omitted when no row provides one. */
   sourceReferences?: string[];
 }
@@ -632,6 +634,7 @@ interface HardwareAccumulator {
   lineCount: number;
   quantities: number[];
   furnitureIds: Set<string>;
+  sourcePartIds: Set<string>;
   sourceReferences: Set<string>;
 }
 
@@ -707,11 +710,27 @@ export function calculateProjectHardwareConsumptionSummary(
     throw new Error("Proje donanım kalemleri bir liste olmalıdır.");
   }
 
+  let partById: Map<string, Record<string, unknown>> | null = null;
+  const findProjectPart = (partId: string): Record<string, unknown> | undefined => {
+    if (partById === null) {
+      const indexedParts = new Map<string, Record<string, unknown>>();
+      for (const [partIndex, rawPart] of project.parts.entries()) {
+        const part = requireRecord(rawPart, "Projenin " + (partIndex + 1) + ". üretim parçası");
+        const id = requireIdentifier(part.id, "Proje Part kimliği");
+        if (indexedParts.has(id)) throw new Error("Proje Part listesinde yinelenen kimlik: " + id + ".");
+        indexedParts.set(id, part);
+      }
+      partById = indexedParts;
+    }
+    return partById.get(partId);
+  };
+
+
   const groups = new Map<string, HardwareAccumulator>();
   const seenHardwareItemIds = new Set<string>();
   for (const [index, rawItem] of project.hardwareItems.entries()) {
     const item = requireRecord(rawItem, "Projenin " + (index + 1) + ". donanım kalemi");
-    const allowedKeys = ["id", "furnitureId", "hardwareId", "name", "quantity", "unit", "sourceReference"];
+    const allowedKeys = ["id", "furnitureId", "hardwareId", "name", "quantity", "unit", "sourceReference", "sourcePartIds"];
     const unknownKey = Object.keys(item).find((key) => !allowedKeys.includes(key));
     if (unknownKey !== undefined) {
       throw new Error("Donanım kaleminde desteklenmeyen alan: " + unknownKey + ".");
@@ -730,6 +749,24 @@ export function calculateProjectHardwareConsumptionSummary(
     const sourceReference = item.sourceReference === undefined
       ? undefined
       : requireIdentifier(item.sourceReference, id + " kaynak referansı");
+    let sourcePartIds: string[] | undefined;
+    if (item.sourcePartIds !== undefined) {
+      if (!Array.isArray(item.sourcePartIds) || item.sourcePartIds.length === 0 || item.sourcePartIds.length > 10000) {
+        throw new Error(id + " donanım kaynak Part ID listesi 1-10.000 arası öğe içermelidir.");
+      }
+      sourcePartIds = item.sourcePartIds.map((partId, partIndex) =>
+        requireIdentifier(partId, id + " kaynak Part ID " + (partIndex + 1))
+      );
+      if (sourcePartIds.some((partId, partIndex) => partIndex > 0 && sourcePartIds![partIndex - 1] >= partId)) {
+        throw new Error(id + " kaynak Part ID listesi sıralı ve benzersiz olmalıdır.");
+      }
+      for (const partId of sourcePartIds) {
+        const part = findProjectPart(partId);
+        if (part === undefined) throw new Error(id + " donanım kaynak Part ID'si proje parça listesinde bulunamadı: " + partId + ".");
+        const partFurnitureId = requireIdentifier(part.furnitureId, partId + " mobilya kimliği");
+        if (partFurnitureId !== furnitureId) throw new Error(id + " donanım kaynak Part ID'si farklı mobilyaya bağlı: " + partId + ".");
+      }
+    }
 
     if (!furnitureIds.has(furnitureId)) {
       throw new Error(id + " donanım kaleminin mobilya kimliği proje sonuçlarında bulunamadı.");
@@ -749,6 +786,7 @@ export function calculateProjectHardwareConsumptionSummary(
         lineCount: 0,
         quantities: [],
         furnitureIds: new Set<string>(),
+        sourcePartIds: new Set<string>(),
         sourceReferences: new Set<string>()
       };
       groups.set(key, group);
@@ -759,6 +797,7 @@ export function calculateProjectHardwareConsumptionSummary(
     group.lineCount += 1;
     group.quantities.push(quantity);
     group.furnitureIds.add(furnitureId);
+    if (sourcePartIds !== undefined) sourcePartIds.forEach((partId) => group.sourcePartIds.add(partId));
     if (sourceReference !== undefined) group.sourceReferences.add(sourceReference);
     if (!Number.isSafeInteger(group.lineCount)) {
       throw new Error("Donanım BOM satır sayısı güvenli sayısal aralıkta hesaplanamadı.");
@@ -781,6 +820,7 @@ export function calculateProjectHardwareConsumptionSummary(
         totalQuantity,
         furnitureCount: group.furnitureIds.size,
         furnitureIds: [...group.furnitureIds].sort((a, b) => a.localeCompare(b, "tr")),
+        ...(group.sourcePartIds.size === 0 ? {} : { sourcePartIds: [...group.sourcePartIds].sort() }),
         ...(sourceReferences.length === 0 ? {} : { sourceReferences })
       };
     });

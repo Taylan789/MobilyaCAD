@@ -466,3 +466,11 @@
 - Fix/test/docs commit: `32e15e753f02c3d43d2be2eb660c31d1154e840b`. CI **success** (run 45157106818). QA **success** (run 45157106928): unit 184/184 and shared-domain 666/666; type-check, lint, production build and dependency audit all passed.
 - Pages deployment **success** (run 45157106790), exact SHA. Test site: https://taylan789.github.io/MobilyaCAD/ .
 - Next: DOM-127 hardware BOM-to-furniture/Part traceability boundary; no UI/CNC mapping is claimed.
+
+
+## 23 Kasım 2026 14:07 TRT — DOM-127a explicit hardware BOM-to-Part mapping (verification pending)
+- Added optional `sourcePartIds` to project hardware BOM rows. Production validation rejects empty/oversized, unsorted/duplicate, unknown Part IDs and links to Parts belonging to another furniture item; missing links remain absent.
+- Hardware consumption summary now validates and aggregates only explicitly supplied Part IDs. Priced-consumption and quote source mappings carry the explicit Part-ID union through existing revision/history and comparison JSON v3/CSV v4 contracts; no Part links are inferred.
+- Added regressions in production, hardware/material summary, priced-consumption and quote revision provenance tests, including standalone/project-v2 history and comparison JSON/CSV round-trip.
+- Code/test/docs commit SHA: pending. Exact-SHA CI, QA, production build and Pages deployment: pending. Local tests unavailable in this remote-only runtime; do not claim Actions success before run results.
+- Frontend files, adapters/machine-specific output, other agent branches/PRs and `main` untouched. Next: DOM-127b line-level BOM Part/quantity traceability (the current grouped union is not a per-Part quantity allocation).

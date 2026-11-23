@@ -101,6 +101,8 @@ function hardwareItems() {
 
 test("malzeme m2 ve donanım özgün birimi fiyatlarıyla tek para biriminde maliyet üretir", () => {
   const report = createReport({ hardwareItems: hardwareItems() });
+  const explicitPartId = report.result.parts.find((part) => part.furnitureId === "cab-cost-1").id;
+  report.result.hardwareItems[0].sourcePartIds = [explicitPartId];
   assert.equal(report.status, "ready");
   assert.equal(report.canExport, false);
 
@@ -131,6 +133,8 @@ test("malzeme m2 ve donanım özgün birimi fiyatlarıyla tek para biriminde mal
     summary.costSummary.lines.reduce((total, line) => total + line.lineTotalMinor, 0)
   );
   assert.deepEqual(summary.missingPrices, []);
+  const hingeSource = summary.lineHardwareSources.find((source) => source.hardwareId === "hinge-110");
+  assert.deepEqual(hingeSource.sourcePartIds, [explicitPartId]);
 });
 
 test("aynı malzeme adı farklı katalog kimliği veya kalınlıkta ayrı fiyat satırları üretir", () => {

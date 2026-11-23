@@ -519,3 +519,13 @@ Bu dosya dört geliştirme/denetim rolünün ortak görev panosu ve entegrasyon 
 
 | DOM-126c | Extend comparison JSON to v3 with strict hardware BOM metadata validation; preserve JSON v1/v2 readers | Ürün Geliştirme | VERIFIED — [commit 8af74858](https://github.com/Taylan789/MobilyaCAD/commit/8af748584c5f301b38a5ee6daff783b49c69ded4); CI [#45148425243](https://github.com/Taylan789/MobilyaCAD/actions/runs/45148425243), QA [#45148425227](https://github.com/Taylan789/MobilyaCAD/actions/runs/45148425227) passed (178 frontend + 664 domain tests; strict domain TS, production build, lint 32 warnings/0 errors, audit 0); Pages [#45148425478](https://github.com/Taylan789/MobilyaCAD/actions/runs/45148425478) deployed https://taylan789.github.io/MobilyaCAD/ | DOM-126b |
 | DOM-126d | Extend comparison CSV to v4 with hardware BOM columns; preserve CSV v1/v2/v3 readers | Ürün Geliştirme | DONE — code/test commits `6a6f2c6` and `32e15e7`; exact-SHA CI/QA/Pages all successful (45157106818/45157106928/45157106790) | v4 round-trips hardware metadata; v3 retains resource identity; partial/invalid BOM metadata fails atomically and totals reconcile | DOM-126c |
+
+
+## DOM-127a — Hardware BOM explicit Part links (domain ownership)
+
+| Task | Status | Scope / acceptance | Next |
+|---|---|---|---|
+| DOM-127a | DONE in code/test commit; Actions verification pending | Optional `hardwareItems[].sourcePartIds` is user-supplied, strict sorted/unique/non-empty, exact Part IDs, same-furniture only; hardware consumption summary aggregates the explicit union and never infers a link. Quote/revision/JSON/CSV reuse existing sourcePartIds contracts. | DOM-127b |
+| DOM-127b | READY | Preserve per-BOM-row quantity and Part associations as line-level traceability rather than only a grouped union; keep aggregate costing unchanged. | DOM-128 |
+
+

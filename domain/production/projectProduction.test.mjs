@@ -1526,8 +1526,10 @@ test("karışık banyo dolabı ve kitaplık projesinde kesitler malzeme, kalınl
 
 test("açık donanım BOM satırları kimlik, mobilya, miktar, birim ve kaynak referansını korur", () => {
   const request = createRequest("cab-hardware-bom");
+  const sourcePartIds = calculateCabinetProjectProduction({ schemaVersion: 1, furniture: [request] }).parts
+    .slice(0, 2).map((part) => part.id).sort();
   const hardwareItems = [
-    { id: "bom-row-hinge", furnitureId: "cab-hardware-bom", hardwareId: "test-hinge-a", name: "Örnek menteşe", quantity: 2, unit: "adet", sourceReference: "test-catalog:hinge-a" },
+    { id: "bom-row-hinge", furnitureId: "cab-hardware-bom", hardwareId: "test-hinge-a", name: "Örnek menteşe", quantity: 2, unit: "adet", sourceReference: "test-catalog:hinge-a", sourcePartIds },
     { id: "bom-row-rail", furnitureId: "cab-hardware-bom", hardwareId: "test-rail-b", name: "Örnek ray", quantity: 1, unit: "takım" },
     { id: "bom-row-seal", furnitureId: "cab-hardware-bom", hardwareId: "test-seal-c", name: "Örnek fitil", quantity: 1.25, unit: "m" }
   ];
@@ -1540,6 +1542,7 @@ test("açık donanım BOM satırları kimlik, mobilya, miktar, birim ve kaynak r
     "Açık donanım BOM satırları mevcut; JSON v1/CSV dışa aktarıcısı hardwareItems alanını kayıpsız destekleyene kadar dışa aktarım kapalıdır."
   ]);
   assert.deepEqual(report.result.hardwareItems, hardwareItems);
+  assert.deepEqual(report.result.hardwareItems[0].sourcePartIds, sourcePartIds);
   assert.equal(report.result.parts.length, calculateCabinetProjectProduction({
     schemaVersion: 1, furniture: [request]
   }).parts.length);
@@ -1558,15 +1561,24 @@ test("geçersiz donanım BOM satırları projeyi bloklar ve kısmi sonuç dönd�
     id: "bom-row-invalid", furnitureId: "cab-hardware-invalid",
     hardwareId: "test-hardware", name: "Örnek donanım", quantity: 1, unit: "adet"
   };
+  const furnitureRequests = [createRequest("cab-hardware-invalid"), createRequest("cab-hardware-other")];
+  const generatedParts = calculateCabinetProjectProduction({ schemaVersion: 1, furniture: furnitureRequests }).parts;
+  const sameFurniturePartIds = generatedParts.filter((part) => part.furnitureId === "cab-hardware-invalid")
+    .map((part) => part.id).sort();
+  const otherFurniturePartId = generatedParts.find((part) => part.furnitureId === "cab-hardware-other").id;
   const invalidItems = [
     { ...base, furnitureId: "cab-missing" }, { ...base, quantity: 0 },
     { ...base, quantity: Number.POSITIVE_INFINITY },
     { ...base, quantity: Number.MAX_SAFE_INTEGER + 1 }, { ...base, unit: " " },
-    { ...base, id: " " }, { ...base, sourceReference: " " }, { ...base, unexpected: true }
+    { ...base, id: " " }, { ...base, sourceReference: " " }, { ...base, unexpected: true },
+    { ...base, sourcePartIds: [] },
+    { ...base, sourcePartIds: [sameFurniturePartIds[1], sameFurniturePartIds[0]] },
+    { ...base, sourcePartIds: ["missing-part"] },
+    { ...base, sourcePartIds: [otherFurniturePartId] }
   ];
   for (const item of invalidItems) {
     const report = calculateCabinetProjectProductionWithDiagnostics({
-      schemaVersion: 1, furniture: [createRequest("cab-hardware-invalid")], hardwareItems: [item]
+      schemaVersion: 1, furniture: furnitureRequests, hardwareItems: [item]
     });
     assert.equal(report.status, "blocked");
     assert.equal(report.canExport, false);

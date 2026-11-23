@@ -311,6 +311,7 @@ export function calculateProjectQuoteSummary(
         hardwareId: hardwareSource.hardwareId,
         hardwareUnit: hardwareSource.unit,
         hardwareFurnitureIds: [...hardwareSource.furnitureIds],
+        ...(hardwareSource.sourcePartIds === undefined ? {} : { sourcePartIds: [...hardwareSource.sourcePartIds] }),
         ...(hardwareSource.sourceReferences === undefined
           ? {}
           : { hardwareSourceReferences: [...hardwareSource.sourceReferences] })

@@ -14,6 +14,14 @@ import {
   serializeProjectQuoteRevisionHistoryFile
 } from "./projectQuoteRevisionFile.ts";
 import {
+  parseProjectQuoteRevisionComparisonFile,
+  serializeProjectQuoteRevisionComparisonFile
+} from "./projectQuoteRevisionComparisonFile.ts";
+import {
+  parseProjectQuoteRevisionComparisonCsv,
+  serializeProjectQuoteRevisionComparisonCsv
+} from "./projectQuoteRevisionComparisonCsv.ts";
+import {
   appendProjectQuoteRevisionToProjectFile,
   readProjectQuoteRevisionHistoryFromProjectFile
 } from "./projectQuoteRevisionProjectFile.ts";
@@ -53,6 +61,9 @@ const productionReport = calculateCabinetProjectProductionWithDiagnostics({
   }]
 });
 assert.ok(productionReport.result);
+const explicitHardwarePartIds = productionReport.result.parts
+  .filter((part) => part.furnitureId === "revision-cabinet-1")
+  .slice(0, 2).map((part) => part.id).sort();
 productionReport.result.hardwareItems = [{
   id: "bom-hinge-a",
   furnitureId: "revision-cabinet-1",
@@ -60,7 +71,8 @@ productionReport.result.hardwareItems = [{
   name: "Menteşe",
   quantity: 1,
   unit: "adet",
-  sourceReference: "bom:catalog-a"
+  sourceReference: "bom:catalog-a",
+  sourcePartIds: explicitHardwarePartIds
 }, {
   id: "bom-hinge-z",
   furnitureId: "revision-cabinet-1",
@@ -137,14 +149,16 @@ test("DOM-126a hardware BOM provenance survives validated quote revision, standa
     hardwareId: hardwareSource.hardwareId,
     hardwareUnit: hardwareSource.hardwareUnit,
     hardwareFurnitureIds: hardwareSource.hardwareFurnitureIds,
-    hardwareSourceReferences: hardwareSource.hardwareSourceReferences
+    hardwareSourceReferences: hardwareSource.hardwareSourceReferences,
+    sourcePartIds: hardwareSource.sourcePartIds
   }, {
     hardwareId: "hinge-110",
     hardwareUnit: "adet",
     hardwareFurnitureIds: ["revision-cabinet-1"],
-    hardwareSourceReferences: ["bom:catalog-a", "bom:catalog-z"]
+    hardwareSourceReferences: ["bom:catalog-a", "bom:catalog-z"],
+    sourcePartIds: explicitHardwarePartIds
   });
-  assert.equal(hardwareSource.sourcePartIds, undefined);
+  assert.deepEqual(hardwareSource.sourcePartIds, explicitHardwarePartIds);
 
   const hardwareLine = snapshot.quoteSummary.costSummary?.lines.find(line => line.category === "hardware");
   assert.ok(hardwareLine);
@@ -173,6 +187,8 @@ test("DOM-126a hardware BOM provenance survives validated quote revision, standa
   assert.equal(importedStandalone.status, "ready", importedStandalone.diagnostics.join("; "));
   assert.ok(importedStandalone.history);
   assert.deepEqual(importedStandalone.history, validatedHistory.history);
+  assert.deepEqual(importedStandalone.history.revisions[0].pricingSnapshot.quoteSummary.lineSources
+    .find(source => source.hardwareId === "hinge-110").sourcePartIds, explicitHardwarePartIds);
 
   const project = createProjectV2();
   const originalProject = structuredClone(project);
@@ -187,6 +203,8 @@ test("DOM-126a hardware BOM provenance survives validated quote revision, standa
   assert.equal(embeddedRead.status, "ready", embeddedRead.diagnostics.join("; "));
   assert.ok(embeddedRead.history);
   assert.deepEqual(embeddedRead.history, importedStandalone.history);
+  assert.deepEqual(embeddedRead.history.revisions[0].pricingSnapshot.quoteSummary.lineSources
+    .find(source => source.hardwareId === "hinge-110").sourcePartIds, explicitHardwarePartIds);
   assert.deepEqual(project, originalProject);
 });
 
@@ -250,6 +268,19 @@ test("DOM-126b hardware BOM source changes appear in revision comparisons withou
   assert.deepEqual(hardwareChange.to.hardwareSourceReferences, ["bom:catalog-a", "bom:catalog-m", "bom:catalog-z"]);
   assert.deepEqual(hardwareChange.from.hardwareFurnitureIds, ["revision-cabinet-1"]);
   assert.deepEqual(hardwareChange.to.hardwareFurnitureIds, ["revision-cabinet-1"]);
+  assert.deepEqual(hardwareChange.from.sourcePartIds, explicitHardwarePartIds);
+  assert.deepEqual(hardwareChange.to.sourcePartIds, explicitHardwarePartIds);
+  const comparisonEnvelope = { status: "ready", comparison: comparisonResult.comparison, diagnostics: [] };
+  const comparisonJson = serializeProjectQuoteRevisionComparisonFile(comparisonEnvelope);
+  assert.equal(comparisonJson.status, "ready", comparisonJson.diagnostics.join("; "));
+  const parsedComparisonJson = parseProjectQuoteRevisionComparisonFile(comparisonJson.json);
+  assert.equal(parsedComparisonJson.status, "ready", parsedComparisonJson.diagnostics.join("; "));
+  assert.deepEqual(parsedComparisonJson.comparison, comparisonResult.comparison);
+  const comparisonCsv = serializeProjectQuoteRevisionComparisonCsv(comparisonEnvelope);
+  assert.equal(comparisonCsv.status, "ready", comparisonCsv.diagnostics.join("; "));
+  const parsedComparisonCsv = parseProjectQuoteRevisionComparisonCsv(comparisonCsv.csv);
+  assert.equal(parsedComparisonCsv.status, "ready", parsedComparisonCsv.diagnostics.join("; "));
+  assert.deepEqual(parsedComparisonCsv.comparison, comparisonResult.comparison);
   assert.equal(comparisonResult.comparison.grandTotalDeltaMinor, 0);
   assert.equal(comparisonResult.comparison.categoryDeltasMinor.hardware, 0);
 });

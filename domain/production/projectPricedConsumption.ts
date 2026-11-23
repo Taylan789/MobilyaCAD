@@ -56,6 +56,8 @@ export interface ProjectConsumptionLineHardwareSource {
   hardwareId: string;
   unit: string;
   furnitureIds: string[];
+  /** Sorted unique Part IDs explicitly mapped by the source BOM rows. */
+  sourcePartIds?: string[];
   sourceReferences?: string[];
 }
 
@@ -498,6 +500,7 @@ export function calculateProjectPricedConsumptionSummary(
         hardwareId: hardware.hardwareId,
         unit: hardware.unit,
         furnitureIds: [...hardware.furnitureIds].sort((a, b) => a.localeCompare(b, "tr")),
+        ...(hardware.sourcePartIds === undefined ? {} : { sourcePartIds: [...hardware.sourcePartIds] }),
         ...(hardware.sourceReferences === undefined
           ? {}
           : { sourceReferences: [...hardware.sourceReferences].sort((a, b) => a.localeCompare(b, "tr")) })

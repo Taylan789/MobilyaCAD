@@ -1134,3 +1134,12 @@ Quote-summary CSV v1 writes the four fields as additive trailing columns. The pa
 - Exact-header parser supports v1/v2/v3/v4. Hardware BOM data round-trips through CSV v4 and validated JSON v3; partial and unsorted BOM metadata is rejected atomically. CSV v3 resource identity remains readable.
 - BOM furniture IDs are provenance only: this does not create panel Part links, drilling coordinates, CNC operations, or machine-specific output. Frontend export integration remains separately owned.
 - Verification: CI run 45157106818 success; QA run 45157106928 success (184 unit tests + 666 shared-domain tests; type-check, lint, build, dependency audit); Pages deployment run 45157106790 success. Published test site: https://taylan789.github.io/MobilyaCAD/.
+
+
+## DOM-127a — Explicit hardware BOM-to-Part traceability
+
+- A user-supplied project `hardwareItems` row may include optional `sourcePartIds`. It must be a non-empty, sorted, unique list of exact generated Part IDs (maximum 10,000 IDs).
+- Every referenced Part must exist in the same production project and belong to the hardware row's `furnitureId`. Unknown IDs, cross-furniture IDs, malformed, duplicate or unsorted lists block the project atomically; partial production results are not returned.
+- Omitted `sourcePartIds` means the BOM row has no Part-level link. The engine does not infer links from names, hardware catalog IDs, BOM references, dimensions or furniture IDs.
+- Hardware consumption summaries expose a sorted union of explicit Part IDs for each hardware identity/unit group. This is traceability only: the aggregate summary does not allocate each hardware row's quantity to individual Parts. Preserve the original BOM rows for that finer allocation.
+- Quote source snapshots and revision JSON/CSV already carry the generic `sourcePartIds` field; the explicit mapping is passed through those existing contracts. Physical assembly suitability remains operator-verified.

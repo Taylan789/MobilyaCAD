@@ -234,13 +234,16 @@ test("malformed kesit ölçüsü veya dış kenar bandı Part tüketiminde redde
 test("donanım BOM özeti hardwareId ve özgün birime göre gruplanır; kesirli miktarı ve kaynak izini korur", () => {
   const production = {
     ...createProject([createRequest("cab-hardware-a"), createRequest("cab-hardware-b")]),
-    hardwareItems: [
-      { id: "bom-1", furnitureId: "cab-hardware-a", hardwareId: "hinge-110", name: "Menteşe", quantity: 0.1, unit: "adet", sourceReference: "catalog-A" },
-      { id: "bom-2", furnitureId: "cab-hardware-a", hardwareId: "hinge-110", name: "Menteşe", quantity: 0.2, unit: "adet", sourceReference: "catalog-B" },
-      { id: "bom-3", furnitureId: "cab-hardware-b", hardwareId: "hinge-110", name: "Menteşe", quantity: 2.5, unit: "adet", sourceReference: "catalog-A" },
-      { id: "bom-4", furnitureId: "cab-hardware-b", hardwareId: "hinge-110", name: "Menteşe", quantity: 1.5, unit: "takım" }
-    ]
+    hardwareItems: []
   };
+  const partA = production.parts.find((part) => part.furnitureId === "cab-hardware-a").id;
+  const partB = production.parts.find((part) => part.furnitureId === "cab-hardware-b").id;
+  production.hardwareItems = [
+    { id: "bom-1", furnitureId: "cab-hardware-a", hardwareId: "hinge-110", name: "Menteşe", quantity: 0.1, unit: "adet", sourceReference: "catalog-A", sourcePartIds: [partA] },
+    { id: "bom-2", furnitureId: "cab-hardware-a", hardwareId: "hinge-110", name: "Menteşe", quantity: 0.2, unit: "adet", sourceReference: "catalog-B", sourcePartIds: [partA] },
+    { id: "bom-3", furnitureId: "cab-hardware-b", hardwareId: "hinge-110", name: "Menteşe", quantity: 2.5, unit: "adet", sourceReference: "catalog-A", sourcePartIds: [partB] },
+    { id: "bom-4", furnitureId: "cab-hardware-b", hardwareId: "hinge-110", name: "Menteşe", quantity: 1.5, unit: "takım" }
+  ];
 
   const summaries = calculateProjectHardwareConsumptionSummary(production);
 
@@ -253,6 +256,7 @@ test("donanım BOM özeti hardwareId ve özgün birime göre gruplanır; kesirli
       totalQuantity: 2.8,
       furnitureCount: 2,
       furnitureIds: ["cab-hardware-a", "cab-hardware-b"],
+      sourcePartIds: [partA, partB].sort(),
       sourceReferences: ["catalog-A", "catalog-B"]
     },
     {
@@ -266,6 +270,8 @@ test("donanım BOM özeti hardwareId ve özgün birime göre gruplanır; kesirli
     }
   ]);
   assert.equal("price" in summaries[0], false);
+  assert.deepEqual(summaries[0].sourcePartIds, [partA, partB].sort());
+  assert.equal("sourcePartIds" in summaries[1], false);
 });
 
 test("donanım olmayan eski projeler boş özet döndürür", () => {
@@ -277,7 +283,10 @@ test("donanım olmayan eski projeler boş özet döndürür", () => {
 });
 
 test("geçersiz donanım ilişkisi, miktarı, birimi, kimliği veya satır alanı reddedilir", () => {
-  const production = createProject([createRequest("cab-hardware-invalid-summary")]);
+  const production = createProject([createRequest("cab-hardware-invalid-summary"), createRequest("cab-hardware-other-summary")]);
+  const sameFurniturePartIds = production.parts.filter((part) => part.furnitureId === "cab-hardware-invalid-summary")
+    .map((part) => part.id).sort();
+  const otherFurniturePartId = production.parts.find((part) => part.furnitureId === "cab-hardware-other-summary").id;
   const base = {
     id: "bom-invalid",
     furnitureId: "cab-hardware-invalid-summary",
@@ -293,7 +302,11 @@ test("geçersiz donanım ilişkisi, miktarı, birimi, kimliği veya satır alan�
     { ...base, unit: " " },
     { ...base, id: " " },
     { ...base, sourceReference: " " },
-    { ...base, unexpected: true }
+    { ...base, unexpected: true },
+    { ...base, sourcePartIds: [] },
+    { ...base, sourcePartIds: ["missing-part"] },
+    { ...base, sourcePartIds: [otherFurniturePartId] },
+    { ...base, sourcePartIds: [sameFurniturePartIds[1], sameFurniturePartIds[0]] }
   ];
 
   for (const item of invalidItems) {
