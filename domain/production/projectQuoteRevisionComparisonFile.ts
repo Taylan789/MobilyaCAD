@@ -317,6 +317,9 @@ function comparisonLineIdentity(line: ProjectQuoteRevisionCostLineSnapshot): str
     line.resourceType ?? null,
     line.resourceId ?? null,
     line.resourceUnit ?? null,
+    line.hardwareId ?? null,
+    line.hardwareUnit ?? null,
+    line.hardwareFurnitureIds ?? [],
     line.furnitureIds ?? []
   ]);
 }
@@ -351,6 +354,9 @@ function sameChangedLineIdentity(
     from.resourceType === to.resourceType &&
     from.resourceId === to.resourceId &&
     from.resourceUnit === to.resourceUnit &&
+    from.hardwareId === to.hardwareId &&
+    from.hardwareUnit === to.hardwareUnit &&
+    sameOptionalArray(from.hardwareFurnitureIds, to.hardwareFurnitureIds) &&
     (from.edgeDirection !== undefined || from.description === to.description)
   );
 }

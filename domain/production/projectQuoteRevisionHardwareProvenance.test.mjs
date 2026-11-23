@@ -284,3 +284,124 @@ test("DOM-126b hardware BOM source changes appear in revision comparisons withou
   assert.equal(comparisonResult.comparison.grandTotalDeltaMinor, 0);
   assert.equal(comparisonResult.comparison.categoryDeltasMinor.hardware, 0);
 });
+
+
+test("DOM-128 hardware catalog identity and explicit source-map changes are add/remove comparisons across JSON and CSV", () => {
+  const first = createRevision(snapshot);
+  assert.equal(first.status, "ready", first.diagnostics.join("; "));
+  assert.ok(first.revision);
+
+  const alternativePart = productionReport.result.parts.find(part =>
+    part.furnitureId === "revision-cabinet-1" && !explicitHardwarePartIds.includes(part.id)
+  );
+  assert.ok(alternativePart, "fixture needs an additional valid Part for a mapping-change comparison");
+  const variants = [
+    ["hardware identity", source => { source.hardwareId = "hinge-120"; }],
+    ["furniture scope", source => { source.hardwareFurnitureIds = ["revision-cabinet-1", "revision-cabinet-2"]; }],
+    ["explicit Part mapping", source => { source.sourcePartIds = [alternativePart.id]; }]
+  ];
+
+  for (const [label, changeSource] of variants) {
+    const secondSnapshot = structuredClone(snapshot);
+    const secondHardwareSource = secondSnapshot.quoteSummary.lineSources.find(source => source.hardwareId === "hinge-110");
+    assert.ok(secondHardwareSource, label);
+    changeSource(secondHardwareSource);
+
+    const second = createProjectQuoteRevision({
+      projectId,
+      revisionId: revisionId + "-dom128-" + label.replace(/\s+/g, "-"),
+      revisionNumber: 2,
+      createdAt: "2026-11-23T08:00:00Z",
+      previousRevision: {
+        projectId,
+        revisionId: first.revision.revisionId,
+        revisionNumber: first.revision.revisionNumber,
+        createdAt: first.revision.createdAt
+      },
+      sourceIntegrityVersion: 1,
+      pricingSnapshot: secondSnapshot
+    });
+    assert.equal(second.status, "ready", label + ": " + second.diagnostics.join("; "));
+    assert.ok(second.revision);
+    const history = validateProjectQuoteRevisionHistory({ projectId, revisions: [first.revision, second.revision] });
+    assert.equal(history.status, "ready", label + ": " + history.diagnostics.join("; "));
+    assert.ok(history.history);
+    const compared = compareProjectQuoteRevisions(history.history, first.revision.revisionId, second.revision.revisionId);
+    assert.equal(compared.status, "ready", label + ": " + compared.diagnostics.join("; "));
+    assert.ok(compared.comparison);
+    const hardwareChanges = compared.comparison.lineChanges.filter(change => (change.from ?? change.to)?.category === "hardware");
+    assert.equal(hardwareChanges.length, 2, label);
+    assert.deepEqual(hardwareChanges.map(change => change.type).sort(), ["added", "removed"], label);
+    const removed = hardwareChanges.find(change => change.type === "removed");
+    const added = hardwareChanges.find(change => change.type === "added");
+    assert.ok(removed?.from);
+    assert.ok(added?.to);
+    assert.equal(removed.from.unit, "adet");
+    assert.equal(removed.from.hardwareUnit, removed.from.unit);
+    assert.equal(added.to.unit, "adet");
+    assert.equal(added.to.hardwareUnit, added.to.unit);
+    assert.deepEqual(removed.from.hardwareFurnitureIds, ["revision-cabinet-1"]);
+    assert.deepEqual(removed.from.sourcePartIds, explicitHardwarePartIds);
+    assert.deepEqual(added.to.sourcePartIds, secondHardwareSource.sourcePartIds);
+    assert.equal(compared.comparison.grandTotalDeltaMinor, 0);
+    assert.equal(compared.comparison.categoryDeltasMinor.hardware, 0);
+
+    const envelope = { status: "ready", comparison: compared.comparison, diagnostics: [] };
+    const json = serializeProjectQuoteRevisionComparisonFile(envelope);
+    assert.equal(json.status, "ready", label + ": " + json.diagnostics.join("; "));
+    const jsonParsed = parseProjectQuoteRevisionComparisonFile(json.json);
+    assert.equal(jsonParsed.status, "ready", label + ": " + jsonParsed.diagnostics.join("; "));
+    assert.deepEqual(jsonParsed.comparison, compared.comparison);
+
+    const csv = serializeProjectQuoteRevisionComparisonCsv(envelope);
+    assert.equal(csv.status, "ready", label + ": " + csv.diagnostics.join("; "));
+    const csvParsed = parseProjectQuoteRevisionComparisonCsv(csv.csv);
+    assert.equal(csvParsed.status, "ready", label + ": " + csvParsed.diagnostics.join("; "));
+    assert.deepEqual(csvParsed.comparison, compared.comparison);
+  }
+
+  const wrongUnit = structuredClone(snapshot);
+  const wrongUnitSource = wrongUnit.quoteSummary.lineSources.find(source => source.hardwareId === "hinge-110");
+  assert.ok(wrongUnitSource);
+  wrongUnitSource.hardwareUnit = "mm";
+  const wrongUnitRevision = createRevision(wrongUnit);
+  assert.equal(wrongUnitRevision.status, "blocked");
+  assert.match(wrongUnitRevision.diagnostics.join("; "), /Donanım BOM birimi maliyet satırı birimiyle uyuşmalıdır/);
+
+  const secondSnapshot = structuredClone(snapshot);
+  const changedHardwareSource = secondSnapshot.quoteSummary.lineSources.find(source => source.hardwareId === "hinge-110");
+  assert.ok(changedHardwareSource);
+  changedHardwareSource.hardwareId = "hinge-120";
+  const second = createProjectQuoteRevision({
+    projectId,
+    revisionId: revisionId + "-dom128-forged",
+    revisionNumber: 2,
+    createdAt: "2026-11-23T08:00:00Z",
+    previousRevision: {
+      projectId,
+      revisionId: first.revision.revisionId,
+      revisionNumber: first.revision.revisionNumber,
+      createdAt: first.revision.createdAt
+    },
+    sourceIntegrityVersion: 1,
+    pricingSnapshot: secondSnapshot
+  });
+  assert.equal(second.status, "ready", second.diagnostics.join("; "));
+  assert.ok(second.revision);
+  const history = validateProjectQuoteRevisionHistory({ projectId, revisions: [first.revision, second.revision] });
+  assert.equal(history.status, "ready", history.diagnostics.join("; "));
+  assert.ok(history.history);
+  const compared = compareProjectQuoteRevisions(history.history, first.revision.revisionId, second.revision.revisionId);
+  assert.equal(compared.status, "ready", compared.diagnostics.join("; "));
+  assert.ok(compared.comparison);
+  const hardwareChanges = compared.comparison.lineChanges.filter(change => (change.from ?? change.to)?.category === "hardware");
+  const removed = hardwareChanges.find(change => change.type === "removed");
+  const added = hardwareChanges.find(change => change.type === "added");
+  assert.ok(removed?.from);
+  assert.ok(added?.to);
+  const forged = structuredClone(compared.comparison);
+  forged.lineChanges = [{ type: "changed", from: removed.from, to: added.to }];
+  const forgedEnvelope = { status: "ready", comparison: forged, diagnostics: [] };
+  assert.equal(serializeProjectQuoteRevisionComparisonFile(forgedEnvelope).status, "blocked");
+  assert.equal(serializeProjectQuoteRevisionComparisonCsv(forgedEnvelope).status, "blocked");
+});

@@ -484,3 +484,13 @@
 - First two QA attempts exposed callback syntax errors; logs [#45172983047](https://github.com/Taylan789/MobilyaCAD/actions/runs/45172983047) and [#45173218272](https://github.com/Taylan789/MobilyaCAD/actions/runs/45173218272) were inspected and corrected. Final exact-SHA CI [#45173461621](https://github.com/Taylan789/MobilyaCAD/actions/runs/45173461621) and QA [#45173461653](https://github.com/Taylan789/MobilyaCAD/actions/runs/45173461653) succeeded: **188 frontend + 668 domain tests**, strict TypeScript, lint **34 warnings/0 errors**, production build, audit **0 vulnerabilities**. Pages [#45173461683](https://github.com/Taylan789/MobilyaCAD/actions/runs/45173461683) succeeded and deployed the final code SHA. Test site: https://taylan789.github.io/MobilyaCAD/.
 - AI Developer [#45160490760](https://github.com/Taylan789/MobilyaCAD/actions/runs/45160490760) failed with OpenRouter free daily quota HTTP 429; no paid fallback, secret or quota changes. Integration/performance specialist job skipped; no specialist PR verified. UI PRs remain unmerged; frontend untouched and `main` untouched.
 - Next: DOM-128 cross-consumer quote source-map identity/unit reconciliation.
+
+
+## 23 Kasım 2026 16:53 TRT — DOM-128 implementation (verification pending)
+
+- Reconciled quote revision comparison identity across the engine and strict comparison JSON/CSV validator: hardware catalog ID, hardware unit, furniture scope and explicit Part links are identity fields. Source-reference-only changes remain value changes.
+- Regression coverage exercises hardware ID, furniture scope and Part-link changes as removed/added pairs through JSON and CSV round-trips; monetary deltas remain zero. Wrong hardware unit is blocked, and forged changed-line metadata with different hardware identity fails JSON and CSV serialization.
+- Code/test/docs commit: pending. Exact-SHA CI/QA/Pages pending; no local full test run (repository is not mounted).
+- Verified preceding SHA 7c674ce50588d43a6a86881fc674eadbf75ecc82 had CI [#45174000820](https://github.com/Taylan789/MobilyaCAD/actions/runs/45174000820), QA [#45174000901](https://github.com/Taylan789/MobilyaCAD/actions/runs/45174000901), Pages [#45174000796](https://github.com/Taylan789/MobilyaCAD/actions/runs/45174000796) all successful. Test site: https://taylan789.github.io/MobilyaCAD/.
+- AI Developer [#45160490760](https://github.com/Taylan789/MobilyaCAD/actions/runs/45160490760) log confirmed OpenRouter free-model daily quota 429 (limit 50, remaining 0); integration/performance job skipped. No paid fallback, secret or quota changes. No specialist PR verified.
+- No frontend, adapter/performance-owned files, CNC output or main changes. Next: DOM-129 lossless production metadata import/export compatibility guards.

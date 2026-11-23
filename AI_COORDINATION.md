@@ -527,6 +527,13 @@ Bu dosya dört geliştirme/denetim rolünün ortak görev panosu ve entegrasyon 
 |---|---|---|---|
 | DOM-127a | DONE — CI/QA/Pages verified | Optional `hardwareItems[].sourcePartIds` is user-supplied, strict sorted/unique/non-empty, exact Part IDs, same-furniture only; hardware summary aggregates explicit union, never infers links. Existing quote/revision/JSON/CSV sourcePartIds contracts carry mapping. CI `45165232791`, QA `45165232778`, Pages `45165232708`. | DOM-127b |
 | DOM-127b | DONE — exact-SHA CI/QA/Pages verified | `calculateProjectHardwareBomTrace` preserves each BOM row quantity/unit/reference and explicit linked Part snapshots; grouped costing unchanged. CI [#45173461621](https://github.com/Taylan789/MobilyaCAD/actions/runs/45173461621), QA [#45173461653](https://github.com/Taylan789/MobilyaCAD/actions/runs/45173461653) (188 frontend + 668 domain tests; strict TypeScript/build/audit passed), Pages [#45173461683](https://github.com/Taylan789/MobilyaCAD/actions/runs/45173461683) deployed. | DOM-128 |
-| DOM-128 | READY | Reconcile hardware/production quote source-map IDs, units and explicit Part links across priced consumption, revision snapshots and comparison exports; block partial or mismatched provenance. | DOM-129 |
+| DOM-128 | IMPLEMENTED — verification pending | Quote revision comparison identity now includes hardware catalog ID, unit, furniture scope and explicit Part links; JSON/CSV reject changed-line identity mismatch. | DOM-129 |
 
 
+
+
+## DOM-128 implementation handoff (verification pending)
+- Hardware catalog ID, hardware unit, furniture scope and explicit Part IDs are now included in revision comparison matching identity; source-reference changes remain value-only.
+- Automated regressions cover add/remove semantics and JSON/CSV round-trip; strict validators block wrong units and forged changed lines across hardware identity.
+- Code/test/docs commit pending; CI/QA/Pages evidence will be attached after Actions.
+- Next domain slice: DOM-129 production metadata export/import compatibility guards.

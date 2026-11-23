@@ -1238,9 +1238,9 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - **Verification:** code `4808746daa13d4bbce55ff78657098308c4f4694`; CI `45165232791`, QA `45165232778`, Pages `45165232708` all successful. Local tests unavailable; exact-SHA Actions evidence is used.
 
 ### Updated next domain slices
-1. DOM-127b — Line-level hardware BOM traceability (per-row quantity and explicit Part associations), separate from grouped cost lines.
-2. DOM-128 — Cross-consumer quote source-map identity/unit reconciliation with fail-closed diagnostics.
-3. DOM-129 — Project export compatibility guards for production metadata.
+1. DOM-129 — Project export compatibility guards for production metadata and lossless legacy handling.
+2. DOM-130 — Hardware trace persistence/export contract and schema-version compatibility.
+3. DOM-131 — Immutable quote source-map audit summary across revision history.
 
 
 ## DOM-127b — Hardware BOM line-level traceability (VERIFIED — exact-SHA CI/QA/Pages successful)
@@ -1254,3 +1254,11 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 2. DOM-129 — Project export compatibility guards for production metadata.
 3. DOM-130 — Hardware trace persistence/export contract and schema-version compatibility; frontend-owned integration only after adapter ownership is available.
 - **Exact-SHA verification:** commit [a87c46f6](https://github.com/Taylan789/MobilyaCAD/commit/a87c46f6f0ecf57eccd327004ac1ae743ac81dc8); CI [#45173461621](https://github.com/Taylan789/MobilyaCAD/actions/runs/45173461621) and QA [#45173461653](https://github.com/Taylan789/MobilyaCAD/actions/runs/45173461653) successful (188 frontend + 668 domain tests, strict TypeScript, production build, lint 34 warnings/0 errors, audit 0 vulnerabilities); Pages [#45173461683](https://github.com/Taylan789/MobilyaCAD/actions/runs/45173461683) deployed https://taylan789.github.io/MobilyaCAD/.
+
+
+## DOM-128 — Hardware quote comparison identity reconciliation (implementation; Actions pending)
+
+- Revision comparison identity now includes hardware catalog ID, hardware unit, furniture scope and explicit Part IDs. Catalog/scope/Part mapping changes are reported as removed + added rather than incorrectly paired as a changed line; BOM source-reference-only changes remain value changes.
+- Added regressions for hardware identity, furniture-scope and explicit Part-link changes across comparison JSON/CSV round-trips, unchanged monetary totals, hardware unit mismatch blocking, and rejection of forged changed-lines with different hardware identity.
+- Code/test/docs commit: pending creation. Exact-SHA CI, QA and Pages verification pending; no local full test run.
+- No frontend, adapter/performance-owned files, CNC/machine output or main changes.

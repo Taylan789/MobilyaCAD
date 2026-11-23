@@ -1154,3 +1154,8 @@ Kaynak: `domain/production/projectMaterialSummary.ts`, `calculateProjectHardware
 - Satır kimliği, quantity, unit, katalog/hardware kimliği, aynı mobilya kapsamı, Part ID varlığı ve Part ölçü/adet doğrulamaları mevcut domain kontrolleriyle fail-closed uygulanır. Eksik bağlantı tahmin edilmez.
 - `calculateProjectHardwareConsumptionSummary` gruplu costing kaynağı olarak değişmeden kalır; bu API maliyet toplamlarını veya birim dönüşümlerini değiştirmez.
 - Frontend/export entegrasyonu henüz yapılmamıştır. JSON/CSV export hardwareItems alanını kayıpsız desteklemeden dışa aktarım blokajı korunmalıdır. CNC, bağlantı/kurulum, Part başına hardware miktar dağıtımı veya fiziksel üretim standardı hesaplanmaz.
+
+
+## DOM-128 — Hardware identity in quote revision comparison
+
+Hardware comparison line identity now includes the hardware catalog ID, original hardware unit, sorted furniture scope and explicit source Part IDs. A change in any of these identity fields is represented as separate removed/added lines, not a single changed line that could obscure the source mapping. BOM source references remain value-only: reference changes can still appear as one changed line when the hardware identity and source scope are unchanged. Comparison JSON and CSV validators enforce the same changed-line identity boundary; hardware units must still equal the cost line unit. This is quote/revision provenance only and does not claim per-Part hardware quantity allocation or machine-ready output.

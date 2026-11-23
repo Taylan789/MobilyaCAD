@@ -981,6 +981,9 @@ function revisionComparisonLineIdentity(line: RevisionComparisonLine): string {
     line.resourceType ?? null,
     line.resourceId ?? null,
     line.resourceUnit ?? null,
+    snapshot.hardwareId ?? null,
+    snapshot.hardwareUnit ?? null,
+    snapshot.hardwareFurnitureIds ?? [],
     snapshot.furnitureIds ?? []
   ]);
 }
