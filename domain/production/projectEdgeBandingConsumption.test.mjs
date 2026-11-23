@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { calculateProjectEdgeBandingConsumptionSummary } from "./projectMaterialSummary.ts";
+import { calculateProjectEdgeBandingConsumptionSummary, calculateProjectMaterialConsumptionSummary } from "./projectMaterialSummary.ts";
+import { createProjectPartSnapshot, validateProjectPartSnapshot } from "./projectPartSnapshot.ts";
 
 const noBanding = { top: false, bottom: false, left: false, right: false };
 
@@ -142,4 +143,146 @@ test("directional edge-band consumption includes cutout edges and rejects malfor
       ...production, parts: [{ ...part, edgeBandingByEdge }]
     }));
   }
+});
+
+
+test("mixed-family material and edge-band summary provenance reconciles to canonical Part snapshot and is order-independent", () => {
+  const production = {
+    schemaVersion: 1,
+    furniture: [
+      { furnitureId: "cabinet-a", family: "cabinet" },
+      { furnitureId: "bookshelf-a", family: "bookshelf" },
+      { furnitureId: "table-a", family: "table" }
+    ],
+    parts: [
+      {
+        ...createPart({
+          id: "cab-side-a", furnitureId: "cabinet-a", width: 600, length: 400, quantity: 2,
+          edgeBanding: { top: true, bottom: true, left: true, right: false },
+          edgeBandingMaterialId: "pvc-default", edgeBandingUnit: "mm"
+        }),
+        materialId: "mdf-18",
+        edgeBandingByEdge: { top: { edgeBandingId: "pvc-top", unit: "m" } }
+      },
+      {
+        ...createPart({
+          id: "book-shelf-a", furnitureId: "bookshelf-a", width: 300, length: 250, quantity: 3,
+          edgeBanding: { top: true, bottom: false, left: false, right: true },
+          edgeBandingMaterialId: "pvc-default", edgeBandingUnit: "mm"
+        }),
+        materialId: "mdf-18",
+        edgeBandingByEdge: { right: { edgeBandingId: "pvc-right", unit: "mm" } }
+      },
+      {
+        ...createPart({
+          id: "table-top-a", furnitureId: "table-a", width: 1000, length: 700, quantity: 1,
+          edgeBanding: { top: true, bottom: true, left: true, right: true },
+          edgeBandingMaterialId: "pvc-default", edgeBandingUnit: "mm"
+        }),
+        materialId: "mdf-18"
+      },
+      {
+        ...createPart({
+          id: "legacy-panel-a", furnitureId: "cabinet-a", width: 500, length: 200, quantity: 2,
+          edgeBanding: { top: true, bottom: true, left: false, right: false }
+        }),
+        materialId: "mdf-18"
+      },
+      {
+        ...createPart({
+          id: "plain-panel-a", furnitureId: "cabinet-a", width: 900, length: 400, quantity: 5,
+          edgeBanding: noBanding
+        }),
+        materialId: "mdf-18"
+      }
+    ]
+  };
+  const canonicalSnapshot = validateProjectPartSnapshot(createProjectPartSnapshot(production.parts));
+  const canonicalParts = canonicalSnapshot.parts.map((entry) => JSON.parse(entry.snapshot));
+
+  const materialSummaries = calculateProjectMaterialConsumptionSummary(production);
+  assert.equal(materialSummaries.length, 1);
+  const materialSummary = materialSummaries[0];
+  const expectedMaterialParts = canonicalParts.filter((part) =>
+    part.materialId === materialSummary.materialId &&
+    part.material === materialSummary.material &&
+    part.thickness === materialSummary.thicknessMm
+  );
+  assert.deepEqual(materialSummary.partIds, expectedMaterialParts.map((part) => part.id).sort());
+  assert.deepEqual(
+    materialSummary.furnitureIds,
+    [...new Set(expectedMaterialParts.map((part) => part.furnitureId))].sort()
+  );
+  assert.equal(materialSummary.partLineCount, expectedMaterialParts.length);
+  assert.equal(materialSummary.totalQuantity, expectedMaterialParts.reduce((sum, part) => sum + part.quantity, 0));
+
+  const edgeKeys = ["top", "bottom", "left", "right"];
+  const expectedEdgeGroups = new Map();
+  const addExpectedEdge = (part, edge, override, lengthMm, edgeCount) => {
+    const edgeBandingId = override?.edgeBandingId ?? part.edgeBandingMaterialId ?? null;
+    const unit = override?.unit ?? part.edgeBandingUnit ?? "mm";
+    const key = JSON.stringify([edgeBandingId, unit, edge ?? null]);
+    let group = expectedEdgeGroups.get(key);
+    if (group === undefined) {
+      group = { totalLengthMm: 0, edgeCount: 0, partIds: new Set(), furnitureIds: new Set() };
+      expectedEdgeGroups.set(key, group);
+    }
+    group.totalLengthMm += lengthMm;
+    group.edgeCount += edgeCount;
+    group.partIds.add(part.id);
+    group.furnitureIds.add(part.furnitureId);
+  };
+  for (const part of canonicalParts) {
+    const bandedEdges = edgeKeys.filter((edge) => part.edgeBanding[edge]);
+    if (bandedEdges.length === 0) continue;
+    if (part.edgeBandingByEdge === undefined) {
+      const widthEdgeCount = Number(part.edgeBanding.top) + Number(part.edgeBanding.bottom);
+      const lengthEdgeCount = Number(part.edgeBanding.left) + Number(part.edgeBanding.right);
+      addExpectedEdge(
+        part,
+        undefined,
+        undefined,
+        (part.width * widthEdgeCount + part.length * lengthEdgeCount) * part.quantity,
+        (widthEdgeCount + lengthEdgeCount) * part.quantity
+      );
+      continue;
+    }
+    for (const edge of bandedEdges) {
+      const override = part.edgeBandingByEdge[edge];
+      addExpectedEdge(
+        part,
+        override === undefined ? undefined : edge,
+        override,
+        (edge === "top" || edge === "bottom" ? part.width : part.length) * part.quantity,
+        part.quantity
+      );
+    }
+  }
+
+  const edgeSummaries = calculateProjectEdgeBandingConsumptionSummary(production);
+  assert.equal(edgeSummaries.length, expectedEdgeGroups.size);
+  for (const summary of edgeSummaries) {
+    const key = JSON.stringify([summary.edgeBandingId, summary.unit, summary.edge ?? null]);
+    const expected = expectedEdgeGroups.get(key);
+    assert.ok(expected, "unexpected edge-band group " + key);
+    assert.deepEqual(summary.partIds, [...expected.partIds].sort((a, b) => a.localeCompare(b)));
+    assert.deepEqual(summary.furnitureIds, [...expected.furnitureIds].sort((a, b) => a.localeCompare(b)));
+    assert.equal(summary.partLineCount, expected.partIds.size);
+    assert.equal(summary.edgeCount, expected.edgeCount);
+    assert.equal(summary.totalLengthMm, Math.round(expected.totalLengthMm * 10) / 10);
+    assert.equal(
+      summary.totalQuantity,
+      summary.unit === "mm"
+        ? Math.round(expected.totalLengthMm * 10) / 10
+        : Math.round(expected.totalLengthMm / 1000 * 10000) / 10000
+    );
+  }
+
+  const reorderedProduction = {
+    ...production,
+    furniture: [...production.furniture].reverse(),
+    parts: [...production.parts].reverse()
+  };
+  assert.deepEqual(calculateProjectMaterialConsumptionSummary(reorderedProduction), materialSummaries);
+  assert.deepEqual(calculateProjectEdgeBandingConsumptionSummary(reorderedProduction), edgeSummaries);
 });

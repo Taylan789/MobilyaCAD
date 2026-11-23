@@ -594,7 +594,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 ## Next 5 small tasks
 
 1. **DOM-120 VERIFIED** — independent mixed-stock project cut-plan area-summary reconciliation; [test commit 31ca52de](https://github.com/Taylan789/MobilyaCAD/commit/31ca52de6334d4f36b0b37e7594d20affde91c16), exact-SHA CI/QA/Pages successful (172 frontend + 649 domain tests).
-2. **DOM-121 READY** — edge-band/material summary provenance across mixed-family Part snapshots.
+2. **DOM-121 IN PROGRESS** — test-only cross-consumer reconciliation of mixed-family material/edge-band provenance against canonical Part snapshots, plus input-order invariance; exact-SHA Actions pending.
 3. **DOM-122 READY** — quote-cost totals reconcile against priced-consumption and labor/operation source lines.
 4. **INT-001 FRONTEND-OWNED** — domain/export contract and download-adapter wiring; product agent does not edit frontend.
 5. **INT-002/PERF-001 SPECIALIST-OWNED** — adapter round-trip and measured CAD profiling; QA-003 stays blocked until integration evidence.
@@ -1172,3 +1172,12 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - **Fixture:** nonzero MDF trim plus a different stock size/material with multiple sheets. The test is cross-consumer and test-only; no production algorithm or export format changed.
 - **Verification:** commit and exact-SHA CI/QA/Pages pending; local tests unavailable, Actions is authoritative.
 - **Next:** DOM-121 edge-band/material summary provenance; DOM-122 priced-consumption/quote reconciliation. INT-001 remains frontend-owned and INT-002/PERF-001 specialist-owned.
+
+
+## DOM-121 — Mixed-family material and edge-band summary provenance (VERIFICATION PENDING)
+
+- **User flow:** the project material and edge-band consumption summaries must remain traceable to the exact production Part rows, including furniture IDs, catalog material identity, thickness, quantity, directional banding and legacy unassigned banding.
+- **Acceptance:** a canonical Part snapshot is the independent source; material summary source IDs/furniture IDs/line count/quantity reconcile to it; edge-band summary groups reconcile to each Part's edge assignment, unit, geometry, edge count, Part IDs and furniture IDs; reversing source Part/furniture order leaves both summaries unchanged.
+- **Scope:** test-only cross-consumer regression. No production algorithm, frontend, adapter/performance-owned file, project schema, CNC output or machine-specific standard changed.
+- **Verification:** exact-SHA CI/QA/Pages pending. Local test execution is unavailable; GitHub Actions remains authoritative.
+- **Next:** DOM-122 priced-consumption and quote totals reconciliation against source pricing rows; INT-001 frontend-owned, INT-002/PERF-001 specialist-owned, QA-003 blocked until integration evidence.

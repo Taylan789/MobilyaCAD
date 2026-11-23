@@ -343,3 +343,12 @@
 - **Scope:** test and coordination/roadmap only; no frontend, production algorithm, schema, export adapter, machine-specific output or `main` changed. Local tests unavailable; GitHub Actions is authoritative.
 - **Known blockers:** AI Developer run [#45075174069](https://github.com/Taylan789/MobilyaCAD/actions/runs/45075174069) failed with OpenRouter free-model daily 429; exact logs confirm quota exhaustion. The recorded reset is 03:00 TRT. No rerun before reset or paid fallback.
 - **Next:** DOM-121 edge-band/material summary provenance across mixed-family snapshots; DOM-122 priced-consumption/quote reconciliation. INT-001 frontend-owned; INT-002/PERF-001 specialist-owned; QA-003 remains blocked.
+
+## 23 Kasım 2026 03:40 TRT — DOM-121 test slice (verification pending)
+
+- **Scope:** mixed-family material and edge-band consumption summaries are checked against canonical Part snapshots; provenance IDs, furniture source IDs, quantities, directional band assignments and unit conversions are independently reconciled. Source-order permutation must not change either summary.
+- **Files:** `domain/production/projectEdgeBandingConsumption.test.mjs`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`. No production algorithm, frontend, adapter/performance-owned files, project schema or CNC output changed.
+- **Commit:** SHA pending until the branch ref confirms the commit; parent HEAD `53e277b9ea589b122a08beb8421b4f3862238a53`.
+- **Automated validation:** not yet run on the new SHA. Exact-SHA CI/QA/Pages pending; local test execution unavailable.
+- **Known constraints:** UI export wiring remains INT-001 frontend-owned; INT-002/PERF-001 specialist-owned; QA-003 remains blocked until integration evidence. The AI Developer workflow previously failed due to OpenRouter free daily quota (429); no paid fallback or quota/secrets change.
+- **Next:** DOM-122 quote-cost totals against priced consumption and labor/operation rows.
