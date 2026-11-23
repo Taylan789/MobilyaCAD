@@ -2936,8 +2936,8 @@ test("DOM-133 source-map provenance comparison reconciles added, removed and unc
   assert.equal(result.comparison.fromLineCount, 2);
   assert.equal(result.comparison.toLineCount, 2);
   assert.deepEqual(result.comparison.changes.map(change => ({ type: change.type, id: change.costLineId })), [
-    { type: "removed", id: removedLabor.id },
-    { type: "added", id: "dom-133-added-material" }
+    { type: "added", id: "dom-133-added-material" },
+    { type: "removed", id: removedLabor.id }
   ]);
   const blockedMissingRevision = compareProjectQuoteRevisionSourceMaps(history, "quote-r1", "missing-revision");
   assert.equal(blockedMissingRevision.status, "blocked");

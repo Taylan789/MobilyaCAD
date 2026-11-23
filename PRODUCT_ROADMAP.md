@@ -1319,7 +1319,7 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - [ ] Physical production: operator and machine-standard verification remains separate from automated checks.
 
 ## Current domain queue — 23 November 2026
-- DOM-133: implemented in the current commit; exact-SHA CI/QA/Pages verification pending.
+- DOM-133: implementation [f9bdafd4](https://github.com/Taylan789/MobilyaCAD/commit/f9bdafd4f9565921a23c61b6a4cf715d43bed958); CI passed, QA failed on expected lexical change order; corrected test assertion is committed separately and revalidation is pending.
 - DOM-134: three-revision source-map audit reconciliation and duplicate-group ordering.
 - DOM-135: disclose legacy source-integrity marker status without inferring strict integrity.
 - DOM-130: remains deferred until serialization/adapter ownership is available.

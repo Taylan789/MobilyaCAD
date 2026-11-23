@@ -556,3 +556,10 @@
 - Commit SHA and exact-SHA CI/QA/Pages evidence will be recorded after the branch update; local tests are unavailable in this runtime. Do not claim verification until Actions completes.
 - Ownership: no frontend, adapter/performance-owned files, CNC/machine output or `main` changes.
 - Next: DOM-134 three-revision source-map audit reconciliation; DOM-135 legacy integrity-marker disclosure. DOM-130 remains deferred because adapter ownership is unavailable.
+
+
+## 23 Kasım 2026 20:40 TRT — DOM-133 QA correction
+- Initial code/test commit [f9bdafd4](https://github.com/Taylan789/MobilyaCAD/commit/f9bdafd4f9565921a23c61b6a4cf715d43bed958): CI [#45231664059](https://github.com/Taylan789/MobilyaCAD/actions/runs/45231664059) succeeded. QA [#45231664097](https://github.com/Taylan789/MobilyaCAD/actions/runs/45231664097) failed only in the added DOM-133 deterministic ordering assertion: implementation sorts costLineIds lexically, while the expected list had the reverse order (673/674 domain tests passed).
+- Pages [#45231664060](https://github.com/Taylan789/MobilyaCAD/actions/runs/45231664060) built successfully but its exact-SHA CI/QA gate failed; deploy was skipped. No broken version was published.
+- Correction changes the expected added/removed row order to match lexical costLineId sorting. Assertions and production behavior are unchanged; no tests were weakened. Corrected commit SHA and exact-SHA Actions results are pending.
+- Next: DOM-134 three-revision source-map audit reconciliation; DOM-135 legacy source-integrity disclosure. DOM-130 stays deferred due adapter ownership.
