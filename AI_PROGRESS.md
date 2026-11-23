@@ -459,3 +459,10 @@
 - Commit `6a6f2c6c7d79bdf94505a3aa553ac0add313eeb1` added CSV v4 implementation and regression tests.
 - CI build/lint: **success** (run 45156744492). QA shared-domain suite: **failure** (run 45156744371): 656/666 pass; ten tests expected CSV version 3 but current serializer is version 4. New DOM-126d hardware-BOM test itself passed.
 - Pages build started but is gated by QA; deployment is not verified. Fixing the ten stale version assertions and the DOM-084 test title now.
+
+
+## 23 Kasım 2026 13:08 TRT — DOM-126d verified delivery
+- Code/test commit: `6a6f2c6c7d79bdf94505a3aa553ac0add313eeb1`. QA initially caught ten stale shared-domain assertions expecting CSV v3; tests were corrected to v4 without weakening behavior.
+- Fix/test/docs commit: `32e15e753f02c3d43d2be2eb660c31d1154e840b`. CI **success** (run 45157106818). QA **success** (run 45157106928): unit 184/184 and shared-domain 666/666; type-check, lint, production build and dependency audit all passed.
+- Pages deployment **success** (run 45157106790), exact SHA. Test site: https://taylan789.github.io/MobilyaCAD/ .
+- Next: DOM-127 hardware BOM-to-furniture/Part traceability boundary; no UI/CNC mapping is claimed.

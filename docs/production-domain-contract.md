@@ -1127,3 +1127,10 @@ Quote-summary CSV v1 writes the four fields as additive trailing columns. The pa
 - JSON v3 accepts both existing catalog resource identity and the hardware-only fields `hardwareId`, `hardwareUnit`, `hardwareFurnitureIds`, and optional `hardwareSourceReferences`. Identity, unit and furniture IDs are all-or-nothing; unit must equal the cost-line unit; identifier arrays must be sorted, unique and bounded. BOM fields are only valid on `hardware` / `production-consumption` lines.
 - Partial, misplaced, mismatched-unit, empty/unsorted metadata and BOM fields in legacy v1/v2 envelopes are rejected atomically with no partial file/comparison. BOM furniture references do not infer Part IDs; hardware `sourcePartIds` remains absent unless separately supplied by a validated source.
 - Acceptance is covered by JSON v3 round-trip and fail-closed regression tests, while legacy JSON v1/v2 fixtures remain valid. Exact-SHA CI [#45148425243], QA [#45148425227] and Pages [#45148425478] succeeded (178 frontend + 664 domain tests; strict TS, production build, lint 32 warnings/0 errors, audit 0); test site: https://taylan789.github.io/MobilyaCAD/. CSV v4 hardware fields are a separate DOM-126d slice.
+
+
+## DOM-126d — Quote revision comparison CSV v4 hardware BOM provenance
+- CSV v4 appends paired `hardwareId`, `hardwareUnit`, `hardwareFurnitureIds` and optional `hardwareSourceReferences` fields for each comparison side; v3 resource/catalog columns are preserved.
+- Exact-header parser supports v1/v2/v3/v4. Hardware BOM data round-trips through CSV v4 and validated JSON v3; partial and unsorted BOM metadata is rejected atomically. CSV v3 resource identity remains readable.
+- BOM furniture IDs are provenance only: this does not create panel Part links, drilling coordinates, CNC operations, or machine-specific output. Frontend export integration remains separately owned.
+- Verification: CI run 45157106818 success; QA run 45157106928 success (184 unit tests + 666 shared-domain tests; type-check, lint, build, dependency audit); Pages deployment run 45157106790 success. Published test site: https://taylan789.github.io/MobilyaCAD/.
