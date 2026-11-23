@@ -19,7 +19,7 @@ test("local position controls are progressively disclosed and initially collapse
 });
 
 test("position disclosure keeps the original millimeter fields and commit behavior", () => {
-  for (const axis of ["x", "y", "z"]) assert.match(source, new RegExp(`selected-part-position-\\${axis}`));
+  for (const axis of ["x", "y", "z"]) assert.match(source, new RegExp("selected-part-position-" + axis));
   assert.match(source, /onBlur=\{\(\) => commitPosition\(axis\.key, axis\.index\)\}/);
   assert.match(source, /nextPosition\[index\] = value \/ 1000/);
   assert.match(source, /Değişiklikler 3D önizlemeye ve proje verisine uygulanır\./);
