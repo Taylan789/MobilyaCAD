@@ -1,16 +1,22 @@
-/* UI-WORKSPACE-VIEWPORT-FIT-001 — continuous dock sizing keeps the 3D canvas stable */
-@media (min-width: 1101px) and (max-width: 1919px) {
-  .cad-sidebar {
-    flex: 0 0 clamp(232px, calc(7.57946vw + 148.55012px), 294px) !important;
-    width: clamp(232px, calc(7.57vw + 148.7px), 294px) !important;
-    min-width: clamp(232px, calc(7.57vw + 148.7px), 294px) !important;
+/* UI-WORKSPACE-VIEWPORT-FIT-002 — rebalance desktop docks to preserve the CAD canvas.
+   Higher specificity keeps these viewport-aware sizes effective after the graphite shell.
+   The dock content remains unchanged; only the flex allocation is tuned. */
+@media (min-width: 1101px) and (max-width: 2559px) {
+  .cad-app .cad-sidebar {
+    flex: 0 0 clamp(224px, calc(5.7vw + 161.3px), 300px) !important;
+    flex-basis: clamp(224px, calc(5.7vw + 161.3px), 300px) !important;
+    width: clamp(224px, calc(5.7vw + 161.3px), 300px) !important;
+    min-width: clamp(224px, calc(5.7vw + 161.3px), 300px) !important;
+    max-width: clamp(224px, calc(5.7vw + 161.3px), 300px) !important;
   }
-  .cad-inspector {
-    flex-basis: clamp(272px, calc(9.77995vw + 164.32274px), 352px) !important;
-    width: clamp(272px, calc(9.77vw + 164.4px), 352px) !important;
-    min-width: clamp(272px, calc(9.77vw + 164.4px), 352px) !important;
+  .cad-app .cad-inspector {
+    flex: 0 0 clamp(264px, calc(7vw + 186.9px), 360px) !important;
+    flex-basis: clamp(264px, calc(7vw + 186.9px), 360px) !important;
+    width: clamp(264px, calc(7vw + 186.9px), 360px) !important;
+    min-width: clamp(264px, calc(7vw + 186.9px), 360px) !important;
+    max-width: clamp(264px, calc(7vw + 186.9px), 360px) !important;
   }
-  .cad-workspace-content {
+  .cad-app .cad-workspace-content {
     gap: clamp(7px, 0.52vw, 10px) !important;
     padding: clamp(8px, 0.63vw, 12px) !important;
   }
@@ -36,22 +42,28 @@
   }
 }
 
-@media (min-width: 1920px) {
-  .cad-sidebar {
-    flex-basis: 294px !important;
-    width: 294px !important;
-    min-width: 294px !important;
+
+@media (min-width: 2560px) {
+  .cad-app .cad-sidebar {
+    flex: 0 0 300px !important;
+    flex-basis: 300px !important;
+    width: 300px !important;
+    min-width: 300px !important;
+    max-width: 300px !important;
   }
-  .cad-inspector {
-    flex-basis: 352px !important;
-    width: 352px !important;
-    min-width: 352px !important;
+  .cad-app .cad-inspector {
+    flex: 0 0 360px !important;
+    flex-basis: 360px !important;
+    width: 360px !important;
+    min-width: 360px !important;
+    max-width: 360px !important;
   }
-  .cad-workspace-content {
+  .cad-app .cad-workspace-content {
     gap: 10px !important;
     padding: 12px !important;
   }
 }
+
 
 @media (prefers-reduced-motion: reduce) {
   .cad-sidebar,
