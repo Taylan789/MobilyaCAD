@@ -439,9 +439,11 @@
 - **Next:** DOM-126c comparison JSON v3, then DOM-126d CSV v4 and DOM-127 traceability review.
 
 
-## 23 Kasım 2026 12:23 TRT — DOM-126c JSON v3 implementation (Actions pending)
-- Added conditional comparison JSON v3: hardware BOM metadata (`hardwareId`, `hardwareUnit`, sorted `hardwareFurnitureIds`, optional sorted `hardwareSourceReferences`) is allowed only on production-consumption hardware lines and must be complete, unit-consistent and fail-closed. Existing no-BOM exports remain JSON v2 to preserve cross-format consumers; JSON v1/v2 import remains supported.
-- Added regression tests for v3 round-trip, BOM-source-only metadata, partial/misplaced/mismatched/empty or unsorted fields, and legacy v1/v2 compatibility/rejection. No CSV adapter or frontend files changed.
-- Commit SHA: pending post-commit reference. Exact-SHA CI/QA/Pages: pending. No local checkout/test runner available in this runtime.
-- Baseline branch SHA `9a27bd6` had successful CI #45144607157, QA #45144607197 and Pages #45144607166. No active dev/github-work AI Developer or QA run; the last AI Developer run remains free-model HTTP 429 quota-blocked and integration/performance job is disabled.
-- Next: DOM-126d comparison CSV v4 hardware BOM columns with v1/v2/v3 compatibility, followed by DOM-127 hardware-to-furniture/Part traceability boundary review.
+## 23 Kasım 2026 12:23 TRT — DOM-126c JSON v3 VERIFIED
+
+- Comparison JSON emits v3 only when hardware BOM metadata is present; legacy no-BOM exports remain v2. v1/v2 imports stay supported; BOM identity/unit/furniture/source metadata is strict and restricted to production-consumption hardware lines.
+- Tests cover BOM round-trip and source-only changes without monetary delta, partial/misplaced/wrong-unit/non-hardware/empty or unsorted metadata rejection, and legacy v1/v2 readers. No CSV adapter or frontend files changed.
+- Code/test commit: [8af748584c5f301b38a5ee6daff783b49c69ded4](https://github.com/Taylan789/MobilyaCAD/commit/8af748584c5f301b38a5ee6daff783b49c69ded4). CI [#45148425243](https://github.com/Taylan789/MobilyaCAD/actions/runs/45148425243) succeeded; QA [#45148425227](https://github.com/Taylan789/MobilyaCAD/actions/runs/45148425227) passed: 178 frontend + 664 domain tests, strict domain TypeScript, production build, lint 32 warnings/0 errors, production audit 0 vulnerabilities. Pages [#45148425478](https://github.com/Taylan789/MobilyaCAD/actions/runs/45148425478) deployed to https://taylan789.github.io/MobilyaCAD/.
+- AI Developer attempt 3 [#45091325066](https://github.com/Taylan789/MobilyaCAD/actions/runs/45091325066) failed again; its job-log endpoint returned 404/BlobNotFound, so no new error detail was available. The run did not move branch HEAD. Integration/performance specialist job was skipped; no integration-performance PR is open. UI agent PRs remain separate and unmerged; frontend files were not changed here.
+- Local tests could not be run because the repository is not mounted in this runtime; exact-SHA Actions are authoritative.
+- Next: DOM-126d comparison CSV v4 BOM columns and v1/v2/v3 compatibility, then DOM-127 traceability boundary review.

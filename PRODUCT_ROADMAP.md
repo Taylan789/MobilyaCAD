@@ -1208,11 +1208,11 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 3. DOM-127 — Hardware BOM → furniture/Part traceability boundary; do not fabricate hardware-to-Part links.
 
 
-## 23 Kasım 2026 — DOM-126c comparison JSON v3 (implementation; Actions pending)
+## 23 Kasım 2026 — DOM-126c comparison JSON v3 (VERIFIED)
 
-- Comparison JSON remains v2 for comparisons without hardware BOM fields, keeping older consumers compatible. Hardware BOM metadata triggers strict v3 export; parser continues accepting v1/v2.
-- v3 supports BOM identity/unit/furniture IDs and optional source references only on hardware production-consumption lines. All required metadata is atomic; units must match; IDs/references must be sorted and unique. Partial/misplaced/invalid input returns no partial file/comparison. No hardware-to-Part mapping is inferred.
-- Acceptance: v3 round-trip and invalid metadata regressions; legacy v1/v2 readers; exact-SHA CI, QA and Pages pending. CSV hardware provenance remains a separate v4 task.
+- Comparison JSON remains v2 without BOM metadata, preserving older consumers; hardware BOM fields trigger strict v3 serialization. v1/v2 parsing remains backward-compatible.
+- v3 permits hardwareId, hardwareUnit, hardwareFurnitureIds, and optional hardwareSourceReferences only on production-consumption hardware lines. Required metadata is atomic, unit-consistent, sorted/unique and bounded. Invalid imports/exports fail closed; no hardware-to-Part mapping is inferred.
+- Verified code/test [8af74858](https://github.com/Taylan789/MobilyaCAD/commit/8af748584c5f301b38a5ee6daff783b49c69ded4): CI [#45148425243](https://github.com/Taylan789/MobilyaCAD/actions/runs/45148425243), QA [#45148425227](https://github.com/Taylan789/MobilyaCAD/actions/runs/45148425227) (178 frontend + 664 domain tests; strict TypeScript, production build, lint 32 warnings/0 errors, audit 0 vulnerabilities) and Pages [#45148425478](https://github.com/Taylan789/MobilyaCAD/actions/runs/45148425478) successful. Test site: https://taylan789.github.io/MobilyaCAD/.
 
 ### Next 3 domain slices
 1. DOM-126d — Comparison CSV v4 hardware BOM columns, strict round-trip and v1/v2/v3 compatibility.
