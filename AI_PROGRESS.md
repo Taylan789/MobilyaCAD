@@ -386,18 +386,26 @@
 - **Exact-SHA QA:** [#45111961982](https://github.com/Taylan789/MobilyaCAD/actions/runs/45111961982) successful — **175 frontend + 654 domain tests, 0 failures**, strict shared-domain TypeScript, lint **32 warnings / 0 errors**, production build and production audit **0 vulnerabilities**.
 - **Pages:** [#45111961983](https://github.com/Taylan789/MobilyaCAD/actions/runs/45111961983) successful; test site deployed: https://taylan789.github.io/MobilyaCAD/.
 - **Scope:** quote domain source/test + roadmap/progress/coordination/domain contract; no frontend, adapter/performance-owned files, quote JSON/CSV validator, CNC output or `main` changed. Local full suite unavailable; Actions is authoritative.
-- **Known compatibility boundary:** strict quote JSON/CSV v1 rejects new hardware-source metadata rather than silently dropping it; DOM-125 adds validated round-trip support.
+- **Compatibility (DOM-125 verified):** quote JSON/CSV v1 preserves hardware provenance with strict validation and legacy CSV header support.
 - AI Developer [#45091325066](https://github.com/Taylan789/MobilyaCAD/actions/runs/45091325066) logs confirm OpenRouter free-model daily quota HTTP 429; reset is 24 Nov 2026 03:00 TRT. No rerun before reset; specialist job skipped and no integration/performance branch or PR verified.
-- Next: DOM-125 strict quote-summary JSON/CSV v1 compatibility for hardware-specific provenance.
+- Next: DOM-126 quote revision/snapshot hardware-provenance coverage and cross-consumer reconciliation.
 
 
-## 23 Kasım 2026 08:27 TRT — DOM-125 IMPLEMENTED, Actions pending
+## 23 Kasım 2026 08:27 TRT — DOM-125 IMPLEMENTED
 - Quote-summary JSON v1 strict validator now preserves optional hardware BOM fields (hardware ID, unit, sorted furniture IDs, optional sorted source references) only on production-consumption hardware cost lines; partial metadata fails closed. Legacy JSON without these fields remains valid.
 - Quote-summary CSV v1 adds four trailing columns and parses legacy v1 headers by normalizing missing columns to blanks; no provenance is invented. Added round-trip and negative/legacy compatibility tests.
 - Files: `domain/production/projectQuoteSummaryFile.ts`, `projectQuoteSummaryFile.test.mjs`, `projectQuoteSummaryCsv.ts`, `projectQuoteSummaryCsv.test.mjs`, `docs/production-domain-contract.md`, `PRODUCT_ROADMAP.md`, `AI_COORDINATION.md`. No frontend, specialist-owned adapter/performance files, machine output or `main` changed.
-- Code commit and exact-SHA CI/QA/Pages are pending; local full tests unavailable. AI Developer last run [#45091325066](https://github.com/Taylan789/MobilyaCAD/actions/runs/45091325066) failed due OpenRouter free daily quota 429; specialist job skipped, no separate integration/performance branch/PR verified.
+- Local full suite unavailable; GitHub Actions is authoritative. AI Developer last run [#45091325066](https://github.com/Taylan789/MobilyaCAD/actions/runs/45091325066) failed due OpenRouter free daily quota 429; specialist job skipped, no separate integration/performance branch/PR verified.
 - Next: DOM-126 quote revision/snapshot hardware-provenance coverage and cross-consumer reconciliation.
 
 
 ## 23 Kasım 2026 08:30 TRT — DOM-125 QA regresyon düzeltmesi
-- Exact-SHA QA [#45118632745](https://github.com/Taylan789/MobilyaCAD/actions/runs/45118632745) 636/637 domain test geçti; tek başarısızlık yeni CSV negatif testindeki kapanış tırnak syntax typo. CI [#45118632761](https://github.com/Taylan789/MobilyaCAD/actions/runs/45118632761) build/lint başarılı; Pages [#45118632750](https://github.com/Taylan789/MobilyaCAD/actions/runs/45118632750) QA gate nedeniyle başarısız. Testi düzeltildi, kapsam/zorluk azaltılmadı; yeni SHA Actions doğrulaması bekleniyor.
+- Exact-SHA QA [#45118632745](https://github.com/Taylan789/MobilyaCAD/actions/runs/45118632745) initially failed only because the new CSV assertion had a missing quote; no tests were weakened. The assertion was corrected in [332299f](https://github.com/Taylan789/MobilyaCAD/commit/332299fbb852d690031d376fe82a9f390436c55e).
+
+
+## 23 Kasım 2026 08:36 TRT — DOM-125 doğrulandı
+- Kod/test: [6025de0](https://github.com/Taylan789/MobilyaCAD/commit/6025de0a9e5612ff7ac67deab45a6df10a94b456); test assertion correction: [332299f](https://github.com/Taylan789/MobilyaCAD/commit/332299fbb852d690031d376fe82a9f390436c55e). Final branch SHA: 332299fbb852d690031d376fe82a9f390436c55e.
+- Exact-SHA CI [#45118738218](https://github.com/Taylan789/MobilyaCAD/actions/runs/45118738218) successful (production build + lint); QA [#45118738120](https://github.com/Taylan789/MobilyaCAD/actions/runs/45118738120) successful — 175 frontend + 658 domain tests, strict domain TypeScript, lint 32 warnings/0 errors, production build, production audit 0 vulnerabilities.
+- Pages deployment [#45118738144](https://github.com/Taylan789/MobilyaCAD/actions/runs/45118738144) successful: https://taylan789.github.io/MobilyaCAD/. This domain-only slice updates the deployed build but makes no visible frontend redesign; UI-agent PRs remain separate and unmerged.
+- Initial QA failure was a typo in the new CSV test assertion; corrected without weakening coverage. No local tests run (repository checkout/network unavailable).
+- Next: DOM-126 quote revision/snapshot hardware-provenance coverage and cross-consumer reconciliation.
