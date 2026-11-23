@@ -548,7 +548,7 @@ Bu dosya dört geliştirme/denetim rolünün ortak görev panosu ve entegrasyon 
 
 | DOM-132 | Surface duplicate source identities in legacy revision audits without mutating or rejecting legacy history | Ürün Geliştirme | VERIFIED — code/test 7b52344dff6d848b238971060b68e9eeefda6c8d; [CI #45217498055](https://github.com/Taylan789/MobilyaCAD/actions/runs/45217498055), [QA #45217498277](https://github.com/Taylan789/MobilyaCAD/actions/runs/45217498277), [Pages #45217499095](https://github.com/Taylan789/MobilyaCAD/actions/runs/45217499095) successful | 191 frontend + 672 domain tests; strict TS/build, 34 lint warnings/0 errors, production audit 0 vulnerabilities; test site https://taylan789.github.io/MobilyaCAD/ | DOM-131 |
 | DOM-133 | Compare revision source-map provenance changes separately from monetary deltas | Ürün Geliştirme | VERIFIED — code/test [0944028f](https://github.com/Taylan789/MobilyaCAD/commit/0944028fdf51c3b3e4fce0f5395e74885029239a); CI [#45231997148](https://github.com/Taylan789/MobilyaCAD/actions/runs/45231997148), QA [#45231996953](https://github.com/Taylan789/MobilyaCAD/actions/runs/45231996953), Pages [#45231997189](https://github.com/Taylan789/MobilyaCAD/actions/runs/45231997189) successful (191 frontend + 674 domain tests, strict TS/build, lint 34 warnings/0 errors, production audit 0) | `compareProjectQuoteRevisionSourceMaps` is deterministic and immutable; monetary API unchanged; test site deployed https://taylan789.github.io/MobilyaCAD/ | DOM-131, DOM-128
-| DOM-134 | Three-revision source-map audit reconciliation and duplicate-group ordering across revisions | Ürün Geliştirme | READY | revision-local duplicate counts, project totals and stable IDs reconcile over three revisions with order-independent summaries | DOM-132
+| DOM-134 | Three-revision source-map audit reconciliation and duplicate-group ordering across revisions | Ürün Geliştirme | IN PROGRESS — test slice committed; exact-SHA CI/QA/Pages pending | revision-local duplicate groups, line refs, additive totals and project-wide unique IDs reconcile; paired row reorder stable | DOM-132
 | DOM-135 | Legacy source-integrity marker disclosure in source-map audit comparisons | Ürün Geliştirme | READY | missing legacy marker remains explicit and no integrity inference is introduced; strict v1 stays distinct | DOM-131, DOM-133
 
 
@@ -557,3 +557,10 @@ Bu dosya dört geliştirme/denetim rolünün ortak görev panosu ve entegrasyon 
 - Strict source-integrity v1 duplicate rejection remains unchanged. DOM-132 regression checks valid legacy history, immutable input, reordered-line determinism and strict blocking.
 - Code/test SHA and exact-SHA CI/QA/Pages evidence will be recorded after verification.
 - Next: DOM-133 provenance-only comparison; then DOM-134 three-revision audit reconciliation and DOM-135 legacy source-integrity disclosure.
+
+
+## DOM-134 implementation handoff
+- Added three-revision coverage for revision-local duplicate identity groups, sorted cost-line references, additive count reconciliation and project-wide unique Part/hardware identity accounting.
+- Paired reversal of cost/source rows must preserve the summarized audit, while the original history remains unchanged and nested duplicate references stay immutable.
+- Exact-SHA CI/QA/Pages evidence is pending; no production API/schema or frontend changes.
+- Next: DOM-135 legacy source-integrity marker disclosure. DOM-130 remains deferred until adapter ownership is available.

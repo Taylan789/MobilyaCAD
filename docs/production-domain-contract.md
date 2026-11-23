@@ -1186,3 +1186,11 @@ Quote source identity is the pair (sourceType, sourceId) within one revision. Th
 - Different source metadata on a stable cost-line ID is a `changed` provenance row. New/removed cost-line IDs are `added`/`removed` rows. No source mapping is inferred.
 - Acceptance: source-only change with zero monetary delta; added/removed/unchanged reconciliation; stable order when source and cost rows are reordered together; immutable result and input; invalid/missing revision fail closed.
 - This is a domain API only. No frontend, comparison JSON/CSV schema, adapter, CNC output or machine standard is changed.
+
+
+## DOM-134 — Three-revision source-map audit reconciliation
+
+The source-map audit is checked across three consecutive quote revisions with repeated legacy (sourceType, sourceId) identities. Duplicate groups remain revision-local and ordered by source type/identity; each group's cost-line IDs are lexically sorted. Additive project counts reconcile with the sum of revision counts, while unique Part, hardware-furniture and BOM-reference identities are deduplicated across the full project history rather than added per revision.
+
+- Acceptance: three valid revisions with two duplicate identity groups each; exact revision-local group/reference counts; project additive totals and unique-ID totals reconcile; reversing paired cost/source rows leaves the audit summary stable; input remains unchanged and duplicate-group arrays are immutable.
+- Test-only contract guard for the existing audit API; no schema, export, monetary calculation, CNC output or machine standard is changed.

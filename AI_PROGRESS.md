@@ -577,3 +577,10 @@
 ## 23 Kasım 2026 20:40 TRT — documentation SHA bb794e2f verified
 - Documentation/coordination commit [bb794e2fdcc4ec4b4d9e9b081239f36eeaf42de0](https://github.com/Taylan789/MobilyaCAD/commit/bb794e2fdcc4ec4b4d9e9b081239f36eeaf42de0) exact-SHA CI [#45232392957](https://github.com/Taylan789/MobilyaCAD/actions/runs/45232392957), QA [#45232393080](https://github.com/Taylan789/MobilyaCAD/actions/runs/45232393080) and Pages [#45232393061](https://github.com/Taylan789/MobilyaCAD/actions/runs/45232393061) all succeeded.
 - Pages deploy run [#45232393061](https://github.com/Taylan789/MobilyaCAD/actions/runs/45232393061) deployed the documentation commit and verified https://taylan789.github.io/MobilyaCAD/.
+
+
+## 23 Kasım 2026 22:19 TRT — DOM-134 three-revision source-map audit regression (verification pending)
+- Added a three-revision contract test for the existing immutable quote source-map audit: two revision-local duplicate identity groups per revision, sorted source-type/source-ID and cost-line ordering, additive project totals, project-wide unique Part/hardware IDs, and stable audit summaries after paired row reordering.
+- Acceptance also checks input immutability and deep-frozen duplicate-group data. No production calculations, export schemas/adapters, frontend files, CNC/machine output, or main changes.
+- Commit SHA will be recorded after the branch update; exact-SHA CI, QA and Pages deployment are pending. Local tests are unavailable in this runtime.
+- Next: DOM-135 legacy source-integrity marker disclosure; DOM-130 remains deferred because adapter ownership is unavailable.

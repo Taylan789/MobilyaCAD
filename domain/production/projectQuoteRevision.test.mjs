@@ -2949,3 +2949,181 @@ test("DOM-133 source-map provenance comparison reconciles added, removed and unc
   assert.equal(blockedInvalid.status, "blocked");
   assert.equal(blockedInvalid.comparison, null);
 });
+
+
+test("DOM-134 three-revision source-map audit reconciles duplicate groups and project-wide unique identities", () => {
+  const fixtures = [1, 2, 3].map(revisionNumber => {
+    const snapshot = createDom131AuditSnapshot();
+    const quoteSummary = snapshot.quoteSummary;
+    const costSummary = quoteSummary.costSummary;
+    assert.ok(costSummary);
+
+    const materialSource = quoteSummary.lineSources.find(
+      source => source.sourceType === "production-consumption" && source.resourceType === "material"
+    );
+    assert.ok(materialSource);
+    const materialLine = costSummary.lines.find(line => line.id === materialSource.costLineId);
+    assert.ok(materialLine);
+    materialSource.sourceId = "dom-134-shared-material-source";
+    materialSource.sourcePartIds = [
+      "dom-134-part-shared",
+      "dom-134-part-r" + revisionNumber
+    ].sort();
+
+    const profitSource = quoteSummary.lineSources.find(source => source.sourceType === "quote-adjustment");
+    assert.ok(profitSource);
+    const profitLine = costSummary.lines.find(line => line.id === profitSource.costLineId);
+    assert.ok(profitLine);
+
+    const addDuplicate = (originalLine, originalSource, duplicateLineId) => {
+      const duplicateLine = { ...originalLine, id: duplicateLineId };
+      const duplicateSource = structuredClone(originalSource);
+      duplicateSource.costLineId = duplicateLineId;
+      costSummary.lines.push(duplicateLine);
+      quoteSummary.lineSources.push(duplicateSource);
+      costSummary.categoryTotalsMinor[duplicateLine.category] += duplicateLine.lineTotalMinor;
+      costSummary.grandTotalMinor += duplicateLine.lineTotalMinor;
+      costSummary.lineCount += 1;
+      quoteSummary.requiredLineCount += 1;
+      quoteSummary.pricedLineCount += 1;
+    };
+
+    const materialDuplicateIds = [
+      "dom-134-material-b-r" + revisionNumber,
+      "dom-134-material-a-r" + revisionNumber
+    ];
+    for (const duplicateId of materialDuplicateIds) {
+      addDuplicate(materialLine, materialSource, duplicateId);
+    }
+    const profitDuplicateId = "dom-134-profit-copy-r" + revisionNumber;
+    addDuplicate(profitLine, profitSource, profitDuplicateId);
+
+    return {
+      snapshot,
+      materialGroup: {
+        sourceType: materialSource.sourceType,
+        sourceId: materialSource.sourceId,
+        costLineIds: [materialSource.costLineId, ...materialDuplicateIds].sort()
+      },
+      profitGroup: {
+        sourceType: profitSource.sourceType,
+        sourceId: profitSource.sourceId,
+        costLineIds: [profitSource.costLineId, profitDuplicateId].sort()
+      }
+    };
+  });
+
+  const history = {
+    projectId: "project-42",
+    revisions: fixtures.map((fixture, index) => createHistoryRevision({
+      revisionId: "quote-r" + (index + 1),
+      revisionNumber: index + 1,
+      createdAt: "2026-11-17T" + (10 + index) + ":00:00Z",
+      previousRevisionId: index === 0 ? null : "quote-r" + index,
+      pricingSnapshot: fixture.snapshot
+    }))
+  };
+  assert.equal(validateProjectQuoteRevisionHistory(history).status, "ready");
+  const originalHistoryJson = JSON.stringify(history);
+  const result = calculateProjectQuoteRevisionSourceMapAudit(history);
+  assert.equal(result.status, "ready", result.diagnostics.join("; "));
+  assert.ok(result.audit);
+  const audit = result.audit;
+  assert.equal(audit.revisionCount, 3);
+  assert.deepEqual(audit.revisions.map(revision => revision.revisionId), ["quote-r1", "quote-r2", "quote-r3"]);
+
+  const expectedGroupsByRevision = fixtures.map(fixture => [
+    fixture.materialGroup,
+    fixture.profitGroup
+  ].sort((left, right) => {
+    if (left.sourceType !== right.sourceType) return left.sourceType < right.sourceType ? -1 : 1;
+    if (left.sourceId === right.sourceId) return 0;
+    return left.sourceId < right.sourceId ? -1 : 1;
+  }));
+  for (let index = 0; index < audit.revisions.length; index += 1) {
+    const revisionAudit = audit.revisions[index];
+    const fixtureSources = fixtures[index].snapshot.quoteSummary.lineSources;
+    const expectedRevisionPartIds = new Set(fixtureSources.flatMap(source => source.sourcePartIds ?? []));
+    const expectedRevisionFurnitureIds = new Set(fixtureSources.flatMap(source => source.hardwareFurnitureIds ?? []));
+    const expectedRevisionBomReferences = new Set(fixtureSources.flatMap(source => source.hardwareSourceReferences ?? []));
+    assert.equal(revisionAudit.counts.lineCount, fixtures[index].snapshot.quoteSummary.costSummary.lines.length);
+    assert.deepEqual(revisionAudit.duplicateSourceIdentities, expectedGroupsByRevision[index]);
+    assert.equal(revisionAudit.counts.duplicateSourceIdentityCount, 2);
+    assert.equal(revisionAudit.counts.duplicateSourceIdentityLineReferenceCount, 5);
+    assert.equal(revisionAudit.counts.uniquePartIdCount, expectedRevisionPartIds.size);
+    assert.equal(revisionAudit.counts.uniqueHardwareFurnitureIdCount, expectedRevisionFurnitureIds.size);
+    assert.equal(revisionAudit.counts.uniqueHardwareBomReferenceCount, expectedRevisionBomReferences.size);
+  }
+
+  const additiveCountKeys = [
+    "lineCount", "sourceReferenceLineCount", "partLinkedLineCount", "partReferenceCount",
+    "resourceLineCount", "hardwareLineCount", "hardwareFurnitureReferenceCount",
+    "hardwareBomReferenceCount", "laborOperationLineCount", "quoteAdjustmentLineCount",
+    "duplicateSourceIdentityCount", "duplicateSourceIdentityLineReferenceCount"
+  ];
+  for (const key of additiveCountKeys) {
+    assert.equal(audit.totals[key], audit.revisions.reduce((sum, revision) => sum + revision.counts[key], 0), key);
+  }
+  for (const sourceType of ["production-consumption", "labor-operation", "quote-adjustment"]) {
+    assert.equal(audit.totals.sourceTypeCounts[sourceType], audit.revisions.reduce(
+      (sum, revision) => sum + revision.counts.sourceTypeCounts[sourceType], 0
+    ), sourceType);
+  }
+  for (const category of ["material", "hardware", "labor", "operation", "waste", "profit"]) {
+    assert.equal(audit.totals.categoryCounts[category], audit.revisions.reduce(
+      (sum, revision) => sum + revision.counts.categoryCounts[category], 0
+    ), category);
+  }
+  assert.equal(audit.totals.lineCount, fixtures.reduce(
+    (sum, fixture) => sum + fixture.snapshot.quoteSummary.costSummary.lines.length, 0
+  ));
+  assert.equal(audit.totals.duplicateSourceIdentityCount, 6);
+  assert.equal(audit.totals.duplicateSourceIdentityLineReferenceCount, 15);
+  assert.equal(audit.totals.hardwareFurnitureReferenceCount, 3);
+  assert.equal(audit.totals.hardwareBomReferenceCount, 6);
+
+  const expectedProjectPartIds = new Set(fixtures.flatMap(
+    fixture => fixture.snapshot.quoteSummary.lineSources.flatMap(source => source.sourcePartIds ?? [])
+  ));
+  const expectedProjectFurnitureIds = new Set(fixtures.flatMap(
+    fixture => fixture.snapshot.quoteSummary.lineSources.flatMap(source => source.hardwareFurnitureIds ?? [])
+  ));
+  const expectedProjectBomReferences = new Set(fixtures.flatMap(
+    fixture => fixture.snapshot.quoteSummary.lineSources.flatMap(source => source.hardwareSourceReferences ?? [])
+  ));
+  const actualProjectPartIds = new Set(audit.revisions.flatMap(
+    revision => revision.lines.flatMap(line => line.sourcePartIds ?? [])
+  ));
+  assert.deepEqual(actualProjectPartIds, expectedProjectPartIds);
+  assert.equal(audit.totals.uniquePartIdCount, expectedProjectPartIds.size);
+  assert.equal(audit.totals.uniqueHardwareFurnitureIdCount, expectedProjectFurnitureIds.size);
+  assert.equal(audit.totals.uniqueHardwareBomReferenceCount, expectedProjectBomReferences.size);
+  assert.equal(expectedProjectPartIds.has("dom-134-part-shared"), true);
+  for (const revisionNumber of [1, 2, 3]) {
+    assert.equal(expectedProjectPartIds.has("dom-134-part-r" + revisionNumber), true);
+  }
+
+  const reorderedHistory = structuredClone(history);
+  for (const revision of reorderedHistory.revisions) {
+    revision.pricingSnapshot.quoteSummary.lineSources.reverse();
+    revision.pricingSnapshot.quoteSummary.costSummary.lines.reverse();
+  }
+  const reorderedResult = calculateProjectQuoteRevisionSourceMapAudit(reorderedHistory);
+  assert.equal(reorderedResult.status, "ready", reorderedResult.diagnostics.join("; "));
+  const summarize = value => ({
+    revisionCount: value.revisionCount,
+    totals: value.totals,
+    revisions: value.revisions.map(revision => ({
+      revisionId: revision.revisionId,
+      revisionNumber: revision.revisionNumber,
+      counts: revision.counts,
+      duplicateSourceIdentities: revision.duplicateSourceIdentities
+    }))
+  });
+  assert.deepEqual(summarize(reorderedResult.audit), summarize(audit));
+  assert.deepEqual(JSON.stringify(history), originalHistoryJson);
+  assert.ok(Object.isFrozen(result));
+  assert.ok(Object.isFrozen(audit));
+  assert.ok(Object.isFrozen(audit.revisions[0].duplicateSourceIdentities));
+  assert.ok(Object.isFrozen(audit.revisions[0].duplicateSourceIdentities[0].costLineIds));
+});
