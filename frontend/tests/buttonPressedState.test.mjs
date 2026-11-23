@@ -5,7 +5,7 @@ import test from "node:test";
 const styles = readFileSync(new URL("../src/components/ui/button-cad-surface.css", import.meta.url), "utf8");
 
 test("persistent CAD button state is limited to enabled, non-link buttons", () => {
-  assert.match(styles, /\.cad-button-surface\[aria-pressed="true"\]:not\(:disabled):not\(\[aria-disabled="true"\]\):not\(\[data-cad-variant="link"\]\)/);
+  assert.match(styles, /\.cad-button-surface\[aria-pressed="true"\]:not\(:disabled\):not\(\[aria-disabled="true"\]\):not\(\[data-cad-variant="link"\]\)/);
 });
 
 test("pressed surfaces are defined for the primary, outline, secondary, ghost and destructive variants", () => {
