@@ -1113,58 +1113,18 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - **Next:** DOM-116 validate the ready nesting-batch report's material-group/source snapshot consistency across selected and excluded Parts; INT-001 remains frontend-owned, INT-002/PERF-001 specialist-owned, QA-003 remains blocked until integration evidence.
 
 
-## Güncel domain öncelikleri — 22 Kasım 2026
+## Güncel domain öncelikleri — 23 Kasım 2026
 
 | Sıra | Dilim | Kabul kriteri / bağımlılık |
 |---|---|---|
-| DOM-116 VERIFIED | Ready nesting-batch seçimi, tam Part snapshot ve material/normalize thickness grup kaynağını birlikte doğrula | Seçilmiş/çıkarılmış kimlikler ayrık ve tam; snapshot proje sırasını korur; her batch yalnız seçili Part içerir, malzeme/kalınlık/adet kaynakla uyuşur; kesit metadata snapshot'ta kalır |
-| DOM-117 VERIFIED | Batch Part quantity and totalPieceCount reconcile against canonical Part snapshot | Per-Part quantities unchanged; safe group sum matches snapshot; exact MAX_SAFE_INTEGER accepted, overflow fails closed |
-| DOM-117 | Batch Part adetleri ve batch toplam adetini seçili kaynak snapshot ile karşılaştır | Quantity kayıpsız, toplam güvenli tam sayı, grup kaynakları birebir; overflow fail-closed; DOM-116 testine bağımlı |
-| DOM-118 VERIFIED | Stock-sheet tanım sırası ve missing/unused/duplicate group tanılarının deterministik sözleşmesi | Batch çıktısı levha tanımı sırasından bağımsız; grup sırası proje kaynak sırasını korur; tanılar materialId + sayısal normalize kalınlık sırasına göre. CI [#45072743130](https://github.com/Taylan789/MobilyaCAD/actions/runs/45072743130), QA [#45072741019](https://github.com/Taylan789/MobilyaCAD/actions/runs/45072741019), Pages [#45072740981](https://github.com/Taylan789/MobilyaCAD/actions/runs/45072740981) başarılı
-| DOM-119 | Ready batch → cut-plan/layout kaynak kapsamı için cross-consumer atomik doğrulama | Tüm kaynak ID/adet kapsamı reconciled; blocked/stale/unsupported durumda kısmi sonuç veya export yok; DOM-117/118 bağımlı |
-| INT-001 | Domain üretim raporu ↔ frontend adapter/export contract entegrasyonu | UI sahibinin dosyalarına dokunmadan JSON/CSV round-trip ve desteklenmeyen geometri için fail-closed kanıt |
-| INT-002 / PERF-001 | Integration/performance agent'ın adapter contract, benchmark ve profiling teslimatı | Agent'ın ayrı branch/PR ve gerçek CI kanıtı; bu otomasyon sahiplenmez veya merge etmez |
-
-
-
-## DOM-116 VERIFIED — 22 Kasım 2026
-
-- Ready nesting-batch selected/excluded IDs and full project Part snapshot are verified in project order; excluded cutout metadata is retained without entering nesting batches. Group source IDs reconcile to selected snapshots by catalog material ID, normalized 0.1 mm thickness, quantity and aggregate piece counts.
-- Test-only commit [5fd1b751](https://github.com/Taylan789/MobilyaCAD/commit/5fd1b751e0b8d1c0de5ee32ababfdf92f73f00c6); exact-SHA CI [#45063059018](https://github.com/Taylan789/MobilyaCAD/actions/runs/45063059018), QA [#45063059051](https://github.com/Taylan789/MobilyaCAD/actions/runs/45063059051), Pages [#45063058957](https://github.com/Taylan789/MobilyaCAD/actions/runs/45063058957) passed/deployed. QA 165 frontend + 642 domain tests; strict domain TS, lint 32 warnings/0 errors, build, production audit 0 vulnerabilities.
-- **Next small slices:** DOM-119 ready nesting-batch → cut-plan source coverage and atomic reconciliation; INT-001 frontend-owned, INT-002/PERF-001 specialist-owned.
-
-
-## DOM-117 — Nesting batch quantity reconciliation (VERIFIED, 22 Kasım 2026)
-
-- **Acceptance:** each selected batch Part retains the canonical snapshot quantity/material/thickness; source IDs and group totals are reconciled without unsafe arithmetic; an exact safe-integer boundary is accepted and overflow blocks atomically.
-- **Tests:** two new domain regressions cover grouped 2+3/4-piece totals against snapshot, excluded source immutability, MAX_SAFE_INTEGER exact total, and overflow blocking with no partial result/snapshot.
-- **Scope:** `domain/production/projectSheetNestingBatches.test.mjs` and coordination/roadmap/progress records only. No production behavior, frontend, adapter/performance-owned files, schema or CNC output changes.
-- **Next:** DOM-119 ready batch → cut-plan source coverage and atomic reconciliation; INT-001 remains frontend-owned, INT-002/PERF-001 specialist-owned.
-
-- **Verification:** code/test commit [492fed69](https://github.com/Taylan789/MobilyaCAD/commit/492fed69afe459e436e2ba603968da3ed088d187); CI [#45066750467](https://github.com/Taylan789/MobilyaCAD/actions/runs/45066750467), QA [#45066750708](https://github.com/Taylan789/MobilyaCAD/actions/runs/45066750708) passed, and Pages [#45066750453](https://github.com/Taylan789/MobilyaCAD/actions/runs/45066750453) deployed. QA: 165 frontend + 644 domain tests, strict TypeScript, lint 32 warnings/0 errors, production build, production audit 0 vulnerabilities.
-
-## DOM-118 VERIFIED — 23 Kasım 2026
-
-- Stock-sheet definition order does not change ready batch output; the group order continues to follow the selected project Part source order.
-- Missing/invalid group and unused stock-definition diagnostics are sorted by material ID, then numeric normalized 0.1 mm thickness. Reversing source Part and stock-definition order produces the same diagnostics.
-- Duplicate normalized stock definitions remain blocked, and their diagnostic is order-invariant. Unused definitions are never silently discarded.
-- Exact code/test commit: d081696ce27d6ad9f9a52604a3c47ef2a8ad4700. CI #45072743130 and QA #45072741019 succeeded (169 frontend + 647 domain tests; 0 failures, strict domain TS, lint, build, production audit 0 vulnerabilities); Pages #45072740981 succeeded.
-- Next: DOM-119 atomic ready-batch to cut-plan source coverage reconciliation. INT-001 frontend-owned; INT-002/PERF-001 specialist-owned.
-
-## DOM-119 — Nesting batch → project cut-plan source coverage (VERIFIED)
-
-- **Acceptance:** a ready mixed-material project plan reconciles each group with its matching nesting batch and canonical Part snapshot; source material/measure/grain/quantity remain intact; every physical piece number from 1..quantity is placed exactly once; group and project placement counts agree; excluded Parts remain snapshot-only and never enter placements.
-- **Scope:** domain cross-consumer regression in `domain/production/projectSheetCutPlan.test.mjs`; no production behavior, frontend, adapter/performance-owned files, schema, CNC output, or `main`.
-- **Verification:** corrected code/test commit [e778a992](https://github.com/Taylan789/MobilyaCAD/commit/e778a992b068cc6cd21b7a992427b033b8d31947); exact-SHA CI [#45080100519](https://github.com/Taylan789/MobilyaCAD/actions/runs/45080100519), QA [#45080100502](https://github.com/Taylan789/MobilyaCAD/actions/runs/45080100502) succeeded (172 frontend + 648 domain tests, 0 failures; strict domain TypeScript, lint 32 warnings/0 errors, production build, audit 0 vulnerabilities); Pages [#45080100538](https://github.com/Taylan789/MobilyaCAD/actions/runs/45080100538) deployed successfully. Local tests unavailable; GitHub Actions is authoritative.
-- **Next:** DOM-122 quote-cost summary totals against priced-consumption source. INT-001 frontend-owned; INT-002/PERF-001 specialist-owned; QA-003 remains blocked until their evidence exists.
-
-## 10/10 quality checklist — evidence-based status
-
-- **CAD core:** measured room/model sync, transforms, snap/grid, selection/grouping, undo/redo, camera, save/load — baseline needs feature-by-feature automated coverage; no overall score claimed.
-- **Production:** source Part tree, cut list, materials, edge banding, hardware, waste, nesting, cost and export — measure each consumer's source/quantity/geometry reconciliation; CNC/machine-specific output remains human/fixture validation.
-- **UX:** functional controls, navigation, empty/error states, keyboard/accessibility, responsive layout — UI agent-owned; verify automated frontend checks and real integration after its PR.
-- **Performance:** bundle size, viewport frame behavior, memory, large-placement tests — specialist-owned measured baselines; current bundle-size warning remains.
-- **Reliability:** strict types, test coverage, round-trip losslessness, backward compatibility, fail-closed import/export, production audit — CI/QA evidence per exact SHA; 10/10 requires all checks and no unresolved critical risks.
+| DOM-118 VERIFIED | Stock-sheet group/order diagnostics | Stable batch order and canonical diagnostics; exact-SHA CI/QA/Pages passed |
+| DOM-119 VERIFIED | Ready batch → cut-plan source coverage | Every selected source/physical piece reconciles; excluded Parts remain snapshot-only; CI/QA/Pages passed |
+| DOM-120 VERIFIED | Mixed-stock cut-plan area reconciliation | Per-sheet and project area totals/weighted occupancy independently reconcile; CI/QA/Pages passed |
+| DOM-121 VERIFIED | Mixed-family material and edge-band provenance | Canonical Part snapshot source IDs, quantities, assignments and order invariance; CI/QA/Pages passed |
+| DOM-122 IMPLEMENTED | Quote totals cross-consumer reconciliation | Source-derived line quantities/prices, rounding, categories, grand total and source mappings; exact-SHA Actions pending |
+| DOM-123 READY | Hardware BOM source provenance through priced consumption and quote lines | Furniture/source references retained without inventing Part links; strict regression coverage |
+| INT-001 | Domain ↔ frontend adapter/export contract | UI-owned files untouched; round-trip and unsupported-geometry fail-closed proof |
+| INT-002 / PERF-001 | Specialist-owned adapter integration/performance | Separate specialist branch/PR and measurable CI evidence; not owned/merged here |
 
 ## DOM-120 — Project cut-plan area-summary reconciliation (VERIFIED, 23 Kasım 2026)
 
@@ -1180,4 +1140,13 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - **Acceptance:** a canonical Part snapshot is the independent source; material summary source IDs/furniture IDs/line count/quantity reconcile to it; edge-band summary groups reconcile to each Part's edge assignment, unit, geometry, edge count, Part IDs and furniture IDs; reversing source Part/furniture order leaves both summaries unchanged.
 - **Scope:** test-only cross-consumer regression. No production algorithm, frontend, adapter/performance-owned file, project schema, CNC output or machine-specific standard changed.
 - **Verification:** code/test commit [96f122d8](https://github.com/Taylan789/MobilyaCAD/commit/96f122d8be2fbeedcb8d3b11df7aea0d713cdc50); exact-SHA CI [#45090552662](https://github.com/Taylan789/MobilyaCAD/actions/runs/45090552662), QA [#45090552670](https://github.com/Taylan789/MobilyaCAD/actions/runs/45090552670), and Pages [#45090552717](https://github.com/Taylan789/MobilyaCAD/actions/runs/45090552717) all succeeded. QA: 172 frontend + 650 domain tests, strict shared-domain TypeScript, lint 32 warnings/0 errors, production build, production audit 0 vulnerabilities. Test site deployed: https://taylan789.github.io/MobilyaCAD/. Local test execution unavailable; GitHub Actions is authoritative.
-- **Next:** DOM-122 priced-consumption and quote totals reconciliation against source pricing rows; INT-001 frontend-owned, INT-002/PERF-001 specialist-owned, QA-003 blocked until integration evidence.
+- **Next:** DOM-122 source-priced consumption/quote reconciliation (implemented; Actions pending). DOM-123 hardware BOM provenance follows; INT-001 frontend-owned, INT-002/PERF-001 specialist-owned, QA-003 blocked until integration evidence.
+
+## DOM-122 — Priced-consumption and combined quote reconciliation (IMPLEMENTED; verification pending, 23 November 2026)
+
+- **Acceptance:** independent source quantities (Part area, explicit BOM quantities, assigned edge length, usage durations and adjustment inputs) reconcile to component priced-consumption/labor rows and the combined quote; each line's unit price, currency, source reference and half-up minor-unit rounding is checked; category totals and grand total are derived independently; all source mappings and Part IDs are preserved.
+- **Coverage:** one ready mixed material/hardware/edge-band quote plus labor, operation, explicit waste and profit lines; all seven quote rows reconcile without partial totals.
+- **Scope:** regression test only (domain/production/projectQuoteSummary.test.mjs) and contract/roadmap/coordination records; no production calculation, frontend, adapter/performance-owned file, schema, CNC output or main branch change.
+- **Code/test commit:** pending.
+- **Exact-SHA CI/QA/Pages:** pending; local execution unavailable, GitHub Actions is authoritative.
+- **Next:** DOM-123 hardware BOM source provenance through priced consumption and combined quote mapping. INT-001 frontend-owned; INT-002/PERF-001 specialist-owned; QA-003 remains blocked.

@@ -1079,3 +1079,9 @@ The diagnostic report adds the optional `blockedFurniture[].materialIdentityConf
 - Eksik/invalid grup ve kullanılmayan levha tanımı tanıları katalog materialId ve normalize edilmiş 0.1 mm kalınlık (sayısal) sırasıyla üretilir. Tanı sırası proje Part veya levha tanımı giriş sırasından bağımsızdır.
 - Yinelenen normalize malzeme/kalınlık tanımları fail-closed olarak blocked kalır; kullanılmayan tanımlar açık tanı üretir ve sessizce yok olmaz.
 - Bu slice levha seçimini/ölçülerini değiştirmez, nesting algoritmasını optimize etmez, fire/yield veya CNC üretim onayı sağlamaz.
+
+## DOM-122 — Combined quote cross-consumer reconciliation
+
+The combined quote must reconcile the ready priced-consumption summary, labor/operation tariff summary, and explicit waste/profit adjustments before it exposes monetary totals. A regression fixture independently derives panel area from Part dimensions and quantities, hardware quantity from the supplied BOM rows, and top-edge banding length from the source Part; it then independently computes minor-unit line totals using the documented six-decimal quantity scale and half-up rounding. Component rows and combined quote rows are compared for category, quantity, unit, price, currency, source reference and total. Category/grand totals and line-source mappings must reconcile, and no partial monetary output is accepted.
+
+This is test evidence only; it does not add pricing defaults, unit conversions, taxes, waste rates, profit percentages, hardware-to-Part links, CNC operations or workshop assumptions. The test is domain/production/projectQuoteSummary.test.mjs (DOM-122).

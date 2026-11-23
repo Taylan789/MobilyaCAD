@@ -353,3 +353,12 @@
 - **Scope:** test-only plus coordination/roadmap records; no production algorithm, frontend, adapter/performance-owned files, schema, CNC output or `main` changed. Local tests unavailable; Actions is authoritative.
 - **Known blockers:** INT-001 remains frontend-owned; INT-002/PERF-001 specialist-owned; QA-003 is blocked until integration evidence. AI Developer run [#45075174069](https://github.com/Taylan789/MobilyaCAD/actions/runs/45075174069) failed with OpenRouter free daily 429; logs confirm quota exhaustion. Reset passed; a safe failed-job rerun is considered after this docs update. No paid fallback or quota/secrets changes.
 - **Next:** DOM-122 reconcile priced-consumption and quote totals against source pricing/labor-operation rows.
+
+## 23 Kasım 2026 04:48 TRT — DOM-122 (verification pending)
+
+- **Slice:** Added a mixed quote regression covering priced material, hardware BOM, directional edge-band, labor, operation, explicit waste and profit; source quantities, line prices/references, per-line rounded totals, seven line-source mappings, category totals and grand total are independently reconciled.
+- **Files:** domain/production/projectQuoteSummary.test.mjs, docs/production-domain-contract.md, PRODUCT_ROADMAP.md, AI_COORDINATION.md.
+- **Commit:** pending; exact-SHA CI/QA/production-build/audit/Pages results pending.
+- **Scope:** test/documentation only; no production algorithm, frontend, specialist-owned adapter/performance files, project schema, CNC output or main branch changed. Local test execution unavailable; GitHub Actions is authoritative.
+- **Known blockers:** AI Developer run [#45091325066](https://github.com/Taylan789/MobilyaCAD/actions/runs/45091325066) failed again with OpenRouter free daily 429; reset is 24 Nov 2026 03:00 TRT. Integration/performance job skipped and no specialist branch/PR found. No paid fallback or quota/secrets changes.
+- **Next:** DOM-123 preserve hardware BOM furniture/source references in priced-consumption and quote provenance.

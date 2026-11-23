@@ -7,6 +7,7 @@ import { calculateProjectLaborOperationPricingSummary } from "./projectLaborOper
 import { calculateProjectPricedConsumptionSummary } from "./projectPricedConsumption.ts";
 import {
   calculateProjectEdgeBandingConsumptionSummary,
+  calculateProjectHardwareConsumptionSummary,
   calculateProjectMaterialConsumptionSummary
 } from "./projectMaterialSummary.ts";
 import { calculateProjectEdgeBandingRollPlan } from "./projectEdgeBandingRollPlan.ts";
@@ -470,4 +471,120 @@ test("roll mode options must be explicit and length mode cannot receive roll inp
   assert.match(missing.diagnostics[0], /listelerini gerektirir/);
   assert.equal(mixed.status, "blocked");
   assert.match(mixed.diagnostics[0], /yalnızca roll/);
+});
+
+
+test("DOM-122 quote totals reconcile independently with priced consumption, labor/operation and explicit adjustments", () => {
+  const report = createReport();
+  const hardwareItems = [
+    { id: "bom-hinge-a", furnitureId: "quote-cabinet-1", hardwareId: "hinge-110", name: "Menteşe", quantity: 0.25, unit: "adet", sourceReference: "bom-hardware:v1" },
+    { id: "bom-hinge-b", furnitureId: "quote-cabinet-1", hardwareId: "hinge-110", name: "Menteşe", quantity: 0.75, unit: "adet", sourceReference: "bom-hardware:v1" }
+  ];
+  report.result.hardwareItems = hardwareItems;
+  const part = report.result.parts[0];
+  part.edgeBanding = { top: true, bottom: false, left: false, right: false };
+  part.edgeBandingMaterialId = "pvc-1";
+  part.edgeBandingUnit = "mm";
+
+  const materialGroups = calculateProjectMaterialConsumptionSummary(report.result);
+  const hardwareGroups = calculateProjectHardwareConsumptionSummary(report.result);
+  const edgeGroups = calculateProjectEdgeBandingConsumptionSummary(report.result);
+  assert.equal(materialGroups.length, 1);
+  assert.equal(hardwareGroups.length, 1);
+  assert.equal(edgeGroups.length, 1);
+  const panelAreaM2 = report.result.parts.reduce((sum, row) => sum + row.width * row.length * row.quantity, 0) / 1_000_000;
+  const hardwareQuantity = hardwareItems.reduce((sum, row) => sum + row.quantity, 0);
+  const edgeQuantityMm = part.width * part.quantity;
+  assert.equal(materialGroups[0].panelAreaM2, panelAreaM2);
+  assert.equal(hardwareGroups[0].totalQuantity, hardwareQuantity);
+  assert.deepEqual(hardwareGroups[0].sourceReferences, ["bom-hardware:v1"]);
+  assert.equal(edgeGroups[0].totalQuantity, edgeQuantityMm);
+  assert.equal(edgeGroups[0].unit, "mm");
+
+  const prices = [
+    { resourceType: "material", resourceId: "mdf-18", unit: "m2", unitPriceMinor: 1250, currencyCode: "TRY", sourceReference: "panel-price:v1" },
+    { resourceType: "hardware", resourceId: "hinge-110", unit: "adet", unitPriceMinor: 2000, currencyCode: "TRY", sourceReference: "hardware-price:v1" },
+    { resourceType: "edge-banding", resourceId: "pvc-1", unit: "mm", unitPriceMinor: 1, currencyCode: "TRY", sourceReference: "edge-price:v1" }
+  ];
+  const workItems = [
+    usage({ id: "labor-usage-1", duration: 1.25 }),
+    usage({ id: "operation-usage-1", category: "operation", description: "Kenar işleme", duration: 10, unit: "min", tariffId: "operation-minute" })
+  ];
+  const tariffs = [
+    tariff({ unitPriceMinor: 2000, sourceReference: "labor-tariff:v1" }),
+    tariff({ tariffId: "operation-minute", category: "operation", unit: "min", unitPriceMinor: 45, sourceReference: "operation-tariff:v1" })
+  ];
+  const adjustments = [
+    { id: "waste-0001", category: "waste", description: "Açık fire", quantity: 2, unit: "adet", unitPriceMinor: 300, currencyCode: "TRY", sourceReference: "waste-entry:v1" },
+    { id: "profit-0001", category: "profit", description: "Açık kâr", quantity: 1, unit: "adet", unitPriceMinor: 1500, currencyCode: "TRY", sourceReference: "profit-entry:v1" }
+  ];
+  const consumption = calculateProjectPricedConsumptionSummary(report, prices);
+  const labor = calculateProjectLaborOperationPricingSummary(workItems, tariffs);
+  const quote = calculateProjectQuoteSummary(report, prices, workItems, tariffs, adjustments);
+  assert.equal(consumption.status, "ready");
+  assert.equal(labor.status, "ready");
+  assert.equal(quote.status, "ready");
+  assert.equal(quote.currencyCode, "TRY");
+  assert.equal(quote.requiredLineCount, 7);
+  assert.equal(quote.pricedLineCount, 7);
+  assert.equal(quote.costSummary.lineCount, 7);
+  assert.deepEqual(quote.missingPrices, []);
+  assert.deepEqual(quote.missingTariffs, []);
+  assert.deepEqual(quote.diagnostics, []);
+
+  const minor = (quantity, price) => {
+    const micros = BigInt(Math.round(quantity * 1_000_000));
+    return Number((micros * BigInt(price) + 500_000n) / 1_000_000n);
+  };
+  const expectedTotals = {
+    panel: minor(panelAreaM2, 1250), hardware: minor(hardwareQuantity, 2000),
+    edge: minor(edgeQuantityMm, 1), labor: minor(1.25, 2000),
+    operation: minor(10, 45), waste: minor(2, 300), profit: minor(1, 1500)
+  };
+  const expectedConsumption = [
+    ["material-0001", "material", panelAreaM2, "m2", 1250, "TRY", "panel-price:v1", expectedTotals.panel],
+    ["hardware-0001", "hardware", hardwareQuantity, "adet", 2000, "TRY", "hardware-price:v1", expectedTotals.hardware],
+    ["edge-banding-0001", "material", edgeQuantityMm, "mm", 1, "TRY", "edge-price:v1", expectedTotals.edge]
+  ];
+  const rows = summary => summary.lines.map(line => [
+    line.id, line.category, line.quantity, line.unit, line.unitPriceMinor, line.currencyCode, line.sourceReference ?? null, line.lineTotalMinor
+  ]);
+  assert.deepEqual(rows(consumption.costSummary), expectedConsumption);
+
+  const expectedLabor = [
+    ["labor-usage-1", "labor", 1.25, "h", 2000, "TRY", "labor-tariff:v1", expectedTotals.labor],
+    ["operation-usage-1", "operation", 10, "min", 45, "TRY", "operation-tariff:v1", expectedTotals.operation]
+  ];
+  assert.deepEqual(rows(labor.costSummary), expectedLabor);
+
+  const expectedQuote = [
+    ["consumption-0001", "material", panelAreaM2, "m2", 1250, "TRY", "panel-price:v1", expectedTotals.panel],
+    ["consumption-0002", "hardware", hardwareQuantity, "adet", 2000, "TRY", "hardware-price:v1", expectedTotals.hardware],
+    ["consumption-0003", "material", edgeQuantityMm, "mm", 1, "TRY", "edge-price:v1", expectedTotals.edge],
+    ["work-0001", "labor", 1.25, "h", 2000, "TRY", "labor-tariff:v1", expectedTotals.labor],
+    ["work-0002", "operation", 10, "min", 45, "TRY", "operation-tariff:v1", expectedTotals.operation],
+    ["adjustment-0001", "waste", 2, "adet", 300, "TRY", "waste-entry:v1", expectedTotals.waste],
+    ["adjustment-0002", "profit", 1, "adet", 1500, "TRY", "profit-entry:v1", expectedTotals.profit]
+  ];
+  assert.deepEqual(rows(quote.costSummary), expectedQuote);
+  assert.deepEqual(quote.lineSources.map(source => [source.costLineId, source.sourceType, source.sourceId, source.tariffId ?? null]), [
+    ["consumption-0001", "production-consumption", "material-0001", null],
+    ["consumption-0002", "production-consumption", "hardware-0001", null],
+    ["consumption-0003", "production-consumption", "edge-banding-0001", null],
+    ["work-0001", "labor-operation", "labor-usage-1", "labor-hourly"],
+    ["work-0002", "labor-operation", "operation-usage-1", "operation-minute"],
+    ["adjustment-0001", "quote-adjustment", "waste-0001", null],
+    ["adjustment-0002", "quote-adjustment", "profit-0001", null]
+  ]);
+  assert.deepEqual(quote.lineSources.map(source => source.sourcePartIds ?? null), [
+    materialGroups[0].partIds, null, edgeGroups[0].partIds, null, null, null, null
+  ]);
+  assert.deepEqual(quote.lineSources.slice(0, 3).map(source => [source.resourceType ?? null, source.resourceId ?? null, source.unit ?? null]), [
+    ["material", "mdf-18", "m2"], [null, null, null], ["edge-banding", "pvc-1", "mm"]
+  ]);
+  assert.deepEqual(quote.costSummary.categoryTotalsMinor, {
+    material: expectedTotals.panel + expectedTotals.edge, hardware: expectedTotals.hardware,
+    labor: expectedTotals.labor, operation: expectedTotals.operation, waste: expectedTotals.waste, profit: expectedTotals.profit
+  });
+  assert.equal(quote.costSummary.grandTotalMinor, expectedQuote.reduce((sum, row) => sum + row[7], 0));
 });
