@@ -370,3 +370,164 @@
     font-size: 12px;
   }
 }
+
+
+/* UI-VIEWPORT-AXIS-READOUT-003 — connect live room dimensions to the real X/Z/Y scene axes. */
+.cad-viewport-dimension-readout {
+  width: min(312px, calc(100% - 24px));
+  gap: 6px;
+  padding: 8px 9px 9px;
+  border-left-width: 3px;
+  border-left-color: rgba(127, 166, 191, .9);
+  background: linear-gradient(180deg, rgba(24, 38, 48, .97), rgba(12, 21, 28, .97));
+}
+
+.cad-viewport-dimension-readout__header {
+  min-height: 18px;
+  padding-bottom: 5px;
+}
+
+.cad-viewport-dimension-readout__dimensions > div {
+  min-height: 38px;
+  gap: 3px 5px;
+  padding: 5px 6px;
+  background: rgba(107, 139, 158, .055);
+}
+
+.cad-viewport-dimension-readout__dimensions > div > span {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 5px;
+  line-height: 1.15;
+}
+
+.cad-viewport-dimension-readout__dimensions > div > span::before {
+  display: inline-grid;
+  width: 13px;
+  height: 13px;
+  flex: 0 0 13px;
+  place-items: center;
+  border: 1px solid currentColor;
+  border-radius: 3px;
+  font-size: 7px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 0;
+}
+
+.cad-viewport-dimension-readout__dimensions > div:nth-child(1) > span::before {
+  content: "X";
+  color: #d18b8b;
+  background: rgba(209, 139, 139, .08);
+}
+
+.cad-viewport-dimension-readout__dimensions > div:nth-child(2) > span::before {
+  content: "Z";
+  color: #8db5d0;
+  background: rgba(141, 181, 208, .08);
+}
+
+.cad-viewport-dimension-readout__dimensions > div:nth-child(3) > span::before {
+  content: "Y";
+  color: #8eaf99;
+  background: rgba(142, 175, 153, .08);
+}
+
+.cad-viewport-dimension-readout__dimensions > div:nth-child(1)::before {
+  background: #c77e7e;
+}
+
+.cad-viewport-dimension-readout__dimensions > div:nth-child(2)::before {
+  background: #82abc6;
+}
+
+.cad-viewport-dimension-readout__dimensions > div:nth-child(3)::before {
+  background: #8eaf99;
+}
+
+.cad-viewport-dimension-readout__dimensions strong {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+@media (min-width: 1321px) and (min-height: 821px) {
+  .cad-viewport-dimension-readout {
+    width: min(312px, calc(100% - 24px));
+  }
+
+  .cad-viewport-dimension-readout__dimensions > div {
+    min-height: 38px;
+  }
+}
+
+/* 1280x800 class desktops: keep the axis register legible while returning canvas area. */
+@media (min-width: 761px) and (max-width: 1320px) and (min-height: 661px) {
+  .cad-viewport-dimension-readout {
+    width: min(274px, calc(100% - 20px));
+    gap: 5px;
+    padding: 6px 7px;
+  }
+
+  .cad-viewport-dimension-readout__header {
+    min-height: 16px;
+    padding-bottom: 4px;
+  }
+
+  .cad-viewport-dimension-readout__header > span {
+    font-size: 7px;
+  }
+
+  .cad-viewport-dimension-readout__header > small {
+    padding: 2px 4px;
+    font-size: 7px;
+  }
+
+  .cad-viewport-dimension-readout__dimensions > div {
+    min-height: 31px;
+    gap: 2px 4px;
+    padding: 4px 5px;
+  }
+
+  .cad-viewport-dimension-readout__dimensions > div > span::before {
+    width: 12px;
+    height: 12px;
+    flex-basis: 12px;
+  }
+
+  .cad-viewport-dimension-readout__dimensions strong {
+    font-size: 11px;
+  }
+
+  .cad-viewport-dimension-readout__dimensions small {
+    font-size: 8px;
+  }
+}
+
+@media (max-width: 560px) {
+  .cad-viewport-dimension-readout__dimensions > div > span::before {
+    width: 11px;
+    height: 11px;
+    flex-basis: 11px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cad-viewport-dimension-readout,
+  .cad-viewport-dimension-readout__dimensions > div {
+    transition: none;
+    animation: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .cad-viewport-dimension-readout__dimensions > div > span::before {
+    color: Highlight;
+    background: Canvas;
+    border-color: Highlight;
+  }
+
+  .cad-viewport-dimension-readout__dimensions > div::before {
+    background: Highlight;
+  }
+}
