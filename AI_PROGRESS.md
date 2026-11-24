@@ -649,7 +649,7 @@
 - Exact-SHA CI: **success** ([45326042764](https://github.com/Taylan789/MobilyaCAD/actions/runs/45326042764)); frontend production build and lint completed successfully.
 - Exact-SHA QA: **failure** ([45326042829](https://github.com/Taylan789/MobilyaCAD/actions/runs/45326042829)); shared domain suite reported 64 failures from one `ReferenceError` scope regression. 558/622 tests passed; no tests were removed or weakened. Domain type-check, QA lint/build and audit were skipped after the test step failed.
 - Pages: build artifact succeeded, but gate failed and deploy job was skipped ([45326042849](https://github.com/Taylan789/MobilyaCAD/actions/runs/45326042849)); test site was not updated.
-- Follow-up correction: shared cost arrays/counters and thickness lookup now sit outside the optional panel-price block; only panel net-area line generation is conditional. Fix commit SHA and its Actions results are pending.
+- Follow-up fix commit: `2daf2046d37cc2d0aaf562c4e61da5ea455852d9`. Shared cost arrays/counters and thickness lookup now sit outside the optional panel-price block; only panel net-area line generation is conditional. Exact-SHA CI, QA and Pages all passed.
 - Known external blocker: AI Developer run [45322819775](https://github.com/Taylan789/MobilyaCAD/actions/runs/45322819775) hit OpenRouter free daily quota HTTP 429, remaining 0; reset timestamp resolves to 25 Nov 2026 03:00 TRT. No rerun, paid credits, secret or quota setting changed.
 - Next: verify the scope fix on a new SHA; only then persist selected basis/provenance into a backward-compatible quote pricing snapshot.
 
@@ -660,6 +660,14 @@
 - Domain QA: **success** — [45326255984](https://github.com/Taylan789/MobilyaCAD/actions/runs/45326255984): 206/206 unit tests, 701/701 shared-domain tests, strict domain TypeScript check, lint, production build and security audit passed; audit reported 0 vulnerabilities.
 - Domain Pages deployment: **success** — [45326256041](https://github.com/Taylan789/MobilyaCAD/actions/runs/45326256041).
 - Separate UI agent PR [#187](https://github.com/Taylan789/MobilyaCAD/pull/187) was merged by its owner. Merge commit `ab570f680acd7dd4d5eace0452b728747fd22385` changes only the viewport HUD CSS and its test. Exact-merge CI [45326441304](https://github.com/Taylan789/MobilyaCAD/actions/runs/45326441304) passed; QA [45326441439](https://github.com/Taylan789/MobilyaCAD/actions/runs/45326441439) passed with 208/208 unit tests and 701/701 shared-domain tests, strict type-check, lint, build and 0 audit vulnerabilities; Pages [45326441274](https://github.com/Taylan789/MobilyaCAD/actions/runs/45326441274) passed.
-- Current test site: https://taylan789.github.io/MobilyaCAD/ (integrated branch head `ab570f680acd7dd4d5eace0452b728747fd22385`).
+- Current test site: https://taylan789.github.io/MobilyaCAD/ (deployed branch head `adc448d58a3c905e602515f3d4bfe207737b1c5c`; Pages run [45326675155](https://github.com/Taylan789/MobilyaCAD/actions/runs/45326675155)).
 - Next: DOM-142 — persist the selected material basis and stock-group provenance in quote pricing snapshots/revisions with backward-compatible v1 reads.
 - AI Developer [45322819775](https://github.com/Taylan789/MobilyaCAD/actions/runs/45322819775) remains blocked by OpenRouter free-models-per-day quota (429, remaining 0, reset 25 Nov 2026 03:00 TRT); no paid credits, secret or quota setting was changed.
+
+
+## 24 Kasım 2026 07:30 TRT — verification record finalized
+- Documentation handoff commit: `adc448d58a3c905e602515f3d4bfe207737b1c5c` — [commit](https://github.com/Taylan789/MobilyaCAD/commit/adc448d58a3c905e602515f3d4bfe207737b1c5c).
+- CI passed: [45326675153](https://github.com/Taylan789/MobilyaCAD/actions/runs/45326675153).
+- QA passed: [45326675196](https://github.com/Taylan789/MobilyaCAD/actions/runs/45326675196); shared-domain tests, strict domain type-check, lint, production build and dependency audit passed.
+- Pages deployment passed: [45326675155](https://github.com/Taylan789/MobilyaCAD/actions/runs/45326675155). Test site is deployed at the exact documentation handoff SHA.
+- This entry supersedes the earlier pending-fix note above; the first failed SHA remains recorded as history.
