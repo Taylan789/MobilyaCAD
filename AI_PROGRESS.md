@@ -935,13 +935,15 @@
 - Next: DOM-151 — verify the full project parser/save-load path preserves quote history and unknown envelope metadata without changing JSON v1 compatibility.
 
 
-## 24 Kasım 2026 21:04 TRT — DOM-151 implementation (verification pending)
+## 24 Kasım 2026 21:04–21:15 TRT — DOM-151 DOMAIN SLICE VERIFIED
 
-- Base dev/github-work HEAD: c2c8602d0726b60ffad5e3007633c3f598f0793c; base exact-SHA CI #45452648538, QA #45452648463 ve Pages #45452648316 başarılıydı; bu SHA üzerinde aktif CI/QA/Pages run yoktu.
-- DOM-151 için yeni domain regresyonu, iki teklif revizyonu eklenmiş JSON v2 proje zarfının gerçek JSON.stringify/JSON.parse döngüsünden sonra aynı quote history ve unknown metadata'yı korumasını; own __proto__ anahtarının veri olarak kalmasını; yeniden yüklenen projeye üçüncü revizyon eklenince zincirin devam etmesini doğrular. JSON v1 legacy read davranışı ayrıca korunur.
-- Değişen dosyalar: domain/production/projectQuoteRevisionProjectFileJsonRoundTrip.test.mjs, docs/production-domain-contract.md, AI_COORDINATION.md, PRODUCT_ROADMAP.md, AI_PROGRESS.md.
-- Implementation commit SHA: pending GitHub commit creation; exact-SHA CI/QA/Pages sonuçları henüz yok. Test sonucu başarılı ilan edilmedi.
-- AI Developer #45450013010 OpenRouter free-model daily quota HTTP 429 (limit 50, remaining 0) ile başarısız oldu; logda reset 25 Kasım 2026 03:00 TRT. Aynı kota tükenmişken rerun yapılmadı; ücretli fallback, secret veya kota ayarı değiştirilmedi.
-- Bilinen sınır: frontend/src/engine/projectFile.ts yalnızca JSON v1 parser/serializer'dır ve bilinen alanlardan sonuç oluşturur; v2 quote history/unknown metadata henüz editör save/open akışına entegre değildir. Tüm frontend/** UI sahibindedir; bu turda dokunulmadı. INT-003 UI-owned handoff olarak açıldı.
-- Integration/Performance workflow job'ı .github/workflows/ai-developer.yml içinde if: false; uzman branch/PR bulunamadı. INT-002/PERF-001 uzman sahipliğinde kaldı; main, secrets, adapter, benchmark ve CNC dosyaları değiştirilmedi.
-- Sonraki adım: exact-SHA CI/QA/Pages sonuçlarını doğrula; ardından INT-003 frontend entegrasyonunu UI sahibinin ayrı PR'ında takip et.
+- Base dev/github-work HEAD: c2c8602d0726b60ffad5e3007633c3f598f0793c; base exact-SHA CI #45452648538, QA #45452648463 ve Pages #45452648316 başarılıydı; base SHA üzerinde aktif CI/QA/Pages yoktu.
+- Implementation commit: [748d9aa4c2101d62fb137532b4d2408ec9193900](https://github.com/Taylan789/MobilyaCAD/commit/748d9aa4c2101d62fb137532b4d2408ec9193900). Yeni domain test dosyası, production-domain contract, roadmap, coordination board ve progress kaydı eklendi.
+- İlk QA #45456898652, 733/734 domain test ile başarısız oldu: fixture'ın quote snapshot sonucu empty idi, test ready bekliyordu. CI #45456898432 başarılıydı; Pages #45456898370 exact-SHA gate nedeniyle başarısız oldu ve bu SHA yayınlanmadı. Log incelendi; test fixture'ına açık quote adjustment eklendi.
+- Correction commit: [640dbf51c225b5595fa7c706901f4749bc8cc138](https://github.com/Taylan789/MobilyaCAD/commit/640dbf51c225b5595fa7c706901f4749bc8cc138). Testler silinmedi veya gevşetilmedi.
+- Final exact-SHA CI [#45457153776](https://github.com/Taylan789/MobilyaCAD/actions/runs/45457153776), QA [#45457153728](https://github.com/Taylan789/MobilyaCAD/actions/runs/45457153728) ve Pages [#45457153747](https://github.com/Taylan789/MobilyaCAD/actions/runs/45457153747) başarılı. QA: 242/242 frontend + 735/735 domain; DOM-151 JSON v2 2→3 revision, unknown metadata ve own __proto__ round-trip ile v1 legacy testleri geçti; strict TypeScript, lint 36 uyarı/0 hata, production build ve audit 0 açık production vulnerability.
+- Test sitesi exact-SHA Pages deployment ile https://taylan789.github.io/MobilyaCAD/ adresine güncellendi. Bu domain/test/dokümantasyon dilimi görünür frontend tasarımını değiştirmez.
+- Bilinen sınır: frontend/src/engine/projectFile.ts halen JSON v1 parser/serializer; v2 quote history ve unknown top-level metadata editörün save/open akışına henüz bağlı değil. frontend/** UI sahibinde; INT-003 UI-owned handoff olarak READY. Tam uygulama save/load entegrasyonu tamamlandı iddiası yok.
+- AI Developer [#45450013010](https://github.com/Taylan789/MobilyaCAD/actions/runs/45450013010) OpenRouter free-model daily quota HTTP 429 (limit 50, remaining 0) ile başarısız; log reset zamanını 25 Kasım 2026 03:00 TRT olarak verdi. Kota tükenmişken rerun yapılmadı; ücretli fallback, secret veya kota ayarı değiştirilmedi.
+- Integration/Performance job .github/workflows/ai-developer.yml içinde if: false; uzman branch/PR bulunamadı. INT-002/PERF-001 uzman sahipliğinde kaldı. No frontend, adapter, benchmark, CNC/machine, secrets/settings or main changes.
+- Next: INT-003 UI-owned v2 project parser/save/open integration; then DOM-152 exact editor save/reopen round-trip. INT-002/PERF-001 and QA-003 remain specialist/QA-owned.

@@ -1676,7 +1676,7 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 
 ## DOM-151 — JSON v2 proje zarfında teklif geçmişi JSON kalıcılığı
 
-**Durum:** Domain round-trip regresyon dilimi eklendi; exact-SHA CI/QA/Pages doğrulaması bekleniyor.
+**Durum:** DOMAIN SLICE VERIFIED — [implementation 748d9aa4](https://github.com/Taylan789/MobilyaCAD/commit/748d9aa4c2101d62fb137532b4d2408ec9193900), [fixture correction 640dbf51](https://github.com/Taylan789/MobilyaCAD/commit/640dbf51c225b5595fa7c706901f4749bc8cc138); exact-SHA CI [#45457153776](https://github.com/Taylan789/MobilyaCAD/actions/runs/45457153776), QA [#45457153728](https://github.com/Taylan789/MobilyaCAD/actions/runs/45457153728), Pages [#45457153747](https://github.com/Taylan789/MobilyaCAD/actions/runs/45457153747) başarılı.
 
 **Kullanıcı akışı:** Proje v2 zarfına iki teklif revizyonu eklenir, bütün proje JSON olarak kaydedilip yeniden parse edilir; teklif geçmişi ve gelecekteki modüllere ait bilinmeyen metadata aynı kalır. Yeniden yüklenen projeye üçüncü revizyon eklenebilir ve önceki revizyon zinciri devam eder.
 
@@ -1695,3 +1695,7 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 3. INT-002: JSON/CSV adapter geometry/quantity round-trip — yalnızca gerçek Integration/Performance uzmanı branch/PR sahipliğiyle.
 4. PERF-001: 2D/3D veri akışı için tekrarlanabilir profiling — uzman agent sahipliğinde.
 5. QA-003: INT-001/INT-002/INT-003 kanıtları tamamlandıktan sonra uçtan uca export/data-flow denetimi.
+
+**QA kanıtı:** 242/242 frontend unit + 735/735 domain test; DOM-151'in iki yeni testi geçti. Strict domain TypeScript, lint 36 uyarı / 0 hata, production build ve production dependency audit (0 açık production vulnerability) başarılı. Test sitesi exact-SHA deployment ile https://taylan789.github.io/MobilyaCAD/ adresine güncellendi.
+
+**İlk doğrulama düzeltmesi:** İlk deneme commit'i 748d9aa4'te fixture, teklif snapshot'ını boş ürettiği için QA 733/734 ile başarısız oldu; logdaki status mismatch incelendi. Fixture'a açık test quote adjustment eklendi; test silinmedi veya gevşetilmedi. 640dbf51 düzeltmesi sonrası exact-SHA QA 735/735 geçti.
