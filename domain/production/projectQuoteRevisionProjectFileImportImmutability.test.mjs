@@ -5,7 +5,8 @@ import { calculateCabinetProjectProductionWithDiagnostics } from "./projectProdu
 import { createProjectQuotePricingSnapshot } from "./projectQuotePricingSnapshot.ts";
 import {
   appendProjectQuoteRevisionToProjectFile,
-  importProjectQuoteRevisionHistoryFileIntoProject
+  importProjectQuoteRevisionHistoryFileIntoProject,
+  readProjectQuoteRevisionHistoryFromProjectFile
 } from "./projectQuoteRevisionProjectFile.ts";
 import { serializeProjectQuoteRevisionHistoryFile } from "./projectQuoteRevisionFile.ts";
 
@@ -369,3 +370,76 @@ test("DOM-148 append rejects symbol and non-enumerable object/array properties",
     assert.equal("quoteRevisionHistory" in project, false);
   }
 });
+
+test("DOM-152 project envelope discriminator accessors are blocked without invoking getters", () => {
+  const fields = [
+    ["format", "MobilyaCAD"],
+    ["formatVersion", 2],
+    ["projectId", "project-42"]
+  ];
+
+  for (const [field, value] of fields) {
+    let getterCalls = 0;
+    const project = createV2Project();
+    Object.defineProperty(project, field, {
+      enumerable: true,
+      configurable: true,
+      get() {
+        getterCalls += 1;
+        return value;
+      }
+    });
+
+    const read = readProjectQuoteRevisionHistoryFromProjectFile(project);
+    assert.equal(read.status, "blocked", String(field));
+    assert.equal(read.history, null);
+
+    const appended = appendProjectQuoteRevisionToProjectFile(project, {
+      revisionId: `dom-152-own-${field}`,
+      createdAt: "2026-11-24T23:30:00+03:00",
+      pricingSnapshot: snapshotResult.snapshot
+    });
+    assert.equal(appended.status, "blocked", String(field));
+    assert.equal(appended.project, null);
+    assert.equal(appended.history, null);
+    assert.equal(getterCalls, 0, `${String(field)} getter must not run`);
+  }
+});
+
+test("DOM-152 inherited project envelope discriminator accessors are rejected without invoking getters", () => {
+  const fields = [
+    ["format", "MobilyaCAD"],
+    ["formatVersion", 2],
+    ["projectId", "project-42"]
+  ];
+
+  for (const [field, value] of fields) {
+    let getterCalls = 0;
+    const project = createV2Project();
+    delete project[field];
+    const prototype = Object.create(Object.prototype);
+    Object.defineProperty(prototype, field, {
+      configurable: true,
+      get() {
+        getterCalls += 1;
+        return value;
+      }
+    });
+    Object.setPrototypeOf(project, prototype);
+
+    const read = readProjectQuoteRevisionHistoryFromProjectFile(project);
+    assert.equal(read.status, "blocked", String(field));
+    assert.equal(read.history, null);
+
+    const appended = appendProjectQuoteRevisionToProjectFile(project, {
+      revisionId: `dom-152-inherited-${field}`,
+      createdAt: "2026-11-24T23:30:00+03:00",
+      pricingSnapshot: snapshotResult.snapshot
+    });
+    assert.equal(appended.status, "blocked", String(field));
+    assert.equal(appended.project, null);
+    assert.equal(appended.history, null);
+    assert.equal(getterCalls, 0, `${String(field)} inherited getter must not run`);
+  }
+});
+

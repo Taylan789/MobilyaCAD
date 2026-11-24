@@ -947,3 +947,14 @@
 - AI Developer [#45450013010](https://github.com/Taylan789/MobilyaCAD/actions/runs/45450013010) OpenRouter free-model daily quota HTTP 429 (limit 50, remaining 0) ile başarısız; log reset zamanını 25 Kasım 2026 03:00 TRT olarak verdi. Kota tükenmişken rerun yapılmadı; ücretli fallback, secret veya kota ayarı değiştirilmedi.
 - Integration/Performance job .github/workflows/ai-developer.yml içinde if: false; uzman branch/PR bulunamadı. INT-002/PERF-001 uzman sahipliğinde kaldı. No frontend, adapter, benchmark, CNC/machine, secrets/settings or main changes.
 - Next: INT-003 UI-owned v2 project parser/save/open integration; then DOM-152 exact editor save/reopen round-trip. INT-002/PERF-001 and QA-003 remain specialist/QA-owned.
+
+## 24 Kasım 2026 23:31 TRT — DOM-152 implementation (verification pending)
+
+- Base `dev/github-work` HEAD: `c3700e533791b6dacce0e58aea236bab82bcccc3`. Write-time preflight re-read the branch and all six target blob SHAs; no queued/in-progress Actions run existed.
+- Found a domain boundary issue in `inspectProjectEnvelope`: direct reads of `format`, `formatVersion` and `projectId` could execute own or inherited accessors before the later JSON descriptor validator rejected the envelope.
+- Added an own/enumerable/data-descriptor reader for those discriminator fields. Accessors, inherited values and non-enumerable descriptors fail closed before any getter runs; v1 legacy and valid v2 paths retain their existing contract.
+- Added six regressions across read and append entry points: own and inherited accessors for all three discriminator fields; each asserts zero getter calls and no partial history/project.
+- Changed files: `domain/production/projectQuoteRevisionProjectFile.ts`, `domain/production/projectQuoteRevisionProjectFileImportImmutability.test.mjs`, `docs/production-domain-contract.md`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`.
+- Implementation commit SHA and exact-SHA CI/QA/Pages results will be recorded after GitHub creates the commit and Actions completes. No frontend, adapter, benchmark, CNC/machine, secrets/settings or `main` changes.
+- Known boundary: this secures the domain quote-history envelope API; the editor's main JSON v2 parser/save/open integration remains INT-003 and is owned by the UI agent.
+- Next: verify this exact commit through CI, QA and Pages; then continue with the next independent domain gap while INT-003 remains UI-owned.

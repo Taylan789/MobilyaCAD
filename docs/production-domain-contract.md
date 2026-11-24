@@ -1405,3 +1405,10 @@ appendProjectQuoteRevisionToProjectFile yalnızca JSON olarak temsil edilebilen 
 - UI entegrasyon handoff'u: frontend/src/engine/projectFile.ts şu anda yalnızca JSON v1'i kabul eder ve bilinen alanlardan yeni sonuç nesnesi kurar; v2 quote history ve bilinmeyen üst seviye metadata uygulamanın kaydet/aç akışına henüz bağlı değildir. UI ajanı frontend/** sahibi olduğundan domain akışı bu dosyayı değiştirmez. INT-003 bu entegrasyon için ayrılmıştır.
 - **Doğrulama:** implementation [748d9aa4](https://github.com/Taylan789/MobilyaCAD/commit/748d9aa4c2101d62fb137532b4d2408ec9193900), fixture correction [640dbf51](https://github.com/Taylan789/MobilyaCAD/commit/640dbf51c225b5595fa7c706901f4749bc8cc138); exact-SHA CI [#45457153776](https://github.com/Taylan789/MobilyaCAD/actions/runs/45457153776), QA [#45457153728](https://github.com/Taylan789/MobilyaCAD/actions/runs/45457153728), Pages [#45457153747](https://github.com/Taylan789/MobilyaCAD/actions/runs/45457153747) başarılı. QA 242 frontend + 735 domain test; strict TypeScript, lint 36 warnings/0 errors, production build and production audit 0 vulnerabilities.
 - İlk QA denemesinde test fixture snapshot'ı empty üretti; fixture'a açık quote adjustment eklendi. Test silinmedi veya zayıflatılmadı.
+
+## DOM-152 — JSON v2 zarf ayırt edici alanlarında getter güvenliği
+
+- Teklif geçmişi uzantısının zarf incelemesi `format`, `formatVersion` ve v2 `projectId` alanlarını doğrudan property access ile okumaz; yalnızca own, enumerable data descriptor kabul edilir.
+- Own accessor, inherited accessor, eksik veya enumerable olmayan discriminator alanı `blocked` döndürür. Getter çalıştırılmaz; read sonucu geçmiş içermez, append sonucu `project: null` ve `history: null` kalır.
+- Normal JSON v1 legacy okuma ve normal JSON v2 history okuma/append davranışı korunur. Tam oda/mobilya/malzeme doğrulaması ana proje parser'ına aittir.
+- Bu koruma domain envelope giriş sınırıdır; UI parser/save/open entegrasyonunun tamamlandığı anlamına gelmez. INT-003 UI sahipliğinde kalır.

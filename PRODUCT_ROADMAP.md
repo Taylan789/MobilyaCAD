@@ -1690,12 +1690,27 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 **Sahiplik sınırı ve açık entegrasyon:** frontend/src/engine/projectFile.ts halen format v1 kabul ediyor ve bilinen alanlardan yeni sonuç nesnesi kuruyor; JSON v2 quote history ve bilinmeyen üst seviye alanlar editörün save/open akışına henüz bağlı değil. frontend/** UI ajanının sahipliğinde olduğundan bu turda değiştirilmedi. INT-003, UI sahibine açık entegrasyon görevi olarak eklendi. Bu domain testi tek başına editörde uçtan uca save/load tamamlandı anlamına gelmez.
 
 **Sıradaki 3–5 küçük görev**
-1. INT-003: UI sahibinin v2 proje parser/save/open entegrasyonu; v1 legacy testleri ve unknown metadata round-trip'i koru.
-2. DOM-152: INT-003 entegrasyonundan sonra gerçek editör v2 dosyasıyla append/save/reopen/append round-trip kabul testini genişlet.
-3. INT-002: JSON/CSV adapter geometry/quantity round-trip — yalnızca gerçek Integration/Performance uzmanı branch/PR sahipliğiyle.
-4. PERF-001: 2D/3D veri akışı için tekrarlanabilir profiling — uzman agent sahipliğinde.
-5. QA-003: INT-001/INT-002/INT-003 kanıtları tamamlandıktan sonra uçtan uca export/data-flow denetimi.
+1. DOM-152: JSON v2 zarf discriminator alanlarında own/inherited accessor'ları getter çalıştırmadan reddet; normal v1/v2 davranışını koru.
+2. INT-003: UI sahibinin v2 proje parser/save/open entegrasyonu; v1 legacy testleri ve unknown metadata round-trip'i koru.
+3. DOM-153: INT-003 sonrasında gerçek editör v2 dosyasıyla append/save/reopen/append round-trip kabul testini genişlet.
+4. INT-002 ve PERF-001: JSON/CSV adapter geometry/quantity round-trip ve 2D/3D profiling — yalnızca doğrulanmış Integration/Performance uzmanı sahipliğinde.
+5. QA-003: INT-001/INT-002/INT-003 kanıtları tamamlandığında uçtan uca export/data-flow denetimi.
 
 **QA kanıtı:** 242/242 frontend unit + 735/735 domain test; DOM-151'in iki yeni testi geçti. Strict domain TypeScript, lint 36 uyarı / 0 hata, production build ve production dependency audit (0 açık production vulnerability) başarılı. Test sitesi exact-SHA deployment ile https://taylan789.github.io/MobilyaCAD/ adresine güncellendi.
 
 **İlk doğrulama düzeltmesi:** İlk deneme commit'i 748d9aa4'te fixture, teklif snapshot'ını boş ürettiği için QA 733/734 ile başarısız oldu; logdaki status mismatch incelendi. Fixture'a açık test quote adjustment eklendi; test silinmedi veya gevşetilmedi. 640dbf51 düzeltmesi sonrası exact-SHA QA 735/735 geçti.
+
+## DOM-152 — JSON v2 zarf discriminator alanlarında getter güvenliği
+
+**Durum:** IMPLEMENTATION — exact-SHA Actions verification pending.
+
+**Kullanıcı akışı:** Domain quote-history read/append API'leri proje zarfının kimlik ve sürüm alanlarını inceler. JSON dışı JavaScript nesnesi own veya inherited getter ile bu alanları sağlıyorsa API getter'ı çalıştırmadan işlemi engeller.
+
+**Kabul kriterleri**
+- `format`, `formatVersion` ve v2 `projectId` yalnızca own, enumerable data descriptor üzerinden okunur.
+- Own accessor ve inherited accessor her iki public girişte de `blocked` üretir; getter çağrı sayısı sıfırdır.
+- Blocked read geçmiş döndürmez; blocked append `project: null` ve `history: null` döndürür, kaynak nesne değiştirilmez.
+- Normal v1 legacy okuma ve geçerli v2 append/read davranışı değişmez.
+- Tam proje şeması doğrulaması ve editör save/open entegrasyonu bu domain korumasının kapsamı dışındadır; INT-003 UI sahibindedir.
+
+**Sonraki bağımlı iş:** INT-003 tamamlandıktan sonra DOM-153 editörün gerçek save/reopen round-trip akışını doğrular.

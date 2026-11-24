@@ -115,6 +115,17 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
+function readOwnEnumerableDataProperty(
+  value: Record<string, unknown>,
+  key: string
+): unknown {
+  const descriptor = Object.getOwnPropertyDescriptor(value, key);
+  if (!descriptor || !descriptor.enumerable || !("value" in descriptor)) {
+    throw new Error("Proje zarfı JSON dışı nesne alanı içeriyor.");
+  }
+  return descriptor.value;
+}
+
 function cloneAndFreezeJsonValue(
   value: unknown,
   ancestors: WeakSet<object>,
@@ -254,7 +265,19 @@ function inspectProjectEnvelope(value: unknown): ProjectEnvelopeInspection {
       diagnostics: ["MobilyaCAD proje dosyası geçerli bir nesne olmalıdır."]
     };
   }
-  if (value.format !== "MobilyaCAD") {
+
+  let format: unknown;
+  try {
+    format = readOwnEnumerableDataProperty(value, "format");
+  } catch (error) {
+    return {
+      status: "blocked",
+      project: null,
+      projectId: null,
+      diagnostics: [error instanceof Error ? error.message : "Proje zarfı JSON dışı nesne alanı içeriyor."]
+    };
+  }
+  if (format !== "MobilyaCAD") {
     return {
       status: "blocked",
       project: null,
@@ -263,7 +286,19 @@ function inspectProjectEnvelope(value: unknown): ProjectEnvelopeInspection {
     };
   }
 
-  if (value.formatVersion === 1) {
+  let formatVersion: unknown;
+  try {
+    formatVersion = readOwnEnumerableDataProperty(value, "formatVersion");
+  } catch (error) {
+    return {
+      status: "blocked",
+      project: null,
+      projectId: null,
+      diagnostics: [error instanceof Error ? error.message : "Proje zarfı JSON dışı nesne alanı içeriyor."]
+    };
+  }
+
+  if (formatVersion === 1) {
     if (Object.prototype.hasOwnProperty.call(value, PROJECT_QUOTE_REVISION_HISTORY_FIELD)) {
       return {
         status: "blocked",
@@ -277,7 +312,7 @@ function inspectProjectEnvelope(value: unknown): ProjectEnvelopeInspection {
     return { status: "legacy", project: value, projectId: null, diagnostics: Object.freeze([]) };
   }
 
-  if (value.formatVersion !== 2) {
+  if (formatVersion !== 2) {
     return {
       status: "blocked",
       project: null,
@@ -286,7 +321,17 @@ function inspectProjectEnvelope(value: unknown): ProjectEnvelopeInspection {
     };
   }
 
-  const projectId = value.projectId;
+  let projectId: unknown;
+  try {
+    projectId = readOwnEnumerableDataProperty(value, "projectId");
+  } catch (error) {
+    return {
+      status: "blocked",
+      project: null,
+      projectId: null,
+      diagnostics: [error instanceof Error ? error.message : "Proje zarfı JSON dışı nesne alanı içeriyor."]
+    };
+  }
   if (
     typeof projectId !== "string" ||
     projectId.trim() === "" ||
