@@ -158,3 +158,201 @@
     transition: none;
   }
 }
+
+/* UI-DRAWER-CONFIG-TECHNICAL-RAIL-001 — focused, readable drawer construction workspace */
+.cad-drawer-configurator {
+  gap: 8px;
+}
+
+.cad-drawer-configurator > .cad-production-summary {
+  gap: 12px;
+  padding: 10px 12px;
+  border-color: rgba(137, 169, 191, .28);
+  border-left: 2px solid #86a9c2;
+  background: linear-gradient(105deg, #293a46, #222f39 70%);
+}
+.cad-drawer-configurator > .cad-production-summary span {
+  color: #a8bbc8;
+  font-size: 9px;
+  font-weight: 750;
+  letter-spacing: .075em;
+  line-height: 1.45;
+  text-transform: uppercase;
+}
+.cad-drawer-configurator > .cad-production-summary strong {
+  flex: 0 0 auto;
+  color: #e3f0f8;
+  font-size: 15px;
+  font-weight: 760;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.cad-drawer-configurator > .cad-drawer-config-note {
+  padding: 8px 10px;
+  color: #a5b4bf;
+  background: #18232b;
+  border: 1px solid rgba(132, 160, 179, .15);
+  border-left: 2px solid #526f83;
+  border-radius: 5px;
+  font-size: 10px;
+  line-height: 1.55;
+}
+.cad-drawer-configurator > .cad-production-card {
+  gap: 6px;
+  padding: 10px 11px;
+  background: linear-gradient(115deg, #202d36, #1b2730);
+  border-color: #3a4b58;
+  border-radius: 7px;
+  transition: border-color 140ms ease, background-color 140ms ease;
+}
+.cad-drawer-configurator > .cad-production-card:hover {
+  border-color: #577286;
+  background: #22313b;
+}
+.cad-drawer-configurator > .cad-production-card strong {
+  color: #e2edf4;
+  font-size: 11px;
+  letter-spacing: .01em;
+}
+.cad-drawer-configurator > .cad-production-card span {
+  width: fit-content;
+  max-width: 100%;
+  padding: 4px 6px;
+  color: #c7d8e3;
+  background: #141f27;
+  border: 1px solid #354753;
+  border-radius: 4px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.4;
+}
+.cad-drawer-configurator > .cad-production-card small {
+  color: #9db7c9;
+  font-size: 10px;
+  line-height: 1.5;
+}
+.cad-drawer-configurator .cad-drawer-config-actions {
+  gap: 6px;
+  margin-top: 2px;
+}
+.cad-drawer-configurator .cad-drawer-config-actions > button {
+  min-height: 34px;
+}
+.cad-drawer-configurator .cad-full-button {
+  min-height: 38px;
+  margin-top: 0;
+}
+.cad-drawer-configurator .cad-drawer-config-form {
+  gap: 11px;
+  padding: 11px;
+  background: #151f27;
+  border: 1px solid #354753;
+  border-radius: 8px;
+}
+.cad-drawer-configurator .cad-drawer-config-grid {
+  gap: 7px;
+}
+.cad-drawer-configurator .cad-drawer-config-grid > .cad-field {
+  min-width: 0;
+  gap: 5px;
+  margin: 0;
+  padding: 8px;
+  background: #1b2831;
+  border: 1px solid #2f414d;
+  border-radius: 6px;
+}
+.cad-drawer-configurator .cad-drawer-config-grid > .cad-field label {
+  color: #a8bbc8;
+  font-size: 9px;
+  font-weight: 650;
+  line-height: 1.45;
+}
+.cad-drawer-configurator .cad-drawer-config-grid input,
+.cad-drawer-configurator .cad-drawer-config-grid select {
+  min-width: 0;
+  min-height: 36px;
+  color: #e0eaf0;
+  background: #101a21;
+  border-color: #3b505e;
+  border-radius: 5px;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+.cad-drawer-configurator .cad-drawer-config-grid input:focus-visible,
+.cad-drawer-configurator .cad-drawer-config-grid select:focus-visible,
+.cad-drawer-configurator .cad-drawer-config-actions button:focus-visible,
+.cad-drawer-configurator .cad-full-button:focus-visible {
+  outline: 2px solid #9bbbd2;
+  outline-offset: 2px;
+}
+.cad-drawer-configurator .cad-drawer-config-panel {
+  gap: 9px;
+  padding: 10px;
+  background: #1a2730;
+  border-color: #344754;
+}
+.cad-drawer-configurator .cad-drawer-config-panel > strong,
+.cad-drawer-configurator .cad-drawer-panel-group > strong {
+  color: #cbd9e2;
+  font-size: 10px;
+  letter-spacing: .035em;
+}
+.cad-drawer-configurator .cad-drawer-config-error {
+  padding: 9px 10px;
+  color: #f0b0aa;
+  background: rgba(115, 49, 45, .18);
+  border: 1px solid rgba(179, 99, 91, .4);
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 600;
+}
+.cad-drawer-configurator .cad-field-note {
+  margin: 0;
+  padding: 8px 10px;
+  color: #a5b4bf;
+  background: #19242c;
+  border: 1px solid #33434e;
+  border-radius: 6px;
+  font-size: 10px;
+  line-height: 1.55;
+}
+@media (max-width: 560px) {
+  .cad-drawer-configurator .cad-drawer-config-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .cad-drawer-configurator > .cad-production-summary {
+    align-items: flex-start;
+  }
+  .cad-drawer-configurator > .cad-production-summary strong {
+    font-size: 14px;
+  }
+}
+@media (forced-colors: active) {
+  .cad-drawer-configurator > .cad-production-summary,
+  .cad-drawer-configurator > .cad-production-card,
+  .cad-drawer-configurator .cad-drawer-config-form,
+  .cad-drawer-configurator .cad-drawer-config-grid > .cad-field,
+  .cad-drawer-configurator .cad-drawer-config-panel,
+  .cad-drawer-configurator .cad-drawer-config-error,
+  .cad-drawer-configurator .cad-field-note {
+    forced-color-adjust: auto;
+    color: CanvasText;
+    background: Canvas;
+    border-color: CanvasText;
+  }
+  .cad-drawer-configurator .cad-drawer-config-grid input,
+  .cad-drawer-configurator .cad-drawer-config-grid select {
+    color: FieldText;
+    background: Field;
+    border-color: CanvasText;
+  }
+  .cad-drawer-configurator :focus-visible {
+    outline-color: Highlight;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cad-drawer-configurator > .cad-production-card {
+    transition: none;
+  }
+}
