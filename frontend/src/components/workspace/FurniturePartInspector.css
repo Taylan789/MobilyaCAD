@@ -397,3 +397,101 @@
   .cad-part-position-disclosure, .cad-part-position-disclosure > summary { border-color: CanvasText; }
   .cad-part-position-disclosure > summary:focus-visible { outline-color: Highlight; }
 }
+
+
+/* UI-PART-INSPECTOR-PRODUCTION-DISCLOSURE-001 — keep production limits available without permanently occupying the inspector rail. */
+.cad-part-inspector details.cad-part-production-note {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  padding: 0;
+  border: 1px solid rgba(195, 148, 112, 0.22);
+  border-left: 2px solid #c39470;
+  border-radius: 5px;
+  background: rgba(108, 78, 56, 0.12);
+}
+
+.cad-part-inspector .cad-part-production-note > summary {
+  display: flex;
+  min-height: 34px;
+  align-items: center;
+  gap: 8px;
+  padding: 0 9px;
+  color: #c8a486;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+
+.cad-part-inspector .cad-part-production-note > summary::-webkit-details-marker {
+  display: none;
+}
+
+.cad-part-inspector .cad-part-production-note > summary > span {
+  min-width: 0;
+  font-size: 7px;
+  font-weight: 780;
+  letter-spacing: 0.1em;
+}
+
+.cad-part-inspector .cad-part-production-note > summary > small {
+  margin-left: auto;
+  color: #a98b72;
+  font-size: 7px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.cad-part-inspector .cad-part-production-note > summary > svg {
+  width: 13px;
+  height: 13px;
+  flex: 0 0 auto;
+  color: #c39470;
+  transition: transform 140ms ease;
+}
+
+.cad-part-inspector .cad-part-production-note[open] > summary {
+  border-bottom: 1px solid rgba(195, 148, 112, 0.18);
+  background: rgba(108, 78, 56, 0.16);
+}
+
+.cad-part-inspector .cad-part-production-note[open] > summary > svg {
+  transform: rotate(180deg);
+}
+
+.cad-part-inspector .cad-part-production-note > summary:focus-visible {
+  outline: 2px solid #d7b18f;
+  outline-offset: -2px;
+}
+
+.cad-part-inspector details.cad-part-production-note > p {
+  margin: 0;
+  padding: 9px 10px 10px;
+  color: #b5a08e;
+  font-size: 8px;
+  line-height: 1.5;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cad-part-inspector .cad-part-production-note > summary > svg {
+    transition: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .cad-part-inspector details.cad-part-production-note,
+  .cad-part-inspector .cad-part-production-note > summary {
+    border-color: CanvasText;
+    background: Canvas;
+    color: CanvasText;
+  }
+
+  .cad-part-inspector .cad-part-production-note > summary > :is(span, small),
+  .cad-part-inspector details.cad-part-production-note > p {
+    color: CanvasText;
+  }
+
+  .cad-part-inspector .cad-part-production-note > summary:focus-visible {
+    outline-color: Highlight;
+  }
+}
