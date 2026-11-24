@@ -32,4 +32,5 @@ test("collapsed desktop dock returns vertical space while retaining accessibilit
   assert.match(stylesheet, /@media \(prefers-reduced-motion: reduce\)/);
   assert.match(stylesheet, /@media \(forced-colors: active\)/);
   assert.match(stylesheet, /@media \(min-width: 761px\) and \(max-width: 900px\)/);
+  assert.match(stylesheet, /@media \(min-width: 761px\) and \(max-width: 1200px\)/);
 });
