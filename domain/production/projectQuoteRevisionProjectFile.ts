@@ -56,19 +56,94 @@ type ProjectEnvelopeInspection =
       diagnostics: readonly string[];
     };
 
-const projectIdPattern = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
+export const PROJECT_QUOTE_REVISION_PROJECT_ENVELOPE_MAX_BYTES = 16 * 1024 * 1024;
+export const PROJECT_QUOTE_REVISION_PROJECT_ENVELOPE_MAX_DEPTH = 64;
+
+const projectEnvelopeSizeLimitMessage = "Proje JSON v2 zarfı 16 MiB UTF-8 boyut sınırını aşamaz.";
+const projectEnvelopeDepthLimitMessage = "Proje JSON v2 zarfı en fazla 64 iç içe nesne/dizi seviyesi içerebilir.";
+
+interface JsonResourceBudget {
+  bytes: number;
+}
+
+function addJsonBytes(budget: JsonResourceBudget, bytes: number): void {
+  if (bytes > PROJECT_QUOTE_REVISION_PROJECT_ENVELOPE_MAX_BYTES - budget.bytes) {
+    throw new Error(projectEnvelopeSizeLimitMessage);
+  }
+  budget.bytes += bytes;
+}
+
+function jsonStringByteLength(value: string): number {
+  if (value.length > PROJECT_QUOTE_REVISION_PROJECT_ENVELOPE_MAX_BYTES) {
+    return PROJECT_QUOTE_REVISION_PROJECT_ENVELOPE_MAX_BYTES + 1;
+  }
+
+  let bytes = 2;
+  for (let index = 0; index < value.length; index += 1) {
+    const code = value.charCodeAt(index);
+    if (code === 0x22 || code === 0x5c) {
+      bytes += 2;
+    } else if (code <= 0x1f) {
+      bytes += code === 0x08 || code === 0x09 || code === 0x0a || code === 0x0c || code === 0x0d ? 2 : 6;
+    } else if (code >= 0xd800 && code <= 0xdbff) {
+      const next = value.charCodeAt(index + 1);
+      if (next >= 0xdc00 && next <= 0xdfff) {
+        bytes += 4;
+        index += 1;
+      } else {
+        bytes += 6;
+      }
+    } else if (code >= 0xdc00 && code <= 0xdfff) {
+      bytes += 6;
+    } else if (code <= 0x7f) {
+      bytes += 1;
+    } else if (code <= 0x7ff) {
+      bytes += 2;
+    } else {
+      bytes += 3;
+    }
+
+    if (bytes > PROJECT_QUOTE_REVISION_PROJECT_ENVELOPE_MAX_BYTES) {
+      return PROJECT_QUOTE_REVISION_PROJECT_ENVELOPE_MAX_BYTES + 1;
+    }
+  }
+  return bytes;
+}
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-function cloneAndFreezeJsonValue(value: unknown, ancestors: WeakSet<object>): unknown {
-  if (value === null || typeof value === "string" || typeof value === "boolean") return value;
+function cloneAndFreezeJsonValue(
+  value: unknown,
+  ancestors: WeakSet<object>,
+  budget: JsonResourceBudget,
+  depth = 1,
+  clone = true
+): unknown {
+  if (value === null) {
+    addJsonBytes(budget, 4);
+    return value;
+  }
+  if (typeof value === "string") {
+    addJsonBytes(budget, jsonStringByteLength(value));
+    return value;
+  }
+  if (typeof value === "boolean") {
+    addJsonBytes(budget, value ? 4 : 5);
+    return value;
+  }
   if (typeof value === "number") {
     if (!Number.isFinite(value)) throw new Error("Proje zarfı JSON uyumlu olmayan sayısal değer içeriyor.");
+    const jsonNumber = JSON.stringify(value);
+    if (typeof jsonNumber !== "string") throw new Error("Proje zarfı JSON uyumlu olmayan sayısal değer içeriyor.");
+    addJsonBytes(budget, jsonNumber.length);
     return value;
   }
   if (typeof value !== "object") throw new Error("Proje zarfı JSON uyumlu olmayan değer içeriyor.");
+  if (depth > PROJECT_QUOTE_REVISION_PROJECT_ENVELOPE_MAX_DEPTH) {
+    throw new Error(projectEnvelopeDepthLimitMessage);
+  }
   if (ancestors.has(value)) throw new Error("Proje zarfı döngüsel veri içeriyor.");
   ancestors.add(value);
 
@@ -82,13 +157,16 @@ function cloneAndFreezeJsonValue(value: unknown, ancestors: WeakSet<object>): un
     ) {
       throw new Error("Proje zarfı JSON dışı dizi alanı içeriyor.");
     }
-    const copy: unknown[] = [];
+    addJsonBytes(budget, 2);
+    const copy: unknown[] | null = clone ? [] : null;
     for (let index = 0; index < value.length; index += 1) {
+      if (index > 0) addJsonBytes(budget, 1);
       const descriptor = Object.getOwnPropertyDescriptor(value, String(index));
       if (!descriptor || !descriptor.enumerable || !("value" in descriptor)) {
         throw new Error("Proje zarfı JSON dışı dizi alanı içeriyor.");
       }
-      copy.push(cloneAndFreezeJsonValue(descriptor.value, ancestors));
+      const child = cloneAndFreezeJsonValue(descriptor.value, ancestors, budget, depth + 1, clone);
+      if (copy !== null) copy.push(child);
     }
     cloned = copy;
   } else {
@@ -103,28 +181,40 @@ function cloneAndFreezeJsonValue(value: unknown, ancestors: WeakSet<object>): un
     ) {
       throw new Error("Proje zarfı JSON dışı nesne alanı içeriyor.");
     }
-    const copy: Record<string, unknown> = {};
-    for (const key of keys) {
+    addJsonBytes(budget, 2);
+    const copy: Record<string, unknown> | null = clone ? {} : null;
+    for (let index = 0; index < keys.length; index += 1) {
+      const key = keys[index];
+      if (index > 0) addJsonBytes(budget, 1);
+      addJsonBytes(budget, jsonStringByteLength(key));
+      addJsonBytes(budget, 1);
       const descriptor = Object.getOwnPropertyDescriptor(value, key);
       if (!descriptor || !descriptor.enumerable || !("value" in descriptor)) {
         throw new Error("Proje zarfı JSON dışı nesne alanı içeriyor.");
       }
-      Object.defineProperty(copy, key, {
-        value: cloneAndFreezeJsonValue(descriptor.value, ancestors),
-        enumerable: true,
-        configurable: true,
-        writable: true
-      });
+      const child = cloneAndFreezeJsonValue(descriptor.value, ancestors, budget, depth + 1, clone);
+      if (copy !== null) {
+        Object.defineProperty(copy, key, {
+          value: child,
+          enumerable: true,
+          configurable: true,
+          writable: true
+        });
+      }
     }
     cloned = copy;
   }
 
   ancestors.delete(value);
-  return Object.freeze(cloned);
+  return clone ? Object.freeze(cloned) : undefined;
 }
 
 function cloneAndFreezeProjectEnvelope(value: Record<string, unknown>): Readonly<Record<string, unknown>> {
-  return cloneAndFreezeJsonValue(value, new WeakSet<object>()) as Readonly<Record<string, unknown>>;
+  return cloneAndFreezeJsonValue(value, new WeakSet<object>(), { bytes: 0 }) as Readonly<Record<string, unknown>>;
+}
+
+function assertProjectEnvelopeResourceLimits(value: Record<string, unknown>): void {
+  cloneAndFreezeJsonValue(value, new WeakSet<object>(), { bytes: 0 }, 1, false);
 }
 
 function blockedRead(message: string): ProjectQuoteRevisionProjectFileReadResult {
@@ -275,19 +365,19 @@ export function appendProjectQuoteRevisionToProjectFile(
     );
   }
 
-  const current = readProjectQuoteRevisionHistoryFromProjectFile(envelope.project);
-  if (current.status === "blocked" || current.history === null) {
-    return blockedAppend(
-      current.diagnostics[0] ?? "Mevcut proje teklif revizyon geçmişi doğrulanamadı."
-    );
-  }
-
   let preservedProject: Readonly<Record<string, unknown>>;
   try {
     preservedProject = cloneAndFreezeProjectEnvelope(envelope.project);
   } catch (error) {
     return blockedAppend(
       error instanceof Error ? error.message : "Proje zarfı güvenli biçimde kopyalanamadı."
+    );
+  }
+
+  const current = readProjectQuoteRevisionHistoryFromProjectFile(preservedProject);
+  if (current.status === "blocked" || current.history === null) {
+    return blockedAppend(
+      current.diagnostics[0] ?? "Mevcut proje teklif revizyon geçmişi doğrulanamadı."
     );
   }
 
@@ -302,6 +392,13 @@ export function appendProjectQuoteRevisionToProjectFile(
     ...preservedProject,
     [PROJECT_QUOTE_REVISION_HISTORY_FIELD]: appended.history
   });
+  try {
+    assertProjectEnvelopeResourceLimits(nextProject);
+  } catch (error) {
+    return blockedAppend(
+      error instanceof Error ? error.message : "Yeni proje zarfı kaynak sınırlarını aşıyor."
+    );
+  }
 
   return Object.freeze({
     status: "ready" as const,
@@ -328,12 +425,6 @@ export function importProjectQuoteRevisionHistoryFileIntoProject(
     );
   }
 
-  const current = readProjectQuoteRevisionHistoryFromProjectFile(envelope.project);
-  if (current.status === "blocked" || current.history === null) {
-    return blockedImport(
-      current.diagnostics[0] ?? "Mevcut proje teklif revizyon geçmişi doğrulanamadı."
-    );
-  }
   if (current.history.revisions.length > 0) {
     return blockedImport(
       "Proje zaten teklif revizyon geçmişi içeriyor; içe aktarma mevcut geçmişi sessizce değiştiremez."
@@ -364,10 +455,23 @@ export function importProjectQuoteRevisionHistoryFileIntoProject(
     );
   }
 
+  const current = readProjectQuoteRevisionHistoryFromProjectFile(preservedProject);
+  if (current.status === "blocked" || current.history === null) {
+    return blockedImport(
+      current.diagnostics[0] ?? "Mevcut proje teklif revizyon geçmişi doğrulanamadı."
+    );
+  }
   const nextProject = Object.freeze({
     ...preservedProject,
     [PROJECT_QUOTE_REVISION_HISTORY_FIELD]: imported.history
   });
+  try {
+    assertProjectEnvelopeResourceLimits(nextProject);
+  } catch (error) {
+    return blockedImport(
+      error instanceof Error ? error.message : "İçe aktarılan proje zarfı kaynak sınırlarını aşıyor."
+    );
+  }
   return Object.freeze({
     status: "ready" as const,
     project: nextProject,

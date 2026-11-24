@@ -1374,3 +1374,12 @@ appendProjectQuoteRevisionToProjectFile yalnızca JSON olarak temsil edilebilen 
 - Nesnelerde accessor, symbol ve enumerable olmayan own alan reddedilir; getter çalıştırılarak değer okunmaz.
 - Reddedilen append status: blocked, project: null, history: null döndürür; kaynak proje ve özel zarf referansları değiştirilmez.
 - Bu sözleşme JSON şema sürümünü değiştirmez, alanları otomatik düzeltmez ve kısmi snapshot üretmez. Fiziksel üretim veya CNC uyumluluğu iddiası taşımaz.
+
+
+## DOM-149 — JSON v2 proje zarfı kaynak sınırları
+
+- appendProjectQuoteRevisionToProjectFile ve importProjectQuoteRevisionHistoryFileIntoProject yalnızca v2 proje zarfında tam JSON ağacını güvenli biçimde kopyalar; giriş zarfı 16 MiB UTF-8 JSON boyutunu veya 64 iç içe nesne/dizi seviyesini aşarsa işlem bloklanır.
+- Boyut hesabı JSON string kaçışlarını, anahtarları, ayraçları ve UTF-8 çok baytlı karakterleri kapsar; JavaScript UTF-16 string.length ölçüsü kullanılmaz.
+- Yeni revizyon eklendikten veya standalone geçmiş içe aktarıldıktan sonra oluşan son proje zarfı aynı limitlerle yeniden doğrulanır. Aşımda status: blocked, project: null, history: null döner; giriş proje nesnesi değişmez ve kısmi çıktı üretilmez.
+- Standalone revizyon geçmişi JSON dosyasının 1 MiB sınırı ve geçmiş doğrulayıcısının 2.000 revizyon sınırı ayrıdır; proje zarfına 1 MiB sınırı uygulanmaz.
+- JSON v1 legacy okuma, v2 şema alanları, ölçü/miktar/teklif hesapları ve CNC/adapter sözleşmeleri değişmez.

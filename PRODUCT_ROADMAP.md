@@ -1631,9 +1631,24 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 
 **Sınırlar:** Bu dilim test ve sözleşme sertleştirmesidir; serializer şeması, CNC çıktısı, makine standardı, malzeme/fiyat varsayımı veya fiziksel üretim onayı eklemez.
 
+## DOM-149 — JSON v2 proje zarfı kaynak sınırları
+
+**Durum:** IMPLEMENTED — exact-SHA CI/QA/Pages verification pending.
+
+**Kullanıcı akışı:** Kullanıcı teklif revizyonunu proje JSON v2 dosyasına ekler veya standalone revizyon geçmişini boş bir v2 projeye aktarır. Sistem büyük ya da aşırı derin zarfı kısmi snapshot oluşturmadan reddeder.
+
+**Kabul kriterleri**
+- Append/import girişindeki tüm proje zarfı JSON-uyumlu UTF-8 serileştirme boyutunda en fazla 16 MiB ve en fazla 64 iç içe nesne/dizi seviyesi içermelidir.
+- Limit, JS UTF-16 string uzunluğuna değil JSON kaçışları dahil UTF-8 byte sayısına dayanır.
+- Append/import sonucu, yeni teklif geçmişi eklendikten sonra aynı boyut/derinlik sınırlarından tekrar geçirilir; sınır aşımında `blocked`, `project: null`, `history: null` döner ve kaynak nesne değişmez.
+- Standalone teklif geçmişi dosyasının 1 MiB limiti ve geçmişin 2.000 revizyon sınırı bağımsız kalır; proje zarfına 1 MiB sınırı genellenmez.
+- Legacy JSON v1 okuma davranışı ve mevcut v2 şeması değişmez.
+
+**Sınırlar ve riskler:** 16 MiB ve 64 seviye, büyük oda/mobilya/katalog metadata'sına alan bırakırken recursive kopya maliyetini sınırlayan açık domain sınırlarıdır. Otomatik kırpma, geçmiş silme, sıkıştırma veya CNC/üretim güvenliği iddiası yoktur; gerçek proje kullanım ölçümleri arttıkça limitler ayrı bir ürün kararıyla gözden geçirilebilir.
+
 **Sonraki 3–5 küçük görev**
-1. DOM-149: project-v2 append/import için maksimum zarf boyutu ve derinlik kaynak sınırlarını ölçüp açık, geriye uyumlu guard tasarla; mevcut 1 MiB standalone history sınırını proje dosyasına yanlışlıkla genelleme.
-2. DOM-143C-json: nested stock-sheet group comparison JSON schema/round-trip — yalnızca gerçek specialist branch/PR ve sahiplik kanıtı geldiğinde.
+1. DOM-150: doğrudan project-v2 history read/restore API'sinde aynı kaynak sınırlarını uygula; JSON v1 legacy okumasını koru.
+2. DOM-143C-json: nested stock-sheet group comparison JSON round-trip — yalnızca gerçek specialist branch/PR ve sahiplik kanıtı geldiğinde.
 3. INT-002: JSON/CSV adapter geometry/quantity round-trip — Entegrasyon/Performans sahipliğinde.
-4. PERF-001: 2D/3D veri akışı ölçümü — Entegrasyon/Performans sahipliğinde.
-5. QA-003: INT-001/INT-002 tamamlandıktan sonra uçtan uca export/data-flow denetimi.
+4. PERF-001: 2D/3D veri akışı için tekrarlanabilir baseline ve profiling — Entegrasyon/Performans sahipliğinde.
+5. QA-003: INT-001/INT-002 kanıtı tamamlandıktan sonra uçtan uca export/data-flow denetimi.
