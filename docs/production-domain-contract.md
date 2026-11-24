@@ -1316,3 +1316,17 @@ compareProjectQuoteRevisionStockSheetGroups artık her grup fark kaydında chang
 - Alan anahtarları ve sonuç iç içe dizileri deep-freeze ile değiştirilemez; bu alan domain API'sidir, JSON/CSV adapter çıktısı olarak sunulmaz.
 
 Bu dilim yalnızca karşılaştırma nedenlerini açıklar. JSON/CSV adapter entegrasyonu, makine postprocessor'ı ve fiziksel üretim doğrulaması kapsam dışıdır.
+
+
+## DOM-143C-domain — Tam revizyon karşılaştırma zarfında levha grubu desteği
+
+`compareProjectQuoteRevisions`, iki revizyondan en az biri açık `stock-sheet-purchase` maliyet temeli kullandığında doğrulanmış `compareProjectQuoteRevisionStockSheetGroups` sonucunu `stockSheetGroupComparison` alanında taşır.
+
+- Üst karşılaştırmanın para birimi, başlangıç/hedef genel toplamları, genel toplam farkı ve kategori farkları aynı doğrulanmış stok-grubu karşılaştırmasından alınır; kategori farkları genel toplam farkına tekrar uzlaştırılır.
+- Mevcut `lineChanges` alanı korunur. Normal teklif satırları kendi kaynak kimlikleriyle karşılaştırılmaya devam eder; stok levha grupları sentetik maliyet satırına dönüştürülmez.
+- Doğrulanmış boş teklif özeti (`status: empty`, sıfır kaynak ve `costSummary: null`) stok-temelli revizyonlarda boş satır farkı olarak kabul edilir. Bu durum yalnızca history validator tarafından kabul edilen boş snapshot için geçerlidir.
+- Eski net-tüketim/legacy karşılaştırmalarının alan şekli değişmez; `stockSheetGroupComparison` yalnızca en az bir tarafta stok levha satın alma temeli olduğunda eklenir.
+- Grup kimliği, para birimi, güvenli tam sayı aritmetiği, kategori/genel toplam veya grup maliyeti uzlaşmazsa tam karşılaştırma `blocked` döner ve kısmi zarf üretmez.
+- JSON karşılaştırma dosyası ve CSV adaptörleri bu ek alanı henüz serialize etmez. Mevcut katı anahtar doğrulaması nedeniyle bu zarfı dışa aktarma girişimi fail-closed kalır; adapter schema/round-trip işi entegrasyon-performans sahibinin kapsamındadır.
+
+Otomatik kabul: stok grubu değişimi ile aynı anda değişen hardware quote line farkının birlikte korunması; stok-only boş quote karşılaştırmasında sıfır sentetik line change; üst ve alt toplamların bire bir uzlaşması; deep-freeze ve input immutability. Fiziksel levha verimi, CNC makine çıktısı ve atölye uygunluğu bu domain testleriyle onaylanmış sayılmaz.

@@ -3100,6 +3100,72 @@ test("DOM-143B blocks group comparison when neither revision has an explicit sto
   assert.match(result.diagnostics[0], /en az bir revizyon açık levha satın alma maliyet temeli/);
 });
 
+test("DOM-143C-domain integrates stock-sheet groups into the full comparison without losing line changes", () => {
+  const fromSnapshot = setDom143StockSheetGroups(createDom143StockSheetAuditSnapshot(), [
+    { materialId: "mdf-18", thicknessMm: 18, sourcePartIds: ["dom-143c-part-a"], sheetCount: 1, pricePerSheetMinor: 100, sourceReference: "stock-price-v1" }
+  ]);
+  const toSnapshot = createDom143StockSheetAuditSnapshot();
+  const hardwareLine = toSnapshot.quoteSummary.costSummary.lines.find(line => line.category === "hardware");
+  assert.ok(hardwareLine);
+  const previousLineTotalMinor = hardwareLine.lineTotalMinor;
+  hardwareLine.unitPriceMinor += 5;
+  hardwareLine.lineTotalMinor = calculateProjectCostLineTotalMinor(hardwareLine.quantity, hardwareLine.unitPriceMinor);
+  const hardwareDeltaMinor = hardwareLine.lineTotalMinor - previousLineTotalMinor;
+  toSnapshot.quoteSummary.costSummary.categoryTotalsMinor.hardware += hardwareDeltaMinor;
+  toSnapshot.quoteSummary.costSummary.grandTotalMinor += hardwareDeltaMinor;
+  const revisedSnapshot = setDom143StockSheetGroups(toSnapshot, [
+    { materialId: "mdf-18", thicknessMm: 18, sourcePartIds: ["dom-143c-part-a", "dom-143c-part-b"], sheetCount: 2, pricePerSheetMinor: 125, sourceReference: "stock-price-v2" }
+  ]);
+  const history = createHistoryWithSnapshots(fromSnapshot, revisedSnapshot);
+  const originalHistoryJson = JSON.stringify(history);
+
+  const result = compareProjectQuoteRevisions(history, "quote-r1", "quote-r2");
+  assert.equal(result.status, "ready", result.diagnostics.join("; "));
+  assert.ok(result.comparison);
+  const comparison = result.comparison;
+  const stockSheet = comparison.stockSheetGroupComparison;
+  assert.ok(stockSheet);
+  assert.equal(comparison.currencyCode, stockSheet.currencyCode);
+  assert.equal(comparison.fromGrandTotalMinor, stockSheet.fromGrandTotalMinor);
+  assert.equal(comparison.toGrandTotalMinor, stockSheet.toGrandTotalMinor);
+  assert.equal(comparison.grandTotalDeltaMinor, stockSheet.grandTotalDeltaMinor);
+  assert.deepEqual(comparison.categoryDeltasMinor, stockSheet.categoryDeltasMinor);
+  assert.equal(stockSheet.groupCounts.changedGroupCount, 1);
+  assert.deepEqual(stockSheet.groupChanges[0].changedFields, [
+    "sourcePartIds", "sheetCount", "pricePerSheetMinor", "stockSheetCostMinor", "sourceReference"
+  ]);
+  assert.ok(comparison.lineChanges.some(change =>
+    change.type === "changed" &&
+    (change.from?.category === "hardware" || change.to?.category === "hardware")
+  ));
+  assert.ok(Object.isFrozen(stockSheet));
+  assert.ok(Object.isFrozen(stockSheet.groupChanges[0].changedFields));
+  assert.equal(JSON.stringify(history), originalHistoryJson);
+});
+
+test("DOM-143C-domain compares stock-only empty quote summaries without synthetic line changes", () => {
+  const fromSnapshot = setDom143StockSheetGroups(
+    createDom143StockSheetAuditSnapshot({ emptyBase: true }),
+    [{ materialId: "mdf-18", thicknessMm: 18, sourcePartIds: ["dom-143c-stock-only-part"], sheetCount: 1, pricePerSheetMinor: 200, sourceReference: "stock-price-v1" }]
+  );
+  const toSnapshot = setDom143StockSheetGroups(
+    createDom143StockSheetAuditSnapshot({ emptyBase: true }),
+    [{ materialId: "mdf-18", thicknessMm: 18, sourcePartIds: ["dom-143c-stock-only-part"], sheetCount: 1, pricePerSheetMinor: 245, sourceReference: "stock-price-v2" }]
+  );
+  const result = compareProjectQuoteRevisions(
+    createHistoryWithSnapshots(fromSnapshot, toSnapshot),
+    "quote-r1",
+    "quote-r2"
+  );
+
+  assert.equal(result.status, "ready", result.diagnostics.join("; "));
+  assert.ok(result.comparison?.stockSheetGroupComparison);
+  assert.equal(result.comparison?.grandTotalDeltaMinor, 45);
+  assert.equal(result.comparison?.categoryDeltasMinor.material, 45);
+  assert.deepEqual(result.comparison?.lineChanges, []);
+  assert.equal(result.comparison?.stockSheetGroupComparison.groupCounts.changedGroupCount, 1);
+});
+
 test("DOM-133 source-map provenance comparison isolates metadata changes from monetary deltas", () => {
   const fromSnapshot = createSnapshot();
   const toSnapshot = createSnapshot();

@@ -1492,4 +1492,25 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 - Malzeme/kalınlık kimlik değişiklikleri kaldırma + ekleme olarak kalır; eklenen/kaldırılan gruplarda changedFields boş dizidir.
 - QA: 218/218 unit + 713/713 domain tests; strict domain type-check, lint 34 warnings/0 errors, production build and production dependency audit 0 vulnerabilities.
 - JSON/CSV karşılaştırma adaptörleri ayrı entegrasyon/performance ajanının sahipliğinde kalır. Doğrulanmış uzman branch/job/PR bulunmadan adapter dosyalarına dokunulmaz.
-- Sonraki domain dilimi: DOM-143C-domain — stok levha karşılaştırma primitive'ini tam revizyon karşılaştırma zarfına fail-closed biçimde entegre et; JSON/CSV adapter sahipliğini ihlal etme.
+- DOM-143C-domain tam revizyon karşılaştırma zarfına entegre edildi; exact-SHA CI/QA/Pages doğrulaması bekleniyor. JSON/CSV adapter dosyaları ayrı sahiplikte kalır.
+
+
+## DOM-143C-domain — Tam teklif revizyon zarfında levha grubu farkları
+
+**Durum:** Kod ve regresyon testleri hazırlandı; exact-SHA CI/QA/Pages doğrulaması bekleniyor. Bu bir domain dilimidir; JSON/CSV adaptörlerinin tamamlandığı anlamına gelmez.
+
+- `compareProjectQuoteRevisions` artık en az bir revizyon `stock-sheet-purchase` temeli kullandığında doğrulanmış grup karşılaştırmasını `stockSheetGroupComparison` altında taşır.
+- Üst zarfın para birimi, başlangıç/hedef toplamları ve kategori farkları alt grup karşılaştırmasıyla aynı kaynaktan gelir; kategori farkları genel toplam farkına tekrar uzlaştırılır.
+- Var olan line-level `lineChanges` korunur. Stok levha grupları sahte maliyet satırlarına çevrilmez.
+- Validator tarafından kabul edilmiş boş stock-only quote snapshot'ları `lineChanges: []` döndürür; group delta alanı yine mevcuttur.
+- Herhangi bir grup, para birimi veya integer/toplam uzlaşmazlığında tam karşılaştırma fail-closed olur; kısmi comparison nesnesi dönmez.
+- JSON/CSV comparison serializer'ları yeni nested alanı henüz kabul etmez. Strict schema nedeniyle export fail-closed kalır; adapter round-trip işi INT-002 / specialist sahibine aittir.
+
+**Kabul kanıtı:** Karışık stok grubu + hardware satır değişikliği, stock-only boş quote, üst/alt toplam uzlaşması, immutable sonuç ve input immutability için iki yeni domain regresyon testi. Fiziksel levha verimi/CNC/atölye doğrulaması kapsam dışıdır.
+
+**Sıradaki 3–5 küçük görev**
+1. DOM-143C-domain exact-SHA CI/QA/Pages doğrulamasını tamamla; başarısızsa yalnızca ilgili domain/test dilimini düzelt.
+2. INT-002 / DOM-143C-json: stok grubu farklarını JSON comparison schema'sına geriye uyumlu ekle ve v1 reader'ı koru — yalnızca entegrasyon/performance ajanı sahiplenirse.
+3. DOM-143D: CSV'de deterministik stock-sheet group rows ve Part/source-reference provenance deltas — adapter sahibi kapsamı.
+4. DOM-144: üç veya daha fazla revizyonda source-map audit ve stock-sheet group comparison Part kapsamını çapraz tüketici düzeyinde uzlaştır.
+5. DOM-145: teklif revizyonu import/export sınırlarında büyük geçmişler için ölçülebilir boyut/performance sınırlarını ve fail-closed hata davranışını doğrula.

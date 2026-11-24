@@ -778,3 +778,17 @@
 - Known constraints: no frontend/**, JSON/CSV adapter, benchmark, CNC/machine output, secrets/settings or main changes. Integration/performance specialist branch was not found; INT-002/PERF-001 remain specialist-owned. AI Developer [#45338253254](https://github.com/Taylan789/MobilyaCAD/actions/runs/45338253254) failed with OpenRouter free-model daily quota HTTP 429 and its specialist job was skipped; no retry or paid fallback was attempted because the daily limit was exhausted until 25 November 2026 03:00 TRT.
 - Test site: https://taylan789.github.io/MobilyaCAD/ — deployed from exact verified commit a294cb7 via Pages #45357651858.
 - Next: DOM-143C-domain — integrate the validated stock-sheet comparison primitive into the full revision-comparison envelope with fail-closed behavior, while keeping JSON/CSV adapter files outside this domain lane.
+
+
+## 24 Kasım 2026 12:09 TRT — DOM-143C-domain implementation (verification pending)
+
+- Base `dev/github-work` HEAD: `c9e8a2bfc828d11e1203610710fea9023aef9dc4`; exact-SHA base CI [#45357879265](https://github.com/Taylan789/MobilyaCAD/actions/runs/45357879265), QA [#45357879360](https://github.com/Taylan789/MobilyaCAD/actions/runs/45357879360) and Pages [#45357879321](https://github.com/Taylan789/MobilyaCAD/actions/runs/45357879321) were successful. The test site was deployed from this base SHA.
+- Implemented optional immutable `stockSheetGroupComparison` on the full `compareProjectQuoteRevisions` envelope whenever either revision uses explicit stock-sheet purchase basis. Top-level currency, grand totals and category deltas come from the validated group comparison and are reconciled again.
+- Preserved line-level changes independently; valid empty stock-only quote summaries now return an empty line-change list without synthetic cost lines. Legacy/non-stock comparisons omit the optional property and retain their previous shape.
+- Added two regression tests for mixed stock-group + hardware line changes and stock-only empty quote revisions. No adapter or adapter-owned test files changed; JSON/CSV strict schemas remain fail-closed for this additive field.
+- Changed files: `domain/production/projectQuoteRevision.ts`, `domain/production/projectQuoteRevision.test.mjs`, `docs/production-domain-contract.md`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`.
+- Implementation commit: `PENDING_COMMIT_SHA` (this entry will be finalized after the commit object is created).
+- Exact-SHA CI/QA/Pages: pending.
+- AI Developer [#45338253254](https://github.com/Taylan789/MobilyaCAD/actions/runs/45338253254) failed because OpenRouter free-model daily quota returned HTTP 429 (limit 50, remaining 0; reset 25 November 2026 03:00 TRT); integration/performance specialist job was skipped. No retry, paid fallback, secret or quota setting was changed. No specialist branch/PR was verified.
+- Current test site before this change: https://taylan789.github.io/MobilyaCAD/ — base SHA deployed by Pages [#45357879321](https://github.com/Taylan789/MobilyaCAD/actions/runs/45357879321). New deployment is pending exact-SHA CI + QA.
+- Next: verify this commit, then keep JSON/CSV round-trip work with the integration/performance owner; continue with a separate domain-only cross-revision provenance task.

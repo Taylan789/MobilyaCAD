@@ -1135,6 +1135,8 @@ export interface ProjectQuoteRevisionComparison {
   categoryDeltasMinor: Record<ProjectQuoteCostCategory, number>;
   /** Exact line-level differences; unit/direction/source identity changes are add/remove pairs. */
   lineChanges: readonly ProjectQuoteRevisionLineChange[];
+  /** Present only when either revision uses stock-sheet purchase; carries the validated group comparison. */
+  stockSheetGroupComparison?: DeepReadonly<ProjectQuoteRevisionStockSheetGroupComparison>;
 }
 
 export interface ProjectQuoteRevisionComparisonResult {
@@ -1235,7 +1237,10 @@ function revisionComparisonLines(revision: ProjectQuoteRevision): RevisionCompar
   const quoteSummary = revision.pricingSnapshot.quoteSummary;
   const costSummary = quoteSummary.costSummary;
   if (costSummary === null) {
-    throw new Error("Teklif revizyonunda karşılaştırılacak maliyet satırları bulunmuyor.");
+    if (quoteSummary.status !== "empty" || quoteSummary.lineSources.length !== 0) {
+      throw new Error("Yalnızca doğrulanmış boş teklif snapshot'ı satır içermeyen karşılaştırma olarak kullanılabilir.");
+    }
+    return [];
   }
   const sourcesByLineId = new Map(quoteSummary.lineSources.map((source) => [source.costLineId, source]));
   return costSummary.lines.map((line) => {
@@ -1341,53 +1346,86 @@ export function compareProjectQuoteRevisions(
     if (toRevision.revisionNumber <= fromRevision.revisionNumber) {
       throw new Error("Hedef revizyon başlangıç revizyonundan daha yeni olmalıdır.");
     }
-    if (
+
+    const hasStockSheetBasis =
       fromRevision.pricingSnapshot.materialCostBasis?.basis === "stock-sheet-purchase" ||
-      toRevision.pricingSnapshot.materialCostBasis?.basis === "stock-sheet-purchase"
-    ) {
-      throw new Error("Levha satın alma maliyetli revizyonlarda grup bazlı fark desteği tamamlanana kadar karşılaştırma güvenli biçimde engellendi.");
+      toRevision.pricingSnapshot.materialCostBasis?.basis === "stock-sheet-purchase";
+
+    let currencyCode: string;
+    let fromGrandTotalMinor: number;
+    let toGrandTotalMinor: number;
+    let categoryDeltasMinor: Record<ProjectQuoteCostCategory, number>;
+    let stockSheetGroupComparison: DeepReadonly<ProjectQuoteRevisionStockSheetGroupComparison> | undefined;
+
+    if (hasStockSheetBasis) {
+      const stockSheetResult = compareProjectQuoteRevisionStockSheetGroups(
+        validatedHistory.history,
+        fromRevisionId,
+        toRevisionId
+      );
+      if (stockSheetResult.status !== "ready" || stockSheetResult.comparison === null) {
+        throw new Error(
+          stockSheetResult.diagnostics[0] ??
+          "Levha satın alma grupları teklif revizyon karşılaştırmasına güvenli biçimde eklenemedi."
+        );
+      }
+      stockSheetGroupComparison = stockSheetResult.comparison;
+      currencyCode = stockSheetGroupComparison.currencyCode;
+      fromGrandTotalMinor = stockSheetGroupComparison.fromGrandTotalMinor;
+      toGrandTotalMinor = stockSheetGroupComparison.toGrandTotalMinor;
+      categoryDeltasMinor = { ...stockSheetGroupComparison.categoryDeltasMinor };
+    } else {
+      const fromQuote = fromRevision.pricingSnapshot.quoteSummary;
+      const toQuote = toRevision.pricingSnapshot.quoteSummary;
+      const fromCost = fromQuote.costSummary;
+      const toCost = toQuote.costSummary;
+      const fromCurrencyCode = fromQuote.currencyCode;
+
+      if (
+        fromCurrencyCode === null ||
+        toQuote.currencyCode !== fromCurrencyCode ||
+        fromCost === null ||
+        toCost === null ||
+        fromCost.currencyCode !== fromCurrencyCode ||
+        toCost.currencyCode !== fromCurrencyCode
+      ) {
+        throw new Error("Farklı para birimlerindeki teklif revizyonları kur bilgisi olmadan karşılaştırılamaz.");
+      }
+
+      currencyCode = fromCurrencyCode;
+      fromGrandTotalMinor = requireSafeInteger(
+        fromCost.grandTotalMinor,
+        "Başlangıç revizyon genel toplamı",
+        0
+      );
+      toGrandTotalMinor = requireSafeInteger(
+        toCost.grandTotalMinor,
+        "Hedef revizyon genel toplamı",
+        0
+      );
+      categoryDeltasMinor = {} as Record<ProjectQuoteCostCategory, number>;
+      for (const rawCategory of costCategories) {
+        const category = rawCategory as ProjectQuoteCostCategory;
+        categoryDeltasMinor[category] = safeRevisionComparisonDelta(
+          toCost.categoryTotalsMinor[category],
+          fromCost.categoryTotalsMinor[category],
+          category + " kategori farkı"
+        );
+      }
     }
 
-    const fromQuote = fromRevision.pricingSnapshot.quoteSummary;
-    const toQuote = toRevision.pricingSnapshot.quoteSummary;
-    const fromCost = fromQuote.costSummary;
-    const toCost = toQuote.costSummary;
-    const currencyCode = fromQuote.currencyCode;
-
-    if (
-      currencyCode === null ||
-      toQuote.currencyCode !== currencyCode ||
-      fromCost === null ||
-      toCost === null ||
-      fromCost.currencyCode !== currencyCode ||
-      toCost.currencyCode !== currencyCode
-    ) {
-      throw new Error("Farklı para birimlerindeki teklif revizyonları kur bilgisi olmadan karşılaştırılamaz.");
-    }
-
-    const fromGrandTotalMinor = requireSafeInteger(
-      fromCost.grandTotalMinor,
-      "Başlangıç revizyon genel toplamı",
-      0
+    const grandTotalDeltaMinor = safeRevisionComparisonDelta(
+      toGrandTotalMinor,
+      fromGrandTotalMinor,
+      "Teklif genel toplam farkı"
     );
-    const toGrandTotalMinor = requireSafeInteger(
-      toCost.grandTotalMinor,
-      "Hedef revizyon genel toplamı",
-      0
+    const categoryDeltaTotal = Object.values(categoryDeltasMinor).reduce(
+      (total, delta) => total + BigInt(delta),
+      0n
     );
-    const grandTotalDeltaMinor = toGrandTotalMinor - fromGrandTotalMinor;
-    if (!Number.isSafeInteger(grandTotalDeltaMinor)) {
-      throw new Error("Teklif revizyon toplam farkı güvenli tam sayı aralığını aşıyor.");
+    if (categoryDeltaTotal !== BigInt(grandTotalDeltaMinor)) {
+      throw new Error("Kategori farkları teklif genel toplam farkıyla uzlaşmıyor.");
     }
-
-    const categoryDeltasMinor: Record<ProjectQuoteCostCategory, number> = {
-      material: toCost.categoryTotalsMinor.material - fromCost.categoryTotalsMinor.material,
-      hardware: toCost.categoryTotalsMinor.hardware - fromCost.categoryTotalsMinor.hardware,
-      labor: toCost.categoryTotalsMinor.labor - fromCost.categoryTotalsMinor.labor,
-      operation: toCost.categoryTotalsMinor.operation - fromCost.categoryTotalsMinor.operation,
-      waste: toCost.categoryTotalsMinor.waste - fromCost.categoryTotalsMinor.waste,
-      profit: toCost.categoryTotalsMinor.profit - fromCost.categoryTotalsMinor.profit
-    };
 
     return deepFreeze({
       status: "ready" as const,
@@ -1403,6 +1441,7 @@ export function compareProjectQuoteRevisions(
         toGrandTotalMinor,
         grandTotalDeltaMinor,
         categoryDeltasMinor,
+        ...(stockSheetGroupComparison === undefined ? {} : { stockSheetGroupComparison }),
         lineChanges: compareRevisionCostLines(fromRevision, toRevision)
       },
       diagnostics: []
