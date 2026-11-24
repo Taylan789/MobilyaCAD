@@ -1690,10 +1690,10 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 **Sahiplik sınırı ve açık entegrasyon:** frontend/src/engine/projectFile.ts halen format v1 kabul ediyor ve bilinen alanlardan yeni sonuç nesnesi kuruyor; JSON v2 quote history ve bilinmeyen üst seviye alanlar editörün save/open akışına henüz bağlı değil. frontend/** UI ajanının sahipliğinde olduğundan bu turda değiştirilmedi. INT-003, UI sahibine açık entegrasyon görevi olarak eklendi. Bu domain testi tek başına editörde uçtan uca save/load tamamlandı anlamına gelmez.
 
 **Sıradaki 3–5 küçük görev**
-1. DOM-152: JSON v2 zarf discriminator alanlarında own/inherited accessor'ları getter çalıştırmadan reddet; normal v1/v2 davranışını koru.
-2. INT-003: UI sahibinin v2 proje parser/save/open entegrasyonu; v1 legacy testleri ve unknown metadata round-trip'i koru.
-3. DOM-153: INT-003 sonrasında gerçek editör v2 dosyasıyla append/save/reopen/append round-trip kabul testini genişlet.
-4. INT-002 ve PERF-001: JSON/CSV adapter geometry/quantity round-trip ve 2D/3D profiling — yalnızca doğrulanmış Integration/Performance uzmanı sahipliğinde.
+1. INT-003: UI sahibinin v2 proje parser/save/open entegrasyonu; v1 legacy testleri ve unknown metadata round-trip'i koru.
+2. DOM-153: INT-003 sonrasında gerçek editör v2 dosyasıyla append/save/reopen/append round-trip kabul testini genişlet.
+3. INT-002: JSON/CSV adapter geometry/quantity round-trip — yalnızca doğrulanmış Integration/Performance uzmanı sahipliğinde.
+4. PERF-001: 2D/3D profiling ve tekrarlanabilir performans baseline'ı — yalnızca uzman sahipliğinde.
 5. QA-003: INT-001/INT-002/INT-003 kanıtları tamamlandığında uçtan uca export/data-flow denetimi.
 
 **QA kanıtı:** 242/242 frontend unit + 735/735 domain test; DOM-151'in iki yeni testi geçti. Strict domain TypeScript, lint 36 uyarı / 0 hata, production build ve production dependency audit (0 açık production vulnerability) başarılı. Test sitesi exact-SHA deployment ile https://taylan789.github.io/MobilyaCAD/ adresine güncellendi.
@@ -1718,7 +1718,7 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 
 ## DOM-154 — Teklif revizyon API girdilerinde descriptor güvenliği
 
-**Durum:** CORRECTION IMPLEMENTED — exact-SHA CI/QA/Pages verification pending.
+**Durum:** VERIFIED — implementation [6ecde75](https://github.com/Taylan789/MobilyaCAD/commit/6ecde75d272e7337b7f73b6955eacf1e96d64594) and boundary correction [f5d8581](https://github.com/Taylan789/MobilyaCAD/commit/f5d8581d9dd250dacd410136a0755d693dc18c98); final exact-SHA CI [#45497019522](https://github.com/Taylan789/MobilyaCAD/actions/runs/45497019522), QA [#45497019530](https://github.com/Taylan789/MobilyaCAD/actions/runs/45497019530) and Pages [#45497019534](https://github.com/Taylan789/MobilyaCAD/actions/runs/45497019534) successful.
 
 **Kullanıcı akışı:** Teklif revizyon geçmişi doğrulama, ilk revizyon oluşturma ve append API'leri doğrudan JavaScript nesnesi alabilir. Bu nesnelerdeki own/inherited accessor alanları doğrulama sırasında kod çalıştırmamalıdır.
 

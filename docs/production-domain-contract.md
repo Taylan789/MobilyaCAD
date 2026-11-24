@@ -1421,7 +1421,7 @@ The public domain APIs validate unknown JavaScript values. Before reading any fi
 - Own accessors, inherited/custom prototypes, symbol keys, non-enumerable properties, sparse/extended arrays, cycles, non-finite numbers and non-JSON values are rejected without invoking accessor getters.
 - Copied object records use a null prototype, so an inherited getter on Object.prototype cannot supply a missing optional field during later validation.
 - Optional own data properties whose value is undefined remain preserved for compatibility; ordinary JSON-parsed objects and previously validated immutable histories retain their accepted behavior.
-- The copy is bounded to 64 nested object/array levels. Project-v2 envelope byte limits and standalone history-file byte limits remain independently enforced by their existing entry points.
+- The copy is bounded to 64 total object/array levels, including the root. Project-v2 envelope byte limits and standalone history-file byte limits remain independently enforced by their existing entry points.
 - This is domain API hardening, not a project-file schema migration or editor save/open integration. UI-owned INT-003 and its later DOM-153 editor round-trip remain separate.
 
 
