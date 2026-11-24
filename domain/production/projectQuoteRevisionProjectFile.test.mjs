@@ -673,8 +673,9 @@ test("quote pricing snapshot v2 preserves selected stock basis and Part-group pr
   assert.ok(Object.isFrozen(stockSnapshot?.materialCostBasis?.stockSheetGroups[0]));
 
   const comparison = compareProjectQuoteRevisions(read.history, "quote-r1", "quote-r2");
-  assert.equal(comparison.status, "blocked");
-  assert.match(comparison.diagnostics[0], /grup bazlı fark desteği/);
+  assert.equal(comparison.status, "ready", comparison.diagnostics.join("; "));
+  assert.ok(comparison.comparison?.stockSheetGroupComparison);
+  assert.equal(comparison.comparison?.stockSheetGroupComparison.toRevisionId, "quote-r2");
 
   const sourceAudit = calculateProjectQuoteRevisionSourceMapAudit(read.history);
   assert.equal(sourceAudit.status, "ready", sourceAudit.diagnostics.join("; "));

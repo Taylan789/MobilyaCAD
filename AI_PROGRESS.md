@@ -792,3 +792,13 @@
 - AI Developer [#45338253254](https://github.com/Taylan789/MobilyaCAD/actions/runs/45338253254) failed because OpenRouter free-model daily quota returned HTTP 429 (limit 50, remaining 0; reset 25 November 2026 03:00 TRT); integration/performance specialist job was skipped. No retry, paid fallback, secret or quota setting was changed. No specialist branch/PR was verified.
 - Current test site before this change: https://taylan789.github.io/MobilyaCAD/ — base SHA deployed by Pages [#45357879321](https://github.com/Taylan789/MobilyaCAD/actions/runs/45357879321). New deployment is pending exact-SHA CI + QA.
 - Next: verify this commit, then keep JSON/CSV round-trip work with the integration/performance owner; continue with a separate domain-only cross-revision provenance task.
+
+
+## 24 Kasım 2026 12:09 TRT — DOM-143C-domain QA correction (verification pending)
+
+- Initial implementation commit: [cdc483f33bd2c83b5f63842870c2ecdd470e9307](https://github.com/Taylan789/MobilyaCAD/commit/cdc483f33bd2c83b5f63842870c2ecdd470e9307).
+- Exact-SHA CI [#45363669819](https://github.com/Taylan789/MobilyaCAD/actions/runs/45363669819) passed. QA [#45363669828](https://github.com/Taylan789/MobilyaCAD/actions/runs/45363669828) failed with **713/715 domain tests**: the new mixed fixture has a labor line, not a hardware line; the project-file integration assertion still expected the former blocked result. No production behavior failure was reported in the test log.
+- Pages [#45363669878](https://github.com/Taylan789/MobilyaCAD/actions/runs/45363669878) built the site artifact but the exact-SHA CI/QA gate failed and deployment was skipped. The failed SHA was not deployed.
+- Correction: update the mixed regression to mutate/reconcile its actual labor line and update the project-file round-trip assertion to require the ready stock-sheet group comparison. No tests removed or weakened; production source remains unchanged.
+- Correction files: `domain/production/projectQuoteRevision.test.mjs`, `domain/production/projectQuoteRevisionProjectFile.test.mjs`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`.
+- Correction commit SHA and exact-SHA CI/QA/Pages: pending.

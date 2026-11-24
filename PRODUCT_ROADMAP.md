@@ -1497,7 +1497,7 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 
 ## DOM-143C-domain — Tam teklif revizyon zarfında levha grubu farkları
 
-**Durum:** Kod ve regresyon testleri hazırlandı; exact-SHA CI/QA/Pages doğrulaması bekleniyor. Bu bir domain dilimidir; JSON/CSV adaptörlerinin tamamlandığı anlamına gelmez.
+**Durum:** İlk uygulama [cdc483f](https://github.com/Taylan789/MobilyaCAD/commit/cdc483f33bd2c83b5f63842870c2ecdd470e9307) CI ve production build'i geçti; QA iki eski test beklentisini yakaladı (713/715 domain testi geçti). Düzeltme commit'i ve yeni exact-SHA CI/QA/Pages doğrulaması bekleniyor. Bu bir domain dilimidir; JSON/CSV adaptörlerinin tamamlandığı anlamına gelmez.
 
 - `compareProjectQuoteRevisions` artık en az bir revizyon `stock-sheet-purchase` temeli kullandığında doğrulanmış grup karşılaştırmasını `stockSheetGroupComparison` altında taşır.
 - Üst zarfın para birimi, başlangıç/hedef toplamları ve kategori farkları alt grup karşılaştırmasıyla aynı kaynaktan gelir; kategori farkları genel toplam farkına tekrar uzlaştırılır.
@@ -1514,3 +1514,9 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 3. DOM-143D: CSV'de deterministik stock-sheet group rows ve Part/source-reference provenance deltas — adapter sahibi kapsamı.
 4. DOM-144: üç veya daha fazla revizyonda source-map audit ve stock-sheet group comparison Part kapsamını çapraz tüketici düzeyinde uzlaştır.
 5. DOM-145: teklif revizyonu import/export sınırlarında büyük geçmişler için ölçülebilir boyut/performance sınırlarını ve fail-closed hata davranışını doğrula.
+
+
+**DOM-143C-domain QA düzeltme notu — 24 Kasım 2026**
+- İlk QA, üretim karşılaştırma kodundan değil iki test beklentisinden başarısız oldu: karışık fixture'da hardware satırı bulunmuyor (labor satırı var) ve project-file testi eski blocked sonucunu bekliyordu.
+- Testler mevcut gerçek fixture ve yeni ready API sözleşmesiyle hizalandı; hiçbir test kaldırılmadı veya zayıflatılmadı.
+- Pages exact-SHA gate, QA başarısız olduğu için deployment'ı atladı. Düzeltme doğrulanmadan test sitesi yeni SHA'ya taşınmış sayılmaz.

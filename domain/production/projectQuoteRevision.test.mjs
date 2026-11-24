@@ -3105,14 +3105,14 @@ test("DOM-143C-domain integrates stock-sheet groups into the full comparison wit
     { materialId: "mdf-18", thicknessMm: 18, sourcePartIds: ["dom-143c-part-a"], sheetCount: 1, pricePerSheetMinor: 100, sourceReference: "stock-price-v1" }
   ]);
   const toSnapshot = createDom143StockSheetAuditSnapshot();
-  const hardwareLine = toSnapshot.quoteSummary.costSummary.lines.find(line => line.category === "hardware");
-  assert.ok(hardwareLine);
-  const previousLineTotalMinor = hardwareLine.lineTotalMinor;
-  hardwareLine.unitPriceMinor += 5;
-  hardwareLine.lineTotalMinor = calculateProjectCostLineTotalMinor(hardwareLine.quantity, hardwareLine.unitPriceMinor);
-  const hardwareDeltaMinor = hardwareLine.lineTotalMinor - previousLineTotalMinor;
-  toSnapshot.quoteSummary.costSummary.categoryTotalsMinor.hardware += hardwareDeltaMinor;
-  toSnapshot.quoteSummary.costSummary.grandTotalMinor += hardwareDeltaMinor;
+  const laborLine = toSnapshot.quoteSummary.costSummary.lines.find(line => line.category === "labor");
+  assert.ok(laborLine);
+  const previousLineTotalMinor = laborLine.lineTotalMinor;
+  laborLine.unitPriceMinor += 5;
+  laborLine.lineTotalMinor = calculateProjectCostLineTotalMinor(laborLine.quantity, laborLine.unitPriceMinor);
+  const laborDeltaMinor = laborLine.lineTotalMinor - previousLineTotalMinor;
+  toSnapshot.quoteSummary.costSummary.categoryTotalsMinor.labor += laborDeltaMinor;
+  toSnapshot.quoteSummary.costSummary.grandTotalMinor += laborDeltaMinor;
   const revisedSnapshot = setDom143StockSheetGroups(toSnapshot, [
     { materialId: "mdf-18", thicknessMm: 18, sourcePartIds: ["dom-143c-part-a", "dom-143c-part-b"], sheetCount: 2, pricePerSheetMinor: 125, sourceReference: "stock-price-v2" }
   ]);
@@ -3136,7 +3136,7 @@ test("DOM-143C-domain integrates stock-sheet groups into the full comparison wit
   ]);
   assert.ok(comparison.lineChanges.some(change =>
     change.type === "changed" &&
-    (change.from?.category === "hardware" || change.to?.category === "hardware")
+    (change.from?.category === "labor" || change.to?.category === "labor")
   ));
   assert.ok(Object.isFrozen(stockSheet));
   assert.ok(Object.isFrozen(stockSheet.groupChanges[0].changedFields));
