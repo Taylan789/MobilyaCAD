@@ -1458,7 +1458,7 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 
 ## DOM-143B — Stock-sheet group comparison core
 
-**Status:** Implemented on the current dev/github-work head; exact-SHA CI, QA and Pages verification pending.
+**Status:** VERIFIED on commit b6b39177. Exact-SHA CI #45343121349, QA #45343121488 and Pages #45343121506 passed.
 
 - Adds compareProjectQuoteRevisionStockSheetGroups as an immutable domain API over fully validated quote revision history.
 - Matches persisted stock-sheet groups by stable material/thickness groupId. Price, sheet-count, Part-source and source-reference changes are changed; material or thickness identity changes are explicit removed + added records.
@@ -1470,7 +1470,7 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 **Automated acceptance:** stable identity changed/removed/added coverage, Part ID and source-reference preservation, group/material/grand-total reconciliation, stock-only empty-summary comparison, legacy-v1 transition and unsupported-basis blocking. Physical stock yield, CNC and workshop fit remain outside this software-only validation.
 
 **Next 3 domain slices**
-1. DOM-143B: IMPLEMENTED — compareProjectQuoteRevisionStockSheetGroups emits immutable added/removed/changed group snapshots; validates group-cost, material-category and grand-total reconciliation. Exact-SHA CI/QA/Pages pending.
+1. DOM-143B: VERIFIED — commit b6b39177; exact-SHA CI, QA and Pages passed (211/211 unit, 712/712 domain).
 2. DOM-143C: add backward-compatible JSON comparison serialization/parsing for stock-sheet group changes while retaining legacy comparison file versions.
 3. DOM-143D: add CSV group rows and source-map provenance comparison; preserve Part IDs and explicit source references.
 

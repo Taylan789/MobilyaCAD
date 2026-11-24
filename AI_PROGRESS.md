@@ -738,7 +738,7 @@
 - Next: DOM-143B group-aware revision comparison, keeping unsupported/ambiguous group identity changes fail-closed.
 
 
-## 24 Kasım 2026 09:39 TRT — DOM-143B stock-sheet group comparison core (exact-SHA verification pending)
+## 24 Kasım 2026 09:39 TRT — DOM-143B stock-sheet group comparison core (VERIFIED)
 
 - Base dev/github-work HEAD: d52f98ff71b5e3e76381cef2af49e60514041f80; no active MobilyaCAD AI Developer or QA run was present before the write. Latest CI #45336813670, QA #45336813656 and Pages #45336813951 passed on that base SHA.
 - Added compareProjectQuoteRevisionStockSheetGroups, a dedicated immutable comparison API for validated revisions with at least one explicit stock-sheet purchase basis.
@@ -747,7 +747,8 @@
 - Stock-only revisions with an empty line-level quote summary are supported without creating synthetic quote lines. Legacy v1/net-consumption revisions can be compared against a stock-sheet revision with zero stock-sheet groups on the legacy side.
 - Added four regression tests for changed/removed/added groups, Part/source-reference preservation, material and grand-total reconciliation, stock-only empty summaries, legacy-v1 transition and unsupported-basis blocking.
 - Changed files: domain/production/projectQuoteRevision.ts, domain/production/projectQuoteRevision.test.mjs, docs/production-domain-contract.md, AI_COORDINATION.md, PRODUCT_ROADMAP.md, AI_PROGRESS.md.
-- Implementation commit: this progress entry is included atomically with the code/test/docs commit; see the commit link in this run report. Exact-SHA CI, QA, type-check, lint, production build, dependency audit and Pages results are pending.
+- Implementation commit: [b6b39177ea93a56b1679fb871b8a4e23a18537bc](https://github.com/Taylan789/MobilyaCAD/commit/b6b39177ea93a56b1679fb871b8a4e23a18537bc). CI [#45343121349](https://github.com/Taylan789/MobilyaCAD/actions/runs/45343121349) passed; QA [#45343121488](https://github.com/Taylan789/MobilyaCAD/actions/runs/45343121488) passed with 211/211 unit tests and 712/712 domain tests, domain type-check, lint, production build and production dependency audit (0 production vulnerabilities). Pages [#45343121506](https://github.com/Taylan789/MobilyaCAD/actions/runs/45343121506) passed the exact-SHA gate, site build, artifact upload and deployment. npm install still reports four moderate development-dependency advisories; the production-only audit reports zero.
+- Test site: https://taylan789.github.io/MobilyaCAD/ — deployed from the verified DOM-143B commit via Pages #45343121506.
 - Known limits: the existing full quote-comparison API and JSON/CSV stock-sheet exports remain fail-closed until DOM-143C/D integrate and round-trip the new group comparison. No frontend, adapter/performance-owned files or CNC output changed.
 - AI Developer #45338253254 failed because OpenRouter free-model daily quota returned HTTP 429 (limit 50, remaining 0; reset 25 November 2026 03:00 TRT). Its integration/performance specialist job was skipped. No retry, paid credits, secrets or quota settings were changed.
 - Next: after exact-SHA gates pass, DOM-143C integrates the group comparison into backward-compatible comparison JSON while preserving legacy comparison files; DOM-143D adds CSV group rows and source-map provenance deltas.
