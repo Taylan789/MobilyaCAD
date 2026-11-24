@@ -677,8 +677,16 @@ test("quote pricing snapshot v2 preserves selected stock basis and Part-group pr
   assert.match(comparison.diagnostics[0], /grup bazlı fark desteği/);
 
   const sourceAudit = calculateProjectQuoteRevisionSourceMapAudit(read.history);
-  assert.equal(sourceAudit.status, "blocked");
-  assert.match(sourceAudit.diagnostics[0], /grup Part kaynakları/);
+  assert.equal(sourceAudit.status, "ready", sourceAudit.diagnostics.join("; "));
+  assert.ok(sourceAudit.audit);
+  const stockAuditRevision = sourceAudit.audit.revisions[1];
+  assert.equal(stockAuditRevision.counts.stockSheetGroupCount, 1);
+  assert.equal(stockAuditRevision.counts.stockSheetPartReferenceCount, 1);
+  assert.equal(stockAuditRevision.counts.stockSheetUniquePartIdCount, 1);
+  assert.deepEqual(stockAuditRevision.stockSheetGroups, stockSnapshot?.materialCostBasis?.stockSheetGroups);
+  assert.deepEqual(stockAuditRevision.stockSheetGroups[0].sourcePartIds, ["part-a"]);
+  assert.equal(sourceAudit.audit.totals.stockSheetUniquePartIdCount, 1);
+  assert.equal(stockAuditRevision.lines.some(line => line.resourceType === "material"), false);
 });
 
 test("quote pricing snapshot v2 rejects tampered stock group arithmetic", () => {

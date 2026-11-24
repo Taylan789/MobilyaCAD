@@ -713,6 +713,15 @@
 - Valid stock-only snapshots with an empty base quote summary and no cost lines are now auditable; they produce zero quote lines while retaining the snapshot's explicit stock-sheet groups.
 - Added regression tests for mixed quote + stock-sheet revisions, stock-only empty quote revisions, immutable group provenance and cross-revision Part de-duplication.
 - Changed files: `domain/production/projectQuoteRevision.ts`, `domain/production/projectQuoteRevision.test.mjs`, `docs/production-domain-contract.md`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`.
-- Commit SHA: pending GitHub commit response; exact-SHA CI/QA/Pages verification pending.
+- Implementation commit: [f0209200](https://github.com/Taylan789/MobilyaCAD/commit/f0209200e1a50ea326fe06547d33b8f17e6794b9); CI [45336429047](https://github.com/Taylan789/MobilyaCAD/actions/runs/45336429047) passed. QA [45336429057](https://github.com/Taylan789/MobilyaCAD/actions/runs/45336429057) found 1 stale integration-test expectation (707/708 domain tests passed): the project-file test still expected the source-map audit to be blocked. Pages [45336428994](https://github.com/Taylan789/MobilyaCAD/actions/runs/45336428994) remained gated and did not deploy the failed-QA SHA.
 - Known limits: stock-sheet revision comparison, source-map provenance comparison and JSON/CSV group-delta exports remain fail-closed; no frontend, adapter/performance-owned files or CNC output changed.
 - Next: verify this exact commit, then implement group-aware revision comparison and its backward-compatible JSON/CSV representation.
+
+
+## 24 Kasım 2026 08:49 TRT — DOM-143A integration-test correction (verification pending)
+- QA evidence: the source-map implementation and its two new domain tests passed; the only failure was the older project-file integration assertion at `projectQuoteRevisionProjectFile.test.mjs:680`, which still expected the audit to be blocked.
+- Updated that integration test to require a ready audit and verify the persisted stock-sheet group, explicit Part ID, separate line count and project-level unique-Part count. Revision comparison remains intentionally blocked.
+- Changed files: `domain/production/projectQuoteRevisionProjectFile.test.mjs`, `AI_PROGRESS.md`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `docs/production-domain-contract.md`.
+- Follow-up commit SHA: pending GitHub commit response; exact-SHA CI/QA/Pages verification pending.
+- The failed-QA SHA was not deployed; Pages is re-triggered from the follow-up commit and must pass its exact-SHA CI/QA gate.
+- Next: verify the follow-up SHA; only after all gates pass proceed to DOM-143B group-aware revision comparison.

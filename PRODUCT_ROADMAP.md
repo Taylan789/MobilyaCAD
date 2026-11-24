@@ -1448,7 +1448,7 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 
 ## DOM-143A — Stock-sheet source-map audit (first vertical slice)
 
-**Status:** Implemented in the current development change; exact-SHA CI/QA/Pages verification pending.
+**Status:** Implementation commit f0209200 passed CI; QA found one outdated project-file assertion (707/708 domain tests). The follow-up updates the assertion to verify the new ready audit; exact-SHA CI/QA/Pages verification is pending.
 
 - The revision audit reports stock-sheet purchase groups independently from quote cost lines, including explicit material/thickness, Part provenance, sheet count, unit price, group cost, currency and optional price reference.
 - Per-revision and project totals distinguish stock-sheet Part references from line-source Part references and deduplicate unique Part IDs across revisions.
