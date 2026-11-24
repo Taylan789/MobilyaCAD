@@ -1,0 +1,92 @@
+/* UI-PRODUCTION-DOCK-COLLAPSE-001 — reclaim vertical canvas space without hiding production context. */
+.cad-main-area.has-collapsed-production-dock {
+  grid-template-rows: 38px 62px minmax(0, 1fr) 64px !important;
+}
+
+.cad-main-area.has-collapsed-production-dock > .cad-bottom-dock {
+  flex: 0 0 64px !important;
+  height: 64px !important;
+  min-height: 64px !important;
+}
+
+.cad-bottom-dock.is-collapsed .cad-bottom-dock-header {
+  border-bottom: 0 !important;
+}
+
+.cad-bottom-dock-body[hidden] {
+  display: none !important;
+}
+
+.cad-dock-collapse {
+  display: inline-grid;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 28px;
+  place-items: center;
+  margin-left: 4px;
+  padding: 0;
+  color: #b6c8d2;
+  background: #172832;
+  border: 1px solid #405a68;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: color .14s ease, background-color .14s ease, border-color .14s ease;
+}
+
+.cad-dock-collapse svg {
+  width: 14px;
+  height: 14px;
+}
+
+.cad-dock-collapse:hover {
+  color: #f1f6f9;
+  background: #2a4352;
+  border-color: #7898ad;
+}
+
+.cad-dock-collapse:focus-visible {
+  outline: 2px solid #9bc2dc;
+  outline-offset: 2px;
+}
+
+@media (min-width: 761px) and (max-width: 900px) {
+  .cad-main-area.has-collapsed-production-dock {
+    grid-template-rows: 38px 58px minmax(240px, 1fr) 64px !important;
+  }
+
+  .cad-bottom-dock-title {
+    min-width: 0;
+    gap: 8px;
+  }
+}
+
+@media (max-width: 760px) {
+  .cad-main-area.has-collapsed-production-dock > .cad-bottom-dock {
+    flex-basis: 64px !important;
+  }
+
+  .cad-dock-collapse {
+    width: 26px;
+    height: 26px;
+    flex-basis: 26px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cad-dock-collapse {
+    transition: none !important;
+  }
+}
+
+@media (forced-colors: active) {
+  .cad-dock-collapse {
+    color: ButtonText;
+    background: ButtonFace;
+    border: 1px solid ButtonText;
+    forced-color-adjust: auto;
+  }
+
+  .cad-dock-collapse:focus-visible {
+    outline: 2px solid Highlight;
+  }
+}
