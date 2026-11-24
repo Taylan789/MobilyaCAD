@@ -766,12 +766,15 @@
 - Next domain slice: expose stable changed-field reasons for matched stock-sheet groups so downstream consumers can distinguish price, sheet count, Part provenance and source-reference changes without re-deriving them.
 
 
-## 24 Kasım 2026 11:33 TRT — DOM-143B2 alan bazlı levha grubu farkları (verification pending)
+## 24 Kasım 2026 11:33 TRT — DOM-143B2 alan bazlı levha grubu farkları (VERIFIED)
 
-- Base dev/github-work HEAD: 111e91257d7f72e70ffb6503900d68131e879006. Son exact-SHA CI #45352948602, QA #45352948571 ve Pages #45352948578 başarılıydı; bu HEAD üzerinde aktif CI, QA veya AI Developer işi yoktu.
-- Eşleşen levha grubu farkları için changedFields eklendi. Alan anahtarları sabit sırayla kaynak Part kimlikleri, levha adedi, levha birim fiyatı, grup maliyeti ve kaynak referansını ayırır. Ekleme/kaldırma kayıtlarında boş alan listesi kullanılır; malzeme/kalınlık kimliği değişikliği add/remove olarak kalır.
-- Regresyon testi mevcut karma değişiklik örneğinde tüm beş alanı, ekleme/kaldırma için boş listeleri ve deep-freeze davranışını doğrular.
-- Değişen dosyalar: domain/production/projectQuoteRevision.ts, domain/production/projectQuoteRevision.test.mjs, docs/production-domain-contract.md, AI_COORDINATION.md, PRODUCT_ROADMAP.md, AI_PROGRESS.md.
-- Bu commitin SHA'sı ve exact-SHA Actions sonuçları doğrulama tamamlanınca bu kayda eklenecek.
-- Kısıtlar: frontend/**, JSON/CSV adapter, benchmark, CNC/makine çıktısı, secrets/ayarlar ve main değiştirilmedi. Entegrasyon/performance uzman branch'i bulunamadı; AI Developer #45338253254 OpenRouter free daily quota HTTP 429 ile başarısız oldu ve uzman job atlandı. Tekrar çalıştırılmadı; günlük limit sıfır ve reset 25 Kasım 2026 03:00 TRT.
-- Sonraki adım: exact-SHA CI/QA/Pages sonuçlarını doğrula; ardından tam teklif karşılaştırma zarfı ve JSON/CSV adapter entegrasyonunun sahiplik önkoşulunu değerlendir.
+- Base dev/github-work HEAD: 111e91257d7f72e70ffb6503900d68131e879006; write preflight re-read confirmed the same branch HEAD and all target blob SHAs before creating the code/test commit.
+- Implementation commit: [a294cb7bd2bd2546f7c2e10e9464f64c2b13d182](https://github.com/Taylan789/MobilyaCAD/commit/a294cb7bd2bd2546f7c2e10e9464f64c2b13d182).
+- Changed files: domain/production/projectQuoteRevision.ts; domain/production/projectQuoteRevision.test.mjs; docs/production-domain-contract.md; AI_COORDINATION.md; PRODUCT_ROADMAP.md; AI_PROGRESS.md.
+- Exact-SHA CI [#45357651839](https://github.com/Taylan789/MobilyaCAD/actions/runs/45357651839): success (frontend production build and lint).
+- Exact-SHA QA [#45357651760](https://github.com/Taylan789/MobilyaCAD/actions/runs/45357651760): success — 218/218 unit tests, 713/713 domain tests, strict domain type-check, lint 34 warnings/0 errors, production build, production dependency audit found 0 vulnerabilities.
+- Exact-SHA Pages [#45357651858](https://github.com/Taylan789/MobilyaCAD/actions/runs/45357651858): success — build, exact-commit CI/QA gate and GitHub Pages deployment all completed.
+- Domain result: each changed stock-sheet group exposes ordered changedFields for sourcePartIds, sheetCount, pricePerSheetMinor, stockSheetCostMinor and sourceReference. Added/removed groups expose []; material/thickness identity changes remain explicit remove/add records. The immutable result contract is preserved.
+- Known constraints: no frontend/**, JSON/CSV adapter, benchmark, CNC/machine output, secrets/settings or main changes. Integration/performance specialist branch was not found; INT-002/PERF-001 remain specialist-owned. AI Developer [#45338253254](https://github.com/Taylan789/MobilyaCAD/actions/runs/45338253254) failed with OpenRouter free-model daily quota HTTP 429 and its specialist job was skipped; no retry or paid fallback was attempted because the daily limit was exhausted until 25 November 2026 03:00 TRT.
+- Test site: https://taylan789.github.io/MobilyaCAD/ — deployed from exact verified commit a294cb7 via Pages #45357651858.
+- Next: DOM-143C-domain — integrate the validated stock-sheet comparison primitive into the full revision-comparison envelope with fail-closed behavior, while keeping JSON/CSV adapter files outside this domain lane.

@@ -1486,9 +1486,10 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 
 ## DOM-143B2 — Levha grubu alan bazlı fark nedenleri
 
-**Durum:** Kod ve regresyon testi hazırlandı; exact-SHA CI/QA/Pages doğrulaması bekleniyor.
+**Durum:** VERIFIED on [commit a294cb7](https://github.com/Taylan789/MobilyaCAD/commit/a294cb7bd2bd2546f7c2e10e9464f64c2b13d182). Exact-SHA CI [#45357651839](https://github.com/Taylan789/MobilyaCAD/actions/runs/45357651839), QA [#45357651760](https://github.com/Taylan789/MobilyaCAD/actions/runs/45357651760) and Pages [#45357651858](https://github.com/Taylan789/MobilyaCAD/actions/runs/45357651858) passed.
 
-- Eşleşen levha grubunun değişiklik kaydı, fiyat, levha adedi, grup maliyeti, kaynak Part kimlikleri ve isteğe bağlı fiyat kaynağı referansından hangilerinin değiştiğini sabit sıralı anahtarlarla açıklar.
-- Malzeme/kalınlık kimlik değişiklikleri önceki sözleşmedeki gibi kaldırma + ekleme olarak kalır; eklenen/kaldırılan gruplarda changedFields boş dizidir.
-- JSON/CSV karşılaştırma adaptörleri ayrı entegrasyon/performance ajanının sahipliğinde kalır. Bu ajan için doğrulanmış branch/job/PR bulunmadan adapter dosyalarına dokunulmaz.
-- Sonraki domain dilimi: karşılaştırma değişikliklerinin tam teklif karşılaştırma zarfına bağlanması için geriye dönük uyumlu tüketici sözleşmesi; adapter entegrasyonu sahiplik doğrulamasına bağlıdır.
+- Eşleşen levha grubunun değişiklik kaydı, kaynak Part kimlikleri, levha adedi, levha birim fiyatı, grup maliyeti ve isteğe bağlı fiyat kaynağı referansından hangilerinin değiştiğini sabit sıralı anahtarlarla açıklar.
+- Malzeme/kalınlık kimlik değişiklikleri kaldırma + ekleme olarak kalır; eklenen/kaldırılan gruplarda changedFields boş dizidir.
+- QA: 218/218 unit + 713/713 domain tests; strict domain type-check, lint 34 warnings/0 errors, production build and production dependency audit 0 vulnerabilities.
+- JSON/CSV karşılaştırma adaptörleri ayrı entegrasyon/performance ajanının sahipliğinde kalır. Doğrulanmış uzman branch/job/PR bulunmadan adapter dosyalarına dokunulmaz.
+- Sonraki domain dilimi: DOM-143C-domain — stok levha karşılaştırma primitive'ini tam revizyon karşılaştırma zarfına fail-closed biçimde entegre et; JSON/CSV adapter sahipliğini ihlal etme.
