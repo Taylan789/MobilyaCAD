@@ -277,7 +277,7 @@ function createMaterialCostBasisSnapshot(
   const stockSheetGroups = result.basis === "stock-sheet-purchase"
     ? createStockSheetGroupSnapshots(input.stockSheetPurchaseReport)
     : [];
-  if (stockSheetGroups.length !== result.materialSourceCount) {
+  if (result.basis === "stock-sheet-purchase" && stockSheetGroups.length !== result.materialSourceCount) {
     throw new Error("Levha satın alma grup sayısı seçilen maliyet kaynağı sayısıyla eşleşmiyor.");
   }
   let stockSheetCost = 0n;

@@ -640,3 +640,9 @@ Bu dosya dört geliştirme/denetim rolünün ortak görev panosu ve entegrasyon 
 - Stock-only quotes with no other cost lines remain snapshot-ready; their base quoteSummary is explicitly empty and the v2 basis carries the priced panel total.
 - Until DOM-143 adds group-level comparison/export and source-map audit support, stock-sheet-based revision comparison and source-map audit fail closed rather than silently omitting panel purchase costs or Part provenance.
 - No frontend, adapter/performance-owned files, CNC output or main branch changes. Integration/Performance specialist PR/job was absent; its workflow job was skipped after AI Developer provider quota failure.
+
+
+## DOM-142 QA correction — 24 Kasım 2026 08:34 TRT
+- Initial implementation SHA d54077703b80f26f95837245cb613fa2c68d1c6c: CI passed; QA reported one failure in the net-consumption snapshot test.
+- Root cause: the stock-group count check was applied to net-consumption line-source counts. The guard now applies only to stock-sheet-purchase mode.
+- Pages deployment gate correctly blocked publication because QA failed. Fix SHA and new exact-SHA verification are pending.

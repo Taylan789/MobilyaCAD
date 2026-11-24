@@ -684,3 +684,11 @@
 - Known limitation: stock-sheet group comparison/source-map reporting is deliberately blocked; DOM-143 will add group-aware comparison and audit before enabling those consumers.
 - AI Developer run 45322819775 failed with provider HTTP 429 (free-models-per-day, remaining 0, reset 25 Nov 2026 03:00 TRT); the integration/performance specialist job was skipped. No rerun, paid credits, secrets or quota settings were changed.
 - Next: verify this exact SHA, then implement DOM-143 group-aware revision comparison and source-map audit.
+
+
+## 24 Kasım 2026 08:34 TRT — DOM-142 exact-SHA QA correction
+- CI for implementation SHA d54077703b80f26f95837245cb613fa2c68d1c6c passed; QA found exactly one domain regression test: net-consumption basis was incorrectly compared with the stock-sheet group count.
+- Corrected the guard so group-count reconciliation applies only to stock-sheet-purchase mode; net-consumption source count remains the number of priced panel lines and its group list remains empty.
+- The stock-sheet snapshot and Part-coverage tests passed in the same QA run; only the net-consumption snapshot test failed.
+- Pages build/artifact succeeded, but the exact-SHA CI+QA gate failed and deployment was skipped. No broken build was published.
+- Fix commit: pending creation; exact-SHA CI/QA/Pages verification pending.
