@@ -49,6 +49,15 @@
   outline-offset: 2px;
 }
 
+@media (min-width: 761px) and (max-width: 1200px) {
+  .cad-dock-collapse {
+    width: 26px;
+    height: 26px;
+    flex-basis: 26px;
+    margin-left: 2px;
+  }
+}
+
 @media (min-width: 761px) and (max-width: 900px) {
   .cad-main-area.has-collapsed-production-dock {
     grid-template-rows: 38px 58px minmax(240px, 1fr) 64px !important;
