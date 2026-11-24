@@ -13,6 +13,7 @@ import {
 } from "../../engine/materialCatalog";
 import type { MaterialUsageLocation } from "../../types/materialUsage";
 import "./MaterialCatalogManager.css";
+import "./MaterialCatalogManagerEmptyState.css";
 
 interface MaterialCatalogManagerProps {
   materials: MaterialCatalogEntry[];
@@ -260,6 +261,11 @@ export function MaterialCatalogManager({
   });
 
   const draftThicknesses = parseThicknessDraft(draft.thicknessesMm);
+  const activeFilterLabel = materialFilter === "used"
+    ? "Kullanılan"
+    : materialFilter === "unused"
+      ? "Atanmamış"
+      : "Tümü";
   const isEditing = editingId !== null;
 
   return (
@@ -379,6 +385,18 @@ export function MaterialCatalogManager({
               <Search aria-hidden="true" />
               <strong>Eşleşen malzeme bulunamadı</strong>
               <p>Arama terimini veya kullanım filtresini değiştir.</p>
+              <div className="mc-material-library__empty-context" role="group" aria-label="Aktif arama ve filtre">
+                {searchQuery.trim() !== "" && (
+                  <span className="mc-material-library__empty-context-query" title={searchQuery.trim()}>
+                    <small>ARAMA</small>
+                    <strong>{searchQuery.trim()}</strong>
+                  </span>
+                )}
+                <span className="mc-material-library__empty-context-filter">
+                  <small>FİLTRE</small>
+                  <strong>{activeFilterLabel}</strong>
+                </span>
+              </div>
               <Button
                 type="button"
                 size="sm"
