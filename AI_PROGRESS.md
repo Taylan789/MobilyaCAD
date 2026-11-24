@@ -736,3 +736,18 @@
 - The initial DOM-143A commit f0209200 passed CI but QA caught one stale project-file assertion; the failed SHA was not deployed. Commit 12687c9b updated the integration assertion and all exact-SHA gates passed.
 - DOM-143 remains IN PROGRESS: stock-sheet revision comparison and backward-compatible JSON/CSV group-delta output are not implemented yet.
 - Next: DOM-143B group-aware revision comparison, keeping unsupported/ambiguous group identity changes fail-closed.
+
+
+## 24 Kasım 2026 09:39 TRT — DOM-143B stock-sheet group comparison core (exact-SHA verification pending)
+
+- Base dev/github-work HEAD: d52f98ff71b5e3e76381cef2af49e60514041f80; no active MobilyaCAD AI Developer or QA run was present before the write. Latest CI #45336813670, QA #45336813656 and Pages #45336813951 passed on that base SHA.
+- Added compareProjectQuoteRevisionStockSheetGroups, a dedicated immutable comparison API for validated revisions with at least one explicit stock-sheet purchase basis.
+- Stable group IDs match groups in place; material/thickness identity changes are represented as removed + added. Same-identity changes preserve full before/after Part IDs, sheet count, explicit unit price, group cost, currency and optional price-source reference.
+- Group purchase-cost deltas must reconcile to the stored panel stock-purchase delta; material-category and grand-total deltas use the selected snapshot basis and must reconcile across all categories. Unsafe integer arithmetic and currency mismatch block the whole comparison.
+- Stock-only revisions with an empty line-level quote summary are supported without creating synthetic quote lines. Legacy v1/net-consumption revisions can be compared against a stock-sheet revision with zero stock-sheet groups on the legacy side.
+- Added four regression tests for changed/removed/added groups, Part/source-reference preservation, material and grand-total reconciliation, stock-only empty summaries, legacy-v1 transition and unsupported-basis blocking.
+- Changed files: domain/production/projectQuoteRevision.ts, domain/production/projectQuoteRevision.test.mjs, docs/production-domain-contract.md, AI_COORDINATION.md, PRODUCT_ROADMAP.md, AI_PROGRESS.md.
+- Implementation commit: this progress entry is included atomically with the code/test/docs commit; see the commit link in this run report. Exact-SHA CI, QA, type-check, lint, production build, dependency audit and Pages results are pending.
+- Known limits: the existing full quote-comparison API and JSON/CSV stock-sheet exports remain fail-closed until DOM-143C/D integrate and round-trip the new group comparison. No frontend, adapter/performance-owned files or CNC output changed.
+- AI Developer #45338253254 failed because OpenRouter free-model daily quota returned HTTP 429 (limit 50, remaining 0; reset 25 November 2026 03:00 TRT). Its integration/performance specialist job was skipped. No retry, paid credits, secrets or quota settings were changed.
+- Next: after exact-SHA gates pass, DOM-143C integrates the group comparison into backward-compatible comparison JSON while preserving legacy comparison files; DOM-143D adds CSV group rows and source-map provenance deltas.

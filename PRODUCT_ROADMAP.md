@@ -1453,10 +1453,24 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 - The revision audit reports stock-sheet purchase groups independently from quote cost lines, including explicit material/thickness, Part provenance, sheet count, unit price, group cost, currency and optional price reference.
 - Per-revision and project totals distinguish stock-sheet Part references from line-source Part references and deduplicate unique Part IDs across revisions.
 - Valid stock-only revisions with an empty base quote summary are auditable without inventing quote lines.
-- Comparison, source-map provenance deltas and JSON/CSV stock-sheet exports remain blocked until their own tested slices are delivered.
+- DOM-143B now provides a tested domain API for group-level stock-sheet comparison; the existing full quote-comparison envelope and JSON/CSV stock-sheet exports remain blocked until DOM-143C/D integrate and round-trip the group changes.
+
+
+## DOM-143B — Stock-sheet group comparison core
+
+**Status:** Implemented on the current dev/github-work head; exact-SHA CI, QA and Pages verification pending.
+
+- Adds compareProjectQuoteRevisionStockSheetGroups as an immutable domain API over fully validated quote revision history.
+- Matches persisted stock-sheet groups by stable material/thickness groupId. Price, sheet-count, Part-source and source-reference changes are changed; material or thickness identity changes are explicit removed + added records.
+- Reports stock-sheet purchase-cost and sheet-count deltas separately, alongside material-category and grand-total deltas.
+- Requires the sum of group cost changes to equal the panel stock-purchase delta and the sum of category deltas to equal the grand-total delta; unsafe arithmetic and currency mismatch block the whole result.
+- Supports a stock-only v2 revision with an empty quote line summary and a legacy v1/net-consumption revision as the other side without fabricating quote lines.
+- The existing full comparison envelope and JSON/CSV stock-sheet exports remain fail-closed until DOM-143C/D integrate the result.
+
+**Automated acceptance:** stable identity changed/removed/added coverage, Part ID and source-reference preservation, group/material/grand-total reconciliation, stock-only empty-summary comparison, legacy-v1 transition and unsupported-basis blocking. Physical stock yield, CNC and workshop fit remain outside this software-only validation.
 
 **Next 3 domain slices**
-1. DOM-143B: compare stock-sheet groups by stable group ID; emit added/removed/changed records and reconcile group, material-category and grand-total deltas.
+1. DOM-143B: IMPLEMENTED — compareProjectQuoteRevisionStockSheetGroups emits immutable added/removed/changed group snapshots; validates group-cost, material-category and grand-total reconciliation. Exact-SHA CI/QA/Pages pending.
 2. DOM-143C: add backward-compatible JSON comparison serialization/parsing for stock-sheet group changes while retaining legacy comparison file versions.
 3. DOM-143D: add CSV group rows and source-map provenance comparison; preserve Part IDs and explicit source references.
 

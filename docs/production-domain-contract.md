@@ -1275,3 +1275,17 @@ Snapshots without materialCostBasis retain the legacy schemaVersion 1 shape and 
 - Stock-sheet revision comparison and JSON/CSV group-delta export remain fail-closed until the next DOM-143 slice; no UI or adapter behavior is claimed by this change.
 
 Acceptance tests cover a mixed base quote with stock-sheet purchase groups, a stock-only empty base quote, per-revision counts, project-wide Part de-duplication and immutable results. The project-file round-trip test also verifies the stock-sheet audit after JSON persistence while keeping revision comparison blocked. The first exact-SHA QA run found one outdated assertion that still expected the audit to be blocked; the follow-up updates it to assert the new ready result. The correction passed exact-SHA CI, 211/211 unit tests, 708/708 domain tests, type-check, lint, production build, production dependency audit and Pages deployment on commit 12687c9b.
+
+
+## DOM-143B — Stock-sheet group revision comparison core
+
+compareProjectQuoteRevisionStockSheetGroups(history, fromRevisionId, toRevisionId) compares explicit stock-sheet purchase groups from two validated quote revisions without mixing those groups into line-level quote provenance.
+
+- At least one compared revision must use the explicit stock-sheet-purchase basis. The other side may be a legacy v1 or net-consumption revision; it contributes zero stock-sheet groups while its validated quote totals remain part of the comparison.
+- Groups match by their persisted stable groupId (material identity plus normalized 0.1 mm thickness). A material or thickness identity change is represented as a removed group and an added group, never as an inferred in-place replacement.
+- A matched group becomes changed when its source Part IDs, sheet count, explicit per-sheet price, reconciled group cost, currency or optional price-source reference changes. Added, removed and changed records retain complete before/after group snapshots.
+- The result reports stock-sheet purchase-cost and sheet-count deltas separately from material-category and grand-total deltas. Group-cost changes must reconcile exactly to the stored panel purchase-cost delta; all category deltas must reconcile to the grand-total delta using safe integer arithmetic and one currency.
+- A stock-only revision with an empty line-level quote summary remains comparable from its validated v2 material-cost-basis snapshot. No synthetic quote line is created.
+- Invalid histories, unsupported cost bases, currency mismatches, missing totals or arithmetic inconsistencies return a blocked result with no partial comparison. Results and nested Part ID arrays are immutable.
+
+This is the domain comparison primitive only. The existing full quote-comparison envelope and JSON/CSV adapters remain fail-closed for stock-sheet groups until DOM-143C and DOM-143D integrate and round-trip the new group-change data. No frontend or machine-specific CNC behavior is claimed by this slice.

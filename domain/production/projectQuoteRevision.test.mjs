@@ -8,6 +8,7 @@ import { calculateProjectCostLineTotalMinor } from "./projectCostSummary.ts";
 import {
   appendProjectQuoteRevision,
   compareProjectQuoteRevisions,
+  compareProjectQuoteRevisionStockSheetGroups,
   calculateProjectQuoteRevisionSourceMapAudit,
   calculateProjectQuoteRevisionSourceIntegrityAudit,
   compareProjectQuoteRevisionSourceMaps,
@@ -2752,6 +2753,36 @@ function createDom143StockSheetAuditSnapshot({ emptyBase = false } = {}) {
   return snapshot;
 }
 
+
+function setDom143StockSheetGroups(snapshot, groupSpecs) {
+  const basis = snapshot.materialCostBasis;
+  assert.ok(basis);
+  const groups = groupSpecs.map(spec => ({
+    groupId: JSON.stringify([spec.materialId, Math.round(spec.thicknessMm * 10)]),
+    materialId: spec.materialId,
+    thicknessMm: spec.thicknessMm,
+    sourcePartIds: [...spec.sourcePartIds].sort(),
+    sheetCount: spec.sheetCount,
+    pricePerSheetMinor: spec.pricePerSheetMinor,
+    stockSheetCostMinor: spec.sheetCount * spec.pricePerSheetMinor,
+    currencyCode: basis.currencyCode,
+    ...(spec.sourceReference === undefined ? {} : { sourceReference: spec.sourceReference })
+  })).sort((left, right) => left.groupId < right.groupId ? -1 : left.groupId > right.groupId ? 1 : 0);
+
+  const panelMaterialCostMinor = groups.reduce((total, group) => total + group.stockSheetCostMinor, 0);
+  const baseGrandTotalMinor = snapshot.quoteSummary.costSummary?.grandTotalMinor ?? 0;
+  basis.stockSheetGroups = groups;
+  basis.materialSourceCount = groups.length;
+  basis.panelMaterialCostMinor = panelMaterialCostMinor;
+  basis.materialCategoryTotalMinor = basis.edgeBandingCostMinor + panelMaterialCostMinor;
+  basis.categoryTotalsMinor = {
+    ...basis.categoryTotalsMinor,
+    material: basis.materialCategoryTotalMinor
+  };
+  basis.grandTotalMinor = baseGrandTotalMinor + panelMaterialCostMinor;
+  return snapshot;
+}
+
 test("DOM-131 immutable quote source-map audit preserves per-revision trace counts and exact provenance", () => {
   const secondSnapshot = createDom131AuditSnapshot();
   const history = createTwoRevisionHistory({ pricingSnapshot: secondSnapshot });
@@ -2937,6 +2968,101 @@ test("DOM-143 stock-only empty quote summaries still audit groups and deduplicat
   assert.equal(result.audit.totals.stockSheetGroupCount, 2);
   assert.equal(result.audit.totals.stockSheetPartReferenceCount, partIds.length * 2);
   assert.equal(result.audit.totals.stockSheetUniquePartIdCount, partIds.length);
+});
+
+
+test("DOM-143B compares stock-sheet groups by stable identity and reconciles group, material and grand-total deltas", () => {
+  const fromSnapshot = setDom143StockSheetGroups(createDom143StockSheetAuditSnapshot(), [
+    { materialId: "mdf-18", thicknessMm: 18, sourcePartIds: ["dom-143b-part-a"], sheetCount: 1, pricePerSheetMinor: 100, sourceReference: "price-a" },
+    { materialId: "plywood", thicknessMm: 12, sourcePartIds: ["dom-143b-part-b"], sheetCount: 1, pricePerSheetMinor: 80, sourceReference: "price-b" }
+  ]);
+  const toSnapshot = setDom143StockSheetGroups(createDom143StockSheetAuditSnapshot(), [
+    { materialId: "mdf-18", thicknessMm: 18, sourcePartIds: ["dom-143b-part-a-revised"], sheetCount: 2, pricePerSheetMinor: 125, sourceReference: "price-a-revised" },
+    { materialId: "plywood", thicknessMm: 15, sourcePartIds: ["dom-143b-part-c"], sheetCount: 1, pricePerSheetMinor: 60, sourceReference: "price-c" }
+  ]);
+  const result = compareProjectQuoteRevisionStockSheetGroups(
+    createHistoryWithSnapshots(fromSnapshot, toSnapshot), "quote-r1", "quote-r2"
+  );
+
+  assert.equal(result.status, "ready", result.diagnostics.join("; "));
+  assert.ok(result.comparison);
+  assert.equal(result.comparison.fromStockSheetCostMinor, 180);
+  assert.equal(result.comparison.toStockSheetCostMinor, 310);
+  assert.equal(result.comparison.stockSheetCostDeltaMinor, 130);
+  assert.equal(result.comparison.fromSheetCount, 2);
+  assert.equal(result.comparison.toSheetCount, 3);
+  assert.equal(result.comparison.sheetCountDelta, 1);
+  assert.equal(result.comparison.materialCategoryDeltaMinor, 130);
+  assert.equal(result.comparison.categoryDeltasMinor.material, 130);
+  assert.equal(result.comparison.grandTotalDeltaMinor, 130);
+  assert.equal(
+    Object.values(result.comparison.categoryDeltasMinor).reduce((sum, delta) => sum + delta, 0),
+    result.comparison.grandTotalDeltaMinor
+  );
+  assert.deepEqual(
+    result.comparison.groupChanges.map(change => [change.type, change.groupId]),
+    [
+      ["changed", JSON.stringify(["mdf-18", 180])],
+      ["removed", JSON.stringify(["plywood", 120])],
+      ["added", JSON.stringify(["plywood", 150])]
+    ]
+  );
+  const changed = result.comparison.groupChanges[0];
+  assert.deepEqual(changed.from.sourcePartIds, ["dom-143b-part-a"]);
+  assert.deepEqual(changed.to.sourcePartIds, ["dom-143b-part-a-revised"]);
+  assert.equal(changed.to.sourceReference, "price-a-revised");
+  assert.ok(Object.isFrozen(result.comparison));
+  assert.ok(Object.isFrozen(result.comparison.groupChanges));
+  assert.ok(Object.isFrozen(changed.to.sourcePartIds));
+});
+
+test("DOM-143B compares stock-only revisions with empty quote summaries without synthetic cost lines", () => {
+  const fromSnapshot = setDom143StockSheetGroups(
+    createDom143StockSheetAuditSnapshot({ emptyBase: true }),
+    [{ materialId: "mdf-18", thicknessMm: 18, sourcePartIds: ["dom-143b-stock-only-part"], sheetCount: 1, pricePerSheetMinor: 200, sourceReference: "stock-price-v1" }]
+  );
+  const toSnapshot = setDom143StockSheetGroups(
+    createDom143StockSheetAuditSnapshot({ emptyBase: true }),
+    [{ materialId: "mdf-18", thicknessMm: 18, sourcePartIds: ["dom-143b-stock-only-part"], sheetCount: 1, pricePerSheetMinor: 245, sourceReference: "stock-price-v2" }]
+  );
+  assert.equal(fromSnapshot.quoteSummary.costSummary, null);
+  assert.equal(toSnapshot.quoteSummary.costSummary, null);
+  const result = compareProjectQuoteRevisionStockSheetGroups(
+    createHistoryWithSnapshots(fromSnapshot, toSnapshot), "quote-r1", "quote-r2"
+  );
+  assert.equal(result.status, "ready", result.diagnostics.join("; "));
+  assert.equal(result.comparison?.stockSheetCostDeltaMinor, 45);
+  assert.equal(result.comparison?.materialCategoryDeltaMinor, 45);
+  assert.equal(result.comparison?.grandTotalDeltaMinor, 45);
+  assert.equal(result.comparison?.groupChanges.length, 1);
+  assert.equal(result.comparison?.groupChanges[0].type, "changed");
+});
+
+test("DOM-143B supports a legacy v1 revision transitioning into an explicit stock-sheet basis", () => {
+  const legacySnapshot = createSnapshot();
+  const stockSnapshot = setDom143StockSheetGroups(createDom143StockSheetAuditSnapshot(), [
+    { materialId: "mdf-18", thicknessMm: 18, sourcePartIds: ["dom-143b-legacy-transition-part"], sheetCount: 1, pricePerSheetMinor: 500, sourceReference: "stock-price-v1" }
+  ]);
+  const result = compareProjectQuoteRevisionStockSheetGroups(
+    createHistoryWithSnapshots(legacySnapshot, stockSnapshot), "quote-r1", "quote-r2"
+  );
+  assert.equal(result.status, "ready", result.diagnostics.join("; "));
+  assert.equal(result.comparison?.fromStockSheetCostMinor, 0);
+  assert.equal(result.comparison?.toStockSheetCostMinor, 500);
+  assert.deepEqual(result.comparison?.groupChanges.map(change => change.type), ["added"]);
+  assert.equal(
+    Object.values(result.comparison?.categoryDeltasMinor ?? {}).reduce((sum, delta) => sum + delta, 0),
+    result.comparison?.grandTotalDeltaMinor
+  );
+});
+
+test("DOM-143B blocks group comparison when neither revision has an explicit stock-sheet basis", () => {
+  const result = compareProjectQuoteRevisionStockSheetGroups(
+    createHistoryWithSnapshots(createSnapshot(), createSnapshot()), "quote-r1", "quote-r2"
+  );
+  assert.equal(result.status, "blocked");
+  assert.equal(result.comparison, null);
+  assert.match(result.diagnostics[0], /en az bir revizyon açık levha satın alma maliyet temeli/);
 });
 
 test("DOM-133 source-map provenance comparison isolates metadata changes from monetary deltas", () => {

@@ -1,7 +1,10 @@
 import { calculateProjectCostLineTotalMinor } from "./projectCostSummary.ts";
 import type { ProjectCostLine, ProjectCostLineEdgeDirection } from "./projectCostSummary.ts";
 import type { ProjectQuoteLineSource } from "./projectQuoteSummary.ts";
-import type { ProjectQuotePricingSnapshot } from "./projectQuotePricingSnapshot.ts";
+import type {
+  ProjectQuotePricingSnapshot,
+  ProjectQuoteStockSheetGroupSnapshot
+} from "./projectQuotePricingSnapshot.ts";
 
 type DeepReadonly<T> =
   T extends readonly (infer U)[]
@@ -1406,6 +1409,295 @@ export function compareProjectQuoteRevisions(
     });
   } catch (error) {
     return blockedComparison(error instanceof Error ? error.message : String(error));
+  }
+}
+
+
+
+export interface ProjectQuoteRevisionStockSheetGroupChange {
+  type: "added" | "removed" | "changed";
+  groupId: string;
+  from: DeepReadonly<ProjectQuoteStockSheetGroupSnapshot> | null;
+  to: DeepReadonly<ProjectQuoteStockSheetGroupSnapshot> | null;
+}
+
+export interface ProjectQuoteRevisionStockSheetGroupComparison {
+  schemaVersion: 1;
+  projectId: string;
+  fromRevisionId: string;
+  fromRevisionNumber: number;
+  toRevisionId: string;
+  toRevisionNumber: number;
+  currencyCode: string;
+  fromStockSheetCostMinor: number;
+  toStockSheetCostMinor: number;
+  stockSheetCostDeltaMinor: number;
+  fromSheetCount: number;
+  toSheetCount: number;
+  sheetCountDelta: number;
+  fromMaterialCategoryTotalMinor: number;
+  toMaterialCategoryTotalMinor: number;
+  materialCategoryDeltaMinor: number;
+  fromGrandTotalMinor: number;
+  toGrandTotalMinor: number;
+  grandTotalDeltaMinor: number;
+  categoryDeltasMinor: Record<ProjectQuoteCostCategory, number>;
+  /** Stable group IDs match in place; material/thickness identity changes are add/remove pairs. */
+  groupChanges: readonly ProjectQuoteRevisionStockSheetGroupChange[];
+}
+
+export interface ProjectQuoteRevisionStockSheetGroupComparisonResult {
+  status: "ready" | "blocked";
+  comparison: DeepReadonly<ProjectQuoteRevisionStockSheetGroupComparison> | null;
+  diagnostics: readonly string[];
+}
+
+interface RevisionStockSheetComparisonTotals {
+  currencyCode: string;
+  categoryTotalsMinor: Record<ProjectQuoteCostCategory, number>;
+  grandTotalMinor: number;
+  stockSheetGroups: readonly DeepReadonly<ProjectQuoteStockSheetGroupSnapshot>[];
+  stockSheetCostMinor: number;
+  sheetCount: number;
+}
+
+function blockedStockSheetGroupComparison(message: string): ProjectQuoteRevisionStockSheetGroupComparisonResult {
+  return deepFreeze({
+    status: "blocked" as const,
+    comparison: null,
+    diagnostics: [message]
+  });
+}
+
+function createRevisionStockSheetComparisonTotals(
+  revision: ProjectQuoteRevision
+): RevisionStockSheetComparisonTotals {
+  const basis = revision.pricingSnapshot.materialCostBasis;
+  let currencyCode: string;
+  let categorySource: Record<ProjectQuoteCostCategory, number>;
+  let grandTotalMinor: number;
+  let stockSheetGroups: readonly DeepReadonly<ProjectQuoteStockSheetGroupSnapshot>[] = [];
+  let stockSheetCostMinor = 0;
+
+  if (basis !== undefined) {
+    currencyCode = basis.currencyCode;
+    categorySource = basis.categoryTotalsMinor as Record<ProjectQuoteCostCategory, number>;
+    grandTotalMinor = requireSafeInteger(basis.grandTotalMinor, "Revizyon genel toplamı", 0);
+    if (basis.basis === "stock-sheet-purchase") {
+      stockSheetGroups = basis.stockSheetGroups;
+      stockSheetCostMinor = requireSafeInteger(
+        basis.panelMaterialCostMinor,
+        "Revizyon levha satın alma toplamı",
+        0
+      );
+    }
+  } else {
+    const quoteSummary = revision.pricingSnapshot.quoteSummary;
+    const costSummary = quoteSummary.costSummary;
+    if (quoteSummary.currencyCode === null || costSummary === null) {
+      throw new Error("Levha grup karşılaştırması için doğrulanmış para birimi ve teklif toplamı bulunmalıdır.");
+    }
+    currencyCode = quoteSummary.currencyCode;
+    categorySource = costSummary.categoryTotalsMinor as Record<ProjectQuoteCostCategory, number>;
+    grandTotalMinor = requireSafeInteger(costSummary.grandTotalMinor, "Legacy revizyon genel toplamı", 0);
+  }
+
+  const categoryTotalsMinor = {} as Record<ProjectQuoteCostCategory, number>;
+  let categoryTotal = 0n;
+  for (const rawCategory of costCategories) {
+    const category = rawCategory as ProjectQuoteCostCategory;
+    const amount = requireSafeInteger(categorySource[category], category + " revizyon kategori toplamı", 0);
+    categoryTotalsMinor[category] = amount;
+    categoryTotal += BigInt(amount);
+  }
+  if (categoryTotal !== BigInt(grandTotalMinor)) {
+    throw new Error("Revizyon kategori toplamları genel toplamla uyuşmuyor.");
+  }
+
+  let groupCostTotal = 0n;
+  let sheetCountTotal = 0n;
+  for (const group of stockSheetGroups) {
+    groupCostTotal += BigInt(requireSafeInteger(group.stockSheetCostMinor, group.groupId + " levha grup maliyeti", 0));
+    sheetCountTotal += BigInt(requireSafeInteger(group.sheetCount, group.groupId + " levha adedi", 1));
+  }
+  if (groupCostTotal !== BigInt(stockSheetCostMinor)) {
+    throw new Error("Levha grup maliyetleri revizyon panel satın alma toplamıyla uyuşmuyor.");
+  }
+  if (sheetCountTotal > BigInt(Number.MAX_SAFE_INTEGER)) {
+    throw new Error("Revizyon toplam levha adedi güvenli tam sayı aralığını aşıyor.");
+  }
+
+  return {
+    currencyCode,
+    categoryTotalsMinor,
+    grandTotalMinor,
+    stockSheetGroups,
+    stockSheetCostMinor,
+    sheetCount: Number(sheetCountTotal)
+  };
+}
+
+function revisionStockSheetGroupValue(group: DeepReadonly<ProjectQuoteStockSheetGroupSnapshot>): string {
+  return JSON.stringify([
+    group.materialId,
+    group.thicknessMm,
+    group.sourcePartIds,
+    group.sheetCount,
+    group.pricePerSheetMinor,
+    group.stockSheetCostMinor,
+    group.currencyCode,
+    group.sourceReference ?? null
+  ]);
+}
+
+function cloneRevisionStockSheetGroup(
+  group: DeepReadonly<ProjectQuoteStockSheetGroupSnapshot>
+): ProjectQuoteStockSheetGroupSnapshot {
+  return {
+    groupId: group.groupId,
+    materialId: group.materialId,
+    thicknessMm: group.thicknessMm,
+    sourcePartIds: [...group.sourcePartIds],
+    sheetCount: group.sheetCount,
+    pricePerSheetMinor: group.pricePerSheetMinor,
+    stockSheetCostMinor: group.stockSheetCostMinor,
+    currencyCode: group.currencyCode,
+    ...(group.sourceReference === undefined ? {} : { sourceReference: group.sourceReference })
+  };
+}
+
+function safeRevisionComparisonDelta(toValue: number, fromValue: number, label: string): number {
+  const delta = BigInt(toValue) - BigInt(fromValue);
+  const maximum = BigInt(Number.MAX_SAFE_INTEGER);
+  if (delta > maximum || delta < -maximum) throw new Error(label + " güvenli tam sayı aralığını aşıyor.");
+  return Number(delta);
+}
+
+/**
+ * Compares only stock-sheet purchase groups and reconciled quote totals from two
+ * validated revisions. At least one revision must use the explicit stock-sheet basis.
+ * Material or thickness identity changes are represented as removed + added groups.
+ */
+export function compareProjectQuoteRevisionStockSheetGroups(
+  historyValue: unknown,
+  fromRevisionIdValue: unknown,
+  toRevisionIdValue: unknown
+): ProjectQuoteRevisionStockSheetGroupComparisonResult {
+  const validatedHistory = validateProjectQuoteRevisionHistory(historyValue);
+  if (validatedHistory.status !== "ready" || validatedHistory.history === null) {
+    return blockedStockSheetGroupComparison(
+      validatedHistory.status === "empty"
+        ? "Boş teklif geçmişinde levha grubu karşılaştırılacak revizyon bulunmuyor."
+        : validatedHistory.diagnostics[0] ?? "Teklif revizyon geçmişi levha grubu karşılaştırması için doğrulanamadı."
+    );
+  }
+
+  try {
+    const fromRevisionId = requireIdentifier(fromRevisionIdValue, "Başlangıç revizyon kimliği");
+    const toRevisionId = requireIdentifier(toRevisionIdValue, "Hedef revizyon kimliği");
+    const revisions = validatedHistory.history.revisions;
+    const fromRevision = revisions.find(revision => revision.revisionId === fromRevisionId);
+    const toRevision = revisions.find(revision => revision.revisionId === toRevisionId);
+    if (fromRevision === undefined || toRevision === undefined) {
+      throw new Error("Levha grubu karşılaştırma revizyon kimlikleri doğrulanmış geçmişte bulunmalıdır.");
+    }
+    if (toRevision.revisionNumber <= fromRevision.revisionNumber) {
+      throw new Error("Levha grubu karşılaştırma hedef revizyonu başlangıç revizyonundan daha yeni olmalıdır.");
+    }
+    const hasStockSheetBasis =
+      fromRevision.pricingSnapshot.materialCostBasis?.basis === "stock-sheet-purchase" ||
+      toRevision.pricingSnapshot.materialCostBasis?.basis === "stock-sheet-purchase";
+    if (!hasStockSheetBasis) {
+      throw new Error("Levha grubu karşılaştırması için en az bir revizyon açık levha satın alma maliyet temeli içermelidir.");
+    }
+
+    const fromTotals = createRevisionStockSheetComparisonTotals(fromRevision);
+    const toTotals = createRevisionStockSheetComparisonTotals(toRevision);
+    if (fromTotals.currencyCode !== toTotals.currencyCode) {
+      throw new Error("Farklı para birimlerindeki levha satın alma revizyonları kur bilgisi olmadan karşılaştırılamaz.");
+    }
+
+    const fromGroups = new Map(fromTotals.stockSheetGroups.map(group => [group.groupId, group]));
+    const toGroups = new Map(toTotals.stockSheetGroups.map(group => [group.groupId, group]));
+    const groupIds = [...new Set([...fromGroups.keys(), ...toGroups.keys()])].sort();
+    const groupChanges: ProjectQuoteRevisionStockSheetGroupChange[] = [];
+    for (const groupId of groupIds) {
+      const fromGroup = fromGroups.get(groupId) ?? null;
+      const toGroup = toGroups.get(groupId) ?? null;
+      if (fromGroup !== null && toGroup !== null &&
+          revisionStockSheetGroupValue(fromGroup) === revisionStockSheetGroupValue(toGroup)) continue;
+      groupChanges.push({
+        type: fromGroup === null ? "added" : toGroup === null ? "removed" : "changed",
+        groupId,
+        from: fromGroup === null ? null : cloneRevisionStockSheetGroup(fromGroup),
+        to: toGroup === null ? null : cloneRevisionStockSheetGroup(toGroup)
+      });
+    }
+
+    const stockSheetCostDeltaMinor = safeRevisionComparisonDelta(
+      toTotals.stockSheetCostMinor, fromTotals.stockSheetCostMinor, "Levha satın alma maliyet farkı"
+    );
+    const groupCostDelta = groupChanges.reduce(
+      (total, change) => total +
+        BigInt(change.to?.stockSheetCostMinor ?? 0) -
+        BigInt(change.from?.stockSheetCostMinor ?? 0),
+      0n
+    );
+    if (groupCostDelta !== BigInt(stockSheetCostDeltaMinor)) {
+      throw new Error("Levha grubu farkları panel satın alma maliyet farkıyla uzlaşmıyor.");
+    }
+
+    const categoryDeltasMinor = {} as Record<ProjectQuoteCostCategory, number>;
+    let categoryDeltaTotal = 0n;
+    for (const rawCategory of costCategories) {
+      const category = rawCategory as ProjectQuoteCostCategory;
+      const delta = safeRevisionComparisonDelta(
+        toTotals.categoryTotalsMinor[category],
+        fromTotals.categoryTotalsMinor[category],
+        category + " kategori farkı"
+      );
+      categoryDeltasMinor[category] = delta;
+      categoryDeltaTotal += BigInt(delta);
+    }
+    const grandTotalDeltaMinor = safeRevisionComparisonDelta(
+      toTotals.grandTotalMinor, fromTotals.grandTotalMinor, "Teklif genel toplam farkı"
+    );
+    if (categoryDeltaTotal !== BigInt(grandTotalDeltaMinor)) {
+      throw new Error("Kategori farkları teklif genel toplam farkıyla uzlaşmıyor.");
+    }
+    const sheetCountDelta = safeRevisionComparisonDelta(
+      toTotals.sheetCount, fromTotals.sheetCount, "Toplam levha adedi farkı"
+    );
+
+    return deepFreeze({
+      status: "ready" as const,
+      comparison: {
+        schemaVersion: 1 as const,
+        projectId: validatedHistory.history.projectId,
+        fromRevisionId,
+        fromRevisionNumber: fromRevision.revisionNumber,
+        toRevisionId,
+        toRevisionNumber: toRevision.revisionNumber,
+        currencyCode: fromTotals.currencyCode,
+        fromStockSheetCostMinor: fromTotals.stockSheetCostMinor,
+        toStockSheetCostMinor: toTotals.stockSheetCostMinor,
+        stockSheetCostDeltaMinor,
+        fromSheetCount: fromTotals.sheetCount,
+        toSheetCount: toTotals.sheetCount,
+        sheetCountDelta,
+        fromMaterialCategoryTotalMinor: fromTotals.categoryTotalsMinor.material,
+        toMaterialCategoryTotalMinor: toTotals.categoryTotalsMinor.material,
+        materialCategoryDeltaMinor: categoryDeltasMinor.material,
+        fromGrandTotalMinor: fromTotals.grandTotalMinor,
+        toGrandTotalMinor: toTotals.grandTotalMinor,
+        grandTotalDeltaMinor,
+        categoryDeltasMinor,
+        groupChanges
+      },
+      diagnostics: []
+    });
+  } catch (error) {
+    return blockedStockSheetGroupComparison(error instanceof Error ? error.message : String(error));
   }
 }
 
