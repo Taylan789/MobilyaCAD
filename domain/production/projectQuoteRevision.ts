@@ -162,6 +162,77 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
+/**
+ * Copies untrusted revision API input using data descriptors only.
+ * Null-prototype records prevent inherited getters from participating in validation.
+ */
+function cloneRevisionInput(
+  value: unknown,
+  ancestors = new WeakSet<object>(),
+  depth = 0
+): unknown {
+  if (value === null || typeof value === "string" || typeof value === "boolean" || value === undefined) return value;
+  if (typeof value === "number") {
+    if (!Number.isFinite(value)) throw new Error("Teklif revizyon girdisi JSON uyumlu olmayan sayısal değer içeriyor.");
+    return value;
+  }
+  if (typeof value !== "object") throw new Error("Teklif revizyon girdisi JSON uyumlu olmayan değer içeriyor.");
+  if (depth > 64) throw new Error("Teklif revizyon girdisi en fazla 64 iç içe nesne/dizi seviyesi içerebilir.");
+  if (ancestors.has(value)) throw new Error("Teklif revizyon girdisi döngüsel veri içeriyor.");
+  ancestors.add(value);
+
+  let cloned: unknown;
+  if (Array.isArray(value)) {
+    const keys = Object.keys(value);
+    const ownNames = Object.getOwnPropertyNames(value);
+    if (
+      Object.getPrototypeOf(value) !== Array.prototype ||
+      Object.getOwnPropertySymbols(value).length !== 0 ||
+      keys.length !== value.length ||
+      ownNames.length !== value.length + 1
+    ) throw new Error("Teklif revizyon girdisi JSON dışı dizi alanı içeriyor.");
+    const copy: unknown[] = new Array(value.length);
+    for (let index = 0; index < value.length; index += 1) {
+      const descriptor = Object.getOwnPropertyDescriptor(value, String(index));
+      if (!descriptor || !descriptor.enumerable || !("value" in descriptor)) {
+        throw new Error("Teklif revizyon girdisi JSON dışı dizi alanı içeriyor.");
+      }
+      Object.defineProperty(copy, String(index), {
+        value: cloneRevisionInput(descriptor.value, ancestors, depth + 1),
+        enumerable: true,
+        configurable: true,
+        writable: true
+      });
+    }
+    cloned = copy;
+  } else {
+    const prototype = Object.getPrototypeOf(value);
+    if (prototype !== Object.prototype && prototype !== null) {
+      throw new Error("Teklif revizyon girdisi düz JSON nesneleri içermelidir.");
+    }
+    const keys = Object.keys(value);
+    if (Object.getOwnPropertyNames(value).length !== keys.length || Object.getOwnPropertySymbols(value).length !== 0) {
+      throw new Error("Teklif revizyon girdisi JSON dışı nesne alanı içeriyor.");
+    }
+    const copy = Object.create(null) as Record<string, unknown>;
+    for (const key of keys) {
+      const descriptor = Object.getOwnPropertyDescriptor(value, key);
+      if (!descriptor || !descriptor.enumerable || !("value" in descriptor)) {
+        throw new Error("Teklif revizyon girdisi JSON dışı nesne alanı içeriyor.");
+      }
+      Object.defineProperty(copy, key, {
+        value: cloneRevisionInput(descriptor.value, ancestors, depth + 1),
+        enumerable: true,
+        configurable: true,
+        writable: true
+      });
+    }
+    cloned = copy;
+  }
+  ancestors.delete(value);
+  return cloned;
+}
+
 function requireOnlyKeys(value: Record<string, unknown>, keys: Set<string>, label: string): void {
   for (const key of Object.keys(value)) {
     if (!keys.has(key)) {
@@ -940,7 +1011,11 @@ function createProjectQuoteRevisionWithSourceIntegrity(value: unknown): ProjectQ
 }
 
 export function createProjectQuoteRevision(value: unknown): ProjectQuoteRevisionResult {
-  return createProjectQuoteRevisionWithSourceIntegrity(value);
+  try {
+    return createProjectQuoteRevisionWithSourceIntegrity(cloneRevisionInput(value));
+  } catch (error) {
+    return blocked(error instanceof Error ? error.message : String(error));
+  }
 }
 
 function blockedHistory(message: string): ProjectQuoteRevisionHistoryResult {
@@ -954,18 +1029,20 @@ function blockedHistory(message: string): ProjectQuoteRevisionHistoryResult {
 export function validateProjectQuoteRevisionHistory(value: unknown): ProjectQuoteRevisionHistoryResult {
   if (!isRecord(value)) return blockedHistory("Teklif revizyon geçmişi geçerli bir nesne olmalıdır.");
   try {
-    requireOnlyKeys(value, historyInputKeys, "Teklif revizyon geçmişi");
-    if (value.schemaVersion !== undefined && value.schemaVersion !== 1) {
+    const safeValue = cloneRevisionInput(value);
+    if (!isRecord(safeValue)) throw new Error("Teklif revizyon geçmişi geçerli bir nesne olmalıdır.");
+    requireOnlyKeys(safeValue, historyInputKeys, "Teklif revizyon geçmişi");
+    if (safeValue.schemaVersion !== undefined && safeValue.schemaVersion !== 1) {
       throw new Error("Teklif revizyon geçmişi desteklenen şema sürümünü kullanmalıdır.");
     }
-    const projectId = requireIdentifier(value.projectId, "Geçmiş proje kimliği");
-    if (!Array.isArray(value.revisions)) throw new Error("Teklif revizyon geçmişi revisions dizisi içermelidir.");
-    if (value.revisions.length > PROJECT_QUOTE_REVISION_HISTORY_MAX_REVISIONS) {
+    const projectId = requireIdentifier(safeValue.projectId, "Geçmiş proje kimliği");
+    if (!Array.isArray(safeValue.revisions)) throw new Error("Teklif revizyon geçmişi revisions dizisi içermelidir.");
+    if (safeValue.revisions.length > PROJECT_QUOTE_REVISION_HISTORY_MAX_REVISIONS) {
       throw new Error(
         "Teklif revizyon geçmişi en fazla " + PROJECT_QUOTE_REVISION_HISTORY_MAX_REVISIONS + " revizyon içerebilir."
       );
     }
-    if (value.revisions.length === 0) {
+    if (safeValue.revisions.length === 0) {
       return deepFreeze({
         status: "empty" as const,
         history: { schemaVersion: 1 as const, projectId, revisions: [] },
@@ -974,8 +1051,8 @@ export function validateProjectQuoteRevisionHistory(value: unknown): ProjectQuot
     }
     const revisionIds = new Set<string>();
     const revisions: DeepReadonly<ProjectQuoteRevision>[] = [];
-    for (let index = 0; index < value.revisions.length; index += 1) {
-      const candidate = value.revisions[index];
+    for (let index = 0; index < safeValue.revisions.length; index += 1) {
+      const candidate = safeValue.revisions[index];
       const label = "Revizyon " + (index + 1);
       if (!isRecord(candidate)) throw new Error(label + " geçerli bir nesne olmalıdır.");
       requireOnlyKeys(candidate, revisionEnvelopeKeys, label);
@@ -1042,10 +1119,12 @@ export function appendProjectQuoteRevision(
   }
 
   try {
-    requireOnlyKeys(revisionValue, appendInputKeys, "Yeni teklif revizyon girdisi");
+    const safeRevisionValue = cloneRevisionInput(revisionValue);
+    if (!isRecord(safeRevisionValue)) throw new Error("Yeni teklif revizyon girdisi geçerli bir nesne olmalıdır.");
+    requireOnlyKeys(safeRevisionValue, appendInputKeys, "Yeni teklif revizyon girdisi");
     const currentHistory = validatedHistory.history;
-    const revisionId = requireIdentifier(revisionValue.revisionId, "Yeni revizyon kimliği");
-    const createdAt = requireDateTime(revisionValue.createdAt, "Yeni revizyon oluşturulma tarihi");
+    const revisionId = requireIdentifier(safeRevisionValue.revisionId, "Yeni revizyon kimliği");
+    const createdAt = requireDateTime(safeRevisionValue.createdAt, "Yeni revizyon oluşturulma tarihi");
 
     if (currentHistory.revisions.some((revision) => revision.revisionId === revisionId)) {
       throw new Error("Yeni revizyon kimliği mevcut geçmişte daha önce kullanılmamış olmalıdır; revisionId benzersiz olmalıdır.");
@@ -1066,7 +1145,7 @@ export function appendProjectQuoteRevision(
         createdAt: previous.createdAt
       },
       sourceIntegrityVersion: 1,
-      pricingSnapshot: revisionValue.pricingSnapshot
+      pricingSnapshot: safeRevisionValue.pricingSnapshot
     });
 
     if (created.status !== "ready" || created.revision === null) {

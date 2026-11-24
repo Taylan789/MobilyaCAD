@@ -1412,3 +1412,14 @@ appendProjectQuoteRevisionToProjectFile yalnızca JSON olarak temsil edilebilen 
 - Own accessor, inherited accessor, eksik veya enumerable olmayan discriminator alanı `blocked` döndürür. Getter çalıştırılmaz; read sonucu geçmiş içermez, append sonucu `project: null` ve `history: null` kalır.
 - Normal JSON v1 legacy okuma ve normal JSON v2 history okuma/append davranışı korunur. Tam oda/mobilya/malzeme doğrulaması ana proje parser'ına aittir.
 - Bu koruma domain envelope giriş sınırıdır; UI parser/save/open entegrasyonunun tamamlandığı anlamına gelmez. INT-003 UI sahipliğinde kalır.
+
+
+## DOM-154 — Direct quote revision API input descriptor safety
+
+The public domain APIs validate unknown JavaScript values. Before reading any field, the history validator, revision creator and append entry point now copy input through own enumerable data descriptors only.
+
+- Own accessors, inherited/custom prototypes, symbol keys, non-enumerable properties, sparse/extended arrays, cycles, non-finite numbers and non-JSON values are rejected without invoking accessor getters.
+- Copied object records use a null prototype, so an inherited getter on Object.prototype cannot supply a missing optional field during later validation.
+- Optional own data properties whose value is undefined remain preserved for compatibility; ordinary JSON-parsed objects and previously validated immutable histories retain their accepted behavior.
+- The copy is bounded to 64 nested object/array levels. Project-v2 envelope byte limits and standalone history-file byte limits remain independently enforced by their existing entry points.
+- This is domain API hardening, not a project-file schema migration or editor save/open integration. UI-owned INT-003 and its later DOM-153 editor round-trip remain separate.

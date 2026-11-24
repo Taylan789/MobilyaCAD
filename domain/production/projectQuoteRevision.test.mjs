@@ -3702,3 +3702,67 @@ test("DOM-136 integrity audit preserves empty histories and blocks malformed mar
   assert.equal(blocked.audit, null);
   assert.ok(blocked.diagnostics.length > 0);
 });
+
+
+test("DOM-154 history and revision validators reject accessor inputs without invoking getters", () => {
+  let ownHistoryGetterCalls = 0;
+  const ownHistory = createTwoRevisionHistory();
+  Object.defineProperty(ownHistory, "projectId", {
+    enumerable: true, configurable: true,
+    get() { ownHistoryGetterCalls += 1; return "project-42"; }
+  });
+  const ownHistoryResult = validateProjectQuoteRevisionHistory(ownHistory);
+  assert.equal(ownHistoryGetterCalls, 0);
+  assert.equal(ownHistoryResult.status, "blocked");
+  assert.equal(ownHistoryResult.history, null);
+
+  let inheritedGetterCalls = 0;
+  const inheritedHistory = Object.create({
+    get projectId() { inheritedGetterCalls += 1; return "project-42"; }
+  });
+  inheritedHistory.revisions = [];
+  const inheritedHistoryResult = validateProjectQuoteRevisionHistory(inheritedHistory);
+  assert.equal(inheritedGetterCalls, 0);
+  assert.equal(inheritedHistoryResult.status, "blocked");
+  assert.equal(inheritedHistoryResult.history, null);
+
+  let nestedGetterCalls = 0;
+  const nestedHistory = createTwoRevisionHistory();
+  Object.defineProperty(nestedHistory.revisions[0].pricingSnapshot, "quotedOn", {
+    enumerable: true, configurable: true,
+    get() { nestedGetterCalls += 1; return "2026-11-30"; }
+  });
+  const nestedResult = validateProjectQuoteRevisionHistory(nestedHistory);
+  assert.equal(nestedGetterCalls, 0);
+  assert.equal(nestedResult.status, "blocked");
+  assert.equal(nestedResult.history, null);
+
+  let createGetterCalls = 0;
+  const createInput = createFirstRevision();
+  Object.defineProperty(createInput, "projectId", {
+    enumerable: true, configurable: true,
+    get() { createGetterCalls += 1; return "project-42"; }
+  });
+  const createResult = createProjectQuoteRevision(createInput);
+  assert.equal(createGetterCalls, 0);
+  assert.equal(createResult.status, "blocked");
+  assert.equal(createResult.revision, null);
+
+  let appendGetterCalls = 0;
+  const appendInput = {
+    revisionId: "quote-r1",
+    createdAt: "2026-11-17T10:00:00Z",
+    pricingSnapshot: createSnapshot()
+  };
+  Object.defineProperty(appendInput, "revisionId", {
+    enumerable: true, configurable: true,
+    get() { appendGetterCalls += 1; return "quote-r1"; }
+  });
+  const appendResult = appendProjectQuoteRevision(
+    { projectId: "project-42", revisions: [] },
+    appendInput
+  );
+  assert.equal(appendGetterCalls, 0);
+  assert.equal(appendResult.status, "blocked");
+  assert.equal(appendResult.history, null);
+});

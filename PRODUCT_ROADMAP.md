@@ -1702,7 +1702,7 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 
 ## DOM-152 — JSON v2 zarf discriminator alanlarında getter güvenliği
 
-**Durum:** IMPLEMENTATION — exact-SHA Actions verification pending.
+**Durum:** VERIFIED — [commit dd806171](https://github.com/Taylan789/MobilyaCAD/commit/dd8061718c88b2e0ddad2f6994a64a3362c88726); CI [#45482452559](https://github.com/Taylan789/MobilyaCAD/actions/runs/45482452559), QA [#45482452470](https://github.com/Taylan789/MobilyaCAD/actions/runs/45482452470) ve Pages [#45482452461](https://github.com/Taylan789/MobilyaCAD/actions/runs/45482452461) başarılı.
 
 **Kullanıcı akışı:** Domain quote-history read/append API'leri proje zarfının kimlik ve sürüm alanlarını inceler. JSON dışı JavaScript nesnesi own veya inherited getter ile bu alanları sağlıyorsa API getter'ı çalıştırmadan işlemi engeller.
 
@@ -1713,4 +1713,20 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 - Normal v1 legacy okuma ve geçerli v2 append/read davranışı değişmez.
 - Tam proje şeması doğrulaması ve editör save/open entegrasyonu bu domain korumasının kapsamı dışındadır; INT-003 UI sahibindedir.
 
-**Sonraki bağımlı iş:** INT-003 tamamlandıktan sonra DOM-153 editörün gerçek save/reopen round-trip akışını doğrular.
+**Sonraki bağımlı iş:** INT-003 tamamlandıktan sonra DOM-153 editörün gerçek save/reopen round-trip akışını doğrular. Bağımsız domain güvenlik işi DOM-154, doğrudan teklif revizyon API girdilerindeki accessor yürütülmesini ayrıca kapatır.
+
+
+## DOM-154 — Teklif revizyon API girdilerinde descriptor güvenliği
+
+**Durum:** IMPLEMENTATION — exact-SHA CI/QA/Pages verification pending.
+
+**Kullanıcı akışı:** Teklif revizyon geçmişi doğrulama, ilk revizyon oluşturma ve append API'leri doğrudan JavaScript nesnesi alabilir. Bu nesnelerdeki own/inherited accessor alanları doğrulama sırasında kod çalıştırmamalıdır.
+
+**Kabul kriterleri**
+- Public history/create/append girişleri alan okumadan önce own enumerable data descriptor'larından güvenli bir kopya üretir.
+- Own, inherited ve nested accessor getter çağrıları sıfırdır; işlem blocked ve kısmi geçmişsiz sonuç verir.
+- Null-prototype kopya, Object.prototype üzerinden gelen eksik opsiyonel alanları yok sayar; custom prototype, symbol, non-enumerable, sparse array, cycle ve JSON dışı değerler reddedilir.
+- Geçerli geçmiş, create ve append sonuçları ile JSON v1/v2 davranışı değişmez; opsiyonel own undefined değerleri korunur.
+- Maksimum nested depth 64'tür; mevcut project-v2 16 MiB ve standalone history 1 MiB sınırları değişmez.
+
+**Sınırlar:** Bu güvenlik katmanı Proxy trap'lerinin çalıştırılmasını engellediği iddiası taşımaz; JavaScript Proxy reflection trap'leri descriptor incelemesi sırasında çalışabilir. CNC, üretici standardı ve UI save/open entegrasyonu kapsam dışıdır.

@@ -959,3 +959,15 @@
 - Known performance note: production build still reports a 1.69 MB minified JS entry chunk (>500 kB warning); no bundle split or viewport profiling was attempted in this domain security slice. INT-002/PERF-001 remain specialist-owned; no `agent/integration-performance-*` branch was found. AI Developer [#45450013010](https://github.com/Taylan789/MobilyaCAD/actions/runs/45450013010) remains blocked by OpenRouter free-model daily HTTP 429 until 25 November 2026 03:00 TRT; no rerun, paid fallback, secret or quota change.
 - INT-003 remains UI-owned: [PR #206](https://github.com/Taylan789/MobilyaCAD/pull/206) is still draft and not mergeable; its scope is limited to `frontend/src/engine/projectFile.ts` and `frontend/tests/projectFileV2Envelope.test.mjs`. This domain commit does not claim editor save/open v2 integration is complete.
 - Next: INT-003 UI parser/save/open integration; then DOM-153 exact editor v2 append/save/reopen/append round-trip. No manual user test is required for this domain slice; exact-SHA Actions are authoritative.
+
+
+## 25 Kasım 2026 00:54 TRT — DOM-154 implementation (verification pending)
+
+- Base dev/github-work HEAD: c18830a08e9958b967acec179eedd0e8e28307d0. Write-time preflight re-read the branch HEAD, current target blob SHAs and Actions state; no active AI Developer or QA run existed.
+- Code change: validateProjectQuoteRevisionHistory, createProjectQuoteRevision and appendProjectQuoteRevision now copy unknown inputs through own enumerable data descriptors before reading fields. Object copies use null prototypes so inherited getters cannot supply missing optional values.
+- Regressions cover own top-level, inherited top-level, nested snapshot, direct create and append accessors; every getter call count must remain zero and each operation must return blocked without partial history.
+- Changed files: domain/production/projectQuoteRevision.ts, domain/production/projectQuoteRevision.test.mjs, docs/production-domain-contract.md, PRODUCT_ROADMAP.md, AI_COORDINATION.md, AI_PROGRESS.md.
+- Implementation commit SHA and exact-SHA CI/QA/Pages results are pending. Do not report test success or test-site deployment until GitHub Actions confirms them.
+- Known limits: this does not prevent JavaScript Proxy reflection traps; it rejects accessor descriptors, custom prototypes, symbols, non-enumerable fields, sparse arrays, cycles, non-finite numbers and depth above 64. No frontend, adapter, benchmark, CNC/machine, secrets/settings or main changes.
+- AI Developer run [#45450013010](https://github.com/Taylan789/MobilyaCAD/actions/runs/45450013010) failed after retry with OpenRouter free-tier daily HTTP 429 (limit 50, remaining 0; reset 25 November 2026 03:00 TRT). The failed job log was inspected; no rerun or paid fallback was attempted before reset. Integration/Performance job is disabled in the workflow and no specialist branch was found.
+- Next: UI-owned INT-003 parser/save/open integration remains in draft PR [#206](https://github.com/Taylan789/MobilyaCAD/pull/206); then DOM-153 editor save/reopen round-trip. INT-002/PERF-001 remain specialist-owned and QA-003 remains blocked.
