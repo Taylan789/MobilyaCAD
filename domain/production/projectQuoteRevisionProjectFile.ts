@@ -58,6 +58,7 @@ type ProjectEnvelopeInspection =
 
 export const PROJECT_QUOTE_REVISION_PROJECT_ENVELOPE_MAX_BYTES = 16 * 1024 * 1024;
 export const PROJECT_QUOTE_REVISION_PROJECT_ENVELOPE_MAX_DEPTH = 64;
+const projectIdPattern = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
 
 const projectEnvelopeSizeLimitMessage = "Proje JSON v2 zarfı 16 MiB UTF-8 boyut sınırını aşamaz.";
 const projectEnvelopeDepthLimitMessage = "Proje JSON v2 zarfı en fazla 64 iç içe nesne/dizi seviyesi içerebilir.";
@@ -425,12 +426,6 @@ export function importProjectQuoteRevisionHistoryFileIntoProject(
     );
   }
 
-  if (current.history.revisions.length > 0) {
-    return blockedImport(
-      "Proje zaten teklif revizyon geçmişi içeriyor; içe aktarma mevcut geçmişi sessizce değiştiremez."
-    );
-  }
-
   const imported = parseProjectQuoteRevisionHistoryFile(historyFileJson);
   if (imported.status === "blocked" || imported.history === null) {
     return blockedImport(
@@ -461,6 +456,13 @@ export function importProjectQuoteRevisionHistoryFileIntoProject(
       current.diagnostics[0] ?? "Mevcut proje teklif revizyon geçmişi doğrulanamadı."
     );
   }
+
+  if (current.history.revisions.length > 0) {
+    return blockedImport(
+      "Proje zaten teklif revizyon geçmişi içeriyor; içe aktarma mevcut geçmişi sessizce değiştiremez."
+    );
+  }
+
   const nextProject = Object.freeze({
     ...preservedProject,
     [PROJECT_QUOTE_REVISION_HISTORY_FIELD]: imported.history
