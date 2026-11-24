@@ -1,5 +1,6 @@
 import { Plus, Ruler } from "lucide-react";
 import type { FurnitureCatalogItem } from "../../data/furnitureCatalog";
+import "./FurnitureCatalogCardAction.css";
 
 interface FurnitureCatalogCardProps {
   item: FurnitureCatalogItem;
@@ -113,19 +114,19 @@ export function FurnitureCatalogCard({ item, index, onAdd, onDragStart, onDragEn
       }}
       onDragEnd={onDragEnd}
       onClick={onAdd}
-      title={`${item.name} modelini odaya ekle`}
-      aria-label={`${item.name}, G × Y × D: ${dimensions} milimetre. Odaya ekle.`}
+      title={`Tıkla ile ${item.name} modelini odaya ekle; sürükleyerek sahnede konumlandır.`}
+      aria-label={`${item.name}, G × Y × D: ${dimensions} milimetre. Tıkla ile odaya ekle; sürükleyerek sahnede konumlandır.`}
     >
       <span className="mc-catalog-card__visual">
         <span className="mc-catalog-card__serial">MC / {String(index + 1).padStart(3, "0")}</span>
         <FurniturePreview item={item} />
-        <span className="mc-catalog-card__add" aria-hidden="true"><Plus /></span>
+        <span className="mc-catalog-card__add" aria-hidden="true"><Plus /><span className="mc-catalog-card__add-label">EKLE</span></span>
       </span>
       <span className="mc-catalog-card__content">
         <span className="mc-catalog-card__category">{item.category}</span>
         <strong>{item.name}</strong>
         <span className="mc-catalog-card__dimensions"><Ruler /><span className="mc-catalog-card__axis-label">G × Y × D</span>{dimensions} mm</span>
-        <span className="mc-catalog-card__details">{details || "Özel ölçü modülü"}</span>
+        <span className="mc-catalog-card__details">{details || "Tıkla: ekle · Sürükle: yerleştir"}</span>
       </span>
     </button>
   );
