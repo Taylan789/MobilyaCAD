@@ -4,6 +4,7 @@ import test from "node:test";
 
 const component = readFileSync(new URL("../src/components/catalog/FurnitureCatalogCard.tsx", import.meta.url), "utf8");
 const styles = readFileSync(new URL("../src/components/catalog/FurnitureCatalogCardAction.css", import.meta.url), "utf8");
+const cardStyles = readFileSync(new URL("../src/components/catalog/FurnitureCatalogCard.css", import.meta.url), "utf8");
 
 test("catalog card explains the real click and drag placement actions", () => {
   assert.ok(component.includes('details || "Tıkla: ekle · Sürükle: yerleştir"'));
@@ -16,6 +17,9 @@ test("catalog card explains the real click and drag placement actions", () => {
 
 test("catalog add label inherits hover, keyboard-focus and touch visibility states", () => {
   assert.ok(styles.includes(".mc-catalog-card__add"));
+  assert.ok(cardStyles.includes(".cad-catalog-card.mc-catalog-card:hover .mc-catalog-card__add"));
+  assert.ok(cardStyles.includes(".cad-catalog-card.mc-catalog-card:focus-visible .mc-catalog-card__add"));
+  assert.ok(cardStyles.includes("@media (hover: none)"));
   assert.ok(component.includes("onDragStart"));
   assert.ok(component.includes("onDragEnd={onDragEnd}"));
 });
