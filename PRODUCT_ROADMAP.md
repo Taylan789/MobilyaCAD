@@ -1753,7 +1753,7 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 
 ## 25 Kasım 2026 — DOM-156: teklif geçmişi append kapasite kontrolü
 
-**Durum:** Kod ve regresyon testi eklendi; exact-SHA CI/QA/Pages doğrulaması bekleniyor.
+**Durum:** VERIFIED — [commit e4daf7fa](https://github.com/Taylan789/MobilyaCAD/commit/e4daf7fad89aa5ef15ee2f85f3f00e14ce42894e); [CI #45510837681](https://github.com/Taylan789/MobilyaCAD/actions/runs/45510837681), [QA #45510837534](https://github.com/Taylan789/MobilyaCAD/actions/runs/45510837534), [Pages #45510837542](https://github.com/Taylan789/MobilyaCAD/actions/runs/45510837542) başarılı. QA 245 frontend + 741 domain testi; strict TS, lint 36 uyarı/0 hata, production build ve production audit 0 zafiyet.
 
 - `appendProjectQuoteRevision`, mevcut geçmiş 2.000 kayıt olduğunda yeni revizyon snapshot'ını veya geçmiş girdilerini kopyalamadan önce işlemi bloklar.
 - Okuma/doğrulama amacıyla tam 2.000 kayıtlı geçmiş hâlâ kabul edilir; yalnızca 2.001'inci kaydı ekleme girişimi reddedilir.
