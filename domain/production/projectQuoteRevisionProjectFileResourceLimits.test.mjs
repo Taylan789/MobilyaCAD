@@ -7,7 +7,8 @@ import {
   appendProjectQuoteRevisionToProjectFile,
   importProjectQuoteRevisionHistoryFileIntoProject,
   PROJECT_QUOTE_REVISION_PROJECT_ENVELOPE_MAX_BYTES,
-  PROJECT_QUOTE_REVISION_PROJECT_ENVELOPE_MAX_DEPTH
+  PROJECT_QUOTE_REVISION_PROJECT_ENVELOPE_MAX_DEPTH,
+  readProjectQuoteRevisionHistoryFromProjectFile
 } from "./projectQuoteRevisionProjectFile.ts";
 import {
   PROJECT_QUOTE_REVISION_HISTORY_FILE_MAX_BYTES,
@@ -181,4 +182,74 @@ test("DOM-149 import blocks a merged project that would exceed the envelope cap"
   assert.match(result.diagnostics.join(" | "), /16 MiB UTF-8/);
   assert.strictEqual(target.customEnvelope, originalCustomEnvelope);
   assert.equal("quoteRevisionHistory" in target, false);
+});
+
+
+test("DOM-150 project-v2 history read accepts the exact UTF-8 envelope limit and blocks one byte over", () => {
+  const baseline = createProject({ customEnvelope: { payload: "" } });
+  const baselineRead = readProjectQuoteRevisionHistoryFromProjectFile(baseline);
+  assert.equal(baselineRead.status, "empty");
+  const payloadBytes = PROJECT_QUOTE_REVISION_PROJECT_ENVELOPE_MAX_BYTES - utf8Bytes(JSON.stringify(baseline));
+  assert.ok(payloadBytes > 0);
+
+  const exact = createProject({ customEnvelope: { payload: "x".repeat(payloadBytes) } });
+  assert.equal(utf8Bytes(JSON.stringify(exact)), PROJECT_QUOTE_REVISION_PROJECT_ENVELOPE_MAX_BYTES);
+  const exactRead = readProjectQuoteRevisionHistoryFromProjectFile(exact);
+  assert.equal(exactRead.status, "empty", exactRead.diagnostics.join(" | "));
+
+  const oversized = createProject({ customEnvelope: { payload: "x".repeat(payloadBytes + 1) } });
+  const originalEnvelope = oversized.customEnvelope;
+  const oversizedRead = readProjectQuoteRevisionHistoryFromProjectFile(oversized);
+  assert.equal(oversizedRead.status, "blocked");
+  assert.equal(oversizedRead.projectId, null);
+  assert.equal(oversizedRead.history, null);
+  assert.match(oversizedRead.diagnostics.join(" | "), /16 MiB UTF-8/);
+  assert.strictEqual(oversized.customEnvelope, originalEnvelope);
+  assert.equal("quoteRevisionHistory" in oversized, false);
+});
+
+test("DOM-150 project-v2 history read enforces the 64-level limit while preserving legacy v1 reads", () => {
+  const exactDepth = createProject({
+    customEnvelope: createNestedObject(PROJECT_QUOTE_REVISION_PROJECT_ENVELOPE_MAX_DEPTH - 2)
+  });
+  const exactRead = readProjectQuoteRevisionHistoryFromProjectFile(exactDepth);
+  assert.equal(exactRead.status, "empty", exactRead.diagnostics.join(" | "));
+
+  const tooDeep = createProject({
+    customEnvelope: createNestedObject(PROJECT_QUOTE_REVISION_PROJECT_ENVELOPE_MAX_DEPTH - 1)
+  });
+  const originalEnvelope = tooDeep.customEnvelope;
+  const blocked = readProjectQuoteRevisionHistoryFromProjectFile(tooDeep);
+  assert.equal(blocked.status, "blocked");
+  assert.equal(blocked.history, null);
+  assert.match(blocked.diagnostics.join(" | "), /64 iç içe/);
+  assert.strictEqual(tooDeep.customEnvelope, originalEnvelope);
+
+  const legacy = {
+    format: "MobilyaCAD",
+    formatVersion: 1,
+    customEnvelope: createNestedObject(PROJECT_QUOTE_REVISION_PROJECT_ENVELOPE_MAX_DEPTH + 8)
+  };
+  assert.equal(readProjectQuoteRevisionHistoryFromProjectFile(legacy).status, "legacy");
+});
+
+test("DOM-150 project-v2 history read rejects accessor fields without invoking getters", () => {
+  let getterCalls = 0;
+  const customEnvelope = {};
+  Object.defineProperty(customEnvelope, "computed", {
+    enumerable: true,
+    get() {
+      getterCalls += 1;
+      return "must-not-be-read";
+    }
+  });
+  const project = createProject({ customEnvelope });
+  const result = readProjectQuoteRevisionHistoryFromProjectFile(project);
+
+  assert.equal(result.status, "blocked");
+  assert.equal(result.history, null);
+  assert.match(result.diagnostics.join(" | "), /JSON dışı nesne alanı/);
+  assert.equal(getterCalls, 0);
+  assert.strictEqual(project.customEnvelope, customEnvelope);
+  assert.equal("quoteRevisionHistory" in project, false);
 });

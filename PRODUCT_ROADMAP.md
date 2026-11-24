@@ -1647,8 +1647,25 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 **Sınırlar ve riskler:** 16 MiB ve 64 seviye, büyük oda/mobilya/katalog metadata'sına alan bırakırken recursive kopya maliyetini sınırlayan açık domain sınırlarıdır. Otomatik kırpma, geçmiş silme, sıkıştırma veya CNC/üretim güvenliği iddiası yoktur; gerçek proje kullanım ölçümleri arttıkça limitler ayrı bir ürün kararıyla gözden geçirilebilir.
 
 **Sonraki 3–5 küçük görev**
-1. DOM-150: doğrudan project-v2 history read/restore API'sinde aynı kaynak sınırlarını uygula; JSON v1 legacy okumasını koru.
+1. DOM-151: ana proje parser/save-load akışında quote-history extension ve unknown envelope metadata round-trip sadakatini doğrula; JSON v1 uyumluluğunu koru.
 2. DOM-143C-json: nested stock-sheet group comparison JSON round-trip — yalnızca gerçek specialist branch/PR ve sahiplik kanıtı geldiğinde.
 3. INT-002: JSON/CSV adapter geometry/quantity round-trip — Entegrasyon/Performans sahipliğinde.
-4. PERF-001: 2D/3D veri akışı için tekrarlanabilir baseline ve profiling — Entegrasyon/Performans sahipliğinde.
+4. PERF-001: 2D/3D veri akışı için tekrarlanabilir baseline ve profiling — uzman agent sahipliğinde.
 5. QA-003: INT-001/INT-002 kanıtı tamamlandıktan sonra uçtan uca export/data-flow denetimi.
+
+
+## DOM-150 — JSON v2 teklif geçmişi doğrudan okuma kaynak sınırları
+
+**Durum:** IMPLEMENTED — exact-SHA CI/QA/Pages verification pending.
+
+**Kullanıcı akışı:** Uygulama mevcut JSON v2 proje dosyasından teklif geçmişini doğrudan okur. Büyük, aşırı derin veya JSON dışı descriptor içeren zarf kısmi geçmiş üretmeden bloklanır.
+
+**Kabul kriterleri**
+- Read API, geçmiş doğrulamasından önce tam v2 zarfına 16 MiB UTF-8 JSON ve 64 nested object/array seviyesi limitlerini uygular.
+- Tam sınırlar kabul edilir; bir byte veya bir seviye aşımı fail-closed olur, `projectId: null` ve `history: null` döner, kaynak nesne değişmez.
+- Accessor getter çalıştırılmaz; JSON dışı descriptor'lar reddedilir.
+- Legacy v1, geçmiş alanı olmadan `legacy` sonucunu korur; v1 içine history extension eklenmişse reddedilir.
+- Mevcut v2 şeması, import sonucu ve standalone history 1 MiB / 2.000 revision limitleri değişmez. Import path zaten hedef ve merged envelope limitlerini uygular.
+- Internal append/import history validation, önceden güvenli biçimde clone edilmiş envelope için gereksiz ikinci kaynak taramasını atlar; final merged envelope kontrolü korunur.
+
+**Sınırlar ve riskler:** Bu API yalnızca quote-history extension'ını okur; tam room/furniture/material schema validation ana project parser'ına aittir. Otomatik kırpma, history silme, yeni schema version, CNC veya fiziksel üretim onayı eklenmez.

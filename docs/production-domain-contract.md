@@ -1383,3 +1383,13 @@ appendProjectQuoteRevisionToProjectFile yalnızca JSON olarak temsil edilebilen 
 - Yeni revizyon eklendikten veya standalone geçmiş içe aktarıldıktan sonra oluşan son proje zarfı aynı limitlerle yeniden doğrulanır. Aşımda status: blocked, project: null, history: null döner; giriş proje nesnesi değişmez ve kısmi çıktı üretilmez.
 - Standalone revizyon geçmişi JSON dosyasının 1 MiB sınırı ve geçmiş doğrulayıcısının 2.000 revizyon sınırı ayrıdır; proje zarfına 1 MiB sınırı uygulanmaz.
 - JSON v1 legacy okuma, v2 şema alanları, ölçü/miktar/teklif hesapları ve CNC/adapter sözleşmeleri değişmez.
+
+
+## DOM-150 — JSON v2 teklif geçmişi doğrudan okuma sınırları
+
+- `readProjectQuoteRevisionHistoryFromProjectFile`, v2 geçmişini doğrulamadan önce tüm proje zarfına DOM-149 ile aynı 16 MiB UTF-8 JSON boyut ve 64 nesne/dizi derinliği sınırını uygular.
+- Tam 16 MiB ve 64 seviye kabul edilir; bir byte veya bir seviye aşımı `blocked`, `projectId: null`, `history: null` ile sonuçlanır. Kaynak proje değiştirilmez ve kısmi geçmiş dönmez.
+- Okuma yolu da JSON olmayan descriptor'ları (accessor, sparse array, symbol ve gizli own alanlar) reddeder; getter çalıştırmaz.
+- JSON v1, `quoteRevisionHistory` alanı yoksa mevcut `legacy` sonucunu korur; v1 içine bu alan yazılmışsa mevcut fail-closed davranış sürer.
+- `importProjectQuoteRevisionHistoryFileIntoProject` zaten hedef zarfı güvenli derin kopyalayıp aynı sınırları uygular ve birleştirilmiş sonucu yeniden denetler; ayrı bir restore API veya şema sürümü eklenmez.
+- Bu sınır yalnızca teklif geçmişi uzantısının güvenli okuma/kopyalama maliyetini kapsar. Tam oda/mobilya/malzeme şema doğrulaması ana proje parser'ının sorumluluğundadır; CNC/makine uyumluluğu iddiası yoktur.

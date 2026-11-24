@@ -308,10 +308,10 @@ function inspectProjectEnvelope(value: unknown): ProjectEnvelopeInspection {
  * Reads only the quote-history extension from a project envelope.
  * Full room/furniture/material schema validation remains the project parser's responsibility.
  */
-export function readProjectQuoteRevisionHistoryFromProjectFile(
-  projectValue: unknown
+function readProjectQuoteRevisionHistoryFromEnvelope(
+  envelope: ProjectEnvelopeInspection,
+  enforceResourceLimits: boolean
 ): ProjectQuoteRevisionProjectFileReadResult {
-  const envelope = inspectProjectEnvelope(projectValue);
   if (envelope.status === "blocked") return blockedRead(envelope.diagnostics[0]);
   if (envelope.status === "legacy") {
     return Object.freeze({
@@ -320,6 +320,16 @@ export function readProjectQuoteRevisionHistoryFromProjectFile(
       history: null,
       diagnostics: Object.freeze([])
     });
+  }
+
+  if (enforceResourceLimits) {
+    try {
+      assertProjectEnvelopeResourceLimits(envelope.project);
+    } catch (error) {
+      return blockedRead(
+        error instanceof Error ? error.message : "Proje JSON v2 zarfı kaynak sınırları doğrulanamadı."
+      );
+    }
   }
 
   const hasHistory = Object.prototype.hasOwnProperty.call(
@@ -351,6 +361,16 @@ export function readProjectQuoteRevisionHistoryFromProjectFile(
 }
 
 /**
+ * Reads only the quote-history extension from a project envelope.
+ * Full room/furniture/material schema validation remains the project parser's responsibility.
+ */
+export function readProjectQuoteRevisionHistoryFromProjectFile(
+  projectValue: unknown
+): ProjectQuoteRevisionProjectFileReadResult {
+  return readProjectQuoteRevisionHistoryFromEnvelope(inspectProjectEnvelope(projectValue), true);
+}
+
+/**
  * Appends a validated revision to a v2 project envelope without mutating the input.
  * Legacy v1 files are intentionally rejected because they have no stable projectId.
  */
@@ -375,7 +395,7 @@ export function appendProjectQuoteRevisionToProjectFile(
     );
   }
 
-  const current = readProjectQuoteRevisionHistoryFromProjectFile(preservedProject);
+  const current = readProjectQuoteRevisionHistoryFromEnvelope(inspectProjectEnvelope(preservedProject), false);
   if (current.status === "blocked" || current.history === null) {
     return blockedAppend(
       current.diagnostics[0] ?? "Mevcut proje teklif revizyon geçmişi doğrulanamadı."
@@ -450,7 +470,7 @@ export function importProjectQuoteRevisionHistoryFileIntoProject(
     );
   }
 
-  const current = readProjectQuoteRevisionHistoryFromProjectFile(preservedProject);
+  const current = readProjectQuoteRevisionHistoryFromEnvelope(inspectProjectEnvelope(preservedProject), false);
   if (current.status === "blocked" || current.history === null) {
     return blockedImport(
       current.diagnostics[0] ?? "Mevcut proje teklif revizyon geçmişi doğrulanamadı."
