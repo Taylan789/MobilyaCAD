@@ -4,6 +4,9 @@ import {
 } from "./projectQuoteRevision.ts";
 
 export const PROJECT_QUOTE_REVISION_FILE_TYPE = "mobilyacad-quote-revision-history" as const;
+export const PROJECT_QUOTE_REVISION_HISTORY_FILE_MAX_BYTES = 1_048_576;
+
+const fileSizeLimitMessage = "Teklif revizyon geçmişi JSON dosyası 1 MiB UTF-8 boyut sınırını aşamaz.";
 
 export interface ProjectQuoteRevisionFileSerializationResult {
   status: "ready" | "empty" | "blocked";
@@ -12,6 +15,11 @@ export interface ProjectQuoteRevisionFileSerializationResult {
 }
 
 const envelopeKeys = new Set(["fileType", "schemaVersion", "history"]);
+
+function exceedsFileByteLimit(value: string): boolean {
+  if (value.length > PROJECT_QUOTE_REVISION_HISTORY_FILE_MAX_BYTES) return true;
+  return new TextEncoder().encode(value).byteLength > PROJECT_QUOTE_REVISION_HISTORY_FILE_MAX_BYTES;
+}
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -38,6 +46,7 @@ export function serializeProjectQuoteRevisionHistoryFile(historyValue: unknown):
       history: validated.history
     });
     if (typeof json !== "string") throw new Error("Teklif revizyon geçmişi JSON metnine dönüştürülemedi.");
+    if (exceedsFileByteLimit(json)) return blockedSerialization(fileSizeLimitMessage);
     return Object.freeze({ status: validated.status, json, diagnostics: Object.freeze([]) });
   } catch (error) {
     return blockedSerialization(error instanceof Error ? error.message : String(error));
@@ -47,6 +56,7 @@ export function serializeProjectQuoteRevisionHistoryFile(historyValue: unknown):
 /** Parses the standalone v1 envelope and revalidates every revision; unknown fields/versions are rejected. */
 export function parseProjectQuoteRevisionHistoryFile(jsonValue: unknown): ProjectQuoteRevisionHistoryResult {
   if (typeof jsonValue !== "string") return blockedParse("Teklif revizyon geçmişi dosyası JSON metni olmalıdır.");
+  if (exceedsFileByteLimit(jsonValue)) return blockedParse(fileSizeLimitMessage);
   let parsed: unknown;
   try {
     parsed = JSON.parse(jsonValue) as unknown;

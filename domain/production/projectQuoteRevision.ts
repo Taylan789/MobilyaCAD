@@ -58,6 +58,8 @@ const inputKeys = new Set([
   "pricingSnapshot",
   "sourceIntegrityVersion"
 ]);
+export const PROJECT_QUOTE_REVISION_HISTORY_MAX_REVISIONS = 2_000;
+
 const historyInputKeys = new Set(["schemaVersion", "projectId", "revisions"]);
 const appendInputKeys = new Set(["revisionId", "createdAt", "pricingSnapshot"]);
 const revisionEnvelopeKeys = new Set([
@@ -958,6 +960,11 @@ export function validateProjectQuoteRevisionHistory(value: unknown): ProjectQuot
     }
     const projectId = requireIdentifier(value.projectId, "Geçmiş proje kimliği");
     if (!Array.isArray(value.revisions)) throw new Error("Teklif revizyon geçmişi revisions dizisi içermelidir.");
+    if (value.revisions.length > PROJECT_QUOTE_REVISION_HISTORY_MAX_REVISIONS) {
+      throw new Error(
+        "Teklif revizyon geçmişi en fazla " + PROJECT_QUOTE_REVISION_HISTORY_MAX_REVISIONS + " revizyon içerebilir."
+      );
+    }
     if (value.revisions.length === 0) {
       return deepFreeze({
         status: "empty" as const,

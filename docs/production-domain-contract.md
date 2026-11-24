@@ -476,6 +476,7 @@ Kaynak: `domain/production/projectQuoteSummary.ts`, `domain/production/projectQu
 Kaynak: domain/production/projectQuoteRevision.ts, validateProjectQuoteRevisionHistory.
 
 - Girdi projectId ve kronolojik sırada revisions dizisidir. Dizi sıralanmaz, eksik kayıt tamamlanmaz veya zincir otomatik onarılmaz.
+- Kaynak zinciri en fazla `PROJECT_QUOTE_REVISION_HISTORY_MAX_REVISIONS = 2.000` kayıt kabul eder. Sınır aşıldığında geçmiş bütünüyle blocked ve `history: null` olur; kayıt kırpılmaz veya kısmi sonuç üretilmez. Bu bir arşivleme/retention özelliği değildir.
 - Boş dizi empty, doğrulanmış geçmiş ready, bozuk kayıt veya zincir blocked döndürür. Blocked sonucunda kısmi geçmiş sunulmaz.
 - Her kayıt schemaVersion 1, aynı projectId, benzersiz revisionId, 1'den başlayan kesintisiz revisionNumber ve önceki kayda tam eşit previousRevisionId taşımalıdır.
 - Her revizyonun oluşturulma zamanı önceki revizyondan kesin olarak sonra olmalıdır. Önceki snapshot doğrulaması createProjectQuoteRevision ile yeniden yapılır; yalnızca hazır ve tutarlı maliyet snapshot'ları kabul edilir.
@@ -527,6 +528,8 @@ Kaynak: domain/production/projectQuoteRevisionFile.ts.
 - serializeProjectQuoteRevisionHistoryFile(history) önce mevcut aggregate doğrulayıcısını çalıştırır. Yalnızca ready veya empty geçmiş için fileType "mobilyacad-quote-revision-history", schemaVersion 1 zarfı üretir; blocked geçmişte JSON metni ve kısmi kayıt döndürmez.
 - parseProjectQuoteRevisionHistoryFile(json) yalnızca JSON metni kabul eder. Dosya türü, dosya sürümü ve zarf alanları kapalı şemayla doğrulanır; bilinmeyen alan veya desteklenmeyen sürüm reddedilir.
 - Zarf içindeki geçmiş yeniden validateProjectQuoteRevisionHistory üzerinden doğrulanır. Proje kimliği, revizyon ID tekilliği, kesintisiz sıra, previousRevisionId zinciri, kronoloji ve her maliyet snapshot'ının satır/kategori/genel toplam tutarlılığı korunur.
+- Serializer ve parser UTF-8 byte uzunluğunu ölçerek `PROJECT_QUOTE_REVISION_HISTORY_FILE_MAX_BYTES = 1.048.576` (1 MiB) sınırını uygular. Parser bu kontrolü `JSON.parse` öncesinde yapar; serializer sınırı aşan çıktıda `json: null`, parser ise `history: null` ile blocked döndürür. UTF-16 string uzunluğu byte sayısı yerine kullanılmaz.
+- Bu kaynak sınırları schemaVersion 1'i değiştirmez ve veriyi sessizce kırpmaz; 2.000 revizyondan veya 1 MiB dosya boyutundan büyük geçmişler açık hata ile reddedilir.
 - Eski v1 geçmişlerinde iç history.schemaVersion alanının bulunmaması mevcut doğrulayıcıyla geriye uyumludur; serializer yeniden dışa aktarırken sürüm 1 alanını kanonik biçimde yazar. Boş geçmiş empty durumuyla round-trip eder.
 - Bu, mevcut proje JSON v1 dosyasına gömülü bir alan değildir; teklif geçmişi için ayrı ve taşınabilir bir JSON zarfıdır. Frontend, mevcut proje dosyası entegrasyonu, otomatik kayıt, atomik disk yazımı, eşzamanlılık kilidi ve yedekleme bu dilimin kapsamı dışındadır.
 - CNC, fiziksel üretim, fiyat kaynağının gerçekliği, kur dönüşümü veya ticari varsayım üretmez.

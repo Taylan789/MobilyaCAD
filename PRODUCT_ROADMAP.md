@@ -1509,10 +1509,11 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 **Kabul kanıtı:** Karışık stok grubu + hardware satır değişikliği, stock-only boş quote, üst/alt toplam uzlaşması, immutable sonuç ve input immutability için iki yeni domain regresyon testi. Fiziksel levha verimi/CNC/atölye doğrulaması kapsam dışıdır.
 
 **Sıradaki 3–5 küçük görev**
-1. DOM-145: teklif revizyon geçmişi boyut/performance sınırlarını ve fail-closed import/export davranışını doğrula.
-2. INT-002 / DOM-143C-json: stok grubu farklarını JSON comparison schema'sına geriye uyumlu ekle ve v1 reader'ı koru — yalnızca gerçek uzman branch/PR ve dosya sahipliği doğrulanırsa.
+1. DOM-146: revizyon zinciri kaynak/önceki-revizyon bağlantılarının import ve geri yükleme sırasında tutarlılığını denetle.
+2. DOM-143C-json / INT-002: stock-sheet group comparison alanlarını JSON comparison şemasına geriye uyumlu ekle; yalnızca doğrulanmış uzman branch/PR ve dosya sahipliği varsa.
 3. DOM-143D: CSV'de deterministik stock-sheet group rows ve Part/source-reference provenance deltas — adapter sahibi kapsamı; uzman sahiplik kanıtı olmadan bu dosyalara dokunma.
-4. DOM-146: revizyon zinciri kaynak/önceki-revizyon bağlantılarının import ve geri yükleme sırasında tutarlılığını denetle.
+4. PERF-001: ölçülebilir 2D/3D baseline ve profiling; yalnızca entegrasyon/performance uzmanının sahiplenilmiş dosyalarında.
+5. QA-003: INT-001 ve INT-002 kanıtları tamamlandığında uçtan uca export/data-flow denetimi.
 
 
 **DOM-143C-domain QA düzeltme notu — 24 Kasım 2026**
@@ -1561,3 +1562,18 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 - QA: 221/221 unit + 716/716 shared-domain tests; strict domain TypeScript, lint, production build and production dependency audit (0 production vulnerabilities).
 - Test site deployed from the verified correction SHA: https://taylan789.github.io/MobilyaCAD/.
 - The initial implementation SHA 65060046 was not deployed because one test expectation was wrong; the correction changed only the expected unchanged Part count from 2 to 3. No tests were removed or weakened.
+
+
+## DOM-145 — Bounded quote revision history and fail-closed JSON limits
+
+**Status:** Implementation committed; exact-SHA CI, QA and Pages verification pending.
+
+**User flow:** A project or standalone history import/export can carry a long quote-revision chain without allowing unbounded validation work or oversized JSON payloads to be accepted or emitted.
+
+**Acceptance criteria**
+- Validate no more than 2,000 revisions in one history; over-limit input returns `blocked`, `history: null` and a diagnostic before per-revision snapshot validation begins.
+- Enforce a 1 MiB UTF-8 byte limit on standalone quote-history JSON serialization and parsing; parser checks the byte limit before JSON parsing.
+- A blocked export returns `json: null`; a blocked import returns `history: null`. No prefix, partial history, truncation or automatic repair is returned.
+- Preserve v1 schema shape and all existing histories within the documented resource limits; test multi-byte UTF-8 strings where JS string length is smaller than encoded byte length.
+
+**Boundaries and risks:** The limits are explicit resource guards, not history pruning, compression, retention, archive splitting or automatic persistence. Project-v2 embedded history inherits the revision-count limit through the shared validator. JSON/CSV stock-sheet comparison serializers remain specialist-owned and fail-closed; this task does not alter them. No frontend, CNC/machine or physical-production claim is implied.

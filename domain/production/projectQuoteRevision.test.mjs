@@ -13,11 +13,13 @@ import {
   calculateProjectQuoteRevisionSourceIntegrityAudit,
   compareProjectQuoteRevisionSourceMaps,
   createProjectQuoteRevision,
+  PROJECT_QUOTE_REVISION_HISTORY_MAX_REVISIONS,
   validateProjectQuoteRevisionHistory
 } from "./projectQuoteRevision.ts";
 import {
   parseProjectQuoteRevisionHistoryFile,
   PROJECT_QUOTE_REVISION_FILE_TYPE,
+  PROJECT_QUOTE_REVISION_HISTORY_FILE_MAX_BYTES,
   serializeProjectQuoteRevisionHistoryFile
 } from "./projectQuoteRevisionFile.ts";
 import {
@@ -553,6 +555,16 @@ test("boş revizyon geçmişi empty durumunu korur ve kayıt üretmez", () => {
   const result = validateProjectQuoteRevisionHistory({ projectId: "project-42", revisions: [] });
   assert.equal(result.status, "empty");
   assert.deepEqual(result.history?.revisions, []);
+});
+
+test("revizyon geçmişi 2.000 kayıt sınırını aşınca kısmi geçmiş döndürmeden engellenir", () => {
+  const result = validateProjectQuoteRevisionHistory({
+    projectId: "project-42",
+    revisions: Array.from({ length: PROJECT_QUOTE_REVISION_HISTORY_MAX_REVISIONS + 1 }, () => ({}))
+  });
+  assert.equal(result.status, "blocked");
+  assert.equal(result.history, null);
+  assert.match(result.diagnostics[0], new RegExp(String(PROJECT_QUOTE_REVISION_HISTORY_MAX_REVISIONS)));
 });
 
 test("revizyon geçmişinde yinelenen kimlikler reddedilir", () => {
@@ -1101,6 +1113,23 @@ test("bozuk JSON, yanlış dosya türü, bilinmeyen alan ve desteklenmeyen sür�
   assert.equal(nonText.status, "blocked");
 });
 
+
+test("teklif revizyon geçmişi JSON import/export 1 MiB UTF-8 sınırını aşınca fail-closed kalır", () => {
+  const history = createTwoRevisionHistory();
+  const firstLine = history.revisions[0].pricingSnapshot.quoteSummary.costSummary.lines[0];
+  firstLine.description = "é".repeat(Math.floor(PROJECT_QUOTE_REVISION_HISTORY_FILE_MAX_BYTES / 2) + 1);
+  const serialized = serializeProjectQuoteRevisionHistoryFile(history);
+  assert.equal(serialized.status, "blocked");
+  assert.equal(serialized.json, null);
+  assert.match(serialized.diagnostics[0], /1 MiB UTF-8/);
+  const oversizedJson = JSON.stringify({ fileType: PROJECT_QUOTE_REVISION_FILE_TYPE, schemaVersion: 1, history });
+  assert.ok(oversizedJson.length < PROJECT_QUOTE_REVISION_HISTORY_FILE_MAX_BYTES);
+  assert.ok(new TextEncoder().encode(oversizedJson).byteLength > PROJECT_QUOTE_REVISION_HISTORY_FILE_MAX_BYTES);
+  const parsed = parseProjectQuoteRevisionHistoryFile(oversizedJson);
+  assert.equal(parsed.status, "blocked");
+  assert.equal(parsed.history, null);
+  assert.match(parsed.diagnostics[0], /1 MiB UTF-8/);
+});
 
 test("DOM-060 yeni revizyonlarda kaynak satır eşlemesi eksik veya yinelenen olamaz", () => {
   const missingLineMapping = createSnapshot();
