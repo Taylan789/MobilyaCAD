@@ -297,3 +297,28 @@
     color: CanvasText !important;
   }
 }
+
+
+/* Compact desktop inspector rail: preserve the two-column empty state at 761–900px. */
+@media (min-width: 761px) and (max-width: 900px) {
+  .cad-app .cad-inspector .cad-inspector-empty {
+    grid-template-columns: 30px minmax(0, 1fr) !important;
+    gap: 3px 8px !important;
+    min-height: 76px;
+    margin: 10px 1px !important;
+    padding: 9px 10px !important;
+  }
+
+  .cad-app .cad-inspector .cad-inspector-empty > div {
+    width: 30px !important;
+    height: 30px !important;
+  }
+
+  .cad-app .cad-inspector .cad-inspector-empty > strong {
+    font-size: 9px;
+  }
+
+  .cad-app .cad-inspector .cad-inspector-empty > p {
+    font-size: 7.5px;
+  }
+}
