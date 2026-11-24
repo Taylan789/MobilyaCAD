@@ -1448,7 +1448,7 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 
 ## DOM-143A — Stock-sheet source-map audit (first vertical slice)
 
-**Status:** Implementation commit f0209200 passed CI; QA found one outdated project-file assertion (707/708 domain tests). The follow-up updates the assertion to verify the new ready audit; exact-SHA CI/QA/Pages verification is pending.
+**Status:** Verified on 12687c9b. CI and production build passed; QA passed 211/211 unit tests and 708/708 domain tests, type-check, lint and production dependency audit; exact-SHA Pages deployment passed. The earlier stale project-file assertion was corrected without weakening tests.
 
 - The revision audit reports stock-sheet purchase groups independently from quote cost lines, including explicit material/thickness, Part provenance, sheet count, unit price, group cost, currency and optional price reference.
 - Per-revision and project totals distinguish stock-sheet Part references from line-source Part references and deduplicate unique Part IDs across revisions.
@@ -1460,4 +1460,4 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 2. DOM-143C: add backward-compatible JSON comparison serialization/parsing for stock-sheet group changes while retaining legacy comparison file versions.
 3. DOM-143D: add CSV group rows and source-map provenance comparison; preserve Part IDs and explicit source references.
 
-**Acceptance:** Exact-SHA CI, QA, type-check, lint, production build and Pages must pass for each published slice. No machine-specific CNC or nesting optimization claim is implied.
+**Acceptance:** Exact-SHA CI, QA, type-check, lint, production build and Pages must pass for each published slice. DOM-143A has passed all of these gates on 12687c9b. No machine-specific CNC or nesting optimization claim is implied.

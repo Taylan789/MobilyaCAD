@@ -722,6 +722,17 @@
 - QA evidence: the source-map implementation and its two new domain tests passed; the only failure was the older project-file integration assertion at `projectQuoteRevisionProjectFile.test.mjs:680`, which still expected the audit to be blocked.
 - Updated that integration test to require a ready audit and verify the persisted stock-sheet group, explicit Part ID, separate line count and project-level unique-Part count. Revision comparison remains intentionally blocked.
 - Changed files: `domain/production/projectQuoteRevisionProjectFile.test.mjs`, `AI_PROGRESS.md`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `docs/production-domain-contract.md`.
-- Follow-up commit SHA: pending GitHub commit response; exact-SHA CI/QA/Pages verification pending.
+- Follow-up test correction commit: [12687c9b](https://github.com/Taylan789/MobilyaCAD/commit/12687c9b2fb6c7a9623cbdea0f604a6ff8aeb66c); CI [45336610959](https://github.com/Taylan789/MobilyaCAD/actions/runs/45336610959), QA [45336611027](https://github.com/Taylan789/MobilyaCAD/actions/runs/45336611027) and Pages [45336610985](https://github.com/Taylan789/MobilyaCAD/actions/runs/45336610985) all passed.
 - The failed-QA SHA was not deployed; Pages is re-triggered from the follow-up commit and must pass its exact-SHA CI/QA gate.
 - Next: verify the follow-up SHA; only after all gates pass proceed to DOM-143B group-aware revision comparison.
+
+
+## 24 Kasım 2026 08:50 TRT — DOM-143A verified
+- Final code/test commit: [12687c9b2fb6c7a9623cbdea0f604a6ff8aeb66c](https://github.com/Taylan789/MobilyaCAD/commit/12687c9b2fb6c7a9623cbdea0f604a6ff8aeb66c).
+- CI [45336610959](https://github.com/Taylan789/MobilyaCAD/actions/runs/45336610959): success; production TypeScript build and lint passed.
+- QA [45336611027](https://github.com/Taylan789/MobilyaCAD/actions/runs/45336611027): success; 211/211 unit tests, 708/708 shared-domain tests, shared-domain type-check, lint, production build and production dependency audit passed; 0 vulnerabilities reported by the configured audit.
+- Pages [45336610985](https://github.com/Taylan789/MobilyaCAD/actions/runs/45336610985): success; exact-SHA CI/QA gate, site build, artifact upload and deployment passed.
+- Test site: https://taylan789.github.io/MobilyaCAD/ — deployed from the verified follow-up SHA.
+- The initial DOM-143A commit f0209200 passed CI but QA caught one stale project-file assertion; the failed SHA was not deployed. Commit 12687c9b updated the integration assertion and all exact-SHA gates passed.
+- DOM-143 remains IN PROGRESS: stock-sheet revision comparison and backward-compatible JSON/CSV group-delta output are not implemented yet.
+- Next: DOM-143B group-aware revision comparison, keeping unsupported/ambiguous group identity changes fail-closed.
