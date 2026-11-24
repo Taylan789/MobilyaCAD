@@ -896,3 +896,14 @@
 - QA kanıtı: 225/225 frontend unit + 722/722 domain test; iki DOM-147 regresyonu geçti; strict TypeScript, lint 34 warnings/0 errors, production build ve production dependency audit (0 vulnerabilities) başarılı. CI build/lint ve Pages build/deploy de başarılı. Yerel test runner kullanılmadı; Actions authoritative doğrulama kaynağıdır.
 - Bilinen sınırlar: frontend/**, JSON/CSV comparison adapter, benchmark, CNC/makine çıktısı ve `main` değiştirilmedi. Integration/Performance specialist branch/job doğrulanmadı; INT-002/PERF-001 uzman sahipliğinde kalıyor. AI Developer #45338253254 OpenRouter free-model günlük kotası HTTP 429 nedeniyle başarısız; kota reseti bekleniyor, rerun/ücretli fallback/secrets değişikliği yapılmadı.
 - Sonraki görev: DOM-148 adversarial project-envelope JSON sınır testleri; ardından yalnızca gerçek uzman sahipliği ve round-trip kanıtı geldiğinde DOM-143C-json/INT-002 adapter işi.
+
+
+## 24 Kasım 2026 17:31 TRT — DOM-148 implementation (verification pending)
+
+- Base dev/github-work HEAD: c634f236952ec0af563cd9c59ec7b5593b2e83ac; current branch ref and all five target blob SHAs were re-read immediately before creating the commit. No queued/in-progress Actions run existed.
+- Added four adversarial regressions around the existing cloneAndFreezeJsonValue boundary: safe own __proto__ preservation with null-prototype records; sparse-array rejection; object/array accessor rejection without getter execution; and symbol/non-enumerable property rejection on objects and arrays.
+- The implementation already contains the required fail-closed guards; this slice adds missing executable coverage rather than changing production behavior or weakening existing assertions.
+- Changed files: domain/production/projectQuoteRevisionProjectFileImportImmutability.test.mjs, docs/production-domain-contract.md, AI_COORDINATION.md, PRODUCT_ROADMAP.md, AI_PROGRESS.md.
+- Exact implementation commit SHA and CI/QA/Pages run results will be recorded after GitHub Actions completes; no local test runner was used.
+- Known limits: no frontend, JSON/CSV comparison adapter, benchmark-owned file, CNC/machine output, secrets/settings or main changes. Integration/Performance specialist branch/PR remains unverified; INT-002/PERF-001 stay specialist-owned.
+- Next: DOM-149 — assess explicit project-envelope size/depth resource guards without changing the existing standalone-history 1 MiB limit.

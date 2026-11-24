@@ -1362,3 +1362,15 @@ This is source-group ownership evidence only; it does not claim that the saved g
 - Döngüsel veya JSON dışı değer içeren proje zarfı `blocked`, `project: null` ve `history: null` döndürür; kısmi proje üretilmez ve giriş nesnesi değiştirilmez.
 - Kabul: nested object/array referansları girişten ayrıdır; çıktıdaki iç içe nesneler ve diziler frozen durumdadır; değişiklik girişe yayılmaz; geçersiz zarf fail-closed kalır.
 - Bu değişiklik proje JSON v2 şemasını, mm/adet hesaplarını, teklif aritmetiğini, geometriyi, export adapter'larını veya CNC/makine uyumluluğunu değiştirmez. Derin kopya maliyeti proje zarfı boyutuyla doğrusal orantılıdır.
+
+
+## DOM-148 — JSON v2 append zarfı descriptor sınırı
+
+appendProjectQuoteRevisionToProjectFile yalnızca JSON olarak temsil edilebilen veri ağacını yeni immutable proje snapshot'ına alır.
+
+- Düz kayıtlar hem Object.prototype hem de null prototype ile kabul edilir; çıktı kayıtları güvenli normal JSON nesneleridir.
+- Own __proto__ alanı prototype değiştiricisi değil, korunması gereken sıradan bir veri anahtarıdır.
+- Diziler yoğun olmalıdır; sparse index, accessor, symbol veya enumerable olmayan ek alan içeren dizi reddedilir.
+- Nesnelerde accessor, symbol ve enumerable olmayan own alan reddedilir; getter çalıştırılarak değer okunmaz.
+- Reddedilen append status: blocked, project: null, history: null döndürür; kaynak proje ve özel zarf referansları değiştirilmez.
+- Bu sözleşme JSON şema sürümünü değiştirmez, alanları otomatik düzeltmez ve kısmi snapshot üretmez. Fiziksel üretim veya CNC uyumluluğu iddiası taşımaz.

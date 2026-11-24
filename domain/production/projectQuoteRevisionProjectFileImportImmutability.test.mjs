@@ -230,3 +230,142 @@ test("DOM-081 import rejects non-JSON or cyclic target envelope without partial 
   assert.strictEqual(cyclicTarget.customEnvelope, cycleBefore);
   assert.equal("quoteRevisionHistory" in cyclicTarget, false);
 });
+
+
+test("DOM-148 append preserves null-prototype records and treats __proto__ as ordinary JSON data", () => {
+  const customEnvelope = Object.create(null);
+  const protoPayload = { safe: true, nested: { value: 7 } };
+  Object.defineProperty(customEnvelope, "__proto__", {
+    value: protoPayload,
+    enumerable: true,
+    configurable: true,
+    writable: true
+  });
+  const nullPrototypeNested = Object.create(null);
+  nullPrototypeNested.label = "preserved";
+  customEnvelope.nested = nullPrototypeNested;
+
+  const project = createV2Project({ customEnvelope });
+  const appended = appendProjectQuoteRevisionToProjectFile(project, {
+    revisionId: "dom-148-proto-key",
+    createdAt: "2026-11-24T17:30:00+03:00",
+    pricingSnapshot: snapshotResult.snapshot
+  });
+
+  assert.equal(appended.status, "ready", appended.diagnostics.join(" | "));
+  assert.ok(appended.project);
+  const copied = appended.project.customEnvelope;
+  assert.ok(Object.hasOwn(copied, "__proto__"));
+  assert.deepEqual(copied["__proto__"], protoPayload);
+  assert.notStrictEqual(copied["__proto__"], protoPayload);
+  assert.notStrictEqual(copied["__proto__"].nested, protoPayload.nested);
+  assert.equal(Object.getPrototypeOf(copied), Object.prototype);
+  assert.equal(Object.getPrototypeOf(copied.nested), Object.prototype);
+  assert.equal(Object.getPrototypeOf(customEnvelope), null);
+  assert.equal(Object.getPrototypeOf(nullPrototypeNested), null);
+  assert.ok(Object.isFrozen(copied["__proto__"]));
+  assert.ok(Object.isFrozen(copied.nested));
+  assert.equal("quoteRevisionHistory" in project, false);
+});
+
+test("DOM-148 append blocks sparse arrays without returning a partial project", () => {
+  const sparse = new Array(2);
+  sparse[1] = { id: "second-only" };
+  const project = createV2Project({ customEnvelope: { sparse } });
+  const result = appendProjectQuoteRevisionToProjectFile(project, {
+    revisionId: "dom-148-sparse-array",
+    createdAt: "2026-11-24T17:30:00+03:00",
+    pricingSnapshot: snapshotResult.snapshot
+  });
+
+  assert.equal(result.status, "blocked");
+  assert.equal(result.project, null);
+  assert.equal(result.history, null);
+  assert.match(result.diagnostics.join(" | "), /JSON dışı dizi alanı/);
+  assert.equal(sparse.length, 2);
+  assert.equal(0 in sparse, false);
+  assert.deepEqual(Object.keys(sparse), ["1"]);
+  assert.equal("quoteRevisionHistory" in project, false);
+  assert.strictEqual(project.customEnvelope.sparse, sparse);
+});
+
+test("DOM-148 append rejects object and array accessors without invoking getters", () => {
+  let getterCalls = 0;
+  const objectWithAccessor = {};
+  Object.defineProperty(objectWithAccessor, "computed", {
+    enumerable: true,
+    configurable: true,
+    get() {
+      getterCalls += 1;
+      return "must-not-be-read";
+    }
+  });
+
+  const arrayWithAccessor = [];
+  Object.defineProperty(arrayWithAccessor, "0", {
+    enumerable: true,
+    configurable: true,
+    get() {
+      getterCalls += 1;
+      return "must-not-be-read";
+    }
+  });
+  arrayWithAccessor.length = 1;
+
+  for (const [index, customEnvelope] of [objectWithAccessor, { values: arrayWithAccessor }].entries()) {
+    const project = createV2Project({ customEnvelope });
+    const result = appendProjectQuoteRevisionToProjectFile(project, {
+      revisionId: `dom-148-accessor-${index}`,
+      createdAt: "2026-11-24T17:30:00+03:00",
+      pricingSnapshot: snapshotResult.snapshot
+    });
+    assert.equal(result.status, "blocked");
+    assert.equal(result.project, null);
+    assert.equal(result.history, null);
+    assert.match(result.diagnostics.join(" | "), /JSON dışı (nesne|dizi) alanı/);
+    assert.equal("quoteRevisionHistory" in project, false);
+  }
+
+  assert.equal(getterCalls, 0);
+});
+
+test("DOM-148 append rejects symbol and non-enumerable object/array properties", () => {
+  const secret = Symbol("private");
+  const objectWithSymbol = { visible: true };
+  objectWithSymbol[secret] = "hidden";
+  const objectWithHiddenProperty = { visible: true };
+  Object.defineProperty(objectWithHiddenProperty, "hidden", {
+    value: "not-json",
+    enumerable: false
+  });
+
+  const arrayWithSymbol = ["visible"];
+  arrayWithSymbol[secret] = "hidden";
+  const arrayWithHiddenProperty = ["visible"];
+  Object.defineProperty(arrayWithHiddenProperty, "hidden", {
+    value: "not-json",
+    enumerable: false
+  });
+
+  const invalidValues = [
+    objectWithSymbol,
+    objectWithHiddenProperty,
+    { values: arrayWithSymbol },
+    { values: arrayWithHiddenProperty }
+  ];
+
+  for (const [index, customEnvelope] of invalidValues.entries()) {
+    const project = createV2Project({ customEnvelope });
+    const result = appendProjectQuoteRevisionToProjectFile(project, {
+      revisionId: `dom-148-descriptor-${index}`,
+      createdAt: "2026-11-24T17:30:00+03:00",
+      pricingSnapshot: snapshotResult.snapshot
+    });
+    assert.equal(result.status, "blocked");
+    assert.equal(result.project, null);
+    assert.equal(result.history, null);
+    assert.match(result.diagnostics.join(" | "), /JSON dışı (nesne|dizi) alanı/);
+    assert.strictEqual(project.customEnvelope, customEnvelope);
+    assert.equal("quoteRevisionHistory" in project, false);
+  }
+});

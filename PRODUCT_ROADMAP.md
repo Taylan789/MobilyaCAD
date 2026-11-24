@@ -1315,7 +1315,7 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - [ ] Production: canonical Part tree, material/edge-band/hardware/waste, nesting/cost and export reconciliation.
 - [ ] UX: functional controls, clear navigation, accessibility, responsive states and recovery.
 - [ ] Performance: repeatable viewport/bundle/memory baseline with measured improvements.
-- [ ] Reliability: typed validation, backward-compatible project schemas, lossless import/export and exact-SHA CI/QA evidence.
+- [ ] Reliability: typed validation, backward-compatible project schemas, lossless import/export and exact-SHA CI/QA evidence; DOM-148 adds adversarial coverage for safe `__proto__` data keys, null-prototype records, dense arrays and fail-closed descriptors (verification pending).
 - [ ] Physical production: operator and machine-standard verification remains separate from automated checks.
 
 ## Current domain queue — 23 November 2026
@@ -1613,3 +1613,25 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 3. INT-002: JSON/CSV adapter round-trip ve miktar/geometri sadakati testleri — uzman agent sahipliğinde.
 4. PERF-001: 2D/3D veri akışında tekrarlanabilir baseline ve profiling — uzman agent sahipliğinde.
 5. QA-003: INT-001 ve INT-002 kanıtı tamamlandığında uçtan uca export/data-flow denetimi.
+
+
+## DOM-148 — JSON v2 append zarfı adversarial sınırları
+
+**Durum:** Test kapsamı eklendi; exact-SHA CI, QA ve Pages doğrulaması bekleniyor.
+
+**Kullanıcı akışı:** Kullanıcı teklif revizyonunu JSON v2 proje dosyasına ekler. Sistem özel JavaScript nesne özelliklerini sessizce kaybetmeden veya getter çalıştırmadan ya güvenli JSON snapshot üretir ya da işlemi atomik olarak engeller.
+
+**Kabul kriterleri**
+- Null-prototype düz kayıtlar kabul edilir; own __proto__ anahtarı sıradan veri olarak korunur ve prototype pollution oluşturmaz.
+- Sparse array, object/array accessor, symbol ve enumerable olmayan own alanlar reddedilir.
+- Accessor getter'ları çalıştırılmaz; blocked sonuç project: null ve history: null verir, kaynak zarfı değiştirmez.
+- Legacy v1 ve JSON v2 şemaları değişmez; production behavior değişikliği yoktur.
+
+**Sınırlar:** Bu dilim test ve sözleşme sertleştirmesidir; serializer şeması, CNC çıktısı, makine standardı, malzeme/fiyat varsayımı veya fiziksel üretim onayı eklemez.
+
+**Sonraki 3–5 küçük görev**
+1. DOM-149: project-v2 append/import için maksimum zarf boyutu ve derinlik kaynak sınırlarını ölçüp açık, geriye uyumlu guard tasarla; mevcut 1 MiB standalone history sınırını proje dosyasına yanlışlıkla genelleme.
+2. DOM-143C-json: nested stock-sheet group comparison JSON schema/round-trip — yalnızca gerçek specialist branch/PR ve sahiplik kanıtı geldiğinde.
+3. INT-002: JSON/CSV adapter geometry/quantity round-trip — Entegrasyon/Performans sahipliğinde.
+4. PERF-001: 2D/3D veri akışı ölçümü — Entegrasyon/Performans sahipliğinde.
+5. QA-003: INT-001/INT-002 tamamlandıktan sonra uçtan uca export/data-flow denetimi.
