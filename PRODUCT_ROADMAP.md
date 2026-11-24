@@ -1367,7 +1367,7 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 - Code/test [commit 538c3bd46514de1b5e0aabd7dc1e8714bdda569c](https://github.com/Taylan789/MobilyaCAD/commit/538c3bd46514de1b5e0aabd7dc1e8714bdda569c); CI [#45298432627](https://github.com/Taylan789/MobilyaCAD/actions/runs/45298432627), QA [#45298432528](https://github.com/Taylan789/MobilyaCAD/actions/runs/45298432528), Pages [#45298432481](https://github.com/Taylan789/MobilyaCAD/actions/runs/45298432481) succeeded; test site https://taylan789.github.io/MobilyaCAD/.
 
 ## Current domain queue — 24 November 2026
-1. **DOM-140 IMPLEMENTED — verification pending:** explicit material-cost basis selector validates one chosen net-consumption or stock-sheet purchase summary; no double counting. DOM-141 quote integration is next.
+1. **DOM-140 FIX IN PROGRESS:** initial CI passed; QA exposed 2 test/validation issues (object-shaped missing-price issue list and immutable fixture mutation). Fix committed next; re-run CI/QA/Pages before DOM-141.
 2. **DOM-138 DEFERRED:** strict/legacy source-integrity comparison export compatibility; adapter ownership unavailable.
 3. **DOM-130 DEFERRED:** hardware BOM trace persistence/export/schema compatibility; adapter ownership unavailable.
 4. **QA-003 BLOCKED:** end-to-end import/export reconciliation until INT-001/INT-002 evidence exists.

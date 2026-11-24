@@ -225,9 +225,9 @@ export function calculateProjectMaterialCostBasisSummary(value: unknown): Projec
       if (report.status === "incomplete") {
         const required = safeCount(report.requiredLineCount, "Eksik net tüketim gerekli satır sayısı");
         safeCount(report.pricedLineCount, "Eksik net tüketim fiyatlı satır sayısı");
-        const missing = diagnostics(report.missingPrices, "Eksik net tüketim fiyat listesi");
+        if (!Array.isArray(report.missingPrices)) throw new Error("Eksik net tüketim fiyat listesi geçerli bir liste olmalıdır.");
         const messages = diagnostics(report.diagnostics, "Eksik net tüketim tanı listesi");
-        return incomplete(basis, messages.length ? messages : missing, required);
+        return incomplete(basis, messages.length ? messages : report.missingPrices.length ? ["Net tüketim fiyatları tamamlanmamıştır."] : [], required);
       }
       if (report.status !== "ready") throw new Error("Net tüketim raporu durumu desteklenmiyor.");
       return readyNetConsumption(report);

@@ -107,7 +107,7 @@ test("inconsistent material categories or grand totals are blocked", () => {
 });
 
 test("stock-sheet summary blocks inconsistent group unit cost instead of trusting totals", () => {
-  const report = stockSheetReport();
+  const report = structuredClone(stockSheetReport());
   report.result.groups[0].stockSheetCostMinor += 1;
   const result = calculateProjectMaterialCostBasisSummary(request("stock-sheet-purchase", report));
   assert.equal(result.status, "blocked");

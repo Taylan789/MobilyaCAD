@@ -628,3 +628,9 @@
 - Regression covers ready net consumption, a real nesting stock-cost report, incomplete/empty input, inconsistent totals, unsupported request fields, deterministic output and immutability.
 - Code commit SHA and exact-SHA CI/QA/Pages status pending. No frontend or adapter/performance-owned files changed; `main` untouched.
 - Next: DOM-141 quote integration remains separate and must preserve basis selection without double counting; DOM-138/DOM-130 remain adapter-owned/deferred.
+
+
+## 24 Kasım 2026 05:50 TRT — DOM-140 initial verification failure and correction
+- Initial code/test commit [92f361b9](https://github.com/Taylan789/MobilyaCAD/commit/92f361b9f01df1be96c064c4cf39cd045ebc7d09) CI passed, but QA domain tests reported **691 pass / 2 fail**: incomplete missing-price fixture used issue objects (the helper incorrectly required strings), and the stock-cost test attempted to mutate a frozen calculator output. Pages build passed, exact-SHA QA gate failed, deploy was skipped; test site was not updated.
+- Fix: accept missing-price issue records as a list while requiring string diagnostics; clone the immutable stock report before corrupting its test fixture. No test weakened.
+- Fix commit SHA and rerun results pending. No frontend or adapter/performance-owned files changed; `main` untouched. Next: verify corrected DOM-140 and then DOM-141 quote basis integration contract.

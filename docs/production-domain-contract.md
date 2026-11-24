@@ -1237,3 +1237,5 @@ The project JSON v2 quote-history wrapper is tested as an end-to-end consumer of
 - Stock-sheet-purchase basis extracts only validated group purchase totals from the stock-cost summary. Group currency, sheet count × explicit price, source Part IDs, and group/project totals are reconciled.
 - Empty selected source returns zero; incomplete/blocked sources return no monetary amount. Unknown request fields, invalid schema/basis, inconsistent or unsafe totals fail closed.
 - This is a selector contract, not quote integration. DOM-141 must carry the chosen basis into the quote contract and must never double-count net area and stock-sheet purchase.
+
+- Initial QA on commit 92f361b9 passed frontend CI and Pages build but failed 2 domain tests (incomplete-price list validation and frozen test fixture mutation); corrected fix verification pending. No deployment was made from that failed gate.
