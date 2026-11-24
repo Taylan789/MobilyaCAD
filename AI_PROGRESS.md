@@ -641,3 +641,14 @@
 - Exact-SHA CI [#45315954884](https://github.com/Taylan789/MobilyaCAD/actions/runs/45315954884), QA [#45315954813](https://github.com/Taylan789/MobilyaCAD/actions/runs/45315954813), and Pages [#45315954792](https://github.com/Taylan789/MobilyaCAD/actions/runs/45315954792) succeeded. QA: **204 frontend + 693 domain tests**, strict domain TypeScript, production build, lint **34 warnings / 0 errors**, production audit **0 vulnerabilities**. Pages deployment confirmed at https://taylan789.github.io/MobilyaCAD/.
 - First attempt [92f361b9](https://github.com/Taylan789/MobilyaCAD/commit/92f361b9f01df1be96c064c4cf39cd045ebc7d09) had CI success but QA 691/693 and Pages gate failed; the two test issues were fixed without weakening tests. No frontend, adapter/performance-owned files, CNC/machine output or `main` changes.
 - Next: DOM-141 versioned quote integration carrying the selected material basis; DOM-138/DOM-130 remain adapter-owned/deferred. QA-003 stays blocked on INT-001/INT-002 evidence.
+
+
+## 24 Kasım 2026 07:23 TRT — DOM-141 first verification and scope correction
+- Feature commit: `890f7872ab71e382d190feeaff3f8b5ba2b15e07` — [commit](https://github.com/Taylan789/MobilyaCAD/commit/890f7872ab71e382d190feeaff3f8b5ba2b15e07).
+- Changed in feature commit: `domain/production/projectPricedConsumption.ts`, `domain/production/projectQuoteSummary.ts`, `domain/production/projectMaterialCostBasis.ts`, `domain/production/projectMaterialCostBasis.test.mjs`, `docs/production-domain-contract.md`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`.
+- Exact-SHA CI: **success** ([45326042764](https://github.com/Taylan789/MobilyaCAD/actions/runs/45326042764)); frontend production build and lint completed successfully.
+- Exact-SHA QA: **failure** ([45326042829](https://github.com/Taylan789/MobilyaCAD/actions/runs/45326042829)); shared domain suite reported 64 failures from one `ReferenceError` scope regression. 558/622 tests passed; no tests were removed or weakened. Domain type-check, QA lint/build and audit were skipped after the test step failed.
+- Pages: build artifact succeeded, but gate failed and deploy job was skipped ([45326042849](https://github.com/Taylan789/MobilyaCAD/actions/runs/45326042849)); test site was not updated.
+- Follow-up correction: shared cost arrays/counters and thickness lookup now sit outside the optional panel-price block; only panel net-area line generation is conditional. Fix commit SHA and its Actions results are pending.
+- Known external blocker: AI Developer run [45322819775](https://github.com/Taylan789/MobilyaCAD/actions/runs/45322819775) hit OpenRouter free daily quota HTTP 429, remaining 0; reset timestamp resolves to 25 Nov 2026 03:00 TRT. No rerun, paid credits, secret or quota setting changed.
+- Next: verify the scope fix on a new SHA; only then persist selected basis/provenance into a backward-compatible quote pricing snapshot.

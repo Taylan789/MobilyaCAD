@@ -1391,3 +1391,11 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 - Regression tests cover net/stock modes, edge-band preservation, panel-only stock quote, empty projects, provenance mismatch and currency mismatch.
 - Exact-SHA CI/QA/Pages verification pending. No test-site update is claimed until the deployment run succeeds.
 - Next: persist the selected basis and stock-group provenance in a backward-compatible quote pricing snapshot/revision extension; keep legacy v1 snapshots readable.
+
+
+### DOM-141 first verification and correction — 24 Kasım 2026 07:23 TRT
+
+- Commit `890f787`: CI/build/lint passed; QA shared-domain suite failed 64/622 due to a scope error in the new panel-pricing mode. The failing branch placed shared accumulators inside the optional panel-material block.
+- Test-site Pages artifact build passed, but the required same-SHA CI+QA gate failed and the deploy job was skipped. No broken version was published.
+- Follow-up fix keeps cost accumulators, hardware/edge-band pricing and counters available in both panel modes; only panel material line creation is conditional. All original tests remain enabled.
+- DOM-141 remains unverified until the follow-up SHA passes full QA, domain type-check, production build, audit and Pages deployment.

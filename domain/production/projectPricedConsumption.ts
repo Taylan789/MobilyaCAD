@@ -424,22 +424,22 @@ export function calculateProjectPricedConsumptionSummary(
   }
 
   const materialThicknessesById = new Map<string, Set<number>>();
+  for (const material of materialSummaries) {
+    if (material.materialId === undefined) continue;
+    const thicknesses = materialThicknessesById.get(material.materialId) ?? new Set<number>();
+    thicknesses.add(material.thicknessMm);
+    materialThicknessesById.set(material.materialId, thicknesses);
+  }
+
+  const costLines: ProjectCostLineInput[] = [];
+  const linePartSources: ProjectConsumptionLinePartSource[] = [];
+  const lineHardwareSources: ProjectConsumptionLineHardwareSource[] = [];
+  const missingPrices: ProjectCostCoverageIssue[] = [];
+  let materialLineNumber = 0;
+  let hardwareLineNumber = 0;
+  let edgeBandingLineNumber = 0;
+
   if (panelMaterialPricingMode === "included") {
-    for (const material of materialSummaries) {
-      if (material.materialId === undefined) continue;
-      const thicknesses = materialThicknessesById.get(material.materialId) ?? new Set<number>();
-      thicknesses.add(material.thicknessMm);
-      materialThicknessesById.set(material.materialId, thicknesses);
-    }
-
-    const costLines: ProjectCostLineInput[] = [];
-    const linePartSources: ProjectConsumptionLinePartSource[] = [];
-    const lineHardwareSources: ProjectConsumptionLineHardwareSource[] = [];
-    const missingPrices: ProjectCostCoverageIssue[] = [];
-    let materialLineNumber = 0;
-    let hardwareLineNumber = 0;
-    let edgeBandingLineNumber = 0;
-
     for (const material of materialSummaries) {
       const description = material.material + " (" + material.thicknessMm + " mm" +
         (material.materialId === undefined ? "" : "; " + material.materialId) + ")";
@@ -488,7 +488,6 @@ export function calculateProjectPricedConsumptionSummary(
           });
         }
       }
-
     }
   }
 
