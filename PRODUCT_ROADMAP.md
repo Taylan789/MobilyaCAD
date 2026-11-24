@@ -1482,3 +1482,13 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 - Group comparison now exposes deterministic added/removed/changed/unchanged counts while retaining the existing changed-snapshot list semantics.
 - Exact-SHA CI, QA and Pages all passed on [511796f](https://github.com/Taylan789/MobilyaCAD/commit/511796f60b5274ee8cacf93a85f5ef1944f8df66); 218 unit + 713 domain tests, strict domain type-check, lint, production build and production dependency audit (0 vulnerabilities).
 - Next independent domain slice: return a stable changed-field reason list for each matched group (sheet count, per-sheet price, group cost, Part IDs, optional source reference); JSON/CSV integration remains with the specialist adapter owner.
+
+
+## DOM-143B2 — Levha grubu alan bazlı fark nedenleri
+
+**Durum:** Kod ve regresyon testi hazırlandı; exact-SHA CI/QA/Pages doğrulaması bekleniyor.
+
+- Eşleşen levha grubunun değişiklik kaydı, fiyat, levha adedi, grup maliyeti, kaynak Part kimlikleri ve isteğe bağlı fiyat kaynağı referansından hangilerinin değiştiğini sabit sıralı anahtarlarla açıklar.
+- Malzeme/kalınlık kimlik değişiklikleri önceki sözleşmedeki gibi kaldırma + ekleme olarak kalır; eklenen/kaldırılan gruplarda changedFields boş dizidir.
+- JSON/CSV karşılaştırma adaptörleri ayrı entegrasyon/performance ajanının sahipliğinde kalır. Bu ajan için doğrulanmış branch/job/PR bulunmadan adapter dosyalarına dokunulmaz.
+- Sonraki domain dilimi: karşılaştırma değişikliklerinin tam teklif karşılaştırma zarfına bağlanması için geriye dönük uyumlu tüketici sözleşmesi; adapter entegrasyonu sahiplik doğrulamasına bağlıdır.

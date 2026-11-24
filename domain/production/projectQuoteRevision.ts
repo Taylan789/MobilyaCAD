@@ -1414,11 +1414,20 @@ export function compareProjectQuoteRevisions(
 
 
 
+export type ProjectQuoteRevisionStockSheetGroupChangedField =
+  | "sourcePartIds"
+  | "sheetCount"
+  | "pricePerSheetMinor"
+  | "stockSheetCostMinor"
+  | "sourceReference";
+
 export interface ProjectQuoteRevisionStockSheetGroupChange {
   type: "added" | "removed" | "changed";
   groupId: string;
   from: DeepReadonly<ProjectQuoteStockSheetGroupSnapshot> | null;
   to: DeepReadonly<ProjectQuoteStockSheetGroupSnapshot> | null;
+  /** Stable ordered field keys for matched groups; added/removed groups have no field-level diff. */
+  changedFields: readonly ProjectQuoteRevisionStockSheetGroupChangedField[];
 }
 
 export interface ProjectQuoteRevisionStockSheetGroupComparisonCounts {
@@ -1559,6 +1568,24 @@ function revisionStockSheetGroupValue(group: DeepReadonly<ProjectQuoteStockSheet
   ]);
 }
 
+function revisionStockSheetGroupChangedFields(
+  from: DeepReadonly<ProjectQuoteStockSheetGroupSnapshot>,
+  to: DeepReadonly<ProjectQuoteStockSheetGroupSnapshot>
+): ProjectQuoteRevisionStockSheetGroupChangedField[] {
+  const changedFields: ProjectQuoteRevisionStockSheetGroupChangedField[] = [];
+  if (from.sourcePartIds.length !== to.sourcePartIds.length ||
+      from.sourcePartIds.some((partId, index) => partId !== to.sourcePartIds[index])) {
+    changedFields.push("sourcePartIds");
+  }
+  if (from.sheetCount !== to.sheetCount) changedFields.push("sheetCount");
+  if (from.pricePerSheetMinor !== to.pricePerSheetMinor) changedFields.push("pricePerSheetMinor");
+  if (from.stockSheetCostMinor !== to.stockSheetCostMinor) changedFields.push("stockSheetCostMinor");
+  if ((from.sourceReference ?? null) !== (to.sourceReference ?? null)) {
+    changedFields.push("sourceReference");
+  }
+  return changedFields;
+}
+
 function cloneRevisionStockSheetGroup(
   group: DeepReadonly<ProjectQuoteStockSheetGroupSnapshot>
 ): ProjectQuoteStockSheetGroupSnapshot {
@@ -1653,7 +1680,10 @@ export function compareProjectQuoteRevisionStockSheetGroups(
         type: fromGroup === null ? "added" : toGroup === null ? "removed" : "changed",
         groupId,
         from: fromGroup === null ? null : cloneRevisionStockSheetGroup(fromGroup),
-        to: toGroup === null ? null : cloneRevisionStockSheetGroup(toGroup)
+        to: toGroup === null ? null : cloneRevisionStockSheetGroup(toGroup),
+        changedFields: fromGroup === null || toGroup === null
+          ? []
+          : revisionStockSheetGroupChangedFields(fromGroup, toGroup)
       });
     }
 

@@ -764,3 +764,14 @@
 - Known constraints: no frontend, comparison JSON/CSV adapter, benchmark, machine-specific CNC output, secret/setting or `main` changes. The integration/performance branch search returned no matching specialist branch; AI Developer [#45338253254](https://github.com/Taylan789/MobilyaCAD/actions/runs/45338253254) failed with OpenRouter free-model daily quota HTTP 429 and its specialist job was skipped. JSON/CSV adapter work remains deferred to that owner.
 - Test site: https://taylan789.github.io/MobilyaCAD/ — deployed from verified code/test SHA 511796f60b5274ee8cacf93a85f5ef1944f8df66 via Pages #45352730829.
 - Next domain slice: expose stable changed-field reasons for matched stock-sheet groups so downstream consumers can distinguish price, sheet count, Part provenance and source-reference changes without re-deriving them.
+
+
+## 24 Kasım 2026 11:33 TRT — DOM-143B2 alan bazlı levha grubu farkları (verification pending)
+
+- Base dev/github-work HEAD: 111e91257d7f72e70ffb6503900d68131e879006. Son exact-SHA CI #45352948602, QA #45352948571 ve Pages #45352948578 başarılıydı; bu HEAD üzerinde aktif CI, QA veya AI Developer işi yoktu.
+- Eşleşen levha grubu farkları için changedFields eklendi. Alan anahtarları sabit sırayla kaynak Part kimlikleri, levha adedi, levha birim fiyatı, grup maliyeti ve kaynak referansını ayırır. Ekleme/kaldırma kayıtlarında boş alan listesi kullanılır; malzeme/kalınlık kimliği değişikliği add/remove olarak kalır.
+- Regresyon testi mevcut karma değişiklik örneğinde tüm beş alanı, ekleme/kaldırma için boş listeleri ve deep-freeze davranışını doğrular.
+- Değişen dosyalar: domain/production/projectQuoteRevision.ts, domain/production/projectQuoteRevision.test.mjs, docs/production-domain-contract.md, AI_COORDINATION.md, PRODUCT_ROADMAP.md, AI_PROGRESS.md.
+- Bu commitin SHA'sı ve exact-SHA Actions sonuçları doğrulama tamamlanınca bu kayda eklenecek.
+- Kısıtlar: frontend/**, JSON/CSV adapter, benchmark, CNC/makine çıktısı, secrets/ayarlar ve main değiştirilmedi. Entegrasyon/performance uzman branch'i bulunamadı; AI Developer #45338253254 OpenRouter free daily quota HTTP 429 ile başarısız oldu ve uzman job atlandı. Tekrar çalıştırılmadı; günlük limit sıfır ve reset 25 Kasım 2026 03:00 TRT.
+- Sonraki adım: exact-SHA CI/QA/Pages sonuçlarını doğrula; ardından tam teklif karşılaştırma zarfı ve JSON/CSV adapter entegrasyonunun sahiplik önkoşulunu değerlendir.

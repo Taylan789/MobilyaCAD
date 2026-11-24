@@ -1303,3 +1303,16 @@ This is the domain comparison primitive only. The existing full quote-comparison
 
 
 Verification: code/test commit [511796f](https://github.com/Taylan789/MobilyaCAD/commit/511796f60b5274ee8cacf93a85f5ef1944f8df66), exact-SHA CI [#45352730741](https://github.com/Taylan789/MobilyaCAD/actions/runs/45352730741), QA [#45352730704](https://github.com/Taylan789/MobilyaCAD/actions/runs/45352730704) and Pages [#45352730829](https://github.com/Taylan789/MobilyaCAD/actions/runs/45352730829) succeeded. QA: 218/218 unit tests, 713/713 domain tests, strict domain type-check, lint 34 warnings/0 errors, production build and production dependency audit with 0 vulnerabilities. Test site: https://taylan789.github.io/MobilyaCAD/.
+
+
+## DOM-143B2 — Levha grubu alan bazlı fark nedenleri
+
+compareProjectQuoteRevisionStockSheetGroups artık her grup fark kaydında changedFields alanını döndürür.
+
+- Eşleşen grup için alan anahtarları sabit sırayla raporlanır: sourcePartIds, sheetCount, pricePerSheetMinor, stockSheetCostMinor ve sourceReference.
+- Malzeme veya normalize kalınlık değişimi aynı grup içinde alan farkı sayılmaz; kararlı grup kimliği değiştiğinden kaldırılan + eklenen grup olarak kalır.
+- Eklenen ve kaldırılan gruplarda changedFields: [] kullanılır; karşılaştırılamayan bir alan değişikliği uydurulmaz.
+- Kaynak Part kimlikleri snapshot doğrulamasında sıralandığından alan karşılaştırması giriş sırasından bağımsızdır. Eksik ve undefined kaynak referansı aynı yokluk değerine normalize edilir.
+- Alan anahtarları ve sonuç iç içe dizileri deep-freeze ile değiştirilemez; bu alan domain API'sidir, JSON/CSV adapter çıktısı olarak sunulmaz.
+
+Bu dilim yalnızca karşılaştırma nedenlerini açıklar. JSON/CSV adapter entegrasyonu, makine postprocessor'ı ve fiziksel üretim doğrulaması kapsam dışıdır.

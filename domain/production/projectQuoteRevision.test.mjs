@@ -3006,17 +3006,24 @@ test("DOM-143B compares stock-sheet groups by stable identity and reconciles gro
     result.comparison.grandTotalDeltaMinor
   );
   assert.deepEqual(
-    result.comparison.groupChanges.map(change => [change.type, change.groupId]),
+    result.comparison.groupChanges.map(change => [change.type, change.groupId, change.changedFields]),
     [
-      ["changed", JSON.stringify(["mdf-18", 180])],
-      ["removed", JSON.stringify(["plywood", 120])],
-      ["added", JSON.stringify(["plywood", 150])]
+      [
+        "changed",
+        JSON.stringify(["mdf-18", 180]),
+        ["sourcePartIds", "sheetCount", "pricePerSheetMinor", "stockSheetCostMinor", "sourceReference"]
+      ],
+      ["removed", JSON.stringify(["plywood", 120]), []],
+      ["added", JSON.stringify(["plywood", 150]), []]
     ]
   );
   const changed = result.comparison.groupChanges[0];
   assert.deepEqual(changed.from.sourcePartIds, ["dom-143b-part-a"]);
   assert.deepEqual(changed.to.sourcePartIds, ["dom-143b-part-a-revised"]);
   assert.equal(changed.to.sourceReference, "price-a-revised");
+  assert.ok(Object.isFrozen(changed.changedFields));
+  assert.ok(Object.isFrozen(result.comparison.groupChanges[1].changedFields));
+  assert.ok(Object.isFrozen(result.comparison.groupChanges[2].changedFields));
   assert.ok(Object.isFrozen(result.comparison));
   assert.ok(Object.isFrozen(result.comparison.groupChanges));
   assert.ok(Object.isFrozen(changed.to.sourcePartIds));
