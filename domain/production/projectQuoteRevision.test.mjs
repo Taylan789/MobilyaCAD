@@ -3766,3 +3766,56 @@ test("DOM-154 history and revision validators reject accessor inputs without inv
   assert.equal(appendResult.status, "blocked");
   assert.equal(appendResult.history, null);
 });
+
+
+test("DOM-154 enforces 64 total object/array levels including the root", () => {
+  function nestedValue(levels) {
+    let value = "leaf";
+    for (let index = 0; index < levels; index += 1) value = { child: value };
+    return value;
+  }
+
+  const exactBoundary = validateProjectQuoteRevisionHistory({
+    projectId: "project-42",
+    revisions: [],
+    extraMetadata: nestedValue(63)
+  });
+  assert.equal(exactBoundary.status, "blocked");
+  assert.match(exactBoundary.diagnostics.join(" | "), /desteklenmeyen alan/);
+
+  const overBoundary = validateProjectQuoteRevisionHistory({
+    projectId: "project-42",
+    revisions: [],
+    extraMetadata: nestedValue(64)
+  });
+  assert.equal(overBoundary.status, "blocked");
+  assert.match(overBoundary.diagnostics.join(" | "), /64 iç içe nesne\/dizi seviyesi/);
+});
+
+test("DOM-154 missing optional source-integrity marker never reads an Object.prototype getter", () => {
+  const previousDescriptor = Object.getOwnPropertyDescriptor(Object.prototype, "sourceIntegrityVersion");
+  let getterCalls = 0;
+  Object.defineProperty(Object.prototype, "sourceIntegrityVersion", {
+    configurable: true,
+    get() {
+      getterCalls += 1;
+      return 1;
+    }
+  });
+
+  try {
+    const result = validateProjectQuoteRevisionHistory({
+      projectId: "project-42",
+      revisions: [createHistoryRevision()]
+    });
+    assert.equal(result.status, "ready", result.diagnostics.join(" | "));
+    assert.equal(result.history?.revisions.length, 1);
+    assert.equal(getterCalls, 0);
+  } finally {
+    if (previousDescriptor) {
+      Object.defineProperty(Object.prototype, "sourceIntegrityVersion", previousDescriptor);
+    } else {
+      delete Object.prototype.sourceIntegrityVersion;
+    }
+  }
+});

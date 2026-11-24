@@ -1423,3 +1423,8 @@ The public domain APIs validate unknown JavaScript values. Before reading any fi
 - Optional own data properties whose value is undefined remain preserved for compatibility; ordinary JSON-parsed objects and previously validated immutable histories retain their accepted behavior.
 - The copy is bounded to 64 nested object/array levels. Project-v2 envelope byte limits and standalone history-file byte limits remain independently enforced by their existing entry points.
 - This is domain API hardening, not a project-file schema migration or editor save/open integration. UI-owned INT-003 and its later DOM-153 editor round-trip remain separate.
+
+
+### DOM-154 implementation clarification
+
+The direct revision API input copy counts the root as level 1, matching the project-v2 envelope guard: 64 total object/array levels are accepted by the copy phase, and the 65th is blocked. The normalized revision object always carries its optional source-integrity marker as an own data property (including an own undefined value), preventing Object.prototype from supplying it through an inherited accessor.

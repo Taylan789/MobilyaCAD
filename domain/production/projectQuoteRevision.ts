@@ -177,7 +177,7 @@ function cloneRevisionInput(
     return value;
   }
   if (typeof value !== "object") throw new Error("Teklif revizyon girdisi JSON uyumlu olmayan değer içeriyor.");
-  if (depth > 64) throw new Error("Teklif revizyon girdisi en fazla 64 iç içe nesne/dizi seviyesi içerebilir.");
+  if (depth >= 64) throw new Error("Teklif revizyon girdisi en fazla 64 iç içe nesne/dizi seviyesi içerebilir.");
   if (ancestors.has(value)) throw new Error("Teklif revizyon girdisi döngüsel veri içeriyor.");
   ancestors.add(value);
 
@@ -1081,7 +1081,7 @@ export function validateProjectQuoteRevisionHistory(value: unknown): ProjectQuot
           projectId: previous.projectId, revisionId: previous.revisionId,
           revisionNumber: previous.revisionNumber, createdAt: previous.createdAt
         },
-        ...(sourceIntegrityVersion === undefined ? {} : { sourceIntegrityVersion }),
+        sourceIntegrityVersion,
         pricingSnapshot: candidate.pricingSnapshot
       });
       if (result.status !== "ready" || result.revision === null) {

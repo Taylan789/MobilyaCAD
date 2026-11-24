@@ -971,3 +971,11 @@
 - Known limits: this does not prevent JavaScript Proxy reflection traps; it rejects accessor descriptors, custom prototypes, symbols, non-enumerable fields, sparse arrays, cycles, non-finite numbers and depth above 64. No frontend, adapter, benchmark, CNC/machine, secrets/settings or main changes.
 - AI Developer run [#45450013010](https://github.com/Taylan789/MobilyaCAD/actions/runs/45450013010) failed after retry with OpenRouter free-tier daily HTTP 429 (limit 50, remaining 0; reset 25 November 2026 03:00 TRT). The failed job log was inspected; no rerun or paid fallback was attempted before reset. Integration/Performance job is disabled in the workflow and no specialist branch was found.
 - Next: UI-owned INT-003 parser/save/open integration remains in draft PR [#206](https://github.com/Taylan789/MobilyaCAD/pull/206); then DOM-153 editor save/reopen round-trip. INT-002/PERF-001 remain specialist-owned and QA-003 remains blocked.
+
+
+## 25 Kasım 2026 01:02 TRT — DOM-154 boundary correction (verification pending)
+
+- Prior implementation [6ecde75](https://github.com/Taylan789/MobilyaCAD/commit/6ecde75d272e7337b7f73b6955eacf1e96d64594) passed exact-SHA CI [#45496632246](https://github.com/Taylan789/MobilyaCAD/actions/runs/45496632246), QA [#45496632307](https://github.com/Taylan789/MobilyaCAD/actions/runs/45496632307) and Pages [#45496632088](https://github.com/Taylan789/MobilyaCAD/actions/runs/45496632088). QA: 245/245 frontend + 738/738 domain tests; strict domain TypeScript, lint 36 warnings/0 errors, production build and production dependency audit (0 vulnerabilities).
+- Review found two boundary details before finalizing: the depth counter needed to count the root as level 1, and the internal normalized revision input needed an own optional sourceIntegrityVersion property even when undefined.
+- Correction sets the exact boundary to 64 total object/array levels and adds regressions for 64/65 levels plus an Object.prototype getter on the omitted optional marker.
+- Correction commit SHA and its own exact-SHA Actions/Pages results are pending. The earlier verified SHA was deployed; this correction will replace it only after its own gates pass.

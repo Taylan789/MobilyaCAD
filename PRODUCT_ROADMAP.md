@@ -1718,7 +1718,7 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 
 ## DOM-154 — Teklif revizyon API girdilerinde descriptor güvenliği
 
-**Durum:** IMPLEMENTATION — exact-SHA CI/QA/Pages verification pending.
+**Durum:** CORRECTION IMPLEMENTED — exact-SHA CI/QA/Pages verification pending.
 
 **Kullanıcı akışı:** Teklif revizyon geçmişi doğrulama, ilk revizyon oluşturma ve append API'leri doğrudan JavaScript nesnesi alabilir. Bu nesnelerdeki own/inherited accessor alanları doğrulama sırasında kod çalıştırmamalıdır.
 
@@ -1727,6 +1727,6 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 - Own, inherited ve nested accessor getter çağrıları sıfırdır; işlem blocked ve kısmi geçmişsiz sonuç verir.
 - Null-prototype kopya, Object.prototype üzerinden gelen eksik opsiyonel alanları yok sayar; custom prototype, symbol, non-enumerable, sparse array, cycle ve JSON dışı değerler reddedilir.
 - Geçerli geçmiş, create ve append sonuçları ile JSON v1/v2 davranışı değişmez; opsiyonel own undefined değerleri korunur.
-- Maksimum nested depth 64'tür; mevcut project-v2 16 MiB ve standalone history 1 MiB sınırları değişmez.
+- Root dahil toplam 64 object/array seviyesi kabul edilir; 65. seviye bloklanır. Mevcut project-v2 16 MiB ve standalone history 1 MiB sınırları değişmez.
 
 **Sınırlar:** Bu güvenlik katmanı Proxy trap'lerinin çalıştırılmasını engellediği iddiası taşımaz; JavaScript Proxy reflection trap'leri descriptor incelemesi sırasında çalışabilir. CNC, üretici standardı ve UI save/open entegrasyonu kapsam dışıdır.
