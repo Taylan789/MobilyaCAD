@@ -552,6 +552,10 @@ test("domain cutout and hardware blockers disable CSV while preserving validated
   assert.equal(mapped.canExport, false);
   assert.ok(mapped.parts.length > 0, "tam hesaplanmış parçalar incelenebilir kalmalı");
   assert.ok(mappedTop?.panelGeometry, "kesit geometrisi UI modeline kayıpsız taşınmalı");
+  assert.throws(
+    () => createProjectCutListCsv(mapped.furnitureNames, mapped.parts),
+    /kesitli panel geometrisi CSV biçiminde korunamadığı/i
+  );
   assert.equal(mapped.exportBlockers.length, 2);
   assert.match(mapped.exportBlockReason, /Kesitli panel geometrisi/i);
   assert.ok(mapped.exportBlockers.some((reason) => /hardwareItems/i.test(reason)));
@@ -572,7 +576,52 @@ test("JSON v1 proje round-trip sonrasında üretim raporu aynı mobilya girdiler
 
   assert.equal(parsed.formatVersion, 1);
   assert.equal(parsed.room.unit, "mm");
+  assert.deepEqual(parsed.furniture, [furniture]);
+  assert.deepEqual(parsed.materials, []);
   assert.equal(result.status, "ready");
   assert.equal(result.canExport, true);
   assert.ok(result.parts.some((part) => part.furnitureId === "json-roundtrip-1"));
+});
+test("frontend adapter retains per-edge catalog provenance and fails closed on contradictory export flags", () => {
+  const edgeBandingByEdge = {
+    top: { edgeBandingId: "band-white", unit: "mm" }
+  };
+  const report = {
+    schemaVersion: 1,
+    status: "ready",
+    canExport: true,
+    isEmpty: false,
+    supportedFurniture: [{ furnitureId: "furniture-1", family: "cabinet" }],
+    unsupportedFurniture: [],
+    blockedFurniture: [],
+    projectErrors: [],
+    exportBlockers: ["Kenar bandı katalog ataması CSV biçiminde korunamıyor."],
+    firstError: null,
+    result: {
+      schemaVersion: 1,
+      furniture: [],
+      parts: [{
+        id: "part-1",
+        furnitureId: "furniture-1",
+        name: "Üst Panel",
+        width: 600,
+        length: 560,
+        thickness: 18,
+        quantity: 1,
+        edgeBanding: { top: true, bottom: false, left: false, right: false },
+        material: "MDF",
+        edgeBandingByEdge
+      }]
+    }
+  };
+
+  const mapped = mapDomainProductionReport(report, new Map([["furniture-1", "Alt Dolap"]]));
+
+  assert.deepEqual(mapped.parts[0].edgeBandingByEdge, edgeBandingByEdge);
+  assert.equal(mapped.canExport, false, "domain blocker varken çelişkili canExport true kabul edilmemeli");
+  assert.match(mapped.exportBlockReason, /Kenar bandı katalog ataması/);
+  assert.throws(
+    () => createProjectCutListCsv(mapped.furnitureNames, mapped.parts),
+    /kenar bandı katalog ataması CSV biçiminde korunamadığı/i
+  );
 });
