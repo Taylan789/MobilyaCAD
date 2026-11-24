@@ -76,6 +76,7 @@ import "./styles/workbench.css";
 import "./styles/workspace-viewport-fit.css";
 import "./styles/ui-inspector-layout-001.css";
 import "./styles/cad-graphite-workspace-001.css";
+import "./styles/ui-production-dock-empty-state-001.css";
 
 import Scene3D from "./components/viewport/Scene3D";
 import { DrawerBoxConfigurator } from "./components/production/DrawerBoxConfigurator";
@@ -2288,9 +2289,28 @@ function App() {
                 ) : <div className="cad-dock-empty"><Package /><strong>Malzeme kataloğu boş</strong><span>Sağdaki Malzeme sekmesinden proje malzemelerini yönetebilirsin.</span></div>)}
                 {bottomPanelTab === "issues" && (
                   <div className="cad-dock-issues">
-                    {[...projectProduction.errors, ...projectProduction.blockedFurniture, ...projectProduction.unsupportedFurniture].length === 0
-                      ? <div className="cad-dock-empty"><span className="cad-dock-ok">✓</span><strong>Kontrol gerektiren sorun yok</strong><span>Mevcut proje üretim kontrollerinden temiz geçti.</span></div>
-                      : [...projectProduction.errors, ...projectProduction.blockedFurniture, ...projectProduction.unsupportedFurniture].slice(0, 12).map((issue, index) => <div className="cad-dock-issue" key={issue.furnitureId + "-" + index}><b>{issue.furnitureName}</b><span>{issue.reason}</span></div>)}
+                    {furniture.length === 0 ? (
+                      <div className="cad-dock-empty cad-dock-empty--waiting" role="status">
+                        <span className="cad-dock-empty__eyebrow">VERİ BEKLENİYOR</span>
+                        <strong>Henüz kontrol edilecek mobilya yok</strong>
+                        <span>Üretim kontrolleri, sahneye mobilya eklendiğinde burada görünür.</span>
+                      </div>
+                    ) : [...projectProduction.errors, ...projectProduction.blockedFurniture, ...projectProduction.unsupportedFurniture].length === 0 ? (
+                      <div className="cad-dock-empty cad-dock-empty--clear" role="status">
+                        <span className="cad-dock-empty__eyebrow">DOĞRULAMA</span>
+                        <strong>Üretim uyarısı bulunmuyor</strong>
+                        <span>Mevcut üretim hesabında engel veya kapsam uyarısı yok.</span>
+                      </div>
+                    ) : (
+                      [...projectProduction.errors, ...projectProduction.blockedFurniture, ...projectProduction.unsupportedFurniture]
+                        .slice(0, 12)
+                        .map((issue, index) => (
+                          <div className="cad-dock-issue" key={issue.furnitureId + "-" + index}>
+                            <b>{issue.furnitureName}</b>
+                            <span>{issue.reason}</span>
+                          </div>
+                        ))
+                    )}
                   </div>
                 )}
               </div>

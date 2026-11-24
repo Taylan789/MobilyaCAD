@@ -1,0 +1,72 @@
+/* UI-PRODUCTION-DOCK-EMPTY-STATE-001 — distinguish an untouched scene from a clean production check. */
+.cad-app .cad-dock-empty--waiting,
+.cad-app .cad-dock-empty--clear {
+  min-height: 104px;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 5px;
+  padding: 14px 18px;
+  border: 1px solid rgba(116, 151, 173, .22);
+  border-left: 2px solid #789eb6;
+  border-radius: 0;
+  background: linear-gradient(100deg, rgba(42, 65, 80, .26), rgba(21, 34, 43, .12));
+  text-align: left;
+}
+
+.cad-app .cad-dock-empty__eyebrow {
+  color: #91adbf;
+  font-size: 8px;
+  font-weight: 760;
+  letter-spacing: .14em;
+  line-height: 1.2;
+}
+
+.cad-app .cad-dock-empty--waiting > strong,
+.cad-app .cad-dock-empty--clear > strong {
+  color: #e0eaf0;
+  font-size: 11px;
+  font-weight: 720;
+}
+
+.cad-app .cad-dock-empty--waiting > span:last-child,
+.cad-app .cad-dock-empty--clear > span:last-child {
+  max-width: 560px;
+  color: #91a5b1;
+  font-size: 9px;
+  line-height: 1.5;
+}
+
+.cad-app .cad-dock-empty--clear {
+  border-left-color: #82b29a;
+  background: linear-gradient(100deg, rgba(54, 91, 72, .22), rgba(21, 34, 43, .12));
+}
+
+.cad-app .cad-dock-empty--clear .cad-dock-empty__eyebrow {
+  color: #9ac2a9;
+}
+
+@media (max-width: 700px) {
+  .cad-app .cad-dock-empty--waiting,
+  .cad-app .cad-dock-empty--clear {
+    min-height: 88px;
+    padding: 11px 12px;
+  }
+}
+
+@media (forced-colors: active) {
+  .cad-app .cad-dock-empty--waiting,
+  .cad-app .cad-dock-empty--clear {
+    color: CanvasText;
+    border: 1px solid CanvasText;
+    border-left: 3px solid Highlight;
+    background: Canvas;
+  }
+
+  .cad-app .cad-dock-empty__eyebrow,
+  .cad-app .cad-dock-empty--waiting > strong,
+  .cad-app .cad-dock-empty--clear > strong,
+  .cad-app .cad-dock-empty--waiting > span:last-child,
+  .cad-app .cad-dock-empty--clear > span:last-child {
+    color: CanvasText;
+  }
+}
