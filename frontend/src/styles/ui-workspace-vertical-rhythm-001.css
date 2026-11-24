@@ -6,7 +6,7 @@
   .cad-app .cad-main-area {
     display: grid !important;
     grid-template-columns: minmax(0, 1fr) !important;
-    grid-template-rows: 36px 50px minmax(220px, 1fr) clamp(146px, 18vh, 196px) !important;
+    grid-template-rows: 36px 50px minmax(240px, 1fr) clamp(146px, 18vh, 196px) !important;
     min-height: 0 !important;
     align-content: stretch !important;
   }
@@ -28,7 +28,7 @@
   .cad-app .cad-workspace-content {
     grid-row: 3;
     height: auto !important;
-    min-height: 220px !important;
+    min-height: 240px !important;
     padding: clamp(7px, .55vw, 10px) !important;
     gap: clamp(7px, .55vw, 10px) !important;
     overflow: hidden !important;
@@ -114,7 +114,7 @@
   }
 
   .cad-app .cad-main-area.has-collapsed-production-dock {
-    grid-template-rows: 36px 50px minmax(220px, 1fr) 66px !important;
+    grid-template-rows: 36px 50px minmax(240px, 1fr) 66px !important;
   }
 
   .cad-app .cad-main-area.has-collapsed-production-dock > .cad-bottom-dock {
