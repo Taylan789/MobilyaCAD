@@ -933,3 +933,15 @@
 - Known limits: no separate restore API exists; current import function already checks target and merged envelope. Full project schema validation remains the main parser's responsibility. No frontend, JSON/CSV adapter, benchmark, CNC/machine, secrets/settings or `main` changes.
 - Latest AI Developer [#45338253254](https://github.com/Taylan789/MobilyaCAD/actions/runs/45338253254) failed due OpenRouter free-model daily HTTP 429 (limit 50, remaining 0); specialist job skipped. No rerun or paid fallback.
 - Next: DOM-151 — verify the full project parser/save-load path preserves quote history and unknown envelope metadata without changing JSON v1 compatibility.
+
+
+## 24 Kasım 2026 21:04 TRT — DOM-151 implementation (verification pending)
+
+- Base dev/github-work HEAD: c2c8602d0726b60ffad5e3007633c3f598f0793c; base exact-SHA CI #45452648538, QA #45452648463 ve Pages #45452648316 başarılıydı; bu SHA üzerinde aktif CI/QA/Pages run yoktu.
+- DOM-151 için yeni domain regresyonu, iki teklif revizyonu eklenmiş JSON v2 proje zarfının gerçek JSON.stringify/JSON.parse döngüsünden sonra aynı quote history ve unknown metadata'yı korumasını; own __proto__ anahtarının veri olarak kalmasını; yeniden yüklenen projeye üçüncü revizyon eklenince zincirin devam etmesini doğrular. JSON v1 legacy read davranışı ayrıca korunur.
+- Değişen dosyalar: domain/production/projectQuoteRevisionProjectFileJsonRoundTrip.test.mjs, docs/production-domain-contract.md, AI_COORDINATION.md, PRODUCT_ROADMAP.md, AI_PROGRESS.md.
+- Implementation commit SHA: pending GitHub commit creation; exact-SHA CI/QA/Pages sonuçları henüz yok. Test sonucu başarılı ilan edilmedi.
+- AI Developer #45450013010 OpenRouter free-model daily quota HTTP 429 (limit 50, remaining 0) ile başarısız oldu; logda reset 25 Kasım 2026 03:00 TRT. Aynı kota tükenmişken rerun yapılmadı; ücretli fallback, secret veya kota ayarı değiştirilmedi.
+- Bilinen sınır: frontend/src/engine/projectFile.ts yalnızca JSON v1 parser/serializer'dır ve bilinen alanlardan sonuç oluşturur; v2 quote history/unknown metadata henüz editör save/open akışına entegre değildir. Tüm frontend/** UI sahibindedir; bu turda dokunulmadı. INT-003 UI-owned handoff olarak açıldı.
+- Integration/Performance workflow job'ı .github/workflows/ai-developer.yml içinde if: false; uzman branch/PR bulunamadı. INT-002/PERF-001 uzman sahipliğinde kaldı; main, secrets, adapter, benchmark ve CNC dosyaları değiştirilmedi.
+- Sonraki adım: exact-SHA CI/QA/Pages sonuçlarını doğrula; ardından INT-003 frontend entegrasyonunu UI sahibinin ayrı PR'ında takip et.

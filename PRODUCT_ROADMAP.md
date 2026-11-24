@@ -1672,3 +1672,26 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 
 
 **QA kanıtı:** 239/239 frontend unit + 733/733 domain test; exact UTF-8/depth/getter regresyonları geçti; strict TypeScript, lint 36 warnings/0 errors, production build ve production dependency audit (0 vulnerabilities) başarılı. Test sitesi exact verified SHA üzerinden https://taylan789.github.io/MobilyaCAD/ adresine deploy edildi.
+
+
+## DOM-151 — JSON v2 proje zarfında teklif geçmişi JSON kalıcılığı
+
+**Durum:** Domain round-trip regresyon dilimi eklendi; exact-SHA CI/QA/Pages doğrulaması bekleniyor.
+
+**Kullanıcı akışı:** Proje v2 zarfına iki teklif revizyonu eklenir, bütün proje JSON olarak kaydedilip yeniden parse edilir; teklif geçmişi ve gelecekteki modüllere ait bilinmeyen metadata aynı kalır. Yeniden yüklenen projeye üçüncü revizyon eklenebilir ve önceki revizyon zinciri devam eder.
+
+**Kabul kriterleri**
+- appendProjectQuoteRevisionToProjectFile ile üretilen v2 zarfı JSON.stringify → JSON.parse sonrasında aynı doğrulanmış revizyon geçmişini döndürür.
+- Bilinmeyen nested metadata, bilinmeyen top-level alanlar ve own __proto__ veri anahtarı normal JSON verisi olarak korunur; prototype pollution oluşmaz.
+- Yeniden yüklenen zarfa eklenen üçüncü revizyon doğru previousRevisionId bağlantısını korur ve ikinci JSON round-trip sonrasında da doğrulanır.
+- JSON v1, geçmiş alanı yokken legacy sonucunu korur; v1 içine quoteRevisionHistory eklenmesi fail-closed kalır.
+- Bu test yalnızca domain quote-history envelope katmanını doğrular; tam room/furniture/material schema validation iddiası taşımaz.
+
+**Sahiplik sınırı ve açık entegrasyon:** frontend/src/engine/projectFile.ts halen format v1 kabul ediyor ve bilinen alanlardan yeni sonuç nesnesi kuruyor; JSON v2 quote history ve bilinmeyen üst seviye alanlar editörün save/open akışına henüz bağlı değil. frontend/** UI ajanının sahipliğinde olduğundan bu turda değiştirilmedi. INT-003, UI sahibine açık entegrasyon görevi olarak eklendi. Bu domain testi tek başına editörde uçtan uca save/load tamamlandı anlamına gelmez.
+
+**Sıradaki 3–5 küçük görev**
+1. INT-003: UI sahibinin v2 proje parser/save/open entegrasyonu; v1 legacy testleri ve unknown metadata round-trip'i koru.
+2. DOM-152: INT-003 entegrasyonundan sonra gerçek editör v2 dosyasıyla append/save/reopen/append round-trip kabul testini genişlet.
+3. INT-002: JSON/CSV adapter geometry/quantity round-trip — yalnızca gerçek Integration/Performance uzmanı branch/PR sahipliğiyle.
+4. PERF-001: 2D/3D veri akışı için tekrarlanabilir profiling — uzman agent sahipliğinde.
+5. QA-003: INT-001/INT-002/INT-003 kanıtları tamamlandıktan sonra uçtan uca export/data-flow denetimi.

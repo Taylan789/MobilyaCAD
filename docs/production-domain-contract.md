@@ -1393,3 +1393,13 @@ appendProjectQuoteRevisionToProjectFile yalnızca JSON olarak temsil edilebilen 
 - JSON v1, `quoteRevisionHistory` alanı yoksa mevcut `legacy` sonucunu korur; v1 içine bu alan yazılmışsa mevcut fail-closed davranış sürer.
 - `importProjectQuoteRevisionHistoryFileIntoProject` zaten hedef zarfı güvenli derin kopyalayıp aynı sınırları uygular ve birleştirilmiş sonucu yeniden denetler; ayrı bir restore API veya şema sürümü eklenmez.
 - Bu sınır yalnızca teklif geçmişi uzantısının güvenli okuma/kopyalama maliyetini kapsar. Tam oda/mobilya/malzeme şema doğrulaması ana proje parser'ının sorumluluğundadır; CNC/makine uyumluluğu iddiası yoktur.
+
+
+## DOM-151 — JSON v2 proje zarfı teklif geçmişi JSON round-trip
+
+- İki revizyon içeren v2 proje zarfı gerçek JSON metnine serileştirilip yeniden parse edildiğinde quoteRevisionHistory aynı doğrulanmış snapshot ve previousRevisionId zinciriyle okunabilmelidir.
+- Bilinmeyen top-level ve nested metadata, own __proto__ dahil, JSON veri alanı olarak korunur; normal object prototype değiştirilmez.
+- Reparse edilmiş projeye üçüncü revizyon eklenmesi ve ikinci stringify/parse turu da geçmiş zincirini korumalıdır.
+- JSON v1, geçmiş alanı yokken legacy okuma sonucunu korur; v1 içine quote-history alanı eklenmesi engellenir.
+- Bu sözleşme yalnızca domain/production/projectQuoteRevisionProjectFile.ts teklif-geçmişi uzantısını doğrular. Tam oda/mobilya/malzeme şema doğrulaması veya editörün ana save/open parser'ı değildir.
+- UI entegrasyon handoff'u: frontend/src/engine/projectFile.ts şu anda yalnızca JSON v1'i kabul eder ve bilinen alanlardan yeni sonuç nesnesi kurar; v2 quote history ve bilinmeyen üst seviye metadata uygulamanın kaydet/aç akışına henüz bağlı değildir. UI ajanı frontend/** sahibi olduğundan domain akışı bu dosyayı değiştirmez. INT-003 bu entegrasyon için ayrılmıştır.
