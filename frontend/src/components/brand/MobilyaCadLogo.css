@@ -1,4 +1,4 @@
-/* UI-BRAND-JOINERY-MARK-001 — shared technical mark for the CAD shell and favicon. */
+/* UI-BRAND-DIMENSION-MARK-002 — isometric carcass with restrained drafting dimensions. */
 .mc-brand__mark-art {
   display: block;
   width: 100%;
@@ -10,47 +10,50 @@
 .mc-brand__mark-art .mc-brand-mark__backplate {
   fill: #17232b;
   stroke: #526b78;
-  stroke-width: 1;
+  stroke-width: 1.2;
 }
 
 .mc-brand__mark-art .mc-brand-mark__carcass {
-  stroke: #dce6eb;
-  stroke-width: 1.45;
+  stroke: #e2edf2;
+  stroke-width: 1.65;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
 
 .mc-brand__mark-art .mc-brand-mark__top {
   stroke: #91b4c9;
-  stroke-width: 1.65;
+  stroke-width: 1.8;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
 
 .mc-brand__mark-art .mc-brand-mark__interior {
   stroke: #cbd8df;
-  stroke-width: 1.25;
+  stroke-width: 1.4;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
 
 .mc-brand__mark-art .mc-brand-mark__shelf {
-  stroke: #c99b77;
-  stroke-width: 1.55;
+  stroke: #b2d1e2;
+  stroke-width: 1.7;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
 
-.mc-brand__mark-art .mc-brand-mark__dimension-ticks {
-  stroke: #91b4c9;
-  stroke-width: 1.4;
+.mc-brand__mark-art .mc-brand-mark__dimension-ticks,
+.mc-brand__mark-art .mc-brand-mark__dimension-vertical,
+.mc-brand__mark-art .mc-brand-mark__dimension-base {
+  stroke: #8eb5ce;
+  stroke-width: 1.45;
   stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .mc-brand__mark-art .mc-brand-mark__joint {
-  fill: #e1b48f;
+  fill: #b2d1e2;
   stroke: #17232b;
-  stroke-width: 0.7;
+  stroke-width: 0.8;
 }
 
 @media (prefers-reduced-motion: reduce) {
