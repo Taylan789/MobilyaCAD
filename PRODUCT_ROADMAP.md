@@ -1471,7 +1471,7 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 **Automated acceptance:** stable identity changed/removed/added coverage, Part ID and source-reference preservation, group/material/grand-total reconciliation, stock-only empty-summary comparison, legacy-v1 transition and unsupported-basis blocking. Physical stock yield, CNC and workshop fit remain outside this software-only validation.
 
 **Next domain and integration handoffs**
-1. DOM-143B1: deterministic groupCounts for added/removed/changed/unchanged groups; domain-owned and testable without touching export adapters.
+1. DOM-143B1: VERIFIED on 511796f; exact-SHA CI #45352730741, QA #45352730704 (218/218 unit + 713/713 domain), Pages #45352730829 passed; domain type-check, lint, production build and production audit passed.
 2. DOM-143C: backward-compatible JSON comparison serialization/parsing for stock-sheet group changes while retaining legacy comparison file versions. Adapter-owned; do not edit the comparison JSON adapter from the domain lane.
 3. DOM-143D: CSV group rows and source-map provenance comparison; preserve Part IDs and explicit source references. Also adapter-owned.
 4. Integration prerequisite: verify an active specialist workflow/branch/PR and file ownership before DOM-143C/D. No specialist branch is currently verified; the latest specialist job was skipped after the AI Developer free-model quota failure.
@@ -1480,4 +1480,5 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 
 **DOM-143B1 domain extension — 24 November 2026**
 - Group comparison now exposes deterministic added/removed/changed/unchanged counts while retaining the existing changed-snapshot list semantics.
+- Exact-SHA CI, QA and Pages all passed on [511796f](https://github.com/Taylan789/MobilyaCAD/commit/511796f60b5274ee8cacf93a85f5ef1944f8df66); 218 unit + 713 domain tests, strict domain type-check, lint, production build and production dependency audit (0 vulnerabilities).
 - Next independent domain slice: return a stable changed-field reason list for each matched group (sheet count, per-sheet price, group cost, Part IDs, optional source reference); JSON/CSV integration remains with the specialist adapter owner.

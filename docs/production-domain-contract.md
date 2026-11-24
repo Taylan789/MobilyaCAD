@@ -1301,3 +1301,5 @@ This is the domain comparison primitive only. The existing full quote-comparison
 - Sayaçlar yalnızca snapshot'ta doğrulanmış grupları sayar; eksik malzeme/Part/fiyat bilgisi tamamlanmış gibi tahmin edilmez.
 - Bu, frontend ve JSON/CSV adapter'larından bağımsız domain sözleşmesidir. JSON karşılaştırma zarfı ve CSV grup satırları adapter sahibi entegrasyon/performance rolünün ayrı teslimatlarıdır; o dosyalara bu domain diliminde dokunulmaz.
 
+
+Verification: code/test commit [511796f](https://github.com/Taylan789/MobilyaCAD/commit/511796f60b5274ee8cacf93a85f5ef1944f8df66), exact-SHA CI [#45352730741](https://github.com/Taylan789/MobilyaCAD/actions/runs/45352730741), QA [#45352730704](https://github.com/Taylan789/MobilyaCAD/actions/runs/45352730704) and Pages [#45352730829](https://github.com/Taylan789/MobilyaCAD/actions/runs/45352730829) succeeded. QA: 218/218 unit tests, 713/713 domain tests, strict domain type-check, lint 34 warnings/0 errors, production build and production dependency audit with 0 vulnerabilities. Test site: https://taylan789.github.io/MobilyaCAD/.
