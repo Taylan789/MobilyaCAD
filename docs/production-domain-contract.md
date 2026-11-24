@@ -1354,3 +1354,11 @@ This is source-group ownership evidence only; it does not claim that the saved g
 - Her revizyonun `previousRevisionId` alanı tam olarak önceki kaydın `revisionId` değerine eşit olmalıdır; sıra numarası, proje kimliği ve kronoloji de kesintisiz kalmalıdır.
 - Maliyet snapshot'ındaki `lineSources[].costLineId` alanı aynı snapshot içindeki maliyet satırı kimliğiyle eşleşmelidir. Import ve restore sırasında bozuk kaynak bağlantısı veya kopuk önceki-revizyon bağlantısı kısmi geçmiş üretmeden `blocked` döndürür.
 - Başarısız import hedef proje nesnesini değiştirmez; başarısız restore `history: null` döndürür. Bu kontroller teklif snapshot'ının kendi kaynak izini doğrular; kaynak Part'ların güncel 3D geometriyle veya fiziksel CNC operasyonlarıyla eşleştiğini kanıtlamaz.
+
+## DOM-147 — JSON v2 proje append zarfı için derin kopya ve değişmezlik
+
+- `appendProjectQuoteRevisionToProjectFile` başarılı sonuç üretmeden önce proje zarfının tamamını mevcut JSON-uyumluluk kurallarıyla derin kopyalar ve dondurur; yalnızca üst seviye nesneyi kopyalayıp iç içe `room`, `furniture`, `materials` veya özel metadata referanslarını paylaşmaz.
+- Bilinmeyen ama geçerli JSON alanları korunur. Yeni `quoteRevisionHistory` aynı sonuç içindeki doğrulanmış, derin dondurulmuş geçmiş nesnesine bağlanır.
+- Döngüsel veya JSON dışı değer içeren proje zarfı `blocked`, `project: null` ve `history: null` döndürür; kısmi proje üretilmez ve giriş nesnesi değiştirilmez.
+- Kabul: nested object/array referansları girişten ayrıdır; çıktıdaki iç içe nesneler ve diziler frozen durumdadır; değişiklik girişe yayılmaz; geçersiz zarf fail-closed kalır.
+- Bu değişiklik proje JSON v2 şemasını, mm/adet hesaplarını, teklif aritmetiğini, geometriyi, export adapter'larını veya CNC/makine uyumluluğunu değiştirmez. Derin kopya maliyeti proje zarfı boyutuyla doğrusal orantılıdır.

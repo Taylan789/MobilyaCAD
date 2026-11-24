@@ -282,6 +282,15 @@ export function appendProjectQuoteRevisionToProjectFile(
     );
   }
 
+  let preservedProject: Readonly<Record<string, unknown>>;
+  try {
+    preservedProject = cloneAndFreezeProjectEnvelope(envelope.project);
+  } catch (error) {
+    return blockedAppend(
+      error instanceof Error ? error.message : "Proje zarfı güvenli biçimde kopyalanamadı."
+    );
+  }
+
   const appended = appendProjectQuoteRevision(current.history, revisionValue);
   if (appended.status !== "ready" || appended.history === null) {
     return blockedAppend(
@@ -290,7 +299,7 @@ export function appendProjectQuoteRevisionToProjectFile(
   }
 
   const nextProject = Object.freeze({
-    ...envelope.project,
+    ...preservedProject,
     [PROJECT_QUOTE_REVISION_HISTORY_FIELD]: appended.history
   });
 

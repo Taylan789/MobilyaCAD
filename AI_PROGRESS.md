@@ -884,3 +884,14 @@
 - QA kanıtı: 225/225 frontend unit + 720/720 domain test; strict domain TypeScript, lint 34 warnings/0 errors, production build ve production dependency audit (0 vulnerabilities) başarılı. İki yeni import/restore bağlantı regresyonu geçti.
 - Test sitesi: https://taylan789.github.io/MobilyaCAD/ — exact verified SHA b0bf259 üzerinden Pages [#45396661726](https://github.com/Taylan789/MobilyaCAD/actions/runs/45396661726) ile deploy edildi.
 - Sonraki görev: DOM-147 project-v2 append derin kopya/immutability sınırı; uzman adapter işleri için gerçek branch/PR kanıtını bekle.
+
+## 24 Kasım 2026 16:32 TRT — DOM-147 implementation (verification pending)
+
+- Base `dev/github-work` HEAD: `ba2d0f263b4310a29bd5b5523de83789fce7feb0`. Branch HEAD ve altı hedef dosyanın blob SHA'ları yazma öncesinde yeniden okundu; owned branch üzerinde queued/in-progress Actions run bulunmadı.
+- Base SHA CI [#45396997065](https://github.com/Taylan789/MobilyaCAD/actions/runs/45396997065), QA [#45396997090](https://github.com/Taylan789/MobilyaCAD/actions/runs/45396997090) ve Pages [#45396997357](https://github.com/Taylan789/MobilyaCAD/actions/runs/45396997357) başarılıydı. QA kanıtı: 225/225 frontend + 720/720 domain test, strict TypeScript, lint 34 warning/0 error, production build ve production dependency audit 0 vulnerability.
+- DOM-147, `appendProjectQuoteRevisionToProjectFile` için import yolunda zaten kullanılan `cloneAndFreezeProjectEnvelope` sınırını uygular. Başarılı append nested project verisini girişten ayırır ve dondurur; cyclic/non-JSON envelope `blocked` döner.
+- Yeni regresyonlar: nested room/furniture/material/custom metadata referans ayrımı ve deep-freeze; non-JSON/cyclic envelope için `project: null`, `history: null`, input immutability.
+- Değişen dosyalar: `domain/production/projectQuoteRevisionProjectFile.ts`, `domain/production/projectQuoteRevisionProjectFileImportImmutability.test.mjs`, `docs/production-domain-contract.md`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`.
+- Implementation commit SHA ve exact-SHA CI/QA/Pages sonuçları commit sonrasında eklenecek; bu kayıt henüz yeni commit veya Actions başarısı iddia etmez. Yerel test runner kullanılmadı; Actions authoritative doğrulama kapısıdır.
+- Bilinen sınırlar: frontend/**, JSON/CSV comparison adapter, benchmark, CNC/makine çıktısı ve `main` değiştirilmedi. Integration/Performance specialist branch/job doğrulanmadı; INT-002/PERF-001 uzman sahipliğinde kalıyor. AI Developer #45338253254 OpenRouter free-model günlük kotası HTTP 429 nedeniyle başarısız; kota reseti bekleniyor, rerun/ücretli fallback/secrets değişikliği yapılmadı.
+- Sonraki görev: DOM-148 adversarial project-envelope JSON sınır testleri; ardından yalnızca gerçek uzman sahipliği ve round-trip kanıtı geldiğinde DOM-143C-json/INT-002 adapter işi.

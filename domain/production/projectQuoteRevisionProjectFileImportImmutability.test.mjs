@@ -61,6 +61,106 @@ function createSerializedHistory() {
   return { history: source.history, json: serialized.json };
 }
 
+
+test("DOM-147 append deep-clones and freezes nested project envelope data", () => {
+  const project = createV2Project({
+    room: { width: 4200, length: 5100, height: 2900, unit: "mm", customRoomLabel: "studio" },
+    furniture: [{
+      id: "cabinet-1",
+      measurements: { width: 900, depth: 600 },
+      tags: ["kitchen", "base"]
+    }],
+    materials: [{
+      id: "material-1",
+      decor: "oak",
+      customMetadata: { supplierCode: "A-17" }
+    }],
+    customEnvelope: {
+      version: 3,
+      nested: { preserve: true },
+      items: [{ id: "item-1", tags: ["keep", "exact"] }]
+    }
+  });
+  const projectBefore = structuredClone(project);
+
+  const appended = appendProjectQuoteRevisionToProjectFile(project, {
+    revisionId: "dom-147-r1",
+    createdAt: "2026-11-24T13:30:00+03:00",
+    pricingSnapshot: snapshotResult.snapshot
+  });
+
+  assert.equal(appended.status, "ready", appended.diagnostics.join(" | "));
+  assert.ok(appended.project);
+  assert.ok(appended.history);
+  assert.strictEqual(appended.project.quoteRevisionHistory, appended.history);
+  assert.deepEqual(appended.project, {
+    ...projectBefore,
+    quoteRevisionHistory: appended.history
+  });
+
+  assert.notStrictEqual(appended.project.room, project.room);
+  assert.notStrictEqual(appended.project.furniture, project.furniture);
+  assert.notStrictEqual(appended.project.furniture[0], project.furniture[0]);
+  assert.notStrictEqual(
+    appended.project.furniture[0].measurements,
+    project.furniture[0].measurements
+  );
+  assert.notStrictEqual(
+    appended.project.materials[0].customMetadata,
+    project.materials[0].customMetadata
+  );
+  assert.notStrictEqual(appended.project.customEnvelope.items[0].tags, project.customEnvelope.items[0].tags);
+  assert.deepEqual(project, projectBefore);
+
+  assert.ok(Object.isFrozen(appended.project));
+  assert.ok(Object.isFrozen(appended.project.room));
+  assert.ok(Object.isFrozen(appended.project.furniture[0].measurements));
+  assert.ok(Object.isFrozen(appended.project.customEnvelope.items[0].tags));
+  assert.throws(() => {
+    appended.project.room.width = 1;
+  }, TypeError);
+  assert.throws(() => {
+    appended.project.customEnvelope.items[0].tags.push("tampered");
+  }, TypeError);
+  assert.deepEqual(project, projectBefore);
+});
+
+test("DOM-147 append blocks non-JSON and cyclic envelopes without partial output or input mutation", () => {
+  const nonJsonProject = createV2Project({
+    customEnvelope: { unsupported: () => "not-json" }
+  });
+  const nonJsonEnvelope = nonJsonProject.customEnvelope;
+  const nonJsonResult = appendProjectQuoteRevisionToProjectFile(nonJsonProject, {
+    revisionId: "dom-147-invalid",
+    createdAt: "2026-11-24T13:31:00+03:00",
+    pricingSnapshot: snapshotResult.snapshot
+  });
+
+  assert.equal(nonJsonResult.status, "blocked");
+  assert.equal(nonJsonResult.project, null);
+  assert.equal(nonJsonResult.history, null);
+  assert.match(nonJsonResult.diagnostics.join(" | "), /JSON uyumlu olmayan değer/);
+  assert.strictEqual(nonJsonProject.customEnvelope, nonJsonEnvelope);
+  assert.equal("quoteRevisionHistory" in nonJsonProject, false);
+
+  const cyclicProject = createV2Project();
+  const cyclicEnvelope = {};
+  cyclicEnvelope.self = cyclicEnvelope;
+  cyclicProject.customEnvelope = cyclicEnvelope;
+  const cyclicResult = appendProjectQuoteRevisionToProjectFile(cyclicProject, {
+    revisionId: "dom-147-cycle",
+    createdAt: "2026-11-24T13:32:00+03:00",
+    pricingSnapshot: snapshotResult.snapshot
+  });
+
+  assert.equal(cyclicResult.status, "blocked");
+  assert.equal(cyclicResult.project, null);
+  assert.equal(cyclicResult.history, null);
+  assert.match(cyclicResult.diagnostics.join(" | "), /döngüsel veri/);
+  assert.strictEqual(cyclicProject.customEnvelope, cyclicEnvelope);
+  assert.equal("quoteRevisionHistory" in cyclicProject, false);
+});
+
 test("DOM-081 import preserves unrelated envelope data and isolates deep nested values", () => {
   const incoming = createSerializedHistory();
   const target = createV2Project({

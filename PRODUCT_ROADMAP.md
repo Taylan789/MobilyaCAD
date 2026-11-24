@@ -1593,8 +1593,22 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 
 **Sınırlar ve riskler:** Bu testler teklif geçmişi içindeki kaynak/önceki-revizyon bağlantılarını doğrular. Güncel proje Part ağacının veya 3D geometri kaynaklarının geçmiş snapshot'ıyla birebir aynı olduğunu, nesting verimini ya da CNC makine uyumluluğunu kanıtlamaz.
 
+## DOM-147 — JSON v2 proje append derin kopya / immutability sınırı
+
+**Durum:** IMPLEMENTED — exact-SHA CI, QA ve Pages doğrulaması bekleniyor.
+
+**Kullanıcı akışı:** Kullanıcı mevcut JSON v2 projesine yeni teklif revizyonu ekler. Dönen proje, mevcut proje ağacının bağımsız ve değiştirilemez snapshot'ı olur; sonradan yapılan değişiklikler önceki proje verisini veya yeni sonucu etkileyemez.
+
+**Kabul kriterleri**
+- Başarılı append, proje zarfındaki tüm geçerli JSON object/array değerlerini derin kopyalar ve dondurur; `room`, `furniture`, `materials` ve özel metadata için girişle nested referans paylaşımı olmaz.
+- Geçerli bilinmeyen JSON alanları korunur; yeni teklif geçmişi doğrulanmış ve immutable kalır.
+- Döngüsel veya JSON dışı envelope `blocked`, `project: null`, `history: null` döndürür; giriş değişmez ve kısmi proje üretilmez.
+- JSON v2 şeması ve legacy v1 davranışı değişmez; fiyat/ölçü/üretim hesapları ve export adapter'ları kapsam dışıdır.
+
+**Sınırlar ve riskler:** Derin kopya maliyeti proje zarfı boyutuyla doğrusal artar. Bu dilim fiziksel üretim, nesting verimi veya CNC makine uyumluluğu iddiası taşımaz.
+
 **Sıradaki 3–5 küçük görev**
-1. DOM-147: v2 proje append sonucunda iç içe proje verisinin alias/immutability sınırını denetle; input ve önceki snapshot'ların değişmezliğini regresyonla sabitle.
+1. DOM-148: append zarfı JSON sınırlarında `__proto__`, null-prototype kayıt, sparse array, accessor, symbol ve non-enumerable alanlar için adversarial regresyonları ekle.
 2. DOM-143C-json: stock-sheet group comparison JSON şemasını yalnızca gerçek entegrasyon/performans uzmanı sahipliği ve round-trip kanıtı geldiğinde genişlet.
 3. INT-002: JSON/CSV adapter round-trip ve miktar/geometri sadakati testleri — uzman agent sahipliğinde.
 4. PERF-001: 2D/3D veri akışında tekrarlanabilir baseline ve profiling — uzman agent sahipliğinde.
