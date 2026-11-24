@@ -1509,7 +1509,7 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 **Kabul kanıtı:** Karışık stok grubu + hardware satır değişikliği, stock-only boş quote, üst/alt toplam uzlaşması, immutable sonuç ve input immutability için iki yeni domain regresyon testi. Fiziksel levha verimi/CNC/atölye doğrulaması kapsam dışıdır.
 
 **Sıradaki 3–5 küçük görev**
-1. DOM-144 exact-SHA CI/QA/Pages doğrulamasını tamamla; başarısızsa yalnızca ilgili domain/test dilimini düzelt.
+1. DOM-144 QA correction exact-SHA CI/QA/Pages doğrulamasını tamamla; başarısızsa yalnızca ilgili domain/test dilimini düzelt.
 2. INT-002 / DOM-143C-json: stok grubu farklarını JSON comparison schema'sına geriye uyumlu ekle ve v1 reader'ı koru — yalnızca gerçek uzman branch/PR ve dosya sahipliği doğrulanırsa.
 3. DOM-143D: CSV'de deterministik stock-sheet group rows ve Part/source-reference provenance deltas — adapter sahibi kapsamı; uzman sahiplik kanıtı olmadan bu dosyalara dokunma.
 4. DOM-145: teklif revizyonu import/export sınırlarında büyük geçmişler için ölçülebilir boyut/performance sınırlarını ve fail-closed hata davranışını doğrula.
@@ -1536,7 +1536,7 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 
 ## DOM-144 — Cross-revision stock-sheet Part ownership
 
-**Status:** Implementation committed; exact-SHA CI/QA/Pages verification pending.
+**Status:** QA correction committed after the first exact-SHA run caught one incorrect test expectation; correction SHA CI/QA/Pages verification pending.
 
 **User flow:** When a user compares stock-sheet purchase revisions, the domain result explains which source Parts were added, removed, kept in the same material/thickness group or moved to a different group. The same saved history can contain three or more revisions; consecutive comparisons must preserve the Part identity.
 
@@ -1548,3 +1548,9 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 - Do not infer missing project Parts, geometry, machine operations, prices or CNC coordinates from quote history.
 
 **Boundaries and risks:** The comparison describes the Part IDs persisted in stock-sheet groups; it is not a completeness check against the live project Part snapshot. JSON/CSV comparison serializers remain specialist-owned and fail-closed until round-trip tests pass. No frontend or physical production claim is implied.
+
+
+**DOM-144 QA correction — 24 Kasım 2026**
+- Exact-SHA CI passed on implementation commit 65060046. QA ran 716 domain tests: 715 passed; the new regression expected two unchanged Parts but the fixture contains three (part-a, part-c, part-stay).
+- The implementation's from/to counts and moved/added/removed results were correct; only the test expectation is corrected to 3. No test is removed or weakened.
+- Pages site build succeeded, but the exact-SHA QA gate correctly skipped deployment for the failed implementation SHA. The previously verified site remains unchanged until the correction SHA passes all gates.

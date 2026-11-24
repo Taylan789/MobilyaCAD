@@ -831,8 +831,18 @@
 - Added `stockSheetPartCounts` and deterministic `stockSheetPartChanges` to the stock-sheet group comparison. Part IDs moved between material/thickness groups now retain identity with explicit from/to group IDs; unchanged Parts remain count-only.
 - Added a three-revision regression that checks the source-map audit's per-revision and project-wide unique Part counts, then compares r1→r2 and r2→r3 for added, removed, moved and unchanged Parts. Counts reconcile to both revision snapshots; input remains immutable.
 - Changed files: `domain/production/projectQuoteRevision.ts`, `domain/production/projectQuoteRevision.test.mjs`, `docs/production-domain-contract.md`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`.
-- Commit SHA: pending GitHub commit creation; it will be recorded with the exact-SHA Actions evidence on the next verification update. CI, QA and Pages for this new change are not yet observed; no success is claimed.
+- Implementation commit: [65060046d16c3e93fbc3cf40e58295ffec64ae4f](https://github.com/Taylan789/MobilyaCAD/commit/65060046d16c3e93fbc3cf40e58295ffec64ae4f).
+- Exact-SHA CI [#45375791634](https://github.com/Taylan789/MobilyaCAD/actions/runs/45375791634) passed. QA [#45375791806](https://github.com/Taylan789/MobilyaCAD/actions/runs/45375791806) passed 715/716 shared-domain tests; the sole failure was the new fixture's expected unchanged count (actual 3, expected 2).
+- Pages build completed, but its exact-SHA gate failed and deployment was skipped [#45375791704](https://github.com/Taylan789/MobilyaCAD/actions/runs/45375791704). The failed implementation SHA was not published.
 - Base SHA checks were successful before this change: CI [#45366454894](https://github.com/Taylan789/MobilyaCAD/actions/runs/45366454894), QA [#45366455124](https://github.com/Taylan789/MobilyaCAD/actions/runs/45366455124), Pages [#45366454872](https://github.com/Taylan789/MobilyaCAD/actions/runs/45366454872). Test site base: https://taylan789.github.io/MobilyaCAD/.
 - AI Developer [#45338253254](https://github.com/Taylan789/MobilyaCAD/actions/runs/45338253254) failed with OpenRouter free-model daily HTTP 429; its integration/performance specialist job was skipped. No specialist branch/PR was found; no rerun, paid fallback, secret or quota setting was changed. Provider reset reported as 25 November 2026 03:00 TRT.
 - Known limits: stock-sheet Part IDs are persisted source-group provenance, not proof of completeness against the current project Part snapshot. JSON/CSV comparison adapters remain fail-closed and specialist-owned; no frontend, adapter, benchmark, CNC/machine, secrets/settings or `main` changes.
 - Next: exact-SHA CI/QA/Pages verification; then DOM-145 history-size/performance and fail-closed import/export boundaries.
+
+
+## 24 Kasım 2026 13:27 TRT — DOM-144 QA correction (verification pending)
+
+- Root cause: the three-revision fixture's r1→r2 transition retains three Parts in the same group (part-a, part-c and part-stay); the expected unchanged count was incorrectly set to two. The production result was correct and its from/to reconciliation passed.
+- Corrected only the regression expectation to 3. No production code changed, and no test was removed or weakened.
+- Correction commit SHA and exact-SHA CI/QA/Pages results are pending. The previous implementation SHA was not deployed because QA failed.
+- Next: verify the correction SHA; only after CI, QA and production build gates pass may Pages deploy the updated test site.

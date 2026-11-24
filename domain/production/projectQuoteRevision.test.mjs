@@ -3145,7 +3145,7 @@ test("DOM-144 three-revision stock-sheet Part ownership reports added, removed a
     addedPartCount: 1,
     removedPartCount: 1,
     movedPartCount: 1,
-    unchangedPartCount: 2
+    unchangedPartCount: 3
   });
   assert.deepEqual(firstTransition.comparison?.stockSheetPartChanges, [
     { type: "added", partId: "part-added", fromGroupId: null, toGroupId: mdfGroupId },
