@@ -2669,6 +2669,89 @@ function createDom131AuditSnapshot() {
   return snapshot;
 }
 
+
+function createDom143StockSheetAuditSnapshot({ emptyBase = false } = {}) {
+  const snapshot = createSnapshot();
+  const quoteSummary = snapshot.quoteSummary;
+  const costSummary = quoteSummary.costSummary;
+  assert.ok(costSummary);
+
+  const panelSources = quoteSummary.lineSources.filter(source => source.resourceType === "material");
+  assert.ok(panelSources.length > 0);
+  const panelLineIds = new Set(panelSources.map(source => source.costLineId));
+  const panelCostMinor = costSummary.lines
+    .filter(line => panelLineIds.has(line.id))
+    .reduce((total, line) => total + line.lineTotalMinor, 0);
+  const sourcePartIds = [...new Set(panelSources.flatMap(source => source.sourcePartIds ?? []))].sort();
+  assert.ok(panelCostMinor > 0);
+  assert.ok(sourcePartIds.length > 0);
+
+  const currencyCode = quoteSummary.currencyCode;
+  assert.equal(currencyCode, "TRY");
+  quoteSummary.lineSources = quoteSummary.lineSources.filter(source => !panelLineIds.has(source.costLineId));
+  costSummary.lines = costSummary.lines.filter(line => !panelLineIds.has(line.id));
+  costSummary.categoryTotalsMinor.material -= panelCostMinor;
+  costSummary.grandTotalMinor -= panelCostMinor;
+  costSummary.lineCount = costSummary.lines.length;
+  quoteSummary.requiredLineCount = costSummary.lines.length;
+  quoteSummary.pricedLineCount = costSummary.lines.length;
+
+  const baseCategoryTotals = { ...costSummary.categoryTotalsMinor };
+  const group = {
+    groupId: JSON.stringify(["mdf-18", 180]),
+    materialId: "mdf-18",
+    thicknessMm: 18,
+    sourcePartIds,
+    sheetCount: 1,
+    pricePerSheetMinor: panelCostMinor,
+    stockSheetCostMinor: panelCostMinor,
+    currencyCode,
+    sourceReference: "stock-sheet-price:v1"
+  };
+
+  snapshot.schemaVersion = 2;
+  snapshot.materialCostBasis = {
+    schemaVersion: 1,
+    basis: "stock-sheet-purchase",
+    currencyCode,
+    panelMaterialCostMinor: panelCostMinor,
+    edgeBandingCostMinor: baseCategoryTotals.material,
+    materialCategoryTotalMinor: baseCategoryTotals.material + panelCostMinor,
+    grandTotalMinor: costSummary.grandTotalMinor + panelCostMinor,
+    categoryTotalsMinor: {
+      ...baseCategoryTotals,
+      material: baseCategoryTotals.material + panelCostMinor
+    },
+    materialSourceCount: 1,
+    stockSheetGroups: [group]
+  };
+
+  if (emptyBase) {
+    quoteSummary.status = "empty";
+    quoteSummary.currencyCode = null;
+    quoteSummary.requiredLineCount = 0;
+    quoteSummary.pricedLineCount = 0;
+    quoteSummary.lineSources = [];
+    quoteSummary.costSummary = null;
+    snapshot.materialCostBasis = {
+      ...snapshot.materialCostBasis,
+      edgeBandingCostMinor: 0,
+      materialCategoryTotalMinor: panelCostMinor,
+      grandTotalMinor: panelCostMinor,
+      categoryTotalsMinor: {
+        material: panelCostMinor,
+        hardware: 0,
+        labor: 0,
+        operation: 0,
+        waste: 0,
+        profit: 0
+      }
+    };
+  }
+
+  return snapshot;
+}
+
 test("DOM-131 immutable quote source-map audit preserves per-revision trace counts and exact provenance", () => {
   const secondSnapshot = createDom131AuditSnapshot();
   const history = createTwoRevisionHistory({ pricingSnapshot: secondSnapshot });
@@ -2807,6 +2890,54 @@ test("DOM-131 source-map audit returns empty for valid empty histories and block
   assert.ok(blocked.diagnostics.length > 0);
 });
 
+
+
+test("DOM-143 stock-sheet purchase groups are audited separately from quote cost lines", () => {
+  const stockSnapshot = createDom143StockSheetAuditSnapshot();
+  const history = createHistoryWithSnapshots(createSnapshot(), stockSnapshot);
+  const originalHistoryJson = JSON.stringify(history);
+  const result = calculateProjectQuoteRevisionSourceMapAudit(history);
+
+  assert.equal(result.status, "ready", result.diagnostics.join("; "));
+  assert.ok(result.audit);
+  const stockRevision = result.audit.revisions[1];
+  const group = stockSnapshot.materialCostBasis.stockSheetGroups[0];
+  assert.equal(stockRevision.counts.lineCount, stockSnapshot.quoteSummary.costSummary.lines.length);
+  assert.equal(stockRevision.counts.stockSheetGroupCount, 1);
+  assert.equal(stockRevision.counts.stockSheetPartReferenceCount, group.sourcePartIds.length);
+  assert.equal(stockRevision.counts.stockSheetUniquePartIdCount, group.sourcePartIds.length);
+  assert.equal(stockRevision.counts.stockSheetPriceSourceReferenceCount, 1);
+  assert.deepEqual(stockRevision.stockSheetGroups, [group]);
+  assert.equal(stockRevision.lines.some(line => line.resourceType === "material"), false);
+  assert.deepEqual(result.audit.revisions[0].stockSheetGroups, []);
+  assert.equal(result.audit.totals.stockSheetGroupCount, 1);
+  assert.equal(result.audit.totals.stockSheetPartReferenceCount, group.sourcePartIds.length);
+  assert.equal(result.audit.totals.stockSheetUniquePartIdCount, group.sourcePartIds.length);
+  assert.equal(result.audit.totals.stockSheetPriceSourceReferenceCount, 1);
+  assert.equal(JSON.stringify(history), originalHistoryJson);
+  assert.ok(Object.isFrozen(result.audit.revisions[1].stockSheetGroups));
+  assert.ok(Object.isFrozen(result.audit.revisions[1].stockSheetGroups[0].sourcePartIds));
+});
+
+test("DOM-143 stock-only empty quote summaries still audit groups and deduplicate Part IDs across revisions", () => {
+  const stockOnlySnapshot = createDom143StockSheetAuditSnapshot({ emptyBase: true });
+  const history = createHistoryWithSnapshots(stockOnlySnapshot, stockOnlySnapshot);
+  const validation = validateProjectQuoteRevisionHistory(history);
+  assert.equal(validation.status, "ready", validation.diagnostics.join("; "));
+
+  const result = calculateProjectQuoteRevisionSourceMapAudit(history);
+  assert.equal(result.status, "ready", result.diagnostics.join("; "));
+  assert.ok(result.audit);
+  const partIds = stockOnlySnapshot.materialCostBasis.stockSheetGroups[0].sourcePartIds;
+  assert.equal(result.audit.revisions[0].counts.lineCount, 0);
+  assert.equal(result.audit.revisions[1].counts.lineCount, 0);
+  assert.equal(result.audit.revisions[0].stockSheetGroups.length, 1);
+  assert.equal(result.audit.revisions[1].stockSheetGroups.length, 1);
+  assert.equal(result.audit.totals.lineCount, 0);
+  assert.equal(result.audit.totals.stockSheetGroupCount, 2);
+  assert.equal(result.audit.totals.stockSheetPartReferenceCount, partIds.length * 2);
+  assert.equal(result.audit.totals.stockSheetUniquePartIdCount, partIds.length);
+});
 
 test("DOM-133 source-map provenance comparison isolates metadata changes from monetary deltas", () => {
   const fromSnapshot = createSnapshot();

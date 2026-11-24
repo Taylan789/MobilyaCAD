@@ -704,3 +704,15 @@
 - Security: production dependency audit passed at the configured high threshold; four moderate findings remain in development dependencies. No dependencies or secrets were changed.
 - AI Developer [45322819775](https://github.com/Taylan789/MobilyaCAD/actions/runs/45322819775) remains blocked by OpenRouter free-model daily quota (HTTP 429, remaining 0; reset 25 Nov 2026 03:00 TRT). No rerun or paid credit purchase.
 - Next task: DOM-143 group-aware stock-sheet revision comparison and source-map audit. Stock-sheet consumers remain fail-closed until that slice is tested.
+
+
+## 24 Kasım 2026 08:48 TRT — DOM-143A stock-sheet source-map audit (verification pending)
+- Base branch HEAD: 50a9db88690201dcd5a7386e838fb02e2d93319d; no active CI, QA or AI Developer run was present before the change.
+- Extended `calculateProjectQuoteRevisionSourceMapAudit` to preserve stock-sheet purchase group provenance separately from quote cost lines.
+- Added per-revision and project-level group, Part-reference, unique-Part and explicit price-source-reference counts. Project-level unique stock-sheet Part IDs are deduplicated across revisions.
+- Valid stock-only snapshots with an empty base quote summary and no cost lines are now auditable; they produce zero quote lines while retaining the snapshot's explicit stock-sheet groups.
+- Added regression tests for mixed quote + stock-sheet revisions, stock-only empty quote revisions, immutable group provenance and cross-revision Part de-duplication.
+- Changed files: `domain/production/projectQuoteRevision.ts`, `domain/production/projectQuoteRevision.test.mjs`, `docs/production-domain-contract.md`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`.
+- Commit SHA: pending GitHub commit response; exact-SHA CI/QA/Pages verification pending.
+- Known limits: stock-sheet revision comparison, source-map provenance comparison and JSON/CSV group-delta exports remain fail-closed; no frontend, adapter/performance-owned files or CNC output changed.
+- Next: verify this exact commit, then implement group-aware revision comparison and its backward-compatible JSON/CSV representation.

@@ -1262,3 +1262,16 @@ createProjectQuotePricingSnapshot accepts an optional materialCostBasis object:
 When this input is present, the returned immutable quote pricing snapshot uses schemaVersion 2 and stores materialCostBasis: the selected basis, currency, panel and edge-band costs, combined material/category/grand totals, source count, and stock-sheet group provenance. Each stock group stores its stable group ID, material ID, 0.1 mm-normalized thickness, sorted unique Part IDs, sheet count, explicit per-sheet price, reconciled group cost, currency and optional price source reference. No supplier price, yield or currency conversion is inferred.
 
 Snapshots without materialCostBasis retain the legacy schemaVersion 1 shape and remain readable by the revision validator. Stock-sheet-only quotes may have an empty line-level quoteSummary; the v2 basis snapshot carries the validated panel purchase amount. Stock-sheet revision comparison and source-map audit remain fail-closed until group-aware consumers are implemented in DOM-143.
+
+
+## DOM-143A — Stock-sheet source-map audit
+
+`calculateProjectQuoteRevisionSourceMapAudit` now audits validated quote snapshot v2 stock-sheet purchase groups without merging them into line-level quote provenance.
+
+- Each revision exposes a separate immutable `stockSheetGroups` list with group ID, material ID, normalized millimetre thickness, source Part IDs, sheet count, explicit per-sheet price, group cost, currency and optional price-source reference.
+- Per-revision and project totals separately report `stockSheetGroupCount`, `stockSheetPartReferenceCount`, `stockSheetUniquePartIdCount` and `stockSheetPriceSourceReferenceCount`. The unique Part count is deduplicated across revisions; line-level Part counts retain their existing meaning.
+- A valid stock-only quote whose base `quoteSummary` is empty and has no cost lines can still be audited. It contributes zero quote lines and its stored stock-sheet group provenance is reported separately.
+- The audit copies only provenance already present in the validated v2 snapshot. It does not infer missing Part IDs, sheet counts, prices, currencies or machine operations.
+- Stock-sheet revision comparison and JSON/CSV group-delta export remain fail-closed until the next DOM-143 slice; no UI or adapter behavior is claimed by this change.
+
+Acceptance tests cover a mixed base quote with stock-sheet purchase groups, a stock-only empty base quote, per-revision counts, project-wide Part de-duplication and immutable results. Exact-SHA CI/QA/Pages verification is pending.

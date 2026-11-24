@@ -1426,6 +1426,11 @@ export interface ProjectQuoteRevisionSourceMapAuditCounts {
   quoteAdjustmentLineCount: number;
   duplicateSourceIdentityCount: number;
   duplicateSourceIdentityLineReferenceCount: number;
+  /** Stock-sheet purchase provenance is kept separate from quote cost-line provenance. */
+  stockSheetGroupCount: number;
+  stockSheetPartReferenceCount: number;
+  stockSheetUniquePartIdCount: number;
+  stockSheetPriceSourceReferenceCount: number;
   sourceTypeCounts: Record<ProjectQuoteLineSource["sourceType"], number>;
   categoryCounts: Record<ProjectQuoteCostCategory, number>;
 }
@@ -1463,6 +1468,18 @@ export interface ProjectQuoteRevisionSourceMapAuditLine {
   hardwareSourceReferences?: readonly string[];
 }
 
+export interface ProjectQuoteRevisionSourceMapAuditStockSheetGroup {
+  groupId: string;
+  materialId: string;
+  thicknessMm: number;
+  sourcePartIds: readonly string[];
+  sheetCount: number;
+  pricePerSheetMinor: number;
+  stockSheetCostMinor: number;
+  currencyCode: string;
+  sourceReference?: string;
+}
+
 export interface ProjectQuoteRevisionSourceIntegrityAuditRevision {
   revisionId: string;
   revisionNumber: number;
@@ -1489,6 +1506,8 @@ export interface ProjectQuoteRevisionSourceMapAuditRevision {
   sourceIntegrityVersion: 1 | null;
   counts: ProjectQuoteRevisionSourceMapAuditCounts;
   duplicateSourceIdentities: readonly ProjectQuoteRevisionSourceMapAuditDuplicateIdentity[];
+  /** Purchase groups retain their own Part provenance and are not counted as quote cost lines. */
+  stockSheetGroups: readonly ProjectQuoteRevisionSourceMapAuditStockSheetGroup[];
   lines: readonly ProjectQuoteRevisionSourceMapAuditLine[];
 }
 
@@ -1523,6 +1542,10 @@ function createSourceMapAuditCounts(): ProjectQuoteRevisionSourceMapAuditCounts 
     quoteAdjustmentLineCount: 0,
     duplicateSourceIdentityCount: 0,
     duplicateSourceIdentityLineReferenceCount: 0,
+    stockSheetGroupCount: 0,
+    stockSheetPartReferenceCount: 0,
+    stockSheetUniquePartIdCount: 0,
+    stockSheetPriceSourceReferenceCount: 0,
     sourceTypeCounts: {
       "production-consumption": 0,
       "labor-operation": 0,
@@ -1555,6 +1578,9 @@ function addSourceMapAuditCounts(
   target.quoteAdjustmentLineCount += source.quoteAdjustmentLineCount;
   target.duplicateSourceIdentityCount += source.duplicateSourceIdentityCount;
   target.duplicateSourceIdentityLineReferenceCount += source.duplicateSourceIdentityLineReferenceCount;
+  target.stockSheetGroupCount += source.stockSheetGroupCount;
+  target.stockSheetPartReferenceCount += source.stockSheetPartReferenceCount;
+  target.stockSheetPriceSourceReferenceCount += source.stockSheetPriceSourceReferenceCount;
   for (const sourceType of ["production-consumption", "labor-operation", "quote-adjustment"] as const) {
     target.sourceTypeCounts[sourceType] += source.sourceTypeCounts[sourceType];
   }
@@ -1587,23 +1613,24 @@ export function calculateProjectQuoteRevisionSourceMapAudit(
 
   try {
     const history = validatedHistory.history;
-    if (history.revisions.some(revision =>
-      revision.pricingSnapshot.materialCostBasis?.basis === "stock-sheet-purchase"
-    )) {
-      throw new Error("Levha satın alma grup Part kaynakları kaynak haritası denetimine henüz dahil edilmedi; denetim güvenli biçimde engellendi.");
-    }
     const totals = createSourceMapAuditCounts();
     const revisionAudits: ProjectQuoteRevisionSourceMapAuditRevision[] = [];
     const allPartIds = new Set<string>();
+    const allStockSheetPartIds = new Set<string>();
     const allHardwareFurnitureIds = new Set<string>();
     const allHardwareBomReferences = new Set<string>();
 
     for (const revision of history.revisions) {
       const quoteSummary = revision.pricingSnapshot.quoteSummary;
       const costSummary = quoteSummary.costSummary;
-      if (costSummary === null || costSummary.lines.length !== quoteSummary.lineSources.length) {
+      if (costSummary === null) {
+        if (quoteSummary.status !== "empty" || quoteSummary.lineSources.length !== 0) {
+          throw new Error("Maliyet özeti olmayan teklif revizyonunda yalnızca doğrulanmış boş satır kaynağı kabul edilir.");
+        }
+      } else if (costSummary.lines.length !== quoteSummary.lineSources.length) {
         throw new Error("Teklif revizyon kaynak denetimi maliyet/kaynak satır eşleşmesi olmadan üretilemez.");
       }
+      const costLines = costSummary?.lines ?? [];
 
       const counts = createSourceMapAuditCounts();
       const partIds = new Set<string>();
@@ -1616,8 +1643,8 @@ export function calculateProjectQuoteRevisionSourceMapAudit(
       }>();
       const lines: ProjectQuoteRevisionSourceMapAuditLine[] = [];
 
-      for (let index = 0; index < costSummary.lines.length; index += 1) {
-        const costLine = costSummary.lines[index];
+      for (let index = 0; index < costLines.length; index += 1) {
+        const costLine = costLines[index];
         const source = quoteSummary.lineSources[index];
         if (costLine === undefined || source === undefined || source.costLineId !== costLine.id) {
           throw new Error("Teklif revizyon kaynak denetimi doğrulanmış satır kimliğini koruyamadı.");
@@ -1691,6 +1718,33 @@ export function calculateProjectQuoteRevisionSourceMapAudit(
         });
       }
 
+      const materialCostBasis = revision.pricingSnapshot.materialCostBasis;
+      const stockSheetGroups: ProjectQuoteRevisionSourceMapAuditStockSheetGroup[] =
+        materialCostBasis?.basis === "stock-sheet-purchase"
+          ? materialCostBasis.stockSheetGroups.map(group => ({
+              groupId: group.groupId,
+              materialId: group.materialId,
+              thicknessMm: group.thicknessMm,
+              sourcePartIds: [...group.sourcePartIds],
+              sheetCount: group.sheetCount,
+              pricePerSheetMinor: group.pricePerSheetMinor,
+              stockSheetCostMinor: group.stockSheetCostMinor,
+              currencyCode: group.currencyCode,
+              ...(group.sourceReference === undefined ? {} : { sourceReference: group.sourceReference })
+            }))
+          : [];
+      const stockSheetPartIds = new Set<string>();
+      for (const group of stockSheetGroups) {
+        counts.stockSheetGroupCount += 1;
+        counts.stockSheetPartReferenceCount += group.sourcePartIds.length;
+        if (group.sourceReference !== undefined) counts.stockSheetPriceSourceReferenceCount += 1;
+        for (const partId of group.sourcePartIds) {
+          stockSheetPartIds.add(partId);
+          allStockSheetPartIds.add(partId);
+        }
+      }
+      counts.stockSheetUniquePartIdCount = stockSheetPartIds.size;
+
       const duplicateSourceIdentities = [...sourceIdentityLineReferences.values()]
         .filter((identity) => identity.costLineIds.length > 1)
         .map((identity) => ({
@@ -1719,11 +1773,13 @@ export function calculateProjectQuoteRevisionSourceMapAudit(
         sourceIntegrityVersion: revision.sourceIntegrityVersion ?? null,
         counts,
         duplicateSourceIdentities,
+        stockSheetGroups,
         lines
       });
     }
 
     totals.uniquePartIdCount = allPartIds.size;
+    totals.stockSheetUniquePartIdCount = allStockSheetPartIds.size;
     totals.uniqueHardwareFurnitureIdCount = allHardwareFurnitureIds.size;
     totals.uniqueHardwareBomReferenceCount = allHardwareBomReferences.size;
 

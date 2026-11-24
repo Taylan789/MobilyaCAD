@@ -1444,3 +1444,20 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 - Testler aynı para birimi, fiyat değişimi, kalınlık/malzeme değişimi, Part değişimi, eksik provenance ve overflow durumlarını kapsar.
 
 **Bağımlılık:** DOM-142 snapshot v2. Stock-sheet karşılaştırma ve source-map audit, DOM-143 otomatik doğrulaması tamamlanana kadar fail-closed kalır.
+
+
+## DOM-143A — Stock-sheet source-map audit (first vertical slice)
+
+**Status:** Implemented in the current development change; exact-SHA CI/QA/Pages verification pending.
+
+- The revision audit reports stock-sheet purchase groups independently from quote cost lines, including explicit material/thickness, Part provenance, sheet count, unit price, group cost, currency and optional price reference.
+- Per-revision and project totals distinguish stock-sheet Part references from line-source Part references and deduplicate unique Part IDs across revisions.
+- Valid stock-only revisions with an empty base quote summary are auditable without inventing quote lines.
+- Comparison, source-map provenance deltas and JSON/CSV stock-sheet exports remain blocked until their own tested slices are delivered.
+
+**Next 3 domain slices**
+1. DOM-143B: compare stock-sheet groups by stable group ID; emit added/removed/changed records and reconcile group, material-category and grand-total deltas.
+2. DOM-143C: add backward-compatible JSON comparison serialization/parsing for stock-sheet group changes while retaining legacy comparison file versions.
+3. DOM-143D: add CSV group rows and source-map provenance comparison; preserve Part IDs and explicit source references.
+
+**Acceptance:** Exact-SHA CI, QA, type-check, lint, production build and Pages must pass for each published slice. No machine-specific CNC or nesting optimization claim is implied.
