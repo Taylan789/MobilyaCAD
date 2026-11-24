@@ -859,13 +859,15 @@
 - Next: DOM-145 history-size/performance bounds and fail-closed import/export limits; specialist-owned JSON/CSV group serializers remain blocked until a real specialist branch/PR is verified.
 
 
-## 24 Kasım 2026 14:45 TRT — DOM-145 implementation (verification pending)
+## 24 Kasım 2026 14:45 TRT — DOM-145 VERIFIED
 
 - Base `dev/github-work` HEAD: `0450f958928183ed98b8014b6e9488d58fc3fb06`; current base CI #45377173510, QA #45377173553 and Pages #45377173673 were successful before this change. No queued/in-progress run existed on the owned branch; the AI Developer run was inactive and its free-model quota failure was left untouched.
 - Added a shared 2,000-revision maximum to `validateProjectQuoteRevisionHistory`; the count is rejected before per-revision snapshot validation, and all callers (including project-v2 history reads/appends) inherit the same fail-closed rule.
 - Added a 1 MiB UTF-8 byte limit to standalone quote-history JSON parse/serialize. Parsing rejects oversized input before `JSON.parse`; oversized serialization returns `json: null`; no truncation or partial history is emitted.
 - Added regressions for the 2,001-revision boundary and a multi-byte UTF-8 payload whose JavaScript string length remains below 1 MiB while encoded bytes exceed it.
 - Changed files: `domain/production/projectQuoteRevision.ts`, `domain/production/projectQuoteRevision.test.mjs`, `domain/production/projectQuoteRevisionFile.ts`, `docs/production-domain-contract.md`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`.
-- Implementation commit SHA: pending GitHub commit response; exact-SHA CI/QA/Pages results: pending. No local test runner is available in this automation; Actions is authoritative.
+- Implementation commit: [ea8d1d6dbb25c9737347c66a357981c56a505cbc](https://github.com/Taylan789/MobilyaCAD/commit/ea8d1d6dbb25c9737347c66a357981c56a505cbc). Exact-SHA CI [#45388338099](https://github.com/Taylan789/MobilyaCAD/actions/runs/45388338099) passed; exact-SHA QA [#45388338060](https://github.com/Taylan789/MobilyaCAD/actions/runs/45388338060) passed; exact-SHA Pages [#45388338056](https://github.com/Taylan789/MobilyaCAD/actions/runs/45388338056) passed and deployed the same SHA. No local test runner was available in this automation; Actions is authoritative.
+- QA evidence: 225/225 frontend unit tests and 718/718 shared-domain tests passed; strict shared-domain TypeScript, lint (34 warnings/0 errors), production build and production dependency audit (0 vulnerabilities) passed. The new revision-count and multi-byte UTF-8 regressions both passed.
 - Known limits: no automatic history pruning/archive, no schema version bump, no frontend changes, no JSON/CSV comparison adapter or benchmark files changed. The 1 MiB guard applies to the standalone history JSON file; project-v2 embedded history inherits the 2,000 revision count guard through the shared validator.
+- Test site: https://taylan789.github.io/MobilyaCAD/ — deployed from exact verified code/test SHA `ea8d1d6dbb25c9737347c66a357981c56a505cbc` via Pages [#45388338056](https://github.com/Taylan789/MobilyaCAD/actions/runs/45388338056).
 - Next: DOM-146 revision-chain import/restore linkage audit; keep stock-sheet comparison JSON/CSV serialization with a verified specialist owner only.

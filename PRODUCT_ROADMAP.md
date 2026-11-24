@@ -1566,7 +1566,7 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 
 ## DOM-145 — Bounded quote revision history and fail-closed JSON limits
 
-**Status:** Implementation committed; exact-SHA CI, QA and Pages verification pending.
+**Status:** VERIFIED on [commit ea8d1d6](https://github.com/Taylan789/MobilyaCAD/commit/ea8d1d6dbb25c9737347c66a357981c56a505cbc); exact-SHA CI [#45388338099](https://github.com/Taylan789/MobilyaCAD/actions/runs/45388338099), QA [#45388338060](https://github.com/Taylan789/MobilyaCAD/actions/runs/45388338060) and Pages [#45388338056](https://github.com/Taylan789/MobilyaCAD/actions/runs/45388338056) passed. QA: 225/225 unit + 718/718 domain tests, strict domain TypeScript, lint 34 warnings/0 errors, production build and production dependency audit (0 vulnerabilities).
 
 **User flow:** A project or standalone history import/export can carry a long quote-revision chain without allowing unbounded validation work or oversized JSON payloads to be accepted or emitted.
 
