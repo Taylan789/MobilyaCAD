@@ -840,9 +840,20 @@
 - Next: exact-SHA CI/QA/Pages verification; then DOM-145 history-size/performance and fail-closed import/export boundaries.
 
 
-## 24 Kasım 2026 13:27 TRT — DOM-144 QA correction (verification pending)
+## 24 Kasım 2026 13:27 TRT — DOM-144 VERIFIED
 
 - Root cause: the three-revision fixture's r1→r2 transition retains three Parts in the same group (part-a, part-c and part-stay); the expected unchanged count was incorrectly set to two. The production result was correct and its from/to reconciliation passed.
 - Corrected only the regression expectation to 3. No production code changed, and no test was removed or weakened.
-- Correction commit SHA and exact-SHA CI/QA/Pages results are pending. The previous implementation SHA was not deployed because QA failed.
+- Correction commit: [90523051fafadda9001e7ad405628b5a63e8ff8e](https://github.com/Taylan789/MobilyaCAD/commit/90523051fafadda9001e7ad405628b5a63e8ff8e). Exact-SHA CI [#45376004983](https://github.com/Taylan789/MobilyaCAD/actions/runs/45376004983), QA [#45376004882](https://github.com/Taylan789/MobilyaCAD/actions/runs/45376004882) and Pages [#45376005022](https://github.com/Taylan789/MobilyaCAD/actions/runs/45376005022) all passed. QA: 221/221 unit + 716/716 domain; strict TypeScript, lint, production build and production audit 0 vulnerabilities. Test site deployed: https://taylan789.github.io/MobilyaCAD/. The initial 65060046 SHA was not deployed because one expected-count assertion failed; correction changed only the expected unchanged count from 2 to 3.
 - Next: verify the correction SHA; only after CI, QA and production build gates pass may Pages deploy the updated test site.
+
+
+## DOM-144 VERIFIED — 24 Kasım 2026 13:27 TRT
+
+- Final correction commit: [90523051fafadda9001e7ad405628b5a63e8ff8e](https://github.com/Taylan789/MobilyaCAD/commit/90523051fafadda9001e7ad405628b5a63e8ff8e).
+- Exact-SHA CI [#45376004983](https://github.com/Taylan789/MobilyaCAD/actions/runs/45376004983), QA [#45376004882](https://github.com/Taylan789/MobilyaCAD/actions/runs/45376004882) and Pages [#45376005022](https://github.com/Taylan789/MobilyaCAD/actions/runs/45376005022) all completed successfully.
+- QA: 221/221 unit + 716/716 shared-domain tests; strict domain TypeScript, lint, production build and production dependency audit passed (0 production vulnerabilities).
+- Test site deployed from the verified correction SHA: https://taylan789.github.io/MobilyaCAD/.
+- Initial 65060046 implementation SHA had one test-only expectation error (three unchanged Parts, not two); it was not deployed. The correction commit changed only that expected count, with no test weakening.
+- No frontend, JSON/CSV adapter, benchmark-owned file, CNC/machine output, secrets/settings or `main` changes.
+- Next: DOM-145 history-size/performance bounds and fail-closed import/export limits; specialist-owned JSON/CSV group serializers remain blocked until a real specialist branch/PR is verified.

@@ -1509,10 +1509,10 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 **Kabul kanıtı:** Karışık stok grubu + hardware satır değişikliği, stock-only boş quote, üst/alt toplam uzlaşması, immutable sonuç ve input immutability için iki yeni domain regresyon testi. Fiziksel levha verimi/CNC/atölye doğrulaması kapsam dışıdır.
 
 **Sıradaki 3–5 küçük görev**
-1. DOM-144 QA correction exact-SHA CI/QA/Pages doğrulamasını tamamla; başarısızsa yalnızca ilgili domain/test dilimini düzelt.
+1. DOM-145: teklif revizyon geçmişi boyut/performance sınırlarını ve fail-closed import/export davranışını doğrula.
 2. INT-002 / DOM-143C-json: stok grubu farklarını JSON comparison schema'sına geriye uyumlu ekle ve v1 reader'ı koru — yalnızca gerçek uzman branch/PR ve dosya sahipliği doğrulanırsa.
 3. DOM-143D: CSV'de deterministik stock-sheet group rows ve Part/source-reference provenance deltas — adapter sahibi kapsamı; uzman sahiplik kanıtı olmadan bu dosyalara dokunma.
-4. DOM-145: teklif revizyonu import/export sınırlarında büyük geçmişler için ölçülebilir boyut/performance sınırlarını ve fail-closed hata davranışını doğrula.
+4. DOM-146: revizyon zinciri kaynak/önceki-revizyon bağlantılarının import ve geri yükleme sırasında tutarlılığını denetle.
 
 
 **DOM-143C-domain QA düzeltme notu — 24 Kasım 2026**
@@ -1536,7 +1536,7 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 
 ## DOM-144 — Cross-revision stock-sheet Part ownership
 
-**Status:** QA correction committed after the first exact-SHA run caught one incorrect test expectation; correction SHA CI/QA/Pages verification pending.
+**Status:** VERIFIED on [correction commit 90523051](https://github.com/Taylan789/MobilyaCAD/commit/90523051fafadda9001e7ad405628b5a63e8ff8e). Exact-SHA CI [#45376004983](https://github.com/Taylan789/MobilyaCAD/actions/runs/45376004983), QA [#45376004882](https://github.com/Taylan789/MobilyaCAD/actions/runs/45376004882), Pages [#45376005022](https://github.com/Taylan789/MobilyaCAD/actions/runs/45376005022) passed.
 
 **User flow:** When a user compares stock-sheet purchase revisions, the domain result explains which source Parts were added, removed, kept in the same material/thickness group or moved to a different group. The same saved history can contain three or more revisions; consecutive comparisons must preserve the Part identity.
 
@@ -1554,3 +1554,10 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 - Exact-SHA CI passed on implementation commit 65060046. QA ran 716 domain tests: 715 passed; the new regression expected two unchanged Parts but the fixture contains three (part-a, part-c, part-stay).
 - The implementation's from/to counts and moved/added/removed results were correct; only the test expectation is corrected to 3. No test is removed or weakened.
 - Pages site build succeeded, but the exact-SHA QA gate correctly skipped deployment for the failed implementation SHA. The previously verified site remains unchanged until the correction SHA passes all gates.
+
+
+**DOM-144 verification result — 24 Kasım 2026**
+- Final correction SHA 90523051 passed exact-SHA CI #45376004983, QA #45376004882 and Pages deployment #45376005022.
+- QA: 221/221 unit + 716/716 shared-domain tests; strict domain TypeScript, lint, production build and production dependency audit (0 production vulnerabilities).
+- Test site deployed from the verified correction SHA: https://taylan789.github.io/MobilyaCAD/.
+- The initial implementation SHA 65060046 was not deployed because one test expectation was wrong; the correction changed only the expected unchanged Part count from 2 to 3. No tests were removed or weakened.
