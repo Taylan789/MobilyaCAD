@@ -46,11 +46,45 @@
   min-width: 0; min-height: 32px; height: 32px; padding-inline: 7px !important; color: #e5edf2 !important;
   border-color: rgba(126, 155, 173, .26) !important; background: #101a22 !important; text-align: right !important; font-size: 10px !important; font-variant-numeric: tabular-nums;
 }
-.cad-transform-help {
-  margin: 0 !important; padding: 7px 9px; color: #91a4af !important; border-left: 2px solid rgba(142, 181, 206, .36);
-  background: rgba(15, 25, 32, .3); font-size: 9px !important; line-height: 1.5 !important;
+.cad-transform-reference-row {
+  display: flex; min-width: 0; align-items: center; justify-content: space-between; gap: 8px;
 }
-.cad-transform-help--rotation { margin-top: -7px !important; padding-left: 10px; border-left-color: rgba(126, 155, 173, .2); background: transparent; }
+.cad-transform-help {
+  min-width: 0; margin: 0 !important; padding: 5px 8px; color: #a5b7c1 !important;
+  border-left: 2px solid rgba(142, 181, 206, .42); background: rgba(15, 25, 32, .3);
+  font-size: 8px !important; font-weight: 650; line-height: 1.35 !important; white-space: nowrap;
+}
+.cad-transform-reference-unit {
+  flex: 0 0 auto; color: #718794; font: 750 7px/1.2 ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: .1em; white-space: nowrap;
+}
+.cad-transform-reference {
+  min-width: 0; overflow: hidden; border: 1px solid rgba(126, 155, 173, .18);
+  border-radius: 6px; background: rgba(12, 21, 27, .34);
+}
+.cad-transform-reference > summary {
+  display: flex; min-height: 30px; align-items: center; gap: 8px; padding: 0 9px;
+  color: #b7c7d0; font-size: 8px; font-weight: 700; cursor: pointer; list-style: none;
+}
+.cad-transform-reference > summary::-webkit-details-marker { display: none; }
+.cad-transform-reference > summary::after {
+  display: grid; width: 17px; height: 17px; flex: 0 0 auto; place-items: center; margin-left: auto;
+  color: #9bbbd0; border: 1px solid rgba(145, 180, 202, .22); border-radius: 4px;
+  background: rgba(145, 180, 202, .07); content: "+"; font-size: 12px; line-height: 1;
+}
+.cad-transform-reference[open] > summary {
+  border-bottom: 1px solid rgba(126, 155, 173, .16); background: rgba(37, 55, 66, .2);
+}
+.cad-transform-reference[open] > summary::after { content: "−"; }
+.cad-transform-reference__hint {
+  margin-left: auto; color: #718794; font-size: 7px; font-weight: 750; letter-spacing: .08em;
+}
+.cad-transform-reference__content {
+  display: grid; gap: 5px; padding: 8px 9px;
+}
+.cad-transform-reference__content p {
+  margin: 0; color: #91a4af; font-size: 8px; line-height: 1.5;
+}
 @media (max-width: 390px) {
   .cad-transform-axis-grid { gap: 4px; padding: 5px; }
   .cad-transform-axis-field { padding: 5px 3px; }

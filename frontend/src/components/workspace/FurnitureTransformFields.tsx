@@ -142,7 +142,7 @@ export function FurnitureTransformFields({
         >
           <RotateCw className="size-3.5" />
           Dönüş açısı
-          <span className="cad-transform-rotation__range">0–359°</span>
+          <span className="cad-transform-rotation__range" id="furniture-rotation-help">0–359°</span>
         </Label>
         <div className="cad-input-with-unit cad-transform-rotation__value">
           <Input
@@ -165,13 +165,25 @@ export function FurnitureTransformFields({
         </div>
       </div>
 
-      <p className="cad-field-note cad-transform-help" id="furniture-position-help">
-        X ve Z oda merkezine, Y zeminden nesne merkezine göre ölçülür.
-        X ve Z konumları oda sınırlarına göre otomatik sınırlandırılır.
-      </p>
-      <p className="cad-field-note cad-transform-help cad-transform-help--rotation" id="furniture-rotation-help">
-        Dönüş açısı 0–359° aralığında derece olarak uygulanır.
-      </p>
+      <div className="cad-transform-reference-row">
+        <p className="cad-field-note cad-transform-help" id="furniture-position-help">
+          X/Z: oda merkezi · Y: zemin
+        </p>
+        <span className="cad-transform-reference-unit" aria-hidden="true">MM / DEG</span>
+      </div>
+      <details className="cad-transform-reference">
+        <summary>
+          <span>Ölçüm referansı</span>
+          <span className="cad-transform-reference__hint">KOORDİNAT / AÇI</span>
+        </summary>
+        <div className="cad-transform-reference__content">
+          <p>
+            X ve Z oda merkezine, Y zeminden nesne merkezine göre ölçülür.
+            X ve Z konumları oda sınırlarına göre otomatik sınırlandırılır.
+          </p>
+          <p>Dönüş açısı 0–359° aralığında derece olarak uygulanır.</p>
+        </div>
+      </details>
     </section>
   );
 }
