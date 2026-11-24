@@ -1359,7 +1359,15 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 - Code/test [commit 4f67c7d6](https://github.com/Taylan789/MobilyaCAD/commit/4f67c7d6d205f054faef866e93bc574b23bbf613); exact-SHA CI [#45292256838](https://github.com/Taylan789/MobilyaCAD/actions/runs/45292256838), QA [#45292256730](https://github.com/Taylan789/MobilyaCAD/actions/runs/45292256730), Pages [#45292256696](https://github.com/Taylan789/MobilyaCAD/actions/runs/45292256696) successful. QA: 201 frontend + 679 domain tests, strict TS, lint 34 warnings/0 errors, production build, audit 0 vulnerabilities. Test site: https://taylan789.github.io/MobilyaCAD/.
 
 
-## DOM-139 READY — Explicit nesting stock-sheet cost summary
-- User flow: supply a validated cut plan and explicit price per stock sheet for every material/thickness group. The domain reports sheet count × per-sheet price and currency/source references.
-- Acceptance: exact group mapping; safe integer minor-unit prices; homogeneous currency; missing/unused definitions block atomically; deterministic output, immutable inputs; no inferred price, waste/yield or quote integration.
-- Dependency: DOM-120 validated project cut-plan area groups. Keep stock purchase cost distinct from net-area material cost to avoid double-counting.
+## DOM-139 — Explicit nesting stock-sheet purchase cost (VERIFIED)
+- API: `calculateProjectSheetNestingStockCostSummary` revalidates the supplied project cut-plan area request and calculates per-group purchase cost from exact validated sheet counts.
+- User prices are explicit integer minor units per sheet with currency and optional source reference. Material ID, normalized thickness and stable group ID must match; every group requires exactly one price, unused/duplicate definitions are blocked, and currencies must be homogeneous.
+- Acceptance passed: exact multi-sheet group costs and project totals; safe arithmetic/overflow; empty and blocked inputs; malformed price definitions; deterministic group ordering; immutable result/input.
+- This purchase-cost summary remains separate from net-area consumption and quote totals. No inferred supplier price, waste/yield or automatic quote integration.
+- Code/test [commit 538c3bd46514de1b5e0aabd7dc1e8714bdda569c](https://github.com/Taylan789/MobilyaCAD/commit/538c3bd46514de1b5e0aabd7dc1e8714bdda569c); CI [#45298432627](https://github.com/Taylan789/MobilyaCAD/actions/runs/45298432627), QA [#45298432528](https://github.com/Taylan789/MobilyaCAD/actions/runs/45298432528), Pages [#45298432481](https://github.com/Taylan789/MobilyaCAD/actions/runs/45298432481) succeeded; test site https://taylan789.github.io/MobilyaCAD/.
+
+## Current domain queue — 24 November 2026
+1. **DOM-140 READY:** define an explicit material-cost basis (net-area consumption vs stock-sheet purchase) before quote integration, preventing double counting.
+2. **DOM-138 DEFERRED:** strict/legacy source-integrity comparison export compatibility; adapter ownership unavailable.
+3. **DOM-130 DEFERRED:** hardware BOM trace persistence/export/schema compatibility; adapter ownership unavailable.
+4. **QA-003 BLOCKED:** end-to-end import/export reconciliation until INT-001/INT-002 evidence exists.

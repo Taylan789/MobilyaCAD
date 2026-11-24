@@ -613,3 +613,11 @@
 - Files: `domain/production/projectQuoteRevision.ts`, `domain/production/projectQuoteRevision.test.mjs`, `docs/production-domain-contract.md`, `PRODUCT_ROADMAP.md`, `AI_COORDINATION.md`, `AI_PROGRESS.md`. Commit SHA is reported in the run notification.
 - CI/QA/Pages exact-SHA verification pending. This runtime can read commit-associated PR runs and commit status, but no push-run/check-run listing is exposed; therefore no Actions success or deployment is claimed. Test site remains https://taylan789.github.io/MobilyaCAD/ until deployment is verified.
 - No frontend, adapter/performance-owned files, machine/CNC output or `main` changes. Next: DOM-137 append/read integrity coverage reconciliation; DOM-130 remains adapter-owned/deferred.
+
+
+## 24 Kasım 2026 03:29 TRT — DOM-139 VERIFIED
+- Code/test [commit 538c3bd46514de1b5e0aabd7dc1e8714bdda569c](https://github.com/Taylan789/MobilyaCAD/commit/538c3bd46514de1b5e0aabd7dc1e8714bdda569c) adds `calculateProjectSheetNestingStockCostSummary`: fresh cut-plan area validation, explicit per-group sheet prices, currency/source references, exact group identity and reconciled purchase totals. Net-consumption quote pricing remains separate.
+- Regression suite covers mixed material groups, multi-sheet cost, reversed price-definition order, empty plans, missing/duplicate/unused/mismatched prices, invalid currency/price/reference, mixed currencies, overflow, blocked plans and input/output immutability.
+- Exact-SHA CI [#45298432627](https://github.com/Taylan789/MobilyaCAD/actions/runs/45298432627), QA [#45298432528](https://github.com/Taylan789/MobilyaCAD/actions/runs/45298432528) and Pages [#45298432481](https://github.com/Taylan789/MobilyaCAD/actions/runs/45298432481) all succeeded. Test site: https://taylan789.github.io/MobilyaCAD/.
+- Files: `domain/production/projectSheetNestingStockCostSummary.ts`, its test, and QA strict TypeScript target list (in the code commit); this follow-up records verified status in `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`, and `docs/production-domain-contract.md`.
+- No frontend, adapter/performance-owned files, CNC/machine output or `main` changes. Next: DOM-140 explicit material-cost basis contract before quote integration; DOM-138/DOM-130 remain adapter-owned/deferred.

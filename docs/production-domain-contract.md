@@ -1217,3 +1217,14 @@ Source-map revision comparisons now expose revision-level `fromSourceIntegrityVe
 The project JSON v2 quote-history wrapper is tested as an end-to-end consumer of the strict/legacy source-integrity audit. A pre-existing legacy revision without `sourceIntegrityVersion` remains unchanged when strict v1 revisions are appended; readback and audit must agree on ordered markers and counts. Repeated appends preserve revision numbering/previous links and the original project snapshots.
 - Acceptance: legacy → strict → strict readback reports `[null, 1, 1]`, `legacyRevisionCount = 1`, `strictRevisionCount = 2`, and `revisionCount = 3`; both prior project snapshots are immutable.
 - Domain integration regression only; no frontend, export adapter, machine/CNC output or pricing arithmetic changes.
+
+
+## DOM-139 — Explicit stock-sheet purchase cost summary
+
+`calculateProjectSheetNestingStockCostSummary` accepts a raw project cut-plan area-summary request and a `sheetPrices` list. It revalidates the area request before calculating costs. Each price definition identifies one stable material/thickness `groupId`, matching `materialId` and normalized `thicknessMm`, an explicit non-negative safe-integer `pricePerSheetMinor`, a three-letter uppercase `currencyCode`, and an optional `sourceReference`.
+
+- Every validated nesting group requires exactly one price definition; duplicate, unused, missing, mismatched or malformed prices block the entire result.
+- Currency is homogeneous across the project summary. Per-group and project totals use safe minor-unit arithmetic and block overflow; partial costs are never returned.
+- Group results preserve source Part IDs and validated sheet counts. Output is deterministic and deeply immutable; input remains unchanged.
+- Empty plans return zero totals. This purchase-cost summary is separate from net-area material consumption and is not automatically added to quote totals, preventing double counting.
+- Supplier prices, waste/yield, machine/CNC standards or production-ready output are not inferred.
