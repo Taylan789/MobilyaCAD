@@ -1581,7 +1581,7 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 
 ## DOM-146 — Revizyon zinciri import/restore bütünlüğü
 
-**Durum:** Test kapsamı eklendi; exact-SHA CI, QA ve Pages doğrulaması bekleniyor.
+**Durum:** VERIFIED — [commit b0bf259](https://github.com/Taylan789/MobilyaCAD/commit/b0bf259cb5b68b61ad69f3c2bb4ba6963cac3992); exact-SHA CI [#45396661732](https://github.com/Taylan789/MobilyaCAD/actions/runs/45396661732), QA [#45396661870](https://github.com/Taylan789/MobilyaCAD/actions/runs/45396661870) ve Pages [#45396661726](https://github.com/Taylan789/MobilyaCAD/actions/runs/45396661726) başarılı. QA: 225/225 frontend + 720/720 domain testi; strict TypeScript, lint 34 warnings/0 errors, production build ve production audit 0 vulnerabilities.
 
 **Kullanıcı akışı:** Kullanıcı standalone teklif geçmişini boş bir v2 projeye aktarır veya kaydedilmiş v2 projeyi açar. Her iki yol da önceki revizyon ve fiyat snapshot kaynak bağlantılarını aynı domain doğrulayıcısından geçirir.
 

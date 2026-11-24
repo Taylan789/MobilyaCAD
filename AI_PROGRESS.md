@@ -873,12 +873,14 @@
 - Next: DOM-146 revision-chain import/restore linkage audit; keep stock-sheet comparison JSON/CSV serialization with a verified specialist owner only.
 
 
-## 24 Kasım 2026 15:39 TRT — DOM-146 implementation (verification pending)
+## 24 Kasım 2026 15:39 TRT — DOM-146 VERIFIED
 
 - Base `dev/github-work` HEAD: `366a2727976c658a7585607ba9eb8125061aec92`; branch HEAD ve beş hedef dosyanın blob SHA'ları yazma öncesinde yeniden okundu. Bu sırada sahip olunan dalda queued/in-progress Actions run bulunmadı.
 - DOM-145 exact-SHA CI #45388338099, QA #45388338060 ve Pages #45388338056 başarılıydı; güncel base SHA 366a272 için CI #45388615961, QA #45388616004 ve Pages #45388616015 de başarılı.
 - Import ve project-v2 restore yolları zaten ortak domain geçmiş doğrulayıcısını kullanıyor; üretim davranışını değiştirmek yerine eksik uçtan uca regresyon kanıtı eklendi. İki yeni test, kopuk `previousRevisionId` zincirini ve snapshot `lineSources[].costLineId` bozulmasını hem standalone import hem proje geri yükleme sırasında reddeder; hiçbirinde kısmi geçmiş/proje dönmez ve hedef girdi değişmez.
 - Değişen dosyalar: `domain/production/projectQuoteRevisionProjectFile.test.mjs`, `docs/production-domain-contract.md`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`.
-- Implementation commit SHA ve exact-SHA CI/QA/Pages sonuçları commit sonrası doğrulanacak; bu kayıtta henüz yeni commit veya yeni Actions başarısı iddia edilmemektedir.
+- Implementation commit: [b0bf259cb5b68b61ad69f3c2bb4ba6963cac3992](https://github.com/Taylan789/MobilyaCAD/commit/b0bf259cb5b68b61ad69f3c2bb4ba6963cac3992). Exact-SHA CI [#45396661732](https://github.com/Taylan789/MobilyaCAD/actions/runs/45396661732), QA [#45396661870](https://github.com/Taylan789/MobilyaCAD/actions/runs/45396661870) ve Pages [#45396661726](https://github.com/Taylan789/MobilyaCAD/actions/runs/45396661726) başarılı; Pages aynı SHA'yı deploy etti.
 - Bilinen sınırlar: frontend/**, JSON/CSV comparison adapter, benchmark, CNC/makine çıktısı ve main dalı değiştirilmedi. Integration/Performance uzman dalı bulunmadı; PERF-001/INT-002 uzman sahipliğinde kalıyor. AI Developer #45338253254 OpenRouter free-model daily HTTP 429 nedeniyle başarısız; uzman job atlandı, ücretli fallback veya kota/secrets değişikliği yapılmadı.
+- QA kanıtı: 225/225 frontend unit + 720/720 domain test; strict domain TypeScript, lint 34 warnings/0 errors, production build ve production dependency audit (0 vulnerabilities) başarılı. İki yeni import/restore bağlantı regresyonu geçti.
+- Test sitesi: https://taylan789.github.io/MobilyaCAD/ — exact verified SHA b0bf259 üzerinden Pages [#45396661726](https://github.com/Taylan789/MobilyaCAD/actions/runs/45396661726) ile deploy edildi.
 - Sonraki görev: DOM-147 project-v2 append derin kopya/immutability sınırı; uzman adapter işleri için gerçek branch/PR kanıtını bekle.
