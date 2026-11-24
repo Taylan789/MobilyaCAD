@@ -797,3 +797,165 @@
 @media (prefers-reduced-motion: reduce) {
   .mc-production__diagnostic-details > summary::before { transition: none; }
 }
+
+
+/* UI-PRODUCTION-CUTLIST-REGISTER-001 — align live cut-list data as a compact production register. */
+.mc-production-studio .mc-production__cut-list > .mc-production__cut-row {
+  display: grid;
+  min-height: 58px;
+  grid-template-columns: minmax(0, 1fr) minmax(156px, auto) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 10px;
+}
+
+.mc-production-studio .mc-production__cut-row > .mc-production__cut-main {
+  min-width: 0;
+  gap: 2px;
+}
+
+.mc-production-studio .mc-production__cut-row > .mc-production__cut-main > strong {
+  color: #e8eef2;
+  font-size: 10px;
+  font-weight: 720;
+  letter-spacing: .01em;
+}
+
+.mc-production-studio .mc-production__cut-row > .mc-production__cut-main > span {
+  color: #a8bac4;
+  font-size: 9px;
+}
+
+.mc-production-studio .mc-production__cut-row > .mc-production__cut-main > small {
+  color: #8498a4;
+  font-size: 8px;
+  letter-spacing: .025em;
+}
+
+.mc-production-studio .mc-production__cut-row > .mc-production__cut-side {
+  display: grid;
+  grid-template-columns: auto auto;
+  grid-template-rows: auto auto;
+  align-items: center;
+  justify-items: end;
+  gap: 2px 12px;
+  padding-inline-start: 12px;
+  border-inline-start: 1px solid var(--mps-line-strong);
+}
+
+.mc-production-studio .mc-production__cut-row > .mc-production__cut-side > b {
+  grid-column: 1;
+  grid-row: 1 / span 2;
+  min-width: 38px;
+  padding: 5px 7px;
+  border: 1px solid rgba(145, 180, 202, .24);
+  border-radius: 4px;
+  color: #dceaf1;
+  background: rgba(95, 132, 153, .13);
+  font-size: 11px;
+  text-align: center;
+}
+
+.mc-production-studio .mc-production__cut-row > .mc-production__cut-side > span {
+  grid-column: 2;
+  grid-row: 1;
+  color: #d5e0e6;
+  font-size: 9px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.mc-production-studio .mc-production__cut-row > .mc-production__cut-side > small {
+  grid-column: 2;
+  grid-row: 2;
+  color: #7f929d;
+  font-size: 8px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.mc-production-studio .mc-production__cut-row > .mc-production__cut-focus {
+  min-width: 118px;
+  min-height: 30px;
+  border-radius: 4px;
+  font-size: 8px;
+}
+
+@media (min-width: 761px) and (max-width: 900px) {
+  .mc-production-studio .mc-production__cut-list > .mc-production__cut-row {
+    grid-template-columns: minmax(0, 1fr) minmax(132px, auto) 32px;
+    gap: 8px;
+    padding-inline: 8px;
+  }
+
+  .mc-production-studio .mc-production__cut-row > .mc-production__cut-focus {
+    width: 32px;
+    min-width: 32px;
+    padding-inline: 0;
+  }
+
+  .mc-production-studio .mc-production__cut-row > .mc-production__cut-focus > span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    clip-path: inset(50%);
+  }
+}
+
+@media (max-width: 760px) {
+  .mc-production-studio .mc-production__cut-list > .mc-production__cut-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 7px 9px;
+  }
+
+  .mc-production-studio .mc-production__cut-row > .mc-production__cut-side {
+    padding-inline-start: 8px;
+    gap: 2px 7px;
+  }
+
+  .mc-production-studio .mc-production__cut-row > .mc-production__cut-focus {
+    grid-column: 1 / -1;
+    justify-self: end;
+  }
+}
+
+@media (max-width: 560px) {
+  .mc-production-studio .mc-production__cut-list > .mc-production__cut-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .mc-production-studio .mc-production__cut-row > .mc-production__cut-side {
+    grid-template-columns: auto auto;
+    justify-self: start;
+    padding-inline-start: 0;
+    border-inline-start: 0;
+  }
+
+  .mc-production-studio .mc-production__cut-row > .mc-production__cut-focus {
+    grid-column: 1;
+  }
+}
+
+@media (forced-colors: active) {
+  .mc-production-studio .mc-production__cut-row > .mc-production__cut-side {
+    border-inline-start-color: CanvasText;
+  }
+
+  .mc-production-studio .mc-production__cut-row > .mc-production__cut-side > b,
+  .mc-production-studio .mc-production__cut-row > .mc-production__cut-focus {
+    border-color: ButtonText;
+    color: ButtonText;
+    background: Canvas;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mc-production-studio .mc-production__cut-row > .mc-production__cut-focus {
+    transition: none !important;
+    transform: none !important;
+  }
+}
