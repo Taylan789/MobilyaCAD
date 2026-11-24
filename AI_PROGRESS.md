@@ -692,3 +692,15 @@
 - The stock-sheet snapshot and Part-coverage tests passed in the same QA run; only the net-consumption snapshot test failed.
 - Pages build/artifact succeeded, but the exact-SHA CI+QA gate failed and deployment was skipped. No broken build was published.
 - Fix commit: pending creation; exact-SHA CI/QA/Pages verification pending.
+
+
+## 24 Kasım 2026 08:36 TRT — DOM-142 verified
+- Fix commit: 0f72244657a3f0c940529e1f3299eb53c9b271b7 — [commit](https://github.com/Taylan789/MobilyaCAD/commit/0f72244657a3f0c940529e1f3299eb53c9b271b7).
+- CI [45335196984](https://github.com/Taylan789/MobilyaCAD/actions/runs/45335196984): success; TypeScript and production build, lint all passed.
+- QA [45335197030](https://github.com/Taylan789/MobilyaCAD/actions/runs/45335197030): success; 208/208 unit tests, 706/706 shared-domain tests, shared-domain type-check, lint, production build and production dependency audit passed.
+- Pages [45335197060](https://github.com/Taylan789/MobilyaCAD/actions/runs/45335197060): success; exact-SHA CI/QA gate, site build, artifact upload and deployment passed.
+- Current test site: https://taylan789.github.io/MobilyaCAD/ — deployed from 0f72244657a3f0c940529e1f3299eb53c9b271b7.
+- QA history: initial implementation SHA d54077703b80f26f95837245cb613fa2c68d1c6c had one failing net-consumption test; corrected in 0f722446. The failed SHA was not deployed.
+- Security: production dependency audit passed at the configured high threshold; four moderate findings remain in development dependencies. No dependencies or secrets were changed.
+- AI Developer [45322819775](https://github.com/Taylan789/MobilyaCAD/actions/runs/45322819775) remains blocked by OpenRouter free-model daily quota (HTTP 429, remaining 0; reset 25 Nov 2026 03:00 TRT). No rerun or paid credit purchase.
+- Next task: DOM-143 group-aware stock-sheet revision comparison and source-map audit. Stock-sheet consumers remain fail-closed until that slice is tested.

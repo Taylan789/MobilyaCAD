@@ -1409,7 +1409,7 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 - Pages deployment passed: [45326256041](https://github.com/Taylan789/MobilyaCAD/actions/runs/45326256041).
 - The separate UI agent's PR #187 was merged by its owner. Its exact-merge CI [45326441304](https://github.com/Taylan789/MobilyaCAD/actions/runs/45326441304), QA [45326441439](https://github.com/Taylan789/MobilyaCAD/actions/runs/45326441439) and Pages deployment [45326441274](https://github.com/Taylan789/MobilyaCAD/actions/runs/45326441274) passed. The merged UI slice is a compact viewport room-dimension HUD; this domain agent did not touch frontend files.
 - Integrated test site: https://taylan789.github.io/MobilyaCAD/ (deployed branch head `adc448d58a3c905e602515f3d4bfe207737b1c5c`; Pages run [45326675155](https://github.com/Taylan789/MobilyaCAD/actions/runs/45326675155)).
-- Next: DOM-142 — persist the selected material basis and stock-group provenance in quote pricing snapshots/revisions while preserving v1 read compatibility.
+- DOM-142 is verified on 0f72244657a3f0c940529e1f3299eb53c9b271b7; exact-SHA CI, QA and Pages passed. Next: DOM-143 — group-aware stock-sheet revision comparison and source-map audit.
 
 
 ## DOM-142 — Teklif snapshot'ında seçilen panel maliyet temeli ve levha provenance'ı
@@ -1428,4 +1428,19 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 
 **Güvenli kapsam sınırı:** DOM-142, stock-sheet tabanlı revizyon karşılaştırmasını ve kaynak-haritası denetimini grup bazlı destek tamamlanana kadar fail-closed yapar. Bu iki tüketicinin gerçek grup maliyetini ve Part provenance'ını karşılaştırması DOM-143 kapsamıdır; mevcut UI veya export bu desteği varmış gibi sunmamalıdır.
 
-**Doğrulama:** projectQuotePricingSnapshot.test.mjs gerçek nesting/stock-cost domain çıktısıyla iki maliyet temelini; projectQuoteRevisionProjectFile.test.mjs v2 revizyon round-trip'ini, bozuk grup maliyetini ve güvenli karşılaştırma/denetim bloklarını doğrular. CI, QA ve Pages sonuçları görülmeden DONE sayılmaz.
+**Doğrulama (24 Kasım 2026):** projectQuotePricingSnapshot.test.mjs gerçek nesting/stock-cost domain çıktısıyla iki maliyet temelini; projectQuoteRevisionProjectFile.test.mjs v2 revizyon round-trip'ini, bozuk grup maliyetini ve güvenli karşılaştırma/denetim bloklarını doğrular. [CI #45335196984](https://github.com/Taylan789/MobilyaCAD/actions/runs/45335196984), [QA #45335197030](https://github.com/Taylan789/MobilyaCAD/actions/runs/45335197030) ve [Pages #45335197060](https://github.com/Taylan789/MobilyaCAD/actions/runs/45335197060) tam olarak 0f72244657a3f0c940529e1f3299eb53c9b271b7 SHA'sında başarılıdır. QA: 208/208 unit, 706/706 domain; type-check, lint, production build ve production dependency audit başarılı.
+
+
+## DOM-143 — Levha satın alma bazlı revizyon karşılaştırması ve kaynak denetimi
+
+**Kullanıcı akışı:** Kullanıcı iki teklif revizyonunu karşılaştırdığında, net tüketim satırları gibi levha satın alma grupları da maliyet farkında görünür; hangi malzeme/kalınlık grubunun, kaç levhanın ve hangi Part kaynaklarının değiştiği doğrulanabilir.
+
+**Kabul kriterleri**
+- Snapshot v2 içindeki stock-sheet group'lar grup kimliği, malzeme, normalize 0.1 mm kalınlık, levha adedi, birim fiyat, grup toplamı, para birimi, varsa kaynak referansı ve Part kimlikleriyle karşılaştırılır.
+- Panel satın alma maliyeti, material kategori toplamı ve teklif genel toplamı grup bazında uzlaşır; güvenli integer sınırı aşılırsa karşılaştırma bloklanır.
+- Eklenen/silinen/değişen gruplar açık fark kayıtları üretir; Part kaynakları kaybolmaz veya tahmin edilmez.
+- Source-map audit, stock-sheet Part referanslarını line-level kaynaklarla karıştırmadan ayrı ve ölçülebilir biçimde sayar.
+- JSON/CSV dışa aktarımları v1 revizyonlarını geriye dönük okuyabilir; makine/CNC formatı iddiası üretmez.
+- Testler aynı para birimi, fiyat değişimi, kalınlık/malzeme değişimi, Part değişimi, eksik provenance ve overflow durumlarını kapsar.
+
+**Bağımlılık:** DOM-142 snapshot v2. Stock-sheet karşılaştırma ve source-map audit, DOM-143 otomatik doğrulaması tamamlanana kadar fail-closed kalır.
