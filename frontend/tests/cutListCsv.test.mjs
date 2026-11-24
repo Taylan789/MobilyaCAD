@@ -166,3 +166,35 @@ test("standart dikdörtgen CSV başlığı mevcut sütun sırasını korur", () 
     "Mobilya;Parça;Genişlik (mm);Uzunluk (mm);Kalınlık (mm);Adet;Malzeme;Malzeme ID;Bant Üst;Bant Alt;Bant Sol;Bant Sağ"
   );
 });
+test("CSV kesitli panel geometrisini kayıpsız taşıyamadığı için dışa aktarımı engeller", () => {
+  assert.throws(
+    () => createCutListCsv("Modül", [createPart({ panelGeometry: { schemaVersion: 1 } })]),
+    /kesitli panel geometrisi CSV biçiminde korunamadığı/i
+  );
+});
+
+test("CSV per-edge katalog ataması, CNC operasyonu ve üretim notunda fail-closed davranır", () => {
+  assert.throws(
+    () => createCutListCsv("Modül", [createPart({
+      edgeBandingByEdge: { top: { edgeBandingId: "band-white", unit: "mm" } }
+    })]),
+    /kenar bandı katalog ataması CSV biçiminde korunamadığı/i
+  );
+  assert.throws(
+    () => createCutListCsv("Modül", [createPart({
+      edgeBandingMaterialId: "band-white",
+      edgeBandingUnit: "m"
+    })]),
+    /kenar bandı katalog ataması CSV biçiminde korunamadığı/i
+  );
+  assert.throws(
+    () => createCutListCsv("Modül", [createPart({
+      cncOperations: [{ id: "op-1" }]
+    })]),
+    /CNC operasyonları CSV biçiminde korunamadığı/i
+  );
+  assert.throws(
+    () => createCutListCsv("Modül", [createPart({ productionNote: "Kesim yönünü koru" })]),
+    /üretim notu CSV biçiminde korunamadığı/i
+  );
+});
