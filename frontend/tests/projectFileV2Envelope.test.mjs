@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { readFileSync } from "node:fs";
 
 import {
   createProjectFileEnvelope,
@@ -282,4 +283,14 @@ test("v2 with mismatched quote-history identity is rejected by the domain contra
     () => parseProjectFile(JSON.stringify(invalid)),
     /projectId/
   );
+});
+
+
+test("editor startup, save, and open use the persistent project envelope", () => {
+  const appSource = readFileSync(new URL("../src/App.tsx", import.meta.url), "utf8");
+
+  assert.match(appSource, /const \[projectEnvelope, setProjectEnvelope\] = useState\(\(\) => createProjectFileEnvelope\(\)\)/);
+  assert.match(appSource, /getProjectFileEnvelope\(project, crypto\.randomUUID\(\)\)/);
+  assert.match(appSource, /setProjectEnvelope\(nextEnvelope\)/);
+  assert.match(appSource, /materials,\s*projectEnvelope\s*\)/);
 });
