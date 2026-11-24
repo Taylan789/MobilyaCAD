@@ -1367,7 +1367,16 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 - Code/test [commit 538c3bd46514de1b5e0aabd7dc1e8714bdda569c](https://github.com/Taylan789/MobilyaCAD/commit/538c3bd46514de1b5e0aabd7dc1e8714bdda569c); CI [#45298432627](https://github.com/Taylan789/MobilyaCAD/actions/runs/45298432627), QA [#45298432528](https://github.com/Taylan789/MobilyaCAD/actions/runs/45298432528), Pages [#45298432481](https://github.com/Taylan789/MobilyaCAD/actions/runs/45298432481) succeeded; test site https://taylan789.github.io/MobilyaCAD/.
 
 ## Current domain queue — 24 November 2026
-1. **DOM-140 READY:** define an explicit material-cost basis (net-area consumption vs stock-sheet purchase) before quote integration, preventing double counting.
+1. **DOM-140 IMPLEMENTED — verification pending:** explicit material-cost basis selector validates one chosen net-consumption or stock-sheet purchase summary; no double counting. DOM-141 quote integration is next.
 2. **DOM-138 DEFERRED:** strict/legacy source-integrity comparison export compatibility; adapter ownership unavailable.
 3. **DOM-130 DEFERRED:** hardware BOM trace persistence/export/schema compatibility; adapter ownership unavailable.
 4. **QA-003 BLOCKED:** end-to-end import/export reconciliation until INT-001/INT-002 evidence exists.
+
+
+## DOM-140 — Explicit material-cost basis selection (verification pending)
+- API `calculateProjectMaterialCostBasisSummary` accepts schema v1 and exactly one basis: `net-consumption` or `stock-sheet-purchase`, plus that basis's source report. The API never requests or sums both sources.
+- Net consumption uses only the validated material-category lines, not hardware/labor/operations/waste/profit; line, category and grand totals must reconcile and currency must match.
+- Stock-sheet purchase uses only validated nesting-group purchase costs; sheet counts × explicit per-sheet prices, group currency, source IDs and project totals must reconcile. No supplier price or yield is inferred.
+- Incomplete/blocked sources expose no partial monetary value; empty source returns zero. Extra request fields and unsupported basis/schema fail closed.
+- Exact-SHA CI/QA/Pages evidence pending.
+- Next: DOM-141 integrate the explicit basis into quote flow only after a versioned quote contract and compatibility tests; adapter-owned export work remains deferred.

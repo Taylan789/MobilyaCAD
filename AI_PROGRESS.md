@@ -621,3 +621,10 @@
 - Exact-SHA CI [#45298432627](https://github.com/Taylan789/MobilyaCAD/actions/runs/45298432627), QA [#45298432528](https://github.com/Taylan789/MobilyaCAD/actions/runs/45298432528) and Pages [#45298432481](https://github.com/Taylan789/MobilyaCAD/actions/runs/45298432481) all succeeded. Test site: https://taylan789.github.io/MobilyaCAD/.
 - Files: `domain/production/projectSheetNestingStockCostSummary.ts`, its test, and QA strict TypeScript target list (in the code commit); this follow-up records verified status in `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`, and `docs/production-domain-contract.md`.
 - No frontend, adapter/performance-owned files, CNC/machine output or `main` changes. Next: DOM-140 explicit material-cost basis contract before quote integration; DOM-138/DOM-130 remain adapter-owned/deferred.
+
+
+## 24 Kasım 2026 05:50 TRT — DOM-140 implementation (verification pending)
+- Added `calculateProjectMaterialCostBasisSummary`: selects one explicit basis (`net-consumption` or `stock-sheet-purchase`), validates currency/category/group totals and source consistency, and never combines the two bases.
+- Regression covers ready net consumption, a real nesting stock-cost report, incomplete/empty input, inconsistent totals, unsupported request fields, deterministic output and immutability.
+- Code commit SHA and exact-SHA CI/QA/Pages status pending. No frontend or adapter/performance-owned files changed; `main` untouched.
+- Next: DOM-141 quote integration remains separate and must preserve basis selection without double counting; DOM-138/DOM-130 remain adapter-owned/deferred.

@@ -1228,3 +1228,12 @@ The project JSON v2 quote-history wrapper is tested as an end-to-end consumer of
 - Group results preserve source Part IDs and validated sheet counts. Output is deterministic and deeply immutable; input remains unchanged.
 - Empty plans return zero totals. This purchase-cost summary is separate from net-area material consumption and is not automatically added to quote totals, preventing double counting.
 - Supplier prices, waste/yield, machine/CNC standards or production-ready output are not inferred.
+
+
+## DOM-140 — Explicit material-cost basis selection
+
+`calculateProjectMaterialCostBasisSummary` is a version-1, fail-closed selection contract. Request fields are exactly `schemaVersion`, `basis` (`net-consumption` or `stock-sheet-purchase`) and `sourceReport`. It intentionally accepts only the selected report; it does not require the alternate source or add the two costs together.
+- Net-consumption basis extracts only the material category from a complete, homogeneous-currency `ProjectCostSummary`; all six category totals, line totals and grand total must reconcile, and the report must be fully priced.
+- Stock-sheet-purchase basis extracts only validated group purchase totals from the stock-cost summary. Group currency, sheet count × explicit price, source Part IDs, and group/project totals are reconciled.
+- Empty selected source returns zero; incomplete/blocked sources return no monetary amount. Unknown request fields, invalid schema/basis, inconsistent or unsafe totals fail closed.
+- This is a selector contract, not quote integration. DOM-141 must carry the chosen basis into the quote contract and must never double-count net area and stock-sheet purchase.
