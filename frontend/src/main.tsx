@@ -6,6 +6,7 @@ import './styles/workspace-layout.css'
 import './styles/cad-studio-refinement.css'
 import './styles/cad-viewport-toolbar.css'
 import App from './App.tsx'
+import './styles/collapsed-dock-rail.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
