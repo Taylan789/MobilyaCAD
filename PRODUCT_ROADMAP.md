@@ -1509,11 +1509,10 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 **Kabul kanıtı:** Karışık stok grubu + hardware satır değişikliği, stock-only boş quote, üst/alt toplam uzlaşması, immutable sonuç ve input immutability için iki yeni domain regresyon testi. Fiziksel levha verimi/CNC/atölye doğrulaması kapsam dışıdır.
 
 **Sıradaki 3–5 küçük görev**
-1. DOM-143C-domain exact-SHA CI/QA/Pages doğrulamasını tamamla; başarısızsa yalnızca ilgili domain/test dilimini düzelt.
-2. INT-002 / DOM-143C-json: stok grubu farklarını JSON comparison schema'sına geriye uyumlu ekle ve v1 reader'ı koru — yalnızca entegrasyon/performance ajanı sahiplenirse.
-3. DOM-143D: CSV'de deterministik stock-sheet group rows ve Part/source-reference provenance deltas — adapter sahibi kapsamı.
-4. DOM-144: üç veya daha fazla revizyonda source-map audit ve stock-sheet group comparison Part kapsamını çapraz tüketici düzeyinde uzlaştır.
-5. DOM-145: teklif revizyonu import/export sınırlarında büyük geçmişler için ölçülebilir boyut/performance sınırlarını ve fail-closed hata davranışını doğrula.
+1. DOM-144 exact-SHA CI/QA/Pages doğrulamasını tamamla; başarısızsa yalnızca ilgili domain/test dilimini düzelt.
+2. INT-002 / DOM-143C-json: stok grubu farklarını JSON comparison schema'sına geriye uyumlu ekle ve v1 reader'ı koru — yalnızca gerçek uzman branch/PR ve dosya sahipliği doğrulanırsa.
+3. DOM-143D: CSV'de deterministik stock-sheet group rows ve Part/source-reference provenance deltas — adapter sahibi kapsamı; uzman sahiplik kanıtı olmadan bu dosyalara dokunma.
+4. DOM-145: teklif revizyonu import/export sınırlarında büyük geçmişler için ölçülebilir boyut/performance sınırlarını ve fail-closed hata davranışını doğrula.
 
 
 **DOM-143C-domain QA düzeltme notu — 24 Kasım 2026**
@@ -1533,3 +1532,19 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 - Test sitesi exact verified SHA üzerinden deploy edildi: https://taylan789.github.io/MobilyaCAD/.
 - İlk iki QA başarısızlığı yalnızca fixture/assertion uyumsuzluğuydu; başarısız SHA'lar deploy edilmedi ve hiçbir test zayıflatılmadı.
 - JSON/CSV adapter ve fiziksel CNC doğrulaması hâlâ ayrı sahiplik/önkoşul gerektirir.
+
+
+## DOM-144 — Cross-revision stock-sheet Part ownership
+
+**Status:** Implementation committed; exact-SHA CI/QA/Pages verification pending.
+
+**User flow:** When a user compares stock-sheet purchase revisions, the domain result explains which source Parts were added, removed, kept in the same material/thickness group or moved to a different group. The same saved history can contain three or more revisions; consecutive comparisons must preserve the Part identity.
+
+**Acceptance criteria**
+- Expose unique from/to stock-sheet Part counts and added, removed, moved and unchanged counts.
+- Emit only added/removed/moved Part records, sorted by Part ID; a moved Part retains one identity with both group IDs.
+- Reconcile from = removed + moved + unchanged and to = added + moved + unchanged; block duplicate Part ownership across groups.
+- Keep source-map audit revision-ordered and immutable; verify a three-revision history with two consecutive group transitions.
+- Do not infer missing project Parts, geometry, machine operations, prices or CNC coordinates from quote history.
+
+**Boundaries and risks:** The comparison describes the Part IDs persisted in stock-sheet groups; it is not a completeness check against the live project Part snapshot. JSON/CSV comparison serializers remain specialist-owned and fail-closed until round-trip tests pass. No frontend or physical production claim is implied.

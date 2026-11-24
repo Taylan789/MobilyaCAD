@@ -3100,6 +3100,78 @@ test("DOM-143B blocks group comparison when neither revision has an explicit sto
   assert.match(result.diagnostics[0], /en az bir revizyon açık levha satın alma maliyet temeli/);
 });
 
+test("DOM-144 three-revision stock-sheet Part ownership reports added, removed and moved Parts deterministically", () => {
+  const mdfGroupId = JSON.stringify(["mdf-18", 180]);
+  const plywoodGroupId = JSON.stringify(["plywood-12", 120]);
+  const groupSpecs = [
+    [
+      { materialId: "mdf-18", thicknessMm: 18, sourcePartIds: ["part-a", "part-c", "part-move", "part-removed"], sheetCount: 2, pricePerSheetMinor: 100, sourceReference: "price:mdf-v1" },
+      { materialId: "plywood-12", thicknessMm: 12, sourcePartIds: ["part-stay"], sheetCount: 1, pricePerSheetMinor: 50, sourceReference: "price:plywood-v1" }
+    ],
+    [
+      { materialId: "mdf-18", thicknessMm: 18, sourcePartIds: ["part-a", "part-added", "part-c"], sheetCount: 2, pricePerSheetMinor: 100, sourceReference: "price:mdf-v1" },
+      { materialId: "plywood-12", thicknessMm: 12, sourcePartIds: ["part-move", "part-stay"], sheetCount: 1, pricePerSheetMinor: 50, sourceReference: "price:plywood-v1" }
+    ],
+    [
+      { materialId: "mdf-18", thicknessMm: 18, sourcePartIds: ["part-a", "part-added"], sheetCount: 2, pricePerSheetMinor: 100, sourceReference: "price:mdf-v1" },
+      { materialId: "plywood-12", thicknessMm: 12, sourcePartIds: ["part-move", "part-stay"], sheetCount: 1, pricePerSheetMinor: 50, sourceReference: "price:plywood-v1" }
+    ]
+  ];
+  const snapshots = groupSpecs.map(groups =>
+    setDom143StockSheetGroups(createDom143StockSheetAuditSnapshot(), groups)
+  );
+  const history = {
+    projectId: "project-42",
+    revisions: snapshots.map((pricingSnapshot, index) => createHistoryRevision({
+      revisionId: "quote-r" + (index + 1),
+      revisionNumber: index + 1,
+      createdAt: "2026-11-17T" + (10 + index) + ":00:00Z",
+      previousRevisionId: index === 0 ? null : "quote-r" + index,
+      pricingSnapshot
+    }))
+  };
+  const originalHistoryJson = JSON.stringify(history);
+  const audit = calculateProjectQuoteRevisionSourceMapAudit(history);
+  assert.equal(audit.status, "ready", audit.diagnostics.join("; "));
+  assert.equal(audit.audit?.revisionCount, 3);
+  assert.deepEqual(audit.audit?.revisions.map(revision => revision.counts.stockSheetUniquePartIdCount), [5, 5, 4]);
+  assert.equal(audit.audit?.totals.stockSheetUniquePartIdCount, 6);
+
+  const firstTransition = compareProjectQuoteRevisionStockSheetGroups(history, "quote-r1", "quote-r2");
+  assert.equal(firstTransition.status, "ready", firstTransition.diagnostics.join("; "));
+  assert.deepEqual(firstTransition.comparison?.stockSheetPartCounts, {
+    fromPartCount: 5,
+    toPartCount: 5,
+    addedPartCount: 1,
+    removedPartCount: 1,
+    movedPartCount: 1,
+    unchangedPartCount: 2
+  });
+  assert.deepEqual(firstTransition.comparison?.stockSheetPartChanges, [
+    { type: "added", partId: "part-added", fromGroupId: null, toGroupId: mdfGroupId },
+    { type: "moved", partId: "part-move", fromGroupId: mdfGroupId, toGroupId: plywoodGroupId },
+    { type: "removed", partId: "part-removed", fromGroupId: mdfGroupId, toGroupId: null }
+  ]);
+
+  const secondTransition = compareProjectQuoteRevisionStockSheetGroups(history, "quote-r2", "quote-r3");
+  assert.equal(secondTransition.status, "ready", secondTransition.diagnostics.join("; "));
+  assert.deepEqual(secondTransition.comparison?.stockSheetPartCounts, {
+    fromPartCount: 5,
+    toPartCount: 4,
+    addedPartCount: 0,
+    removedPartCount: 1,
+    movedPartCount: 0,
+    unchangedPartCount: 4
+  });
+  assert.deepEqual(secondTransition.comparison?.stockSheetPartChanges, [
+    { type: "removed", partId: "part-c", fromGroupId: mdfGroupId, toGroupId: null }
+  ]);
+  assert.ok(Object.isFrozen(firstTransition.comparison?.stockSheetPartCounts));
+  assert.ok(Object.isFrozen(firstTransition.comparison?.stockSheetPartChanges));
+  assert.ok(Object.isFrozen(firstTransition.comparison?.stockSheetPartChanges[0]));
+  assert.equal(JSON.stringify(history), originalHistoryJson);
+});
+
 test("DOM-143C-domain integrates stock-sheet groups into the full comparison without losing line changes", () => {
   const fromSnapshot = setDom143StockSheetGroups(createDom143StockSheetAuditSnapshot(), [
     { materialId: "mdf-18", thicknessMm: 18, sourcePartIds: ["dom-143c-part-a"], sheetCount: 1, pricePerSheetMinor: 100, sourceReference: "stock-price-v1" }

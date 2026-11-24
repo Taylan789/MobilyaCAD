@@ -1330,3 +1330,16 @@ Bu dilim yalnızca karşılaştırma nedenlerini açıklar. JSON/CSV adapter ent
 - JSON karşılaştırma dosyası ve CSV adaptörleri bu ek alanı henüz serialize etmez. Mevcut katı anahtar doğrulaması nedeniyle bu zarfı dışa aktarma girişimi fail-closed kalır; adapter schema/round-trip işi entegrasyon-performans sahibinin kapsamındadır.
 
 Otomatik kabul: stok grubu değişimi ile aynı anda değişen hardware quote line farkının birlikte korunması; stok-only boş quote karşılaştırmasında sıfır sentetik line change; üst ve alt toplamların bire bir uzlaşması; deep-freeze ve input immutability. Fiziksel levha verimi, CNC makine çıktısı ve atölye uygunluğu bu domain testleriyle onaylanmış sayılmaz.
+
+
+## DOM-144 — Cross-revision stock-sheet Part ownership
+
+The domain stock-sheet comparison now exposes Part-level ownership transitions in addition to group-level cost and field deltas.
+
+- `stockSheetPartCounts` reports unique stock-sheet source Part counts on both revisions plus added, removed, moved and unchanged counts.
+- `stockSheetPartChanges` emits only added/removed/moved Part IDs in deterministic Part-ID order. A moved Part retains its identity and reports both `fromGroupId` and `toGroupId`; absent sides are `null`.
+- Counts reconcile independently against the from/to unique Part sets: from = removed + moved + unchanged; to = added + moved + unchanged.
+- Snapshot validation already rejects a Part assigned to multiple stock-sheet groups in one revision; the comparison rechecks that invariant before building ownership maps.
+- A three-revision regression audits each revision and compares consecutive transitions, covering group moves, additions, removals, stable Parts, deterministic ordering, immutability and input preservation.
+
+This is source-group ownership evidence only; it does not claim that the saved group IDs cover every current project Part. JSON/CSV comparison adapters remain specialist-owned and fail-closed until their schema and round-trip work is verified. No frontend behavior, machine-specific CNC output or physical workshop validation is implied.

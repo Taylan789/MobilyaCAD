@@ -1476,6 +1476,22 @@ export interface ProjectQuoteRevisionStockSheetGroupComparisonCounts {
   unchangedGroupCount: number;
 }
 
+export interface ProjectQuoteRevisionStockSheetPartChangeCounts {
+  fromPartCount: number;
+  toPartCount: number;
+  addedPartCount: number;
+  removedPartCount: number;
+  movedPartCount: number;
+  unchangedPartCount: number;
+}
+
+export interface ProjectQuoteRevisionStockSheetPartChange {
+  type: "added" | "removed" | "moved";
+  partId: string;
+  fromGroupId: string | null;
+  toGroupId: string | null;
+}
+
 export interface ProjectQuoteRevisionStockSheetGroupComparison {
   schemaVersion: 1;
   projectId: string;
@@ -1499,6 +1515,10 @@ export interface ProjectQuoteRevisionStockSheetGroupComparison {
   categoryDeltasMinor: Record<ProjectQuoteCostCategory, number>;
   /** Deterministic counts over the union of stable group IDs, including unchanged groups. */
   groupCounts: ProjectQuoteRevisionStockSheetGroupComparisonCounts;
+  /** Unique source Part ownership across all stock-sheet groups in each compared revision. */
+  stockSheetPartCounts: ProjectQuoteRevisionStockSheetPartChangeCounts;
+  /** Added, removed or moved Part IDs; unchanged IDs are represented only in counts. */
+  stockSheetPartChanges: readonly ProjectQuoteRevisionStockSheetPartChange[];
   /** Stable group IDs match in place; material/thickness identity changes are add/remove pairs. */
   groupChanges: readonly ProjectQuoteRevisionStockSheetGroupChange[];
 }
@@ -1726,6 +1746,62 @@ export function compareProjectQuoteRevisionStockSheetGroups(
       });
     }
 
+    const collectPartGroupIds = (
+      groups: readonly DeepReadonly<ProjectQuoteStockSheetGroupSnapshot>[],
+      label: string
+    ): Map<string, string> => {
+      const partGroupIds = new Map<string, string>();
+      for (const group of groups) {
+        for (const partId of group.sourcePartIds) {
+          if (partGroupIds.has(partId)) {
+            throw new Error(label + " kaynak Part kimliği birden fazla levha grubunda bulunuyor: " + partId + ".");
+          }
+          partGroupIds.set(partId, group.groupId);
+        }
+      }
+      return partGroupIds;
+    };
+    const fromPartGroupIds = collectPartGroupIds(fromTotals.stockSheetGroups, "Başlangıç revizyonu");
+    const toPartGroupIds = collectPartGroupIds(toTotals.stockSheetGroups, "Hedef revizyonu");
+    const stockSheetPartCounts: ProjectQuoteRevisionStockSheetPartChangeCounts = {
+      fromPartCount: fromPartGroupIds.size,
+      toPartCount: toPartGroupIds.size,
+      addedPartCount: 0,
+      removedPartCount: 0,
+      movedPartCount: 0,
+      unchangedPartCount: 0
+    };
+    const stockSheetPartChanges: ProjectQuoteRevisionStockSheetPartChange[] = [];
+    const partIds = [...new Set([...fromPartGroupIds.keys(), ...toPartGroupIds.keys()])].sort();
+    for (const partId of partIds) {
+      const fromGroupId = fromPartGroupIds.get(partId) ?? null;
+      const toGroupId = toPartGroupIds.get(partId) ?? null;
+      if (fromGroupId === null) {
+        stockSheetPartCounts.addedPartCount += 1;
+        stockSheetPartChanges.push({ type: "added", partId, fromGroupId: null, toGroupId });
+      } else if (toGroupId === null) {
+        stockSheetPartCounts.removedPartCount += 1;
+        stockSheetPartChanges.push({ type: "removed", partId, fromGroupId, toGroupId: null });
+      } else if (fromGroupId !== toGroupId) {
+        stockSheetPartCounts.movedPartCount += 1;
+        stockSheetPartChanges.push({ type: "moved", partId, fromGroupId, toGroupId });
+      } else {
+        stockSheetPartCounts.unchangedPartCount += 1;
+      }
+    }
+    if (
+      stockSheetPartCounts.fromPartCount !==
+        stockSheetPartCounts.removedPartCount +
+          stockSheetPartCounts.movedPartCount +
+          stockSheetPartCounts.unchangedPartCount ||
+      stockSheetPartCounts.toPartCount !==
+        stockSheetPartCounts.addedPartCount +
+          stockSheetPartCounts.movedPartCount +
+          stockSheetPartCounts.unchangedPartCount
+    ) {
+      throw new Error("Levha satın alma Part sahipliği farkları başlangıç/hedef benzersiz Part kapsamıyla uzlaşmıyor.");
+    }
+
     const stockSheetCostDeltaMinor = safeRevisionComparisonDelta(
       toTotals.stockSheetCostMinor, fromTotals.stockSheetCostMinor, "Levha satın alma maliyet farkı"
     );
@@ -1784,6 +1860,8 @@ export function compareProjectQuoteRevisionStockSheetGroups(
         toGrandTotalMinor: toTotals.grandTotalMinor,
         grandTotalDeltaMinor,
         categoryDeltasMinor,
+        stockSheetPartCounts,
+        stockSheetPartChanges,
         groupCounts,
         groupChanges
       },

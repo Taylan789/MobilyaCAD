@@ -823,3 +823,16 @@
 - Remaining constraints: JSON/CSV comparison serializers still reject the additive nested group-comparison field by design; adapter schema/round-trip remains specialist-owned. No integration/performance specialist branch or PR was verified. Build continues to warn that the main JS bundle is about 1.69 MB (gzip about 473 kB), so measured code splitting remains a performance follow-up.
 - No frontend, adapter/performance-owned files, CNC output, secrets/settings or main changes. AI Developer [#45338253254](https://github.com/Taylan789/MobilyaCAD/actions/runs/45338253254) failed on OpenRouter free-model daily HTTP 429; reset is 25 November 2026 03:00 TRT; no retry or paid fallback.
 - Next: verify a real specialist branch/PR before JSON/CSV schema integration; continue domain-side cross-revision source-map and stock-sheet Part reconciliation without touching adapter files.
+
+
+## 24 Kasım 2026 13:26 TRT — DOM-144 stock-sheet Part ownership (verification pending)
+
+- Base branch HEAD: `d05ae40622f277e3ec2c9ba67615b72d43a65a0f`; the branch and all six target blob SHAs were re-read immediately before authoring. No queued/in-progress Actions run existed on `dev/github-work`.
+- Added `stockSheetPartCounts` and deterministic `stockSheetPartChanges` to the stock-sheet group comparison. Part IDs moved between material/thickness groups now retain identity with explicit from/to group IDs; unchanged Parts remain count-only.
+- Added a three-revision regression that checks the source-map audit's per-revision and project-wide unique Part counts, then compares r1→r2 and r2→r3 for added, removed, moved and unchanged Parts. Counts reconcile to both revision snapshots; input remains immutable.
+- Changed files: `domain/production/projectQuoteRevision.ts`, `domain/production/projectQuoteRevision.test.mjs`, `docs/production-domain-contract.md`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`.
+- Commit SHA: pending GitHub commit creation; it will be recorded with the exact-SHA Actions evidence on the next verification update. CI, QA and Pages for this new change are not yet observed; no success is claimed.
+- Base SHA checks were successful before this change: CI [#45366454894](https://github.com/Taylan789/MobilyaCAD/actions/runs/45366454894), QA [#45366455124](https://github.com/Taylan789/MobilyaCAD/actions/runs/45366455124), Pages [#45366454872](https://github.com/Taylan789/MobilyaCAD/actions/runs/45366454872). Test site base: https://taylan789.github.io/MobilyaCAD/.
+- AI Developer [#45338253254](https://github.com/Taylan789/MobilyaCAD/actions/runs/45338253254) failed with OpenRouter free-model daily HTTP 429; its integration/performance specialist job was skipped. No specialist branch/PR was found; no rerun, paid fallback, secret or quota setting was changed. Provider reset reported as 25 November 2026 03:00 TRT.
+- Known limits: stock-sheet Part IDs are persisted source-group provenance, not proof of completeness against the current project Part snapshot. JSON/CSV comparison adapters remain fail-closed and specialist-owned; no frontend, adapter, benchmark, CNC/machine, secrets/settings or `main` changes.
+- Next: exact-SHA CI/QA/Pages verification; then DOM-145 history-size/performance and fail-closed import/export boundaries.
