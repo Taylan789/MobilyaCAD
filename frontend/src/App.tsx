@@ -94,12 +94,7 @@ import type { MaterialUsageLocation } from "./types/materialUsage";
 import { furnitureCatalog } from "./data/furnitureCatalog";
 import { createPlacedFurniture } from "./types/placedFurniture";
 import type { PlacedFurniture } from "./types/placedFurniture";
-import {
-  createProjectFileEnvelope,
-  getProjectFileEnvelope,
-  parseProjectFile,
-  serializeProjectFile
-} from "./engine/projectFile";
+import { parseProjectFile, serializeProjectFile } from "./engine/projectFile";
 import { calculateEdgeBandingSummary } from "./engine/edgeBanding";
 import { calculateMaterialConsumptionSummary } from "./engine/materialConsumption";
 import { createProjectCutListCsv } from "./engine/cutListCsv";
@@ -239,14 +234,12 @@ function App() {
   const [catalogDragActive, setCatalogDragActive] = useState(false);
   const [projectName, setProjectName] = useState("Yeni Tasarım");
   const [documentSource, setDocumentSource] = useState<"new" | "imported" | "exported">("new");
-  const [projectEnvelope, setProjectEnvelope] = useState(() => createProjectFileEnvelope());
   const [savedProjectSnapshot, setSavedProjectSnapshot] = useState(() =>
     serializeProjectFile(
       { width: 4000, length: 5000, height: 2800 },
       [],
       "snapshot",
-      [],
-      projectEnvelope
+      []
     )
   );
 
@@ -256,10 +249,9 @@ function App() {
         { width: roomWidth, length: roomLength, height: roomHeight },
         furniture,
         "snapshot",
-        materials,
-        projectEnvelope
+        materials
       ),
-    [roomWidth, roomLength, roomHeight, furniture, materials, projectEnvelope]
+    [roomWidth, roomLength, roomHeight, furniture, materials]
   );
   const hasUnsavedChanges = projectSnapshot !== savedProjectSnapshot;
   const documentStatusLabel = hasUnsavedChanges
@@ -315,15 +307,12 @@ function App() {
     setCatalogSearch("");
     setProjectName("Yeni Tasarım");
     setDocumentSource("new");
-    const nextEnvelope = createProjectFileEnvelope();
-    setProjectEnvelope(nextEnvelope);
     setSavedProjectSnapshot(
       serializeProjectFile(
         { width: 4000, length: 5000, height: 2800 },
         [],
         "snapshot",
-        [],
-        nextEnvelope
+        []
       )
     );
 
@@ -1008,8 +997,7 @@ function App() {
       },
       furniture,
       undefined,
-      materials,
-      projectEnvelope
+      materials
     );
     const file = new Blob([json], { type: "application/json;charset=utf-8" });
     const url = URL.createObjectURL(file);
@@ -1048,9 +1036,7 @@ function App() {
 
     try {
       const project = parseProjectFile(await file.text());
-      const nextEnvelope = getProjectFileEnvelope(project, crypto.randomUUID());
 
-      setProjectEnvelope(nextEnvelope);
       setRoomWidth(project.room.width);
       setRoomLength(project.room.length);
       setRoomHeight(project.room.height);
@@ -1072,8 +1058,7 @@ function App() {
           { width: project.room.width, length: project.room.length, height: project.room.height },
           project.furniture,
           "snapshot",
-          project.materials ?? [],
-          nextEnvelope
+          project.materials ?? []
         )
       );
       return true;
