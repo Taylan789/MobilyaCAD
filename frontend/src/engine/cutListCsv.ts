@@ -19,6 +19,7 @@ const csvHeaders = [
 ];
 
 const drawerMetadataHeaders = ["Çekmece Grubu ID", "Damar Yönü"];
+const productionNoteHeaders = ["Üretim Notu"];
 const edgeKeys = ["top", "bottom", "left", "right"] as const;
 
 function escapeCsvCell(value: CsvCell): string {
@@ -62,10 +63,6 @@ function validateCutListPart(part: Part): void {
 
   if (Array.isArray(part.cncOperations) && part.cncOperations.length > 0) {
     throw new Error(part.name + " CNC operasyonları CSV biçiminde korunamadığı için dışa aktarım engellendi.");
-  }
-
-  if (typeof part.productionNote === "string" && part.productionNote.trim() !== "") {
-    throw new Error(part.name + " üretim notu CSV biçiminde korunamadığı için dışa aktarım engellendi.");
   }
 
   if (
@@ -113,11 +110,15 @@ function serializeCutListRows(rows: readonly CsvRow[], includeFurnitureId = fals
   const includeDrawerMetadata = rows.some(({ part }) =>
     part.drawerGroupId !== undefined || part.grainDirection !== "none"
   );
+  const includeProductionNote = rows.some(({ part }) =>
+    typeof part.productionNote === "string" && part.productionNote.trim() !== ""
+  );
   const headers = [
     ...(includeFurnitureId
       ? [csvHeaders[0], "Mobilya ID", ...csvHeaders.slice(1)]
       : csvHeaders),
-    ...(includeDrawerMetadata ? drawerMetadataHeaders : [])
+    ...(includeDrawerMetadata ? drawerMetadataHeaders : []),
+    ...(includeProductionNote ? productionNoteHeaders : [])
   ];
   const csvRows: CsvCell[][] = [
     headers,
@@ -143,6 +144,7 @@ function serializeCutListRows(rows: readonly CsvRow[], includeFurnitureId = fals
       if (includeDrawerMetadata) {
         row.push(part.drawerGroupId ?? "", formatGrainDirection(part.grainDirection));
       }
+      if (includeProductionNote) row.push(part.productionNote ?? "");
       return row;
     })
   ];
