@@ -1,3 +1,14 @@
+import { calculateProjectPricedConsumptionSummary } from "./projectPricedConsumption.ts";
+import {
+  calculateProjectQuoteSummary,
+  type ProjectQuoteEdgeBandingRollOptions,
+  type ProjectQuoteSummary
+} from "./projectQuoteSummary.ts";
+import {
+  PROJECT_COST_CATEGORIES,
+  type ProjectCostCategoryTotals
+} from "./projectCostSummary.ts";
+
 export type ProjectMaterialCostBasis = "net-consumption" | "stock-sheet-purchase";
 
 export interface ProjectMaterialCostBasisSummary {
@@ -81,55 +92,79 @@ function readyNetConsumption(report: RecordValue): ProjectMaterialCostBasisSumma
   const missing = diagnostics(report.missingPrices, "Teklif eksik fiyat listesi");
   const messages = diagnostics(report.diagnostics, "Teklif tanı listesi");
   if (required !== priced || missing.length !== 0) {
-    return incomplete("net-consumption", messages.length ? messages : ["Net tüketim için tüm malzeme fiyatları tamamlanmalıdır."], required);
+    return incomplete("net-consumption", messages.length ? messages : ["Net tüketim için tüm gerekli fiyatlar tamamlanmalıdır."], required);
   }
-  if (!isRecord(report.costSummary)) {
-    throw new Error("Hazır net tüketim raporunda maliyet özeti bulunmalıdır.");
-  }
+  if (!isRecord(report.costSummary)) throw new Error("Hazır net tüketim raporunda maliyet özeti bulunmalıdır.");
   const summary = report.costSummary;
   if (summary.status !== "ready" || !Array.isArray(summary.lines) || summary.lines.length !== priced) {
     throw new Error("Net tüketim maliyet özeti hazır ve satır sayısıyla tutarlı olmalıdır.");
   }
   const reportCurrency = currency(report.currencyCode, "Net tüketim raporu");
   const summaryCurrency = currency(summary.currencyCode, "Net tüketim maliyet özeti");
-  if (reportCurrency !== summaryCurrency) {
-    throw new Error("Net tüketim raporu ile maliyet özeti para birimleri eşleşmiyor.");
-  }
-
+  if (reportCurrency !== summaryCurrency) throw new Error("Net tüketim raporu ile maliyet özeti para birimleri eşleşmiyor.");
   const categoryTotals = isRecord(summary.categoryTotalsMinor) ? summary.categoryTotalsMinor : null;
-  if (categoryTotals === null) {
-    throw new Error("Net tüketim kategori toplamları bulunmalıdır.");
-  }
+  if (categoryTotals === null) throw new Error("Net tüketim kategori toplamları bulunmalıdır.");
+
   const calculated: Record<string, bigint> = Object.fromEntries(materialCostCategories.map(category => [category, 0n]));
   let lineGrandTotal = 0n;
-  let materialLineCount = 0;
-  let materialCost = 0;
+  const materialLineIds = new Set<string>();
   for (const [index, line] of summary.lines.entries()) {
-    if (!isRecord(line) || typeof line.category !== "string" || !materialCostCategories.includes(line.category as typeof materialCostCategories[number])) {
-      throw new Error("Net tüketim maliyetinin " + (index + 1) + ". satır kategorisi geçersiz.");
+    if (!isRecord(line) || typeof line.id !== "string" || line.id.trim() === "" ||
+        typeof line.category !== "string" || !materialCostCategories.includes(line.category as typeof materialCostCategories[number])) {
+      throw new Error("Net tüketim maliyetinin " + (index + 1) + ". satır kimliği veya kategorisi geçersiz.");
     }
     const amount = safeMinor(line.lineTotalMinor, "Net tüketim satır tutarı");
     calculated[line.category] += BigInt(amount);
     lineGrandTotal += BigInt(amount);
-    if (line.category === "material") {
+    if (line.category === "material") materialLineIds.add(line.id);
+  }
+
+  if (!Array.isArray(report.linePartSources)) {
+    throw new Error("Net tüketim Part kaynak eşlemesi bulunmalıdır; panel malzemesi kenar bandından ayrı doğrulanmalıdır.");
+  }
+  const sourceByCostLineId = new Map<string, RecordValue>();
+  for (const [index, rawSource] of report.linePartSources.entries()) {
+    if (!isRecord(rawSource) || typeof rawSource.costLineId !== "string" || rawSource.costLineId.trim() === "" ||
+        (rawSource.resourceType !== "material" && rawSource.resourceType !== "edge-banding") ||
+        typeof rawSource.resourceId !== "string" || rawSource.resourceId.trim() === "" ||
+        typeof rawSource.unit !== "string" || rawSource.unit.trim() === "" ||
+        !Array.isArray(rawSource.sourcePartIds) || rawSource.sourcePartIds.length === 0 ||
+        rawSource.sourcePartIds.some(id => typeof id !== "string" || id.trim() === "") ||
+        new Set(rawSource.sourcePartIds).size !== rawSource.sourcePartIds.length) {
+      throw new Error("Net tüketim Part kaynak eşlemesinin " + (index + 1) + ". satırı geçersiz.");
+    }
+    if (!materialLineIds.has(rawSource.costLineId) || sourceByCostLineId.has(rawSource.costLineId)) {
+      throw new Error("Net tüketim Part kaynak eşlemesi maliyet satırlarıyla bire bir eşleşmelidir.");
+    }
+    sourceByCostLineId.set(rawSource.costLineId, rawSource);
+  }
+  if (sourceByCostLineId.size !== materialLineIds.size) {
+    throw new Error("Net tüketimde her material satırı için tek bir Part kaynak eşlemesi zorunludur.");
+  }
+
+  let materialCost = 0n;
+  let materialLineCount = 0;
+  for (const line of summary.lines) {
+    if (line.category !== "material") continue;
+    const source = sourceByCostLineId.get(line.id as string);
+    if (source?.resourceType === "material") {
       materialLineCount += 1;
-      materialCost += amount;
+      materialCost += BigInt(line.lineTotalMinor as number);
     }
   }
+
   let categoryGrandTotal = 0n;
   for (const category of materialCostCategories) {
     const amount = safeMinor(categoryTotals[category], category + " kategori toplamı");
-    if (calculated[category] !== BigInt(amount)) {
-      throw new Error(category + " kategori toplamı satırlarla eşleşmiyor.");
-    }
+    if (calculated[category] !== BigInt(amount)) throw new Error(category + " kategori toplamı satırlarla eşleşmiyor.");
     categoryGrandTotal += BigInt(amount);
   }
   const grandTotal = safeMinor(summary.grandTotalMinor, "Net tüketim genel toplamı");
   if (lineGrandTotal !== BigInt(grandTotal) || categoryGrandTotal !== BigInt(grandTotal)) {
     throw new Error("Net tüketim genel toplamı satır ve kategori toplamlarıyla eşleşmiyor.");
   }
-  safeMinor(materialCost, "Net tüketim malzeme maliyeti");
-  return createSummary("net-consumption", "ready", reportCurrency, materialCost, materialLineCount, messages);
+  if (materialCost > BigInt(Number.MAX_SAFE_INTEGER)) throw new Error("Net tüketim panel malzeme maliyeti güvenli tam sayı aralığını aşıyor.");
+  return createSummary("net-consumption", "ready", reportCurrency, Number(materialCost), materialLineCount, messages);
 }
 
 function readyStockSheetPurchase(report: RecordValue): ProjectMaterialCostBasisSummary {
@@ -254,4 +289,317 @@ export function calculateProjectMaterialCostBasisSummary(value: unknown): Projec
   } catch (error) {
     return blocked(basis, error instanceof Error ? error.message : String(error));
   }
+}
+
+
+export interface ProjectQuoteMaterialCostBasisSummary {
+  schemaVersion: 1;
+  status: "empty" | "incomplete" | "ready" | "blocked";
+  basis: ProjectMaterialCostBasis | null;
+  currencyCode: string | null;
+  /** Selected panel-material cost: net area or explicit whole-sheet purchase. */
+  panelMaterialCostMinor: number | null;
+  /** Edge-band cost remains independent from the selected panel-material basis. */
+  edgeBandingCostMinor: number | null;
+  materialCategoryTotalMinor: number | null;
+  categoryTotalsMinor: ProjectCostCategoryTotals | null;
+  grandTotalMinor: number | null;
+  /** Net mode: panel material lines. Stock mode: nesting material/thickness groups. */
+  materialSourceCount: number;
+  /** Base line-level quote; stock-sheet panel cost is added only by this wrapper. */
+  quoteSummary: ProjectQuoteSummary | null;
+  diagnostics: readonly string[];
+}
+
+type QuoteRecord = Record<string, unknown>;
+const quoteBasisInputKeys = new Set([
+  "schemaVersion", "basis", "productionReport", "consumptionPriceTable",
+  "workItems", "tariffTable", "stockSheetPurchaseReport", "quoteAdjustments",
+  "edgeBandingPricingMode", "edgeBandingRollSpecs", "edgeBandingRollPriceTable"
+]);
+
+function isQuoteRecord(value: unknown): value is QuoteRecord {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+function quoteDiagnostic(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+function quoteSafeMinor(value: unknown, label: string): number {
+  if (typeof value !== "number" || !Number.isSafeInteger(value) || value < 0) {
+    throw new Error(label + " negatif olmayan güvenli bir tam sayı olmalıdır.");
+  }
+  return value;
+}
+function quoteSafeAdd(left: number, right: number, label: string): number {
+  const total = BigInt(left) + BigInt(right);
+  if (total > BigInt(Number.MAX_SAFE_INTEGER)) throw new Error(label + " güvenli tam sayı aralığını aşıyor.");
+  return Number(total);
+}
+function zeroQuoteCategoryTotals(): ProjectCostCategoryTotals {
+  return Object.fromEntries(PROJECT_COST_CATEGORIES.map(category => [category, 0])) as ProjectCostCategoryTotals;
+}
+function freezeQuoteResult<T>(value: T): T {
+  if (typeof value === "object" && value !== null && !Object.isFrozen(value)) {
+    for (const child of Object.values(value as unknown as Record<string, unknown>)) freezeQuoteResult(child);
+    Object.freeze(value);
+  }
+  return value;
+}
+function createQuoteBasisResult(
+  status: ProjectQuoteMaterialCostBasisSummary["status"],
+  basis: ProjectMaterialCostBasis | null,
+  currencyCode: string | null,
+  panelMaterialCostMinor: number | null,
+  edgeBandingCostMinor: number | null,
+  materialCategoryTotalMinor: number | null,
+  categoryTotalsMinor: ProjectCostCategoryTotals | null,
+  grandTotalMinor: number | null,
+  materialSourceCount: number,
+  quoteSummary: ProjectQuoteSummary | null,
+  messages: string[]
+): ProjectQuoteMaterialCostBasisSummary {
+  return freezeQuoteResult({
+    schemaVersion: 1 as const, status, basis, currencyCode,
+    panelMaterialCostMinor, edgeBandingCostMinor, materialCategoryTotalMinor,
+    categoryTotalsMinor, grandTotalMinor, materialSourceCount,
+    quoteSummary, diagnostics: messages.slice()
+  });
+}
+function blockedQuoteBasis(
+  basis: ProjectMaterialCostBasis | null,
+  message: string,
+  quoteSummary: ProjectQuoteSummary | null = null,
+  sourceCount = 0
+): ProjectQuoteMaterialCostBasisSummary {
+  return createQuoteBasisResult("blocked", basis, null, null, null, null, null, null, sourceCount, quoteSummary, [message]);
+}
+
+function summarizeQuoteMaterialLines(quote: ProjectQuoteSummary): {
+  categoryTotalsMinor: ProjectCostCategoryTotals;
+  panelMaterialCostMinor: number;
+  edgeBandingCostMinor: number;
+  panelLineCount: number;
+} {
+  if (quote.status === "empty") {
+    if (quote.costSummary !== null || quote.lineSources.length !== 0) throw new Error("Boş teklif maliyet veya kaynak satırı içeremez.");
+    return { categoryTotalsMinor: zeroQuoteCategoryTotals(), panelMaterialCostMinor: 0, edgeBandingCostMinor: 0, panelLineCount: 0 };
+  }
+  if (quote.status !== "ready" || quote.costSummary === null) throw new Error("Teklif malzeme maliyetleri yalnızca ready veya empty durumda birleştirilebilir.");
+  const summary = quote.costSummary;
+  if (summary.status !== "ready" || !Array.isArray(summary.lines) ||
+      summary.lineCount !== summary.lines.length || quote.lineSources.length !== summary.lineCount ||
+      quote.currencyCode !== summary.currencyCode) {
+    throw new Error("Teklif maliyet satırları, kaynak eşlemesi ve para birimi tutarlı olmalıdır.");
+  }
+
+  const lineById = new Map<string, QuoteRecord>();
+  const calculated = Object.fromEntries(PROJECT_COST_CATEGORIES.map(category => [category, 0n])) as Record<string, bigint>;
+  for (const [index, rawLine] of summary.lines.entries()) {
+    if (!isQuoteRecord(rawLine) || typeof rawLine.id !== "string" || rawLine.id.trim() === "" ||
+        typeof rawLine.category !== "string" || !(PROJECT_COST_CATEGORIES as readonly string[]).includes(rawLine.category)) {
+      throw new Error("Teklif maliyetinin " + (index + 1) + ". satır kimliği veya kategorisi geçersiz.");
+    }
+    if (lineById.has(rawLine.id)) throw new Error("Teklif maliyet satırı kimliği yineleniyor: " + rawLine.id + ".");
+    lineById.set(rawLine.id, rawLine);
+    calculated[rawLine.category] += BigInt(quoteSafeMinor(rawLine.lineTotalMinor, "Teklif satır tutarı"));
+  }
+
+  const sourceIds = new Set<string>();
+  let panelCost = 0n;
+  let edgeCost = 0n;
+  let panelLineCount = 0;
+  for (const [index, rawSource] of quote.lineSources.entries()) {
+    if (!isQuoteRecord(rawSource) || typeof rawSource.costLineId !== "string" ||
+        rawSource.costLineId.trim() === "" || sourceIds.has(rawSource.costLineId)) {
+      throw new Error("Teklif kaynak eşlemesinin " + (index + 1) + ". satırı eksik veya yinelenen kimlik içeriyor.");
+    }
+    sourceIds.add(rawSource.costLineId);
+    const line = lineById.get(rawSource.costLineId);
+    if (!line) throw new Error("Teklif kaynak eşlemesi maliyet satırında bulunamadı: " + rawSource.costLineId + ".");
+    if (rawSource.resourceType === "material") {
+      if (line.category !== "material") throw new Error("Panel malzeme kaynağı material maliyet kategorisinde olmalıdır.");
+      panelCost += BigInt(quoteSafeMinor(line.lineTotalMinor, "Panel malzeme satır tutarı"));
+      panelLineCount += 1;
+    } else if (rawSource.resourceType === "edge-banding") {
+      if (line.category !== "material") throw new Error("Kenar bandı kaynağı material maliyet kategorisinde olmalıdır.");
+      edgeCost += BigInt(quoteSafeMinor(line.lineTotalMinor, "Kenar bandı satır tutarı"));
+    } else if (line.category === "material") {
+      throw new Error("Her material teklif satırı panel malzemesi veya kenar bandı kaynağıyla eşleşmelidir.");
+    } else if (rawSource.resourceType !== undefined) {
+      throw new Error("Material dışı teklif satırı resourceType taşıyamaz.");
+    }
+  }
+  if (sourceIds.size !== lineById.size) throw new Error("Teklif maliyet satırları kaynak eşlemesiyle bire bir eşleşmelidir.");
+
+  const categoryTotalsMinor = zeroQuoteCategoryTotals();
+  let categoryGrandTotal = 0n;
+  for (const category of PROJECT_COST_CATEGORIES) {
+    const amount = quoteSafeMinor(summary.categoryTotalsMinor[category], category + " teklif kategori toplamı");
+    if (calculated[category] !== BigInt(amount)) throw new Error(category + " teklif kategori toplamı satırlarla eşleşmiyor.");
+    categoryTotalsMinor[category] = amount;
+    categoryGrandTotal += BigInt(amount);
+  }
+  const grandTotal = quoteSafeMinor(summary.grandTotalMinor, "Teklif genel toplamı");
+  if (categoryGrandTotal !== BigInt(grandTotal)) throw new Error("Teklif genel toplamı kategori toplamlarıyla eşleşmiyor.");
+  if (panelCost > BigInt(Number.MAX_SAFE_INTEGER) || edgeCost > BigInt(Number.MAX_SAFE_INTEGER)) {
+    throw new Error("Teklif malzeme alt toplamı güvenli tam sayı aralığını aşıyor.");
+  }
+  return { categoryTotalsMinor, panelMaterialCostMinor: Number(panelCost), edgeBandingCostMinor: Number(edgeCost), panelLineCount };
+}
+
+function validateStockSheetPartCoverage(productionReport: unknown, stockReport: unknown): void {
+  if (!isQuoteRecord(productionReport) || !isQuoteRecord(productionReport.result) ||
+      !Array.isArray(productionReport.result.parts) || !isQuoteRecord(stockReport) ||
+      !isQuoteRecord(stockReport.result) || !Array.isArray(stockReport.result.groups)) {
+    throw new Error("Levha satın alma raporu doğrulanmış proje Part snapshot'ıyla karşılaştırılamadı.");
+  }
+  const partsById = new Map<string, QuoteRecord>();
+  for (const [index, rawPart] of productionReport.result.parts.entries()) {
+    if (!isQuoteRecord(rawPart) || typeof rawPart.id !== "string" || rawPart.id.trim() === "" ||
+        typeof rawPart.materialId !== "string" || rawPart.materialId.trim() === "" ||
+        typeof rawPart.thickness !== "number" || !Number.isFinite(rawPart.thickness) || rawPart.thickness <= 0 ||
+        partsById.has(rawPart.id)) {
+      throw new Error("Proje Part snapshot'ının " + (index + 1) + ". satırı levha maliyeti için geçersiz.");
+    }
+    partsById.set(rawPart.id, rawPart);
+  }
+  const covered = new Set<string>();
+  for (const [index, rawGroup] of stockReport.result.groups.entries()) {
+    if (!isQuoteRecord(rawGroup) || typeof rawGroup.materialId !== "string" ||
+        typeof rawGroup.thicknessMm !== "number" || !Number.isFinite(rawGroup.thicknessMm) ||
+        rawGroup.thicknessMm <= 0 || !Array.isArray(rawGroup.sourcePartIds) || rawGroup.sourcePartIds.length === 0) {
+      throw new Error("Levha satın alma " + (index + 1) + ". grubu Part kaynağı veya malzeme kimliği taşımıyor.");
+    }
+    for (const partId of rawGroup.sourcePartIds) {
+      if (typeof partId !== "string" || covered.has(partId)) throw new Error("Levha satın alma Part kaynakları eksik veya gruplar arasında yineleniyor.");
+      const part = partsById.get(partId);
+      if (!part) throw new Error("Levha satın alma raporu proje dışı Part içeriyor: " + partId + ".");
+      const thicknessMm = Math.round((part.thickness as number) * 10) / 10;
+      if (part.materialId !== rawGroup.materialId || Math.abs(thicknessMm - rawGroup.thicknessMm) > 1e-9) {
+        throw new Error(partId + " Part malzeme kimliği veya mm kalınlığı levha grubuyla eşleşmiyor.");
+      }
+      covered.add(partId);
+    }
+  }
+  if (covered.size !== partsById.size) throw new Error("Levha satın alma grupları proje Part snapshot'ının tamamını bire bir kapsamıyor.");
+}
+
+function quoteBasisFailure(
+  basis: ProjectMaterialCostBasis,
+  basisSummary: ProjectMaterialCostBasisSummary,
+  quoteSummary: ProjectQuoteSummary,
+  status: "blocked" | "incomplete"
+): ProjectQuoteMaterialCostBasisSummary {
+  const messages = [...basisSummary.diagnostics, ...quoteSummary.diagnostics];
+  if (messages.length === 0) messages.push("Malzeme temeli ve teklif özeti aynı anda hazır duruma getirilemedi.");
+  return createQuoteBasisResult(status, basis, null, null, null, null, null, null, basisSummary.sourceCount, quoteSummary, messages);
+}
+
+/**
+ * Combines one explicit panel-material basis with a quote. Net-area mode prices
+ * panel Parts normally. Stock-sheet mode excludes only panel net-area pricing;
+ * edge-band, hardware, labor and operation lines remain independently priced.
+ * Stock-sheet groups must cover the exact production Part snapshot and match
+ * each Part's material ID and normalized millimetre thickness.
+ */
+export function calculateProjectQuoteWithMaterialCostBasis(value: unknown): ProjectQuoteMaterialCostBasisSummary {
+  if (!isQuoteRecord(value)) return blockedQuoteBasis(null, "Teklif malzeme maliyet temeli isteği geçerli bir nesne olmalıdır.");
+  const extra = Object.keys(value).find(key => !quoteBasisInputKeys.has(key));
+  if (extra !== undefined) return blockedQuoteBasis(null, "Teklif malzeme maliyet temeli isteği desteklenmeyen alan içeriyor: " + extra + ".");
+  if (value.schemaVersion !== 1) return blockedQuoteBasis(null, "Desteklenmeyen teklif malzeme maliyet temeli şema sürümü.");
+  if (value.basis !== "net-consumption" && value.basis !== "stock-sheet-purchase") {
+    return blockedQuoteBasis(null, "Teklif malzeme maliyet temeli net-consumption veya stock-sheet-purchase olmalıdır.");
+  }
+  const basis = value.basis;
+  if (basis === "stock-sheet-purchase" && !("stockSheetPurchaseReport" in value)) {
+    return blockedQuoteBasis(basis, "Levha satın alma temeli için doğrulanmış stockSheetPurchaseReport zorunludur.");
+  }
+  if (basis === "net-consumption" && "stockSheetPurchaseReport" in value) {
+    return blockedQuoteBasis(basis, "Net tüketim temeli stockSheetPurchaseReport kabul etmez.");
+  }
+  const edgeBandingPricingMode = value.edgeBandingPricingMode ?? "length";
+  if (edgeBandingPricingMode !== "length" && edgeBandingPricingMode !== "roll") {
+    return blockedQuoteBasis(basis, "Kenar bandı fiyatlama modu length veya roll olmalıdır.");
+  }
+  if (edgeBandingPricingMode === "length" && ("edgeBandingRollSpecs" in value || "edgeBandingRollPriceTable" in value)) {
+    return blockedQuoteBasis(basis, "Rulo girdileri yalnızca roll fiyatlama modunda kullanılabilir.");
+  }
+  if (edgeBandingPricingMode === "roll" &&
+      (!Array.isArray(value.edgeBandingRollSpecs) || !Array.isArray(value.edgeBandingRollPriceTable))) {
+    return blockedQuoteBasis(basis, "Roll modu açık rulo ölçüleri ve rulo fiyat tablosu listelerini gerektirir.");
+  }
+
+  const basisSourceReport = basis === "net-consumption"
+    ? calculateProjectPricedConsumptionSummary(value.productionReport, value.consumptionPriceTable, { edgeBandingPricingMode })
+    : value.stockSheetPurchaseReport;
+  const basisSummary = calculateProjectMaterialCostBasisSummary({ schemaVersion: 1, basis, sourceReport: basisSourceReport });
+  const quoteOptions: ProjectQuoteEdgeBandingRollOptions = {
+    edgeBandingPricingMode,
+    panelMaterialPricingMode: basis === "stock-sheet-purchase" ? "excluded" : "included",
+    ...(edgeBandingPricingMode === "roll" ? {
+      edgeBandingRollSpecs: value.edgeBandingRollSpecs,
+      edgeBandingRollPriceTable: value.edgeBandingRollPriceTable
+    } : {})
+  };
+  const quoteSummary = calculateProjectQuoteSummary(
+    value.productionReport, value.consumptionPriceTable, value.workItems,
+    value.tariffTable, value.quoteAdjustments, quoteOptions
+  );
+
+  if (basisSummary.status === "blocked" || quoteSummary.status === "blocked") return quoteBasisFailure(basis, basisSummary, quoteSummary, "blocked");
+  if (basisSummary.status === "incomplete" || quoteSummary.status === "incomplete") return quoteBasisFailure(basis, basisSummary, quoteSummary, "incomplete");
+  if ((basisSummary.status !== "ready" && basisSummary.status !== "empty") ||
+      (quoteSummary.status !== "ready" && quoteSummary.status !== "empty")) {
+    return blockedQuoteBasis(basis, "Teklif malzeme maliyet temeli desteklenmeyen bir hesap durumunda.", quoteSummary, basisSummary.sourceCount);
+  }
+  if (basis === "stock-sheet-purchase") {
+    try { validateStockSheetPartCoverage(value.productionReport, basisSourceReport); }
+    catch (error) { return blockedQuoteBasis(basis, quoteDiagnostic(error), quoteSummary, basisSummary.sourceCount); }
+  }
+
+  let quoteAmounts: ReturnType<typeof summarizeQuoteMaterialLines>;
+  try { quoteAmounts = summarizeQuoteMaterialLines(quoteSummary); }
+  catch (error) { return blockedQuoteBasis(basis, quoteDiagnostic(error), quoteSummary, basisSummary.sourceCount); }
+  const panelCost = basisSummary.status === "empty" ? 0 : quoteSafeMinor(basisSummary.materialCostMinor, "Seçilen panel malzeme maliyeti");
+  const edgeCost = quoteAmounts.edgeBandingCostMinor;
+  if (basis === "net-consumption") {
+    if (quoteAmounts.panelMaterialCostMinor !== panelCost || quoteAmounts.panelLineCount !== basisSummary.sourceCount) {
+      return blockedQuoteBasis(basis, "Net tüketim panel maliyeti, teklif satırları ve Part kaynak sayısıyla eşleşmiyor.", quoteSummary, basisSummary.sourceCount);
+    }
+  } else if (quoteAmounts.panelMaterialCostMinor !== 0 || quoteAmounts.panelLineCount !== 0) {
+    return blockedQuoteBasis(basis, "Levha satın alma temelinde net panel tüketim maliyeti aynı teklife eklenemez.", quoteSummary, basisSummary.sourceCount);
+  }
+  const baseMaterial = quoteAmounts.categoryTotalsMinor.material;
+  const expectedBaseMaterial = basis === "net-consumption"
+    ? quoteSafeAdd(panelCost, edgeCost, "Net tüketim material toplamı")
+    : edgeCost;
+  if (baseMaterial !== expectedBaseMaterial) {
+    return blockedQuoteBasis(basis, "Teklif material toplamı seçilen panel temeli ve kenar bandı maliyetiyle eşleşmiyor.", quoteSummary, basisSummary.sourceCount);
+  }
+  if (basisSummary.currencyCode !== null && quoteSummary.currencyCode !== null &&
+      basisSummary.currencyCode !== quoteSummary.currencyCode) {
+    return blockedQuoteBasis(basis, "Panel malzeme temeli ile diğer teklif kalemlerinin para birimleri eşleşmiyor.", quoteSummary, basisSummary.sourceCount);
+  }
+  if (panelCost > 0 && basisSummary.currencyCode === null) {
+    return blockedQuoteBasis(basis, "Pozitif panel malzeme maliyeti para birimi olmadan kullanılamaz.", quoteSummary, basisSummary.sourceCount);
+  }
+
+  const materialTotal = quoteSafeAdd(panelCost, edgeCost, "Birleşik material kategori toplamı");
+  const categoryTotalsMinor = { ...quoteAmounts.categoryTotalsMinor, material: materialTotal };
+  let nonMaterialTotal = 0;
+  for (const category of PROJECT_COST_CATEGORIES) {
+    if (category !== "material") nonMaterialTotal = quoteSafeAdd(nonMaterialTotal, categoryTotalsMinor[category], "Material dışı teklif toplamı");
+  }
+  const grandTotal = quoteSafeAdd(nonMaterialTotal, materialTotal, "Birleşik teklif genel toplamı");
+  if (basis === "net-consumption" && quoteSummary.status === "ready" &&
+      quoteSummary.costSummary?.grandTotalMinor !== grandTotal) {
+    return blockedQuoteBasis(basis, "Net tüketim entegrasyonu mevcut teklif genel toplamını değiştirmemelidir.", quoteSummary, basisSummary.sourceCount);
+  }
+  const status = quoteSummary.status === "empty" && basisSummary.status === "empty" ? "empty" : "ready";
+  return createQuoteBasisResult(
+    status, basis, basisSummary.currencyCode ?? quoteSummary.currencyCode,
+    panelCost, edgeCost, materialTotal, categoryTotalsMinor, grandTotal,
+    quoteSafeMinor(basisSummary.sourceCount, "Panel malzeme kaynak sayısı"),
+    quoteSummary, [...basisSummary.diagnostics, ...quoteSummary.diagnostics]
+  );
 }

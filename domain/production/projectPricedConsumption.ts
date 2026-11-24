@@ -337,14 +337,31 @@ function addPriceLine(
  */
 export interface ProjectPricedConsumptionOptions {
   edgeBandingPricingMode?: "length" | "roll";
+  /** Excludes panel material prices only; hardware and edge-banding remain priced. */
+  panelMaterialPricingMode?: "included" | "excluded";
 }
 
-function resolveEdgeBandingPricingMode(value: unknown): "length" | "roll" {
+interface ResolvedPricedConsumptionOptions {
+  edgeBandingPricingMode: "length" | "roll";
+  panelMaterialPricingMode: "included" | "excluded";
+}
+
+function resolvePricingOptions(value: unknown): ResolvedPricedConsumptionOptions {
   if (!isRecord(value)) throw new Error("Fiyatlı tüketim seçenekleri geçerli bir nesne olmalıdır.");
-  for (const key of Object.keys(value)) if (key !== "edgeBandingPricingMode") throw new Error("Fiyatlı tüketim seçenekleri desteklenmeyen alan içeriyor: " + key + ".");
-  const mode = value.edgeBandingPricingMode ?? "length";
-  if (mode !== "length" && mode !== "roll") throw new Error("Kenar bandı fiyatlama modu length veya roll olmalıdır.");
-  return mode;
+  for (const key of Object.keys(value)) {
+    if (key !== "edgeBandingPricingMode" && key !== "panelMaterialPricingMode") {
+      throw new Error("Fiyatlı tüketim seçenekleri desteklenmeyen alan içeriyor: " + key + ".");
+    }
+  }
+  const edgeBandingPricingMode = value.edgeBandingPricingMode ?? "length";
+  if (edgeBandingPricingMode !== "length" && edgeBandingPricingMode !== "roll") {
+    throw new Error("Kenar bandı fiyatlama modu length veya roll olmalıdır.");
+  }
+  const panelMaterialPricingMode = value.panelMaterialPricingMode ?? "included";
+  if (panelMaterialPricingMode !== "included" && panelMaterialPricingMode !== "excluded") {
+    throw new Error("Panel malzeme fiyatlama modu included veya excluded olmalıdır.");
+  }
+  return { edgeBandingPricingMode, panelMaterialPricingMode };
 }
 
 export function calculateProjectPricedConsumptionSummary(
@@ -352,9 +369,10 @@ export function calculateProjectPricedConsumptionSummary(
   priceTable: unknown,
   options: unknown = {}
 ): ProjectPricedConsumptionSummary {
-  let edgeBandingPricingMode: "length" | "roll";
-  try { edgeBandingPricingMode = resolveEdgeBandingPricingMode(options); }
+  let resolvedOptions: ResolvedPricedConsumptionOptions;
+  try { resolvedOptions = resolvePricingOptions(options); }
   catch (error) { return blockedSummary([diagnosticMessage(error)]); }
+  const { edgeBandingPricingMode, panelMaterialPricingMode } = resolvedOptions;
   let prices: Map<string, ProjectConsumptionPriceInput>;
   try {
     prices = validatePriceTable(priceTable);
@@ -406,70 +424,72 @@ export function calculateProjectPricedConsumptionSummary(
   }
 
   const materialThicknessesById = new Map<string, Set<number>>();
-  for (const material of materialSummaries) {
-    if (material.materialId === undefined) continue;
-    const thicknesses = materialThicknessesById.get(material.materialId) ?? new Set<number>();
-    thicknesses.add(material.thicknessMm);
-    materialThicknessesById.set(material.materialId, thicknesses);
-  }
-
-  const costLines: ProjectCostLineInput[] = [];
-  const linePartSources: ProjectConsumptionLinePartSource[] = [];
-  const lineHardwareSources: ProjectConsumptionLineHardwareSource[] = [];
-  const missingPrices: ProjectCostCoverageIssue[] = [];
-  let materialLineNumber = 0;
-  let hardwareLineNumber = 0;
-  let edgeBandingLineNumber = 0;
-
-  for (const material of materialSummaries) {
-    const description = material.material + " (" + material.thicknessMm + " mm" +
-      (material.materialId === undefined ? "" : "; " + material.materialId) + ")";
-    if (material.materialId === undefined) {
-      missingPrices.push({
-        code: "missing-resource-id",
-        resourceType: "material",
-        resourceId: null,
-        description,
-        requiredUnit: "m2",
-        quantity: material.panelAreaM2
-      });
-    } else {
-      const exactPrice = prices.get(priceKey("material", material.materialId, "m2", material.thicknessMm));
-      const legacyPrice = prices.get(priceKey("material", material.materialId, "m2"));
-      const hasSingleThickness = (materialThicknessesById.get(material.materialId)?.size ?? 0) === 1;
-      const price = exactPrice ?? (hasSingleThickness ? legacyPrice : undefined);
-      if (price === undefined) {
-        missingPrices.push(findMissingPrice(
-          "material",
-          material.materialId,
-          description,
-          "m2",
-          material.panelAreaM2,
-          prices,
-          material.thicknessMm
-        ));
-      } else {
-        materialLineNumber += 1;
-        const costLineId = "material-" + String(materialLineNumber).padStart(4, "0");
-        addPriceLine(
-          costLines,
-          costLineId,
-          "material",
-          description,
-          material.panelAreaM2,
-          "m2",
-          price
-        );
-        linePartSources.push({
-          costLineId,
-          sourcePartIds: [...material.partIds].sort(),
-          resourceType: "material",
-          resourceId: material.materialId,
-          unit: "m2"
-        });
-      }
+  if (panelMaterialPricingMode === "included") {
+    for (const material of materialSummaries) {
+      if (material.materialId === undefined) continue;
+      const thicknesses = materialThicknessesById.get(material.materialId) ?? new Set<number>();
+      thicknesses.add(material.thicknessMm);
+      materialThicknessesById.set(material.materialId, thicknesses);
     }
 
+    const costLines: ProjectCostLineInput[] = [];
+    const linePartSources: ProjectConsumptionLinePartSource[] = [];
+    const lineHardwareSources: ProjectConsumptionLineHardwareSource[] = [];
+    const missingPrices: ProjectCostCoverageIssue[] = [];
+    let materialLineNumber = 0;
+    let hardwareLineNumber = 0;
+    let edgeBandingLineNumber = 0;
+
+    for (const material of materialSummaries) {
+      const description = material.material + " (" + material.thicknessMm + " mm" +
+        (material.materialId === undefined ? "" : "; " + material.materialId) + ")";
+      if (material.materialId === undefined) {
+        missingPrices.push({
+          code: "missing-resource-id",
+          resourceType: "material",
+          resourceId: null,
+          description,
+          requiredUnit: "m2",
+          quantity: material.panelAreaM2
+        });
+      } else {
+        const exactPrice = prices.get(priceKey("material", material.materialId, "m2", material.thicknessMm));
+        const legacyPrice = prices.get(priceKey("material", material.materialId, "m2"));
+        const hasSingleThickness = (materialThicknessesById.get(material.materialId)?.size ?? 0) === 1;
+        const price = exactPrice ?? (hasSingleThickness ? legacyPrice : undefined);
+        if (price === undefined) {
+          missingPrices.push(findMissingPrice(
+            "material",
+            material.materialId,
+            description,
+            "m2",
+            material.panelAreaM2,
+            prices,
+            material.thicknessMm
+          ));
+        } else {
+          materialLineNumber += 1;
+          const costLineId = "material-" + String(materialLineNumber).padStart(4, "0");
+          addPriceLine(
+            costLines,
+            costLineId,
+            "material",
+            description,
+            material.panelAreaM2,
+            "m2",
+            price
+          );
+          linePartSources.push({
+            costLineId,
+            sourcePartIds: [...material.partIds].sort(),
+            resourceType: "material",
+            resourceId: material.materialId,
+            unit: "m2"
+          });
+        }
+      }
+
+    }
   }
 
   for (const hardware of hardwareSummaries) {
@@ -565,8 +585,8 @@ export function calculateProjectPricedConsumptionSummary(
     }
   }
 
-  const requiredLineCount = materialSummaries.length + hardwareSummaries.length +
-    (edgeBandingPricingMode === "length" ? edgeBandingSummaries.length : 0);
+  const requiredLineCount = (panelMaterialPricingMode === "included" ? materialSummaries.length : 0) +
+    hardwareSummaries.length + (edgeBandingPricingMode === "length" ? edgeBandingSummaries.length : 0);
   const pricedLineCount = costLines.length;
   const currencies = [...new Set(costLines.map((line) => line.currencyCode))];
   if (currencies.length > 1) {

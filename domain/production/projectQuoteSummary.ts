@@ -65,25 +65,30 @@ export interface ProjectQuoteEdgeBandingRollOptions {
   edgeBandingPricingMode?: "length" | "roll";
   edgeBandingRollSpecs?: unknown;
   edgeBandingRollPriceTable?: unknown;
+  /** Excludes panel material prices only; hardware and edge-banding remain priced. */
+  panelMaterialPricingMode?: "included" | "excluded";
 }
 interface ResolvedQuoteOptions {
   edgeBandingPricingMode: "length" | "roll";
   edgeBandingRollSpecs?: unknown;
   edgeBandingRollPriceTable?: unknown;
+  panelMaterialPricingMode: "included" | "excluded";
 }
 function resolveQuoteOptions(value: unknown): ResolvedQuoteOptions {
-  if (value === undefined) return { edgeBandingPricingMode: "length" };
+  if (value === undefined) return { edgeBandingPricingMode: "length", panelMaterialPricingMode: "included" };
   if (!isRecord(value)) throw new Error("Teklif fiyatlama seçenekleri geçerli bir nesne olmalıdır.");
-  const allowed = new Set(["edgeBandingPricingMode", "edgeBandingRollSpecs", "edgeBandingRollPriceTable"]);
+  const allowed = new Set(["edgeBandingPricingMode", "edgeBandingRollSpecs", "edgeBandingRollPriceTable", "panelMaterialPricingMode"]);
   for (const key of Object.keys(value)) if (!allowed.has(key)) throw new Error("Teklif fiyatlama seçenekleri desteklenmeyen alan içeriyor: " + key + ".");
   const mode = value.edgeBandingPricingMode ?? "length";
   if (mode !== "length" && mode !== "roll") throw new Error("Kenar bandı fiyatlama modu length veya roll olmalıdır.");
+  const panelMaterialPricingMode = value.panelMaterialPricingMode ?? "included";
+  if (panelMaterialPricingMode !== "included" && panelMaterialPricingMode !== "excluded") throw new Error("Panel malzeme fiyatlama modu included veya excluded olmalıdır.");
   if (mode === "length") {
     if ("edgeBandingRollSpecs" in value || "edgeBandingRollPriceTable" in value) throw new Error("Rulo girdileri yalnızca roll fiyatlama modunda kullanılabilir.");
-    return { edgeBandingPricingMode: "length" };
+    return { edgeBandingPricingMode: "length", panelMaterialPricingMode };
   }
   if (!Array.isArray(value.edgeBandingRollSpecs) || !Array.isArray(value.edgeBandingRollPriceTable)) throw new Error("Roll modu açık rulo ölçüleri ve rulo fiyat tablosu listelerini gerektirir.");
-  return { edgeBandingPricingMode: "roll", edgeBandingRollSpecs: value.edgeBandingRollSpecs, edgeBandingRollPriceTable: value.edgeBandingRollPriceTable };
+  return { edgeBandingPricingMode: "roll", edgeBandingRollSpecs: value.edgeBandingRollSpecs, edgeBandingRollPriceTable: value.edgeBandingRollPriceTable, panelMaterialPricingMode };
 }
 function hasCompleteHardwareSourceCoverage(consumption: ProjectPricedConsumptionSummary): boolean {
   if (consumption.status !== "ready") return true;
@@ -147,7 +152,10 @@ export function calculateProjectQuoteSummary(
   catch (error) {
     return { status:"blocked", currencyCode:null, requiredLineCount:0, pricedLineCount:0, missingPrices:[], missingTariffs:[], diagnostics:[diagnosticMessage(error)], lineSources:[], costSummary:null };
   }
-  const consumption: ProjectPricedConsumptionSummary = calculateProjectPricedConsumptionSummary(productionReport, consumptionPriceTable, { edgeBandingPricingMode: resolvedOptions.edgeBandingPricingMode });
+  const consumption: ProjectPricedConsumptionSummary = calculateProjectPricedConsumptionSummary(productionReport, consumptionPriceTable, {
+    edgeBandingPricingMode: resolvedOptions.edgeBandingPricingMode,
+    panelMaterialPricingMode: resolvedOptions.panelMaterialPricingMode
+  });
   const laborOperation: ProjectLaborOperationPricingSummary = calculateProjectLaborOperationPricingSummary(workItems, tariffTable);
   let rollCostSummary: ProjectEdgeBandingRollCostSummary | null = null;
   if (resolvedOptions.edgeBandingPricingMode === "roll") {

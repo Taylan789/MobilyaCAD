@@ -1238,3 +1238,16 @@ The project JSON v2 quote-history wrapper is tested as an end-to-end consumer of
 - Empty selected source returns zero; incomplete/blocked sources return no monetary amount. Unknown request fields, invalid schema/basis, inconsistent or unsafe totals fail closed.
 - VERIFIED code/test commit [207df9aa](https://github.com/Taylan789/MobilyaCAD/commit/207df9aa51548ab1156aed8327173f4cfc6dbc52): exact-SHA CI [#45315954884](https://github.com/Taylan789/MobilyaCAD/actions/runs/45315954884), QA [#45315954813](https://github.com/Taylan789/MobilyaCAD/actions/runs/45315954813) and Pages [#45315954792](https://github.com/Taylan789/MobilyaCAD/actions/runs/45315954792) passed; 204 frontend + 693 domain tests, strict TS, build, lint 34 warnings/0 errors, audit 0 vulnerabilities; test site deployed https://taylan789.github.io/MobilyaCAD/. Initial commit 92f361b9 had 2 QA failures, corrected by 207df9aa.
 - This is a selector contract, not quote integration. DOM-141 must carry the chosen basis into the quote contract and must never double-count net area and stock-sheet purchase.
+
+
+## DOM-141 — Teklifte tek panel malzeme maliyet temeli v1
+
+Kaynaklar: `projectPricedConsumption.ts`, `projectMaterialCostBasis.ts`, `projectQuoteSummary.ts`.
+
+- Çağrı: `calculateProjectQuoteWithMaterialCostBasis({ schemaVersion: 1, basis, productionReport, consumptionPriceTable, workItems, tariffTable, ... })`.
+- `basis: "net-consumption"`: panel Part net alan fiyatları mevcut tüketim motorundan gelir. Her material satırının Part kaynak eşlemesi zorunludur; `resourceType: "material"` panel maliyetine, `resourceType: "edge-banding"` ayrı kenar bandı maliyetine gider.
+- `basis: "stock-sheet-purchase"`: `stockSheetPurchaseReport` zorunludur. Panel net alan fiyat satırları hesap dışında bırakılır; donanım, kenar bandı, işçilik ve operasyon satırları normal şekilde fiyatlanır. Levha gruplarının Part kimlikleri proje Part snapshot'ını eksiksiz ve tekrarsız kapsamalı; her grubun `materialId` ve 0.1 mm normalize kalınlığı gerçek Part değerleriyle eşleşmelidir.
+- Çıktı şema v1'dir: panel maliyeti, kenar bandı maliyeti, kategori toplamları ve genel toplam aynı para biriminde güvenli tam sayılarla döner. Stock-sheet modunda temel `quoteSummary` yalnızca panel dışı satırları içerir; nihai panel toplamı wrapper'da eklenir. Bu henüz teklif revizyon snapshot'ına kalıcı yazma anlamına gelmez.
+- Eksik fiyat, kaynak Part kapsamı, malzeme/kalınlık uyuşmazlığı, para birimi farkı veya çift panel fiyatlama birleşik tutarı engeller. Fiyat, fire, levha verimi veya üretim standardı tahmin edilmez.
+- UI entegrasyonu: seçili temeli, panel maliyetini, kenar bandı maliyetini, kaynak sayısını ve birleşik toplamı ayrı göster; temel `quoteSummary` satırlarını aggregate panel maliyetiyle tekrar toplama. Frontend yenileme sahibinin alanına dokunulmadı.
+- Sonraki dilim: seçilen temel ve kaynak provenance'ını teklif fiyat snapshot/revizyon sözleşmesine geriye uyumlu biçimde eklemek; eski v1 snapshot'ları değiştirmemek.

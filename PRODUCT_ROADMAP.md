@@ -1381,3 +1381,13 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 - Code/test [207df9aa](https://github.com/Taylan789/MobilyaCAD/commit/207df9aa51548ab1156aed8327173f4cfc6dbc52); exact-SHA CI [#45315954884](https://github.com/Taylan789/MobilyaCAD/actions/runs/45315954884), QA [#45315954813](https://github.com/Taylan789/MobilyaCAD/actions/runs/45315954813), Pages [#45315954792](https://github.com/Taylan789/MobilyaCAD/actions/runs/45315954792) all succeeded. QA: 204 frontend + 693 domain tests, strict TS/build, lint 34 warnings/0 errors, audit 0 vulnerabilities; deployed https://taylan789.github.io/MobilyaCAD/.
 - Initial commit [92f361b9](https://github.com/Taylan789/MobilyaCAD/commit/92f361b9f01df1be96c064c4cf39cd045ebc7d09) had 2 QA fixture/validation failures; corrected by 207df9aa. No frontend, adapter/performance files or `main` changes.
 - Next: DOM-141 versioned quote integration with the chosen basis; adapter-owned export tasks remain deferred.
+
+
+## 24 Kasım 2026 07:14 TRT — DOM-141 quote material-basis integration (verification pending)
+
+- Added one quote aggregation path for explicit panel material basis selection: net-area consumption or stock-sheet purchase.
+- Net-area mode requires line-to-Part provenance and separates panel material from edge-band cost. Stock-sheet mode suppresses only panel net-area price lines, retains edge-band/hardware/work costs, and requires exact project Part coverage with matching material identity and normalized mm thickness.
+- Combined category totals and grand total use safe integer arithmetic and one currency; missing provenance, partial Part coverage, wrong material/thickness or mixed currencies fail closed.
+- Regression tests cover net/stock modes, edge-band preservation, panel-only stock quote, empty projects, provenance mismatch and currency mismatch.
+- Exact-SHA CI/QA/Pages verification pending. No test-site update is claimed until the deployment run succeeds.
+- Next: persist the selected basis and stock-group provenance in a backward-compatible quote pricing snapshot/revision extension; keep legacy v1 snapshots readable.
