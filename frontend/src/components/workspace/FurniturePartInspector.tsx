@@ -423,10 +423,14 @@ export function FurniturePartInspector({
         </p>
       </div>
 
-      <div className="cad-part-production-note">
-        <span>ÜRETİM KAPSAMI</span>
+      <details className="cad-part-production-note">
+        <summary>
+          <span>ÜRETİM KAPSAMI</span>
+          <small>AYRINTI</small>
+          <ChevronDown aria-hidden="true" />
+        </summary>
         <p>Kesim listesi şu anda desteklenen mobilya konstrüksiyon kurallarından hesaplanır. Bu görsel parça düzenlemeleri üretim kesim ölçülerini değiştirmez.</p>
-      </div>
+      </details>
 
       <Button
         type="button"
