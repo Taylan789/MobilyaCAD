@@ -381,7 +381,7 @@ export function parseProjectFile(content: string): MobilyaCadProjectFile {
     parsed,
     formatVersion === 2 ? projectFileKnownKeysV2 : projectFileKnownKeysV1
   );
-  const roomMetadata = copyUnknownFields(room, roomKnownKeys);
+  const roomMetadata = copyUnknownFields(room as Record<string, unknown>, roomKnownKeys);
   const normalizedRoom = {
     ...roomMetadata,
     width: room.width as number,
