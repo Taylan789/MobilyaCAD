@@ -46,6 +46,28 @@ function validateCutListPart(part: Part): void {
     throw new Error("Kesim listesinde parça adı ve malzemesi belirtilmelidir.");
   }
 
+  if (part.panelGeometry !== undefined) {
+    throw new Error(part.name + " kesitli panel geometrisi CSV biçiminde korunamadığı için dışa aktarım engellendi.");
+  }
+
+  const hasPerEdgeCatalogAssignment = part.edgeBandingByEdge !== undefined &&
+    Object.keys(part.edgeBandingByEdge).length > 0;
+  if (
+    hasPerEdgeCatalogAssignment ||
+    part.edgeBandingMaterialId !== undefined ||
+    part.edgeBandingUnit !== undefined
+  ) {
+    throw new Error(part.name + " kenar bandı katalog ataması CSV biçiminde korunamadığı için dışa aktarım engellendi.");
+  }
+
+  if (Array.isArray(part.cncOperations) && part.cncOperations.length > 0) {
+    throw new Error(part.name + " CNC operasyonları CSV biçiminde korunamadığı için dışa aktarım engellendi.");
+  }
+
+  if (typeof part.productionNote === "string" && part.productionNote.trim() !== "") {
+    throw new Error(part.name + " üretim notu CSV biçiminde korunamadığı için dışa aktarım engellendi.");
+  }
+
   if (
     ![part.width, part.length, part.thickness].every(
       (value) => Number.isFinite(value) && value > 0
