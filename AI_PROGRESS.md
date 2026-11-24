@@ -634,3 +634,10 @@
 - Initial code/test commit [92f361b9](https://github.com/Taylan789/MobilyaCAD/commit/92f361b9f01df1be96c064c4cf39cd045ebc7d09) CI passed, but QA domain tests reported **691 pass / 2 fail**: incomplete missing-price fixture used issue objects (the helper incorrectly required strings), and the stock-cost test attempted to mutate a frozen calculator output. Pages build passed, exact-SHA QA gate failed, deploy was skipped; test site was not updated.
 - Fix: accept missing-price issue records as a list while requiring string diagnostics; clone the immutable stock report before corrupting its test fixture. No test weakened.
 - Fix commit SHA and rerun results pending. No frontend or adapter/performance-owned files changed; `main` untouched. Next: verify corrected DOM-140 and then DOM-141 quote basis integration contract.
+
+
+## 24 Kasım 2026 05:57 TRT — DOM-140 VERIFIED
+- Code/test commit [207df9aa](https://github.com/Taylan789/MobilyaCAD/commit/207df9aa51548ab1156aed8327173f4cfc6dbc52) fixes the initial QA failures (missing-price issue records remain objects; immutable stock reports are cloned before test corruption). Selector API and tests now pass.
+- Exact-SHA CI [#45315954884](https://github.com/Taylan789/MobilyaCAD/actions/runs/45315954884), QA [#45315954813](https://github.com/Taylan789/MobilyaCAD/actions/runs/45315954813), and Pages [#45315954792](https://github.com/Taylan789/MobilyaCAD/actions/runs/45315954792) succeeded. QA: **204 frontend + 693 domain tests**, strict domain TypeScript, production build, lint **34 warnings / 0 errors**, production audit **0 vulnerabilities**. Pages deployment confirmed at https://taylan789.github.io/MobilyaCAD/.
+- First attempt [92f361b9](https://github.com/Taylan789/MobilyaCAD/commit/92f361b9f01df1be96c064c4cf39cd045ebc7d09) had CI success but QA 691/693 and Pages gate failed; the two test issues were fixed without weakening tests. No frontend, adapter/performance-owned files, CNC/machine output or `main` changes.
+- Next: DOM-141 versioned quote integration carrying the selected material basis; DOM-138/DOM-130 remain adapter-owned/deferred. QA-003 stays blocked on INT-001/INT-002 evidence.

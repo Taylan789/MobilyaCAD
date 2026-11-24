@@ -1367,16 +1367,17 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 - Code/test [commit 538c3bd46514de1b5e0aabd7dc1e8714bdda569c](https://github.com/Taylan789/MobilyaCAD/commit/538c3bd46514de1b5e0aabd7dc1e8714bdda569c); CI [#45298432627](https://github.com/Taylan789/MobilyaCAD/actions/runs/45298432627), QA [#45298432528](https://github.com/Taylan789/MobilyaCAD/actions/runs/45298432528), Pages [#45298432481](https://github.com/Taylan789/MobilyaCAD/actions/runs/45298432481) succeeded; test site https://taylan789.github.io/MobilyaCAD/.
 
 ## Current domain queue — 24 November 2026
-1. **DOM-140 FIX IN PROGRESS:** initial CI passed; QA exposed 2 test/validation issues (object-shaped missing-price issue list and immutable fixture mutation). Fix committed next; re-run CI/QA/Pages before DOM-141.
+1. **DOM-140 VERIFIED:** explicit material-cost basis selector (net-consumption vs stock-sheet purchase), no double counting; [commit 207df9aa](https://github.com/Taylan789/MobilyaCAD/commit/207df9aa51548ab1156aed8327173f4cfc6dbc52), exact-SHA CI/QA/Pages passed. Next DOM-141 quote integration.
 2. **DOM-138 DEFERRED:** strict/legacy source-integrity comparison export compatibility; adapter ownership unavailable.
 3. **DOM-130 DEFERRED:** hardware BOM trace persistence/export/schema compatibility; adapter ownership unavailable.
 4. **QA-003 BLOCKED:** end-to-end import/export reconciliation until INT-001/INT-002 evidence exists.
 
 
-## DOM-140 — Explicit material-cost basis selection (verification pending)
-- API `calculateProjectMaterialCostBasisSummary` accepts schema v1 and exactly one basis: `net-consumption` or `stock-sheet-purchase`, plus that basis's source report. The API never requests or sums both sources.
-- Net consumption uses only the validated material-category lines, not hardware/labor/operations/waste/profit; line, category and grand totals must reconcile and currency must match.
-- Stock-sheet purchase uses only validated nesting-group purchase costs; sheet counts × explicit per-sheet prices, group currency, source IDs and project totals must reconcile. No supplier price or yield is inferred.
-- Incomplete/blocked sources expose no partial monetary value; empty source returns zero. Extra request fields and unsupported basis/schema fail closed.
-- Exact-SHA CI/QA/Pages evidence pending.
-- Next: DOM-141 integrate the explicit basis into quote flow only after a versioned quote contract and compatibility tests; adapter-owned export work remains deferred.
+## DOM-140 — Explicit material-cost basis selection (VERIFIED)
+- API `calculateProjectMaterialCostBasisSummary` accepts schema v1 and exactly one basis: `net-consumption` or `stock-sheet-purchase`, plus that basis's source report. It never requests or sums both sources.
+- Net consumption uses only validated material-category lines (not hardware/labor/operations/waste/profit); line, six category and grand totals reconcile, currency matches, and incomplete price coverage yields no partial amount.
+- Stock-sheet purchase uses only validated nesting-group purchase costs; sheet count × explicit per-sheet price, currency, unique source Part IDs and project totals reconcile. No supplier price or yield is inferred.
+- Regression: ready net consumption, real nesting stock-cost summary, incomplete/empty input, inconsistent totals, unsupported fields/basis, deterministic output and immutability.
+- Code/test [207df9aa](https://github.com/Taylan789/MobilyaCAD/commit/207df9aa51548ab1156aed8327173f4cfc6dbc52); exact-SHA CI [#45315954884](https://github.com/Taylan789/MobilyaCAD/actions/runs/45315954884), QA [#45315954813](https://github.com/Taylan789/MobilyaCAD/actions/runs/45315954813), Pages [#45315954792](https://github.com/Taylan789/MobilyaCAD/actions/runs/45315954792) all succeeded. QA: 204 frontend + 693 domain tests, strict TS/build, lint 34 warnings/0 errors, audit 0 vulnerabilities; deployed https://taylan789.github.io/MobilyaCAD/.
+- Initial commit [92f361b9](https://github.com/Taylan789/MobilyaCAD/commit/92f361b9f01df1be96c064c4cf39cd045ebc7d09) had 2 QA fixture/validation failures; corrected by 207df9aa. No frontend, adapter/performance files or `main` changes.
+- Next: DOM-141 versioned quote integration with the chosen basis; adapter-owned export tasks remain deferred.
