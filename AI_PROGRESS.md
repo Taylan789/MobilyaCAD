@@ -652,3 +652,14 @@
 - Follow-up correction: shared cost arrays/counters and thickness lookup now sit outside the optional panel-price block; only panel net-area line generation is conditional. Fix commit SHA and its Actions results are pending.
 - Known external blocker: AI Developer run [45322819775](https://github.com/Taylan789/MobilyaCAD/actions/runs/45322819775) hit OpenRouter free daily quota HTTP 429, remaining 0; reset timestamp resolves to 25 Nov 2026 03:00 TRT. No rerun, paid credits, secret or quota setting changed.
 - Next: verify the scope fix on a new SHA; only then persist selected basis/provenance into a backward-compatible quote pricing snapshot.
+
+
+## 24 Kasım 2026 07:26 TRT — DOM-141 verified; UI integration also deployed
+- Verified domain fix commit: `2daf2046d37cc2d0aaf562c4e61da5ea455852d9` — [commit](https://github.com/Taylan789/MobilyaCAD/commit/2daf2046d37cc2d0aaf562c4e61da5ea455852d9).
+- Domain CI: **success** — [45326255975](https://github.com/Taylan789/MobilyaCAD/actions/runs/45326255975).
+- Domain QA: **success** — [45326255984](https://github.com/Taylan789/MobilyaCAD/actions/runs/45326255984): 206/206 unit tests, 701/701 shared-domain tests, strict domain TypeScript check, lint, production build and security audit passed; audit reported 0 vulnerabilities.
+- Domain Pages deployment: **success** — [45326256041](https://github.com/Taylan789/MobilyaCAD/actions/runs/45326256041).
+- Separate UI agent PR [#187](https://github.com/Taylan789/MobilyaCAD/pull/187) was merged by its owner. Merge commit `ab570f680acd7dd4d5eace0452b728747fd22385` changes only the viewport HUD CSS and its test. Exact-merge CI [45326441304](https://github.com/Taylan789/MobilyaCAD/actions/runs/45326441304) passed; QA [45326441439](https://github.com/Taylan789/MobilyaCAD/actions/runs/45326441439) passed with 208/208 unit tests and 701/701 shared-domain tests, strict type-check, lint, build and 0 audit vulnerabilities; Pages [45326441274](https://github.com/Taylan789/MobilyaCAD/actions/runs/45326441274) passed.
+- Current test site: https://taylan789.github.io/MobilyaCAD/ (integrated branch head `ab570f680acd7dd4d5eace0452b728747fd22385`).
+- Next: DOM-142 — persist the selected material basis and stock-group provenance in quote pricing snapshots/revisions with backward-compatible v1 reads.
+- AI Developer [45322819775](https://github.com/Taylan789/MobilyaCAD/actions/runs/45322819775) remains blocked by OpenRouter free-models-per-day quota (429, remaining 0, reset 25 Nov 2026 03:00 TRT); no paid credits, secret or quota setting was changed.

@@ -1389,7 +1389,7 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 - Net-area mode requires line-to-Part provenance and separates panel material from edge-band cost. Stock-sheet mode suppresses only panel net-area price lines, retains edge-band/hardware/work costs, and requires exact project Part coverage with matching material identity and normalized mm thickness.
 - Combined category totals and grand total use safe integer arithmetic and one currency; missing provenance, partial Part coverage, wrong material/thickness or mixed currencies fail closed.
 - Regression tests cover net/stock modes, edge-band preservation, panel-only stock quote, empty projects, provenance mismatch and currency mismatch.
-- Exact-SHA CI/QA/Pages verification pending. No test-site update is claimed until the deployment run succeeds.
+- Verified on fix commit `2daf2046d37cc2d0aaf562c4e61da5ea455852d9`: CI and QA passed, and Pages deployment succeeded ([45326256041](https://github.com/Taylan789/MobilyaCAD/actions/runs/45326256041)).
 - Next: persist the selected basis and stock-group provenance in a backward-compatible quote pricing snapshot/revision extension; keep legacy v1 snapshots readable.
 
 
@@ -1398,4 +1398,15 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 - Commit `890f787`: CI/build/lint passed; QA shared-domain suite failed 64/622 due to a scope error in the new panel-pricing mode. The failing branch placed shared accumulators inside the optional panel-material block.
 - Test-site Pages artifact build passed, but the required same-SHA CI+QA gate failed and the deploy job was skipped. No broken version was published.
 - Follow-up fix keeps cost accumulators, hardware/edge-band pricing and counters available in both panel modes; only panel material line creation is conditional. All original tests remain enabled.
-- DOM-141 remains unverified until the follow-up SHA passes full QA, domain type-check, production build, audit and Pages deployment.
+- DOM-141 is verified on `2daf2046d37cc2d0aaf562c4e61da5ea455852d9`: all QA/domain checks passed and Pages deployed successfully. Next: DOM-142 snapshot/revision persistence.
+
+
+### DOM-141 verified delivery — 24 Kasım 2026 07:26 TRT
+
+- Fix commit: `2daf2046d37cc2d0aaf562c4e61da5ea455852d9`.
+- CI passed: [45326255975](https://github.com/Taylan789/MobilyaCAD/actions/runs/45326255975).
+- QA passed: [45326255984](https://github.com/Taylan789/MobilyaCAD/actions/runs/45326255984): 206 unit tests + 701 shared-domain tests, strict domain type-check, lint, production build, and `npm audit --omit=dev --audit-level=high` (0 vulnerabilities).
+- Pages deployment passed: [45326256041](https://github.com/Taylan789/MobilyaCAD/actions/runs/45326256041).
+- The separate UI agent's PR #187 was merged by its owner. Its exact-merge CI [45326441304](https://github.com/Taylan789/MobilyaCAD/actions/runs/45326441304), QA [45326441439](https://github.com/Taylan789/MobilyaCAD/actions/runs/45326441439) and Pages deployment [45326441274](https://github.com/Taylan789/MobilyaCAD/actions/runs/45326441274) passed. The merged UI slice is a compact viewport room-dimension HUD; this domain agent did not touch frontend files.
+- Integrated test site: https://taylan789.github.io/MobilyaCAD/ (branch head `ab570f680acd7dd4d5eace0452b728747fd22385`).
+- Next: DOM-142 — persist the selected material basis and stock-group provenance in quote pricing snapshots/revisions while preserving v1 read compatibility.
