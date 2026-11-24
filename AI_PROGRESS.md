@@ -948,13 +948,14 @@
 - Integration/Performance job .github/workflows/ai-developer.yml içinde if: false; uzman branch/PR bulunamadı. INT-002/PERF-001 uzman sahipliğinde kaldı. No frontend, adapter, benchmark, CNC/machine, secrets/settings or main changes.
 - Next: INT-003 UI-owned v2 project parser/save/open integration; then DOM-152 exact editor save/reopen round-trip. INT-002/PERF-001 and QA-003 remain specialist/QA-owned.
 
-## 24 Kasım 2026 23:31 TRT — DOM-152 implementation (verification pending)
+## 24 Kasım 2026 23:31 TRT — DOM-152 VERIFIED
 
-- Base `dev/github-work` HEAD: `c3700e533791b6dacce0e58aea236bab82bcccc3`. Write-time preflight re-read the branch and all six target blob SHAs; no queued/in-progress Actions run existed.
-- Found a domain boundary issue in `inspectProjectEnvelope`: direct reads of `format`, `formatVersion` and `projectId` could execute own or inherited accessors before the later JSON descriptor validator rejected the envelope.
-- Added an own/enumerable/data-descriptor reader for those discriminator fields. Accessors, inherited values and non-enumerable descriptors fail closed before any getter runs; v1 legacy and valid v2 paths retain their existing contract.
-- Added six regressions across read and append entry points: own and inherited accessors for all three discriminator fields; each asserts zero getter calls and no partial history/project.
-- Changed files: `domain/production/projectQuoteRevisionProjectFile.ts`, `domain/production/projectQuoteRevisionProjectFileImportImmutability.test.mjs`, `docs/production-domain-contract.md`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`.
-- Implementation commit SHA and exact-SHA CI/QA/Pages results will be recorded after GitHub creates the commit and Actions completes. No frontend, adapter, benchmark, CNC/machine, secrets/settings or `main` changes.
-- Known boundary: this secures the domain quote-history envelope API; the editor's main JSON v2 parser/save/open integration remains INT-003 and is owned by the UI agent.
-- Next: verify this exact commit through CI, QA and Pages; then continue with the next independent domain gap while INT-003 remains UI-owned.
+- Base `dev/github-work` HEAD: `c3700e533791b6dacce0e58aea236bab82bcccc3`; implementation commit: [dd8061718c88b2e0ddad2f6994a64a3362c88726](https://github.com/Taylan789/MobilyaCAD/commit/dd8061718c88b2e0ddad2f6994a64a3362c88726).
+- Write-time preflight re-read the owned branch and all six target blob SHAs; no queued/in-progress Actions run existed. No frontend, adapter, benchmark, CNC/machine, secrets/settings or `main` changes.
+- `inspectProjectEnvelope` previously read `format`, `formatVersion` and `projectId` directly, which could execute own or inherited accessors before the later JSON descriptor validator rejected the envelope. It now accepts only own, enumerable data descriptors for those discriminator fields.
+- Added six regressions across read and append entry points: own and inherited accessors for all three discriminator fields. All assert zero getter calls, blocked status and no partial project/history.
+- Exact-SHA CI [#45482452559](https://github.com/Taylan789/MobilyaCAD/actions/runs/45482452559) passed. Exact-SHA QA [#45482452470](https://github.com/Taylan789/MobilyaCAD/actions/runs/45482452470) passed: 245/245 frontend unit + 737/737 shared-domain tests; strict shared-domain TypeScript, lint 36 warnings/0 errors, production build and production dependency audit (0 vulnerabilities).
+- Exact-SHA Pages [#45482452461](https://github.com/Taylan789/MobilyaCAD/actions/runs/45482452461) passed its CI/QA gate, site build, artifact upload and deployment. Test site: https://taylan789.github.io/MobilyaCAD/.
+- Known performance note: production build still reports a 1.69 MB minified JS entry chunk (>500 kB warning); no bundle split or viewport profiling was attempted in this domain security slice. INT-002/PERF-001 remain specialist-owned; no `agent/integration-performance-*` branch was found. AI Developer [#45450013010](https://github.com/Taylan789/MobilyaCAD/actions/runs/45450013010) remains blocked by OpenRouter free-model daily HTTP 429 until 25 November 2026 03:00 TRT; no rerun, paid fallback, secret or quota change.
+- INT-003 remains UI-owned: [PR #206](https://github.com/Taylan789/MobilyaCAD/pull/206) is still draft and not mergeable; its scope is limited to `frontend/src/engine/projectFile.ts` and `frontend/tests/projectFileV2Envelope.test.mjs`. This domain commit does not claim editor save/open v2 integration is complete.
+- Next: INT-003 UI parser/save/open integration; then DOM-153 exact editor v2 append/save/reopen/append round-trip. No manual user test is required for this domain slice; exact-SHA Actions are authoritative.
