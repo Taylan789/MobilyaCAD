@@ -20,7 +20,17 @@ const snapshotResult = createProjectQuotePricingSnapshot({
   workItems: [],
   tariffTable: [],
   consumptionPriceList: null,
-  laborOperationTariffList: null
+  laborOperationTariffList: null,
+  quoteAdjustments: [{
+    id: "dom-151-fixture",
+    category: "waste",
+    description: "DOM-151 test fixture",
+    quantity: 1,
+    unit: "adet",
+    unitPriceMinor: 1000,
+    currencyCode: "TRY",
+    sourceReference: "dom-151:test"
+  }]
 });
 
 assert.equal(snapshotResult.status, "ready");
