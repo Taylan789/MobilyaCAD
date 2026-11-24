@@ -531,3 +531,47 @@
     background: Highlight;
   }
 }
+
+
+/* UI-VIEWPORT-AXIS-PLAN-ELEVATION-001 — preserve the plan/elevation hierarchy in compact desktop viewports. */
+@media (min-width: 761px) and (max-width: 900px) and (min-height: 661px) {
+  .cad-viewport-dimension-readout {
+    width: min(248px, calc(100% - 20px));
+    gap: 5px;
+    padding: 6px 7px;
+  }
+
+  .cad-viewport-dimension-readout__dimensions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 4px;
+  }
+
+  .cad-viewport-dimension-readout__dimensions > div:nth-child(3) {
+    display: grid;
+    min-height: 27px;
+    grid-column: 1 / -1;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: 4px 6px;
+    padding: 4px 7px;
+  }
+
+  .cad-viewport-dimension-readout__dimensions > div:nth-child(3) > span {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .cad-viewport-dimension-readout__dimensions > div:nth-child(3) > strong {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .cad-viewport-dimension-readout__dimensions > div:nth-child(3) > small {
+    grid-column: 3;
+    grid-row: 1;
+  }
+
+  .cad-viewport-dimension-readout__dimensions > div:nth-child(3)::before {
+    inset-block: 4px;
+  }
+}
