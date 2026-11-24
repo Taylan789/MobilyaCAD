@@ -38,6 +38,8 @@ test("progressive disclosure does not alter millimeter conversion or transform c
 
 test("reference disclosure stays responsive, motion-safe and high-contrast compatible", () => {
   assert.match(styles, /@container \(max-width:\s*250px\)/);
+  assert.match(styles, /cad-transform-reference__hint \{\s*display:\s*none/);
+  assert.match(styles, /cad-transform-reference > summary::after/);
   assert.match(styles, /@media\s*\(prefers-reduced-motion:\s*reduce\)/);
   assert.match(styles, /@media\s*\(forced-colors:\s*active\)/);
   assert.match(styles, /transition:\s*none/);

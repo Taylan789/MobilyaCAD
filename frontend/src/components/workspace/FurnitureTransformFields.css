@@ -94,8 +94,8 @@
 }
 @media (prefers-reduced-motion: reduce) { .cad-transform-axis-field { transition: none; } }
 @media (forced-colors: active) {
-  .cad-transform-axis-grid, .cad-transform-axis-field, .cad-transform-rotation { border-color: CanvasText; }
-  .cad-transform-axis-field:focus-within { outline: 2px solid Highlight; outline-offset: 1px; }
+  .cad-transform-axis-grid, .cad-transform-axis-field, .cad-transform-rotation, .cad-transform-reference { border-color: CanvasText; }
+  .cad-transform-axis-field:focus-within, .cad-transform-reference > summary:focus-visible { outline: 2px solid Highlight; outline-offset: 1px; }
 }
 
 
@@ -136,6 +136,12 @@
   .cad-transform-rotation__range {
     margin-left: 0;
   }
+  .cad-transform-reference-row {
+    flex-wrap: wrap;
+  }
+  .cad-transform-reference__hint {
+    display: none;
+  }
 }
 @media (prefers-reduced-motion: reduce) {
   .cad-transform-axis-field,
@@ -147,9 +153,11 @@
 @media (forced-colors: active) {
   .cad-transform-axis-label__letter,
   .cad-transform-axis-value input,
-  .cad-transform-rotation__value input {
+  .cad-transform-rotation__value input,
+  .cad-transform-reference > summary::after {
     color: CanvasText !important;
     background: Canvas !important;
     border-color: CanvasText !important;
   }
+  .cad-transform-reference > summary { color: CanvasText; }
 }
