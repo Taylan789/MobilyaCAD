@@ -5,6 +5,10 @@ import type { PlacedFurniture } from "../types/placedFurniture";
 import type { MaterialCatalogEntry } from "./materialCatalog";
 import { resolveCabinetConstructionRules } from "./cabinetRules";
 import {
+  readProductionDiagnostics,
+  type ProjectSheetCutPlanExportDiagnostic
+} from "../../../domain/production/projectSheetCutPlanExport.ts";
+import {
   calculateCabinetProjectProductionWithDiagnostics
 } from "../../../domain/production/projectProduction.ts";
 import type {
@@ -35,6 +39,8 @@ export interface ProjectProductionResult {
   canExport: boolean;
   exportBlockers: string[];
   exportBlockReason: string | null;
+  /** Structured source/type/code provenance from the validated domain report. */
+  productionDiagnostics: ProjectSheetCutPlanExportDiagnostic[];
   /** The validated domain report remains available without lossy field projection. */
   domainReport: CabinetProjectProductionReport;
 }
@@ -300,6 +306,9 @@ export function mapDomainProductionReport(
     reason
   }));
 
+  const productionDiagnostics = readProductionDiagnostics(
+    report as unknown as Record<string, unknown>
+  );
   const canExport = report.canExport &&
     report.status === "ready" &&
     report.result !== null &&
@@ -332,6 +341,7 @@ export function mapDomainProductionReport(
     canExport,
     exportBlockers,
     exportBlockReason,
+    productionDiagnostics,
     domainReport: report
   };
 }
