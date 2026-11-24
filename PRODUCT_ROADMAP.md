@@ -1730,3 +1730,22 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 - Root dahil toplam 64 object/array seviyesi kabul edilir; 65. seviye bloklanır. Mevcut project-v2 16 MiB ve standalone history 1 MiB sınırları değişmez.
 
 **Sınırlar:** Bu güvenlik katmanı Proxy trap'lerinin çalıştırılmasını engellediği iddiası taşımaz; JavaScript Proxy reflection trap'leri descriptor incelemesi sırasında çalışabilir. CNC, üretici standardı ve UI save/open entegrasyonu kapsam dışıdır.
+
+
+## DOM-155 — Teklif revizyon sayım sınırını derin kopya öncesinde uygula
+
+**Durum:** Kod ve regresyon testi eklendi; exact-SHA CI/QA/Pages doğrulaması bekleniyor.
+
+**Sorun:** Geçmişin 2.000 revizyon sınırı, güvenilmeyen girdinin derin kopyası oluşturulduktan sonra kontrol ediliyordu. Çok büyük doğrudan API girdilerinde sınır, kopyalama maliyetini önlemiyordu.
+
+**Dikey dilim:** `validateProjectQuoteRevisionHistory`, yalnızca own enumerable data descriptor üzerinden `revisions` dizisini bulur ve dizinin own `length` descriptor'ını okur. 2.000'i aşan geçmiş, nested revizyon payload'ları kopyalanmadan fail-closed reddedilir. Accessor-backed `revisions` getter'ı çalıştırılmaz. Mevcut kopyalama ve şema doğrulaması savunma katmanı olarak korunur.
+
+**Kabul kriterleri**
+- Tam 2.000 kayıt preflight tarafından reddedilmez; sonraki normal şema doğrulamasına ilerler.
+- 2.001 kayıt, ilk revizyondaki nested accessor descriptor'ına bakılmadan 2.000 sınır mesajıyla reddedilir.
+- Own accessor-backed `revisions` getter çağrı sayısı sıfırdır; blocked sonuçta history null kalır.
+- JSON v1/v2 şemaları, standalone 1 MiB ve project-v2 16 MiB byte limitleri değişmez.
+
+**Bilinen sınır:** Proxy reflection trap'leri bu API garantisinin dışındadır. Bu değişiklik byte-limitlerinin veya UI save/open entegrasyonunun yerine geçmez.
+
+**Sonraki işler:** INT-003 UI sahibinin parser/save/open entegrasyonu; ardından DOM-153 gerçek editör append/save/reopen/append round-trip. INT-002/PERF-001 adapter ve profiling işleri uzman sahibinde kalır.

@@ -1023,12 +1023,36 @@ function blockedHistory(message: string): ProjectQuoteRevisionHistoryResult {
 }
 
 /**
+ * Rejects an oversized own revision array before recursively copying its entries.
+ * Descriptor reads avoid invoking an accessor-backed `revisions` property.
+ * Proxy reflection traps are not suppressed by this check.
+ */
+function rejectExcessiveRevisionHistoryBeforeClone(value: Record<string, unknown>): void {
+  const revisionsDescriptor = Object.getOwnPropertyDescriptor(value, "revisions");
+  if (!revisionsDescriptor || !revisionsDescriptor.enumerable || !("value" in revisionsDescriptor)) return;
+  const revisions = revisionsDescriptor.value;
+  if (!Array.isArray(revisions)) return;
+  const lengthDescriptor = Object.getOwnPropertyDescriptor(revisions, "length");
+  const length = lengthDescriptor && "value" in lengthDescriptor ? lengthDescriptor.value : undefined;
+  if (
+    typeof length === "number" &&
+    Number.isSafeInteger(length) &&
+    length > PROJECT_QUOTE_REVISION_HISTORY_MAX_REVISIONS
+  ) {
+    throw new Error(
+      "Teklif revizyon geçmişi en fazla " + PROJECT_QUOTE_REVISION_HISTORY_MAX_REVISIONS + " revizyon içerebilir."
+    );
+  }
+}
+
+/**
  * Validates an append-only quote revision history for one project.
  * The supplied order is authoritative: revisions are never sorted or repaired.
  */
 export function validateProjectQuoteRevisionHistory(value: unknown): ProjectQuoteRevisionHistoryResult {
   if (!isRecord(value)) return blockedHistory("Teklif revizyon geçmişi geçerli bir nesne olmalıdır.");
   try {
+    rejectExcessiveRevisionHistoryBeforeClone(value);
     const safeValue = cloneRevisionInput(value);
     if (!isRecord(safeValue)) throw new Error("Teklif revizyon geçmişi geçerli bir nesne olmalıdır.");
     requireOnlyKeys(safeValue, historyInputKeys, "Teklif revizyon geçmişi");

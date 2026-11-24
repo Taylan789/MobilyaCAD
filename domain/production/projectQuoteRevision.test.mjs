@@ -557,14 +557,45 @@ test("boş revizyon geçmişi empty durumunu korur ve kayıt üretmez", () => {
   assert.deepEqual(result.history?.revisions, []);
 });
 
-test("revizyon geçmişi 2.000 kayıt sınırını aşınca kısmi geçmiş döndürmeden engellenir", () => {
-  const result = validateProjectQuoteRevisionHistory({
+test("DOM-155 revision limit preflight rejects before traversing nested payloads and preserves the exact boundary", () => {
+  const exactLimit = validateProjectQuoteRevisionHistory({
     projectId: "project-42",
-    revisions: Array.from({ length: PROJECT_QUOTE_REVISION_HISTORY_MAX_REVISIONS + 1 }, () => ({}))
+    revisions: Array.from({ length: PROJECT_QUOTE_REVISION_HISTORY_MAX_REVISIONS }, () => ({}))
   });
+  assert.equal(exactLimit.status, "blocked");
+  assert.match(exactLimit.diagnostics[0], /Revizyon 1 desteklenen revizyon şemasını kullanmalıdır/);
+  assert.doesNotMatch(exactLimit.diagnostics[0], new RegExp(String(PROJECT_QUOTE_REVISION_HISTORY_MAX_REVISIONS)));
+
+  const revisions = Array.from({ length: PROJECT_QUOTE_REVISION_HISTORY_MAX_REVISIONS + 1 }, () => ({}));
+  let nestedGetterCalls = 0;
+  Object.defineProperty(revisions[0], "pricingSnapshot", {
+    enumerable: true,
+    configurable: true,
+    get() {
+      nestedGetterCalls += 1;
+      return createSnapshot();
+    }
+  });
+  const result = validateProjectQuoteRevisionHistory({ projectId: "project-42", revisions });
+  assert.equal(nestedGetterCalls, 0);
   assert.equal(result.status, "blocked");
   assert.equal(result.history, null);
   assert.match(result.diagnostics[0], new RegExp(String(PROJECT_QUOTE_REVISION_HISTORY_MAX_REVISIONS)));
+
+  let revisionsGetterCalls = 0;
+  const accessorHistory = { projectId: "project-42" };
+  Object.defineProperty(accessorHistory, "revisions", {
+    enumerable: true,
+    configurable: true,
+    get() {
+      revisionsGetterCalls += 1;
+      return [];
+    }
+  });
+  const accessorResult = validateProjectQuoteRevisionHistory(accessorHistory);
+  assert.equal(revisionsGetterCalls, 0);
+  assert.equal(accessorResult.status, "blocked");
+  assert.equal(accessorResult.history, null);
 });
 
 test("revizyon geçmişinde yinelenen kimlikler reddedilir", () => {
