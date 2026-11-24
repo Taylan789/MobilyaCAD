@@ -22,11 +22,13 @@ function pathData(source) {
   );
 }
 
-test("CAD wordmark and browser favicon share the same joinery geometry", () => {
+test("CAD wordmark and browser favicon share the isometric carcass and drafting dimensions", () => {
   assert.deepEqual(pathData(logo), pathData(favicon));
-  assert.equal(pathData(logo).length, 5);
-  assert.match(logo, /viewBox="0 0 52 52"/);
-  assert.match(favicon, /viewBox="0 0 52 52"/);
+  assert.equal(pathData(logo).length, 7);
+  assert.match(logo, /viewBox="0 0 64 64"/);
+  assert.match(favicon, /viewBox="0 0 64 64"/);
+  assert.match(logo, /mc-brand-mark__dimension-vertical/);
+  assert.match(logo, /mc-brand-mark__dimension-base/);
 });
 
 test("brand mark remains a labeled, non-interactive identity element", () => {
@@ -37,8 +39,11 @@ test("brand mark remains a labeled, non-interactive identity element", () => {
   assert.match(logo, /\{descriptor && <small>\{descriptor\}<\/small>\}/);
 });
 
-test("vector mark supports precision rendering, reduced motion and forced colors", () => {
+test("vector mark uses steel-blue drafting lines and supports reduced motion and forced colors", () => {
   assert.match(styles, /shape-rendering: geometricPrecision/);
+  assert.match(styles, /mc-brand-mark__dimension-vertical/);
+  assert.match(styles, /mc-brand-mark__dimension-base/);
+  assert.match(styles, /#8eb5ce/i);
   assert.match(styles, /prefers-reduced-motion: reduce/);
   assert.match(styles, /forced-colors: active/);
   assert.match(styles, /CanvasText/);

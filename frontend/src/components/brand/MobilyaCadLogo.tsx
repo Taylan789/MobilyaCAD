@@ -20,44 +20,54 @@ export function MobilyaCadLogo({
       <span className="mc-brand__mark" aria-hidden="true">
         <svg
           className="mc-brand__mark-art"
-          viewBox="0 0 52 52"
+          viewBox="0 0 64 64"
           fill="none"
           focusable="false"
         >
           <rect
             className="mc-brand-mark__backplate"
-            x="1.5"
-            y="1.5"
-            width="49"
-            height="49"
-            rx="11"
+            x="2"
+            y="2"
+            width="60"
+            height="60"
+            rx="12"
           />
           <path
             className="mc-brand-mark__carcass"
-            d="M10.5 16 26 7.5 41.5 16V36L26 44.5 10.5 36V16Z"
+            d="M14 20 32 10 50 20V42L32 52 14 42V20Z"
             fill="none"
           />
           <path
             className="mc-brand-mark__top"
-            d="M10.5 16 26 24.7 41.5 16M26 7.5V24.7"
+            d="M14 20 32 30 50 20M32 10V30"
             fill="none"
           />
           <path
             className="mc-brand-mark__interior"
-            d="M16.3 20.3V32.9L26 38.3L35.7 32.9V20.3"
+            d="M20 24V38.5L32 45.5L44 38.5V24"
             fill="none"
           />
           <path
             className="mc-brand-mark__shelf"
-            d="M16.3 27.1H35.7M26 24.7V38.3"
+            d="M20 31.5H44M32 30V45.5"
             fill="none"
           />
           <path
             className="mc-brand-mark__dimension-ticks"
-            d="M7.5 26H10.5M41.5 26H44.5"
+            d="M10 31H14M50 31H54"
             fill="none"
           />
-          <circle className="mc-brand-mark__joint" cx="26" cy="27.1" r="1.55" />
+          <path
+            className="mc-brand-mark__dimension-vertical"
+            d="M8 20V42M6 20H10M6 42H10"
+            fill="none"
+          />
+          <path
+            className="mc-brand-mark__dimension-base"
+            d="M14 57H50M14 55V59M50 55V59"
+            fill="none"
+          />
+          <circle className="mc-brand-mark__joint" cx="32" cy="31.5" r="1.7" />
         </svg>
       </span>
       <span className="mc-brand__copy">
