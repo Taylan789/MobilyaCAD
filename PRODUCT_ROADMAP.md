@@ -1595,7 +1595,7 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 
 ## DOM-147 — JSON v2 proje append derin kopya / immutability sınırı
 
-**Durum:** IMPLEMENTED — exact-SHA CI, QA ve Pages doğrulaması bekleniyor.
+**Durum:** VERIFIED — [commit 61184f6](https://github.com/Taylan789/MobilyaCAD/commit/61184f659213ce56b2e4c7c961ba58f963366f4d); exact-SHA CI [#45405142317](https://github.com/Taylan789/MobilyaCAD/actions/runs/45405142317), QA [#45405142329](https://github.com/Taylan789/MobilyaCAD/actions/runs/45405142329) ve Pages [#45405142314](https://github.com/Taylan789/MobilyaCAD/actions/runs/45405142314) başarılı. QA: 225/225 frontend + 722/722 domain testi; strict TypeScript, lint 34 warnings/0 errors, production build ve production audit 0 vulnerabilities.
 
 **Kullanıcı akışı:** Kullanıcı mevcut JSON v2 projesine yeni teklif revizyonu ekler. Dönen proje, mevcut proje ağacının bağımsız ve değiştirilemez snapshot'ı olur; sonradan yapılan değişiklikler önceki proje verisini veya yeni sonucu etkileyemez.
 
