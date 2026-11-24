@@ -1315,7 +1315,7 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - [ ] Production: canonical Part tree, material/edge-band/hardware/waste, nesting/cost and export reconciliation.
 - [ ] UX: functional controls, clear navigation, accessibility, responsive states and recovery.
 - [ ] Performance: repeatable viewport/bundle/memory baseline with measured improvements.
-- [ ] Reliability: typed validation, backward-compatible project schemas, lossless import/export and exact-SHA CI/QA evidence; DOM-148 adds adversarial coverage for safe `__proto__` data keys, null-prototype records, dense arrays and fail-closed descriptors (verification pending).
+- [ ] Reliability: typed validation, backward-compatible project schemas, lossless import/export and exact-SHA CI/QA evidence; DOM-148 adversarial coverage for safe `__proto__` data keys, null-prototype records, dense arrays and fail-closed descriptors passed exact-SHA CI/QA/Pages (228 frontend + 726 domain; production audit 0 vulnerabilities); the overall 10/10 gate remains unchecked.
 - [ ] Physical production: operator and machine-standard verification remains separate from automated checks.
 
 ## Current domain queue — 23 November 2026
@@ -1617,7 +1617,7 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 
 ## DOM-148 — JSON v2 append zarfı adversarial sınırları
 
-**Durum:** Test kapsamı eklendi; exact-SHA CI, QA ve Pages doğrulaması bekleniyor.
+**Durum:** VERIFIED — [implementation commit 7f050c5](https://github.com/Taylan789/MobilyaCAD/commit/7f050c53ca1d68394280fa488bc6f1335be8e438); exact-SHA CI [#45415951229](https://github.com/Taylan789/MobilyaCAD/actions/runs/45415951229), QA [#45415951209](https://github.com/Taylan789/MobilyaCAD/actions/runs/45415951209) ve Pages [#45415951415](https://github.com/Taylan789/MobilyaCAD/actions/runs/45415951415) başarılı.
 
 **Kullanıcı akışı:** Kullanıcı teklif revizyonunu JSON v2 proje dosyasına ekler. Sistem özel JavaScript nesne özelliklerini sessizce kaybetmeden veya getter çalıştırmadan ya güvenli JSON snapshot üretir ya da işlemi atomik olarak engeller.
 
@@ -1626,6 +1626,8 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 - Sparse array, object/array accessor, symbol ve enumerable olmayan own alanlar reddedilir.
 - Accessor getter'ları çalıştırılmaz; blocked sonuç project: null ve history: null verir, kaynak zarfı değiştirmez.
 - Legacy v1 ve JSON v2 şemaları değişmez; production behavior değişikliği yoktur.
+
+**QA kanıtı:** 228/228 frontend unit + 726/726 domain test; dört DOM-148 regresyonu geçti; strict TypeScript, lint 34 warnings/0 errors, production build ve production dependency audit 0 vulnerabilities. Test sitesi exact SHA üzerinden https://taylan789.github.io/MobilyaCAD/ adresine deploy edildi.
 
 **Sınırlar:** Bu dilim test ve sözleşme sertleştirmesidir; serializer şeması, CNC çıktısı, makine standardı, malzeme/fiyat varsayımı veya fiziksel üretim onayı eklemez.
 

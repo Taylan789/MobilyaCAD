@@ -898,12 +898,13 @@
 - Sonraki görev: DOM-148 adversarial project-envelope JSON sınır testleri; ardından yalnızca gerçek uzman sahipliği ve round-trip kanıtı geldiğinde DOM-143C-json/INT-002 adapter işi.
 
 
-## 24 Kasım 2026 17:31 TRT — DOM-148 implementation (verification pending)
+## 24 Kasım 2026 17:37 TRT — DOM-148 VERIFIED
 
-- Base dev/github-work HEAD: c634f236952ec0af563cd9c59ec7b5593b2e83ac; current branch ref and all five target blob SHAs were re-read immediately before creating the commit. No queued/in-progress Actions run existed.
-- Added four adversarial regressions around the existing cloneAndFreezeJsonValue boundary: safe own __proto__ preservation with null-prototype records; sparse-array rejection; object/array accessor rejection without getter execution; and symbol/non-enumerable property rejection on objects and arrays.
-- The implementation already contains the required fail-closed guards; this slice adds missing executable coverage rather than changing production behavior or weakening existing assertions.
-- Changed files: domain/production/projectQuoteRevisionProjectFileImportImmutability.test.mjs, docs/production-domain-contract.md, AI_COORDINATION.md, PRODUCT_ROADMAP.md, AI_PROGRESS.md.
-- Exact implementation commit SHA and CI/QA/Pages run results will be recorded after GitHub Actions completes; no local test runner was used.
-- Known limits: no frontend, JSON/CSV comparison adapter, benchmark-owned file, CNC/machine output, secrets/settings or main changes. Integration/Performance specialist branch/PR remains unverified; INT-002/PERF-001 stay specialist-owned.
-- Next: DOM-149 — assess explicit project-envelope size/depth resource guards without changing the existing standalone-history 1 MiB limit.
+- Base `dev/github-work` HEAD: `7f050c53ca1d68394280fa488bc6f1335be8e438`; implementation commit: [7f050c53ca1d68394280fa488bc6f1335be8e438](https://github.com/Taylan789/MobilyaCAD/commit/7f050c53ca1d68394280fa488bc6f1335be8e438).
+- Exact-SHA CI [#45415951229](https://github.com/Taylan789/MobilyaCAD/actions/runs/45415951229), QA [#45415951209](https://github.com/Taylan789/MobilyaCAD/actions/runs/45415951209) and Pages [#45415951415](https://github.com/Taylan789/MobilyaCAD/actions/runs/45415951415) all succeeded.
+- QA: 228/228 frontend unit tests and 726/726 shared-domain tests passed; all four DOM-148 regressions passed. Strict domain TypeScript, lint (34 warnings / 0 errors), production build and production dependency audit (0 vulnerabilities) passed.
+- Test site deployed from the exact verified implementation SHA: https://taylan789.github.io/MobilyaCAD/.
+- Changed files: `domain/production/projectQuoteRevisionProjectFileImportImmutability.test.mjs`, `docs/production-domain-contract.md`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`.
+- Production behavior and JSON schema were unchanged; no tests were removed/weakened. No frontend, adapter/performance-owned file, CNC/machine output, secrets/settings or `main` changes.
+- Known limits: specialist Integration/Performance branch/PR remains unverified; INT-002/PERF-001 remain specialist-owned. AI Developer [#45338253254](https://github.com/Taylan789/MobilyaCAD/actions/runs/45338253254) failed on OpenRouter free-model daily HTTP 429; no rerun or paid fallback was used.
+- Next: DOM-149 — assess project-envelope size/depth resource guards without changing the standalone-history 1 MiB limit.
