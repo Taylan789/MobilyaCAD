@@ -97,10 +97,11 @@ test("birleşik gövde ve çekmece parçaları CSV satırlarına doğru adetlerl
   assert.equal(csv.startsWith("\uFEFF"), true);
   assert.equal(rows[0], "Mobilya;Parça;Genişlik (mm);Uzunluk (mm);Kalınlık (mm);Adet;Malzeme;Malzeme ID;Bant Üst;Bant Alt;Bant Sol;Bant Sağ;Çekmece Grubu ID;Damar Yönü;Üretim Notu");
   assert.equal(rows.length, 1 + cabinetParts.length + 4);
-  assert.ok(rows.includes("Mutfak Modülü;Çekmece Yan Paneli;120;450;15;4;MDF;;Evet;Hayır;Hayır;Hayır;drawer-group-1;Boy;"Açık çekmece kutusu geometrisi; ray, bağlantı elemanı ve CNC işlemleri dahil değildir.""));
-  assert.ok(rows.includes("Mutfak Modülü;Çekmece Ön/Arka Paneli;470;120;15;4;MDF;;Hayır;Hayır;Evet;Hayır;drawer-group-1;En;"Açık çekmece kutusu geometrisi; ray, bağlantı elemanı ve CNC işlemleri dahil değildir.""));
-  assert.ok(rows.includes("Mutfak Modülü;Çekmece Tabanı;470;420;6;2;MDF;;Hayır;Hayır;Hayır;Hayır;drawer-group-1;Belirtilmedi;"Açık çekmece kutusu geometrisi; ray, bağlantı elemanı ve CNC işlemleri dahil değildir.""));
-  assert.ok(rows.includes("Mutfak Modülü;Çekmece Ön Paneli;540;180;18;2;MDF;;Evet;Evet;Evet;Evet;drawer-group-1;En;"Açık çekmece kutusu geometrisi; ray, bağlantı elemanı ve CNC işlemleri dahil değildir.""));
+  const drawerNote = '"Açık çekmece kutusu geometrisi; ray, bağlantı elemanı ve CNC işlemleri dahil değildir."';
+  assert.ok(rows.includes(`Mutfak Modülü;Çekmece Yan Paneli;120;450;15;4;MDF;;Evet;Hayır;Hayır;Hayır;drawer-group-1;Boy;${drawerNote}`));
+  assert.ok(rows.includes(`Mutfak Modülü;Çekmece Ön/Arka Paneli;470;120;15;4;MDF;;Hayır;Hayır;Evet;Hayır;drawer-group-1;En;${drawerNote}`));
+  assert.ok(rows.includes(`Mutfak Modülü;Çekmece Tabanı;470;420;6;2;MDF;;Hayır;Hayır;Hayır;Hayır;drawer-group-1;Belirtilmedi;${drawerNote}`));
+  assert.ok(rows.includes(`Mutfak Modülü;Çekmece Ön Paneli;540;180;18;2;MDF;;Evet;Evet;Evet;Evet;drawer-group-1;En;${drawerNote}`));
 
   const totalQuantity = rows.slice(1).reduce(
     (total, row) => total + Number(row.split(";")[5]),
@@ -173,7 +174,7 @@ test("CSV kesitli panel geometrisini kayıpsız taşıyamadığı için dışa a
   );
 });
 
-test("CSV per-edge katalog ataması, CNC operasyonu ve üretim notunda fail-closed davranır", () => {
+test("CSV per-edge katalog ataması ve CNC operasyonunda fail-closed davranırken üretim notunu korur", () => {
   assert.throws(
     () => createCutListCsv("Modül", [createPart({
       edgeBandingByEdge: { top: { edgeBandingId: "band-white", unit: "mm" } }
@@ -200,6 +201,6 @@ test("CSV per-edge katalog ataması, CNC operasyonu ve üretim notunda fail-clos
 
 test("CSV üretim notunu isteğe bağlı sütunda kaçışlayarak korur", () => {
   const csv = createCutListCsv("Modül", [createPart({ productionNote: 'Kesim; "A"' })]);
-  assert.ok(csv.includes(";Üretim Notu\\r\\n"));
+  assert.ok(csv.includes(";Üretim Notu\r\n"));
   assert.ok(csv.includes('"Kesim; ""A"""'));
 });
