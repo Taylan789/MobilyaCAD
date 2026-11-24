@@ -1656,7 +1656,7 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 
 ## DOM-150 — JSON v2 teklif geçmişi doğrudan okuma kaynak sınırları
 
-**Durum:** IMPLEMENTED — exact-SHA CI/QA/Pages verification pending.
+**Durum:** VERIFIED — [commit 36d38ae](https://github.com/Taylan789/MobilyaCAD/commit/36d38aec3199a2b76f9397bcfb4a30bd9b20fe84); CI [#45441047955](https://github.com/Taylan789/MobilyaCAD/actions/runs/45441047955), QA [#45441047792](https://github.com/Taylan789/MobilyaCAD/actions/runs/45441047792) ve Pages [#45441047926](https://github.com/Taylan789/MobilyaCAD/actions/runs/45441047926) başarılı.
 
 **Kullanıcı akışı:** Uygulama mevcut JSON v2 proje dosyasından teklif geçmişini doğrudan okur. Büyük, aşırı derin veya JSON dışı descriptor içeren zarf kısmi geçmiş üretmeden bloklanır.
 
@@ -1669,3 +1669,6 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 - Internal append/import history validation, önceden güvenli biçimde clone edilmiş envelope için gereksiz ikinci kaynak taramasını atlar; final merged envelope kontrolü korunur.
 
 **Sınırlar ve riskler:** Bu API yalnızca quote-history extension'ını okur; tam room/furniture/material schema validation ana project parser'ına aittir. Otomatik kırpma, history silme, yeni schema version, CNC veya fiziksel üretim onayı eklenmez.
+
+
+**QA kanıtı:** 239/239 frontend unit + 733/733 domain test; exact UTF-8/depth/getter regresyonları geçti; strict TypeScript, lint 36 warnings/0 errors, production build ve production dependency audit (0 vulnerabilities) başarılı. Test sitesi exact verified SHA üzerinden https://taylan789.github.io/MobilyaCAD/ adresine deploy edildi.

@@ -921,14 +921,15 @@
 - Next: DOM-149 — assess project-envelope size/depth resource guards without changing the standalone-history 1 MiB limit.
 
 
-## 24 Kasım 2026 19:40 TRT — DOM-150 implementation (verification pending)
+## 24 Kasım 2026 19:40 TRT — DOM-150 VERIFIED
 
-- Base `dev/github-work` HEAD: `7647af2e293ffa7acd76535915e435a5ce49f954`; base exact-SHA CI [#45433287316](https://github.com/Taylan789/MobilyaCAD/actions/runs/45433287316), QA [#45433287250](https://github.com/Taylan789/MobilyaCAD/actions/runs/45433287250) ve Pages [#45433287402](https://github.com/Taylan789/MobilyaCAD/actions/runs/45433287402) başarılıydı. Base branch üzerinde queued/in-progress Actions run yoktu.
+- Base `dev/github-work` HEAD: `7647af2e293ffa7acd76535915e435a5ce49f954`; base exact-SHA CI [#45433287316](https://github.com/Taylan789/MobilyaCAD/actions/runs/45433287316), QA [#45433287250](https://github.com/Taylan789/MobilyaCAD/actions/runs/45433287250) ve Pages [#45433287402](https://github.com/Taylan789/MobilyaCAD/actions/runs/45433287402) başarılıydı; branch üzerinde aktif run yoktu.
 - Read API'deki boşluk: `readProjectQuoteRevisionHistoryFromProjectFile` yalnızca üst seviye v2 format/projectId ve history alanını doğruluyor, tam proje zarfına DOM-149 kaynak limitlerini uygulamıyordu.
 - Uygulama: public read, history validation öncesinde aynı 16 MiB UTF-8 / 64-level resource guard'ını çalıştırır. Append/import, zaten `cloneAndFreezeProjectEnvelope` ile doğrulanmış immutable clone üzerinde internal helper kullanır; gereksiz tekrar taraması yapılmaz. Yeni append/import sonucu için son envelope guard korunur.
 - Yeni testler: exact 16 MiB read kabulü; +1 byte read block; exact 64-level kabulü; 65-level block; JSON v1 legacy read preservation; accessor getter'ın çağrılmaması ve kaynak değişmezliği.
-- Changed files: `domain/production/projectQuoteRevisionProjectFile.ts`, `domain/production/projectQuoteRevisionProjectFileResourceLimits.test.mjs`, `docs/production-domain-contract.md`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`.
-- Implementation commit SHA ve exact-SHA CI/QA/Pages sonuçları: pending. Bu kayıtta test/CI başarısı veya deployment iddiası yok.
-- Known limits: no separate restore API exists; current import function already checks the target envelope and merged result. Full project schema validation remains the main parser's responsibility. No frontend, JSON/CSV adapter, benchmark, CNC/machine, secrets/settings or `main` changes.
+- Implementation commit: [36d38aec](https://github.com/Taylan789/MobilyaCAD/commit/36d38aec3199a2b76f9397bcfb4a30bd9b20fe84). Changed files: `domain/production/projectQuoteRevisionProjectFile.ts`, `domain/production/projectQuoteRevisionProjectFileResourceLimits.test.mjs`, `docs/production-domain-contract.md`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`.
+- Exact-SHA CI [#45441047955](https://github.com/Taylan789/MobilyaCAD/actions/runs/45441047955) passed; QA [#45441047792](https://github.com/Taylan789/MobilyaCAD/actions/runs/45441047792) passed: 239/239 frontend unit + 733/733 domain tests; strict domain TypeScript, lint 36 warnings/0 errors, production build and production dependency audit (0 vulnerabilities) passed.
+- Exact-SHA Pages [#45441047926](https://github.com/Taylan789/MobilyaCAD/actions/runs/45441047926) passed its CI/QA gate, site build, artifact upload and deployment. Test site: https://taylan789.github.io/MobilyaCAD/.
+- Known limits: no separate restore API exists; current import function already checks target and merged envelope. Full project schema validation remains the main parser's responsibility. No frontend, JSON/CSV adapter, benchmark, CNC/machine, secrets/settings or `main` changes.
 - Latest AI Developer [#45338253254](https://github.com/Taylan789/MobilyaCAD/actions/runs/45338253254) failed due OpenRouter free-model daily HTTP 429 (limit 50, remaining 0); specialist job skipped. No rerun or paid fallback.
-- Next: DOM-151 — verify the full project parser/save-load path preserves quote history and unknown envelope metadata without changing legacy JSON v1 compatibility.
+- Next: DOM-151 — verify the full project parser/save-load path preserves quote history and unknown envelope metadata without changing JSON v1 compatibility.
