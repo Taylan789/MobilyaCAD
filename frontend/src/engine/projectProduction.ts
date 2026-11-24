@@ -244,7 +244,10 @@ function toFrontendPart(part: ProjectProductionPart): Part {
       : { edgeBandingMaterialId: part.edgeBandingMaterialId }),
     ...(part.edgeBandingUnit === undefined
       ? {}
-      : { edgeBandingUnit: part.edgeBandingUnit })
+      : { edgeBandingUnit: part.edgeBandingUnit }),
+    ...(part.edgeBandingByEdge === undefined
+      ? {}
+      : { edgeBandingByEdge: { ...part.edgeBandingByEdge } })
   };
 }
 
@@ -297,14 +300,19 @@ export function mapDomainProductionReport(
     reason
   }));
 
-  const canExport = report.canExport && adapterIssues.length === 0;
+  const canExport = report.canExport &&
+    report.status === "ready" &&
+    report.result !== null &&
+    report.result.parts.length > 0 &&
+    report.exportBlockers.length === 0 &&
+    adapterIssues.length === 0;
   const exportBlockers = [
     ...report.exportBlockers,
     ...adapterIssues.map((issue) => issue.reason)
   ];
   const exportBlockReason = adapterIssues[0]?.reason
     ?? report.firstError
-    ?? report.exportBlockers[0]
+    ?? exportBlockers[0]
     ?? (report.status === "empty"
       ? "Projede dışa aktarılabilecek üretim parçası bulunmuyor."
       : canExport
