@@ -23,6 +23,11 @@ export interface CncOperation {
   description: string;
 }
 
+export interface PartEdgeBandingAssignment {
+  edgeBandingId: string;
+  unit: "mm" | "m";
+}
+
 export interface Part {
   id: string;
   furnitureId: string;
@@ -53,6 +58,8 @@ export interface Part {
   /** Explicit edge-band catalogue metadata from the domain report. */
   edgeBandingMaterialId?: string;
   edgeBandingUnit?: "mm" | "m";
+  /** Per-edge catalog assignments retained from the domain report; CSV remains blocked until supported. */
+  edgeBandingByEdge?: Partial<Record<"top" | "bottom" | "left" | "right", PartEdgeBandingAssignment>>;
 
   // CNC işlemleri
   cncOperations: CncOperation[];
