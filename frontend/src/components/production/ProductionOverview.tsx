@@ -43,7 +43,7 @@ export function ProductionOverview({
     0
   );
   const isEmpty = furnitureCount === 0;
-  const isBlocked = production.exportBlockReason !== null;
+  const isBlocked = !production.canExport;
   const isPartial = production.unsupportedFurniture.length > 0;
   const status = isEmpty ? "empty" : isBlocked ? "blocked" : isPartial ? "partial" : "ready";
   const statusLabel = {
@@ -58,7 +58,7 @@ export function ProductionOverview({
     partial: "Desteklenen modüller hesaplandı. Desteklenmeyen mobilyalar kesim listesine dahil edilmedi.",
     ready: "Desteklenen modüller için parça listesi ve malzeme özeti hazır.",
   }[status];
-  const canExport = production.parts.length > 0 && !isBlocked;
+  const canExport = production.canExport && production.parts.length > 0;
 
   return (
     <div className="mc-production">
@@ -115,12 +115,45 @@ export function ProductionOverview({
         </article>
       </section>
 
-      {production.exportBlockReason && (
+      {!production.canExport && (
         <section className="mc-production__notice mc-production__notice--danger" role="alert">
           <AlertTriangle />
           <div>
             <strong>Kesim listesi dışa aktarılamıyor</strong>
-            <p>{production.exportBlockReason}</p>
+            <p>
+              {production.exportBlockReason ?? production.exportBlockers[0] ??
+                "Domain üretim raporu dışa aktarıma izin vermiyor."}
+            </p>
+            {production.productionDiagnostics.length > 0 && (
+              <details className="mc-production__diagnostic-details">
+                <summary>Kaynak tanıları ({production.productionDiagnostics.length})</summary>
+                <ul>
+                  {production.productionDiagnostics.map((diagnostic, index) => (
+                    <li key={`${diagnostic.source}-${diagnostic.furnitureId ?? "project"}-${diagnostic.code ?? "none"}-${index}`}>
+                      <div className="mc-production__diagnostic-meta">
+                        <code>{diagnostic.source}</code>
+                        {diagnostic.furnitureId !== null && <code>{diagnostic.furnitureId}</code>}
+                        {diagnostic.family !== null && <span>{diagnostic.family}</span>}
+                        {diagnostic.code !== null && <code>{diagnostic.code}</code>}
+                      </div>
+                      <p>{diagnostic.message}</p>
+                      {diagnostic.materialIdentityConflict && (
+                        <div className="mc-production__diagnostic-conflict">
+                          <strong>Malzeme kimliği · {diagnostic.materialIdentityConflict.materialId}</strong>
+                          <ul>
+                            {diagnostic.materialIdentityConflict.sources.map((source, sourceIndex) => (
+                              <li key={`${source.furnitureId}-${source.partId}-${sourceIndex}`}>
+                                {source.furnitureId} · {source.partId} · {source.materialLabel}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </details>
+            )}
           </div>
         </section>
       )}
@@ -271,7 +304,7 @@ export function ProductionOverview({
           Kesim listesini CSV indir
         </Button>
         <span id="mc-production-export-help" className="mc-production__export-help">
-          {canExport ? "Desteklenen parçalar CSV dosyasına aktarılır." : production.exportBlockReason ?? "Dışa aktarılacak geçerli parça bulunmuyor."}
+          {canExport ? "Desteklenen parçalar CSV dosyasına aktarılır." : production.exportBlockReason ?? production.exportBlockers[0] ?? "Dışa aktarılacak geçerli parça bulunmuyor."}
         </span>
       </footer>
     </div>
