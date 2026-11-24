@@ -1251,3 +1251,14 @@ Kaynaklar: `projectPricedConsumption.ts`, `projectMaterialCostBasis.ts`, `projec
 - Eksik fiyat, kaynak Part kapsamı, malzeme/kalınlık uyuşmazlığı, para birimi farkı veya çift panel fiyatlama birleşik tutarı engeller. Fiyat, fire, levha verimi veya üretim standardı tahmin edilmez.
 - UI entegrasyonu: seçili temeli, panel maliyetini, kenar bandı maliyetini, kaynak sayısını ve birleşik toplamı ayrı göster; temel `quoteSummary` satırlarını aggregate panel maliyetiyle tekrar toplama. Frontend yenileme sahibinin alanına dokunulmadı.
 - Sonraki dilim: seçilen temel ve kaynak provenance'ını teklif fiyat snapshot/revizyon sözleşmesine geriye uyumlu biçimde eklemek; eski v1 snapshot'ları değiştirmemek.
+
+
+## Quote pricing snapshot v2 — explicit panel material-cost basis
+
+createProjectQuotePricingSnapshot accepts an optional materialCostBasis object:
+- { basis: "net-consumption" } uses validated Part-linked net material consumption and the existing consumption price table.
+- { basis: "stock-sheet-purchase", stockSheetPurchaseReport } requires a ready stock-cost report whose groups cover the project Part snapshot exactly and match material IDs and normalized millimetre thickness.
+
+When this input is present, the returned immutable quote pricing snapshot uses schemaVersion 2 and stores materialCostBasis: the selected basis, currency, panel and edge-band costs, combined material/category/grand totals, source count, and stock-sheet group provenance. Each stock group stores its stable group ID, material ID, 0.1 mm-normalized thickness, sorted unique Part IDs, sheet count, explicit per-sheet price, reconciled group cost, currency and optional price source reference. No supplier price, yield or currency conversion is inferred.
+
+Snapshots without materialCostBasis retain the legacy schemaVersion 1 shape and remain readable by the revision validator. Stock-sheet-only quotes may have an empty line-level quoteSummary; the v2 basis snapshot carries the validated panel purchase amount. Stock-sheet revision comparison and source-map audit remain fail-closed until group-aware consumers are implemented in DOM-143.

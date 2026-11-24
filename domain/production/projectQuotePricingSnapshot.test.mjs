@@ -4,6 +4,11 @@ import test from "node:test";
 import { BODY_PANEL_GROUPS } from "./bodyPanelMaterials.ts";
 import { calculateCabinetProjectProductionWithDiagnostics } from "./projectProduction.ts";
 import { createProjectQuotePricingSnapshot } from "./projectQuotePricingSnapshot.ts";
+import { calculateProjectSheetCutPlanAreaSummary } from "./projectSheetCutPlanAreaSummary.ts";
+import { calculateProjectSheetNestingStockCostSummary } from "./projectSheetNestingStockCostSummary.ts";
+import { createSheetCutPlan } from "./sheetCutPlan.ts";
+import { calculateSheetNestingLayout } from "./sheetNestingLayout.ts";
+import { validateSheetNestingInput } from "./sheetNestingInput.ts";
 
 const noBanding = { top: false, bottom: false, left: false, right: false };
 
@@ -128,6 +133,54 @@ function createInput(overrides = {}) {
     laborOperationTariffList,
     ...overrides
   };
+}
+
+function createStockSheetPurchaseReport(productionReport) {
+  const parts = productionReport.result.parts.map(part => ({
+    id: part.id,
+    materialId: part.materialId,
+    widthMm: part.width,
+    lengthMm: part.length,
+    thicknessMm: part.thickness,
+    quantity: part.quantity,
+    grainDirection: "none",
+    geometry: "rectangular"
+  }));
+  const areaRequest = {
+    schemaVersion: 1,
+    sourcePartIds: parts.map(part => part.id),
+    groups: [{
+      materialId: "mdf-18",
+      thicknessMm: 18,
+      sourcePartIds: parts.map(part => part.id),
+      cutPlanReport: (() => {
+        const batchReport = validateSheetNestingInput({
+          schemaVersion: 1,
+          sheet: { materialId: "mdf-18", widthMm: 3000, lengthMm: 2000, thicknessMm: 18, grainDirection: "none" },
+          kerfMm: 3,
+          parts
+        });
+        assert.equal(batchReport.status, "ready", batchReport.diagnostics.join("; "));
+        const layout = calculateSheetNestingLayout(batchReport.result);
+        return createSheetCutPlan({ schemaVersion: 1, batch: batchReport.result, layout });
+      })()
+    }]
+  };
+  const areaReport = calculateProjectSheetCutPlanAreaSummary(areaRequest);
+  assert.equal(areaReport.status, "ready", areaReport.diagnostics.join("; "));
+  const sheetPrices = areaReport.result.groups.map(group => ({
+    groupId: group.groupId,
+    materialId: group.materialId,
+    thicknessMm: group.thicknessMm,
+    pricePerSheetMinor: 12500,
+    currencyCode: "TRY",
+    sourceReference: "stock-sheet-price:v1"
+  }));
+  return calculateProjectSheetNestingStockCostSummary({
+    schemaVersion: 1,
+    areaSummaryRequest: areaRequest,
+    sheetPrices
+  });
 }
 
 test("ready teklifin kullandığı fiyat ve tarife sürümlerini tarihli snapshot olarak saklar", () => {
@@ -308,4 +361,71 @@ test("roll pricing options are included in the immutable quote snapshot with pro
   assert.equal(rollSource.planSourceReference, "roll-spec:v1");
   assert.equal(rollSource.priceSourceReference, "roll-prices:v1");
   assert.equal(result.snapshot.quoteSummary.costSummary.lines.some(line => line.unit === "mm" || line.unit === "m"), false);
+});
+
+
+test("stock-sheet panel basis creates immutable quote snapshot v2 with group and Part provenance even without other quote lines", () => {
+  const productionReport = createReport();
+  const stockSheetPurchaseReport = createStockSheetPurchaseReport(productionReport);
+  const result = createProjectQuotePricingSnapshot({
+    quotedOn: "2026-11-30",
+    productionReport,
+    consumptionPriceTable: [],
+    workItems: [],
+    tariffTable: [],
+    consumptionPriceList: null,
+    laborOperationTariffList: null,
+    materialCostBasis: { basis: "stock-sheet-purchase", stockSheetPurchaseReport }
+  });
+
+  assert.equal(result.status, "ready", result.diagnostics.join("; "));
+  assert.equal(result.quoteSummary?.status, "empty");
+  assert.equal(result.snapshot?.schemaVersion, 2);
+  assert.equal(result.snapshot?.materialCostBasis?.basis, "stock-sheet-purchase");
+  assert.equal(
+    result.snapshot?.materialCostBasis?.panelMaterialCostMinor,
+    stockSheetPurchaseReport.result.totals.stockSheetPurchaseCostMinor
+  );
+  assert.equal(result.snapshot?.materialCostBasis?.stockSheetGroups.length, stockSheetPurchaseReport.result.groupCount);
+  assert.deepEqual(
+    result.snapshot?.materialCostBasis?.stockSheetGroups[0].sourcePartIds,
+    productionReport.result.parts.map(part => part.id).sort()
+  );
+  assert.equal(result.snapshot?.materialCostBasis?.stockSheetGroups[0].sourceReference, "stock-sheet-price:v1");
+  assert.ok(Object.isFrozen(result.snapshot?.materialCostBasis?.stockSheetGroups[0].sourcePartIds));
+});
+
+test("net-consumption quote snapshot v2 stores the selected basis without stock groups", () => {
+  const result = createProjectQuotePricingSnapshot(createInput({
+    materialCostBasis: { basis: "net-consumption" }
+  }));
+
+  assert.equal(result.status, "ready", result.diagnostics.join("; "));
+  assert.equal(result.snapshot?.schemaVersion, 2);
+  assert.equal(result.snapshot?.materialCostBasis?.basis, "net-consumption");
+  assert.deepEqual(result.snapshot?.materialCostBasis?.stockSheetGroups, []);
+  assert.equal(
+    result.snapshot?.materialCostBasis?.grandTotalMinor,
+    result.snapshot?.quoteSummary.costSummary?.grandTotalMinor
+  );
+});
+
+test("stock-sheet snapshot rejects Part coverage drift instead of persisting foreign provenance", () => {
+  const productionReport = createReport();
+  const stockSheetPurchaseReport = structuredClone(createStockSheetPurchaseReport(productionReport));
+  stockSheetPurchaseReport.result.groups[0].sourcePartIds[0] = "foreign-part";
+  const result = createProjectQuotePricingSnapshot({
+    quotedOn: "2026-11-30",
+    productionReport,
+    consumptionPriceTable: [],
+    workItems: [],
+    tariffTable: [],
+    consumptionPriceList: null,
+    laborOperationTariffList: null,
+    materialCostBasis: { basis: "stock-sheet-purchase", stockSheetPurchaseReport }
+  });
+
+  assert.equal(result.status, "blocked");
+  assert.equal(result.snapshot, null);
+  assert.match(result.diagnostics[0], /proje dışı Part|Part kaynakları/);
 });

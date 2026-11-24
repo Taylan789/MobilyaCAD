@@ -3,6 +3,12 @@ import {
   type ProjectQuoteEdgeBandingRollOptions,
   type ProjectQuoteSummary
 } from "./projectQuoteSummary.ts";
+import {
+  calculateProjectQuoteWithMaterialCostBasis,
+  type ProjectMaterialCostBasis,
+  type ProjectQuoteMaterialCostBasisSummary
+} from "./projectMaterialCostBasis.ts";
+import type { ProjectCostCategoryTotals } from "./projectCostSummary.ts";
 
 export interface ProjectQuoteCatalogVersionInput {
   catalogId: string;
@@ -18,12 +24,44 @@ type DeepReadonly<T> =
       ? { readonly [K in keyof T]: DeepReadonly<T[K]> }
       : T;
 
-export interface ProjectQuotePricingSnapshot {
+export interface ProjectQuoteStockSheetGroupSnapshot {
+  groupId: string;
+  materialId: string;
+  thicknessMm: number;
+  sourcePartIds: readonly string[];
+  sheetCount: number;
+  pricePerSheetMinor: number;
+  stockSheetCostMinor: number;
+  currencyCode: string;
+  sourceReference?: string;
+}
+
+export interface ProjectQuoteMaterialCostBasisSnapshot {
   schemaVersion: 1;
+  basis: ProjectMaterialCostBasis;
+  currencyCode: string;
+  panelMaterialCostMinor: number;
+  edgeBandingCostMinor: number;
+  materialCategoryTotalMinor: number;
+  categoryTotalsMinor: DeepReadonly<ProjectCostCategoryTotals>;
+  grandTotalMinor: number;
+  materialSourceCount: number;
+  stockSheetGroups: readonly DeepReadonly<ProjectQuoteStockSheetGroupSnapshot>[];
+}
+
+export interface ProjectQuotePricingSnapshot {
+  /** v1 is the legacy line-only shape; v2 adds a validated material-cost basis. */
+  schemaVersion: 1 | 2;
   quotedOn: string;
   consumptionPriceList: DeepReadonly<ProjectQuoteCatalogVersionInput> | null;
   laborOperationTariffList: DeepReadonly<ProjectQuoteCatalogVersionInput> | null;
   quoteSummary: DeepReadonly<ProjectQuoteSummary>;
+  materialCostBasis?: DeepReadonly<ProjectQuoteMaterialCostBasisSnapshot>;
+}
+
+export interface ProjectQuoteMaterialCostBasisInput {
+  basis: ProjectMaterialCostBasis;
+  stockSheetPurchaseReport?: unknown;
 }
 
 export interface ProjectQuotePricingSnapshotInput {
@@ -38,6 +76,7 @@ export interface ProjectQuotePricingSnapshotInput {
   edgeBandingPricingMode?: "length" | "roll";
   edgeBandingRollSpecs?: unknown;
   edgeBandingRollPriceTable?: unknown;
+  materialCostBasis?: ProjectQuoteMaterialCostBasisInput;
 }
 
 export interface ProjectQuotePricingSnapshotResult {
@@ -58,8 +97,10 @@ const inputKeys = new Set([
   "quoteAdjustments",
   "edgeBandingPricingMode",
   "edgeBandingRollSpecs",
-  "edgeBandingRollPriceTable"
+  "edgeBandingRollPriceTable",
+  "materialCostBasis"
 ]);
+const materialCostBasisInputKeys = new Set(["basis", "stockSheetPurchaseReport"]);
 const catalogVersionKeys = new Set([
   "catalogId",
   "version",
@@ -145,6 +186,131 @@ function deepFreeze<T>(value: T): DeepReadonly<T> {
   return value as DeepReadonly<T>;
 }
 
+
+function createStockSheetGroupSnapshots(value: unknown): ProjectQuoteStockSheetGroupSnapshot[] {
+  if (!isRecord(value) || !isRecord(value.result) || !Array.isArray(value.result.groups)) {
+    throw new Error("Levha satın alma snapshot'ı doğrulanmış grup listesi içermelidir.");
+  }
+  const rawGroups = value.result.groups;
+  if (rawGroups.length > 10000) throw new Error("Levha satın alma snapshot grup sayısı sınırı aşıyor.");
+  const seenGroupIds = new Set<string>();
+  const seenPartIds = new Set<string>();
+  const groups = rawGroups.map((rawGroup, index) => {
+    if (!isRecord(rawGroup)) throw new Error("Levha satın alma snapshot " + (index + 1) + ". grubu geçersiz.");
+    const groupId = requireText(rawGroup.groupId, "Levha satın alma grup kimliği", 512);
+    const materialId = requireText(rawGroup.materialId, groupId + " malzeme kimliği", 240);
+    const thicknessMm = rawGroup.thicknessMm;
+    if (typeof thicknessMm !== "number" || !Number.isFinite(thicknessMm) || thicknessMm <= 0) {
+      throw new Error(groupId + " kalınlığı pozitif ve sonlu mm olmalıdır.");
+    }
+    const thicknessTicks = Math.round(thicknessMm * 10);
+    if (!Number.isSafeInteger(thicknessTicks) || Math.abs(thicknessTicks / 10 - thicknessMm) > 1e-8) {
+      throw new Error(groupId + " kalınlığı en fazla 0.1 mm hassasiyetinde olmalıdır.");
+    }
+    if (groupId !== JSON.stringify([materialId, thicknessTicks])) {
+      throw new Error(groupId + " kimliği malzeme ve normalize mm kalınlığıyla eşleşmiyor.");
+    }
+    if (seenGroupIds.has(groupId)) throw new Error("Levha satın alma grup kimliği yineleniyor: " + groupId + ".");
+    seenGroupIds.add(groupId);
+    if (!Array.isArray(rawGroup.sourcePartIds) || rawGroup.sourcePartIds.length === 0 || rawGroup.sourcePartIds.length > 10000) {
+      throw new Error(groupId + " kaynak Part kimlikleri 1-10.000 arası olmalıdır.");
+    }
+    const sourcePartIds = rawGroup.sourcePartIds
+      .map((partId, partIndex) => requireText(partId, groupId + " " + (partIndex + 1) + ". Part kimliği", 128))
+      .sort();
+    if (new Set(sourcePartIds).size !== sourcePartIds.length) {
+      throw new Error(groupId + " kaynak Part kimlikleri yineleniyor.");
+    }
+    for (const partId of sourcePartIds) {
+      if (seenPartIds.has(partId)) throw new Error("Levha satın alma Part kimliği gruplar arasında yineleniyor: " + partId + ".");
+      seenPartIds.add(partId);
+    }
+    const sheetCount = rawGroup.sheetCount;
+    const pricePerSheetMinor = rawGroup.pricePerSheetMinor;
+    const stockSheetCostMinor = rawGroup.stockSheetCostMinor;
+    if (typeof sheetCount !== "number" || !Number.isSafeInteger(sheetCount) || sheetCount <= 0) {
+      throw new Error(groupId + " levha adedi pozitif güvenli tam sayı olmalıdır.");
+    }
+    if (typeof pricePerSheetMinor !== "number" || !Number.isSafeInteger(pricePerSheetMinor) || pricePerSheetMinor < 0) {
+      throw new Error(groupId + " levha birim fiyatı geçersiz.");
+    }
+    if (typeof stockSheetCostMinor !== "number" || !Number.isSafeInteger(stockSheetCostMinor) || stockSheetCostMinor < 0 ||
+        BigInt(sheetCount) * BigInt(pricePerSheetMinor) !== BigInt(stockSheetCostMinor)) {
+      throw new Error(groupId + " satın alma maliyeti levha adedi × birim fiyatla eşleşmiyor.");
+    }
+    const currencyCode = requireText(rawGroup.currencyCode, groupId + " para birimi", 3);
+    if (!/^[A-Z]{3}$/.test(currencyCode)) throw new Error(groupId + " para birimi kodu geçersiz.");
+    const sourceReference = rawGroup.sourceReference === undefined
+      ? undefined
+      : requireText(rawGroup.sourceReference, groupId + " fiyat kaynak referansı", 240);
+    return {
+      groupId,
+      materialId,
+      thicknessMm: thicknessTicks / 10,
+      sourcePartIds,
+      sheetCount,
+      pricePerSheetMinor,
+      stockSheetCostMinor,
+      currencyCode,
+      ...(sourceReference === undefined ? {} : { sourceReference })
+    };
+  });
+  return groups.sort((left, right) => left.groupId < right.groupId ? -1 : left.groupId > right.groupId ? 1 : 0);
+}
+
+function createMaterialCostBasisSnapshot(
+  result: ProjectQuoteMaterialCostBasisSummary,
+  input: Record<string, unknown>
+): ProjectQuoteMaterialCostBasisSnapshot {
+  if (
+    result.status !== "ready" ||
+    result.basis === null ||
+    result.currencyCode === null ||
+    result.panelMaterialCostMinor === null ||
+    result.edgeBandingCostMinor === null ||
+    result.materialCategoryTotalMinor === null ||
+    result.categoryTotalsMinor === null ||
+    result.grandTotalMinor === null
+  ) {
+    throw new Error("Hazır teklif için doğrulanmış panel maliyet temeli snapshot'ı üretilemedi.");
+  }
+  const stockSheetGroups = result.basis === "stock-sheet-purchase"
+    ? createStockSheetGroupSnapshots(input.stockSheetPurchaseReport)
+    : [];
+  if (stockSheetGroups.length !== result.materialSourceCount) {
+    throw new Error("Levha satın alma grup sayısı seçilen maliyet kaynağı sayısıyla eşleşmiyor.");
+  }
+  let stockSheetCost = 0n;
+  for (const group of stockSheetGroups) {
+    if (group.currencyCode !== result.currencyCode) throw new Error(group.groupId + " para birimi panel maliyet temeliyle eşleşmiyor.");
+    stockSheetCost += BigInt(group.stockSheetCostMinor);
+  }
+  if (result.basis === "stock-sheet-purchase" && stockSheetCost !== BigInt(result.panelMaterialCostMinor)) {
+    throw new Error("Levha satın alma grup maliyetleri panel malzeme toplamıyla eşleşmiyor.");
+  }
+  if (
+    result.materialCategoryTotalMinor !== result.panelMaterialCostMinor + result.edgeBandingCostMinor ||
+    !Number.isSafeInteger(result.materialCategoryTotalMinor) ||
+    !Number.isSafeInteger(result.grandTotalMinor) ||
+    !Number.isSafeInteger(result.materialSourceCount) ||
+    result.materialSourceCount < 0
+  ) {
+    throw new Error("Teklif panel ve kenar bandı maliyet toplamları güvenli ve tutarlı olmalıdır.");
+  }
+  return {
+    schemaVersion: 1,
+    basis: result.basis,
+    currencyCode: result.currencyCode,
+    panelMaterialCostMinor: result.panelMaterialCostMinor,
+    edgeBandingCostMinor: result.edgeBandingCostMinor,
+    materialCategoryTotalMinor: result.materialCategoryTotalMinor,
+    categoryTotalsMinor: result.categoryTotalsMinor,
+    grandTotalMinor: result.grandTotalMinor,
+    materialSourceCount: result.materialSourceCount,
+    stockSheetGroups
+  };
+}
+
 function blocked(message: string): ProjectQuotePricingSnapshotResult {
   return {
     status: "blocked",
@@ -179,30 +345,71 @@ export function createProjectQuotePricingSnapshot(
   }
 
   let quoteSummary: ProjectQuoteSummary;
+  let materialCostBasisSnapshot: ProjectQuoteMaterialCostBasisSnapshot | undefined;
   try {
-    const quoteOptions: ProjectQuoteEdgeBandingRollOptions = {};
-    if (value.edgeBandingPricingMode !== undefined) {
-      if (value.edgeBandingPricingMode !== "length" && value.edgeBandingPricingMode !== "roll") {
-        throw new Error("Teklif kenar bandı fiyatlama modu length veya roll olmalıdır.");
+    if (value.materialCostBasis === undefined) {
+      const quoteOptions: ProjectQuoteEdgeBandingRollOptions = {};
+      if (value.edgeBandingPricingMode !== undefined) {
+        if (value.edgeBandingPricingMode !== "length" && value.edgeBandingPricingMode !== "roll") {
+          throw new Error("Teklif kenar bandı fiyatlama modu length veya roll olmalıdır.");
+        }
+        quoteOptions.edgeBandingPricingMode = value.edgeBandingPricingMode;
       }
-      quoteOptions.edgeBandingPricingMode = value.edgeBandingPricingMode;
+      if (value.edgeBandingRollSpecs !== undefined) quoteOptions.edgeBandingRollSpecs = value.edgeBandingRollSpecs;
+      if (value.edgeBandingRollPriceTable !== undefined) quoteOptions.edgeBandingRollPriceTable = value.edgeBandingRollPriceTable;
+      quoteSummary = calculateProjectQuoteSummary(
+        value.productionReport,
+        value.consumptionPriceTable,
+        value.workItems,
+        value.tariffTable,
+        value.quoteAdjustments,
+        quoteOptions
+      );
+    } else {
+      if (!isRecord(value.materialCostBasis)) {
+        throw new Error("Teklif malzeme maliyet temeli geçerli bir nesne olmalıdır.");
+      }
+      for (const key of Object.keys(value.materialCostBasis)) {
+        if (!materialCostBasisInputKeys.has(key)) {
+          throw new Error("Teklif malzeme maliyet temeli desteklenmeyen alan içeriyor: " + key + ".");
+        }
+      }
+      const basisRequest: Record<string, unknown> = {
+        schemaVersion: 1,
+        basis: value.materialCostBasis.basis,
+        productionReport: value.productionReport,
+        consumptionPriceTable: value.consumptionPriceTable,
+        workItems: value.workItems,
+        tariffTable: value.tariffTable
+      };
+      if (value.quoteAdjustments !== undefined) basisRequest.quoteAdjustments = value.quoteAdjustments;
+      if (value.edgeBandingPricingMode !== undefined) basisRequest.edgeBandingPricingMode = value.edgeBandingPricingMode;
+      if (value.edgeBandingRollSpecs !== undefined) basisRequest.edgeBandingRollSpecs = value.edgeBandingRollSpecs;
+      if (value.edgeBandingRollPriceTable !== undefined) basisRequest.edgeBandingRollPriceTable = value.edgeBandingRollPriceTable;
+      if (Object.prototype.hasOwnProperty.call(value.materialCostBasis, "stockSheetPurchaseReport")) {
+        basisRequest.stockSheetPurchaseReport = value.materialCostBasis.stockSheetPurchaseReport;
+      }
+      const basisResult = calculateProjectQuoteWithMaterialCostBasis(basisRequest);
+      if (basisResult.status !== "ready") {
+        return {
+          status: basisResult.status,
+          quoteSummary: basisResult.quoteSummary === null ? null : deepFreeze(basisResult.quoteSummary),
+          snapshot: null,
+          diagnostics: deepFreeze([...basisResult.diagnostics])
+        };
+      }
+      if (basisResult.quoteSummary === null) {
+        throw new Error("Hazır malzeme temelli teklif doğrulanmış teklif özeti içermelidir.");
+      }
+      quoteSummary = basisResult.quoteSummary;
+      materialCostBasisSnapshot = createMaterialCostBasisSnapshot(basisResult, value.materialCostBasis);
     }
-    if (value.edgeBandingRollSpecs !== undefined) quoteOptions.edgeBandingRollSpecs = value.edgeBandingRollSpecs;
-    if (value.edgeBandingRollPriceTable !== undefined) quoteOptions.edgeBandingRollPriceTable = value.edgeBandingRollPriceTable;
-    quoteSummary = calculateProjectQuoteSummary(
-      value.productionReport,
-      value.consumptionPriceTable,
-      value.workItems,
-      value.tariffTable,
-      value.quoteAdjustments,
-      quoteOptions
-    );
   } catch (error) {
     return blocked(error instanceof Error ? error.message : String(error));
   }
 
   const immutableQuoteSummary = deepFreeze(quoteSummary);
-  if (quoteSummary.status !== "ready") {
+  if (quoteSummary.status !== "ready" && !(materialCostBasisSnapshot !== undefined && quoteSummary.status === "empty")) {
     return {
       status: quoteSummary.status,
       quoteSummary: immutableQuoteSummary,
@@ -240,11 +447,12 @@ export function createProjectQuotePricingSnapshot(
       : validateCatalogVersion(value.laborOperationTariffList, "Tarife listesi", quotedOn);
 
     const snapshot = deepFreeze({
-      schemaVersion: 1 as const,
+      schemaVersion: materialCostBasisSnapshot === undefined ? 1 as const : 2 as const,
       quotedOn,
       consumptionPriceList,
       laborOperationTariffList,
-      quoteSummary: immutableQuoteSummary
+      quoteSummary: immutableQuoteSummary,
+      ...(materialCostBasisSnapshot === undefined ? {} : { materialCostBasis: materialCostBasisSnapshot })
     });
 
     return {

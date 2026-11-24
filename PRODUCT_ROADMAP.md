@@ -1410,3 +1410,22 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 - The separate UI agent's PR #187 was merged by its owner. Its exact-merge CI [45326441304](https://github.com/Taylan789/MobilyaCAD/actions/runs/45326441304), QA [45326441439](https://github.com/Taylan789/MobilyaCAD/actions/runs/45326441439) and Pages deployment [45326441274](https://github.com/Taylan789/MobilyaCAD/actions/runs/45326441274) passed. The merged UI slice is a compact viewport room-dimension HUD; this domain agent did not touch frontend files.
 - Integrated test site: https://taylan789.github.io/MobilyaCAD/ (deployed branch head `adc448d58a3c905e602515f3d4bfe207737b1c5c`; Pages run [45326675155](https://github.com/Taylan789/MobilyaCAD/actions/runs/45326675155)).
 - Next: DOM-142 — persist the selected material basis and stock-group provenance in quote pricing snapshots/revisions while preserving v1 read compatibility.
+
+
+## DOM-142 — Teklif snapshot'ında seçilen panel maliyet temeli ve levha provenance'ı
+
+**Kullanıcı akışı:** Kullanıcı teklif oluştururken net panel tüketimi veya açık levha satın alma temelini seçer; teklif snapshot'ı ve proje teklif revizyonu aynı seçimi, birleşik maliyet toplamlarını ve gerekiyorsa her levha grubunun Part kaynaklarını saklar.
+
+**Kabul kriterleri**
+- Eski schemaVersion 1 teklif fiyat snapshot'ları okunmaya devam eder.
+- Açık maliyet temeli seçildiğinde yalnızca yeni snapshot schemaVersion 2 olur; materialCostBasis alanı zorunludur.
+- Net tüketim modunda panel satırları, kenar bandı satırları ve tüm kategori/genel toplamları teklif özetiyle bire bir uzlaşır; levha grubu listesi boş kalır.
+- Levha satın alma modunda her grup; grup kimliği, malzeme kimliği, normalize edilmiş 0.1 mm kalınlık, levha adedi, açık levha birim fiyatı, grup toplamı, para birimi, varsa fiyat kaynak referansı ve sıralı/benzersiz Part kimliklerini korur.
+- Grup maliyetleri panel maliyet toplamına; panel + kenar bandı material toplamına; kategori toplamları genel toplama güvenli tam sayı aritmetiğiyle eşit olmalıdır.
+- Yalnızca levha satın alma maliyeti bulunan teklif, temel quoteSummary boş olsa da hazır snapshot oluşturabilir.
+- Bozuk grup aritmetiği, yinelenen/eksik Part kapsamı, malzeme/kalınlık uyuşmazlığı ve para birimi tutarsızlığı snapshot üretimini engeller.
+- Revizyon JSON v2 append/read round-trip'i v1 snapshot'ları da korur.
+
+**Güvenli kapsam sınırı:** DOM-142, stock-sheet tabanlı revizyon karşılaştırmasını ve kaynak-haritası denetimini grup bazlı destek tamamlanana kadar fail-closed yapar. Bu iki tüketicinin gerçek grup maliyetini ve Part provenance'ını karşılaştırması DOM-143 kapsamıdır; mevcut UI veya export bu desteği varmış gibi sunmamalıdır.
+
+**Doğrulama:** projectQuotePricingSnapshot.test.mjs gerçek nesting/stock-cost domain çıktısıyla iki maliyet temelini; projectQuoteRevisionProjectFile.test.mjs v2 revizyon round-trip'ini, bozuk grup maliyetini ve güvenli karşılaştırma/denetim bloklarını doğrular. CI, QA ve Pages sonuçları görülmeden DONE sayılmaz.

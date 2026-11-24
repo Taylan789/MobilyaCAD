@@ -671,3 +671,16 @@
 - QA passed: [45326675196](https://github.com/Taylan789/MobilyaCAD/actions/runs/45326675196); shared-domain tests, strict domain type-check, lint, production build and dependency audit passed.
 - Pages deployment passed: [45326675155](https://github.com/Taylan789/MobilyaCAD/actions/runs/45326675155). Test site is deployed at the exact documentation handoff SHA.
 - This entry supersedes the earlier pending-fix note above; the first failed SHA remains recorded as history.
+
+
+## 24 Kasım 2026 08:31 TRT — DOM-142 quote snapshot v2 implementation (verification pending)
+- Base branch HEAD: b52d4795eb3379b8962ec773f6d5a348d76daf2f; the branch had no active CI, QA or deployment runs before this change.
+- Added explicit material-cost-basis support to quote pricing snapshots. New snapshots use schema v2 only when the caller supplies a basis; existing v1 snapshot shape remains unchanged.
+- Snapshot v2 stores selected basis, panel/edge/material/category/grand totals and immutable stock-sheet group provenance (material ID, normalized mm thickness, source Part IDs, sheet count, per-sheet price, group cost, currency and optional price source reference).
+- Stock-only quotes can create a ready snapshot even when the line-level quoteSummary is empty; the v2 basis carries the independently validated purchase cost.
+- Revision validation accepts legacy v1 and strict v2 snapshots, checks group arithmetic, Part identity uniqueness/order, currency and quote-total reconciliation. Stock-sheet revision comparison and source-map audit fail closed until group-aware consumers are implemented.
+- Changed files: domain/production/projectQuotePricingSnapshot.ts, domain/production/projectQuotePricingSnapshot.test.mjs, domain/production/projectQuoteRevision.ts, domain/production/projectQuoteRevisionProjectFile.test.mjs, docs/production-domain-contract.md, AI_COORDINATION.md, PRODUCT_ROADMAP.md, AI_PROGRESS.md.
+- Automated CI/QA/Pages: pending exact-SHA GitHub Actions.
+- Known limitation: stock-sheet group comparison/source-map reporting is deliberately blocked; DOM-143 will add group-aware comparison and audit before enabling those consumers.
+- AI Developer run 45322819775 failed with provider HTTP 429 (free-models-per-day, remaining 0, reset 25 Nov 2026 03:00 TRT); the integration/performance specialist job was skipped. No rerun, paid credits, secrets or quota settings were changed.
+- Next: verify this exact SHA, then implement DOM-143 group-aware revision comparison and source-map audit.

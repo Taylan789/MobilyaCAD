@@ -12,6 +12,8 @@ import {
 import { serializeProjectQuoteRevisionHistoryFile } from "./projectQuoteRevisionFile.ts";
 import {
   calculateProjectQuoteRevisionSourceIntegrityAudit,
+  calculateProjectQuoteRevisionSourceMapAudit,
+  compareProjectQuoteRevisions,
   createProjectQuoteRevision
 } from "./projectQuoteRevision.ts";
 
@@ -71,6 +73,40 @@ function createRevision(overrides = {}) {
     pricingSnapshot: structuredClone(snapshotResult.snapshot),
     ...overrides
   };
+}
+
+function createStockBasisSnapshot() {
+  const snapshot = structuredClone(snapshotResult.snapshot);
+  const baseCost = snapshot.quoteSummary.costSummary;
+  assert.ok(baseCost);
+  const panelCost = 12500;
+  snapshot.schemaVersion = 2;
+  snapshot.materialCostBasis = {
+    schemaVersion: 1,
+    basis: "stock-sheet-purchase",
+    currencyCode: "TRY",
+    panelMaterialCostMinor: panelCost,
+    edgeBandingCostMinor: 0,
+    materialCategoryTotalMinor: panelCost,
+    categoryTotalsMinor: {
+      ...baseCost.categoryTotalsMinor,
+      material: panelCost
+    },
+    grandTotalMinor: baseCost.grandTotalMinor + panelCost,
+    materialSourceCount: 1,
+    stockSheetGroups: [{
+      groupId: JSON.stringify(["mdf-18", 180]),
+      materialId: "mdf-18",
+      thicknessMm: 18,
+      sourcePartIds: ["part-a"],
+      sheetCount: 1,
+      pricePerSheetMinor: panelCost,
+      stockSheetCostMinor: panelCost,
+      currencyCode: "TRY",
+      sourceReference: "stock-sheet-price:v1"
+    }]
+  };
+  return snapshot;
 }
 
 
@@ -612,4 +648,47 @@ test("DOM-137 project-file append/read integrity coverage reconciles strict and 
   assert.deepEqual(secondAuditResult.audit.revisions.map((revision) => revision.sourceIntegrityVersion), [null, 1, 1]);
   assert.ok(Object.isFrozen(secondAuditResult.audit));
   assert.ok(Object.isFrozen(secondAuditResult.audit.revisions));
+});
+
+
+test("quote pricing snapshot v2 preserves selected stock basis and Part-group provenance through revision JSON", () => {
+  const first = appendProjectQuoteRevisionToProjectFile(createV2Project(), createRevision());
+  assert.equal(first.status, "ready");
+  assert.ok(first.project);
+  const second = appendProjectQuoteRevisionToProjectFile(first.project, {
+    revisionId: "quote-r2",
+    createdAt: "2026-11-18T02:00:00+03:00",
+    pricingSnapshot: createStockBasisSnapshot()
+  });
+  assert.equal(second.status, "ready", second.diagnostics.join("; "));
+  assert.ok(second.project);
+
+  const read = readProjectQuoteRevisionHistoryFromProjectFile(second.project);
+  assert.equal(read.status, "ready");
+  const stockSnapshot = read.history?.revisions[1].pricingSnapshot;
+  assert.equal(stockSnapshot?.schemaVersion, 2);
+  assert.equal(stockSnapshot?.materialCostBasis?.basis, "stock-sheet-purchase");
+  assert.deepEqual(stockSnapshot?.materialCostBasis?.stockSheetGroups[0].sourcePartIds, ["part-a"]);
+  assert.equal(stockSnapshot?.materialCostBasis?.stockSheetGroups[0].sourceReference, "stock-sheet-price:v1");
+  assert.ok(Object.isFrozen(stockSnapshot?.materialCostBasis?.stockSheetGroups[0]));
+
+  const comparison = compareProjectQuoteRevisions(read.history, "quote-r1", "quote-r2");
+  assert.equal(comparison.status, "blocked");
+  assert.match(comparison.diagnostics[0], /grup bazlı fark desteği/);
+
+  const sourceAudit = calculateProjectQuoteRevisionSourceMapAudit(read.history);
+  assert.equal(sourceAudit.status, "blocked");
+  assert.match(sourceAudit.diagnostics[0], /grup Part kaynakları/);
+});
+
+test("quote pricing snapshot v2 rejects tampered stock group arithmetic", () => {
+  const snapshot = createStockBasisSnapshot();
+  snapshot.materialCostBasis.stockSheetGroups[0].stockSheetCostMinor += 1;
+  const result = appendProjectQuoteRevisionToProjectFile(createV2Project(), createRevision({
+    pricingSnapshot: snapshot
+  }));
+
+  assert.equal(result.status, "blocked");
+  assert.equal(result.project, null);
+  assert.match(result.diagnostics[0], /levha adedi × birim fiyatla eşleşmiyor/);
 });

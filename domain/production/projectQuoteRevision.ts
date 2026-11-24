@@ -73,7 +73,31 @@ const snapshotKeys = new Set([
   "quotedOn",
   "consumptionPriceList",
   "laborOperationTariffList",
-  "quoteSummary"
+  "quoteSummary",
+  "materialCostBasis"
+]);
+const materialCostBasisKeys = new Set([
+  "schemaVersion",
+  "basis",
+  "currencyCode",
+  "panelMaterialCostMinor",
+  "edgeBandingCostMinor",
+  "materialCategoryTotalMinor",
+  "categoryTotalsMinor",
+  "grandTotalMinor",
+  "materialSourceCount",
+  "stockSheetGroups"
+]);
+const stockSheetGroupKeys = new Set([
+  "groupId",
+  "materialId",
+  "thicknessMm",
+  "sourcePartIds",
+  "sheetCount",
+  "pricePerSheetMinor",
+  "stockSheetCostMinor",
+  "currencyCode",
+  "sourceReference"
 ]);
 const catalogKeys = new Set(["catalogId", "version", "effectiveFrom", "effectiveTo"]);
 const summaryKeys = new Set([
@@ -261,11 +285,28 @@ function validateCatalogVersion(
   }
 }
 
-function validateQuoteSummary(value: unknown, strictSourceIntegrity = false): asserts value is Record<string, unknown> {
+function validateQuoteSummary(value: unknown, strictSourceIntegrity = false, allowEmpty = false): asserts value is Record<string, unknown> {
   if (!isRecord(value)) {
     throw new Error("Teklif snapshot özeti geçerli bir nesne olmalıdır.");
   }
   requireOnlyKeys(value, summaryKeys, "Teklif snapshot özeti");
+  if (value.status === "empty" && allowEmpty) {
+    const requiredLineCount = requireSafeInteger(value.requiredLineCount, "Boş teklif gerekli satır sayısı", 0);
+    const pricedLineCount = requireSafeInteger(value.pricedLineCount, "Boş teklif fiyatlı satır sayısı", 0);
+    if (
+      value.currencyCode !== null ||
+      requiredLineCount !== 0 ||
+      pricedLineCount !== 0 ||
+      !Array.isArray(value.missingPrices) || value.missingPrices.length !== 0 ||
+      !Array.isArray(value.missingTariffs) || value.missingTariffs.length !== 0 ||
+      !Array.isArray(value.diagnostics) || value.diagnostics.length !== 0 ||
+      !Array.isArray(value.lineSources) || value.lineSources.length !== 0 ||
+      value.costSummary !== null
+    ) {
+      throw new Error("Boş teklif snapshot'ı sıfır satır, para birimi olmayan ve maliyet özeti bulunmayan tutarlı bir zarf olmalıdır.");
+    }
+    return;
+  }
   if (value.status !== "ready") {
     throw new Error("Yalnızca hazır teklif maliyet snapshot'ı revizyona alınabilir.");
   }
@@ -539,17 +580,189 @@ function validateQuoteSummary(value: unknown, strictSourceIntegrity = false): as
   }
 }
 
+
+function validateMaterialCostBasisSnapshot(value: unknown, quoteSummary: Record<string, unknown>): void {
+  if (!isRecord(value)) throw new Error("Teklif malzeme maliyet temeli snapshot nesnesi olmalıdır.");
+  requireOnlyKeys(value, materialCostBasisKeys, "Teklif malzeme maliyet temeli snapshot'ı");
+  if (value.schemaVersion !== 1) throw new Error("Desteklenmeyen teklif malzeme maliyet temeli snapshot sürümü.");
+  if (value.basis !== "net-consumption" && value.basis !== "stock-sheet-purchase") {
+    throw new Error("Teklif malzeme maliyet temeli net-consumption veya stock-sheet-purchase olmalıdır.");
+  }
+  const basis = value.basis;
+  const currencyCode = requireText(value.currencyCode, "Panel maliyet snapshot para birimi", 3);
+  if (!currencyPattern.test(currencyCode)) throw new Error("Panel maliyet snapshot para birimi üç büyük harfli kod olmalıdır.");
+  const panelCost = requireSafeInteger(value.panelMaterialCostMinor, "Snapshot panel malzeme maliyeti", 0);
+  const edgeCost = requireSafeInteger(value.edgeBandingCostMinor, "Snapshot kenar bandı maliyeti", 0);
+  const materialTotal = requireSafeInteger(value.materialCategoryTotalMinor, "Snapshot material kategori toplamı", 0);
+  const grandTotal = requireSafeInteger(value.grandTotalMinor, "Snapshot teklif genel toplamı", 0);
+  const sourceCount = requireSafeInteger(value.materialSourceCount, "Snapshot malzeme kaynak sayısı", 0);
+  if (BigInt(panelCost) + BigInt(edgeCost) !== BigInt(materialTotal)) {
+    throw new Error("Snapshot panel ve kenar bandı maliyetleri material kategori toplamıyla eşleşmiyor.");
+  }
+  if (!isRecord(value.categoryTotalsMinor)) throw new Error("Snapshot kategori toplamları geçerli bir nesne olmalıdır.");
+  const categoryTotals = value.categoryTotalsMinor;
+  if (
+    Object.keys(categoryTotals).length !== costCategories.length ||
+    costCategories.some(category => !Object.prototype.hasOwnProperty.call(categoryTotals, category))
+  ) {
+    throw new Error("Snapshot kategori toplamları eksik veya desteklenmeyen alan içeriyor.");
+  }
+  let categoryGrandTotal = 0n;
+  const normalizedCategoryTotals = new Map<string, number>();
+  for (const category of costCategories) {
+    const amount = requireSafeInteger(categoryTotals[category], category + " snapshot kategori toplamı", 0);
+    normalizedCategoryTotals.set(category, amount);
+    categoryGrandTotal += BigInt(amount);
+  }
+  if (normalizedCategoryTotals.get("material") !== materialTotal || categoryGrandTotal !== BigInt(grandTotal)) {
+    throw new Error("Snapshot material kategori veya genel toplamı diğer kategori toplamlarıyla uyuşmuyor.");
+  }
+
+  if (!Array.isArray(value.stockSheetGroups) || value.stockSheetGroups.length > 10000) {
+    throw new Error("Snapshot levha satın alma grupları 0-10.000 arası bir liste olmalıdır.");
+  }
+  const groups = value.stockSheetGroups;
+  if (basis === "net-consumption" && groups.length !== 0) {
+    throw new Error("Net tüketim snapshot'ı levha satın alma grubu içeremez.");
+  }
+  if (basis === "stock-sheet-purchase" && groups.length !== sourceCount) {
+    throw new Error("Levha satın alma snapshot grup sayısı kaynak sayısıyla eşleşmiyor.");
+  }
+
+  const groupIds = new Set<string>();
+  const partIds = new Set<string>();
+  let groupCostTotal = 0n;
+  let previousGroupId: string | undefined;
+  let totalSheetCount = 0;
+  for (const [index, rawGroup] of groups.entries()) {
+    if (!isRecord(rawGroup)) throw new Error("Snapshot levha satın alma " + (index + 1) + ". grubu geçersiz.");
+    requireOnlyKeys(rawGroup, stockSheetGroupKeys, "Snapshot levha satın alma grubu");
+    const groupId = requireText(rawGroup.groupId, "Snapshot levha grup kimliği", 512);
+    if (groupIds.has(groupId) || (previousGroupId !== undefined && previousGroupId >= groupId)) {
+      throw new Error("Snapshot levha grupları kimliğe göre sıralı ve benzersiz olmalıdır.");
+    }
+    groupIds.add(groupId);
+    previousGroupId = groupId;
+    const materialId = requireText(rawGroup.materialId, groupId + " malzeme kimliği", 240);
+    const thicknessTicks = requireRollLengthTenths(rawGroup.thicknessMm, groupId + " mm kalınlığı");
+    if (groupId !== JSON.stringify([materialId, thicknessTicks])) {
+      throw new Error(groupId + " grup kimliği malzeme ve normalize mm kalınlığıyla uyuşmuyor.");
+    }
+    const sheetCount = requireSafeInteger(rawGroup.sheetCount, groupId + " levha adedi", 1);
+    const unitPrice = requireSafeInteger(rawGroup.pricePerSheetMinor, groupId + " levha birim fiyatı", 0);
+    const groupCost = requireSafeInteger(rawGroup.stockSheetCostMinor, groupId + " levha satın alma maliyeti", 0);
+    if (BigInt(sheetCount) * BigInt(unitPrice) !== BigInt(groupCost)) {
+      throw new Error(groupId + " snapshot satın alma maliyeti levha adedi × birim fiyatla eşleşmiyor.");
+    }
+    totalSheetCount += sheetCount;
+    if (!Number.isSafeInteger(totalSheetCount)) throw new Error("Snapshot toplam levha adedi güvenli tam sayı aralığını aşıyor.");
+    const groupCurrency = requireText(rawGroup.currencyCode, groupId + " para birimi", 3);
+    if (!currencyPattern.test(groupCurrency) || groupCurrency !== currencyCode) {
+      throw new Error(groupId + " para birimi panel maliyet snapshot'ıyla eşleşmiyor.");
+    }
+    validateSortedIdentifiers(rawGroup.sourcePartIds, groupId + " kaynak Part kimlikleri");
+    for (const partId of rawGroup.sourcePartIds as string[]) {
+      if (partIds.has(partId)) throw new Error("Snapshot kaynak Part kimliği gruplar arasında yineleniyor: " + partId + ".");
+      partIds.add(partId);
+    }
+    if (rawGroup.sourceReference !== undefined) requireText(rawGroup.sourceReference, groupId + " fiyat kaynak referansı", 240);
+    groupCostTotal += BigInt(groupCost);
+  }
+  if (basis === "stock-sheet-purchase" && groupCostTotal !== BigInt(panelCost)) {
+    throw new Error("Snapshot levha satın alma grup maliyetleri panel malzeme toplamıyla eşleşmiyor.");
+  }
+
+  const lineSources = quoteSummary.lineSources as Array<Record<string, unknown>>;
+  const costSummary = isRecord(quoteSummary.costSummary) ? quoteSummary.costSummary : null;
+  const linesById = new Map<string, Record<string, unknown>>();
+  if (costSummary !== null && Array.isArray(costSummary.lines)) {
+    for (const line of costSummary.lines) {
+      if (isRecord(line) && typeof line.id === "string") linesById.set(line.id, line);
+    }
+  }
+  let panelLineTotal = 0n;
+  let edgeLineTotal = 0n;
+  let panelLineCount = 0;
+  for (const source of lineSources) {
+    const line = linesById.get(source.costLineId as string);
+    if (line === undefined) throw new Error("Panel maliyet snapshot kaynak satırı maliyet kaydında bulunamadı.");
+    if (source.resourceType === "material") {
+      panelLineTotal += BigInt(requireSafeInteger(line.lineTotalMinor, "Panel maliyet satırı", 0));
+      panelLineCount += 1;
+    } else if (source.resourceType === "edge-banding") {
+      edgeLineTotal += BigInt(requireSafeInteger(line.lineTotalMinor, "Kenar bandı maliyet satırı", 0));
+    }
+  }
+  if (edgeLineTotal !== BigInt(edgeCost)) {
+    throw new Error("Snapshot kenar bandı maliyeti teklif satırlarıyla eşleşmiyor.");
+  }
+
+  if (basis === "net-consumption") {
+    if (
+      quoteSummary.status !== "ready" ||
+      panelLineCount !== sourceCount ||
+      panelLineTotal !== BigInt(panelCost) ||
+      quoteSummary.currencyCode !== currencyCode ||
+      costSummary === null
+    ) {
+      throw new Error("Net tüketim snapshot'ı panel kaynakları, para birimi ve teklif satırlarıyla eşleşmiyor.");
+    }
+    const baseTotals = costSummary.categoryTotalsMinor as Record<string, number>;
+    for (const category of costCategories) {
+      if (normalizedCategoryTotals.get(category) !== baseTotals[category]) {
+        throw new Error("Net tüketim snapshot kategori toplamı teklif satırlarıyla eşleşmiyor: " + category + ".");
+      }
+    }
+    if (grandTotal !== costSummary.grandTotalMinor) {
+      throw new Error("Net tüketim snapshot genel toplamı teklif satırlarıyla eşleşmiyor.");
+    }
+  } else {
+    if (panelLineCount !== 0 || panelLineTotal !== 0n) {
+      throw new Error("Levha satın alma snapshot'ı aynı teklifte net panel tüketim satırı içeremez.");
+    }
+    if (quoteSummary.status === "ready") {
+      if (costSummary === null || quoteSummary.currencyCode !== currencyCode) {
+        throw new Error("Levha satın alma snapshot'ı temel teklif para birimiyle eşleşmiyor.");
+      }
+      const baseTotals = costSummary.categoryTotalsMinor as Record<string, number>;
+      if (baseTotals.material !== edgeCost) {
+        throw new Error("Levha satın alma snapshot temel material toplamı yalnızca kenar bandını içermelidir.");
+      }
+      for (const category of costCategories) {
+        if (category !== "material" && normalizedCategoryTotals.get(category) !== baseTotals[category]) {
+          throw new Error("Levha satın alma snapshot kategori toplamı temel teklif satırlarıyla eşleşmiyor: " + category + ".");
+        }
+      }
+      if (BigInt(costSummary.grandTotalMinor as number) + BigInt(panelCost) !== BigInt(grandTotal)) {
+        throw new Error("Levha satın alma snapshot genel toplamı panel satın alma maliyetiyle eşleşmiyor.");
+      }
+    } else if (
+      quoteSummary.status !== "empty" ||
+      edgeCost !== 0 ||
+      costSummary !== null ||
+      costCategories.some(category => category !== "material" && normalizedCategoryTotals.get(category) !== 0) ||
+      grandTotal !== panelCost
+    ) {
+      throw new Error("Boş temel teklifli levha satın alma snapshot'ı yalnızca panel satın alma maliyetini içerebilir.");
+    }
+  }
+}
+
 function validatePricingSnapshot(value: unknown, strictSourceIntegrity = false): asserts value is ProjectQuotePricingSnapshot {
   if (!isRecord(value)) {
     throw new Error("Teklif fiyat snapshot'ı geçerli bir nesne olmalıdır.");
   }
   requireOnlyKeys(value, snapshotKeys, "Teklif fiyat snapshot'ı");
-  if (value.schemaVersion !== 1) {
+  if (value.schemaVersion !== 1 && value.schemaVersion !== 2) {
     throw new Error("Desteklenmeyen teklif fiyat snapshot sürümü.");
+  }
+  const hasMaterialCostBasis = Object.prototype.hasOwnProperty.call(value, "materialCostBasis");
+  if ((value.schemaVersion === 1 && hasMaterialCostBasis) || (value.schemaVersion === 2 && !hasMaterialCostBasis)) {
+    throw new Error("Teklif fiyat snapshot sürümü materialCostBasis alanıyla tutarlı olmalıdır.");
   }
   const quotedOn = requireDateOnly(value.quotedOn, "Teklif tarihi");
   const quoteSummary = value.quoteSummary;
-  validateQuoteSummary(quoteSummary, strictSourceIntegrity);
+  validateQuoteSummary(quoteSummary, strictSourceIntegrity, value.schemaVersion === 2);
   const lineSources = quoteSummary.lineSources as Array<Record<string, unknown>>;
 
   if (value.consumptionPriceList === null) {
@@ -567,6 +780,7 @@ function validatePricingSnapshot(value: unknown, strictSourceIntegrity = false):
   } else {
     validateCatalogVersion(value.laborOperationTariffList, "Tarife listesi", quotedOn);
   }
+  if (value.schemaVersion === 2) validateMaterialCostBasisSnapshot(value.materialCostBasis, quoteSummary);
 }
 
 function cloneJsonValue(value: unknown, seen = new Set<object>()): unknown {
@@ -1124,6 +1338,12 @@ export function compareProjectQuoteRevisions(
     if (toRevision.revisionNumber <= fromRevision.revisionNumber) {
       throw new Error("Hedef revizyon başlangıç revizyonundan daha yeni olmalıdır.");
     }
+    if (
+      fromRevision.pricingSnapshot.materialCostBasis?.basis === "stock-sheet-purchase" ||
+      toRevision.pricingSnapshot.materialCostBasis?.basis === "stock-sheet-purchase"
+    ) {
+      throw new Error("Levha satın alma maliyetli revizyonlarda grup bazlı fark desteği tamamlanana kadar karşılaştırma güvenli biçimde engellendi.");
+    }
 
     const fromQuote = fromRevision.pricingSnapshot.quoteSummary;
     const toQuote = toRevision.pricingSnapshot.quoteSummary;
@@ -1367,6 +1587,11 @@ export function calculateProjectQuoteRevisionSourceMapAudit(
 
   try {
     const history = validatedHistory.history;
+    if (history.revisions.some(revision =>
+      revision.pricingSnapshot.materialCostBasis?.basis === "stock-sheet-purchase"
+    )) {
+      throw new Error("Levha satın alma grup Part kaynakları kaynak haritası denetimine henüz dahil edilmedi; denetim güvenli biçimde engellendi.");
+    }
     const totals = createSourceMapAuditCounts();
     const revisionAudits: ProjectQuoteRevisionSourceMapAuditRevision[] = [];
     const allPartIds = new Set<string>();
