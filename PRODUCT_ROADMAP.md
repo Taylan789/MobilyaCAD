@@ -1734,7 +1734,7 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 
 ## DOM-155 — Teklif revizyon sayım sınırını derin kopya öncesinde uygula
 
-**Durum:** Kod ve regresyon testi eklendi; exact-SHA CI/QA/Pages doğrulaması bekleniyor.
+**Durum:** VERIFIED — [commit 9e8e20f](https://github.com/Taylan789/MobilyaCAD/commit/9e8e20fb0f706c05229612cb7d9e3415cf17ef72); CI [#45498324216](https://github.com/Taylan789/MobilyaCAD/actions/runs/45498324216), QA [#45498324252](https://github.com/Taylan789/MobilyaCAD/actions/runs/45498324252), Pages [#45498324257](https://github.com/Taylan789/MobilyaCAD/actions/runs/45498324257) all successful. QA: 245/245 frontend + 740/740 domain; strict TypeScript, lint 36 warnings/0 errors, production build, production audit 0 vulnerabilities; test site deployed.
 
 **Sorun:** Geçmişin 2.000 revizyon sınırı, güvenilmeyen girdinin derin kopyası oluşturulduktan sonra kontrol ediliyordu. Çok büyük doğrudan API girdilerinde sınır, kopyalama maliyetini önlemiyordu.
 

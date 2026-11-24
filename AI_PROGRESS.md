@@ -981,12 +981,12 @@
 - Boundary correction commit [f5d8581](https://github.com/Taylan789/MobilyaCAD/commit/f5d8581d9dd250dacd410136a0755d693dc18c98) passed exact-SHA CI [#45497019522](https://github.com/Taylan789/MobilyaCAD/actions/runs/45497019522), QA [#45497019530](https://github.com/Taylan789/MobilyaCAD/actions/runs/45497019530) and Pages [#45497019534](https://github.com/Taylan789/MobilyaCAD/actions/runs/45497019534). QA: 245/245 frontend + 740/740 domain; strict shared-domain TypeScript, lint 36 warnings/0 errors, production build and production dependency audit (0 vulnerabilities). Test site deployed from the verified correction SHA: https://taylan789.github.io/MobilyaCAD/.
 
 
-## 25 Kasım 2026 01:06 TRT — DOM-155 implementation (verification pending)
+## 25 Kasım 2026 01:06 TRT — DOM-155 VERIFIED
 
 - Base `dev/github-work` HEAD: `2615c058d8b544239b4062e6ec8b4defc606177b`; write preflight re-read the branch HEAD and all six target blob SHAs immediately before creating the commit. No active CI, QA, AI Developer or Pages run was present.
 - Domain change: `validateProjectQuoteRevisionHistory` now checks the own enumerable data descriptor for `revisions` and its own array-length descriptor before recursively copying revision entries. Histories above 2,000 are blocked before nested payload traversal; the original post-copy count/schema check remains.
 - Regression coverage: exactly 2,000 entries continue to schema validation; 2,001 entries are rejected with the limit diagnostic before a nested accessor is traversed; an accessor-backed `revisions` property is not invoked.
 - Changed files: `domain/production/projectQuoteRevision.ts`, `domain/production/projectQuoteRevision.test.mjs`, `docs/production-domain-contract.md`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`.
-- Exact-SHA CI/QA/Pages results are pending. No test is claimed successful until Actions reports the result.
+- Exact-SHA CI [#45498324216](https://github.com/Taylan789/MobilyaCAD/actions/runs/45498324216), QA [#45498324252](https://github.com/Taylan789/MobilyaCAD/actions/runs/45498324252) and Pages [#45498324257](https://github.com/Taylan789/MobilyaCAD/actions/runs/45498324257) all succeeded. QA: 245/245 frontend + 740/740 domain tests; strict domain TypeScript, lint 36 warnings/0 errors, production build and production dependency audit (0 vulnerabilities). Test site deployed from the verified SHA: https://taylan789.github.io/MobilyaCAD/.
 - Known limits: JavaScript Proxy reflection traps are not suppressed; this count preflight does not replace the existing standalone/project-v2 byte guards. No frontend, adapter, benchmark, CNC/machine, secrets/settings or `main` files were changed.
 - Next: verify exact-SHA Actions; keep INT-003 with the UI owner, then continue to DOM-153 after editor integration. INT-002/PERF-001 remain specialist-owned.
