@@ -625,3 +625,129 @@ test("frontend adapter retains per-edge catalog provenance and fails closed on c
     /kenar bandı katalog ataması CSV biçiminde korunamadığı/i
   );
 });
+
+
+test("domain production diagnostics preserve source, furniture, family, code and original message", () => {
+  const report = calculateCabinetProjectProductionWithDiagnostics({
+    schemaVersion: 1,
+    furniture: [{
+      schemaVersion: 1,
+      furniture: { id: "custom-furniture" },
+      family: "custom-family"
+    }]
+  });
+  assert.equal(report.status, "blocked");
+  assert.equal(report.result, null);
+
+  const mapped = mapDomainProductionReport(
+    report,
+    new Map([["custom-furniture", "Özel mobilya"]])
+  );
+  const diagnostic = mapped.productionDiagnostics.find(
+    (item) => item.source === "unsupportedFurniture"
+  );
+
+  assert.equal(mapped.canExport, false);
+  assert.ok(diagnostic);
+  assert.equal(diagnostic.source, "unsupportedFurniture");
+  assert.equal(diagnostic.furnitureId, "custom-furniture");
+  assert.equal(diagnostic.family, "custom-family");
+  assert.equal(diagnostic.code, "unsupported-family");
+  assert.equal(diagnostic.message, report.unsupportedFurniture[0].message);
+});
+
+test("cutout and hardware export blockers retain their source diagnostics while CSV stays fail-closed", () => {
+  const noBanding = () => ({ top: false, bottom: false, left: false, right: false });
+  const request = {
+    schemaVersion: 1,
+    furniture: [{
+      schemaVersion: 1,
+      furniture: {
+        id: "diagnostic-cabinet",
+        widthMm: 600,
+        heightMm: 850,
+        depthMm: 560,
+        material: "MDF"
+      },
+      profile: {
+        panelThicknessMm: 18,
+        carcassStyle: "between-sides",
+        backPanel: { enabled: false },
+        shelfCount: 0,
+        doors: { enabled: false, count: 0 },
+        edgeBandingByGroup: {
+          leftSide: noBanding(),
+          rightSide: noBanding(),
+          top: noBanding(),
+          bottom: noBanding(),
+          shelf: noBanding(),
+          back: noBanding(),
+          door: noBanding()
+        }
+      },
+      materials: [{
+        id: "mdf-18",
+        name: "MDF",
+        category: "panel",
+        thicknessesMm: [18],
+        unit: "mm"
+      }]
+    }],
+    hardwareItems: [{
+      id: "hinge-row-1",
+      furnitureId: "diagnostic-cabinet",
+      hardwareId: "hinge",
+      name: "Menteşe",
+      quantity: 2,
+      unit: "adet"
+    }]
+  };
+  const initial = calculateCabinetProjectProductionWithDiagnostics(request);
+  assert.ok(initial.result);
+  const top = initial.result.parts.find((part) => part.id === "diagnostic-cabinet-top");
+  assert.ok(top);
+  const report = calculateCabinetProjectProductionWithDiagnostics({
+    ...request,
+    panelCutouts: [{
+      partId: top.id,
+      geometry: {
+        schemaVersion: 1,
+        widthMm: top.width,
+        lengthMm: top.length,
+        thicknessMm: top.thickness,
+        outerEdgeBanding: top.edgeBanding,
+        cutouts: [{
+          id: "service-opening",
+          xMm: 10,
+          yMm: 10,
+          widthMm: 100,
+          lengthMm: 100,
+          edgeBanding: noBanding()
+        }]
+      }
+    }]
+  });
+  const mapped = mapDomainProductionReport(
+    report,
+    new Map([["diagnostic-cabinet", "Test dolabı"]])
+  );
+  const cutoutDiagnostic = mapped.productionDiagnostics.find(
+    (item) => item.source === "exportBlockers" && /kesitli panel geometrisi/i.test(item.message)
+  );
+  const hardwareDiagnostic = mapped.productionDiagnostics.find(
+    (item) => item.source === "exportBlockers" && /hardwareItems/i.test(item.message)
+  );
+
+  assert.equal(mapped.canExport, false);
+  assert.ok(cutoutDiagnostic);
+  assert.equal(cutoutDiagnostic.furnitureId, null);
+  assert.equal(cutoutDiagnostic.family, null);
+  assert.equal(cutoutDiagnostic.code, null);
+  assert.equal(cutoutDiagnostic.message, report.exportBlockers.find((message) => /kesitli panel geometrisi/i.test(message)));
+  assert.ok(hardwareDiagnostic);
+  assert.equal(hardwareDiagnostic.message, report.exportBlockers.find((message) => /hardwareItems/i.test(message)));
+  assert.throws(
+    () => createProjectCutListCsv(mapped.furnitureNames, mapped.parts),
+    /kesitli panel geometrisi CSV biçiminde korunamadığı/i
+  );
+});
