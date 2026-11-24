@@ -1633,7 +1633,7 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 
 ## DOM-149 — JSON v2 proje zarfı kaynak sınırları
 
-**Durum:** IMPLEMENTED — exact-SHA CI/QA/Pages verification pending.
+**Durum:** VERIFIED — [correction commit 4c9c14c6](https://github.com/Taylan789/MobilyaCAD/commit/4c9c14c6acb3d059d7fe91783a4b931f54c06542); exact-SHA CI [#45429499653](https://github.com/Taylan789/MobilyaCAD/actions/runs/45429499653), QA [#45429500219](https://github.com/Taylan789/MobilyaCAD/actions/runs/45429500219), Pages [#45429500230](https://github.com/Taylan789/MobilyaCAD/actions/runs/45429500230) successful.
 
 **Kullanıcı akışı:** Kullanıcı teklif revizyonunu proje JSON v2 dosyasına ekler veya standalone revizyon geçmişini boş bir v2 projeye aktarır. Sistem büyük ya da aşırı derin zarfı kısmi snapshot oluşturmadan reddeder.
 
