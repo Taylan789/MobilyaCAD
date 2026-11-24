@@ -13,7 +13,7 @@ test("desktop launcher arranges the existing welcome, start actions and recent-p
   assert.ok(layoutImport > appImport, "launcher layout overrides load after App styles");
 
   assert.match(app, /className="atelier-welcome"/);
-  assert.match(app, /className="atelier-start-section"/);
+  assert.match(app, /className="atelier-section atelier-start-section"/);
   assert.match(app, /className="atelier-bottom-row"/);
   assert.match(app, /onClick=\{\(\) => startNewProject\(\)\}/);
   assert.match(app, /loadProject\(event\)/);
