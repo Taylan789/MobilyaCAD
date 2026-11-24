@@ -3,6 +3,7 @@
   display: flex;
   width: auto;
   min-width: 23px;
+  min-height: 23px;
   align-items: center;
   justify-content: center;
   gap: 4px;
