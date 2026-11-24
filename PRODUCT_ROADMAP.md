@@ -1577,3 +1577,25 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 - Preserve v1 schema shape and all existing histories within the documented resource limits; test multi-byte UTF-8 strings where JS string length is smaller than encoded byte length.
 
 **Boundaries and risks:** The limits are explicit resource guards, not history pruning, compression, retention, archive splitting or automatic persistence. Project-v2 embedded history inherits the revision-count limit through the shared validator. JSON/CSV stock-sheet comparison serializers remain specialist-owned and fail-closed; this task does not alter them. No frontend, CNC/machine or physical-production claim is implied.
+
+
+## DOM-146 — Revizyon zinciri import/restore bütünlüğü
+
+**Durum:** Test kapsamı eklendi; exact-SHA CI, QA ve Pages doğrulaması bekleniyor.
+
+**Kullanıcı akışı:** Kullanıcı standalone teklif geçmişini boş bir v2 projeye aktarır veya kaydedilmiş v2 projeyi açar. Her iki yol da önceki revizyon ve fiyat snapshot kaynak bağlantılarını aynı domain doğrulayıcısından geçirir.
+
+**Kabul kriterleri**
+- İkinci ve sonraki her revizyonun `previousRevisionId` alanı hemen önceki revizyonun kimliğiyle eşleşmelidir; kopuk/fork edilmiş zincir import ve restore sırasında reddedilir.
+- `pricingSnapshot.quoteSummary.lineSources[].costLineId` aynı snapshot'taki maliyet satırının `id` alanıyla eşleşmelidir; bozuk kaynak bağlantısı reddedilir.
+- Başarısız import `project: null` ve `history: null` döndürür, hedef projeyi değiştirmez. Başarısız restore `history: null` döndürür ve giriş nesnesini değiştirmez.
+- Geçerli eski v1 geçmişler ve v2 proje zarfı değişmeden kalır; yeni alan veya şema sürümü eklenmez.
+
+**Sınırlar ve riskler:** Bu testler teklif geçmişi içindeki kaynak/önceki-revizyon bağlantılarını doğrular. Güncel proje Part ağacının veya 3D geometri kaynaklarının geçmiş snapshot'ıyla birebir aynı olduğunu, nesting verimini ya da CNC makine uyumluluğunu kanıtlamaz.
+
+**Sıradaki 3–5 küçük görev**
+1. DOM-147: v2 proje append sonucunda iç içe proje verisinin alias/immutability sınırını denetle; input ve önceki snapshot'ların değişmezliğini regresyonla sabitle.
+2. DOM-143C-json: stock-sheet group comparison JSON şemasını yalnızca gerçek entegrasyon/performans uzmanı sahipliği ve round-trip kanıtı geldiğinde genişlet.
+3. INT-002: JSON/CSV adapter round-trip ve miktar/geometri sadakati testleri — uzman agent sahipliğinde.
+4. PERF-001: 2D/3D veri akışında tekrarlanabilir baseline ve profiling — uzman agent sahipliğinde.
+5. QA-003: INT-001 ve INT-002 kanıtı tamamlandığında uçtan uca export/data-flow denetimi.

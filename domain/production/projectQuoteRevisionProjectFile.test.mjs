@@ -546,6 +546,70 @@ test("standalone import blocks unsupported revision integrity metadata", () => {
   assert.deepEqual(target, before);
 });
 
+test("standalone import and project restore reject a broken previousRevisionId chain without partial history", () => {
+  const first = appendProjectQuoteRevisionToProjectFile(createV2Project(), createRevision());
+  assert.equal(first.status, "ready");
+  assert.ok(first.project);
+  const second = appendProjectQuoteRevisionToProjectFile(first.project, createRevision({
+    revisionId: "quote-r2",
+    createdAt: "2026-11-18T02:00:00+03:00"
+  }));
+  assert.equal(second.status, "ready");
+  assert.ok(second.history);
+
+  const payload = JSON.parse(serializeImportFixture(second.history));
+  payload.history.revisions[1].previousRevisionId = "unrelated-revision";
+
+  const target = createV2Project();
+  const targetBefore = structuredClone(target);
+  const imported = importProjectQuoteRevisionHistoryFileIntoProject(target, JSON.stringify(payload));
+  assert.equal(imported.status, "blocked");
+  assert.equal(imported.project, null);
+  assert.equal(imported.history, null);
+  assert.match(imported.diagnostics.join(" | "), /previousRevisionId alanı.*kesintisiz bir zincir/);
+  assert.deepEqual(target, targetBefore);
+
+  const restoreTarget = createV2Project({ quoteRevisionHistory: payload.history });
+  const restoreBefore = structuredClone(restoreTarget);
+  const restored = readProjectQuoteRevisionHistoryFromProjectFile(restoreTarget);
+  assert.equal(restored.status, "blocked");
+  assert.equal(restored.history, null);
+  assert.match(restored.diagnostics.join(" | "), /previousRevisionId alanı.*kesintisiz bir zincir/);
+  assert.deepEqual(restoreTarget, restoreBefore);
+});
+
+test("standalone import and project restore reject tampered quote source-line links", () => {
+  const first = appendProjectQuoteRevisionToProjectFile(createV2Project(), createRevision());
+  assert.equal(first.status, "ready");
+  assert.ok(first.project);
+  const second = appendProjectQuoteRevisionToProjectFile(first.project, createRevision({
+    revisionId: "quote-r2",
+    createdAt: "2026-11-18T02:00:00+03:00"
+  }));
+  assert.equal(second.status, "ready");
+  assert.ok(second.history);
+
+  const payload = JSON.parse(serializeImportFixture(second.history));
+  payload.history.revisions[1].pricingSnapshot.quoteSummary.lineSources[0].costLineId = "foreign-cost-line";
+
+  const target = createV2Project();
+  const targetBefore = structuredClone(target);
+  const imported = importProjectQuoteRevisionHistoryFileIntoProject(target, JSON.stringify(payload));
+  assert.equal(imported.status, "blocked");
+  assert.equal(imported.project, null);
+  assert.equal(imported.history, null);
+  assert.match(imported.diagnostics.join(" | "), /kaynak eşlemesi maliyet satırı kimliğiyle uyuşmuyor/);
+  assert.deepEqual(target, targetBefore);
+
+  const restoreTarget = createV2Project({ quoteRevisionHistory: payload.history });
+  const restoreBefore = structuredClone(restoreTarget);
+  const restored = readProjectQuoteRevisionHistoryFromProjectFile(restoreTarget);
+  assert.equal(restored.status, "blocked");
+  assert.equal(restored.history, null);
+  assert.match(restored.diagnostics.join(" | "), /kaynak eşlemesi maliyet satırı kimliğiyle uyuşmuyor/);
+  assert.deepEqual(restoreTarget, restoreBefore);
+});
+
 test("standalone and project-history import block version downgrade payloads", () => {
   const source = appendProjectQuoteRevisionToProjectFile(createV2Project(), createRevision());
   assert.ok(source.history);

@@ -1346,3 +1346,11 @@ The domain stock-sheet comparison now exposes Part-level ownership transitions i
 - A three-revision regression audits each revision and compares consecutive transitions, covering group moves, additions, removals, stable Parts, deterministic ordering, immutability and input preservation.
 
 This is source-group ownership evidence only; it does not claim that the saved group IDs cover every current project Part. JSON/CSV comparison adapters remain specialist-owned and fail-closed until their schema and round-trip work is verified. No frontend behavior, machine-specific CNC output or physical workshop validation is implied.
+
+
+## DOM-146 — Teklif revizyon zinciri import ve proje geri yükleme doğrulaması
+
+- Standalone geçmiş import'u `parseProjectQuoteRevisionHistoryFile` üzerinden, proje JSON v2 geri yüklemesi ise `readProjectQuoteRevisionHistoryFromProjectFile` üzerinden aynı `validateProjectQuoteRevisionHistory` zincir doğrulamasını kullanır.
+- Her revizyonun `previousRevisionId` alanı tam olarak önceki kaydın `revisionId` değerine eşit olmalıdır; sıra numarası, proje kimliği ve kronoloji de kesintisiz kalmalıdır.
+- Maliyet snapshot'ındaki `lineSources[].costLineId` alanı aynı snapshot içindeki maliyet satırı kimliğiyle eşleşmelidir. Import ve restore sırasında bozuk kaynak bağlantısı veya kopuk önceki-revizyon bağlantısı kısmi geçmiş üretmeden `blocked` döndürür.
+- Başarısız import hedef proje nesnesini değiştirmez; başarısız restore `history: null` döndürür. Bu kontroller teklif snapshot'ının kendi kaynak izini doğrular; kaynak Part'ların güncel 3D geometriyle veya fiziksel CNC operasyonlarıyla eşleştiğini kanıtlamaz.

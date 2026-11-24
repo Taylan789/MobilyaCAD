@@ -871,3 +871,14 @@
 - Known limits: no automatic history pruning/archive, no schema version bump, no frontend changes, no JSON/CSV comparison adapter or benchmark files changed. The 1 MiB guard applies to the standalone history JSON file; project-v2 embedded history inherits the 2,000 revision count guard through the shared validator.
 - Test site: https://taylan789.github.io/MobilyaCAD/ — deployed from exact verified code/test SHA `ea8d1d6dbb25c9737347c66a357981c56a505cbc` via Pages [#45388338056](https://github.com/Taylan789/MobilyaCAD/actions/runs/45388338056).
 - Next: DOM-146 revision-chain import/restore linkage audit; keep stock-sheet comparison JSON/CSV serialization with a verified specialist owner only.
+
+
+## 24 Kasım 2026 15:39 TRT — DOM-146 implementation (verification pending)
+
+- Base `dev/github-work` HEAD: `366a2727976c658a7585607ba9eb8125061aec92`; branch HEAD ve beş hedef dosyanın blob SHA'ları yazma öncesinde yeniden okundu. Bu sırada sahip olunan dalda queued/in-progress Actions run bulunmadı.
+- DOM-145 exact-SHA CI #45388338099, QA #45388338060 ve Pages #45388338056 başarılıydı; güncel base SHA 366a272 için CI #45388615961, QA #45388616004 ve Pages #45388616015 de başarılı.
+- Import ve project-v2 restore yolları zaten ortak domain geçmiş doğrulayıcısını kullanıyor; üretim davranışını değiştirmek yerine eksik uçtan uca regresyon kanıtı eklendi. İki yeni test, kopuk `previousRevisionId` zincirini ve snapshot `lineSources[].costLineId` bozulmasını hem standalone import hem proje geri yükleme sırasında reddeder; hiçbirinde kısmi geçmiş/proje dönmez ve hedef girdi değişmez.
+- Değişen dosyalar: `domain/production/projectQuoteRevisionProjectFile.test.mjs`, `docs/production-domain-contract.md`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`.
+- Implementation commit SHA ve exact-SHA CI/QA/Pages sonuçları commit sonrası doğrulanacak; bu kayıtta henüz yeni commit veya yeni Actions başarısı iddia edilmemektedir.
+- Bilinen sınırlar: frontend/**, JSON/CSV comparison adapter, benchmark, CNC/makine çıktısı ve main dalı değiştirilmedi. Integration/Performance uzman dalı bulunmadı; PERF-001/INT-002 uzman sahipliğinde kalıyor. AI Developer #45338253254 OpenRouter free-model daily HTTP 429 nedeniyle başarısız; uzman job atlandı, ücretli fallback veya kota/secrets değişikliği yapılmadı.
+- Sonraki görev: DOM-147 project-v2 append derin kopya/immutability sınırı; uzman adapter işleri için gerçek branch/PR kanıtını bekle.
