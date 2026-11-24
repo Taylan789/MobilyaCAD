@@ -187,10 +187,16 @@ test("editor save-open-save preserves two quote revisions and unknown nested/top
     ]
   );
 
-  assert.deepEqual(reopened.vendorMetadata, {
-    nested: { owner: "fixture", flags: ["preserve", "round-trip"] },
-    __proto__: { preservedAsData: true }
+  const expectedVendorMetadata = {
+    nested: { owner: "fixture", flags: ["preserve", "round-trip"] }
+  };
+  Object.defineProperty(expectedVendorMetadata, "__proto__", {
+    value: { preservedAsData: true },
+    enumerable: true,
+    configurable: true,
+    writable: true
   });
+  assert.deepEqual(reopened.vendorMetadata, expectedVendorMetadata);
   assert.equal(Object.prototype.hasOwnProperty.call(reopened, "__proto__"), true);
   assert.deepEqual(reopened.__proto__, { preservedAsData: "top-level" });
   assert.equal(Object.getPrototypeOf(reopened), Object.prototype);
