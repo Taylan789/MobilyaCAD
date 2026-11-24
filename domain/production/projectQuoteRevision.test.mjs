@@ -2993,6 +2993,12 @@ test("DOM-143B compares stock-sheet groups by stable identity and reconciles gro
   assert.equal(result.comparison.toSheetCount, 3);
   assert.equal(result.comparison.sheetCountDelta, 1);
   assert.equal(result.comparison.materialCategoryDeltaMinor, 130);
+  assert.deepEqual(result.comparison.groupCounts, {
+    addedGroupCount: 1,
+    removedGroupCount: 1,
+    changedGroupCount: 1,
+    unchangedGroupCount: 0
+  });
   assert.equal(result.comparison.categoryDeltasMinor.material, 130);
   assert.equal(result.comparison.grandTotalDeltaMinor, 130);
   assert.equal(
@@ -3014,6 +3020,28 @@ test("DOM-143B compares stock-sheet groups by stable identity and reconciles gro
   assert.ok(Object.isFrozen(result.comparison));
   assert.ok(Object.isFrozen(result.comparison.groupChanges));
   assert.ok(Object.isFrozen(changed.to.sourcePartIds));
+});
+
+test("DOM-143B group counts include unchanged groups without emitting redundant change records", () => {
+  const groups = [
+    { materialId: "mdf-18", thicknessMm: 18, sourcePartIds: ["dom-143b-part-a"], sheetCount: 1, pricePerSheetMinor: 100, sourceReference: "price-a" },
+    { materialId: "plywood", thicknessMm: 12, sourcePartIds: ["dom-143b-part-b"], sheetCount: 1, pricePerSheetMinor: 80, sourceReference: "price-b" }
+  ];
+  const fromSnapshot = setDom143StockSheetGroups(createDom143StockSheetAuditSnapshot(), groups);
+  const toSnapshot = setDom143StockSheetGroups(createDom143StockSheetAuditSnapshot(), groups);
+  const result = compareProjectQuoteRevisionStockSheetGroups(
+    createHistoryWithSnapshots(fromSnapshot, toSnapshot), "quote-r1", "quote-r2"
+  );
+
+  assert.equal(result.status, "ready", result.diagnostics.join("; "));
+  assert.deepEqual(result.comparison?.groupCounts, {
+    addedGroupCount: 0,
+    removedGroupCount: 0,
+    changedGroupCount: 0,
+    unchangedGroupCount: 2
+  });
+  assert.deepEqual(result.comparison?.groupChanges, []);
+  assert.ok(Object.isFrozen(result.comparison?.groupCounts));
 });
 
 test("DOM-143B compares stock-only revisions with empty quote summaries without synthetic cost lines", () => {

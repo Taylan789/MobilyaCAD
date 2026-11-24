@@ -1463,15 +1463,21 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 - Adds compareProjectQuoteRevisionStockSheetGroups as an immutable domain API over fully validated quote revision history.
 - Matches persisted stock-sheet groups by stable material/thickness groupId. Price, sheet-count, Part-source and source-reference changes are changed; material or thickness identity changes are explicit removed + added records.
 - Reports stock-sheet purchase-cost and sheet-count deltas separately, alongside material-category and grand-total deltas.
+- Adds immutable deterministic `groupCounts` for added, removed, changed and unchanged groups. Unchanged groups are counted but omitted from the change payload.
 - Requires the sum of group cost changes to equal the panel stock-purchase delta and the sum of category deltas to equal the grand-total delta; unsafe arithmetic and currency mismatch block the whole result.
 - Supports a stock-only v2 revision with an empty quote line summary and a legacy v1/net-consumption revision as the other side without fabricating quote lines.
 - The existing full comparison envelope and JSON/CSV stock-sheet exports remain fail-closed until DOM-143C/D integrate the result.
 
 **Automated acceptance:** stable identity changed/removed/added coverage, Part ID and source-reference preservation, group/material/grand-total reconciliation, stock-only empty-summary comparison, legacy-v1 transition and unsupported-basis blocking. Physical stock yield, CNC and workshop fit remain outside this software-only validation.
 
-**Next 3 domain slices**
-1. DOM-143B: VERIFIED — commit b6b39177; exact-SHA CI, QA and Pages passed (211/211 unit, 712/712 domain).
-2. DOM-143C: add backward-compatible JSON comparison serialization/parsing for stock-sheet group changes while retaining legacy comparison file versions.
-3. DOM-143D: add CSV group rows and source-map provenance comparison; preserve Part IDs and explicit source references.
-
+**Next domain and integration handoffs**
+1. DOM-143B1: deterministic groupCounts for added/removed/changed/unchanged groups; domain-owned and testable without touching export adapters.
+2. DOM-143C: backward-compatible JSON comparison serialization/parsing for stock-sheet group changes while retaining legacy comparison file versions. Adapter-owned; do not edit the comparison JSON adapter from the domain lane.
+3. DOM-143D: CSV group rows and source-map provenance comparison; preserve Part IDs and explicit source references. Also adapter-owned.
+4. Integration prerequisite: verify an active specialist workflow/branch/PR and file ownership before DOM-143C/D. No specialist branch is currently verified; the latest specialist job was skipped after the AI Developer free-model quota failure.
 **Acceptance:** Exact-SHA CI, QA, type-check, lint, production build and Pages must pass for each published slice. DOM-143A has passed all of these gates on 12687c9b. No machine-specific CNC or nesting optimization claim is implied.
+
+
+**DOM-143B1 domain extension — 24 November 2026**
+- Group comparison now exposes deterministic added/removed/changed/unchanged counts while retaining the existing changed-snapshot list semantics.
+- Next independent domain slice: return a stable changed-field reason list for each matched group (sheet count, per-sheet price, group cost, Part IDs, optional source reference); JSON/CSV integration remains with the specialist adapter owner.

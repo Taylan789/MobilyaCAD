@@ -1421,6 +1421,13 @@ export interface ProjectQuoteRevisionStockSheetGroupChange {
   to: DeepReadonly<ProjectQuoteStockSheetGroupSnapshot> | null;
 }
 
+export interface ProjectQuoteRevisionStockSheetGroupComparisonCounts {
+  addedGroupCount: number;
+  removedGroupCount: number;
+  changedGroupCount: number;
+  unchangedGroupCount: number;
+}
+
 export interface ProjectQuoteRevisionStockSheetGroupComparison {
   schemaVersion: 1;
   projectId: string;
@@ -1442,6 +1449,8 @@ export interface ProjectQuoteRevisionStockSheetGroupComparison {
   toGrandTotalMinor: number;
   grandTotalDeltaMinor: number;
   categoryDeltasMinor: Record<ProjectQuoteCostCategory, number>;
+  /** Deterministic counts over the union of stable group IDs, including unchanged groups. */
+  groupCounts: ProjectQuoteRevisionStockSheetGroupComparisonCounts;
   /** Stable group IDs match in place; material/thickness identity changes are add/remove pairs. */
   groupChanges: readonly ProjectQuoteRevisionStockSheetGroupChange[];
 }
@@ -1621,11 +1630,25 @@ export function compareProjectQuoteRevisionStockSheetGroups(
     const toGroups = new Map(toTotals.stockSheetGroups.map(group => [group.groupId, group]));
     const groupIds = [...new Set([...fromGroups.keys(), ...toGroups.keys()])].sort();
     const groupChanges: ProjectQuoteRevisionStockSheetGroupChange[] = [];
+    const groupCounts: ProjectQuoteRevisionStockSheetGroupComparisonCounts = {
+      addedGroupCount: 0,
+      removedGroupCount: 0,
+      changedGroupCount: 0,
+      unchangedGroupCount: 0
+    };
     for (const groupId of groupIds) {
       const fromGroup = fromGroups.get(groupId) ?? null;
       const toGroup = toGroups.get(groupId) ?? null;
-      if (fromGroup !== null && toGroup !== null &&
-          revisionStockSheetGroupValue(fromGroup) === revisionStockSheetGroupValue(toGroup)) continue;
+      if (fromGroup === null) {
+        groupCounts.addedGroupCount += 1;
+      } else if (toGroup === null) {
+        groupCounts.removedGroupCount += 1;
+      } else if (revisionStockSheetGroupValue(fromGroup) === revisionStockSheetGroupValue(toGroup)) {
+        groupCounts.unchangedGroupCount += 1;
+        continue;
+      } else {
+        groupCounts.changedGroupCount += 1;
+      }
       groupChanges.push({
         type: fromGroup === null ? "added" : toGroup === null ? "removed" : "changed",
         groupId,
@@ -1692,6 +1715,7 @@ export function compareProjectQuoteRevisionStockSheetGroups(
         toGrandTotalMinor: toTotals.grandTotalMinor,
         grandTotalDeltaMinor,
         categoryDeltasMinor,
+        groupCounts,
         groupChanges
       },
       diagnostics: []

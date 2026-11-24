@@ -1289,3 +1289,15 @@ compareProjectQuoteRevisionStockSheetGroups(history, fromRevisionId, toRevisionI
 - Invalid histories, unsupported cost bases, currency mismatches, missing totals or arithmetic inconsistencies return a blocked result with no partial comparison. Results and nested Part ID arrays are immutable.
 
 This is the domain comparison primitive only. The existing full quote-comparison envelope and JSON/CSV adapters remain fail-closed for stock-sheet groups until DOM-143C and DOM-143D integrate and round-trip the new group-change data. No frontend or machine-specific CNC behavior is claimed by this slice.
+
+
+## DOM-143B1 — Levha grubu fark sayacı
+
+`compareProjectQuoteRevisionStockSheetGroups` sonucu artık `groupCounts` alanında `addedGroupCount`, `removedGroupCount`, `changedGroupCount` ve `unchangedGroupCount` sayaçlarını döndürür.
+
+- Sayaçlar iki doğrulanmış revizyondaki kararlı grup kimliklerinin birleşimi üzerinden, sıralı ve deterministik biçimde hesaplanır.
+- Değişmeyen gruplar `groupChanges` listesine gereksiz kayıt olarak eklenmez; buna rağmen `unchangedGroupCount` içinde sayılır.
+- Eklenen, kaldırılan ve değişen sayaçları listelenen fark kayıtlarıyla bire bir uzlaşır. Sonuç ve sayaç nesnesi deep-freeze ile değiştirilemez kalır.
+- Sayaçlar yalnızca snapshot'ta doğrulanmış grupları sayar; eksik malzeme/Part/fiyat bilgisi tamamlanmış gibi tahmin edilmez.
+- Bu, frontend ve JSON/CSV adapter'larından bağımsız domain sözleşmesidir. JSON karşılaştırma zarfı ve CSV grup satırları adapter sahibi entegrasyon/performance rolünün ayrı teslimatlarıdır; o dosyalara bu domain diliminde dokunulmaz.
+

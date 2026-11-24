@@ -752,3 +752,14 @@
 - Known limits: the existing full quote-comparison API and JSON/CSV stock-sheet exports remain fail-closed until DOM-143C/D integrate and round-trip the new group comparison. No frontend, adapter/performance-owned files or CNC output changed.
 - AI Developer #45338253254 failed because OpenRouter free-model daily quota returned HTTP 429 (limit 50, remaining 0; reset 25 November 2026 03:00 TRT). Its integration/performance specialist job was skipped. No retry, paid credits, secrets or quota settings were changed.
 - Next: after exact-SHA gates pass, DOM-143C integrates the group comparison into backward-compatible comparison JSON while preserving legacy comparison files; DOM-143D adds CSV group rows and source-map provenance deltas.
+
+
+## 24 Kasım 2026 10:57 TRT — DOM-143B1 stock-sheet group count contract (verification pending)
+
+- Base `dev/github-work` HEAD: `31e5828a291a08f393d7a721ed44430219b7fb78`. Before this change, exact-SHA CI [#45351731249](https://github.com/Taylan789/MobilyaCAD/actions/runs/45351731249), QA [#45351731323](https://github.com/Taylan789/MobilyaCAD/actions/runs/45351731323) and Pages [#45351731251](https://github.com/Taylan789/MobilyaCAD/actions/runs/45351731251) all completed successfully. No active CI, QA or AI Developer job was present before the write.
+- Added immutable `groupCounts` to `ProjectQuoteRevisionStockSheetGroupComparison`: added, removed, changed and unchanged groups are now explicit. The counters are derived from the sorted union of validated stable group IDs; unchanged groups remain omitted from `groupChanges`.
+- Added regression assertions for the existing changed/removed/added fixture and a separate identical-revision fixture requiring two unchanged groups, zero change records and a frozen count object.
+- Changed files: `domain/production/projectQuoteRevision.ts`, `domain/production/projectQuoteRevision.test.mjs`, `docs/production-domain-contract.md`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`.
+- Implementation commit and exact-SHA Actions: pending commit creation in this run. Do not treat this change as verified until CI, QA, production build and Pages complete successfully for its exact SHA.
+- Known constraints: no frontend, comparison JSON/CSV adapter, benchmark, machine-specific CNC output, secret/setting or `main` changes. The integration/performance branch search returned no matching specialist branch; AI Developer [#45338253254](https://github.com/Taylan789/MobilyaCAD/actions/runs/45338253254) failed with OpenRouter free-model daily quota HTTP 429 and its specialist job was skipped. JSON/CSV adapter work remains deferred to that owner.
+- Next domain slice: expose stable changed-field reasons for matched stock-sheet groups so downstream consumers can distinguish price, sheet count, Part provenance and source-reference changes without re-deriving them.
