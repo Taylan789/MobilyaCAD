@@ -3113,6 +3113,7 @@ test("DOM-143C-domain integrates stock-sheet groups into the full comparison wit
   const laborDeltaMinor = laborLine.lineTotalMinor - previousLineTotalMinor;
   toSnapshot.quoteSummary.costSummary.categoryTotalsMinor.labor += laborDeltaMinor;
   toSnapshot.quoteSummary.costSummary.grandTotalMinor += laborDeltaMinor;
+  toSnapshot.materialCostBasis.categoryTotalsMinor.labor += laborDeltaMinor;
   const revisedSnapshot = setDom143StockSheetGroups(toSnapshot, [
     { materialId: "mdf-18", thicknessMm: 18, sourcePartIds: ["dom-143c-part-a", "dom-143c-part-b"], sheetCount: 2, pricePerSheetMinor: 125, sourceReference: "stock-price-v2" }
   ]);

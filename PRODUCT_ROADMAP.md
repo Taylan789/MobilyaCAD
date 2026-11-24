@@ -1520,3 +1520,9 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 - İlk QA, üretim karşılaştırma kodundan değil iki test beklentisinden başarısız oldu: karışık fixture'da hardware satırı bulunmuyor (labor satırı var) ve project-file testi eski blocked sonucunu bekliyordu.
 - Testler mevcut gerçek fixture ve yeni ready API sözleşmesiyle hizalandı; hiçbir test kaldırılmadı veya zayıflatılmadı.
 - Pages exact-SHA gate, QA başarısız olduğu için deployment'ı atladı. Düzeltme doğrulanmadan test sitesi yeni SHA'ya taşınmış sayılmaz.
+
+
+**DOM-143C-domain ikinci QA bulgusu — 24 Kasım 2026**
+- İlk düzeltmeden sonra 714/715 domain testi geçti. Tek kalan test fixture hatası, labor line toplamı güncellenirken aynı revizyonun `materialCostBasis.categoryTotalsMinor.labor` kaynağının güncellenmemesiydi.
+- Fixture artık quoteSummary ve materialCostBasis kaynaklarını birlikte uzlaştırıyor; üretim kodu değiştirilmedi ve assertion gevşetilmedi.
+- QA tekrar başarılı olmadan Pages deployment yapılmayacak.

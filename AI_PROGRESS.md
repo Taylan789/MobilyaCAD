@@ -802,3 +802,12 @@
 - Correction: update the mixed regression to mutate/reconcile its actual labor line and update the project-file round-trip assertion to require the ready stock-sheet group comparison. No tests removed or weakened; production source remains unchanged.
 - Correction files: `domain/production/projectQuoteRevision.test.mjs`, `domain/production/projectQuoteRevisionProjectFile.test.mjs`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`.
 - Correction commit SHA and exact-SHA CI/QA/Pages: pending.
+
+
+## 24 Kasım 2026 12:09 TRT — DOM-143C-domain second QA correction (verification pending)
+
+- Correction commit [6037bb2c4b1e22330bedab90fd0c1bc2c90d6b7a](https://github.com/Taylan789/MobilyaCAD/commit/6037bb2c4b1e22330bedab90fd0c1bc2c90d6b7a) passed CI [#45364042394](https://github.com/Taylan789/MobilyaCAD/actions/runs/45364042394).
+- QA [#45364042088](https://github.com/Taylan789/MobilyaCAD/actions/runs/45364042088) reported 714/715 domain tests passing. The only remaining failure was a fixture-source mismatch: the test updated quoteSummary labor totals but not the matching materialCostBasis labor category total. The project-file ready assertion and labor-line selection now pass.
+- Pages [#45364042077](https://github.com/Taylan789/MobilyaCAD/actions/runs/45364042077) built successfully but correctly skipped deployment because the exact-SHA QA gate failed.
+- Fix updates the materialCostBasis labor category by the same calculated line delta; no production code or test assertions were weakened.
+- Next correction commit and exact-SHA CI/QA/Pages verification: pending.
