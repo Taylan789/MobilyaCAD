@@ -20,7 +20,7 @@ test("selected-part dimensions adapt to the actual inspector width", () => {
 });
 
 test("dimension editing keeps the existing millimeter values and safe input bounds", () => {
-  assert.match(inspector, /id=\{\`selected-part-\$\{field\}\`\}/);
+  assert.ok(inspector.includes("id={`selected-part-${field}`}"));
   assert.match(inspector, /min="1"/);
   assert.match(inspector, /max="280000"/);
   assert.match(inspector, /step="1"/);
