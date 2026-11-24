@@ -1,0 +1,76 @@
+/* UI-BRAND-JOINERY-MARK-001 — shared technical mark for the CAD shell and favicon. */
+.mc-brand__mark-art {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  shape-rendering: geometricPrecision;
+}
+
+.mc-brand__mark-art .mc-brand-mark__backplate {
+  fill: #17232b;
+  stroke: #526b78;
+  stroke-width: 1;
+}
+
+.mc-brand__mark-art .mc-brand-mark__carcass {
+  stroke: #dce6eb;
+  stroke-width: 1.45;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.mc-brand__mark-art .mc-brand-mark__top {
+  stroke: #91b4c9;
+  stroke-width: 1.65;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.mc-brand__mark-art .mc-brand-mark__interior {
+  stroke: #cbd8df;
+  stroke-width: 1.25;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.mc-brand__mark-art .mc-brand-mark__shelf {
+  stroke: #c99b77;
+  stroke-width: 1.55;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.mc-brand__mark-art .mc-brand-mark__dimension-ticks {
+  stroke: #91b4c9;
+  stroke-width: 1.4;
+  stroke-linecap: round;
+}
+
+.mc-brand__mark-art .mc-brand-mark__joint {
+  fill: #e1b48f;
+  stroke: #17232b;
+  stroke-width: 0.7;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mc-brand__mark {
+    transition: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .mc-brand__mark-art .mc-brand-mark__backplate {
+    fill: Canvas;
+    stroke: CanvasText;
+  }
+
+  .mc-brand__mark-art path {
+    stroke: CanvasText;
+  }
+
+  .mc-brand__mark-art circle {
+    fill: Highlight;
+    stroke: CanvasText;
+  }
+}
