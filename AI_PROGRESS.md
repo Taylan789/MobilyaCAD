@@ -787,10 +787,10 @@
 - Preserved line-level changes independently; valid empty stock-only quote summaries now return an empty line-change list without synthetic cost lines. Legacy/non-stock comparisons omit the optional property and retain their previous shape.
 - Added two regression tests for mixed stock-group + hardware line changes and stock-only empty quote revisions. No adapter or adapter-owned test files changed; JSON/CSV strict schemas remain fail-closed for this additive field.
 - Changed files: `domain/production/projectQuoteRevision.ts`, `domain/production/projectQuoteRevision.test.mjs`, `docs/production-domain-contract.md`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`.
-- Implementation commit: `PENDING_COMMIT_SHA` (this entry will be finalized after the commit object is created).
-- Exact-SHA CI/QA/Pages: pending.
+- Implementation commit: [cdc483f33bd2c83b5f63842870c2ecdd470e9307](https://github.com/Taylan789/MobilyaCAD/commit/cdc483f33bd2c83b5f63842870c2ecdd470e9307). QA correction commits: [6037bb2c](https://github.com/Taylan789/MobilyaCAD/commit/6037bb2c4b1e22330bedab90fd0c1bc2c90d6b7a) and [0c75f4b1](https://github.com/Taylan789/MobilyaCAD/commit/0c75f4b1e3a1008df2e4bad688b1527bc15b74d3).
+- Final exact-SHA CI [#45364406712](https://github.com/Taylan789/MobilyaCAD/actions/runs/45364406712), QA [#45364406673](https://github.com/Taylan789/MobilyaCAD/actions/runs/45364406673), and Pages [#45364406852](https://github.com/Taylan789/MobilyaCAD/actions/runs/45364406852) all passed. QA: 218/218 unit + 715/715 domain tests, strict TypeScript, lint, production build, production audit 0 vulnerabilities.
 - AI Developer [#45338253254](https://github.com/Taylan789/MobilyaCAD/actions/runs/45338253254) failed because OpenRouter free-model daily quota returned HTTP 429 (limit 50, remaining 0; reset 25 November 2026 03:00 TRT); integration/performance specialist job was skipped. No retry, paid fallback, secret or quota setting was changed. No specialist branch/PR was verified.
-- Current test site before this change: https://taylan789.github.io/MobilyaCAD/ — base SHA deployed by Pages [#45357879321](https://github.com/Taylan789/MobilyaCAD/actions/runs/45357879321). New deployment is pending exact-SHA CI + QA.
+- Test site deployed from the final verified SHA: https://taylan789.github.io/MobilyaCAD/ — Pages [#45364406852](https://github.com/Taylan789/MobilyaCAD/actions/runs/45364406852).
 - Next: verify this commit, then keep JSON/CSV round-trip work with the integration/performance owner; continue with a separate domain-only cross-revision provenance task.
 
 
@@ -811,3 +811,15 @@
 - Pages [#45364042077](https://github.com/Taylan789/MobilyaCAD/actions/runs/45364042077) built successfully but correctly skipped deployment because the exact-SHA QA gate failed.
 - Fix updates the materialCostBasis labor category by the same calculated line delta; no production code or test assertions were weakened.
 - Next correction commit and exact-SHA CI/QA/Pages verification: pending.
+
+
+## 24 Kasım 2026 12:09 TRT — DOM-143C-domain VERIFIED
+
+- Final code/test SHA: [0c75f4b1e3a1008df2e4bad688b1527bc15b74d3](https://github.com/Taylan789/MobilyaCAD/commit/0c75f4b1e3a1008df2e4bad688b1527bc15b74d3).
+- Exact-SHA CI [#45364406712](https://github.com/Taylan789/MobilyaCAD/actions/runs/45364406712) passed: TypeScript production build and lint.
+- Exact-SHA QA [#45364406673](https://github.com/Taylan789/MobilyaCAD/actions/runs/45364406673) passed: 218/218 unit + 715/715 shared-domain tests, strict domain TypeScript, lint, production build and production dependency audit (0 production vulnerabilities).
+- Exact-SHA Pages [#45364406852](https://github.com/Taylan789/MobilyaCAD/actions/runs/45364406852) passed its CI/QA gate, site build, artifact upload and deployment. Test site: https://taylan789.github.io/MobilyaCAD/.
+- QA history: initial implementation cdc483f had two stale test expectations; 6037bb2 corrected those but exposed one materialCostBasis fixture-total mismatch; 0c75f4b reconciled both independent total sources. The failed intermediate SHAs were not deployed; no assertions were weakened.
+- Remaining constraints: JSON/CSV comparison serializers still reject the additive nested group-comparison field by design; adapter schema/round-trip remains specialist-owned. No integration/performance specialist branch or PR was verified. Build continues to warn that the main JS bundle is about 1.69 MB (gzip about 473 kB), so measured code splitting remains a performance follow-up.
+- No frontend, adapter/performance-owned files, CNC output, secrets/settings or main changes. AI Developer [#45338253254](https://github.com/Taylan789/MobilyaCAD/actions/runs/45338253254) failed on OpenRouter free-model daily HTTP 429; reset is 25 November 2026 03:00 TRT; no retry or paid fallback.
+- Next: verify a real specialist branch/PR before JSON/CSV schema integration; continue domain-side cross-revision source-map and stock-sheet Part reconciliation without touching adapter files.

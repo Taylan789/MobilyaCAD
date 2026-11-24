@@ -1497,7 +1497,7 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 
 ## DOM-143C-domain — Tam teklif revizyon zarfında levha grubu farkları
 
-**Durum:** İlk uygulama [cdc483f](https://github.com/Taylan789/MobilyaCAD/commit/cdc483f33bd2c83b5f63842870c2ecdd470e9307) CI ve production build'i geçti; QA iki eski test beklentisini yakaladı (713/715 domain testi geçti). Düzeltme commit'i ve yeni exact-SHA CI/QA/Pages doğrulaması bekleniyor. Bu bir domain dilimidir; JSON/CSV adaptörlerinin tamamlandığı anlamına gelmez.
+**Durum:** VERIFIED on [0c75f4b](https://github.com/Taylan789/MobilyaCAD/commit/0c75f4b1e3a1008df2e4bad688b1527bc15b74d3). Exact-SHA CI [#45364406712](https://github.com/Taylan789/MobilyaCAD/actions/runs/45364406712), QA [#45364406673](https://github.com/Taylan789/MobilyaCAD/actions/runs/45364406673) and Pages [#45364406852](https://github.com/Taylan789/MobilyaCAD/actions/runs/45364406852) passed. QA: 218/218 unit + 715/715 domain, strict TS, lint, production build, production audit 0 vulnerabilities. Bu domain dilimidir; JSON/CSV adaptörlerinin tamamlandığı anlamına gelmez.
 
 - `compareProjectQuoteRevisions` artık en az bir revizyon `stock-sheet-purchase` temeli kullandığında doğrulanmış grup karşılaştırmasını `stockSheetGroupComparison` altında taşır.
 - Üst zarfın para birimi, başlangıç/hedef toplamları ve kategori farkları alt grup karşılaştırmasıyla aynı kaynaktan gelir; kategori farkları genel toplam farkına tekrar uzlaştırılır.
@@ -1526,3 +1526,10 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 - İlk düzeltmeden sonra 714/715 domain testi geçti. Tek kalan test fixture hatası, labor line toplamı güncellenirken aynı revizyonun `materialCostBasis.categoryTotalsMinor.labor` kaynağının güncellenmemesiydi.
 - Fixture artık quoteSummary ve materialCostBasis kaynaklarını birlikte uzlaştırıyor; üretim kodu değiştirilmedi ve assertion gevşetilmedi.
 - QA tekrar başarılı olmadan Pages deployment yapılmayacak.
+
+
+**DOM-143C-domain doğrulama sonucu — 24 Kasım 2026**
+- Final SHA 0c75f4b1e3a1008df2e4bad688b1527bc15b74d3 exact-SHA CI/QA/Pages kontrollerinin tümünü geçti. QA: 218/218 unit + 715/715 domain tests; strict domain TypeScript, lint, production build ve production audit 0 vulnerability.
+- Test sitesi exact verified SHA üzerinden deploy edildi: https://taylan789.github.io/MobilyaCAD/.
+- İlk iki QA başarısızlığı yalnızca fixture/assertion uyumsuzluğuydu; başarısız SHA'lar deploy edilmedi ve hiçbir test zayıflatılmadı.
+- JSON/CSV adapter ve fiziksel CNC doğrulaması hâlâ ayrı sahiplik/önkoşul gerektirir.
