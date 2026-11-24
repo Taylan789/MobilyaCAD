@@ -1433,3 +1433,10 @@ The direct revision API input copy counts the root as level 1, matching the proj
 ### DOM-155 — Quote revision count preflight
 
 `validateProjectQuoteRevisionHistory` inspects the own enumerable data descriptor for `revisions` and the array's own length descriptor before recursively copying revision payloads. Histories above the existing 2,000-revision limit are rejected before nested revision descriptors are traversed; accessor-backed `revisions` properties are never invoked. The existing post-copy schema/count validation remains as defense in depth. This is a count guard, not a byte-size replacement: project-v2 and standalone-file byte limits remain enforced by their existing entry points. Proxy reflection traps remain outside this guarantee.
+
+
+## DOM-156 — Append-capacity preflight
+
+`appendProjectQuoteRevision` now checks the own enumerable data descriptor for `revisions` and its array length before validating/copying the existing history or reading the incoming revision. If the existing count is already 2,000, the append is rejected immediately with a blocked result and no partial history. This prevents an impossible 2,001st append from traversing up to 2,000 nested snapshots and copying the incoming snapshot first.
+
+The check is intentionally append-specific: `validateProjectQuoteRevisionHistory` still accepts a valid history containing exactly 2,000 revisions for reading/export. A history at that limit cannot accept another revision. Below-limit appends continue through the existing full validation and immutable-copy path. Accessor-backed history fields are not invoked; proxy reflection traps remain outside this guarantee.

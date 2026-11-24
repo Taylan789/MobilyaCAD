@@ -3850,3 +3850,42 @@ test("DOM-154 missing optional source-integrity marker never reads an Object.pro
     }
   }
 });
+
+
+test("DOM-156 rejects a full revision history before traversing existing entries or the new snapshot", () => {
+  const revisions = new Array(PROJECT_QUOTE_REVISION_HISTORY_MAX_REVISIONS);
+  let historyEntryGetterCalls = 0;
+  Object.defineProperty(revisions, 0, {
+    enumerable: true,
+    configurable: true,
+    get() {
+      historyEntryGetterCalls += 1;
+      return null;
+    }
+  });
+  const history = { projectId: "project-42", revisions };
+
+  let snapshotGetterCalls = 0;
+  const revisionInput = {
+    revisionId: "quote-r2001",
+    createdAt: "2026-11-17T12:00:00Z"
+  };
+  Object.defineProperty(revisionInput, "pricingSnapshot", {
+    enumerable: true,
+    configurable: true,
+    get() {
+      snapshotGetterCalls += 1;
+      return createSnapshot();
+    }
+  });
+
+  const result = appendProjectQuoteRevision(history, revisionInput);
+
+  assert.equal(result.status, "blocked");
+  assert.equal(result.history, null);
+  assert.match(result.diagnostics.join(" | "), /en fazla 2000 revizyon/);
+  assert.equal(historyEntryGetterCalls, 0);
+  assert.equal(snapshotGetterCalls, 0);
+  assert.equal(revisions.length, PROJECT_QUOTE_REVISION_HISTORY_MAX_REVISIONS);
+  assert.equal(Object.getOwnPropertyDescriptor(revisionInput, "pricingSnapshot").get instanceof Function, true);
+});

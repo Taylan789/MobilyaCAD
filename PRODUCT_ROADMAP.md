@@ -1749,3 +1749,19 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 **Bilinen sınır:** Proxy reflection trap'leri bu API garantisinin dışındadır. Bu değişiklik byte-limitlerinin veya UI save/open entegrasyonunun yerine geçmez.
 
 **Sonraki işler:** INT-003 UI sahibinin parser/save/open entegrasyonu; ardından DOM-153 gerçek editör append/save/reopen/append round-trip. INT-002/PERF-001 adapter ve profiling işleri uzman sahibinde kalır.
+
+
+## 25 Kasım 2026 — DOM-156: teklif geçmişi append kapasite kontrolü
+
+**Durum:** Kod ve regresyon testi eklendi; exact-SHA CI/QA/Pages doğrulaması bekleniyor.
+
+- `appendProjectQuoteRevision`, mevcut geçmiş 2.000 kayıt olduğunda yeni revizyon snapshot'ını veya geçmiş girdilerini kopyalamadan önce işlemi bloklar.
+- Okuma/doğrulama amacıyla tam 2.000 kayıtlı geçmiş hâlâ kabul edilir; yalnızca 2.001'inci kaydı ekleme girişimi reddedilir.
+- Kabul kriteri: tam kapasitede mevcut geçmişteki ilk kayıt getter'ı ve yeni snapshot getter'ı hiç çalışmaz; `history: null` döner; kaynak dizi değişmez.
+- Geriye uyumluluk: JSON v1/v2 şemaları, standalone dosya byte sınırı, mm/adet/maliyet hesapları değişmez.
+- Sınır: Proxy reflection trap'leri JavaScript descriptor API'lerinin doğası gereği engellenemez. Fiziksel CNC/atölye doğrulaması bu güvenlik dilimiyle ilgili değildir.
+
+**Sıradaki küçük işler**
+1. DOM-157 — aynı kapasite preflight'ını project-v2 append girişinde, 16 MiB zarf kopyasından önce güvenli biçimde uygulamak.
+2. INT-003 — UI sahibinin JSON v2 parser/save/open entegrasyonunu tamamlamasını takip etmek; frontend dosyalarına dokunmamak.
+3. DOM-153 — entegrasyon hazır olduğunda editör append → save → reopen → append domain sözleşmesini exact-SHA testleriyle doğrulamak.
