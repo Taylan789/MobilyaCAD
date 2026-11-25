@@ -33,10 +33,18 @@
   color: #eef6fa;
   background: rgba(61, 90, 107, .98);
   border-color: rgba(177, 205, 221, .76);
+  box-shadow: 0 0 0 2px rgba(157, 193, 214, .12);
 }
 
-/* UI-CATALOG-COMPACT-ADD-TARGET-001 — preserve preview room on the compact catalog rail. */
-@media (max-width: 820px) {
+.cad-catalog-card.mc-catalog-card:active .mc-catalog-card__add {
+  color: #f7fbfd;
+  background: rgba(77, 111, 130, 1);
+  border-color: rgba(205, 226, 238, .88);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, .28);
+}
+
+/* UI-CATALOG-MEDIUM-DESKTOP-ACTION-001 — keep the add target compact beside the live preview. */
+@media (max-width: 1360px) {
   .cad-catalog-card.mc-catalog-card .mc-catalog-card__add {
     width: 32px;
     min-width: 32px;
@@ -69,5 +77,11 @@
     color: ButtonText;
     background: ButtonFace;
     border-color: ButtonText;
+    box-shadow: none;
+  }
+
+  .cad-catalog-card.mc-catalog-card:focus-visible .mc-catalog-card__add {
+    outline: 2px solid Highlight;
+    outline-offset: 2px;
   }
 }
