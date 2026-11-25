@@ -11,11 +11,11 @@ const styles = readFileSync(
 test("desktop viewport panel toggles show the dock purpose beside each icon", () => {
   assert.match(
     app,
-    /aria-controls="cad-left-dock"[^>]*<PanelLeft \/><span className="studio-panel-toggle__label" aria-hidden="true">SOL PANEL<\/span>/
+    /aria-controls="cad-left-dock"[\\s\\S]*?<PanelLeft \/><span className="studio-panel-toggle__label" aria-hidden="true">SOL PANEL<\/span>/
   );
   assert.match(
     app,
-    /aria-controls="cad-inspector"[^>]*<PanelRight \/><span className="studio-panel-toggle__label" aria-hidden="true">ÖZELLİKLER<\/span>/
+    /aria-controls="cad-inspector"[\\s\\S]*?<PanelRight \/><span className="studio-panel-toggle__label" aria-hidden="true">ÖZELLİKLER<\/span>/
   );
 });
 
