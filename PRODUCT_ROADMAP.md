@@ -609,7 +609,7 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 | Üretim | Her Part için kaynak ID, quantity, mm ölçü, malzeme/kalınlık; unsupported geometri/export kısmi sonuç üretmeden blocker | Domain konstrüksiyon, tüketim, nesting freshness, teklif/revizyon ve JSON/CSV sözleşmeleri var; frontend adapter/CNC postprocessor eksik |
 | UX | Ana akışlarda işlevsel kontroller; klavye/focus, erişilebilirlik, responsive, boş/hata durumları otomatik doğrulanır | Frontend ayrı ajan alanında; gerçek tarayıcı görsel kabulü NOT MEASURED |
 | Performans | Referans sahnede p95 frame-time hedefi 16,7 ms (60 FPS), scene update p95 <100 ms, bellek ölçümü ve CI regression threshold | Referans sahne/benchmark NOT MEASURED; bu kontrolde aktif Integration/Performance run veya PR bulunmadı; PERF-001 ve INT-002 READY, QA-003 INT-001/INT-002'ye bağlı |
-| Güvenilirlik | Strict TS, test, build, audit; import/export round-trip 0 alan kaybı; invalid input 0 partial output | Latest verified SHA [d5de6d2c](https://github.com/Taylan789/MobilyaCAD/commit/d5de6d2c3a721fb1d5eb57702f76fb90ba366c81): CI [#45683761827](https://github.com/Taylan789/MobilyaCAD/actions/runs/45683761827), QA [#45683761812](https://github.com/Taylan789/MobilyaCAD/actions/runs/45683761812), Pages [#45683761775](https://github.com/Taylan789/MobilyaCAD/actions/runs/45683761775) all passed; QA 314/314 frontend + 790/790 domain, strict shared-domain TS, lint 36 warnings/0 errors, production build and production-only audit 0 vulnerabilities. Full install audit reports 4 moderate findings; no dependency change. Vite JS bundle 1,698.03 kB (475.00 kB gzip), CSS 442.80 kB (75.05 kB gzip); viewport p95/memory remain NOT MEASURED. Overall 10/10 gate remains unchecked. |
+| Güvenilirlik | Strict TS, test, build, audit; import/export round-trip 0 alan kaybı; invalid input 0 partial output | Latest verified SHA [a021b0a5](https://github.com/Taylan789/MobilyaCAD/commit/a021b0a5db7de0634ab33443d43890df20736db9): CI [#45685137601](https://github.com/Taylan789/MobilyaCAD/actions/runs/45685137601), QA [#45685137577](https://github.com/Taylan789/MobilyaCAD/actions/runs/45685137577), Pages [#45685137617](https://github.com/Taylan789/MobilyaCAD/actions/runs/45685137617) all passed; QA 314/314 frontend + 791/791 domain, strict shared-domain TS, lint 36 warnings/0 errors, production build and production-only audit 0 vulnerabilities. Full install audit reports 4 moderate findings; no dependency change. Vite JS bundle 1,698.03 kB (475.00 kB gzip), CSS 442.80 kB (75.05 kB gzip); viewport p95/memory remain NOT MEASURED. Overall 10/10 gate remains unchecked. |
 | Edge-band export | Direction, catalog ID, mm/m, Part/furniture provenance and strict JSON round-trip; malformed/unsupported input blocked | DOM-068 verified: 124 frontend + 468 domain tests, strict type-check, build and audit; see Actions |
 
 
@@ -2055,7 +2055,7 @@ Sonraki adım: Exact-SHA CI/QA/Pages sonuçlarını doğrula; ardından DOM-170 
 5. Keep bundle p95 viewport/memory profiling with the specialist owner; current viewport p95/memory remains NOT MEASURED.
 
 
-## 25 Kasım 2026 22:21 TRT — DOM-173 (implementation submitted; exact-SHA verification pending)
+## 25 Kasım 2026 22:21 TRT — DOM-173 VERIFIED
 
 User value: the revision audit can distinguish total schema-v2 manifest references from project-wide unique Part IDs even when a Part appears in more than one revision. Legacy v1 stock-sheet groups and revisions without a stock-sheet basis remain explicitly outside v2 manifest totals.
 
@@ -2063,7 +2063,7 @@ Acceptance: a four-revision fixture (v2, v2 with an overlapping Part ID, legacy 
 
 Implementation scope: clarifying source-contract comments, one multi-revision regression, and contract/coordination/roadmap updates. No frontend, JSON/CSV adapter, benchmark, CNC/machine, pricing behavior, secrets/settings or main changes.
 
-Status: implementation commit will be recorded in AI_PROGRESS.md after GitHub assigns its SHA. Exact-SHA CI, QA, production build and Pages results are pending; no new deployment is claimed yet.
+Verified implementation [a021b0a5](https://github.com/Taylan789/MobilyaCAD/commit/a021b0a5db7de0634ab33443d43890df20736db9). Exact-SHA CI [#45685137601](https://github.com/Taylan789/MobilyaCAD/actions/runs/45685137601), QA [#45685137577](https://github.com/Taylan789/MobilyaCAD/actions/runs/45685137577) and Pages [#45685137617](https://github.com/Taylan789/MobilyaCAD/actions/runs/45685137617) all succeeded. QA: 314/314 frontend + 791/791 domain tests; the DOM-173 regression passed; strict shared-domain TypeScript; lint 36 warnings / 0 errors; production build; production-only dependency audit 0 vulnerabilities. Pages logs confirm exact SHA a021b0a5db7de0634ab33443d43890df20736db9 deployed to https://taylan789.github.io/MobilyaCAD/.
 
 ### Next 3–5 small tasks
 1. DOM-174 — compare manifest coverage for every non-adjacent revision pair in a mixed v2/v1 history and reconcile the comparison result with the source-map audit.
