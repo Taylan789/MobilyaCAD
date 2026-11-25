@@ -1101,3 +1101,15 @@
 - Changed files: `domain/production/projectQuotePricingSnapshot.ts`, `domain/production/projectQuotePricingSnapshot.test.mjs`, `docs/production-domain-contract.md`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`.
 - No frontend, adapter/performance-owned file, CNC/machine output, secrets/settings or `main` changes. Nested production reports/tables remain the responsibility of downstream validators; physical production/CNC validation is not claimed.
 - Next: UI-owned INT-003 JSON v2 editor save/open integration; then DOM-153 append → save → reopen → append contract. Keep INT-003 PR #206 draft until App.tsx owners complete; specialist INT-002/PERF-001 remains unverified/disabled.
+
+
+## 25 Kasım 2026 11:23 TRT — DOM-163 implementation (verification pending)
+
+- Base dev/github-work HEAD: 952d485b4992c61426de2380ea96a7fbb3d4e689. Write preflight re-read the branch ref, all six target blob SHAs and Actions state; no active CI, QA, AI Developer or Pages run existed.
+- Domain change: stock-sheet purchase report input is now copied through own enumerable data descriptors before any material-cost-basis or quote snapshot consumer reads it. Nested accessors, inherited values, custom prototypes, symbol/non-enumerable fields, sparse/extended arrays, cycles, non-JSON values, oversized depth/node/UTF-8 payload and throwing Proxy reflection traps fail closed.
+- The same bounded clone is used by the material-cost calculator and the final snapshot group/provenance projection; the raw nested report is not read again.
+- Regressions cover nested group accessor, source Part array index accessor, Object.prototype inherited sheetCount, Proxy prototype reflection failure, depth 64/65 and payload size over 16 MiB. Existing valid stock-sheet and net-consumption snapshot cases remain in the suite.
+- Changed files: domain/production/projectQuotePricingSnapshot.ts, domain/production/projectQuotePricingSnapshot.test.mjs, docs/production-domain-contract.md, AI_COORDINATION.md, PRODUCT_ROADMAP.md, AI_PROGRESS.md.
+- Implementation commit SHA and exact-SHA CI/QA/Pages results will be recorded after the GitHub commit and workflow runs are observed; no test is reported successful yet.
+- No frontend, adapter/performance-owned, CNC/machine, secrets/settings or main changes. UI-owned INT-003 PR #206 remains draft; no specialist agent/integration-performance branch was found.
+- Next: inspect exact-SHA Actions, then audit DOM-164 nested quote-adjustment/report inputs without touching UI or adapter ownership.

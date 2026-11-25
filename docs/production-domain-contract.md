@@ -1488,3 +1488,13 @@ The DOM-157 regression uses an envelope already over the 16 MiB limit together w
 - Scope boundary: production reports, price tables, work-item arrays, roll arrays and stock-sheet reports remain validated by their respective downstream domain calculators; this slice does not claim to recursively sanitize every nested payload or suppress Proxy traps. It converts reflection failures encountered while inspecting the request/metadata records into fail-closed results.
 - Automatic acceptance: own/inherited getter counters remain zero; prototype/ownKeys/descriptor trap failures do not escape; malformed metadata yields no partial quote/snapshot; ordinary and null-prototype requests retain the existing ready behavior.
 - No frontend, adapter, CNC/postprocessor, price source, machine standard or physical workshop behavior is introduced.
+
+
+## DOM-163 — Quote snapshot levha satın alma raporu için güvenli nested input
+
+- createProjectQuotePricingSnapshot, materialCostBasis.basis açıkça stock-sheet-purchase olduğunda raporu herhangi bir maliyet hesaplayıcısına vermeden önce own enumerable data descriptor üzerinden kopyalar.
+- Rapor ve tüm nested nesne/dizilerde accessor, inherited alan, symbol, non-enumerable alan, özel prototype, sparse/ek özellikli dizi, cycle, JSON dışı değer ve reflection trap hatası fail-closed reddedilir; getter çalıştırılmaz.
+- Kopya null-prototype nesneler ve yoğun dizilerden oluşur. Sınırlar root dahil 64 seviye, 250.000 ziyaret edilen değer ve 16 MiB UTF-8 payload'dır. Bu sınırlar yalnızca stock-sheet quote snapshot rapor girdisine uygulanır; proje JSON v1/v2 şeması değiştirilmez.
+- Aynı güvenli kopya hem material-cost-basis hesaplayıcısına hem snapshot grup/provenance çıkarımına gider; ikinci kez ham kullanıcı nesnesi okunmaz.
+- Proxy trap'lerinin çalıştırılmasını engellediği iddia edilmez; hata fırlatan reflection trap'leri public snapshot API dışına exception sızdırmadan blocked döner.
+- Net-consumption akışı, quote aritmetiği, mm/adet/para birimi kuralları ve mevcut geçerli stock-sheet snapshot çıktısı değişmez. CNC, makine veya fiziksel üretim doğrulaması değildir.

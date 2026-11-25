@@ -1788,7 +1788,7 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 1. INT-003 — UI sahibinin JSON v2 parser/save/open entegrasyonunu tamamlamasını takip et; frontend dosyalarına dokunma ve draft PR #206'yı merge etme.
 2. INT-003 — UI sahibinin JSON v2 parser/save/open entegrasyonunu tamamlamasını takip et; frontend dosyalarına dokunma ve draft PR #206'yı merge etme.
 3. DOM-153 — INT-003 tamamlandıktan sonra editör append → save → reopen → append round-trip sözleşmesini test et.
-4. DOM-163 — yalnızca yeni kanıt varsa kalan public quote snapshot giriş noktalarında nested metadata/reflection güvenliği boşluklarını incele.
+4. DOM-164 — nested quote adjustment ve diğer public quote input sınırlarını audit et; sahiplik dışı adapter dosyalarına dokunma.
 5. PERF-001 / INT-002 — specialist-owned adapter/profile işleri için gerçek etkin branch/PR ve ölçüm kanıtı bekle; disabled job'ı varmış gibi sunma.
 
 ## DOM-159 — Legacy v1 zarfı reflection hatalarını fail-closed yönet
@@ -1877,3 +1877,23 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 ### DOM-162 exact-SHA verification — 25 Kasım 2026
 
 The first implementation SHA was not published after QA found one inherited-getter leak in the downstream options container. The corrected SHA [25f04468](https://github.com/Taylan789/MobilyaCAD/commit/25f044686aa7cbed89ed73d0bd8285a09908fe8e) passed CI [#45572928664](https://github.com/Taylan789/MobilyaCAD/actions/runs/45572928664), QA [#45572928650](https://github.com/Taylan789/MobilyaCAD/actions/runs/45572928650) and Pages [#45572928855](https://github.com/Taylan789/MobilyaCAD/actions/runs/45572928855). QA: 283/283 frontend + 760/760 domain, strict shared-domain TypeScript, lint 36 warnings/0 errors, production build and audit 0 vulnerabilities. The verified test site is https://taylan789.github.io/MobilyaCAD/.
+
+
+## DOM-163 — Teklif snapshot levha satın alma raporu güven sınırı (25 Kasım 2026)
+
+**Kullanıcı akışı:** Atölye, açıkça seçtiği levha satın alma maliyet temelini teklif snapshot'ına aktarır. Rapor önce güvenli biçimde normalize edilir; geçersiz nested veri varsa teklif ve snapshot birlikte engellenir.
+
+**Bulgu:** DOM-162 request zarfını güvenli kopyalıyordu; ancak stockSheetPurchaseReport nested grupları ve sourcePartIds dizileri downstream maliyet hesaplayıcısına ham referansla aktarılıyordu. Nested own/inherited accessor'lar hesap sırasında çalışabilir, Proxy reflection hataları da beklenen blocked sonucu yerine dışarı sızabilirdi.
+
+**Dikey dilim:** Stock-sheet raporu hesaplamadan önce own enumerable data descriptor üzerinden sınırlı JSON kopyasına alınır. Nesneler null-prototype; diziler yoğun ve ek özelliksizdir. Aynı kopya hesaplama ve snapshot provenance üretiminde kullanılır.
+
+**Kabul kriterleri**
+- Nested group alanı ve sourcePartIds indeks accessor getter çağrısı sıfırdır; sonuç blocked, quote ve snapshot null olur.
+- Eksik own alan Object.prototype getter'ından doldurulamaz.
+- Proxy prototype/descriptor/ownKeys reflection hatası exception olarak dışarı çıkmaz; fail-closed blocked döner.
+- 64 seviye, 250.000 node ve 16 MiB UTF-8 sınırları aşılırsa kısmi çıktı üretilmez.
+- Mevcut geçerli stock-sheet purchase ve net-consumption snapshot davranışı, maliyet toplamı, currency ve Part provenance değişmez.
+
+**Sınırlar:** Bu koruma yalnızca stock-sheet quote snapshot rapor girdisine uygulanır; diğer bağımsız domain girişlerinin kendi validator sorumluluğu sürer. JSON v1/v2 formatı, frontend, adapter, CNC/postprocessor, fiyat kaynağı veya fiziksel atölye davranışı değiştirilmez.
+
+**Durum:** IN_PROGRESS — exact-SHA CI/QA/Pages sonucu bekleniyor. Sonraki domain adımı DOM-164: quote adjustment ve diğer nested quote input sınırlarının sahiplik/validator denetimi. UI-owned INT-003 editör save/open entegrasyonu ayrı kalır.

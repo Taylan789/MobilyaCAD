@@ -513,6 +513,136 @@ test("net-consumption quote snapshot v2 stores the selected basis without stock 
   );
 });
 
+test("stock-sheet quote snapshot rejects nested report accessors without invoking getters", () => {
+  const productionReport = createReport();
+  const reports = [
+    structuredClone(createStockSheetPurchaseReport(productionReport)),
+    structuredClone(createStockSheetPurchaseReport(productionReport))
+  ];
+  let getterCalls = 0;
+  Object.defineProperty(reports[0].result.groups[0], "sheetCount", {
+    enumerable: true,
+    configurable: true,
+    get() {
+      getterCalls += 1;
+      return 1;
+    }
+  });
+  Object.defineProperty(reports[1].result.groups[0].sourcePartIds, "0", {
+    enumerable: true,
+    configurable: true,
+    get() {
+      getterCalls += 1;
+      return "snapshot-cabinet-1-left-side";
+    }
+  });
+
+  for (const stockSheetPurchaseReport of reports) {
+    const result = createProjectQuotePricingSnapshot({
+      quotedOn: "2026-11-30",
+      productionReport,
+      consumptionPriceTable: [],
+      workItems: [],
+      tariffTable: [],
+      consumptionPriceList: null,
+      laborOperationTariffList: null,
+      materialCostBasis: { basis: "stock-sheet-purchase", stockSheetPurchaseReport }
+    });
+    assert.equal(result.status, "blocked");
+    assert.equal(result.quoteSummary, null);
+    assert.equal(result.snapshot, null);
+  }
+  assert.equal(getterCalls, 0);
+});
+
+test("stock-sheet quote snapshot does not inherit report fields and catches Proxy reflection failures", () => {
+  const productionReport = createReport();
+  const reportWithMissingField = structuredClone(createStockSheetPurchaseReport(productionReport));
+  delete reportWithMissingField.result.groups[0].sheetCount;
+  const original = Object.getOwnPropertyDescriptor(Object.prototype, "sheetCount");
+  assert.equal(original, undefined);
+  let getterCalls = 0;
+  try {
+    Object.defineProperty(Object.prototype, "sheetCount", {
+      configurable: true,
+      get() {
+        getterCalls += 1;
+        return 1;
+      }
+    });
+    const inherited = createProjectQuotePricingSnapshot({
+      quotedOn: "2026-11-30",
+      productionReport,
+      consumptionPriceTable: [],
+      workItems: [],
+      tariffTable: [],
+      consumptionPriceList: null,
+      materialCostBasis: { basis: "stock-sheet-purchase", stockSheetPurchaseReport: reportWithMissingField }
+    });
+    assert.equal(getterCalls, 0);
+    assert.equal(inherited.status, "blocked");
+    assert.equal(inherited.snapshot, null);
+
+    const proxyReport = new Proxy(
+      structuredClone(createStockSheetPurchaseReport(productionReport)),
+      {
+        getPrototypeOf() {
+          throw new Error("stock report prototype reflection failed");
+        }
+      }
+    );
+    let proxyResult;
+    assert.doesNotThrow(() => {
+      proxyResult = createProjectQuotePricingSnapshot({
+        quotedOn: "2026-11-30",
+        productionReport,
+        consumptionPriceTable: [],
+        workItems: [],
+        tariffTable: [],
+        consumptionPriceList: null,
+        materialCostBasis: { basis: "stock-sheet-purchase", stockSheetPurchaseReport: proxyReport }
+      });
+    });
+    assert.equal(proxyResult.status, "blocked");
+    assert.equal(proxyResult.quoteSummary, null);
+    assert.equal(proxyResult.snapshot, null);
+    assert.equal(getterCalls, 0);
+  } finally {
+    Reflect.deleteProperty(Object.prototype, "sheetCount");
+  }
+});
+
+test("stock-sheet quote snapshot bounds nested report depth and UTF-8 size", () => {
+  const productionReport = createReport();
+  const createNestedValue = (levels) => {
+    let value = "bounded";
+    for (let index = 0; index < levels; index += 1) value = { child: value };
+    return value;
+  };
+  const makeSnapshot = (extra) => {
+    const stockSheetPurchaseReport = structuredClone(createStockSheetPurchaseReport(productionReport));
+    stockSheetPurchaseReport.extra = extra;
+    return createProjectQuotePricingSnapshot({
+      quotedOn: "2026-11-30",
+      productionReport,
+      consumptionPriceTable: [],
+      workItems: [],
+      tariffTable: [],
+      consumptionPriceList: null,
+      materialCostBasis: { basis: "stock-sheet-purchase", stockSheetPurchaseReport }
+    });
+  };
+
+  assert.equal(makeSnapshot(createNestedValue(63)).status, "ready");
+  const tooDeep = makeSnapshot(createNestedValue(64));
+  assert.equal(tooDeep.status, "blocked");
+  assert.equal(tooDeep.snapshot, null);
+
+  const tooLarge = makeSnapshot("x".repeat(16 * 1024 * 1024 + 1));
+  assert.equal(tooLarge.status, "blocked");
+  assert.equal(tooLarge.snapshot, null);
+});
+
 test("stock-sheet snapshot rejects Part coverage drift instead of persisting foreign provenance", () => {
   const productionReport = createReport();
   const stockSheetPurchaseReport = structuredClone(createStockSheetPurchaseReport(productionReport));

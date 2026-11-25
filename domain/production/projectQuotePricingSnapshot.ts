@@ -235,6 +235,131 @@ function deepFreeze<T>(value: T): DeepReadonly<T> {
 }
 
 
+const stockSheetReportMaxDepth = 64;
+const stockSheetReportMaxNodes = 250000;
+const stockSheetReportMaxBytes = 16 * 1024 * 1024;
+
+/**
+ * Copies an untrusted stock-sheet report before any downstream validator reads it.
+ * Only JSON-like data is accepted; accessors, custom prototypes, sparse arrays,
+ * cycles, oversized payloads and reflection failures fail closed.
+ */
+function copyBoundedStockSheetReport(value: unknown): unknown {
+  const ancestors = new WeakSet<object>();
+  let visitedNodes = 0;
+  let stringCodeUnits = 0;
+
+  function copy(current: unknown, depth: number): unknown {
+    visitedNodes += 1;
+    if (visitedNodes > stockSheetReportMaxNodes) {
+      throw new Error("Levha satın alma raporu düğüm sayısı sınırını aşıyor.");
+    }
+
+    if (current === null || current === undefined || typeof current === "boolean") return current;
+    if (typeof current === "string") {
+      stringCodeUnits += current.length;
+      if (stringCodeUnits > stockSheetReportMaxBytes) {
+        throw new Error("Levha satın alma raporu metin boyutu sınırını aşıyor.");
+      }
+      return current;
+    }
+    if (typeof current === "number") {
+      if (!Number.isFinite(current)) throw new Error("Levha satın alma raporu sonlu olmayan sayı içeremez.");
+      return current;
+    }
+    if (typeof current !== "object") {
+      throw new Error("Levha satın alma raporu yalnızca JSON uyumlu veri içerebilir.");
+    }
+    if (depth > stockSheetReportMaxDepth) {
+      throw new Error("Levha satın alma raporu iç içe nesne/dizi derinliği sınırını aşıyor.");
+    }
+    if (ancestors.has(current)) {
+      throw new Error("Levha satın alma raporu döngüsel referans içeremez.");
+    }
+
+    ancestors.add(current);
+    try {
+      if (Array.isArray(current)) {
+        if (Object.getPrototypeOf(current) !== Array.prototype) {
+          throw new Error("Levha satın alma raporu dizileri özel prototype içeremez.");
+        }
+        const lengthDescriptor = Object.getOwnPropertyDescriptor(current, "length");
+        const arrayLength = lengthDescriptor && "value" in lengthDescriptor
+          ? lengthDescriptor.value
+          : undefined;
+        if (
+          typeof arrayLength !== "number" ||
+          !Number.isSafeInteger(arrayLength) ||
+          arrayLength < 0 ||
+          arrayLength > stockSheetReportMaxNodes
+        ) {
+          throw new Error("Levha satın alma raporu dizi uzunluğu geçersiz veya sınır dışı.");
+        }
+
+        const keys = Reflect.ownKeys(current);
+        if (keys.length !== arrayLength + 1) {
+          throw new Error("Levha satın alma raporu dizileri yoğun ve ek özelliksiz olmalıdır.");
+        }
+        for (const key of keys) {
+          if (key === "length") continue;
+          if (typeof key !== "string" || !/^(0|[1-9]\d*)$/.test(key) || Number(key) >= arrayLength) {
+            throw new Error("Levha satın alma raporu dizileri yalnızca sıralı indeks içerebilir.");
+          }
+        }
+
+        const copied = new Array<unknown>(arrayLength);
+        for (let index = 0; index < arrayLength; index += 1) {
+          const descriptor = Object.getOwnPropertyDescriptor(current, String(index));
+          if (!descriptor || !descriptor.enumerable || !("value" in descriptor)) {
+            throw new Error("Levha satın alma raporu dizileri own enumerable data property içermelidir.");
+          }
+          copied[index] = copy(descriptor.value, depth + 1);
+        }
+        return copied;
+      }
+
+      const prototype = Object.getPrototypeOf(current);
+      if (prototype !== Object.prototype && prototype !== null) {
+        throw new Error("Levha satın alma raporu düz JSON nesnelerinden oluşmalıdır.");
+      }
+
+      const copied = Object.create(null) as Record<string, unknown>;
+      for (const key of Reflect.ownKeys(current)) {
+        if (typeof key !== "string") {
+          throw new Error("Levha satın alma raporu sembol anahtarı içeremez.");
+        }
+        stringCodeUnits += key.length;
+        if (stringCodeUnits > stockSheetReportMaxBytes) {
+          throw new Error("Levha satın alma raporu metin boyutu sınırını aşıyor.");
+        }
+        const descriptor = Object.getOwnPropertyDescriptor(current, key);
+        if (!descriptor || !descriptor.enumerable || !("value" in descriptor)) {
+          throw new Error("Levha satın alma raporu own enumerable data property içermelidir.");
+        }
+        Object.defineProperty(copied, key, {
+          value: copy(descriptor.value, depth + 1),
+          enumerable: true,
+          configurable: true,
+          writable: true
+        });
+      }
+      return copied;
+    } finally {
+      ancestors.delete(current);
+    }
+  }
+
+  const copied = copy(value, 1);
+  if (!isRecord(copied)) {
+    throw new Error("Levha satın alma raporu düz JSON nesnesi olmalıdır.");
+  }
+  const serialized = JSON.stringify(copied);
+  if (typeof serialized !== "string" || new TextEncoder().encode(serialized).byteLength > stockSheetReportMaxBytes) {
+    throw new Error("Levha satın alma raporu UTF-8 boyut sınırını aşıyor.");
+  }
+  return copied;
+}
+
 function createStockSheetGroupSnapshots(value: unknown): ProjectQuoteStockSheetGroupSnapshot[] {
   if (!isRecord(value) || !isRecord(value.result) || !Array.isArray(value.result.groups)) {
     throw new Error("Levha satın alma snapshot'ı doğrulanmış grup listesi içermelidir.");
@@ -431,6 +556,12 @@ export function createProjectQuotePricingSnapshot(
           "Teklif malzeme maliyet temeli",
           materialCostBasisInputKeys
         );
+    if (materialCostBasisInput?.basis === "stock-sheet-purchase" &&
+        Object.prototype.hasOwnProperty.call(materialCostBasisInput, "stockSheetPurchaseReport")) {
+      materialCostBasisInput.stockSheetPurchaseReport = copyBoundedStockSheetReport(
+        materialCostBasisInput.stockSheetPurchaseReport
+      );
+    }
   } catch (error) {
     return blocked(
       error instanceof Error
