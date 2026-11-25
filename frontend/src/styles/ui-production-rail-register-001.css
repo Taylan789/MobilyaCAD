@@ -1,0 +1,122 @@
+/* UI-PRODUCTION-RAIL-REGISTER-001 — persistent module navigation and a compact project register. */
+@media (min-width: 821px) {
+  .mc-production-studio.mc-production-studio .mc-production-studio__rail {
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    scrollbar-gutter: stable;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(145, 180, 202, .42) transparent;
+    gap: 16px;
+    padding: 16px 12px 12px;
+  }
+
+  .mc-production-studio.mc-production-studio .mc-production-studio__navigation {
+    position: sticky;
+    top: -16px;
+    z-index: 3;
+    gap: 4px;
+    margin: -16px -12px 0;
+    padding: 16px 12px 10px;
+    border-bottom: 1px solid var(--mps-line);
+    background: linear-gradient(180deg, rgba(25, 39, 48, .99), rgba(25, 39, 48, .96));
+  }
+
+  .mc-production-studio.mc-production-studio .mc-production-studio__navigation > .mc-production-studio__eyebrow {
+    padding: 0 8px 4px;
+    font-size: 8px;
+    letter-spacing: .16em;
+  }
+
+  .mc-production-studio.mc-production-studio .mc-production-studio__navigation button {
+    min-height: 38px;
+    padding-inline: 8px;
+    border-inline-start: 2px solid transparent;
+    border-radius: 4px;
+  }
+
+  .mc-production-studio.mc-production-studio .mc-production-studio__navigation button.is-active {
+    border-inline-start-color: var(--mps-steel);
+    box-shadow: none;
+  }
+
+  .mc-production-studio.mc-production-studio .mc-production-studio__project {
+    gap: 9px;
+    padding: 11px;
+    border-radius: 5px;
+    background: linear-gradient(160deg, rgba(38, 55, 66, .56), rgba(17, 28, 36, .72));
+  }
+
+  .mc-production-studio.mc-production-studio .mc-production-studio__project-total {
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--mps-line);
+  }
+
+  .mc-production-studio.mc-production-studio .mc-production-studio__project-total strong {
+    font-size: 26px;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .mc-production-studio.mc-production-studio .mc-production-studio__project-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: baseline;
+    gap: 8px;
+    padding-top: 7px;
+    font-size: 9px;
+  }
+
+  .mc-production-studio.mc-production-studio .mc-production-studio__project-row b {
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 820px) {
+  .mc-production-studio.mc-production-studio .mc-production-studio__rail {
+    overflow: visible;
+    overscroll-behavior: auto;
+    scrollbar-gutter: auto;
+  }
+
+  .mc-production-studio.mc-production-studio .mc-production-studio__navigation {
+    position: static;
+    margin: 0;
+    padding: 0;
+    border-bottom: 0;
+    background: transparent;
+  }
+}
+
+@media (forced-colors: active) {
+  .mc-production-studio.mc-production-studio .mc-production-studio__navigation button,
+  .mc-production-studio.mc-production-studio .mc-production-studio__project {
+    border-color: CanvasText;
+    color: CanvasText;
+    background: Canvas;
+    box-shadow: none;
+  }
+
+  .mc-production-studio.mc-production-studio .mc-production-studio__navigation button.is-active {
+    border-color: Highlight;
+    border-inline-start-color: Highlight;
+    color: HighlightText;
+    background: Highlight;
+  }
+
+  .mc-production-studio.mc-production-studio .mc-production-studio__navigation button:focus-visible {
+    outline: 2px solid Highlight;
+    outline-offset: 2px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mc-production-studio.mc-production-studio .mc-production-studio__navigation button {
+    transition: none !important;
+    transform: none !important;
+  }
+}
