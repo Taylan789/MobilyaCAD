@@ -1574,3 +1574,10 @@ Net-consumption snapshots continue to use material-cost-basis schema v1. Previou
 `compareProjectQuoteRevisionStockSheetGroups` and `compareProjectQuoteRevisionSourceMaps` expose `stockSheetManifestComparison`. Exact added/removed Part IDs are calculated only when both revisions contain a validated schema-v2 manifest. If either side is legacy schema v1 or has no stock-sheet purchase basis, the comparison reports which side lacks manifest coverage and returns null counts/changes; it does not infer a manifest or fabricate additions/removals from legacy group data.
 
 The output is additive to the existing domain result schema. Existing group-level Part ownership comparisons remain available for legacy snapshots. No JSON/CSV comparison adapter, frontend, CNC postprocessor or machine output was changed; adapter serialization remains with the designated Integration/Performance owner and requires its own versioned round-trip work.
+
+
+## DOM-173 — Cross-revision stock-sheet manifest audit reconciliation
+
+The source-map audit distinguishes two different project-history measures: manifest Part references are additive across schema-v2 stock-sheet revisions, while project-wide unique manifest Part IDs are deduplicated across those revisions. Each revision's unique count remains local to that revision. Legacy schema-v1 stock-sheet groups continue to contribute to the existing stock-sheet group/Part audit, but never to schema-v2 manifest reference or unique-ID totals; revisions without a stock-sheet purchase basis contribute to neither measure.
+
+The regression covers two v2 revisions with one shared Part ID, a legacy v1 stock-sheet revision, and a revision with no stock-sheet basis. It reconciles per-revision and project totals, verifies that legacy group Part IDs do not leak into manifest totals, checks the downstream source-integrity audit, and confirms that paired cost/source-line reordering does not change the aggregate audit. This is audit-only behavior: it does not alter pricing, Part geometry, JSON/CSV adapters, frontend wiring, CNC operations or physical production claims.

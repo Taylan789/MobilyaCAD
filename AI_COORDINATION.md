@@ -39,6 +39,7 @@ Bu dosya dört geliştirme/denetim rolünün ortak görev panosu ve entegrasyon 
 
 | ID | Görev | Sahip | Durum | Kabul / teslim kanıtı |
 |---|---|---|---|---|
+| DOM-173 | Multi-revision stock-sheet manifest audit: reconcile additive v2 references vs project-wide unique Part IDs; isolate legacy/no-basis revisions and preserve order invariance | Ürün Geliştirme | IMPLEMENTATION COMMITTED — exact-SHA CI/QA/Pages pending | Four-revision mixed v2/v1/no-basis fixture; audit + integrity totals, immutability, line-order invariance |
 | INT-001 | Domain üretim raporu ile frontend sözleşmesi; JSON/CSV geometri kaybını önleme veya desteklenmeyen export'u engelleme | Arayüz + Ürün | READY | round-trip ve export-block testleri |
 | DOM-115 | Blocked mixed-family conflict provenance ↔ isolated material summaries ↔ validated Part snapshot; no partial nesting result | Ürün Geliştirme | VERIFIED — [commit d04b156](https://github.com/Taylan789/MobilyaCAD/commit/d04b156fdb49ff742659194cda3938df4c607fa1); CI [#45056168193](https://github.com/Taylan789/MobilyaCAD/actions/runs/45056168193), QA [#45056168306](https://github.com/Taylan789/MobilyaCAD/actions/runs/45056168306) passed (165 frontend + 641 domain; strict TS, lint 32 warnings/0 errors, build, audit 0 vulnerabilities); Pages [#45056168182](https://github.com/Taylan789/MobilyaCAD/actions/runs/45056168182) deployed | DOM-116 |
 | DOM-116 | Ready nesting-batch report selected/excluded Part snapshot ile materialId + normalized thickness group/source tutarlılığı | Ürün Geliştirme | VERIFIED — [commit 5fd1b751](https://github.com/Taylan789/MobilyaCAD/commit/5fd1b751e0b8d1c0de5ee32ababfdf92f73f00c6); CI [#45063059018](https://github.com/Taylan789/MobilyaCAD/actions/runs/45063059018), QA [#45063059051](https://github.com/Taylan789/MobilyaCAD/actions/runs/45063059051), Pages [#45063058957](https://github.com/Taylan789/MobilyaCAD/actions/runs/45063058957) passed (165 frontend + 642 domain, strict TS, lint 32 warnings/0 errors, build, production audit 0 vulnerabilities); test site deployed | DOM-117 |
@@ -822,3 +823,12 @@ Bu dosya dört geliştirme/denetim rolünün ortak görev panosu ve entegrasyon 
 - The aggregate Part manifest is reported only when a stock-sheet-purchase snapshot has validated `materialCostBasis.schemaVersion: 2`. Legacy v1 group Part IDs remain visible in their existing group audit but are not reinterpreted as a v2 manifest.
 - Adapter follow-up is deferred to the Integration/Performance owner (INT-002/PERF-001); the specialist job is currently disabled and no specialist branch was verified. UI-owned INT-003 PR #206 remains draft and untouched.
 - Verified: implementation [0a04f260](https://github.com/Taylan789/MobilyaCAD/commit/0a04f260387d66b01e0c4879f4afe16e6fab8718); CI [#45681167545](https://github.com/Taylan789/MobilyaCAD/actions/runs/45681167545), QA [#45681167621](https://github.com/Taylan789/MobilyaCAD/actions/runs/45681167621) and Pages [#45681167542](https://github.com/Taylan789/MobilyaCAD/actions/runs/45681167542) all succeeded for the exact implementation SHA; test site is https://taylan789.github.io/MobilyaCAD/.
+
+
+## DOM-173 implementation handoff — 25 Kasım 2026 22:21 TRT
+
+- Owner: Product Development; domain audit source, its domain regression suite and contract documentation only.
+- The audit contract now explicitly distinguishes per-revision manifest-unique counts from project-wide deduplicated unique IDs; manifest reference counts remain additive across schema-v2 revisions.
+- Acceptance fixture: two overlapping schema-v2 manifests, one legacy schema-v1 stock-sheet revision and one revision without stock-sheet basis; source-map and source-integrity totals must reconcile, and paired line-order changes must not alter audit totals.
+- Frontend, JSON/CSV adapter, integration/performance benchmark, CNC/machine, secrets/settings and main are outside this slice.
+- Exact-SHA CI/QA/Pages verification is pending; no test or deployment is claimed successful until the Actions result is observed.

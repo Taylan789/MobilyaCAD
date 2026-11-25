@@ -2186,7 +2186,9 @@ export interface ProjectQuoteRevisionSourceMapAuditCounts {
   stockSheetPurchaseRevisionCount: number;
   stockSheetManifestV2RevisionCount: number;
   stockSheetLegacyManifestRevisionCount: number;
+  /** Total schema-v2 manifest Part references summed across the project history. */
   stockSheetManifestPartReferenceCount: number;
+  /** Per revision: unique manifest IDs in that revision; project totals deduplicate across revisions. */
   stockSheetManifestUniquePartIdCount: number;
   sourceTypeCounts: Record<ProjectQuoteLineSource["sourceType"], number>;
   categoryCounts: Record<ProjectQuoteCostCategory, number>;
