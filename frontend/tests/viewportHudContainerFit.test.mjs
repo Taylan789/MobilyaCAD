@@ -21,6 +21,7 @@ test("the room-dimension HUD responds to the actual viewport container width", (
   assert.match(compactRule, /width:\s*min\(246px, calc\(100% - 16px\)\)/);
   assert.match(compactRule, /grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)/);
   assert.match(compactRule, /nth-child\(3\)[\s\S]*grid-column:\s*1 \/ -1/);
+  assert.match(compactRule, /nth-child\(3\) > small[\s\S]*grid-column:\s*3/);
 });
 
 test("very narrow viewports clamp the HUD and keep the live count from forcing overflow", () => {
