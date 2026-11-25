@@ -250,10 +250,6 @@ export function calculateProjectCostSummary(value: unknown): ProjectCostSummary 
 
   for (const [index, rawLine] of validatedInputs.entries()) {
     const label = "Maliyet kaleminin " + (index + 1) + ". satırı";
-    if (!isRecord(rawLine)) {
-      throw new Error(label + " geçerli bir nesne olmalıdır.");
-    }
-
     for (const key of Object.keys(rawLine)) {
       if (!allowedLineKeys.has(key)) {
         throw new Error(label + " desteklenmeyen alan içeriyor: " + key + ".");
