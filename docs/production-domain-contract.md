@@ -1524,3 +1524,10 @@ Kaynaklar: `domain/production/projectEdgeBandingRollPlan.ts`, `projectEdgeBandin
 ## Public quote source input boundary (DOM-166)
 
 `createProjectQuotePricingSnapshot` copies `productionReport`, `consumptionPriceTable`, `workItems` and `tariffTable` before passing them to quote calculators. The four sources share a bounded JSON-copy budget: maximum depth 64, 250,000 visited nodes and 16 MiB serialized UTF-8. Only finite JSON-like primitives, plain/null-prototype records with own enumerable data properties, and dense standard arrays are accepted. Accessors, inherited-only values, symbols, custom prototypes, sparse/extended arrays, cycles and Proxy reflection failures block the entire quote before any partial monetary summary or snapshot is exposed. The downstream domain validators remain responsible for business rules, units, currencies, price/tariff matching and catalog semantics; this boundary does not infer prices or machine standards.
+
+## DOM-167 — Saved JSON v2 / direct roll quote parity
+
+The quote snapshot boundary accepts exactly one roll-pricing source: either direct edgeBandingRollSpecs + edgeBandingRollPriceTable inputs, or the saved edgeBandingRollPricing extension inside a validated MobilyaCAD JSON v2 project envelope. With explicit edgeBandingPricingMode: "roll", both paths must normalize to the same quote result.
+
+Regression coverage compares the complete quoteSummary and immutable snapshot for direct versus saved inputs in both the line-only quote path and the net-consumption material-cost-basis path. Equality covers cost totals, roll quantities and line amounts, Part/furniture source IDs, roll-plan source references and price-list source references. Prices, currency, roll length and allowance remain explicit user inputs; no roll standard, price or CNC operation is inferred. The editor's persistent JSON v2 save/open wiring remains UI-owned and is not claimed by this domain test.
+

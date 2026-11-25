@@ -416,6 +416,64 @@ test("JSON v2 project-file roll inputs feed quote snapshots with Part and price 
   assert.equal(result.snapshot?.quoteSummary.costSummary?.lines.some(line => line.unit === "mm" || line.unit === "m"), false);
 });
 
+
+test("saved JSON v2 and direct roll inputs produce identical quote totals and Part/price provenance", () => {
+  const productionReport = createEdgeBandingReport();
+  const common = {
+    productionReport,
+    workItems: [],
+    tariffTable: [],
+    laborOperationTariffList: null,
+    edgeBandingPricingMode: "roll"
+  };
+  const directRollPricing = {
+    edgeBandingRollSpecs: [{
+      edgeBandingId: "pvc-a",
+      rollLengthMm: 100000,
+      sourceReference: "roll-spec:v1"
+    }],
+    edgeBandingRollPriceTable: [{
+      edgeBandingId: "pvc-a",
+      unit: "rulo",
+      unitPriceMinor: 15000,
+      currencyCode: "TRY",
+      sourceReference: "roll-prices:v1"
+    }]
+  };
+  const savedProject = createProjectFileWithRollPricing();
+
+  for (const basisOverrides of [{}, { materialCostBasis: { basis: "net-consumption" } }]) {
+    const direct = createProjectQuotePricingSnapshot(createInput({
+      ...common,
+      ...basisOverrides,
+      ...directRollPricing
+    }));
+    const saved = createProjectQuotePricingSnapshot(createInput({
+      ...common,
+      ...basisOverrides,
+      projectFile: savedProject
+    }));
+
+    assert.equal(direct.status, "ready", direct.diagnostics.join("; "));
+    assert.equal(saved.status, "ready", saved.diagnostics.join("; "));
+    assert.deepEqual(saved.quoteSummary, direct.quoteSummary);
+    assert.deepEqual(saved.snapshot, direct.snapshot);
+    assert.equal(
+      saved.snapshot?.quoteSummary.costSummary?.grandTotalMinor,
+      direct.snapshot?.quoteSummary.costSummary?.grandTotalMinor
+    );
+
+    const rollSource = saved.snapshot?.quoteSummary.lineSources.find(source => source.unit === "rulo");
+    assert.ok(rollSource);
+    assert.deepEqual(rollSource.sourcePartIds, ["snapshot-cabinet-1-left-side"]);
+    assert.deepEqual(rollSource.furnitureIds, ["snapshot-cabinet-1"]);
+    assert.equal(rollSource.rollCount, 1);
+    assert.equal(rollSource.purchasedLengthMm, 100000);
+    assert.equal(rollSource.planSourceReference, "roll-spec:v1");
+    assert.equal(rollSource.priceSourceReference, "roll-prices:v1");
+  }
+});
+
 test("saved project roll pricing requires explicit roll mode and rejects legacy, malformed or duplicate sources", () => {
   const projectFile = createProjectFileWithRollPricing();
   const missingMode = createProjectQuotePricingSnapshot(createInput({ projectFile }));

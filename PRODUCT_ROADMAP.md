@@ -1934,7 +1934,7 @@ The first implementation SHA was not published after QA found one inherited-gett
 **Durum:** VERIFIED — code/test commit [ffab4aa](https://github.com/Taylan789/MobilyaCAD/commit/ffab4aa29051182a825c1ba77428a911a48fad55); exact-SHA CI [#45602592844](https://github.com/Taylan789/MobilyaCAD/actions/runs/45602592844), QA [#45602592876](https://github.com/Taylan789/MobilyaCAD/actions/runs/45602592876), Pages [#45602593126](https://github.com/Taylan789/MobilyaCAD/actions/runs/45602593126) all successful. QA 290/290 frontend + 777/777 domain, strict shared-domain TypeScript, lint 36 warnings/0 errors, production build, production audit 0 vulnerabilities. Test site: https://taylan789.github.io/MobilyaCAD/. İlk SHA `e77957c` QA'da TS18046 ile durdu ve deploy edilmedi; `ffab4aa` raw Proxy length read regression'ını da kapatarak exact-SHA doğrulamayı geçti.
 
 **Sıradaki 3–5 küçük görev**
-1. DOM-167 — JSON v2 saved roll inputs and direct quote inputs produce identical normalized totals and Part/price provenance.
+1. DOM-168 — Extend saved/direct roll-input parity to stock-sheet-purchase material-cost-basis snapshots and reconcile stock-group plus roll-line provenance.
 2. INT-003 — UI-owned PR #206 save/open envelope integration; keep frontend files and PR ownership with the UI agent.
 3. DOM-153 — append → save → reopen → append quote revision history after INT-003 integration is verified.
 4. CAD/production quality gates — collect viewport p95/memory baseline and define CNC fixture/postprocessor requirements only with a confirmed machine standard.
@@ -1954,3 +1954,20 @@ The first implementation SHA was not published after QA found one inherited-gett
 **Durum:** VERIFIED — implementation [ca1a3768](https://github.com/Taylan789/MobilyaCAD/commit/ca1a3768dad42cf7dec91be5ba6bbeb2c91caab8) + test correction [15583066](https://github.com/Taylan789/MobilyaCAD/commit/15583066d9f77a243c03a74d083154a826a55439). Exact-SHA CI [#45611964638](https://github.com/Taylan789/MobilyaCAD/actions/runs/45611964638), QA [#45611964676](https://github.com/Taylan789/MobilyaCAD/actions/runs/45611964676) ve Pages [#45611964911](https://github.com/Taylan789/MobilyaCAD/actions/runs/45611964911) başarılı. QA: 294/294 frontend + 781/781 domain; shared-domain TypeScript, lint, production build ve dependency audit geçti. Test sitesi exact SHA için yayınlandı: https://taylan789.github.io/MobilyaCAD/. İlk SHA ca1a376 iki test beklentisi nedeniyle QA'da kaldı ve deploy edilmedi; düzeltilmiş SHA yayınlandı.
 
 **Sonraki adım:** Exact-SHA CI + QA + production build + Pages sonucunu doğrula; ardından DOM-167 saved/direct roll quote parity testlerine geç. UI-owned INT-003 PR #206 ve adapter/performance-owned PERF-001 / INT-002 kapsamına müdahale etme.
+
+## DOM-167 — Saved JSON v2 / direct roll quote parity (implementation submitted; verification pending)
+
+**Kullanıcı akışı:** Atölye, kenar bandı rulo ölçüsü ve fiyatını ya doğrudan teklif girdisine verir ya da MobilyaCAD JSON v2 proje dosyasına kaydeder. Aynı proje ve aynı açık kullanıcı girdileri iki yoldan da aynı teklif tutarını ve kaynak izini üretmelidir.
+
+**Dikey dilim:** projectQuotePricingSnapshot.test.mjs içinde direct roll listeleri ile kayıtlı JSON v2 uzantısı karşılaştırılır. Hem line-only snapshot hem net-consumption material-cost-basis snapshot için tam quoteSummary ve immutable snapshot eşitliği doğrulanır; roll count, purchased length, Part/furniture IDs ve plan/price source references ayrıca assert edilir.
+
+**Kabul kriterleri**
+- Her iki giriş yolu explicit edgeBandingPricingMode: "roll" gerektirir ve aynı tek kaynak kuralını korur.
+- Aynı üretim raporu, fiyat, para birimi, rulo uzunluğu ve kaynak referanslarıyla toplamlar ve tüm line provenance alanları birebir eşleşir.
+- Line-only ve net-consumption snapshot yolları aynı sonucu verir; başarısız/eksik girdide kısmi teklif üretilmez.
+- JSON v1, frontend API, UI save/open akışı, fiyat varsayımları ve CNC/makine standardı değiştirilmez.
+
+**Durum:** IMPLEMENTED — exact-SHA CI, QA ve Pages doğrulaması bekleniyor. Test otomatik QA kapsamına eklendi; bu turda yerel test çalıştırıldığı iddia edilmez.
+
+**Sınır:** Bu domain parity testi, UI-owned INT-003 editor save/open entegrasyonunun tamamlandığı anlamına gelmez. Fiziksel rulo/atölye/CNC doğrulaması değildir.
+
