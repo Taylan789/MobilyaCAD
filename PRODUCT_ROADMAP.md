@@ -774,11 +774,13 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 
 | ID | Sahip | Durum / kabul kriteri | Bağımlılık |
 |---|---|---|---|
-| DOM-114 | Ürün Geliştirme | VERIFIED — [code/test 751065b](https://github.com/Taylan789/MobilyaCAD/commit/751065b1437da702200696da588949bc0243596d); exact-SHA CI [#45043968666](https://github.com/Taylan789/MobilyaCAD/actions/runs/45043968666), QA [#45043968727](https://github.com/Taylan789/MobilyaCAD/actions/runs/45043968727) passed (162 frontend + 640 domain, strict TS, lint 32 warnings/0 errors, build, audit 0 vulnerabilities); Pages [#45043968653](https://github.com/Taylan789/MobilyaCAD/actions/runs/45043968653) deployed | full conflict source/order and diagnostic coverage; incomplete metadata blocked | DOM-115 |
-| DOM-115 | Ürün Geliştirme | VERIFIED — [commit d04b156](https://github.com/Taylan789/MobilyaCAD/commit/d04b156fdb49ff742659194cda3938df4c607fa1); CI [#45056168193](https://github.com/Taylan789/MobilyaCAD/actions/runs/45056168193), QA [#45056168306](https://github.com/Taylan789/MobilyaCAD/actions/runs/45056168306) passed (165 frontend + 641 domain; strict TS, lint 32 warnings/0 errors, build, audit 0 vulnerabilities); Pages [#45056168182](https://github.com/Taylan789/MobilyaCAD/actions/runs/45056168182) deployed | DOM-114 |
-| DOM-116 | Ürün Geliştirme | READY — cross-consumer project production diagnostics/export integrity with deterministic provenance | DOM-115 |
-| INT-001 | Arayüz + Ürün | READY — frontend adapter consumes project production domain and blocks unsupported geometry export; round-trip tests | Production-domain contract |
-| INT-002 | Entegrasyon/Performans | READY — adapter round-trip and geometry/quantity fidelity tests on isolated specialist branch | INT-001 |
+| DOM-161 | Ürün Geliştirme | IN PROGRESS — saved JSON v2 roll inputs feed quote snapshots only in explicit roll mode; Part/price provenance and fail-closed cases are tested | DOM-160 |
+| INT-003 | Arayüz Tasarımı | OPEN DRAFT [PR #206](https://github.com/Taylan789/MobilyaCAD/pull/206) — editor startup/new/save/open must retain v2 envelope and unknown metadata before merge | DOM-151/DOM-152 domain contract |
+| DOM-153 | Ürün Geliştirme | PLANNED after INT-003 — append → save → reopen → append preserves revision chain and immutable pricing snapshots | INT-003 |
+| INT-001 | Arayüz + Ürün | READY — connect canonical production report to editor and block unsupported geometry export; exact-SHA round-trip/export-block tests | Production-domain contract |
+| INT-002 / PERF-001 | Entegrasyon/Performans | READY but specialist execution not verified — adapter round-trip plus measured 2D/3D baseline on isolated branch; do not duplicate owner files | Isolated specialist job/branch |
+
+QA-003 remains blocked until INT-001 and INT-002 evidence exists. The Integration/Performance workflow job is currently disabled; no specialist branch or PR is verified, so no agent delivery is claimed.
 
 ## DOM-115 — Blocked mixed-family provenance reconciliation (VERIFIED 22 November 2026)
 
@@ -1315,7 +1317,7 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 - [ ] Production: canonical Part tree, material/edge-band/hardware/waste, nesting/cost and export reconciliation.
 - [ ] UX: functional controls, clear navigation, accessibility, responsive states and recovery.
 - [ ] Performance: repeatable viewport/bundle/memory baseline with measured improvements.
-- [ ] Reliability: typed validation, backward-compatible project schemas, lossless import/export and exact-SHA CI/QA evidence; DOM-148 adversarial coverage for safe `__proto__` data keys, null-prototype records, dense arrays and fail-closed descriptors passed exact-SHA CI/QA/Pages (228 frontend + 726 domain; production audit 0 vulnerabilities); the overall 10/10 gate remains unchecked.
+- [ ] Reliability: typed validation, backward-compatible project schemas, lossless import/export and exact-SHA CI/QA evidence; DOM-148 adversarial envelope checks and DOM-160 bounded/deep-immutable roll-pricing persistence are verified; DOM-161 adds persisted-v2-to-quote snapshot reconciliation with explicit-mode and fail-closed regressions (verification pending); the overall 10/10 gate remains unchecked.
 - [ ] Physical production: operator and machine-standard verification remains separate from automated checks.
 
 ## Current domain queue — 23 November 2026
@@ -1826,3 +1828,20 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 
 
 **Exact-SHA doğrulaması:** [domain implementation 757e959](https://github.com/Taylan789/MobilyaCAD/commit/757e959842a24c697ae1d5f92ce1b96f6a80359d) ve [Proxy test correction 357198f](https://github.com/Taylan789/MobilyaCAD/commit/357198fda15f71ae10aabf0a541174fcd05ebe19). CI [#45557877841](https://github.com/Taylan789/MobilyaCAD/actions/runs/45557877841), QA [#45557878887](https://github.com/Taylan789/MobilyaCAD/actions/runs/45557878887) ve Pages [#45557877766](https://github.com/Taylan789/MobilyaCAD/actions/runs/45557877766) başarılı. QA: 272/272 frontend + 752/752 domain; strict shared-domain TypeScript, 36 lint uyarısı/0 hata, production build ve production dependency audit 0 vulnerability. Exact-SHA test site: https://taylan789.github.io/MobilyaCAD/.
+
+
+## DOM-161 — Saved edge-band roll pricing into quote snapshots (IN PROGRESS)
+
+**User flow:** An operator saves explicit roll lengths, fixed allowances and roll prices in a JSON v2 project. When creating a quote, the caller selects roll pricing explicitly and passes the current project envelope; the quote engine uses the saved inputs without copying them into a second UI/domain payload.
+
+**Vertical slice:** `createProjectQuotePricingSnapshot` accepts an optional `projectFile` only with `edgeBandingPricingMode: "roll"`. It reads the persisted extension through the existing descriptor-safe project-file reader and supplies the validated arrays to both normal quote and material-cost-basis paths.
+
+**Acceptance criteria**
+- Saved roll count × explicit roll price reconciles to the quote line and retains Part IDs plus plan/price source references.
+- A project file never silently switches from length to roll mode; explicit roll mode is mandatory.
+- Legacy v1, blocked/malformed extensions, duplicate explicit-vs-persisted sources and ambiguous modes return blocked with no snapshot.
+- Existing explicit roll-array callers and default length pricing remain backward compatible.
+- Missing saved roll inputs never fall back to a fabricated length, price or waste percentage.
+
+**Limits / next dependency:** This is a domain API, not editor UI wiring. INT-003 PR #206 remains draft and defers App integration; after it is completed, the UI owner must pass the current envelope. No machine/CNC output or physical production claim is introduced. Next domain work after this slice: DOM-153 editor append → save → reopen → append contract, but only after INT-003.
+

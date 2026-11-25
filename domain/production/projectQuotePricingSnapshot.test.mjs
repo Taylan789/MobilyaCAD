@@ -4,6 +4,7 @@ import test from "node:test";
 import { BODY_PANEL_GROUPS } from "./bodyPanelMaterials.ts";
 import { calculateCabinetProjectProductionWithDiagnostics } from "./projectProduction.ts";
 import { createProjectQuotePricingSnapshot } from "./projectQuotePricingSnapshot.ts";
+import { setProjectEdgeBandingRollPricingInProjectFile } from "./projectEdgeBandingRollPricingProjectFile.ts";
 import { calculateProjectSheetCutPlanAreaSummary } from "./projectSheetCutPlanAreaSummary.ts";
 import { calculateProjectSheetNestingStockCostSummary } from "./projectSheetNestingStockCostSummary.ts";
 import { createSheetCutPlan } from "./sheetCutPlan.ts";
@@ -133,6 +134,33 @@ function createInput(overrides = {}) {
     laborOperationTariffList,
     ...overrides
   };
+}
+
+function createProjectFileWithRollPricing() {
+  const saved = setProjectEdgeBandingRollPricingInProjectFile({
+    format: "MobilyaCAD",
+    formatVersion: 2,
+    projectId: "quote-project-42",
+    room: { width: 4000, length: 5000, height: 2800, unit: "mm" },
+    furniture: [],
+    materials: []
+  }, {
+    schemaVersion: 1,
+    rollSpecs: [{
+      edgeBandingId: "pvc-a",
+      rollLengthMm: 100000,
+      sourceReference: "roll-spec:v1"
+    }],
+    rollPriceTable: [{
+      edgeBandingId: "pvc-a",
+      unit: "rulo",
+      unitPriceMinor: 15000,
+      currencyCode: "TRY",
+      sourceReference: "roll-prices:v1"
+    }]
+  });
+  assert.equal(saved.status, "ready", saved.diagnostics.join("; "));
+  return saved.project;
 }
 
 function createStockSheetPurchaseReport(productionReport) {
@@ -363,6 +391,81 @@ test("roll pricing options are included in the immutable quote snapshot with pro
   assert.equal(result.snapshot.quoteSummary.costSummary.lines.some(line => line.unit === "mm" || line.unit === "m"), false);
 });
 
+
+test("JSON v2 project-file roll inputs feed quote snapshots with Part and price provenance", () => {
+  const result = createProjectQuotePricingSnapshot(createInput({
+    productionReport: createEdgeBandingReport(),
+    workItems: [],
+    tariffTable: [],
+    laborOperationTariffList: null,
+    edgeBandingPricingMode: "roll",
+    projectFile: createProjectFileWithRollPricing()
+  }));
+
+  assert.equal(result.status, "ready", result.diagnostics.join("; "));
+  const rollLine = result.snapshot?.quoteSummary.costSummary?.lines.find(line => line.unit === "rulo");
+  const rollSource = result.snapshot?.quoteSummary.lineSources.find(source => source.unit === "rulo");
+  assert.ok(rollLine);
+  assert.ok(rollSource);
+  assert.equal(rollLine.quantity, 1);
+  assert.equal(rollLine.unitPriceMinor, 15000);
+  assert.equal(rollLine.lineTotalMinor, 15000);
+  assert.deepEqual(rollSource.sourcePartIds, ["snapshot-cabinet-1-left-side"]);
+  assert.equal(rollSource.planSourceReference, "roll-spec:v1");
+  assert.equal(rollSource.priceSourceReference, "roll-prices:v1");
+  assert.equal(result.snapshot?.quoteSummary.costSummary?.lines.some(line => line.unit === "mm" || line.unit === "m"), false);
+});
+
+test("saved project roll pricing requires explicit roll mode and rejects legacy, malformed or duplicate sources", () => {
+  const projectFile = createProjectFileWithRollPricing();
+  const missingMode = createProjectQuotePricingSnapshot(createInput({ projectFile }));
+  assert.equal(missingMode.status, "blocked");
+  assert.equal(missingMode.snapshot, null);
+  assert.match(missingMode.diagnostics[0], /açıkça roll/);
+
+  const lengthMode = createProjectQuotePricingSnapshot(createInput({
+    projectFile,
+    edgeBandingPricingMode: "length"
+  }));
+  assert.equal(lengthMode.status, "blocked");
+  assert.match(lengthMode.diagnostics[0], /açıkça roll/);
+
+  const duplicateSources = createProjectQuotePricingSnapshot(createInput({
+    projectFile,
+    edgeBandingPricingMode: "roll",
+    edgeBandingRollSpecs: [],
+    edgeBandingRollPriceTable: []
+  }));
+  assert.equal(duplicateSources.status, "blocked");
+  assert.match(duplicateSources.diagnostics[0], /tek kaynak/);
+
+  const legacyProject = {
+    format: "MobilyaCAD",
+    formatVersion: 1,
+    furniture: []
+  };
+  const legacy = createProjectQuotePricingSnapshot(createInput({
+    projectFile: legacyProject,
+    edgeBandingPricingMode: "roll"
+  }));
+  assert.equal(legacy.status, "blocked");
+  assert.match(legacy.diagnostics[0], /JSON v2/);
+
+  const malformedProject = {
+    ...projectFile,
+    edgeBandingRollPricing: {
+      ...projectFile.edgeBandingRollPricing,
+      unexpected: true
+    }
+  };
+  const malformed = createProjectQuotePricingSnapshot(createInput({
+    projectFile: malformedProject,
+    edgeBandingPricingMode: "roll"
+  }));
+  assert.equal(malformed.status, "blocked");
+  assert.equal(malformed.snapshot, null);
+  assert.match(malformed.diagnostics[0], /desteklenmeyen alan/);
+});
 
 test("stock-sheet panel basis creates immutable quote snapshot v2 with group and Part provenance even without other quote lines", () => {
   const productionReport = createReport();

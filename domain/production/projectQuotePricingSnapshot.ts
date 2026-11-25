@@ -9,6 +9,7 @@ import {
   type ProjectQuoteMaterialCostBasisSummary
 } from "./projectMaterialCostBasis.ts";
 import type { ProjectCostCategoryTotals } from "./projectCostSummary.ts";
+import { readProjectEdgeBandingRollPricingFromProjectFile } from "./projectEdgeBandingRollPricingProjectFile.ts";
 
 export interface ProjectQuoteCatalogVersionInput {
   catalogId: string;
@@ -76,6 +77,8 @@ export interface ProjectQuotePricingSnapshotInput {
   edgeBandingPricingMode?: "length" | "roll";
   edgeBandingRollSpecs?: unknown;
   edgeBandingRollPriceTable?: unknown;
+  /** Uses the v2 envelope's saved roll inputs only when roll mode is explicitly selected. */
+  projectFile?: unknown;
   materialCostBasis?: ProjectQuoteMaterialCostBasisInput;
 }
 
@@ -98,6 +101,7 @@ const inputKeys = new Set([
   "edgeBandingPricingMode",
   "edgeBandingRollSpecs",
   "edgeBandingRollPriceTable",
+  "projectFile",
   "materialCostBasis"
 ]);
 const materialCostBasisInputKeys = new Set(["basis", "stockSheetPurchaseReport"]);
@@ -311,6 +315,46 @@ function createMaterialCostBasisSnapshot(
   };
 }
 
+function resolveEdgeBandingRollOptions(value: Record<string, unknown>): ProjectQuoteEdgeBandingRollOptions {
+  const mode = value.edgeBandingPricingMode;
+  if (mode !== undefined && mode !== "length" && mode !== "roll") {
+    throw new Error("Teklif kenar bandı fiyatlama modu length veya roll olmalıdır.");
+  }
+
+  const options: ProjectQuoteEdgeBandingRollOptions = {};
+  if (mode !== undefined) options.edgeBandingPricingMode = mode;
+
+  const projectFileDescriptor = Object.getOwnPropertyDescriptor(value, "projectFile");
+  if (projectFileDescriptor && (!projectFileDescriptor.enumerable || !("value" in projectFileDescriptor))) {
+    throw new Error("Teklif projectFile alanı own enumerable data property olmalıdır.");
+  }
+  const projectFile = projectFileDescriptor?.value;
+  if (projectFile === undefined) {
+    if (value.edgeBandingRollSpecs !== undefined) options.edgeBandingRollSpecs = value.edgeBandingRollSpecs;
+    if (value.edgeBandingRollPriceTable !== undefined) options.edgeBandingRollPriceTable = value.edgeBandingRollPriceTable;
+    return options;
+  }
+
+  if (mode !== "roll") {
+    throw new Error("Proje dosyasındaki kayıtlı rulo fiyatlamasını kullanmak için edgeBandingPricingMode açıkça roll olmalıdır.");
+  }
+  if (value.edgeBandingRollSpecs !== undefined || value.edgeBandingRollPriceTable !== undefined) {
+    throw new Error("projectFile ile ayrı rulo ölçü/fiyat listeleri birlikte verilemez; tek kaynak seçilmelidir.");
+  }
+
+  const saved = readProjectEdgeBandingRollPricingFromProjectFile(projectFile);
+  if (saved.status === "blocked") {
+    throw new Error("Proje dosyasındaki kenar bandı rulo girdileri doğrulanamadı: " + (saved.diagnostics[0] ?? "geçersiz uzantı."));
+  }
+  if (saved.status === "legacy" || saved.pricing === null) {
+    throw new Error("Kayıtlı kenar bandı rulo fiyatlaması için JSON v2 projectId içeren proje dosyası gerekir.");
+  }
+
+  options.edgeBandingRollSpecs = saved.pricing.rollSpecs;
+  options.edgeBandingRollPriceTable = saved.pricing.rollPriceTable;
+  return options;
+}
+
 function blocked(message: string): ProjectQuotePricingSnapshotResult {
   return {
     status: "blocked",
@@ -347,16 +391,8 @@ export function createProjectQuotePricingSnapshot(
   let quoteSummary: ProjectQuoteSummary;
   let materialCostBasisSnapshot: ProjectQuoteMaterialCostBasisSnapshot | undefined;
   try {
+    const quoteOptions = resolveEdgeBandingRollOptions(value);
     if (value.materialCostBasis === undefined) {
-      const quoteOptions: ProjectQuoteEdgeBandingRollOptions = {};
-      if (value.edgeBandingPricingMode !== undefined) {
-        if (value.edgeBandingPricingMode !== "length" && value.edgeBandingPricingMode !== "roll") {
-          throw new Error("Teklif kenar bandı fiyatlama modu length veya roll olmalıdır.");
-        }
-        quoteOptions.edgeBandingPricingMode = value.edgeBandingPricingMode;
-      }
-      if (value.edgeBandingRollSpecs !== undefined) quoteOptions.edgeBandingRollSpecs = value.edgeBandingRollSpecs;
-      if (value.edgeBandingRollPriceTable !== undefined) quoteOptions.edgeBandingRollPriceTable = value.edgeBandingRollPriceTable;
       quoteSummary = calculateProjectQuoteSummary(
         value.productionReport,
         value.consumptionPriceTable,
@@ -383,9 +419,9 @@ export function createProjectQuotePricingSnapshot(
         tariffTable: value.tariffTable
       };
       if (value.quoteAdjustments !== undefined) basisRequest.quoteAdjustments = value.quoteAdjustments;
-      if (value.edgeBandingPricingMode !== undefined) basisRequest.edgeBandingPricingMode = value.edgeBandingPricingMode;
-      if (value.edgeBandingRollSpecs !== undefined) basisRequest.edgeBandingRollSpecs = value.edgeBandingRollSpecs;
-      if (value.edgeBandingRollPriceTable !== undefined) basisRequest.edgeBandingRollPriceTable = value.edgeBandingRollPriceTable;
+      if (quoteOptions.edgeBandingPricingMode !== undefined) basisRequest.edgeBandingPricingMode = quoteOptions.edgeBandingPricingMode;
+      if (quoteOptions.edgeBandingRollSpecs !== undefined) basisRequest.edgeBandingRollSpecs = quoteOptions.edgeBandingRollSpecs;
+      if (quoteOptions.edgeBandingRollPriceTable !== undefined) basisRequest.edgeBandingRollPriceTable = quoteOptions.edgeBandingRollPriceTable;
       if (Object.prototype.hasOwnProperty.call(value.materialCostBasis, "stockSheetPurchaseReport")) {
         basisRequest.stockSheetPurchaseReport = value.materialCostBasis.stockSheetPurchaseReport;
       }

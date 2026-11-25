@@ -1469,3 +1469,13 @@ The DOM-157 regression uses an envelope already over the 16 MiB limit together w
 - Yazma sonucu kaynak projedeki nested oda/mobilya/malzeme/metadata nesneleriyle referans paylaşmaz; proje ve pricing snapshot derin biçimde immutable döner.
 - Proxy reflection trap'lerinin çalıştırılmasını engellediği iddia edilmez; descriptor/ownKeys/prototype trap'leri hata fırlatırsa public read/write API'leri exception sızdırmadan blocked döner.
 - Fiyat, rulo uzunluğu ve sabit ek pay kullanıcı girdisidir. Yüzde fire, rulo standardı, verim, makine veya fiziksel atölye onayı tahmin edilmez. Frontend kontrol ve indirme entegrasyonu UI sahibindedir.
+
+
+## DOM-161 — Persisted JSON v2 edge-band roll pricing in quote snapshots
+
+- `ProjectQuotePricingSnapshotInput.projectFile` may supply the actual project envelope to the quote snapshot domain API. It is accepted only together with the explicit `edgeBandingPricingMode: "roll"`; the mode is never inferred from the presence of saved roll data.
+- The quote snapshot reads `edgeBandingRollPricing` through `readProjectEdgeBandingRollPricingFromProjectFile`. A malformed/blocked extension or legacy JSON v1 project blocks the complete snapshot; no partial quote or cost lines are returned.
+- When the v2 extension is empty, its validated empty roll lists are passed to the existing quote calculator. If measured edge-band consumption needs roll definitions/prices, the quote remains incomplete rather than falling back to length pricing.
+- Supplying `projectFile` together with explicit `edgeBandingRollSpecs` or `edgeBandingRollPriceTable` is rejected to avoid ambiguous pricing sources. Existing explicit-array callers remain backward compatible.
+- The same resolved options are used with both the normal quote path and the material-cost-basis path. Roll count, roll length, Part IDs, furniture IDs and plan/price source references remain in the immutable quote snapshot.
+- Frontend handoff: after INT-003 editor JSON v2 integration, pass the current project envelope and explicit roll mode; do not duplicate the persisted roll arrays in UI state. Length pricing remains an explicit independent mode. This API does not infer roll standards, prices, waste percentages or CNC operations.
