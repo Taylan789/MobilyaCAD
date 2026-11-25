@@ -54,7 +54,7 @@
   transition: color 140ms ease, background 140ms ease, border-color 140ms ease, box-shadow 140ms ease !important;
 }
 
-.studio-transform-tools button:hover:not(.active) {
+.studio-transform-tools button:hover:not(.active):not(:disabled):not([aria-disabled="true"]) {
   color: #e5edf2 !important;
   background: rgba(115, 153, 176, .12) !important;
   border-color: rgba(115, 153, 176, .22) !important;
@@ -87,7 +87,7 @@
   box-shadow: none !important;
 }
 
-.studio-panel-tools button.studio-panel-toggle:hover {
+.studio-panel-tools button.studio-panel-toggle:hover:not(:disabled):not([aria-disabled="true"]) {
   color: #e6f0f5 !important;
   background: rgba(111, 148, 171, .12) !important;
   border-color: rgba(111, 148, 171, .24) !important;
@@ -270,7 +270,7 @@
   background: #c4dce9 !important;
   box-shadow: 0 0 6px rgba(155, 199, 226, .24) !important;
 }
-.studio-transform-tools button:hover:not([aria-pressed="true"]):not(.active) {
+.studio-transform-tools button:hover:not([aria-pressed="true"]):not(.active):not(:disabled):not([aria-disabled="true"]) {
   color: #edf5f9 !important;
   background: rgba(113, 151, 176, .16) !important;
   border-color: rgba(130, 168, 191, .3) !important;
@@ -316,4 +316,75 @@
 @media (forced-colors: active) {
   .studio-transform-tools button[aria-pressed="true"]::after,
   .studio-transform-tools button.active::after { background: Highlight !important; box-shadow: none !important; }
+}
+
+
+/* UI-VIEWPORT-READOUT-CLARITY-001 — clearer view/unit readouts and unavailable controls. */
+.studio-viewport-actions .studio-view-label {
+  min-height: 26px !important;
+  padding-inline: 8px !important;
+  color: #a7bdca !important;
+  background: rgba(30, 46, 57, .55) !important;
+  border: 1px solid rgba(101, 130, 147, .34) !important;
+  border-radius: 5px !important;
+  font-size: 8px !important;
+  letter-spacing: .12em !important;
+  font-variant-numeric: tabular-nums !important;
+}
+.studio-viewport-actions .studio-unit-pill {
+  min-width: 34px !important;
+  height: 24px !important;
+  color: #d1e2eb !important;
+  background: #2b4b5d !important;
+  border-color: #54768a !important;
+  font-size: 9px !important;
+  font-variant-numeric: tabular-nums !important;
+}
+.studio-transform-tools button:disabled,
+.studio-transform-tools button[aria-disabled="true"],
+.studio-panel-tools button.studio-panel-toggle:disabled,
+.studio-panel-tools button.studio-panel-toggle[aria-disabled="true"] {
+  color: #748b99 !important;
+  background: rgba(11, 18, 24, .64) !important;
+  border-color: rgba(75, 99, 113, .28) !important;
+  box-shadow: none !important;
+  opacity: .46 !important;
+  cursor: not-allowed !important;
+}
+.studio-transform-tools button:disabled[aria-pressed="true"]::after,
+.studio-transform-tools button[aria-disabled="true"][aria-pressed="true"]::after,
+.studio-transform-tools button:disabled.active::after,
+.studio-transform-tools button[aria-disabled="true"].active::after {
+  content: none !important;
+}
+@media (min-width: 761px) and (max-width: 1360px) {
+  .studio-viewport-actions .studio-view-label {
+    min-height: 25px !important;
+    padding-inline: 5px !important;
+    font-size: 7px !important;
+  }
+  .studio-viewport-actions .studio-unit-pill {
+    min-width: 30px !important;
+    height: 22px !important;
+    font-size: 8px !important;
+  }
+}
+@media (max-width: 760px) {
+  .studio-viewport-actions .studio-unit-pill {
+    min-width: 28px !important;
+    height: 20px !important;
+    font-size: 8px !important;
+  }
+}
+@media (forced-colors: active) {
+  .studio-transform-tools button:disabled,
+  .studio-transform-tools button[aria-disabled="true"],
+  .studio-panel-tools button.studio-panel-toggle:disabled,
+  .studio-panel-tools button.studio-panel-toggle[aria-disabled="true"] {
+    border-color: GrayText !important;
+    color: GrayText !important;
+    background: Canvas !important;
+    opacity: 1 !important;
+    cursor: not-allowed !important;
+  }
 }

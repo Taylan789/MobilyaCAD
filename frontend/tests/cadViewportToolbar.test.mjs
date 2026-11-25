@@ -44,3 +44,22 @@ test("transform and panel states are visually bound to accessible disclosure", (
   assert.match(styles, /\.studio-panel-tools button\.studio-panel-toggle\[aria-expanded="false"\]/);
   assert.match(styles, /border-left:\s*1px solid/);
 });
+
+
+test("disabled viewport controls are quiet and excluded from hover feedback", () => {
+  assert.match(styles, /\.studio-transform-tools button:hover:not\(\.active\):not\(:disabled\):not\(\[aria-disabled="true"\]\)/);
+  assert.match(styles, /\.studio-panel-tools button\.studio-panel-toggle:hover:not\(:disabled\):not\(\[aria-disabled="true"\]\)/);
+  assert.match(styles, /\.studio-transform-tools button:disabled/);
+  assert.match(styles, /cursor:\s*not-allowed/);
+  assert.match(styles, /opacity:\s*\.46/);
+});
+
+test("viewport orientation and unit readouts use legible technical sizing", () => {
+  assert.match(styles, /\.studio-viewport-actions \.studio-view-label[\s\S]*?font-size:\s*8px !important/);
+  assert.match(styles, /\.studio-viewport-actions \.studio-unit-pill[\s\S]*?font-variant-numeric:\s*tabular-nums !important/);
+  assert.match(styles, /max-width: 1360px[\s\S]*?\.studio-viewport-actions \.studio-unit-pill[\s\S]*?min-width: 30px !important/);
+});
+
+test("disabled toolbar controls remain legible in Windows forced-colors mode", () => {
+  assert.match(styles, /@media \(forced-colors: active\)[\s\S]*?\.studio-transform-tools button:disabled[\s\S]*?border-color: GrayText !important/);
+});
