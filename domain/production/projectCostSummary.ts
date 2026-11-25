@@ -120,13 +120,13 @@ function copyCostLineInputs(value: unknown): Record<string, unknown>[] {
   }
   const length = lengthDescriptor.value;
   const keys = inspectCostInput(() => Reflect.ownKeys(input), label);
-  if (keys.length !== length + 1) throw new Error(label + " yoğun ve ek özelliksiz olmalıdır.");
   for (const key of keys) {
     if (key === "length") continue;
     if (typeof key !== "string" || !/^(0|[1-9]\d*)$/.test(key) || Number(key) >= length) {
       throw new Error(label + " yalnızca sıralı indeks içerebilir.");
     }
   }
+  if (keys.length !== length + 1) throw new Error(label + " yoğun ve ek özelliksiz olmalıdır.");
 
   const copied: Record<string, unknown>[] = [];
   for (let index = 0; index < length; index += 1) {
