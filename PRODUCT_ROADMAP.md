@@ -20,7 +20,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 | Hesap motoru | `cabinetConstruction`, `drawerBoxConstruction`, `bookshelfConstruction`, `tableConstruction`, `wardrobeConstruction`, `tvUnitConstruction` (floor-standing gövde, açık ölçülü raf ve dikey bölücü) ve `bathroom-vanity` (cabinet gövdesi + zorunlu açık ölçülü üst panel açıklığı) aile ayrımlı sürüm 1 proje agregatörü; ortak Part listesi quantity, malzeme, damar yönü ve kenar bantlamayı korur | Frontend adapter henüz domain agregatörünü çağırmıyor; duvar montajlı TV ünitesi/ayak-baza modelleri ve diğer aileler, üreticiye özel konstrüksiyonlar eksik |
 | Kesim listesi | Projedeki desteklenen düz mutfak gövdeleri ve tam tanımlı çekmece parçaları için tek Türkçe Excel uyumlu CSV; her satır kaynak mobilya adı/ID'si ve varsa katalog Malzeme ID değeriyle izlenir | Köşe/cihaz/evye konstrüksiyonları ve diğer aileler eksik |
 | Levha yerleşimi / kesim planı | Deterministik shelf yerleşimi, tek ve çoklu grup makine bağımsız kesim planı, batch→layout→atomik proje planı, kerf/çakışma doğrulaması, opsiyonel trim, JSON v1/v2/v3 round-trip, tam Part snapshot freshness, DOM-032 freshness-gated v2/v3 export API'si, kullanıcı girdili levha kaynak/revizyon provenance, DOM-034 grup bazlı provenance özeti ve DOM-035 kaynak bağlamını koruyan export tanıları | Fire/yield yüzdesi, kesim sırası/yolu ve CNC çıktısı yok |
-| Kenar bantlama / malzeme tüketimi | Domain summary shared Part list calculates quantity-weighted net area/volume, directional edge-banding and catalog/Part/furniture provenance; DOM-067 JSON v1 and DOM-076 strict CSV v1 contracts | JSON/CSV round-trip automatically verified; frontend download adapter, waste/yield, kerf, edge-band thickness and CNC output remain missing |
+| Kenar bantlama / malzeme tüketimi | Domain summary shared Part list calculates quantity-weighted net area/volume, directional edge-banding and catalog/Part/furniture provenance; DOM-067 JSON v1, DOM-076 strict CSV v1, DOM-071 explicit roll-input JSON v2 persistence contracts | JSON/CSV round-trip automatically verified; frontend download adapter, waste/yield, kerf, edge-band thickness and CNC output remain missing |
 | Malzeme kataloğu | UI CRUD; mobilya varsayılan materialId ve çekmece grubunda varsayılan + dört panel grubu override; domain gövde/kitaplık motorları altı gövde panel grubu için malzeme override'ını doğrular | Gövde panel override'ları henüz frontend JSON v1/CSV ve UI akışına bağlanmadı; fiyat, tedarikçi ve fire henüz yok |
 | Proje dosyası | Yerel JSON v1 indirme/yükleme; saf serializer/parser; round-trip ve eski v1 uyumluluk; mm, mobilya ve çekmece grubu katalog referansları ile dört çekmece panel kalınlığının doğrulanması | Şema migrasyonu, otomatik kayıt ve kurtarma yok |
 | Teklif/maliyet | Kullanıcı fiyat tablosu malzeme tüketimini materialId + m2, donanımı hardwareId + özgün BOM birimi, kenar bandını edgeBandingId + açık mm/m birimi ile fiyatlandırır; kullanıcı girdili işçilik/operasyon tarifesi, tek para birimli birleşik teklif ve tarihli fiyat/tarife katalog snapshot'ı, DOM-014 doğrulanmış immutable append ve DOM-015 ortak satır aritmetiği doğrulaması vardır | Frontend/UI ve JSON v1/CSV kalıcı revizyon geçmişi entegrasyonu ayrı sahibindedir; tüm geçmişte ID tekilliği depolama katmanında doğrulanmalıdır; vergi, kur, iskonto, otomatik fire/kâr yüzdesi ve üretim onayı yok |
@@ -1801,3 +1801,22 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 - JSON v1/v2 şemaları, mm/adet/maliyet hesapları, frontend, adapter ve CNC sözleşmeleri değişmez.
 
 **Sonraki adımlar:** UI sahibinin INT-003 JSON v2 save/open entegrasyonu; entegrasyon tamamlanınca DOM-153 append → save → reopen → append round-trip. Fiziksel CNC doğrulaması bu dilimin kapsamında değildir.
+
+
+## DOM-160 — Kenar bandı rulo fiyatlama zarfı güvenliği (implementation; verification pending)
+
+**Kullanıcı akışı:** Kullanıcı, JSON v2 projesinde katalog kimliğine bağlı rulo uzunluğu, sabit ek pay ve rulo fiyatı saklar. Proje dosyası açılırken bu alan okunur; kaydetme sırasında diğer proje metadata alanları korunur.
+
+**Sorun:** DOM-071'in v2 uzantı okuyucusu proje discriminator ve pricing alanlarını doğrudan property access ile okuyordu; setter ise yalnızca root nesneyi kopyalayıp donduruyordu. Own/inherited accessor'lar getter çalıştırabilir, nested metadata kaynak proje ile alias paylaşabilirdi.
+
+**Dikey dilim:** Own enumerable data descriptor okumaları, 16 MiB UTF-8 / 64 seviye JSON-safe envelope clone, fail-closed reflection trap yakalama ve nested project metadata için deep clone/freeze eklendi. JSON v1 legacy read-only davranışı korundu.
+
+**Kabul kriterleri**
+- Own/inherited envelope ve nested pricing getter çağrı sayısı sıfır; invalid girdiler blocked ve partial project/pricing döndürmez.
+- Proxy reflection trap hataları public read/write API dışına exception sızdırmaz; trap çalıştırılmasını engellediği iddia edilmez.
+- v2 write sonrası oda/özel metadata nesneleri kaynak projeden farklı referanstır ve derin donduruludur.
+- Own `__proto__` JSON metadata anahtarı veri olarak korunur.
+- 16 MiB UTF-8 ve 64 object/array depth sınırları exact-SHA testlerle doğrulanır.
+- JSON v1 legacy read ve v1 extension blocker değişmez; mevcut roll/price sorting, 0.1 mm, currency ve 1.000 satır kuralları korunur.
+
+**Sınırlar:** Bu domain dilimi UI save/open entegrasyonu, CNC, gerçek rulo/tedarik standardı, fiyat kaynağı veya fiziksel üretim doğrulaması değildir. UI sahibinin INT-003 JSON v2 editor entegrasyonu tamamlanmadan DOM-153 editör round-trip işi başlatılmaz.

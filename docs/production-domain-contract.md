@@ -1459,3 +1459,13 @@ The DOM-157 regression uses an envelope already over the 16 MiB limit together w
 - Teklif geçmişi read, append ve standalone import API'leri legacy JSON v1 zarfında `quoteRevisionHistory` alanının own-property varlığını kontrol eder. Bu kontrol sırasında Proxy descriptor reflection trap'i hata fırlatırsa hata public API dışına sızdırılmaz; sonuç `blocked`, proje/geçmiş payload'ları ise null olur.
 - Bu koruma Proxy trap'lerinin çalışmasını engellemez ve Proxy nesnelerini güvenilir JSON verisi olarak kabul etmez. Yalnızca v1 discriminator kontrolündeki reflection hatasını fail-closed sonuca dönüştürür.
 - Normal v1 dosyaları `legacy` olarak okunmaya devam eder; v1 içinde `quoteRevisionHistory` bulunması yine blocked kalır. JSON v2, dosya şeması, mm/adet/maliyet hesapları ve CNC/adapter sözleşmeleri değişmez.
+
+
+## DOM-160 — JSON v2 kenar bandı rulo girdilerinde güvenli zarf sınırı
+
+- `readProjectEdgeBandingRollPricingFromProjectFile`, `format`, `formatVersion`, `projectId` ve `edgeBandingRollPricing` alanlarını own enumerable data descriptor üzerinden okur; own/inherited getter çalıştırmaz. JSON v1, bu uzantı için legacy/read-only kalır; v1 üzerinde uzantı varsa blocked döner.
+- v2 yazımı tüm proje zarfını derin kopyalar ve dondurur. Yalnızca düz JSON nesneleri, dense diziler ve own enumerable data alanları kabul edilir; accessor, symbol, non-enumerable alan, özel prototype, sparse array, cycle, sonlu olmayan sayı ve JSON dışı değerler fail-closed reddedilir.
+- Proje zarfı sınırı quote-history v2 ile tutarlıdır: en fazla 16 MiB UTF-8 ve 64 iç içe nesne/dizi seviyesi. Bilinmeyen JSON metadata ve own `__proto__` veri anahtarı kayıpsız korunur.
+- Yazma sonucu kaynak projedeki nested oda/mobilya/malzeme/metadata nesneleriyle referans paylaşmaz; proje ve pricing snapshot derin biçimde immutable döner.
+- Proxy reflection trap'lerinin çalıştırılmasını engellediği iddia edilmez; descriptor/ownKeys/prototype trap'leri hata fırlatırsa public read/write API'leri exception sızdırmadan blocked döner.
+- Fiyat, rulo uzunluğu ve sabit ek pay kullanıcı girdisidir. Yüzde fire, rulo standardı, verim, makine veya fiziksel atölye onayı tahmin edilmez. Frontend kontrol ve indirme entegrasyonu UI sahibindedir.

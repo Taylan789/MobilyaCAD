@@ -120,3 +120,120 @@ test("existing quote revision extension is preserved", () => {
   const saved=setProjectEdgeBandingRollPricingInProjectFile(project({quoteRevisionHistory:history}),pricing());
   assert.equal(saved.status,"ready");assert.deepEqual(saved.project.quoteRevisionHistory,history);assert.ok(saved.project.edgeBandingRollPricing);
 });
+
+
+test("project and nested pricing accessors are blocked without executing getters", () => {
+  let projectGetterCalls = 0;
+  const unsafeProject = project();
+  Object.defineProperty(unsafeProject, "format", {
+    configurable: true,
+    enumerable: true,
+    get() { projectGetterCalls += 1; return "MobilyaCAD"; }
+  });
+  const read = readProjectEdgeBandingRollPricingFromProjectFile(unsafeProject);
+  assert.equal(read.status, "blocked");
+  assert.equal(projectGetterCalls, 0);
+
+  let pricingGetterCalls = 0;
+  const unsafePricing = pricing();
+  Object.defineProperty(unsafePricing.rollSpecs[0], "rollLengthMm", {
+    configurable: true,
+    enumerable: true,
+    get() { pricingGetterCalls += 1; return 50000; }
+  });
+  const write = setProjectEdgeBandingRollPricingInProjectFile(project(), unsafePricing);
+  assert.equal(write.status, "blocked");
+  assert.equal(write.project, null);
+  assert.equal(pricingGetterCalls, 0);
+});
+
+test("inherited project and pricing accessors are never used", () => {
+  let getterCalls = 0;
+  const projectPrototype = Object.create(Object.prototype);
+  Object.defineProperty(projectPrototype, "format", {
+    get() { getterCalls += 1; return "MobilyaCAD"; }
+  });
+  const inheritedProject = Object.assign(Object.create(projectPrototype), {
+    formatVersion: 2,
+    projectId: "project-42"
+  });
+  assert.equal(readProjectEdgeBandingRollPricingFromProjectFile(inheritedProject).status, "blocked");
+  assert.equal(getterCalls, 0);
+
+  const rowPrototype = Object.create(Object.prototype);
+  Object.defineProperty(rowPrototype, "rollLengthMm", {
+    get() { getterCalls += 1; return 50000; }
+  });
+  const inheritedRow = Object.assign(Object.create(rowPrototype), { edgeBandingId: "pvc-a" });
+  const unsafePricing = { schemaVersion: 1, rollSpecs: [inheritedRow], rollPriceTable: [] };
+  const write = setProjectEdgeBandingRollPricingInProjectFile(project(), unsafePricing);
+  assert.equal(write.status, "blocked");
+  assert.equal(write.project, null);
+  assert.equal(getterCalls, 0);
+});
+
+test("project reflection trap failures return blocked instead of escaping", () => {
+  const unsafeProject = new Proxy(project(), {
+    ownKeys() { throw new Error("project reflection trap failed"); }
+  });
+  const read = readProjectEdgeBandingRollPricingFromProjectFile(unsafeProject);
+  assert.equal(read.status, "blocked");
+  assert.match(read.diagnostics.join(" "), /reflection trap failed/);
+  const write = setProjectEdgeBandingRollPricingInProjectFile(unsafeProject, pricing());
+  assert.equal(write.status, "blocked");
+  assert.equal(write.project, null);
+  assert.match(write.diagnostics.join(" "), /reflection trap failed/);
+});
+
+test("v2 writes deep-clone and freeze unrelated project metadata", () => {
+  const original = project({
+    room: { width: 4000, length: 5000, height: 2800, unit: "mm", custom: { label: "before" } },
+    customEnvelope: { nested: { keep: true }, items: [{ id: "item-a", tags: ["one", "two"] }] }
+  });
+  const saved = setProjectEdgeBandingRollPricingInProjectFile(original, pricing());
+  assert.equal(saved.status, "ready");
+  assert.ok(saved.project);
+  assert.notStrictEqual(saved.project.room, original.room);
+  assert.notStrictEqual(saved.project.room.custom, original.room.custom);
+  assert.notStrictEqual(saved.project.customEnvelope.items[0].tags, original.customEnvelope.items[0].tags);
+  assert.ok(Object.isFrozen(saved.project.room));
+  assert.ok(Object.isFrozen(saved.project.room.custom));
+  assert.ok(Object.isFrozen(saved.project.customEnvelope.items[0].tags));
+
+  original.room.custom.label = "changed";
+  original.customEnvelope.items[0].tags.push("changed");
+  assert.equal(saved.project.room.custom.label, "before");
+  assert.deepEqual(saved.project.customEnvelope.items[0].tags, ["one", "two"]);
+  assert.throws(() => { saved.project.room.custom.label = "tampered"; }, TypeError);
+  assert.throws(() => { saved.project.customEnvelope.items[0].tags.push("tampered"); }, TypeError);
+});
+
+test("v2 writes preserve an own __proto__ metadata key as JSON data", () => {
+  const customEnvelope = JSON.parse('{"__proto__":{"marker":"preserved"}}');
+  const saved = setProjectEdgeBandingRollPricingInProjectFile(project({ customEnvelope }), pricing());
+  assert.equal(saved.status, "ready");
+  assert.ok(saved.project);
+  assert.equal(Object.getPrototypeOf(saved.project.customEnvelope), Object.prototype);
+  assert.equal(Object.prototype.hasOwnProperty.call(saved.project.customEnvelope, "__proto__"), true);
+  assert.deepEqual(saved.project.customEnvelope["__proto__"], { marker: "preserved" });
+});
+
+test("v2 write clone enforces the shared 16 MiB and 64-level envelope bounds", () => {
+  const nested = {};
+  let cursor = nested;
+  for (let index = 0; index < 64; index += 1) {
+    const child = {};
+    cursor.child = child;
+    cursor = child;
+  }
+  const tooDeep = setProjectEdgeBandingRollPricingInProjectFile(project({ customEnvelope: nested }), pricing());
+  assert.equal(tooDeep.status, "blocked");
+  assert.match(tooDeep.diagnostics.join(" "), /64 iç içe/);
+
+  const tooLarge = setProjectEdgeBandingRollPricingInProjectFile(
+    project({ customEnvelope: { payload: "x".repeat(16 * 1024 * 1024) } }),
+    pricing()
+  );
+  assert.equal(tooLarge.status, "blocked");
+  assert.match(tooLarge.diagnostics.join(" "), /16 MiB UTF-8/);
+});
