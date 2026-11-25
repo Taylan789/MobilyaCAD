@@ -76,6 +76,7 @@ import "./styles/workbench.css";
 import "./styles/workspace-viewport-fit.css";
 import "./styles/ui-inspector-layout-001.css";
 import "./styles/cad-graphite-workspace-001.css";
+import "./styles/ui-workspace-panel-toggle-labels-001.css";
 import "./styles/ui-production-dock-empty-state-001.css";
 import "./styles/cad-production-dock-collapse-001.css";
 import "./styles/ui-workspace-vertical-rhythm-001.css";
@@ -1848,8 +1849,8 @@ function App() {
                 </div>
                 <span className="studio-heading-divider" aria-hidden="true" />
                 <div className="studio-panel-tools" role="group" aria-label="Panel görünürlüğü">
-                  <button type="button" className="studio-panel-toggle" aria-label={leftDockCollapsed ? "Sol paneli göster" : "Sol paneli gizle"} title={leftDockCollapsed ? "Sol paneli göster" : "Sol paneli gizle"} aria-pressed={!leftDockCollapsed} aria-expanded={!leftDockCollapsed} aria-controls="cad-left-dock" onClick={() => setLeftDockCollapsed((current) => !current)}><PanelLeft /></button>
-                  <button type="button" className="studio-panel-toggle" aria-label={inspectorCollapsed ? "Özellik panelini göster" : "Özellik panelini gizle"} title={inspectorCollapsed ? "Özellik panelini göster" : "Özellik panelini gizle"} aria-pressed={!inspectorCollapsed} aria-expanded={!inspectorCollapsed} aria-controls="cad-inspector" onClick={() => setInspectorCollapsed((current) => !current)}><PanelRight /></button>
+                  <button type="button" className="studio-panel-toggle" aria-label={leftDockCollapsed ? "Sol paneli göster" : "Sol paneli gizle"} title={leftDockCollapsed ? "Sol paneli göster" : "Sol paneli gizle"} aria-pressed={!leftDockCollapsed} aria-expanded={!leftDockCollapsed} aria-controls="cad-left-dock" onClick={() => setLeftDockCollapsed((current) => !current)}><PanelLeft /><span className="studio-panel-toggle__label" aria-hidden="true">SOL PANEL</span></button>
+                  <button type="button" className="studio-panel-toggle" aria-label={inspectorCollapsed ? "Özellik panelini göster" : "Özellik panelini gizle"} title={inspectorCollapsed ? "Özellik panelini göster" : "Özellik panelini gizle"} aria-pressed={!inspectorCollapsed} aria-expanded={!inspectorCollapsed} aria-controls="cad-inspector" onClick={() => setInspectorCollapsed((current) => !current)}><PanelRight /><span className="studio-panel-toggle__label" aria-hidden="true">ÖZELLİKLER</span></button>
                 </div>
                 <span className="studio-unit-pill">MM</span>
               </div>
