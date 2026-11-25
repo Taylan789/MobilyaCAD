@@ -5,6 +5,7 @@ import { Toggle as TogglePrimitive } from "@base-ui/react/toggle"
 import { ToggleGroup as ToggleGroupPrimitive } from "@base-ui/react/toggle-group"
 import { type VariantProps } from "class-variance-authority"
 import { cn } from "cn"
+import "./cad-transform-mode-rail.css"
 
 import { toggleVariants } from "@/components/ui/toggle"
 
