@@ -24,7 +24,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 | Malzeme kataloğu | UI CRUD; mobilya varsayılan materialId ve çekmece grubunda varsayılan + dört panel grubu override; domain gövde/kitaplık motorları altı gövde panel grubu için malzeme override'ını doğrular | Gövde panel override'ları henüz frontend JSON v1/CSV ve UI akışına bağlanmadı; fiyat, tedarikçi ve fire henüz yok |
 | Proje dosyası | Yerel JSON v1 indirme/yükleme; saf serializer/parser; round-trip ve eski v1 uyumluluk; mm, mobilya ve çekmece grubu katalog referansları ile dört çekmece panel kalınlığının doğrulanması | Şema migrasyonu, otomatik kayıt ve kurtarma yok |
 | Teklif/maliyet | Kullanıcı fiyat tablosu malzeme tüketimini materialId + m2, donanımı hardwareId + özgün BOM birimi, kenar bandını edgeBandingId + açık mm/m birimi ile fiyatlandırır; kullanıcı girdili işçilik/operasyon tarifesi, tek para birimli birleşik teklif ve tarihli fiyat/tarife katalog snapshot'ı, DOM-014 doğrulanmış immutable append ve DOM-015 ortak satır aritmetiği doğrulaması vardır | Frontend/UI ve JSON v1/CSV kalıcı revizyon geçmişi entegrasyonu ayrı sahibindedir; tüm geçmişte ID tekilliği depolama katmanında doğrulanmalıdır; vergi, kur, iskonto, otomatik fire/kâr yüzdesi ve üretim onayı yok |
-| Test/CI | Current branch HEAD `b0981e0b9e90fc73672129ec27d71bb4300e35ad`: CI [#45661236019](https://github.com/Taylan789/MobilyaCAD/actions/runs/45661236019), QA [#45661235989](https://github.com/Taylan789/MobilyaCAD/actions/runs/45661235989) and Pages [#45661236014](https://github.com/Taylan789/MobilyaCAD/actions/runs/45661236014) all succeeded; Pages log confirms exact-SHA deployment to https://taylan789.github.io/MobilyaCAD/ | QA frontend/domain tests, strict shared-domain TypeScript, lint 36 warnings / 0 errors, production build and production-only audit 0 vulnerabilities; full install audit retains 4 moderate findings. Main JS bundle 1,698.03 kB (475.00 kB gzip); viewport p95/memory NOT MEASURED. |
+| Test/CI | Verified exact-SHA `deb962ff3813b8a4257ef0fc361bb79cba391cb9`: CI [#45665861844](https://github.com/Taylan789/MobilyaCAD/actions/runs/45665861844), QA [#45665861889](https://github.com/Taylan789/MobilyaCAD/actions/runs/45665861889), Pages [#45665861859](https://github.com/Taylan789/MobilyaCAD/actions/runs/45665861859) all succeeded; Pages log confirms exact SHA at https://taylan789.github.io/MobilyaCAD/ | QA 306/306 frontend + 787/787 domain; strict shared-domain TypeScript; lint 36 warnings / 0 errors; production build; production-only audit 0 vulnerabilities. Full install audit retains 4 moderate findings. Main JS bundle 1,698.03 kB (475.00 kB gzip); viewport p95/memory NOT MEASURED. |
 
 ### Bilinen mimari ve veri boşlukları
 
@@ -2020,7 +2020,7 @@ Bilinen sınırlar: Bu test domain teklif/snapshot sözleşmesini doğrular; UI-
 Sonraki adım: Exact-SHA CI/QA/Pages sonuçlarını doğrula; ardından DOM-170 revision append/import/restore içinde aynı maliyet temeli ve provenance alanlarını koru. INT-003 ve PERF-001/INT-002 sahiplikleri korunur.
 
 
-## 25 Kasım 2026 20:26 TRT — DOM-171 (implementation submitted; exact-SHA verification pending)
+## 25 Kasım 2026 20:26 TRT — DOM-171 VERIFIED
 
 **Kullanıcı akışı:** Atölye, levha satın alma teklif revizyonunu standalone JSON geçmişine aktarır veya proje JSON v2 dosyasını açar. Sistem, her levha grubunun kaynak Part kimliklerinin snapshot oluşturulurken kaydedilen toplam kapsamla eşleştiğini ve teklif kategori/genel toplamlarının kendi aritmetiğiyle tutarlı olduğunu doğrular; bozulmuş veri için kısmi geçmiş/proje döndürmez.
 
@@ -2030,7 +2030,7 @@ Sonraki adım: Exact-SHA CI/QA/Pages sonuçlarını doğrula; ardından DOM-170 
 
 **Değişen dosyalar:** `domain/production/projectQuotePricingSnapshot.ts`, `domain/production/projectQuoteRevision.ts`, `domain/production/projectQuotePricingSnapshot.test.mjs`, `domain/production/projectQuoteRevisionProjectFile.test.mjs`, `docs/production-domain-contract.md`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`.
 
-**Base / ön doğrulama:** `dev/github-work` HEAD `b0981e0b9e90fc73672129ec27d71bb4300e35ad`; base CI #45661236019, QA #45661235989 ve Pages #45661236014 tamamlandı ve başarılı. Pages deploy logu exact SHA'yı doğruluyor. Bu commit için Actions henüz tetiklenmedi; başarılı sayılmayacak.
+**Exact-SHA doğrulama:** Kod commit'i [deb962ff](https://github.com/Taylan789/MobilyaCAD/commit/deb962ff3813b8a4257ef0fc361bb79cba391cb9). CI [#45665861844](https://github.com/Taylan789/MobilyaCAD/actions/runs/45665861844), QA [#45665861889](https://github.com/Taylan789/MobilyaCAD/actions/runs/45665861889) ve Pages [#45665861859](https://github.com/Taylan789/MobilyaCAD/actions/runs/45665861859) başarılı. QA: 306/306 frontend + 787/787 domain testi; strict shared-domain TypeScript; lint 36 uyarı / 0 hata; production build; production-only audit 0 bulgu. Pages deploy logu exact `deb962ff3813b8a4257ef0fc361bb79cba391cb9` SHA'sının test sitesine yayımlandığını doğruluyor.
 
 **Sınırlar:** Manifest tek taraflı/tesadüfi alan bozulmasını yakalayan tutarlılık kontrolüdür, kriptografik imza değildir. Legacy material-basis v1 kayıtlarında aggregate manifest yoktur. Fiziksel levha tüketimi, atölye fire verimi veya CNC standardı doğrulaması değildir. UI-owned frontend, JSON/CSV adapter ve benchmark dosyaları değiştirilmedi.
 
