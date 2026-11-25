@@ -1771,7 +1771,16 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 - Compatibility: valid 2,000-revision histories remain readable/exportable; only an additional append is blocked. JSON v1, standalone 1 MiB history files, mm/quantity/cost calculations and CNC/adapter contracts are unchanged.
 - Boundary: proxy reflection traps remain outside the guarantee; physical CNC validation is unrelated to this data-safety slice.
 
+## DOM-158 — JSON v2 standalone history import preflight
+
+**Durum:** IMPLEMENTED — exact-SHA CI/QA/Pages verification pending.
+
+- Hedef proje kendi `quoteRevisionHistory` alanını taşıyorsa alanın own enumerable data descriptor'ı okunur; accessor getter çalıştırılmaz.
+- Geçmiş, hedef `projectId` ile doğrulanır. Dolu geçmiş varsa standalone dosya parse edilmeden ve 16 MiB'ye kadar çıkabilen diğer proje alanları kopyalanmadan import engellenir.
+- Geçerli boş geçmişe import ve JSON v1 legacy reddi korunur; başarısız sonuçta proje/history kısmi döndürülmez, kaynak proje değiştirilmez.
+- Otomatik kabul: büyük zarf + dolu geçmişte dolu-geçmiş tanısı kaynak sınırı tanısından önce gelir; accessor çağrı sayısı sıfırdır; boş geçmiş import'u ready, v1 import'u blocked olur.
+
 **Sıradaki küçük işler**
-1. DOM-158 — project-v2 standalone history import: reject a non-empty target history before cloning a potentially large envelope; preserve empty-history import and v1 legacy behavior.
-2. INT-003 — UI sahibinin JSON v2 parser/save/open entegrasyonunu tamamlamasını takip etmek; frontend dosyalarına dokunmamak.
-3. DOM-153 — entegrasyon hazır olduğunda editör append → save → reopen → append domain sözleşmesini exact-SHA testleriyle doğrulamak.
+1. INT-003 — UI sahibinin JSON v2 parser/save/open entegrasyonunu tamamlamasını takip etmek; frontend dosyalarına dokunmamak.
+2. DOM-153 — entegrasyon hazır olduğunda editör append → save → reopen → append domain sözleşmesini exact-SHA testleriyle doğrulamak.
+3. DOM-159 — entegrasyon sonrası standalone history import/export ile proje zarfı round-trip sınırlarını tekrar değerlendir; yalnızca kanıtlanmış bir boşluk varsa yeni dilim aç.

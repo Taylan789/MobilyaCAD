@@ -1,3 +1,13 @@
+## 25 Kasım 2026 06:43 TRT — DOM-158 IMPLEMENTED (verification pending)
+
+- Base `dev/github-work` HEAD: `9c18bcea5d9b27321ef671d20da380e4ce496eab`. Code/test commit SHA and exact-SHA Actions links will be filled after the commit and workflow results are available.
+- Import preflight: the target v2 envelope's own enumerable data descriptor for `quoteRevisionHistory` is inspected and validated before parsing the standalone history file or cloning unrelated project fields. A non-empty valid history blocks immediately; project identity mismatch and malformed/accessor-backed histories fail closed.
+- Regressions: oversized envelope + non-empty history returns the existing-history blocker before the 16 MiB limit; own accessor getter remains uncalled; explicit empty-history import remains ready; JSON v1 import remains blocked. No partial project/history and no source mutation.
+- Changed files: `domain/production/projectQuoteRevisionProjectFile.ts`, `domain/production/projectQuoteRevisionProjectFileResourceLimits.test.mjs`, `docs/production-domain-contract.md`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`.
+- Verification: pending exact-SHA CI, QA, production build and Pages deployment. No result is claimed until Actions completes.
+- Known limits: JavaScript Proxy reflection traps remain outside descriptor-safety guarantees; this is not editor JSON v2 save/open integration or CNC/physical-production validation. No `frontend/**`, adapter/performance-owned files, secrets/settings or `main` changes.
+- Next: UI-owned INT-003 parser/save/open integration; then DOM-153 editor append → save → reopen → append contract tests.
+
 ## 25 Kasım 2026 05:27 TRT — DOM-157 VERIFIED
 
 - Base `dev/github-work` HEAD before the code slice: `c2a6364a809e01ebedecf02e9656d8a373104c8b`. Code/test commit: [`9a109959`](https://github.com/Taylan789/MobilyaCAD/commit/9a10995914e6d36cbd954acee3565b263a521701).

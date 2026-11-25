@@ -510,6 +510,40 @@ export function importProjectQuoteRevisionHistoryFileIntoProject(
     );
   }
 
+  // Do not clone the full project envelope when an existing quote history would make import impossible.
+  // Inspect only the own data property and validate the history before parsing or traversing unrelated project data.
+  try {
+    const existingHistoryDescriptor = Object.getOwnPropertyDescriptor(
+      envelope.project,
+      PROJECT_QUOTE_REVISION_HISTORY_FIELD
+    );
+    if (existingHistoryDescriptor) {
+      if (!existingHistoryDescriptor.enumerable || !("value" in existingHistoryDescriptor)) {
+        return blockedImport("Proje zarfı JSON dışı nesne alanı içeriyor.");
+      }
+      const existingHistory = validateProjectQuoteRevisionHistory(existingHistoryDescriptor.value);
+      if (existingHistory.status === "blocked" || existingHistory.history === null) {
+        return blockedImport(
+          existingHistory.diagnostics[0] ?? "Mevcut proje teklif revizyon geçmişi doğrulanamadı."
+        );
+      }
+      if (existingHistory.history.projectId !== envelope.projectId) {
+        return blockedImport(
+          "Proje JSON v2 projectId değeri teklif revizyon geçmişinin projectId değeriyle eşleşmelidir."
+        );
+      }
+      if (existingHistory.history.revisions.length > 0) {
+        return blockedImport(
+          "Proje zaten teklif revizyon geçmişi içeriyor; içe aktarma mevcut geçmişi sessizce değiştiremez."
+        );
+      }
+    }
+  } catch (error) {
+    return blockedImport(
+      error instanceof Error ? error.message : "Mevcut proje teklif revizyon geçmişi güvenli biçimde doğrulanamadı."
+    );
+  }
+
   const imported = parseProjectQuoteRevisionHistoryFile(historyFileJson);
   if (imported.status === "blocked" || imported.history === null) {
     return blockedImport(

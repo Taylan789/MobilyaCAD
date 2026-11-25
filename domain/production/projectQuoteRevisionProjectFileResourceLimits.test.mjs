@@ -301,3 +301,78 @@ test("DOM-157 project-v2 append checks revision capacity before cloning an overs
   assert.strictEqual(project.quoteRevisionHistory, history);
   assert.strictEqual(project.quoteRevisionHistory.revisions, revisions);
 });
+
+// DOM-158 — standalone history import preflight
+
+test("DOM-158 import rejects a non-empty target history before traversing an oversized project envelope", () => {
+  const existing = appendProjectQuoteRevisionToProjectFile(
+    createProject(),
+    createRevision("dom-158-existing")
+  );
+  assert.equal(existing.status, "ready", existing.diagnostics.join(" | "));
+  assert.ok(existing.history);
+
+  const customEnvelope = {
+    payload: "x".repeat(PROJECT_QUOTE_REVISION_PROJECT_ENVELOPE_MAX_BYTES + 1)
+  };
+  const project = createProject({
+    customEnvelope,
+    quoteRevisionHistory: existing.history
+  });
+  const historyFile = createHistoryFile();
+  const result = importProjectQuoteRevisionHistoryFileIntoProject(project, historyFile);
+
+  assert.equal(result.status, "blocked");
+  assert.equal(result.project, null);
+  assert.equal(result.history, null);
+  assert.match(result.diagnostics.join(" | "), /zaten teklif revizyon geçmişi içeriyor/);
+  assert.strictEqual(project.customEnvelope, customEnvelope);
+  assert.strictEqual(project.quoteRevisionHistory, existing.history);
+});
+
+test("DOM-158 import rejects an accessor-backed target history without invoking its getter", () => {
+  let getterCalls = 0;
+  const project = createProject();
+  Object.defineProperty(project, "quoteRevisionHistory", {
+    enumerable: true,
+    configurable: true,
+    get() {
+      getterCalls += 1;
+      return { schemaVersion: 1, projectId: "project-dom-149", revisions: [] };
+    }
+  });
+
+  const result = importProjectQuoteRevisionHistoryFileIntoProject(project, createHistoryFile());
+
+  assert.equal(result.status, "blocked");
+  assert.equal(result.project, null);
+  assert.equal(result.history, null);
+  assert.match(result.diagnostics.join(" | "), /JSON dışı nesne alanı/);
+  assert.equal(getterCalls, 0);
+});
+
+test("DOM-158 import keeps empty v2 history import and v1 legacy rejection", () => {
+  const emptyHistory = {
+    schemaVersion: 1,
+    projectId: "project-dom-149",
+    revisions: []
+  };
+  const project = createProject({ quoteRevisionHistory: emptyHistory });
+  const imported = importProjectQuoteRevisionHistoryFileIntoProject(project, createHistoryFile());
+
+  assert.equal(imported.status, "ready", imported.diagnostics.join(" | "));
+  assert.equal(imported.history?.revisions.length, 1);
+  assert.equal(imported.project?.quoteRevisionHistory?.revisions.length, 1);
+  assert.strictEqual(project.quoteRevisionHistory, emptyHistory);
+
+  const legacy = {
+    format: "MobilyaCAD",
+    formatVersion: 1,
+    room: { width: 4000, length: 5000, height: 2800, unit: "mm" }
+  };
+  const legacyResult = importProjectQuoteRevisionHistoryFileIntoProject(legacy, createHistoryFile());
+  assert.equal(legacyResult.status, "blocked");
+  assert.equal(legacyResult.project, null);
+  assert.equal(legacyResult.history, null);
+  assert.match(legacyResult.diagnostics.join(" | "), /JSON v1/);
+});
