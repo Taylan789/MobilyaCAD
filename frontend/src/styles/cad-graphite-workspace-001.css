@@ -322,3 +322,12 @@
     font-size: 7.5px;
   }
 }
+
+
+/* UI-VIEWPORT-CENTER-BALANCE-001 — release more horizontal room to the 3D work surface. */
+@media (min-width: 1201px) {
+  .cad-app {
+    --cad-dock-left: clamp(224px, 17vw, 260px);
+    --cad-dock-right: clamp(284px, 21vw, 326px);
+  }
+}
