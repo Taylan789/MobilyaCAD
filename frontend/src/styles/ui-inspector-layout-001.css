@@ -584,7 +584,7 @@
   container-name: cad-inspector;
 }
 
-@container cad-inspector (min-width: 300px) {
+@container cad-inspector (min-width: 270px) {
   .cad-tab-content:not(.cad-tab-content-room) .cad-property-section:not(.cad-part-inspector) > .cad-dimension-fields {
     grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
     gap: 7px !important;
