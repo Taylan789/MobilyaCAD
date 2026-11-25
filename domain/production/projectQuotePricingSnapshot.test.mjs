@@ -565,8 +565,13 @@ test("an Object.prototype optional pricing getter cannot supply a missing quote 
       }
     });
     const result = createProjectQuotePricingSnapshot(createInput());
+    const materialBasisResult = createProjectQuotePricingSnapshot(createInput({
+      materialCostBasis: { basis: "net-consumption" }
+    }));
     assert.equal(getterCalls, 0);
     assert.equal(result.status, "ready", result.diagnostics.join("; "));
+    assert.equal(materialBasisResult.status, "ready", materialBasisResult.diagnostics.join("; "));
+    assert.equal(materialBasisResult.snapshot?.materialCostBasis?.basis, "net-consumption");
     assert.equal(result.snapshot?.quoteSummary.costSummary?.lines.some(line => line.unit === "rulo"), false);
   } finally {
     Reflect.deleteProperty(Object.prototype, "edgeBandingPricingMode");

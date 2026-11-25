@@ -365,7 +365,7 @@ function resolveEdgeBandingRollOptions(value: Record<string, unknown>): ProjectQ
     throw new Error("Teklif kenar bandı fiyatlama modu length veya roll olmalıdır.");
   }
 
-  const options: ProjectQuoteEdgeBandingRollOptions = {};
+  const options = Object.create(null) as ProjectQuoteEdgeBandingRollOptions;
   if (mode !== undefined) options.edgeBandingPricingMode = mode;
 
   const projectFileDescriptor = Object.getOwnPropertyDescriptor(value, "projectFile");
@@ -460,14 +460,13 @@ export function createProjectQuotePricingSnapshot(
         quoteOptions
       );
     } else {
-      const basisRequest: Record<string, unknown> = {
-        schemaVersion: 1,
-        basis: materialCostBasisInput.basis,
-        productionReport: input.productionReport,
-        consumptionPriceTable: input.consumptionPriceTable,
-        workItems: input.workItems,
-        tariffTable: input.tariffTable
-      };
+      const basisRequest = Object.create(null) as Record<string, unknown>;
+      basisRequest.schemaVersion = 1;
+      basisRequest.basis = materialCostBasisInput.basis;
+      basisRequest.productionReport = input.productionReport;
+      basisRequest.consumptionPriceTable = input.consumptionPriceTable;
+      basisRequest.workItems = input.workItems;
+      basisRequest.tariffTable = input.tariffTable;
       if (input.quoteAdjustments !== undefined) basisRequest.quoteAdjustments = input.quoteAdjustments;
       if (quoteOptions.edgeBandingPricingMode !== undefined) basisRequest.edgeBandingPricingMode = quoteOptions.edgeBandingPricingMode;
       if (quoteOptions.edgeBandingRollSpecs !== undefined) basisRequest.edgeBandingRollSpecs = quoteOptions.edgeBandingRollSpecs;

@@ -1482,7 +1482,7 @@ The DOM-157 regression uses an envelope already over the 16 MiB limit together w
 
 ## DOM-162 — Quote pricing snapshot request-envelope descriptor safety
 
-- `createProjectQuotePricingSnapshot` copies the top-level request, catalog-version records and material-cost-basis record using own enumerable data descriptors before reading their fields. Copies use a null prototype, so inherited optional getters cannot supply a missing pricing mode or metadata value.
+- `createProjectQuotePricingSnapshot` copies the top-level request, catalog-version records and material-cost-basis record using own enumerable data descriptors before reading their fields. Copies, resolved roll options and the internal material-basis request use null prototypes, so inherited optional getters cannot supply a missing pricing mode or metadata value.
 - Own accessors, symbol keys, non-enumerable properties and custom prototypes are rejected. Prototype/ownKeys/property-descriptor reflection failures return a `blocked` result with null quote/snapshot payloads; getter calls are not used to validate request metadata.
 - Ordinary JSON objects and null-prototype records remain supported. Existing input keys, quote arithmetic, mm units, currency rules, JSON v1/v2 formats and explicit roll-vs-length selection do not change.
 - Scope boundary: production reports, price tables, work-item arrays, roll arrays and stock-sheet reports remain validated by their respective downstream domain calculators; this slice does not claim to recursively sanitize every nested payload or suppress Proxy traps. It converts reflection failures encountered while inspecting the request/metadata records into fail-closed results.

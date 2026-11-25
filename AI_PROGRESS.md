@@ -1082,3 +1082,12 @@
 - AI Developer [#45526607336](https://github.com/Taylan789/MobilyaCAD/actions/runs/45526607336) failed with OpenRouter free-tier daily HTTP 429 (remaining 0; reset 26 Kasım 2026 03:00 TRT). It was not rerun before reset. Integration/Performance job is disabled in `.github/workflows/ai-developer.yml` and no specialist branch was found. UI-owned INT-003 [PR #206](https://github.com/Taylan789/MobilyaCAD/pull/206) remains draft and intentionally unmerged.
 - Known limit: nested production reports, price tables, work-item/roll arrays and stock-sheet reports remain validated by downstream domain APIs; this slice does not claim recursive sanitization, Proxy suppression or physical CNC validation.
 - Next: verify this exact SHA; then continue INT-003 handoff and DOM-153 only after editor save/open integration is complete.
+
+## 25 Kasım 2026 10:55 TRT — DOM-162 QA correction (verification pending)
+
+- First implementation commit [537c447](https://github.com/Taylan789/MobilyaCAD/commit/537c447eedfed46c2c81cadc397e1a23a5713d48): CI [#45572449314](https://github.com/Taylan789/MobilyaCAD/actions/runs/45572449314) passed; QA [#45572449465](https://github.com/Taylan789/MobilyaCAD/actions/runs/45572449465) failed 759/760 domain tests. One new test proved that an ordinary empty options object still inherited Object.prototype.edgeBandingPricingMode inside the downstream quote calculator.
+- Pages [#45572449362](https://github.com/Taylan789/MobilyaCAD/actions/runs/45572449362) built the site but its exact-SHA QA gate failed; deployment was skipped. The failed SHA was not published.
+- Correction: both resolved roll options and the internal material-cost-basis request are now null-prototype records. The inherited getter test covers normal quote and material-cost-basis paths. No test/assertion was removed or relaxed.
+- Changed files in correction: `domain/production/projectQuotePricingSnapshot.ts`, `domain/production/projectQuotePricingSnapshot.test.mjs`, `docs/production-domain-contract.md`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`.
+- Correction commit SHA and exact-SHA CI/QA/Pages results are pending. No frontend, adapter/performance-owned, CNC/machine, secrets/settings or `main` changes.
+- Next: inspect the correction's exact-SHA Actions; publish only after CI, QA and Pages all pass.
