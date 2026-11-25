@@ -7,10 +7,10 @@ const source = readFileSync(
   "utf8"
 );
 
-test("CAD form labels use a compact technical register without changing field behavior", () => {
+test("CAD form labels use a compact technical register without changing their authored casing", () => {
   assert.match(source, /min-height:\s*16px/);
   assert.match(source, /letter-spacing:\s*\.055em/);
-  assert.match(source, /text-transform:\s*uppercase/);
+  assert.doesNotMatch(source, /text-transform:\s*uppercase/i);
   assert.match(source, /border-radius:\s*0 3px 3px 0/);
 });
 
