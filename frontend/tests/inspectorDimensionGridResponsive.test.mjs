@@ -6,18 +6,30 @@ const inspectorCss = readFileSync(
   new URL("../src/styles/ui-inspector-layout-001.css", import.meta.url),
   "utf8"
 );
-const graphiteCss = readFileSync(
-  new URL("../src/styles/cad-graphite-workspace-001.css", import.meta.url),
+const viewportFitCss = readFileSync(
+  new URL("../src/styles/workspace-viewport-fit.css", import.meta.url),
+  "utf8"
+);
+const appSource = readFileSync(
+  new URL("../src/App.tsx", import.meta.url),
   "utf8"
 );
 const delivery = inspectorCss.split("/* UI-INSPECTOR-DIMENSION-GRID-001")[1] ?? "";
 
 test("UI-INSPECTOR-DIMENSION-GRID-001 sizes the inspector from its own available width", () => {
   assert.match(delivery, /\.cad-inspector-tabs\s*\{[^}]*container-type:\s*inline-size;[^}]*container-name:\s*cad-inspector;/s);
-  assert.match(delivery, /@container\s+cad-inspector\s*\(min-width:\s*300px\)/);
-  assert.match(graphiteCss, /--cad-dock-right:\s*326px/);
-  assert.match(graphiteCss, /--cad-dock-right:\s*304px/);
-  assert.match(graphiteCss, /--cad-dock-right:\s*286px/);
+  assert.match(delivery, /@container\s+cad-inspector\s*\(min-width:\s*270px\)/);
+  assert.match(appSource, /import\s+"\.\/styles\/workspace-viewport-fit\.css"/);
+  assert.match(
+    viewportFitCss,
+    /\.cad-app \.cad-inspector\s*\{[^}]*flex:\s*0 0 clamp\(264px,\s*calc\(7vw \+ 186\.9px\),\s*360px\) !important;/s
+  );
+  const inspectorWidthAt = (viewportWidth) =>
+    Math.max(264, Math.min(viewportWidth * 0.07 + 186.9, 360));
+  assert.equal(Math.round(inspectorWidthAt(1280) * 10) / 10, 276.5);
+  assert.equal(Math.round(inspectorWidthAt(1440) * 10) / 10, 287.7);
+  assert.ok(inspectorWidthAt(1280) >= 270 && inspectorWidthAt(1280) < 300);
+  assert.ok(inspectorWidthAt(1440) >= 270 && inspectorWidthAt(1440) < 300);
 });
 
 test("wide inspector puts the three selected-furniture dimensions on one row", () => {
