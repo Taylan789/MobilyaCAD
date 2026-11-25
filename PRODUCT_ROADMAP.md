@@ -1912,7 +1912,7 @@ The first implementation SHA was not published after QA found one inherited-gett
 **Durum:** VERIFIED — [code/test commit b932c60](https://github.com/Taylan789/MobilyaCAD/commit/b932c60acfc6d673155721398abc777ca5d124b1); exact-SHA CI [#45600686688](https://github.com/Taylan789/MobilyaCAD/actions/runs/45600686688), QA [#45600686727](https://github.com/Taylan789/MobilyaCAD/actions/runs/45600686727) ve Pages [#45600686669](https://github.com/Taylan789/MobilyaCAD/actions/runs/45600686669) başarılı; test sitesi https://taylan789.github.io/MobilyaCAD/ adresine dağıtıldı. QA: 290 frontend + 773 domain testi, strict TypeScript, lint 36 uyarı/0 hata, production build ve production audit 0 açık. Sonraki domain görevi DOM-165 — nested roll-spec/roll-price listelerinin descriptor-safe sınır denetimi; UI-owned INT-003 ve DOM-153 bağımlılığı ayrı kalır.
 
 
-## DOM-165 — Teklif rulo girdilerinde nested descriptor güvenliği (verification pending)
+## DOM-165 — Teklif rulo girdilerinde nested descriptor güvenliği (VERIFIED — 25 Kasım 2026)
 
 **Kullanıcı akışı:** Operatör, teklif oluştururken kendi rulo uzunluğu/ek payı ve rulo fiyat tablosunu doğrudan quote API'sine verir. Domain, bu listeleri hesaplamadan önce güvenli biçimde normalize eder; şüpheli satır veya dizi yapısında hiçbir getter çalıştırmadan tüm teklifi engeller.
 
@@ -1931,7 +1931,7 @@ The first implementation SHA was not published after QA found one inherited-gett
 
 **Düzeltme:** Boş tüketim dalı artık yalnızca descriptor-safe kopyalanmış `validatedSpecs.length` değerini kullanır; Proxy `get("length")` çağrısının sıfır olduğunu doğrulayan regresyon testi eklendi.
 
-**Durum:** Düzeltme commit'i oluşturuldu; exact-SHA CI/QA/Pages sonucu bekleniyor.
+**Durum:** VERIFIED — code/test commit [ffab4aa](https://github.com/Taylan789/MobilyaCAD/commit/ffab4aa29051182a825c1ba77428a911a48fad55); exact-SHA CI [#45602592844](https://github.com/Taylan789/MobilyaCAD/actions/runs/45602592844), QA [#45602592876](https://github.com/Taylan789/MobilyaCAD/actions/runs/45602592876), Pages [#45602593126](https://github.com/Taylan789/MobilyaCAD/actions/runs/45602593126) all successful. QA 290/290 frontend + 777/777 domain, strict shared-domain TypeScript, lint 36 warnings/0 errors, production build, production audit 0 vulnerabilities. Test site: https://taylan789.github.io/MobilyaCAD/. İlk SHA `e77957c` QA'da TS18046 ile durdu ve deploy edilmedi; `ffab4aa` raw Proxy length read regression'ını da kapatarak exact-SHA doğrulamayı geçti.
 
 **Sıradaki 3–5 küçük görev**
 1. DOM-166 — `productionReport`, tüketim fiyat tablosu, iş kalemleri ve tarife tablosunun public quote girişlerindeki nested descriptor sınırlarını audit et; yalnızca kanıtlanan açıkları testli düzelt.
