@@ -2048,44 +2048,8 @@ Sonraki adım: Exact-SHA CI/QA/Pages sonuçlarını doğrula; ardından DOM-170 
 
 ### Next 3–5 domain/integration tasks
 
-1. Hand off the additive manifest comparison fields to the designated adapter owner for a versioned JSON/CSV round-trip; do not edit adapter-owned files while INT-002/PERF-001 ownership is unavailable.
-2. Review multi-revision source-audit reconciliation after the adapter contract is assigned; preserve legacy v1 non-inference.
-3. Keep UI-owned INT-003 PR #206 isolated; after the editor's real save/open wiring lands, validate DOM-153 append → save → reopen → append.
-4. Continue domain work only after the current exact-SHA verification is complete; next independent target is a manifest-aware multi-revision source-audit reconciliation review.
-5. Keep bundle p95 viewport/memory profiling with the specialist owner; current viewport p95/memory remains NOT MEASURED.
-
-
-## 25 Kasım 2026 22:21 TRT — DOM-173 VERIFIED
-
-User value: the revision audit can distinguish total schema-v2 manifest references from project-wide unique Part IDs even when a Part appears in more than one revision. Legacy v1 stock-sheet groups and revisions without a stock-sheet basis remain explicitly outside v2 manifest totals.
-
-Acceptance: a four-revision fixture (v2, v2 with an overlapping Part ID, legacy v1, no basis) reconciles per-revision and project-wide counters; existing all-stock-sheet group counts remain distinct; the source-integrity audit exposes the same manifest totals; paired cost/source-line reordering leaves aggregate results unchanged; inputs and outputs retain immutability.
-
-Implementation scope: clarifying source-contract comments, one multi-revision regression, and contract/coordination/roadmap updates. No frontend, JSON/CSV adapter, benchmark, CNC/machine, pricing behavior, secrets/settings or main changes.
-
-Verified implementation [a021b0a5](https://github.com/Taylan789/MobilyaCAD/commit/a021b0a5db7de0634ab33443d43890df20736db9). Exact-SHA CI [#45685137601](https://github.com/Taylan789/MobilyaCAD/actions/runs/45685137601), QA [#45685137577](https://github.com/Taylan789/MobilyaCAD/actions/runs/45685137577) and Pages [#45685137617](https://github.com/Taylan789/MobilyaCAD/actions/runs/45685137617) all succeeded. QA: 314/314 frontend + 791/791 domain tests; the DOM-173 regression passed; strict shared-domain TypeScript; lint 36 warnings / 0 errors; production build; production-only dependency audit 0 vulnerabilities. Pages logs confirm exact SHA a021b0a5db7de0634ab33443d43890df20736db9 deployed to https://taylan789.github.io/MobilyaCAD/.
-
-### Next 3–5 small tasks
-1. DOM-174 — compare manifest coverage for every non-adjacent revision pair in a mixed v2/v1 history and reconcile the comparison result with the source-map audit.
-2. UI-owned INT-003 PR #206 remains isolated; after actual editor startup/new/save/open envelope wiring, validate DOM-153 append → save → reopen → append.
-3. INT-002/PERF-001 remain specialist-owned; do not edit adapter or benchmark files while the specialist job/branch is absent.
-4. Keep QA-003 blocked until INT-001 and INT-002 evidence is available.
-5. Keep viewport p95/memory NOT MEASURED until the specialist supplies a repeatable baseline; physical CNC/workshop checks remain human validation.
-
-
-## 25 Kasım 2026 23:31 TRT — DOM-174 VERIFIED
-
-DOM-174 verifies that revision comparison is not limited to adjacent revisions and that the three domain comparison surfaces agree with the independent source-map audit.
-
-- Fixture: six chronological revisions alternating schema-v2 stock-sheet manifests and legacy schema-v1 stock-sheet bases, followed by a revision without a stock-sheet basis. All 10 non-adjacent pairs are checked.
-- For each pair, compareProjectQuoteRevisionStockSheetGroups, compareProjectQuoteRevisions and compareProjectQuoteRevisionSourceMaps return identical manifest comparison values. From/to coverage equals the per-revision audit's basis, schema version, manifest version and Part count. Comparable v2→v2 counts and ID changes reconcile; legacy/no-basis pairs return null counts and changes without inferred Part deltas.
-- Exact-SHA implementation [ea724ee5](https://github.com/Taylan789/MobilyaCAD/commit/ea724ee532dcbe4f86c5143ec598b918fecab0f3): CI [#45695587251](https://github.com/Taylan789/MobilyaCAD/actions/runs/45695587251), QA [#45695587084](https://github.com/Taylan789/MobilyaCAD/actions/runs/45695587084), Pages [#45695587158](https://github.com/Taylan789/MobilyaCAD/actions/runs/45695587158) all succeeded. QA 314/314 frontend + 792/792 domain; test 433 passed; strict TS, lint 36 warnings/0 errors, production build and production-only audit 0 vulnerabilities. Full install audit still reports 4 moderate findings.
-- Follow-on UI-owned transform mode rail commit [3532ee71](https://github.com/Taylan789/MobilyaCAD/commit/3532ee7122769ebf7d171e629696f0ded01e0846) is separately verified and deployed: CI #45695923410, QA #45695923351, Pages #45695923248; QA 318/318 frontend + 792/792 domain.
-- Bundle remains 1,698.03 kB JS (475.00 kB gzip) and 447.63 kB CSS (75.53 kB gzip); viewport p95/memory NOT MEASURED. Overall 10/10 gate remains unchecked. CNC/machine and physical workshop checks remain human validation.
-
-### Next 3–5 domain/integration tasks
-1. DOM-175 — verify appendProjectQuoteRevision preserves mixed v2/v1/no-basis manifest coverage, pairwise comparisons and project-wide audit totals after immutable appends; invalid append must remain atomic.
-2. UI-owned INT-003 PR #206 remains isolated; after actual editor startup/new/save/open envelope wiring, validate DOM-153 append → save → reopen → append.
-3. INT-002/PERF-001 remain specialist-owned; no adapter or benchmark changes until the specialist branch/job is active.
-4. Keep QA-003 blocked until INT-001 and INT-002 evidence is available.
-5. Keep viewport p95/memory NOT MEASURED until the specialist supplies a repeatable baseline; physical CNC/workshop checks remain human validation.
+1. DOM-175 — mixed v2/v1/no-basis append, audit and pairwise comparison regression coverage is implemented in the current commit; exact-SHA CI/QA/Pages validation is pending.
+2. DOM-176 — verify the same mixed history survives standalone quote-revision JSON file serialize/parse and remains appendable after parsing; do not claim editor-level JSON v2 save/open integration.
+3. UI-owned INT-003 PR #206 remains isolated; after actual editor startup/new/save/open envelope wiring, validate DOM-153 append → save → reopen → append.
+4. INT-002/PERF-001 remain specialist-owned; the integration/performance workflow job is disabled and no specialist branch was found. Do not edit adapter or benchmark ownership.
+5. Keep QA-003 blocked until INT-001 and INT-002 evidence is available. Keep viewport p95/memory NOT MEASURED; physical CNC/workshop checks remain human validation.

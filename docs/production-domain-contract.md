@@ -1592,3 +1592,15 @@ The existing revision comparison APIs accept any later revision pair, not only a
 - For v2→v2 pairs, from/to Part counts, added/removed/unchanged counts and deterministic Part-ID changes reconcile with the two validated manifests and per-revision audit counters. Any pair with a legacy/no-basis side explicitly reports unavailable coverage and keeps counts/changes null; no legacy Part delta is inferred.
 - The six-revision fixture checks all 10 non-adjacent pairs, project totals (3 v2 revisions, 2 legacy revisions, 6 manifest references, 4 project-wide unique manifest Part IDs), deep-freeze and input immutability.
 - This is domain comparison/audit regression coverage only. JSON/CSV adapters remain specialist-owned; UI editor wiring, physical stock usage, CNC output and workshop certification are not implied.
+
+
+## DOM-175 — Immutable append sonrası mixed manifest uzlaştırması
+
+Kaynak test: \`domain/production/projectQuoteRevision.test.mjs\`.
+
+- Beş kayıtlı geçmişe sırasıyla manifest v2, legacy v1, manifest v2, legacy v1 ve manifest v2 revizyonları eklenir; \`appendProjectQuoteRevision\` ile önce bir manifest v2, ardından levha maliyet temeli olmayan bir strict revizyon eklenir.
+- Her append yeni immutable geçmiş üretir; önceki geçmiş ve ilk append sonucu sonraki append sırasında değişmez. Yeni sıra numarası ve \`previousRevisionId\` yalnızca doğrulanmış zincirden türetilir; yeni kayıt \`sourceIntegrityVersion: 1\` taşır.
+- Son geçmişin proje geneli audit toplamları 6 levha satın alma revizyonu, 4 manifest v2, 2 legacy, 8 manifest Part referansı / 5 benzersiz manifest Part kimliği ve tüm levha gruplarında 10 referans / 7 benzersiz Part kimliği olarak uzlaştırılır. Strict/legacy kaynak bütünlüğü denetimi 2 strict + 5 legacy revizyonu korur.
+- Manifest v2 ↔ v2, legacy v1 ↔ v2, v2 ↔ no-basis ve legacy ↔ no-basis çiftlerinde grup karşılaştırması, tam maliyet karşılaştırması ve kaynak haritası karşılaştırması aynı manifest kapsam sonucunu verir. Legacy veya no-basis tarafta Part listesi yoksa eklenen/çıkarılan Part uydurulmaz.
+- Yinelenen revisionId ile yapılan geçersiz append \`blocked\` + \`history: null\` döndürür; mevcut geçmişte kısmi değişiklik oluşmaz.
+- Bu test domain append/audit davranışını doğrular; kalıcı depolama transaction'ı, UI entegrasyonu, proje JSON v2 editör akışı veya fiziksel CNC doğrulaması iddia etmez. JSON v2 save/open entegrasyonu ayrı UI sahibi INT-003 kapsamındadır.
