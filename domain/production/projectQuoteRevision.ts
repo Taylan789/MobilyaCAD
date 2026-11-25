@@ -1663,6 +1663,36 @@ export interface ProjectQuoteRevisionStockSheetPartChange {
   toGroupId: string | null;
 }
 
+export interface ProjectQuoteRevisionStockSheetManifestCoverage {
+  basis: "net-consumption" | "stock-sheet-purchase" | null;
+  materialCostBasisSchemaVersion: 1 | 2 | null;
+  manifestVersion: 2 | null;
+  /** Null means the revision predates the aggregate manifest or has no stock-sheet purchase basis. */
+  partCount: number | null;
+}
+
+export interface ProjectQuoteRevisionStockSheetManifestPartChange {
+  type: "added" | "removed";
+  partId: string;
+}
+
+export interface ProjectQuoteRevisionStockSheetManifestComparison {
+  schemaVersion: 1;
+  from: ProjectQuoteRevisionStockSheetManifestCoverage;
+  to: ProjectQuoteRevisionStockSheetManifestCoverage;
+  status: "comparable" | "from-unavailable" | "to-unavailable" | "both-unavailable";
+  /** Null when either revision has no schema-v2 manifest; missing legacy coverage is never inferred. */
+  counts: {
+    fromPartCount: number;
+    toPartCount: number;
+    addedPartCount: number;
+    removedPartCount: number;
+    unchangedPartCount: number;
+  } | null;
+  /** Added/removed IDs are emitted only when both revisions have a validated schema-v2 manifest. */
+  changes: readonly ProjectQuoteRevisionStockSheetManifestPartChange[] | null;
+}
+
 export interface ProjectQuoteRevisionStockSheetGroupComparison {
   schemaVersion: 1;
   projectId: string;
@@ -1690,6 +1720,8 @@ export interface ProjectQuoteRevisionStockSheetGroupComparison {
   stockSheetPartCounts: ProjectQuoteRevisionStockSheetPartChangeCounts;
   /** Added, removed or moved Part IDs; unchanged IDs are represented only in counts. */
   stockSheetPartChanges: readonly ProjectQuoteRevisionStockSheetPartChange[];
+  /** Aggregate schema-v2 manifest coverage is compared separately from legacy group-level Part IDs. */
+  stockSheetManifestComparison: DeepReadonly<ProjectQuoteRevisionStockSheetManifestComparison>;
   /** Stable group IDs match in place; material/thickness identity changes are add/remove pairs. */
   groupChanges: readonly ProjectQuoteRevisionStockSheetGroupChange[];
 }
@@ -1782,6 +1814,91 @@ function createRevisionStockSheetComparisonTotals(
     stockSheetGroups,
     stockSheetCostMinor,
     sheetCount: Number(sheetCountTotal)
+  };
+}
+
+function getStockSheetManifestPartIds(
+  revision: ProjectQuoteRevision
+): readonly string[] | null {
+  const basis = revision.pricingSnapshot.materialCostBasis;
+  if (basis?.basis !== "stock-sheet-purchase" || basis.schemaVersion !== 2) return null;
+  const manifest = basis.sourcePartIds;
+  if (manifest === undefined) {
+    throw new Error("Şema v2 levha satın alma snapshot'ında toplam Part manifesti bulunmalıdır.");
+  }
+  return manifest;
+}
+
+function createStockSheetManifestCoverage(
+  revision: ProjectQuoteRevision
+): ProjectQuoteRevisionStockSheetManifestCoverage {
+  const basis = revision.pricingSnapshot.materialCostBasis;
+  const partIds = getStockSheetManifestPartIds(revision);
+  return {
+    basis: basis?.basis ?? null,
+    materialCostBasisSchemaVersion: basis?.schemaVersion ?? null,
+    manifestVersion: partIds === null ? null : 2,
+    partCount: partIds === null ? null : partIds.length
+  };
+}
+
+function compareStockSheetManifestCoverage(
+  fromRevision: ProjectQuoteRevision,
+  toRevision: ProjectQuoteRevision
+): ProjectQuoteRevisionStockSheetManifestComparison {
+  const fromPartIds = getStockSheetManifestPartIds(fromRevision);
+  const toPartIds = getStockSheetManifestPartIds(toRevision);
+  const from = createStockSheetManifestCoverage(fromRevision);
+  const to = createStockSheetManifestCoverage(toRevision);
+
+  if (fromPartIds === null || toPartIds === null) {
+    return {
+      schemaVersion: 1,
+      from,
+      to,
+      status: fromPartIds === null
+        ? toPartIds === null ? "both-unavailable" : "from-unavailable"
+        : "to-unavailable",
+      counts: null,
+      changes: null
+    };
+  }
+
+  const fromSet = new Set(fromPartIds);
+  const toSet = new Set(toPartIds);
+  const partIds = [...new Set([...fromSet, ...toSet])].sort();
+  const changes: ProjectQuoteRevisionStockSheetManifestPartChange[] = [];
+  let addedPartCount = 0;
+  let removedPartCount = 0;
+  let unchangedPartCount = 0;
+
+  for (const partId of partIds) {
+    const inFrom = fromSet.has(partId);
+    const inTo = toSet.has(partId);
+    if (!inFrom && inTo) {
+      addedPartCount += 1;
+      changes.push({ type: "added", partId });
+    } else if (inFrom && !inTo) {
+      removedPartCount += 1;
+      changes.push({ type: "removed", partId });
+    } else {
+      unchangedPartCount += 1;
+    }
+  }
+
+  return {
+    schemaVersion: 1,
+    from,
+    to,
+    status: "comparable",
+    counts: {
+      fromPartCount: fromPartIds.length,
+      toPartCount: toPartIds.length,
+      addedPartCount,
+      removedPartCount,
+      unchangedPartCount
+    },
+    changes
   };
 }
 
@@ -2033,6 +2150,7 @@ export function compareProjectQuoteRevisionStockSheetGroups(
         categoryDeltasMinor,
         stockSheetPartCounts,
         stockSheetPartChanges,
+        stockSheetManifestComparison: compareStockSheetManifestCoverage(fromRevision, toRevision),
         groupCounts,
         groupChanges
       },
@@ -2065,6 +2183,11 @@ export interface ProjectQuoteRevisionSourceMapAuditCounts {
   stockSheetPartReferenceCount: number;
   stockSheetUniquePartIdCount: number;
   stockSheetPriceSourceReferenceCount: number;
+  stockSheetPurchaseRevisionCount: number;
+  stockSheetManifestV2RevisionCount: number;
+  stockSheetLegacyManifestRevisionCount: number;
+  stockSheetManifestPartReferenceCount: number;
+  stockSheetManifestUniquePartIdCount: number;
   sourceTypeCounts: Record<ProjectQuoteLineSource["sourceType"], number>;
   categoryCounts: Record<ProjectQuoteCostCategory, number>;
 }
@@ -2119,6 +2242,10 @@ export interface ProjectQuoteRevisionSourceIntegrityAuditRevision {
   revisionNumber: number;
   createdAt: string;
   sourceIntegrityVersion: 1 | null;
+  materialCostBasis: "net-consumption" | "stock-sheet-purchase" | null;
+  materialCostBasisSchemaVersion: 1 | 2 | null;
+  stockSheetManifestVersion: 2 | null;
+  stockSheetManifestPartCount: number | null;
 }
 export interface ProjectQuoteRevisionSourceIntegrityAudit {
   schemaVersion: 1;
@@ -2126,6 +2253,11 @@ export interface ProjectQuoteRevisionSourceIntegrityAudit {
   revisionCount: number;
   strictRevisionCount: number;
   legacyRevisionCount: number;
+  stockSheetPurchaseRevisionCount: number;
+  stockSheetManifestV2RevisionCount: number;
+  stockSheetLegacyManifestRevisionCount: number;
+  stockSheetManifestPartReferenceCount: number;
+  stockSheetManifestUniquePartIdCount: number;
   revisions: readonly ProjectQuoteRevisionSourceIntegrityAuditRevision[];
 }
 export interface ProjectQuoteRevisionSourceIntegrityAuditResult {
@@ -2142,6 +2274,10 @@ export interface ProjectQuoteRevisionSourceMapAuditRevision {
   duplicateSourceIdentities: readonly ProjectQuoteRevisionSourceMapAuditDuplicateIdentity[];
   /** Purchase groups retain their own Part provenance and are not counted as quote cost lines. */
   stockSheetGroups: readonly ProjectQuoteRevisionSourceMapAuditStockSheetGroup[];
+  materialCostBasis: "net-consumption" | "stock-sheet-purchase" | null;
+  materialCostBasisSchemaVersion: 1 | 2 | null;
+  stockSheetManifestVersion: 2 | null;
+  stockSheetManifestPartCount: number | null;
   lines: readonly ProjectQuoteRevisionSourceMapAuditLine[];
 }
 
@@ -2180,6 +2316,11 @@ function createSourceMapAuditCounts(): ProjectQuoteRevisionSourceMapAuditCounts 
     stockSheetPartReferenceCount: 0,
     stockSheetUniquePartIdCount: 0,
     stockSheetPriceSourceReferenceCount: 0,
+    stockSheetPurchaseRevisionCount: 0,
+    stockSheetManifestV2RevisionCount: 0,
+    stockSheetLegacyManifestRevisionCount: 0,
+    stockSheetManifestPartReferenceCount: 0,
+    stockSheetManifestUniquePartIdCount: 0,
     sourceTypeCounts: {
       "production-consumption": 0,
       "labor-operation": 0,
@@ -2215,6 +2356,10 @@ function addSourceMapAuditCounts(
   target.stockSheetGroupCount += source.stockSheetGroupCount;
   target.stockSheetPartReferenceCount += source.stockSheetPartReferenceCount;
   target.stockSheetPriceSourceReferenceCount += source.stockSheetPriceSourceReferenceCount;
+  target.stockSheetPurchaseRevisionCount += source.stockSheetPurchaseRevisionCount;
+  target.stockSheetManifestV2RevisionCount += source.stockSheetManifestV2RevisionCount;
+  target.stockSheetLegacyManifestRevisionCount += source.stockSheetLegacyManifestRevisionCount;
+  target.stockSheetManifestPartReferenceCount += source.stockSheetManifestPartReferenceCount;
   for (const sourceType of ["production-consumption", "labor-operation", "quote-adjustment"] as const) {
     target.sourceTypeCounts[sourceType] += source.sourceTypeCounts[sourceType];
   }
@@ -2251,6 +2396,7 @@ export function calculateProjectQuoteRevisionSourceMapAudit(
     const revisionAudits: ProjectQuoteRevisionSourceMapAuditRevision[] = [];
     const allPartIds = new Set<string>();
     const allStockSheetPartIds = new Set<string>();
+    const allStockSheetManifestPartIds = new Set<string>();
     const allHardwareFurnitureIds = new Set<string>();
     const allHardwareBomReferences = new Set<string>();
 
@@ -2353,6 +2499,19 @@ export function calculateProjectQuoteRevisionSourceMapAudit(
       }
 
       const materialCostBasis = revision.pricingSnapshot.materialCostBasis;
+      const stockSheetManifestPartIds = getStockSheetManifestPartIds(revision);
+      const stockSheetManifestCoverage = createStockSheetManifestCoverage(revision);
+      if (materialCostBasis?.basis === "stock-sheet-purchase") {
+        counts.stockSheetPurchaseRevisionCount += 1;
+        if (stockSheetManifestPartIds === null) {
+          counts.stockSheetLegacyManifestRevisionCount += 1;
+        } else {
+          counts.stockSheetManifestV2RevisionCount += 1;
+          counts.stockSheetManifestPartReferenceCount += stockSheetManifestPartIds.length;
+          counts.stockSheetManifestUniquePartIdCount = stockSheetManifestPartIds.length;
+          for (const partId of stockSheetManifestPartIds) allStockSheetManifestPartIds.add(partId);
+        }
+      }
       const stockSheetGroups: ProjectQuoteRevisionSourceMapAuditStockSheetGroup[] =
         materialCostBasis?.basis === "stock-sheet-purchase"
           ? materialCostBasis.stockSheetGroups.map(group => ({
@@ -2408,12 +2567,17 @@ export function calculateProjectQuoteRevisionSourceMapAudit(
         counts,
         duplicateSourceIdentities,
         stockSheetGroups,
+        materialCostBasis: stockSheetManifestCoverage.basis,
+        materialCostBasisSchemaVersion: stockSheetManifestCoverage.materialCostBasisSchemaVersion,
+        stockSheetManifestVersion: stockSheetManifestCoverage.manifestVersion,
+        stockSheetManifestPartCount: stockSheetManifestCoverage.partCount,
         lines
       });
     }
 
     totals.uniquePartIdCount = allPartIds.size;
     totals.stockSheetUniquePartIdCount = allStockSheetPartIds.size;
+    totals.stockSheetManifestUniquePartIdCount = allStockSheetManifestPartIds.size;
     totals.uniqueHardwareFurnitureIdCount = allHardwareFurnitureIds.size;
     totals.uniqueHardwareBomReferenceCount = allHardwareBomReferences.size;
 
@@ -2479,7 +2643,11 @@ export function calculateProjectQuoteRevisionSourceIntegrityAudit(
         revisionId: revision.revisionId,
         revisionNumber: revision.revisionNumber,
         createdAt: revision.createdAt,
-        sourceIntegrityVersion: revision.sourceIntegrityVersion
+        sourceIntegrityVersion: revision.sourceIntegrityVersion,
+        materialCostBasis: revision.materialCostBasis,
+        materialCostBasisSchemaVersion: revision.materialCostBasisSchemaVersion,
+        stockSheetManifestVersion: revision.stockSheetManifestVersion,
+        stockSheetManifestPartCount: revision.stockSheetManifestPartCount
       });
     }
 
@@ -2495,6 +2663,11 @@ export function calculateProjectQuoteRevisionSourceIntegrityAudit(
         revisionCount: sourceMapAudit.revisionCount,
         strictRevisionCount,
         legacyRevisionCount,
+        stockSheetPurchaseRevisionCount: sourceMapAudit.totals.stockSheetPurchaseRevisionCount,
+        stockSheetManifestV2RevisionCount: sourceMapAudit.totals.stockSheetManifestV2RevisionCount,
+        stockSheetLegacyManifestRevisionCount: sourceMapAudit.totals.stockSheetLegacyManifestRevisionCount,
+        stockSheetManifestPartReferenceCount: sourceMapAudit.totals.stockSheetManifestPartReferenceCount,
+        stockSheetManifestUniquePartIdCount: sourceMapAudit.totals.stockSheetManifestUniquePartIdCount,
         revisions
       },
       diagnostics: []
@@ -2542,6 +2715,7 @@ export interface ProjectQuoteRevisionSourceMapProvenanceComparison {
   toRevisionNumber: number;
   fromSourceIntegrityVersion: 1 | null;
   toSourceIntegrityVersion: 1 | null;
+  stockSheetManifestComparison: DeepReadonly<ProjectQuoteRevisionStockSheetManifestComparison>;
   fromLineCount: number;
   toLineCount: number;
   counts: {
@@ -2678,6 +2852,7 @@ export function compareProjectQuoteRevisionSourceMaps(
         toRevisionNumber: toRevision.revisionNumber,
         fromSourceIntegrityVersion: fromAudit.sourceIntegrityVersion,
         toSourceIntegrityVersion: toAudit.sourceIntegrityVersion,
+        stockSheetManifestComparison: compareStockSheetManifestCoverage(fromRevision, toRevision),
         fromLineCount: fromAudit.lines.length,
         toLineCount: toAudit.lines.length,
         counts,

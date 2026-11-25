@@ -2843,6 +2843,15 @@ function setDom143StockSheetGroups(snapshot, groupSpecs) {
   return snapshot;
 }
 
+function setDom143StockSheetManifestV2(snapshot) {
+  const basis = snapshot.materialCostBasis;
+  assert.ok(basis);
+  assert.equal(basis.basis, "stock-sheet-purchase");
+  basis.schemaVersion = 2;
+  basis.sourcePartIds = [...new Set(basis.stockSheetGroups.flatMap(group => group.sourcePartIds))].sort();
+  return snapshot;
+}
+
 test("DOM-131 immutable quote source-map audit preserves per-revision trace counts and exact provenance", () => {
   const secondSnapshot = createDom131AuditSnapshot();
   const history = createTwoRevisionHistory({ pricingSnapshot: secondSnapshot });
@@ -3008,6 +3017,161 @@ test("DOM-143 stock-sheet purchase groups are audited separately from quote cost
   assert.equal(JSON.stringify(history), originalHistoryJson);
   assert.ok(Object.isFrozen(result.audit.revisions[1].stockSheetGroups));
   assert.ok(Object.isFrozen(result.audit.revisions[1].stockSheetGroups[0].sourcePartIds));
+});
+
+test("DOM-172 source-map audit distinguishes schema-v2 manifest coverage from legacy stock-sheet revisions", () => {
+  const legacyStockSheet = createDom143StockSheetAuditSnapshot();
+  const manifestStockSheet = setDom143StockSheetManifestV2(createDom143StockSheetAuditSnapshot());
+  const noBasis = createSnapshot();
+  const history = {
+    projectId: "project-42",
+    revisions: [
+      createHistoryRevision({ pricingSnapshot: legacyStockSheet }),
+      createHistoryRevision({
+        revisionId: "quote-r2",
+        revisionNumber: 2,
+        createdAt: "2026-11-17T11:00:00Z",
+        previousRevisionId: "quote-r1",
+        pricingSnapshot: manifestStockSheet
+      }),
+      createHistoryRevision({
+        revisionId: "quote-r3",
+        revisionNumber: 3,
+        createdAt: "2026-11-17T12:00:00Z",
+        previousRevisionId: "quote-r2",
+        pricingSnapshot: noBasis
+      })
+    ]
+  };
+  const originalHistoryJson = JSON.stringify(history);
+  const result = calculateProjectQuoteRevisionSourceMapAudit(history);
+  assert.equal(result.status, "ready", result.diagnostics.join("; "));
+  assert.ok(result.audit);
+  const [legacyAudit, manifestAudit, noBasisAudit] = result.audit.revisions;
+  const manifestPartCount = manifestStockSheet.materialCostBasis.sourcePartIds.length;
+
+  assert.deepEqual(
+    result.audit.revisions.map(revision => ({
+      materialCostBasis: revision.materialCostBasis,
+      materialCostBasisSchemaVersion: revision.materialCostBasisSchemaVersion,
+      stockSheetManifestVersion: revision.stockSheetManifestVersion,
+      stockSheetManifestPartCount: revision.stockSheetManifestPartCount
+    })),
+    [
+      { materialCostBasis: "stock-sheet-purchase", materialCostBasisSchemaVersion: 1, stockSheetManifestVersion: null, stockSheetManifestPartCount: null },
+      { materialCostBasis: "stock-sheet-purchase", materialCostBasisSchemaVersion: 2, stockSheetManifestVersion: 2, stockSheetManifestPartCount: manifestPartCount },
+      { materialCostBasis: null, materialCostBasisSchemaVersion: null, stockSheetManifestVersion: null, stockSheetManifestPartCount: null }
+    ]
+  );
+  assert.deepEqual(
+    result.audit.revisions.map(revision => ({
+      purchase: revision.counts.stockSheetPurchaseRevisionCount,
+      manifestV2: revision.counts.stockSheetManifestV2RevisionCount,
+      legacy: revision.counts.stockSheetLegacyManifestRevisionCount,
+      references: revision.counts.stockSheetManifestPartReferenceCount,
+      unique: revision.counts.stockSheetManifestUniquePartIdCount
+    })),
+    [
+      { purchase: 1, manifestV2: 0, legacy: 1, references: 0, unique: 0 },
+      { purchase: 1, manifestV2: 1, legacy: 0, references: manifestPartCount, unique: manifestPartCount },
+      { purchase: 0, manifestV2: 0, legacy: 0, references: 0, unique: 0 }
+    ]
+  );
+  assert.equal(result.audit.totals.stockSheetPurchaseRevisionCount, 2);
+  assert.equal(result.audit.totals.stockSheetManifestV2RevisionCount, 1);
+  assert.equal(result.audit.totals.stockSheetLegacyManifestRevisionCount, 1);
+  assert.equal(result.audit.totals.stockSheetManifestPartReferenceCount, manifestPartCount);
+  assert.equal(result.audit.totals.stockSheetManifestUniquePartIdCount, manifestPartCount);
+
+  const integrity = calculateProjectQuoteRevisionSourceIntegrityAudit(history);
+  assert.equal(integrity.status, "ready", integrity.diagnostics.join("; "));
+  assert.equal(integrity.audit?.stockSheetPurchaseRevisionCount, 2);
+  assert.equal(integrity.audit?.stockSheetManifestV2RevisionCount, 1);
+  assert.equal(integrity.audit?.stockSheetLegacyManifestRevisionCount, 1);
+  assert.equal(integrity.audit?.stockSheetManifestPartReferenceCount, manifestPartCount);
+  assert.equal(integrity.audit?.stockSheetManifestUniquePartIdCount, manifestPartCount);
+  assert.equal(integrity.audit?.revisions[1].stockSheetManifestVersion, 2);
+  assert.equal(integrity.audit?.revisions[0].stockSheetManifestPartCount, null);
+  assert.equal(JSON.stringify(history), originalHistoryJson);
+  assert.ok(Object.isFrozen(legacyAudit));
+  assert.ok(Object.isFrozen(manifestAudit));
+  assert.ok(Object.isFrozen(noBasisAudit));
+});
+
+test("DOM-172 compares aggregate Part manifests only when both revisions carry schema v2", () => {
+  const fromSnapshot = setDom143StockSheetManifestV2(setDom143StockSheetGroups(
+    createDom143StockSheetAuditSnapshot(),
+    [{ materialId: "mdf-18", thicknessMm: 18, sourcePartIds: ["part-a", "part-stay"], sheetCount: 1, pricePerSheetMinor: 500, sourceReference: "manifest-from" }]
+  ));
+  const toSnapshot = setDom143StockSheetManifestV2(setDom143StockSheetGroups(
+    createDom143StockSheetAuditSnapshot(),
+    [{ materialId: "mdf-18", thicknessMm: 18, sourcePartIds: ["part-a", "part-added"], sheetCount: 1, pricePerSheetMinor: 500, sourceReference: "manifest-to" }]
+  ));
+  const history = createHistoryWithSnapshots(fromSnapshot, toSnapshot);
+  const originalHistoryJson = JSON.stringify(history);
+  const groupResult = compareProjectQuoteRevisionStockSheetGroups(history, "quote-r1", "quote-r2");
+  assert.equal(groupResult.status, "ready", groupResult.diagnostics.join("; "));
+  const expected = {
+    schemaVersion: 1,
+    from: {
+      basis: "stock-sheet-purchase",
+      materialCostBasisSchemaVersion: 2,
+      manifestVersion: 2,
+      partCount: 2
+    },
+    to: {
+      basis: "stock-sheet-purchase",
+      materialCostBasisSchemaVersion: 2,
+      manifestVersion: 2,
+      partCount: 2
+    },
+    status: "comparable",
+    counts: {
+      fromPartCount: 2,
+      toPartCount: 2,
+      addedPartCount: 1,
+      removedPartCount: 1,
+      unchangedPartCount: 1
+    },
+    changes: [
+      { type: "added", partId: "part-added" },
+      { type: "removed", partId: "part-stay" }
+    ]
+  };
+  assert.deepEqual(groupResult.comparison?.stockSheetManifestComparison, expected);
+
+  const fullComparison = compareProjectQuoteRevisions(history, "quote-r1", "quote-r2");
+  assert.equal(fullComparison.status, "ready", fullComparison.diagnostics.join("; "));
+  assert.deepEqual(fullComparison.comparison?.stockSheetGroupComparison?.stockSheetManifestComparison, expected);
+
+  const sourceMapComparison = compareProjectQuoteRevisionSourceMaps(history, "quote-r1", "quote-r2");
+  assert.equal(sourceMapComparison.status, "ready", sourceMapComparison.diagnostics.join("; "));
+  assert.deepEqual(sourceMapComparison.comparison?.stockSheetManifestComparison, expected);
+  assert.equal(JSON.stringify(history), originalHistoryJson);
+  assert.ok(Object.isFrozen(groupResult.comparison?.stockSheetManifestComparison));
+  assert.ok(Object.isFrozen(sourceMapComparison.comparison?.stockSheetManifestComparison));
+});
+
+test("DOM-172 legacy manifest transitions are disclosed without inventing added or removed Parts", () => {
+  const legacySnapshot = createDom143StockSheetAuditSnapshot();
+  const manifestSnapshot = setDom143StockSheetManifestV2(createDom143StockSheetAuditSnapshot());
+  const legacyToV2 = compareProjectQuoteRevisionStockSheetGroups(
+    createHistoryWithSnapshots(legacySnapshot, manifestSnapshot), "quote-r1", "quote-r2"
+  );
+  assert.equal(legacyToV2.status, "ready", legacyToV2.diagnostics.join("; "));
+  assert.equal(legacyToV2.comparison?.stockSheetManifestComparison.status, "from-unavailable");
+  assert.equal(legacyToV2.comparison?.stockSheetManifestComparison.counts, null);
+  assert.equal(legacyToV2.comparison?.stockSheetManifestComparison.changes, null);
+  assert.equal(legacyToV2.comparison?.stockSheetManifestComparison.from.materialCostBasisSchemaVersion, 1);
+  assert.equal(legacyToV2.comparison?.stockSheetManifestComparison.to.manifestVersion, 2);
+
+  const v2ToLegacy = compareProjectQuoteRevisionSourceMaps(
+    createHistoryWithSnapshots(manifestSnapshot, legacySnapshot), "quote-r1", "quote-r2"
+  );
+  assert.equal(v2ToLegacy.status, "ready", v2ToLegacy.diagnostics.join("; "));
+  assert.equal(v2ToLegacy.comparison?.stockSheetManifestComparison.status, "to-unavailable");
+  assert.equal(v2ToLegacy.comparison?.stockSheetManifestComparison.counts, null);
+  assert.equal(v2ToLegacy.comparison?.stockSheetManifestComparison.changes, null);
 });
 
 test("DOM-143 stock-only empty quote summaries still audit groups and deduplicate Part IDs across revisions", () => {

@@ -1268,3 +1268,17 @@
 - Latest AI Developer [#45594366361](https://github.com/Taylan789/MobilyaCAD/actions/runs/45594366361) was inspected: OpenRouter free-model daily limit 50/50, HTTP 429, reset 26 November 2026 03:00 TRT. It was not rerun before reset; no paid fallback or secret/quota change. Integration/Performance job was skipped and branch search found no specialist branch; PERF-001/INT-002 remain specialist-owned.
 - UI-owned INT-003 PR [#206](https://github.com/Taylan789/MobilyaCAD/pull/206) remains open/draft; it was not modified or merged.
 - Next: verify exact-SHA CI/QA/Pages, then DOM-172 — expose schema-v2 Part-manifest coverage distinctly in revision comparison/source-audit output without touching adapter-owned files.
+
+
+## 25 Kasım 2026 21:52 TRT — DOM-172 implementation submitted; exact-SHA verification pending
+
+- **Base / preflight:** `dev/github-work` HEAD `66cd8ccecc2e07090454a00d2989d4afbfe48ed4`; no active CI, QA or AI Developer run was present. The base SHA's CI [#45671911991](https://github.com/Taylan789/MobilyaCAD/actions/runs/45671911991), QA [#45671912129](https://github.com/Taylan789/MobilyaCAD/actions/runs/45671912129) and Pages [#45671911758](https://github.com/Taylan789/MobilyaCAD/actions/runs/45671911758) all succeeded; Pages deployed that exact SHA to https://taylan789.github.io/MobilyaCAD/.
+- **DOM-172 slice:** domain revision audit now distinguishes stock-sheet purchase basis schema v1 (legacy, no aggregate manifest) from schema v2 (validated aggregate Part manifest). Per-revision and project-wide counters expose manifest coverage separately from quote cost-line provenance and legacy group Part references.
+- **Comparison:** stock-sheet group comparison, full quote comparison (through its group comparison), and source-map provenance comparison expose `stockSheetManifestComparison`. Added/removed Part IDs are returned only for v2→v2 comparisons; legacy/absent sides explicitly report unavailable coverage with null diff counts/changes.
+- **Acceptance tests added:** v1/v2/no-basis audit coverage, aggregate counters, exact v2→v2 Part diff, full comparison and source-map comparison propagation, legacy↔v2 non-inference, immutability and input non-mutation.
+- **Changed files:** `domain/production/projectQuoteRevision.ts`, `domain/production/projectQuoteRevision.test.mjs`, `docs/production-domain-contract.md`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`.
+- **Commit:** pending creation in this run; the exact SHA will be recorded after the commit object is created.
+- **Verification:** no local test run is claimed. Exact-SHA CI, QA, production build, audit and Pages deployment are pending; the prior base SHA is verified above.
+- **Parallel roles:** UI-owned INT-003 PR [#206](https://github.com/Taylan789/MobilyaCAD/pull/206) remains draft and untouched. Integration/Performance specialist job is disabled/skipped and no agent/integration-performance branch was verified; INT-002/PERF-001 adapter/benchmark files were not changed.
+- **AI Developer blocker:** run [#45594366361](https://github.com/Taylan789/MobilyaCAD/actions/runs/45594366361) failed with OpenRouter free-model daily HTTP 429 (limit 50, remaining 0; reset 26 November 2026 03:00 TRT). It was not rerun before reset; no paid fallback, secret, quota or workflow setting was changed.
+- **Next:** wait for exact-SHA CI/QA/Pages; then record final SHA and evidence and hand off adapter serialization to its designated owner.
