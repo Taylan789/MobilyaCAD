@@ -4195,3 +4195,188 @@ test("DOM-173 multi-revision stock-sheet manifest audit reconciles references an
   assert.ok(Object.isFrozen(result.audit));
   assert.ok(Object.isFrozen(result.audit.revisions[0]));
 });
+
+test("DOM-174 non-adjacent manifest comparisons reconcile with source-map audit in mixed v2/v1 history", () => {
+  const createManifestSnapshot = (partIds, sourceReference) => setDom143StockSheetManifestV2(
+    setDom143StockSheetGroups(createDom143StockSheetAuditSnapshot(), [{
+      materialId: "mdf-18",
+      thicknessMm: 18,
+      sourcePartIds: partIds,
+      sheetCount: 1,
+      pricePerSheetMinor: 500,
+      sourceReference
+    }])
+  );
+  const createLegacySnapshot = (partId, sourceReference) => setDom143StockSheetGroups(
+    createDom143StockSheetAuditSnapshot(),
+    [{
+      materialId: "mdf-18",
+      thicknessMm: 18,
+      sourcePartIds: [partId],
+      sheetCount: 1,
+      pricePerSheetMinor: 500,
+      sourceReference
+    }]
+  );
+
+  const manifestPartsByRevision = new Map([
+    ["quote-r1", ["part-a", "part-shared"]],
+    ["quote-r3", ["part-b", "part-shared"]],
+    ["quote-r5", ["part-c", "part-shared"]]
+  ]);
+  const snapshots = [
+    createManifestSnapshot(manifestPartsByRevision.get("quote-r1"), "manifest:r1"),
+    createLegacySnapshot("legacy-r2", "legacy:r2"),
+    createManifestSnapshot(manifestPartsByRevision.get("quote-r3"), "manifest:r3"),
+    createLegacySnapshot("legacy-r4", "legacy:r4"),
+    createManifestSnapshot(manifestPartsByRevision.get("quote-r5"), "manifest:r5"),
+    createSnapshot()
+  ];
+  const history = {
+    projectId: "project-42",
+    revisions: snapshots.map((pricingSnapshot, index) => createHistoryRevision({
+      revisionId: "quote-r" + (index + 1),
+      revisionNumber: index + 1,
+      createdAt: "2026-11-17T" + String(10 + index).padStart(2, "0") + ":00:00Z",
+      previousRevisionId: index === 0 ? null : "quote-r" + index,
+      pricingSnapshot
+    }))
+  };
+  const originalHistoryJson = JSON.stringify(history);
+  const auditResult = calculateProjectQuoteRevisionSourceMapAudit(history);
+  assert.equal(auditResult.status, "ready", auditResult.diagnostics.join("; "));
+  assert.ok(auditResult.audit);
+  const auditByRevisionId = new Map(
+    auditResult.audit.revisions.map(revision => [revision.revisionId, revision])
+  );
+
+  assert.deepEqual(
+    {
+      purchaseRevisions: auditResult.audit.totals.stockSheetPurchaseRevisionCount,
+      v2Revisions: auditResult.audit.totals.stockSheetManifestV2RevisionCount,
+      legacyRevisions: auditResult.audit.totals.stockSheetLegacyManifestRevisionCount,
+      manifestReferences: auditResult.audit.totals.stockSheetManifestPartReferenceCount,
+      manifestUniqueParts: auditResult.audit.totals.stockSheetManifestUniquePartIdCount
+    },
+    {
+      purchaseRevisions: 5,
+      v2Revisions: 3,
+      legacyRevisions: 2,
+      manifestReferences: 6,
+      manifestUniqueParts: 4
+    }
+  );
+
+  const nonAdjacentPairs = [
+    ["quote-r1", "quote-r3", "comparable"],
+    ["quote-r1", "quote-r4", "to-unavailable"],
+    ["quote-r1", "quote-r5", "comparable"],
+    ["quote-r1", "quote-r6", "to-unavailable"],
+    ["quote-r2", "quote-r4", "both-unavailable"],
+    ["quote-r2", "quote-r5", "from-unavailable"],
+    ["quote-r2", "quote-r6", "both-unavailable"],
+    ["quote-r3", "quote-r5", "comparable"],
+    ["quote-r3", "quote-r6", "to-unavailable"],
+    ["quote-r4", "quote-r6", "both-unavailable"]
+  ];
+
+  const auditCoverage = revision => ({
+    basis: revision.materialCostBasis,
+    materialCostBasisSchemaVersion: revision.materialCostBasisSchemaVersion,
+    manifestVersion: revision.stockSheetManifestVersion,
+    partCount: revision.stockSheetManifestPartCount
+  });
+
+  for (const [fromRevisionId, toRevisionId, expectedStatus] of nonAdjacentPairs) {
+    const groupResult = compareProjectQuoteRevisionStockSheetGroups(
+      history, fromRevisionId, toRevisionId
+    );
+    const fullResult = compareProjectQuoteRevisions(history, fromRevisionId, toRevisionId);
+    const sourceMapResult = compareProjectQuoteRevisionSourceMaps(
+      history, fromRevisionId, toRevisionId
+    );
+
+    assert.equal(groupResult.status, "ready", groupResult.diagnostics.join("; "));
+    assert.equal(fullResult.status, "ready", fullResult.diagnostics.join("; "));
+    assert.equal(sourceMapResult.status, "ready", sourceMapResult.diagnostics.join("; "));
+    assert.ok(groupResult.comparison);
+    assert.ok(fullResult.comparison?.stockSheetGroupComparison);
+    assert.ok(sourceMapResult.comparison);
+
+    const groupManifest = groupResult.comparison.stockSheetManifestComparison;
+    const fullManifest = fullResult.comparison.stockSheetGroupComparison.stockSheetManifestComparison;
+    const sourceMapManifest = sourceMapResult.comparison.stockSheetManifestComparison;
+    assert.deepEqual(fullManifest, groupManifest);
+    assert.deepEqual(sourceMapManifest, groupManifest);
+    assert.equal(groupManifest.status, expectedStatus);
+
+    const fromAudit = auditByRevisionId.get(fromRevisionId);
+    const toAudit = auditByRevisionId.get(toRevisionId);
+    assert.ok(fromAudit);
+    assert.ok(toAudit);
+    assert.deepEqual(groupManifest.from, auditCoverage(fromAudit));
+    assert.deepEqual(groupManifest.to, auditCoverage(toAudit));
+
+    for (const revisionAudit of [fromAudit, toAudit]) {
+      const expectedManifestCount = revisionAudit.stockSheetManifestPartCount ?? 0;
+      assert.equal(
+        revisionAudit.counts.stockSheetManifestPartReferenceCount,
+        expectedManifestCount
+      );
+      assert.equal(
+        revisionAudit.counts.stockSheetManifestUniquePartIdCount,
+        expectedManifestCount
+      );
+    }
+
+    if (expectedStatus === "comparable") {
+      const fromParts = new Set(manifestPartsByRevision.get(fromRevisionId));
+      const toParts = new Set(manifestPartsByRevision.get(toRevisionId));
+      const union = [...new Set([...fromParts, ...toParts])].sort();
+      const expectedChanges = [];
+      let addedPartCount = 0;
+      let removedPartCount = 0;
+      let unchangedPartCount = 0;
+      for (const partId of union) {
+        const inFrom = fromParts.has(partId);
+        const inTo = toParts.has(partId);
+        if (!inFrom && inTo) {
+          addedPartCount += 1;
+          expectedChanges.push({ type: "added", partId });
+        } else if (inFrom && !inTo) {
+          removedPartCount += 1;
+          expectedChanges.push({ type: "removed", partId });
+        } else {
+          unchangedPartCount += 1;
+        }
+      }
+      assert.deepEqual(groupManifest.counts, {
+        fromPartCount: fromParts.size,
+        toPartCount: toParts.size,
+        addedPartCount,
+        removedPartCount,
+        unchangedPartCount
+      });
+      assert.deepEqual(groupManifest.changes, expectedChanges);
+      assert.equal(
+        groupManifest.counts.fromPartCount,
+        fromAudit.counts.stockSheetManifestUniquePartIdCount
+      );
+      assert.equal(
+        groupManifest.counts.toPartCount,
+        toAudit.counts.stockSheetManifestUniquePartIdCount
+      );
+    } else {
+      assert.equal(groupManifest.counts, null);
+      assert.equal(groupManifest.changes, null);
+    }
+
+    assert.ok(Object.isFrozen(groupManifest));
+    assert.ok(Object.isFrozen(groupManifest.from));
+    assert.ok(Object.isFrozen(groupManifest.to));
+  }
+
+  assert.equal(JSON.stringify(history), originalHistoryJson);
+  assert.ok(Object.isFrozen(auditResult.audit));
+});
+
