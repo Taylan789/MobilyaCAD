@@ -1763,7 +1763,7 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 
 ## DOM-157 — JSON v2 proje append kapasite ön kontrolü
 
-**Durum:** IMPLEMENTED — exact-SHA CI/QA/Pages verification pending.
+**Durum:** VERIFIED — [commit 9a109959](https://github.com/Taylan789/MobilyaCAD/commit/9a10995914e6d36cbd954acee3565b263a521701). CI [#45532828711](https://github.com/Taylan789/MobilyaCAD/actions/runs/45532828711), QA [#45532829097](https://github.com/Taylan789/MobilyaCAD/actions/runs/45532829097) and Pages [#45532828671](https://github.com/Taylan789/MobilyaCAD/actions/runs/45532828671) passed; 259 frontend + 742 domain tests, strict TS, lint 36 warnings/0 errors, production build, production audit 0 vulnerabilities; test site deployed.
 
 - Project v2 append now reads the own data descriptor for `quoteRevisionHistory` and checks the existing `revisions` array length before copying the complete project envelope.
 - At the 2,000-revision cap, the operation returns `blocked` before traversing nested revision entries, reading the incoming revision, or reaching the 16 MiB envelope clone.
