@@ -462,3 +462,116 @@
     outline-color: Highlight;
   }
 }
+
+
+/* UI-ROOM-DIMENSION-AXIS-REGISTER-001 — make plan axes and elevation explicit. */
+.cad-tab-content-room[data-state="active"] .cad-property-section:first-child > .cad-section-heading::after {
+  content: "X/Z PLAN · Y DÜŞEY";
+  margin-left: auto;
+  color: #91b4c9;
+  font-size: 7px;
+  font-weight: 760;
+  letter-spacing: 0.1em;
+  white-space: nowrap;
+}
+
+.cad-tab-content-room[data-state="active"] .cad-property-section:first-child > .cad-field:nth-child(2),
+.cad-tab-content-room[data-state="active"] .cad-property-section:first-child > .cad-field:nth-child(3) {
+  min-width: 0;
+  padding: 9px;
+  border: 1px solid rgba(116, 151, 173, 0.25);
+  border-radius: 6px;
+  background: linear-gradient(145deg, rgba(35, 53, 64, 0.62), rgba(19, 31, 39, 0.72));
+}
+
+.cad-tab-content-room[data-state="active"] .cad-property-section:first-child > .cad-field:nth-child(4) {
+  grid-column: 1 / -1;
+  min-width: 0;
+  margin-top: 1px;
+  padding: 10px;
+  border: 1px solid rgba(145, 180, 202, 0.24);
+  border-left: 2px solid #91b4c9;
+  border-radius: 6px;
+  background: linear-gradient(105deg, rgba(49, 76, 92, 0.42), rgba(19, 31, 39, 0.72));
+}
+
+.cad-tab-content-room[data-state="active"] .cad-property-section:first-child > .cad-field > label {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 7px;
+  color: #b2c4ce;
+  font-size: 9px;
+  font-weight: 680;
+}
+
+.cad-tab-content-room[data-state="active"] .cad-property-section:first-child > .cad-field > label::after {
+  flex: 0 0 auto;
+  padding: 3px 5px;
+  color: #9bbbd0;
+  border: 1px solid rgba(145, 180, 202, 0.22);
+  border-radius: 3px;
+  background: rgba(145, 180, 202, 0.07);
+  font-size: 7px;
+  font-weight: 760;
+  letter-spacing: 0.08em;
+  line-height: 1;
+}
+
+.cad-tab-content-room[data-state="active"] .cad-property-section:first-child > .cad-field:nth-child(2) > label::after {
+  content: "X / PLAN";
+}
+
+.cad-tab-content-room[data-state="active"] .cad-property-section:first-child > .cad-field:nth-child(3) > label::after {
+  content: "Z / PLAN";
+}
+
+.cad-tab-content-room[data-state="active"] .cad-property-section:first-child > .cad-field:nth-child(4) > label::after {
+  content: "Y / DÜŞEY";
+  color: #d4e7f2;
+  border-color: rgba(145, 180, 202, 0.34);
+  background: rgba(145, 180, 202, 0.11);
+}
+
+.cad-tab-content-room[data-state="active"] .cad-property-section:first-child > .cad-field .cad-input-with-unit input {
+  min-height: 36px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 760px) {
+  .cad-tab-content-room[data-state="active"] .cad-property-section:first-child > .cad-field:nth-child(4) {
+    grid-column: 1;
+  }
+
+  .cad-tab-content-room[data-state="active"] .cad-property-section:first-child > .cad-section-heading::after {
+    font-size: 6px;
+    letter-spacing: 0.06em;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cad-tab-content-room[data-state="active"] .cad-property-section:first-child > .cad-field {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+@media (forced-colors: active) {
+  .cad-tab-content-room[data-state="active"] .cad-property-section:first-child > .cad-field:nth-child(2),
+  .cad-tab-content-room[data-state="active"] .cad-property-section:first-child > .cad-field:nth-child(3),
+  .cad-tab-content-room[data-state="active"] .cad-property-section:first-child > .cad-field:nth-child(4) {
+    border: 1px solid CanvasText !important;
+    border-left: 1px solid CanvasText !important;
+    background: Canvas !important;
+    box-shadow: none !important;
+  }
+
+  .cad-tab-content-room[data-state="active"] .cad-property-section:first-child > .cad-field > label::after,
+  .cad-tab-content-room[data-state="active"] .cad-property-section:first-child > .cad-section-heading::after {
+    color: CanvasText !important;
+    border-color: CanvasText !important;
+    background: Canvas !important;
+  }
+}
