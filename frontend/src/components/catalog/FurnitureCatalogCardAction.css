@@ -9,6 +9,11 @@
   gap: 4px;
   padding-inline: 7px;
   white-space: nowrap;
+  opacity: 1;
+  transform: none;
+  background: rgba(48, 72, 86, .82);
+  border-color: rgba(150, 181, 199, .48);
+  transition: background 140ms ease, border-color 140ms ease, color 140ms ease;
 }
 
 .cad-catalog-card.mc-catalog-card .mc-catalog-card__add svg {
@@ -23,9 +28,24 @@
   line-height: 1;
 }
 
+.cad-catalog-card.mc-catalog-card:hover .mc-catalog-card__add,
+.cad-catalog-card.mc-catalog-card:focus-visible .mc-catalog-card__add {
+  color: #eef6fa;
+  background: rgba(61, 90, 107, .98);
+  border-color: rgba(177, 205, 221, .76);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .cad-catalog-card.mc-catalog-card .mc-catalog-card__add {
     transition: none !important;
     transform: none !important;
+  }
+}
+
+@media (forced-colors: active) {
+  .cad-catalog-card.mc-catalog-card .mc-catalog-card__add {
+    color: ButtonText;
+    background: ButtonFace;
+    border-color: ButtonText;
   }
 }
