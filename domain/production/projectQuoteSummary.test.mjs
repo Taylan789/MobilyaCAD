@@ -686,3 +686,52 @@ test("quote option accessors and Proxy reflection failures block without invokin
   assert.equal(proxyQuote.status, "blocked");
   assert.equal(proxyQuote.costSummary, null);
 });
+
+
+test("combined roll quote rejects nested specification and price accessors without invoking getters", () => {
+  const report = createReport();
+  const part = report.result.parts[0];
+  part.edgeBanding = { top: true, bottom: false, left: false, right: false };
+  part.edgeBandingMaterialId = "pvc-a";
+  part.edgeBandingUnit = "mm";
+
+  let specGetterCalls = 0;
+  const unsafeSpec = { edgeBandingId: "pvc-a" };
+  Object.defineProperty(unsafeSpec, "rollLengthMm", {
+    enumerable: true,
+    configurable: true,
+    get() { specGetterCalls += 1; return 100000; }
+  });
+  const blockedSpecQuote = calculateProjectQuoteSummary(
+    report, consumptionPrices, [], [], [],
+    {
+      edgeBandingPricingMode: "roll",
+      edgeBandingRollSpecs: [unsafeSpec],
+      edgeBandingRollPriceTable: [{ edgeBandingId: "pvc-a", unit: "rulo", unitPriceMinor: 15000, currencyCode: "TRY" }]
+    }
+  );
+  assert.equal(blockedSpecQuote.status, "blocked");
+  assert.equal(blockedSpecQuote.costSummary, null);
+  assert.deepEqual(blockedSpecQuote.lineSources, []);
+  assert.equal(specGetterCalls, 0);
+
+  let priceGetterCalls = 0;
+  const unsafePrice = { edgeBandingId: "pvc-a", unit: "rulo", currencyCode: "TRY" };
+  Object.defineProperty(unsafePrice, "unitPriceMinor", {
+    enumerable: true,
+    configurable: true,
+    get() { priceGetterCalls += 1; return 15000; }
+  });
+  const blockedPriceQuote = calculateProjectQuoteSummary(
+    report, consumptionPrices, [], [], [],
+    {
+      edgeBandingPricingMode: "roll",
+      edgeBandingRollSpecs: [{ edgeBandingId: "pvc-a", rollLengthMm: 100000 }],
+      edgeBandingRollPriceTable: [unsafePrice]
+    }
+  );
+  assert.equal(blockedPriceQuote.status, "blocked");
+  assert.equal(blockedPriceQuote.costSummary, null);
+  assert.deepEqual(blockedPriceQuote.lineSources, []);
+  assert.equal(priceGetterCalls, 0);
+});

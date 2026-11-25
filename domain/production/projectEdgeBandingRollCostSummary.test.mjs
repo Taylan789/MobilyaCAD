@@ -195,3 +195,56 @@ test("blocked roll plan remains blocked and exposes no cost output", () => {
   assert.equal(result.costSummary, null);
   assert.equal(result.lineSources.length, 0);
 });
+
+
+test("roll price arrays and rows reject accessors, inherited fields, sparse arrays and reflection traps", () => {
+  const plan = readyRollPlan();
+  const valid = price();
+  let getterCalls = 0;
+
+  const accessorRow = { edgeBandingId: "pvc-a", unit: "rulo", currencyCode: "TRY" };
+  Object.defineProperty(accessorRow, "unitPriceMinor", {
+    enumerable: true,
+    configurable: true,
+    get() { getterCalls += 1; return 25000; }
+  });
+  const accessorResult = calculateProjectEdgeBandingRollCostSummary(plan, [accessorRow]);
+  assert.equal(accessorResult.status, "blocked");
+  assert.equal(accessorResult.costSummary, null);
+  assert.equal(getterCalls, 0);
+
+  const inheritedPrototype = Object.create(Object.prototype);
+  Object.defineProperty(inheritedPrototype, "unitPriceMinor", {
+    get() { getterCalls += 1; return 25000; }
+  });
+  const inheritedRow = Object.assign(Object.create(inheritedPrototype), {
+    edgeBandingId: "pvc-a", unit: "rulo", currencyCode: "TRY"
+  });
+  assert.equal(calculateProjectEdgeBandingRollCostSummary(plan, [inheritedRow]).status, "blocked");
+  assert.equal(getterCalls, 0);
+
+  const indexAccessor = [valid];
+  Object.defineProperty(indexAccessor, "0", {
+    enumerable: true,
+    configurable: true,
+    get() { getterCalls += 1; return valid; }
+  });
+  assert.equal(calculateProjectEdgeBandingRollCostSummary(plan, indexAccessor).status, "blocked");
+  assert.equal(getterCalls, 0);
+
+  const sparse = new Array(1);
+  assert.equal(calculateProjectEdgeBandingRollCostSummary(plan, sparse).status, "blocked");
+  const extended = [valid];
+  extended.extra = true;
+  assert.equal(calculateProjectEdgeBandingRollCostSummary(plan, extended).status, "blocked");
+
+  const proxy = new Proxy([valid], {
+    getOwnPropertyDescriptor(target, key) {
+      if (key === "0") throw new Error("roll price descriptor trap failed");
+      return Reflect.getOwnPropertyDescriptor(target, key);
+    }
+  });
+  const proxyResult = calculateProjectEdgeBandingRollCostSummary(plan, proxy);
+  assert.equal(proxyResult.status, "blocked");
+  assert.match(proxyResult.diagnostics.join(" "), /descriptor trap failed/);
+});

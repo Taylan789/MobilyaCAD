@@ -1,5 +1,6 @@
 import type { ProjectEdgeBandingConsumptionSummary } from "./projectMaterialSummary.ts";
 import { serializeProjectEdgeBandingConsumptionFile } from "./projectEdgeBandingConsumptionFile.ts";
+import { copyDenseDataRecordList } from "./descriptorSafeInput.ts";
 
 export interface ProjectEdgeBandingRollPlanSpec {
   edgeBandingId: string;
@@ -83,9 +84,12 @@ export function calculateProjectEdgeBandingRollPlan(
     if (validatedSummary.status !== "ready") {
       return blocked(validatedSummary.diagnostics.join("; ") || "Kenar bantlama tüketim özeti doğrulanamadı.");
     }
-    if (!Array.isArray(rollSpecs) || rollSpecs.length > maxSpecs) {
-      return blocked("Kenar bandı rulo tanımları liste olmalı ve 1.000 satırı aşmamalıdır.");
-    }
+    const validatedSpecs = copyDenseDataRecordList(
+      rollSpecs,
+      "Kenar bandı rulo tanımları",
+      allowedSpecKeys,
+      maxSpecs
+    );
     const groups = consumption as ProjectEdgeBandingConsumptionSummary[];
     if (groups.length === 0) {
       if (rollSpecs.length !== 0) return blocked("Boş tüketim için kullanılmayan rulo tanımı verildi.");
@@ -113,7 +117,7 @@ export function calculateProjectEdgeBandingRollPlan(
 
     interface ValidatedRollSpec { edgeBandingId: string; rollLengthMm: number; wasteAllowanceMm: number; rollLengthTenths: number; wasteAllowanceTenths: number; sourceReference?: string; }
     const specs = new Map<string, ValidatedRollSpec>();
-    for (const [index, rawSpec] of rollSpecs.entries()) {
+    for (const [index, rawSpec] of validatedSpecs.entries()) {
       const label = "Rulo tanımının " + (index + 1) + ". satırı";
       if (!isRecord(rawSpec)) return blocked(label + " nesne olmalıdır.");
       for (const key of Object.keys(rawSpec)) if (!allowedSpecKeys.has(key)) return blocked(label + " desteklenmeyen alan içeriyor: " + key + ".");

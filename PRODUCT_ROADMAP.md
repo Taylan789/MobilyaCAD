@@ -1910,3 +1910,28 @@ The first implementation SHA was not published after QA found one inherited-gett
 - Nested roll-spec/roll-price ve diğer kaynak raporların kendi validator sınırları ayrı kalır; bu görev bunları derin kopyaladığını iddia etmez.
 
 **Durum:** VERIFIED — [code/test commit b932c60](https://github.com/Taylan789/MobilyaCAD/commit/b932c60acfc6d673155721398abc777ca5d124b1); exact-SHA CI [#45600686688](https://github.com/Taylan789/MobilyaCAD/actions/runs/45600686688), QA [#45600686727](https://github.com/Taylan789/MobilyaCAD/actions/runs/45600686727) ve Pages [#45600686669](https://github.com/Taylan789/MobilyaCAD/actions/runs/45600686669) başarılı; test sitesi https://taylan789.github.io/MobilyaCAD/ adresine dağıtıldı. QA: 290 frontend + 773 domain testi, strict TypeScript, lint 36 uyarı/0 hata, production build ve production audit 0 açık. Sonraki domain görevi DOM-165 — nested roll-spec/roll-price listelerinin descriptor-safe sınır denetimi; UI-owned INT-003 ve DOM-153 bağımlılığı ayrı kalır.
+
+
+## DOM-165 — Teklif rulo girdilerinde nested descriptor güvenliği (verification pending)
+
+**Kullanıcı akışı:** Operatör, teklif oluştururken kendi rulo uzunluğu/ek payı ve rulo fiyat tablosunu doğrudan quote API'sine verir. Domain, bu listeleri hesaplamadan önce güvenli biçimde normalize eder; şüpheli satır veya dizi yapısında hiçbir getter çalıştırmadan tüm teklifi engeller.
+
+**Dikey dilim:** Ortak `descriptorSafeInput.ts` yardımcı modülü, rulo planı ve rulo maliyet özeti public sınırlarında kullanılır. En fazla 1.000 satırlık standart yoğun diziler, plain/null-prototype kayıtlar ve own enumerable data descriptor alanları kabul edilir. Bilinmeyen/symbol/non-enumerable alan, custom prototype, accessor, sparse/extended array ve Proxy reflection hataları fail-closed reddedilir.
+
+**Kabul kriterleri**
+- Own/inherited satır getter'ı ve array-index getter çağrı sayısı sıfırdır.
+- Proxy `ownKeys` / descriptor hataları public API dışına sızmaz; blocked sonuç, boş lineSources ve null costSummary üretilir.
+- 1.000 satır sınırı, dense-array ve whitelist sözleşmesi her iki public hesaplayıcıda aynıdır.
+- Geçerli JSON v2 kayıtlı rulo girdileri, null-prototype satırlar, 0.1 mm hesaplama, açık ek pay, adet, fiyat ve kaynak referansı davranışı korunur.
+- UI, JSON v1/v2 şeması, para birimi/yuvarlama, CNC ve fiziksel üretim varsayımları değiştirilmez.
+
+**Ölçülen 10/10 kalite kapıları — mevcut kanıt:** En son doğrulanmış taban SHA `9940200` için CI #45601036021 ve QA #45601036179 başarılı; QA 290 frontend + 773 domain testi, strict shared-domain TypeScript, lint 36 uyarı / 0 hata, production build ve production-only audit 0 bulgu. Vite ana bundle büyüklüğü ve viewport p95/bellek için yeni ölçüm yok; bu kapılar **NOT MEASURED**. Genel 10/10 durumu işaretlenmez. CNC/makine koordinatı ve fiziksel üretim doğrulaması operatör/atölye tarafından ayrıca yapılmalıdır.
+
+**Durum:** Kod/test teslimi hazır; exact-SHA CI/QA/Pages sonucu bekleniyor.
+
+**Sıradaki 3–5 küçük görev**
+1. DOM-166 — `productionReport`, tüketim fiyat tablosu, iş kalemleri ve tarife tablosunun public quote girişlerindeki nested descriptor sınırlarını audit et; yalnızca kanıtlanan açıkları testli düzelt.
+2. DOM-167 — JSON v2 kayıtlı rulo girdileri ile doğrudan quote girdilerinin aynı normalize çıktıya/provenance'a ulaştığını round-trip ve immutability testleriyle karşılaştır.
+3. INT-003 — UI sahibinin PR #206 JSON v2 editör save/open entegrasyonu; domain tarafı frontend dosyalarına dokunmaz ve PR'ı merge etmez.
+4. DOM-153 — append → save → reopen → append quote revision history sözleşmesi; yalnızca INT-003 entegrasyonu tamamlandıktan sonra.
+5. CAD/üretim kalite kapıları — gerçek viewport p95/bellek baseline'ı ve CNC fixture/postprocessor gereksinimlerini ayrı sahiplik ve makine standardı doğrulamasıyla planla.

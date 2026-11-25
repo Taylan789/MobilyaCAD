@@ -83,3 +83,50 @@ test("roll and allowance measurements preserve tenth-millimeter arithmetic", () 
   assert.equal(result.plans?.[0].rollCount, 2);
   assert.equal(result.plans?.[0].leftoverLengthMm, 799.8);
 });
+
+
+test("roll specification arrays and rows reject accessors, inherited fields, sparse arrays and reflection traps", () => {
+  const input = [{ edgeBandingId: "pvc-18", unit: "mm", edge: "top", partLineCount: 1, totalQuantity: 100, totalLengthMm: 100, edgeCount: 1, partIds: ["part-a"], furnitureIds: ["cab-a"] }];
+  const valid = { edgeBandingId: "pvc-18", rollLengthMm: 1000 };
+  let getterCalls = 0;
+
+  const accessorRow = { edgeBandingId: "pvc-18" };
+  Object.defineProperty(accessorRow, "rollLengthMm", {
+    enumerable: true,
+    configurable: true,
+    get() { getterCalls += 1; return 1000; }
+  });
+  const accessorResult = calculateProjectEdgeBandingRollPlan(input, [accessorRow]);
+  assert.equal(accessorResult.status, "blocked");
+  assert.equal(getterCalls, 0);
+
+  const inheritedPrototype = Object.create(Object.prototype);
+  Object.defineProperty(inheritedPrototype, "rollLengthMm", {
+    get() { getterCalls += 1; return 1000; }
+  });
+  const inheritedRow = Object.assign(Object.create(inheritedPrototype), { edgeBandingId: "pvc-18" });
+  assert.equal(calculateProjectEdgeBandingRollPlan(input, [inheritedRow]).status, "blocked");
+  assert.equal(getterCalls, 0);
+
+  const indexAccessor = [valid];
+  Object.defineProperty(indexAccessor, "0", {
+    enumerable: true,
+    configurable: true,
+    get() { getterCalls += 1; return valid; }
+  });
+  assert.equal(calculateProjectEdgeBandingRollPlan(input, indexAccessor).status, "blocked");
+  assert.equal(getterCalls, 0);
+
+  const sparse = new Array(1);
+  assert.equal(calculateProjectEdgeBandingRollPlan(input, sparse).status, "blocked");
+  const extended = [valid];
+  extended.extra = true;
+  assert.equal(calculateProjectEdgeBandingRollPlan(input, extended).status, "blocked");
+
+  const proxy = new Proxy([valid], {
+    ownKeys() { throw new Error("roll spec ownKeys trap failed"); }
+  });
+  const proxyResult = calculateProjectEdgeBandingRollPlan(input, proxy);
+  assert.equal(proxyResult.status, "blocked");
+  assert.match(proxyResult.diagnostics.join(" "), /ownKeys trap failed/);
+});

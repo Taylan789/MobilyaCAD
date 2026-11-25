@@ -1,4 +1,5 @@
 import { calculateProjectCostSummary, type ProjectCostSummary } from "./projectCostSummary.ts";
+import { copyDenseDataRecordList } from "./descriptorSafeInput.ts";
 
 export interface ProjectEdgeBandingRollPriceInput {
   edgeBandingId: string;
@@ -241,10 +242,15 @@ function validateRollPlan(value: unknown): {
 }
 
 function validatePriceTable(value: unknown): Map<string, ValidatedRollPrice> {
-  if (!Array.isArray(value) || value.length > maxPlans) throw new Error("Rulo fiyat tablosu geçerli bir liste olmalı ve 1.000 satırı aşmamalıdır.");
+  const validatedRows = copyDenseDataRecordList(
+    value,
+    "Rulo fiyat tablosu",
+    allowedPriceKeys,
+    maxPlans
+  );
   const prices = new Map<string, ValidatedRollPrice>();
   let currencyCode: string | null = null;
-  for (const [index, rawPrice] of value.entries()) {
+  for (const [index, rawPrice] of validatedRows.entries()) {
     const label = "Rulo fiyatının " + (index + 1) + ". satırı";
     if (!isRecord(rawPrice)) throw new Error(label + " geçerli bir nesne olmalıdır.");
     for (const key of Object.keys(rawPrice)) if (!allowedPriceKeys.has(key)) throw new Error(label + " desteklenmeyen alan içeriyor: " + key + ".");

@@ -1507,3 +1507,15 @@ The DOM-157 regression uses an envelope already over the 16 MiB limit together w
 - Nested roll-spec/roll-price arrays and production/price/work-item source payloads remain delegated to their domain validators; this slice does not claim to deep-clone every nested quote source. Explicit prices, currencies, mm units, six-decimal quantity precision and half-up minor-unit rounding are unchanged.
 - Acceptance: direct cost-summary, direct quote, material-basis quote and quote-snapshot paths reject accessor/proxy inputs without getter calls or partial totals; normal JSON/null-prototype requests retain their previous arithmetic and provenance.
 - This is quote-domain input hardening only; no frontend, adapter, CNC/postprocessor, machine standard or physical-production behavior is introduced.
+
+
+## 2.11 Teklifte kenar bandı rulo girdilerinin güven sınırı
+
+Kaynaklar: `domain/production/projectEdgeBandingRollPlan.ts`, `projectEdgeBandingRollCostSummary.ts` ve ortak `descriptorSafeInput.ts` yardımcı modülü.
+
+- `calculateProjectQuoteSummary` içindeki açık `edgeBandingPricingMode: "roll"` akışı, rulo ölçü ve fiyat tablolarını iki ayrı public domain sınırından geçirir: rulo planı ve rulo maliyet özeti.
+- Her iki sınır da en fazla 1.000 satırlık standart, yoğun ve ek özelliksiz dizileri; yalnızca plain veya null-prototype satır nesnelerini kabul eder. Satır alanları ilgili API'nin whitelist'iyle sınırlıdır.
+- Dizi indeksleri ve satır alanları `Object.getOwnPropertyDescriptor` üzerinden okunur. Accessor, inherited/custom prototype, symbol/unknown/non-enumerable alan, sparse/extended array veya Proxy reflection hatası getter çalıştırmadan blocked sonuç üretir.
+- Rulo ölçüsü 0.1 mm hassasiyetini, açık kullanıcı ek payını ve pozitif uzunluğu korur. Fiyat yalnızca kullanıcının sağladığı güvenli minor-unit tutarı ve üç büyük harfli para birimi koduyla hesaplanır.
+- Geçersiz nested girdi kısmi teklif, rulo planı veya maliyet toplamı üretmez. Bu doğrulama fire yüzdesi, fiyat, rulo standardı, CNC koordinatı veya fiziksel üretim uygunluğu tahmin etmez.
+- JSON v2 proje zarfındaki kayıtlı rulo uzantısı kendi descriptor-safe okuyucusunu kullanmaya devam eder; normal ve null-prototype JSON kayıtları geriye uyumludur.
