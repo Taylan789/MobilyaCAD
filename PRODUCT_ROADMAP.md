@@ -1934,11 +1934,10 @@ The first implementation SHA was not published after QA found one inherited-gett
 **Durum:** VERIFIED — code/test commit [ffab4aa](https://github.com/Taylan789/MobilyaCAD/commit/ffab4aa29051182a825c1ba77428a911a48fad55); exact-SHA CI [#45602592844](https://github.com/Taylan789/MobilyaCAD/actions/runs/45602592844), QA [#45602592876](https://github.com/Taylan789/MobilyaCAD/actions/runs/45602592876), Pages [#45602593126](https://github.com/Taylan789/MobilyaCAD/actions/runs/45602593126) all successful. QA 290/290 frontend + 777/777 domain, strict shared-domain TypeScript, lint 36 warnings/0 errors, production build, production audit 0 vulnerabilities. Test site: https://taylan789.github.io/MobilyaCAD/. İlk SHA `e77957c` QA'da TS18046 ile durdu ve deploy edilmedi; `ffab4aa` raw Proxy length read regression'ını da kapatarak exact-SHA doğrulamayı geçti.
 
 **Sıradaki 3–5 küçük görev**
-1. DOM-166 — `productionReport`, tüketim fiyat tablosu, iş kalemleri ve tarife tablosunun public quote girişlerindeki nested descriptor sınırlarını audit et; yalnızca kanıtlanan açıkları testli düzelt.
-2. DOM-167 — JSON v2 kayıtlı rulo girdileri ile doğrudan quote girdilerinin aynı normalize çıktıya/provenance'a ulaştığını round-trip ve immutability testleriyle karşılaştır.
-3. INT-003 — UI sahibinin PR #206 JSON v2 editör save/open entegrasyonu; domain tarafı frontend dosyalarına dokunmaz ve PR'ı merge etmez.
-4. DOM-153 — append → save → reopen → append quote revision history sözleşmesi; yalnızca INT-003 entegrasyonu tamamlandıktan sonra.
-5. CAD/üretim kalite kapıları — gerçek viewport p95/bellek baseline'ı ve CNC fixture/postprocessor gereksinimlerini ayrı sahiplik ve makine standardı doğrulamasıyla planla.
+1. DOM-167 — JSON v2 saved roll inputs and direct quote inputs produce identical normalized totals and Part/price provenance.
+2. INT-003 — UI-owned PR #206 save/open envelope integration; keep frontend files and PR ownership with the UI agent.
+3. DOM-153 — append → save → reopen → append quote revision history after INT-003 integration is verified.
+4. CAD/production quality gates — collect viewport p95/memory baseline and define CNC fixture/postprocessor requirements only with a confirmed machine standard.
 
 
 ## 25 Kasım 2026 15:09 TRT — DOM-166 (implementation submitted; exact-SHA verification pending)
@@ -1952,6 +1951,6 @@ The first implementation SHA was not published after QA found one inherited-gett
 - Geçerli JSON v1 üretim raporu, fiyat satırları, işçilik süreleri ve tarife eşleşmesi mevcut para/ölçü/yuvarlama davranışını korur.
 - JSON v1/v2 proje dosyası şeması, frontend API'si, CNC/postprocessor veya fiyat varsayımları değiştirilmez.
 
-**İlk doğrulama:** Code/test commit ca1a3768 için CI başarılı; QA domain suite 779/781 ile başarısız oldu. İki başarısızlık test beklentisindeydi: downstream validator'ın blocked quoteSummary nesnesini koruması ve Türkçe derinlik tanı metninin gerçek ifadesi. Pages exact-SHA kapısı başarısız QA nedeniyle deploy adımını atladı; test sitesi bu SHA'ya güncellenmedi. **Düzeltme:** test beklentileri mevcut API davranışına göre güncellendi; yeni exact-SHA doğrulama bekleniyor.
+**Durum:** VERIFIED — implementation [ca1a3768](https://github.com/Taylan789/MobilyaCAD/commit/ca1a3768dad42cf7dec91be5ba6bbeb2c91caab8) + test correction [15583066](https://github.com/Taylan789/MobilyaCAD/commit/15583066d9f77a243c03a74d083154a826a55439). Exact-SHA CI [#45611964638](https://github.com/Taylan789/MobilyaCAD/actions/runs/45611964638), QA [#45611964676](https://github.com/Taylan789/MobilyaCAD/actions/runs/45611964676) ve Pages [#45611964911](https://github.com/Taylan789/MobilyaCAD/actions/runs/45611964911) başarılı. QA: 294/294 frontend + 781/781 domain; shared-domain TypeScript, lint, production build ve dependency audit geçti. Test sitesi exact SHA için yayınlandı: https://taylan789.github.io/MobilyaCAD/. İlk SHA ca1a376 iki test beklentisi nedeniyle QA'da kaldı ve deploy edilmedi; düzeltilmiş SHA yayınlandı.
 
 **Sonraki adım:** Exact-SHA CI + QA + production build + Pages sonucunu doğrula; ardından DOM-167 saved/direct roll quote parity testlerine geç. UI-owned INT-003 PR #206 ve adapter/performance-owned PERF-001 / INT-002 kapsamına müdahale etme.
