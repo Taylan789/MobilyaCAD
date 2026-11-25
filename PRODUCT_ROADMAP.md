@@ -609,7 +609,7 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 | Üretim | Her Part için kaynak ID, quantity, mm ölçü, malzeme/kalınlık; unsupported geometri/export kısmi sonuç üretmeden blocker | Domain konstrüksiyon, tüketim, nesting freshness, teklif/revizyon ve JSON/CSV sözleşmeleri var; frontend adapter/CNC postprocessor eksik |
 | UX | Ana akışlarda işlevsel kontroller; klavye/focus, erişilebilirlik, responsive, boş/hata durumları otomatik doğrulanır | Frontend ayrı ajan alanında; gerçek tarayıcı görsel kabulü NOT MEASURED |
 | Performans | Referans sahnede p95 frame-time hedefi 16,7 ms (60 FPS), scene update p95 <100 ms, bellek ölçümü ve CI regression threshold | Referans sahne/benchmark NOT MEASURED; bu kontrolde aktif Integration/Performance run veya PR bulunmadı; PERF-001 ve INT-002 READY, QA-003 INT-001/INT-002'ye bağlı |
-| Güvenilirlik | Strict TS, test, build, audit; import/export round-trip 0 alan kaybı; invalid input 0 partial output | Latest verified base SHA [fda35c4](https://github.com/Taylan789/MobilyaCAD/commit/fda35c4b61aae9fea128d3eb7b21b359df8bdf51): exact-SHA QA [#45571389330](https://github.com/Taylan789/MobilyaCAD/actions/runs/45571389330) passed 283/283 frontend + 754/754 domain, strict shared-domain TS, lint 36 warnings/0 errors, production build and production audit 0 vulnerabilities. DOM-162 request-envelope hardening and null-prototype downstream option correction are implemented; exact-SHA checks are pending. Overall 10/10 gate remains unchecked. |
+| Güvenilirlik | Strict TS, test, build, audit; import/export round-trip 0 alan kaybı; invalid input 0 partial output | Verified correction [25f04468](https://github.com/Taylan789/MobilyaCAD/commit/25f044686aa7cbed89ed73d0bd8285a09908fe8e): CI [#45572928664](https://github.com/Taylan789/MobilyaCAD/actions/runs/45572928664), QA [#45572928650](https://github.com/Taylan789/MobilyaCAD/actions/runs/45572928650), Pages [#45572928855](https://github.com/Taylan789/MobilyaCAD/actions/runs/45572928855) all passed; QA 283/283 frontend + 760/760 domain, strict shared-domain TS, lint 36 warnings/0 errors, production build and audit 0 vulnerabilities. Overall 10/10 gate remains unchecked. |
 | Edge-band export | Direction, catalog ID, mm/m, Part/furniture provenance and strict JSON round-trip; malformed/unsupported input blocked | DOM-068 verified: 124 frontend + 468 domain tests, strict type-check, build and audit; see Actions |
 
 
@@ -1317,7 +1317,7 @@ QA-003 remains blocked until INT-001 and INT-002 evidence exists. The Integratio
 - [ ] Production: canonical Part tree, material/edge-band/hardware/waste, nesting/cost and export reconciliation.
 - [ ] UX: functional controls, clear navigation, accessibility, responsive states and recovery.
 - [ ] Performance: repeatable viewport/bundle/memory baseline with measured improvements.
-- [ ] Reliability: typed validation, backward-compatible project schemas, lossless import/export and exact-SHA CI/QA evidence; latest verified base SHA fda35c4 passed 283 frontend + 754 domain tests, strict TypeScript, lint (36 warnings / 0 errors), production build and production audit (0 vulnerabilities). DOM-162 request-envelope and downstream option descriptor hardening are awaiting exact-SHA verification; the overall 10/10 gate remains unchecked.
+- [ ] Reliability: typed validation, backward-compatible project schemas, lossless import/export and exact-SHA CI/QA evidence; verified SHA 25f04468 passed 283 frontend + 760 domain tests, strict TypeScript, lint (36 warnings / 0 errors), production build and production audit (0 vulnerabilities). Overall 10/10 gate remains unchecked.
 - [ ] Physical production: operator and machine-standard verification remains separate from automated checks.
 
 ## Current domain queue — 25 November 2026
@@ -1785,7 +1785,7 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 - Otomatik kabul: büyük zarf + dolu geçmişte dolu-geçmiş tanısı kaynak sınırı tanısından önce gelir; accessor çağrı sayısı sıfırdır; boş geçmiş import'u ready, v1 import'u blocked olur.
 
 **Sıradaki küçük işler**
-1. DOM-162 — quote snapshot request and downstream option getter/Proxy regressions corrected; verify the correction's exact-SHA CI/QA/Pages.
+1. INT-003 — UI sahibinin JSON v2 parser/save/open entegrasyonunu tamamlamasını takip et; frontend dosyalarına dokunma ve draft PR #206'yı merge etme.
 2. INT-003 — UI sahibinin JSON v2 parser/save/open entegrasyonunu tamamlamasını takip et; frontend dosyalarına dokunma ve draft PR #206'yı merge etme.
 3. DOM-153 — INT-003 tamamlandıktan sonra editör append → save → reopen → append round-trip sözleşmesini test et.
 4. DOM-163 — yalnızca yeni kanıt varsa kalan public quote snapshot giriş noktalarında nested metadata/reflection güvenliği boşluklarını incele.
@@ -1868,8 +1868,12 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 
 **Sınır:** Production report, price table, work-item, roll array ve stock-sheet report içeriği kendi downstream domain validator'larının sorumluluğunda kalır; bu slice bütün iç içe payload'ları recursive sanitize ettiğini iddia etmez. CNC/makine veya fiziksel atölye doğrulaması değildir.
 
-**Durum:** Implementation committed; exact-SHA CI/QA/Pages pending.
+**Durum:** VERIFIED — [commit 25f04468](https://github.com/Taylan789/MobilyaCAD/commit/25f044686aa7cbed89ed73d0bd8285a09908fe8e); exact-SHA CI [#45572928664](https://github.com/Taylan789/MobilyaCAD/actions/runs/45572928664), QA [#45572928650](https://github.com/Taylan789/MobilyaCAD/actions/runs/45572928650), Pages [#45572928855](https://github.com/Taylan789/MobilyaCAD/actions/runs/45572928855) passed. QA 283 frontend + 760 domain; strict TS, lint 36 warnings/0 errors, build, audit 0 vulnerabilities. Test site deployed.
 
 ### DOM-162 doğrulama düzeltmesi — 25 Kasım 2026
 
 İlk exact-SHA CI başarılıydı; QA 759/760 testte tek bir yeni regresyonu yakaladı. Public request null-prototype kopyası doğruydu, ancak `resolveEdgeBandingRollOptions` ve material-cost-basis ara request nesneleri normal prototip taşıdığı için Object.prototype üzerindeki test getter'ı downstream hesaplayıcıda okunabiliyordu. İki ara nesne de null-prototype yapıldı; aynı regresyon hem normal quote hem material-cost-basis akışında doğrulanıyor. İlk başarısız SHA Pages'e yayınlanmadı.
+
+### DOM-162 exact-SHA verification — 25 Kasım 2026
+
+The first implementation SHA was not published after QA found one inherited-getter leak in the downstream options container. The corrected SHA [25f04468](https://github.com/Taylan789/MobilyaCAD/commit/25f044686aa7cbed89ed73d0bd8285a09908fe8e) passed CI [#45572928664](https://github.com/Taylan789/MobilyaCAD/actions/runs/45572928664), QA [#45572928650](https://github.com/Taylan789/MobilyaCAD/actions/runs/45572928650) and Pages [#45572928855](https://github.com/Taylan789/MobilyaCAD/actions/runs/45572928855). QA: 283/283 frontend + 760/760 domain, strict shared-domain TypeScript, lint 36 warnings/0 errors, production build and audit 0 vulnerabilities. The verified test site is https://taylan789.github.io/MobilyaCAD/.
