@@ -1934,7 +1934,7 @@ The first implementation SHA was not published after QA found one inherited-gett
 **Durum:** VERIFIED — code/test commit [ffab4aa](https://github.com/Taylan789/MobilyaCAD/commit/ffab4aa29051182a825c1ba77428a911a48fad55); exact-SHA CI [#45602592844](https://github.com/Taylan789/MobilyaCAD/actions/runs/45602592844), QA [#45602592876](https://github.com/Taylan789/MobilyaCAD/actions/runs/45602592876), Pages [#45602593126](https://github.com/Taylan789/MobilyaCAD/actions/runs/45602593126) all successful. QA 290/290 frontend + 777/777 domain, strict shared-domain TypeScript, lint 36 warnings/0 errors, production build, production audit 0 vulnerabilities. Test site: https://taylan789.github.io/MobilyaCAD/. İlk SHA `e77957c` QA'da TS18046 ile durdu ve deploy edilmedi; `ffab4aa` raw Proxy length read regression'ını da kapatarak exact-SHA doğrulamayı geçti.
 
 **Sıradaki 3–5 küçük görev**
-1. DOM-170 — stock-sheet v2 basis, category totals and line-source provenance across append/import/restore/next-append; regression added, exact-SHA Actions pending.
+1. DOM-170 — stock-sheet v2 basis, category totals and line-source provenance across append/import/restore/next-append; first QA exposed only non-canonical fixture IDs, corrected to adjustment-0001/0002; exact-SHA revalidation pending.
 2. INT-003 — UI-owned PR #206 JSON v2 envelope startup/new/save/open integration; frontend files and PR remain with the UI owner.
 3. DOM-153 — after INT-003, editor append → save → reopen → append quote-revision-history round-trip.
 4. DOM-171 — fail-closed import/restore regressions for tampered stock-sheet category totals and Part-group source coverage.

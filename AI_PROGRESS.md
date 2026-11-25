@@ -1235,3 +1235,12 @@
 - **Verification status:** the DOM-170 commit's exact-SHA CI/QA/Pages results are pending. No local test run is claimed; GitHub Actions are the verification source.
 - **Known constraints:** UI-owned INT-003 PR [#206](https://github.com/Taylan789/MobilyaCAD/pull/206) remains separate; editor startup/save/open wiring is not claimed. Integration/Performance specialist job was skipped and no specialist branch was verified; PERF-001 / INT-002 remain specialist-owned. AI Developer [#45594366361](https://github.com/Taylan789/MobilyaCAD/actions/runs/45594366361) failed on OpenRouter free-model daily HTTP 429; it was not rerun before its 26 November 2026 03:00 TRT reset, and no paid fallback or secret/quota change was made.
 - **Next:** inspect exact-SHA CI/QA/Pages; then DOM-171 — reject imported/restored stock-sheet snapshots whose category totals or Part-group coverage have been tampered with, without partial project output.
+
+
+## 25 Kasım 2026 20:02 TRT — DOM-170 QA fixture correction
+
+- Implementation/test commit [97e83df3](https://github.com/Taylan789/MobilyaCAD/commit/97e83df30aa05bb1d9be3c26413e77c57cdee58e): CI [#45660172685](https://github.com/Taylan789/MobilyaCAD/actions/runs/45660172685) passed; QA [#45660172615](https://github.com/Taylan789/MobilyaCAD/actions/runs/45660172615) failed 784/785 on one new test assertion only. The quote calculator correctly canonicalizes adjustment line IDs to `adjustment-0001` / `adjustment-0002`; the test had incorrectly expected caller-supplied fixture IDs. No production behavior failed.
+- Pages [#45660172951](https://github.com/Taylan789/MobilyaCAD/actions/runs/45660172951) built the artifact but its exact-SHA CI/QA gate failed, so deployment was skipped; the failed SHA was not published.
+- **Correction:** changed only the new regression's expected canonical line IDs. Source references, waste/profit categories, line-source mapping, stock-sheet basis and total assertions remain intact. No tests were removed/weakened and no production source changed.
+- Changed files in correction commit: `domain/production/projectQuoteRevisionProjectFile.test.mjs`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`. Frontend, adapter/performance-owned, CNC/machine, secrets/settings and `main` remain untouched.
+- **Next:** exact-SHA CI/QA/Pages for the corrected commit; only after all gates pass may the test site move from verified base SHA dbe63fee.

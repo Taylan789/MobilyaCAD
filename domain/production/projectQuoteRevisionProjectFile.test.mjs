@@ -802,8 +802,8 @@ test("DOM-170 stock-sheet v2 basis, category totals and line provenance survive 
         .filter((line) => line.category === "waste" || line.category === "profit")
         .map((line) => ({ id: line.id, category: line.category, sourceReference: line.sourceReference })),
       [
-        { id: "waste-project-file", category: "waste", sourceReference: "atolye-fire-hesabi:v1" },
-        { id: "profit-project-file", category: "profit", sourceReference: "teklif-kalemleri:rev1" }
+        { id: "adjustment-0001", category: "waste", sourceReference: "atolye-fire-hesabi:v1" },
+        { id: "adjustment-0002", category: "profit", sourceReference: "teklif-kalemleri:rev1" }
       ]
     );
     const group = basis.stockSheetGroups[0];
