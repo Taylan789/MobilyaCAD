@@ -1787,7 +1787,7 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 
 ## DOM-159 — Legacy v1 zarfı reflection hatalarını fail-closed yönet
 
-**Durum:** IMPLEMENTED — exact-SHA CI/QA/Pages verification pending.
+**Durum:** VERIFIED — [code/test commit 585a4d4a](https://github.com/Taylan789/MobilyaCAD/commit/585a4d4a01c4e097ca63a06bedcd86be58c4da49); exact-SHA [CI #45545857249](https://github.com/Taylan789/MobilyaCAD/actions/runs/45545857249), [QA #45545857344](https://github.com/Taylan789/MobilyaCAD/actions/runs/45545857344) and [Pages #45545857268](https://github.com/Taylan789/MobilyaCAD/actions/runs/45545857268) successful. QA: 272 frontend + 746 domain tests; strict TypeScript, lint 36 warnings/0 errors, production build, production audit 0 vulnerabilities.
 
 **Bulgu:** Legacy JSON v1 zarfı incelenirken `Object.prototype.hasOwnProperty.call(value, "quoteRevisionHistory")` kontrolü korumasızdı. Düz JSON dosyalarında sorun oluşmaz; ancak public domain API'lerine doğrudan verilen Proxy nesnesinin `getOwnPropertyDescriptor` trap'i hata fırlatırsa read/append/import çağrısı blocked sonuç yerine exception dışarı sızdırabiliyordu.
 
