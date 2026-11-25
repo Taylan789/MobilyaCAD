@@ -27,7 +27,7 @@ test("the active left-dock view is a distinct technical segment with visible hov
 });
 
 test("the navigation rail preserves compact touch targets, reduced motion and forced-colors support", () => {
-  assert.match(css, /@media \(max-width: 820px\)[\s\S]*?\.studio-sidebar-switch > button\s*\{[^}]*min-height:\s*40px/s);
+  assert.match(css, /@media \(max-width: 760px\)[\s\S]*?\.studio-sidebar-switch > button\s*\{[^}]*min-height:\s*40px/s);
   assert.match(css, /@media \(prefers-reduced-motion: reduce\)[\s\S]*?\.studio-sidebar-switch > button\s*\{[^}]*transition:\s*none/s);
   assert.match(css, /@media \(forced-colors: active\)[\s\S]*?\.studio-sidebar-switch > button\[aria-selected="true"\]/s);
 });
