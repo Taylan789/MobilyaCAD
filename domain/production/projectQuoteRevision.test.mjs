@@ -4651,7 +4651,7 @@ test("DOM-176 standalone JSON round-trip keeps mixed manifest history appendable
       revisionId: revision.revisionId,
       revisionNumber: revision.revisionNumber,
       previousRevisionId: revision.previousRevisionId,
-      sourceIntegrityVersion: revision.sourceIntegrityVersion,
+      sourceIntegrityVersion: revision.sourceIntegrityVersion ?? null,
       materialCostBasisSchemaVersion: revision.pricingSnapshot.materialCostBasis?.schemaVersion ?? null
     })),
     [
