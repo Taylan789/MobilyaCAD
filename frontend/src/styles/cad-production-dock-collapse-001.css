@@ -99,3 +99,62 @@
     outline: 2px solid Highlight;
   }
 }
+
+
+/* UI-PRODUCTION-TAB-ACCESS-001 — make the live production tab state clear to mouse and keyboard users. */
+.cad-bottom-dock-tabs button {
+  border-radius: 5px 5px 0 0;
+  transition: color .14s ease, background-color .14s ease, border-color .14s ease;
+}
+
+.cad-bottom-dock-tabs button:hover:not([aria-selected="true"]) {
+  color: #e2edf3;
+  background: rgba(82, 120, 145, .14);
+}
+
+.cad-bottom-dock-tabs button[aria-selected="true"] {
+  color: #eaf3f8;
+  background: linear-gradient(180deg, rgba(66, 104, 128, .24), rgba(66, 104, 128, .08));
+  border-bottom-color: #8eb5ce;
+  box-shadow: inset 0 1px rgba(173, 210, 230, .12);
+}
+
+.cad-bottom-dock-tabs button[aria-selected="true"] b {
+  color: #f3f8fb;
+  background: #36596d;
+  border: 1px solid #55778b;
+}
+
+.cad-bottom-dock-tabs button:focus-visible {
+  position: relative;
+  z-index: 1;
+  outline: 2px solid #a8cce0;
+  outline-offset: -4px;
+  border-radius: 5px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cad-bottom-dock-tabs button {
+    transition: none !important;
+  }
+}
+
+@media (forced-colors: active) {
+  .cad-bottom-dock-tabs button[aria-selected="true"] {
+    color: HighlightText;
+    background: Highlight;
+    border-bottom-color: Highlight;
+    forced-color-adjust: none;
+  }
+
+  .cad-bottom-dock-tabs button[aria-selected="true"] b {
+    color: HighlightText;
+    background: Highlight;
+    border-color: HighlightText;
+  }
+
+  .cad-bottom-dock-tabs button:focus-visible {
+    outline: 2px solid Highlight;
+    outline-offset: -4px;
+  }
+}
