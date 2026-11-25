@@ -1036,7 +1036,7 @@
 - Next: verify exact-SHA Actions; keep INT-003 with the UI owner, then continue to DOM-153 after editor integration. INT-002/PERF-001 remain specialist-owned.
 
 
-## 25 Kasım 2026 08:56 TRT — DOM-160 implementation (verification pending)
+## 25 Kasım 2026 08:56 TRT — DOM-160 implementation (verified after correction)
 
 - Base `dev/github-work` HEAD: `cdf4b0345cc91a792b11db0b59e04bbca659e13f`; pre-write file SHA checks: code `ee83e1aafd46270fd4d71138e200ae9ac76a2fd4`, test `db174fb234d251a20c8acf7f92cdaf731db899b7`, contract `8837d3821765229691df10478b743c3ed644ba90`, coordination `66e06801892c270e57774beb9d174656b79ec6e9`, roadmap `85191f288f0158545e41feda61ac24dbf79716bd`, progress `53bbac9be17164533e22a41b52b001313f460654`. No active CI, QA, AI Developer or Pages run existed at preflight.
 - Domain change: JSON v2 edge-band roll-pricing reads now use own enumerable data descriptors; v2 writes clone/freeze the complete project envelope with the same 16 MiB UTF-8 / 64-level bound as quote-history project envelopes. Pricing input is descriptor-cloned before validation. Nested project metadata no longer aliases the source object.
@@ -1047,9 +1047,9 @@
 - Next: verify this exact SHA; keep INT-003 with the UI owner, then implement DOM-153 editor append → save → reopen → append only after the UI handoff is complete.
 
 
-## 25 Kasım 2026 — DOM-160 QA correction (verification pending)
+## 25 Kasım 2026 — DOM-160 QA correction (verified)
 
 - Failed test was isolated from [QA #45557728923](https://github.com/Taylan789/MobilyaCAD/actions/runs/45557728923), job 139013738201: 751/752 domain tests passed. The only failure was a test expectation, not a production regression: the read API checks own descriptors for known fields and does not enumerate unrelated project keys, so an ownKeys-only Proxy trap is not invoked on that read path.
 - Correction preserves production behavior and strengthens the test's precision: a getOwnPropertyDescriptor trap must produce blocked for read and write; an ownKeys trap must produce blocked for the full-envelope write clone. No assertion or existing test was removed or relaxed.
 - The initial CI [#45557729163](https://github.com/Taylan789/MobilyaCAD/actions/runs/45557729163) passed. Initial Pages [#45557728945](https://github.com/Taylan789/MobilyaCAD/actions/runs/45557728945) failed its exact-SHA QA gate; the unverified SHA was not deployed.
-- Correction commit and its exact-SHA CI/QA/Pages results are pending.
+- Test correction commit: [357198f](https://github.com/Taylan789/MobilyaCAD/commit/357198fda15f71ae10aabf0a541174fcd05ebe19). Exact-SHA CI [#45557877841](https://github.com/Taylan789/MobilyaCAD/actions/runs/45557877841), QA [#45557878887](https://github.com/Taylan789/MobilyaCAD/actions/runs/45557878887), and Pages [#45557877766](https://github.com/Taylan789/MobilyaCAD/actions/runs/45557877766) all succeeded; QA 272 frontend + 752 domain, strict TypeScript, lint 36 warnings/0 errors, production build, production audit 0 vulnerabilities. The verified test-site deployment is https://taylan789.github.io/MobilyaCAD/.
