@@ -91,7 +91,8 @@ const materialCostBasisKeys = new Set([
   "categoryTotalsMinor",
   "grandTotalMinor",
   "materialSourceCount",
-  "stockSheetGroups"
+  "stockSheetGroups",
+  "sourcePartIds"
 ]);
 const stockSheetGroupKeys = new Set([
   "groupId",
@@ -660,11 +661,20 @@ function validateQuoteSummary(value: unknown, strictSourceIntegrity = false, all
 function validateMaterialCostBasisSnapshot(value: unknown, quoteSummary: Record<string, unknown>): void {
   if (!isRecord(value)) throw new Error("Teklif malzeme maliyet temeli snapshot nesnesi olmalıdır.");
   requireOnlyKeys(value, materialCostBasisKeys, "Teklif malzeme maliyet temeli snapshot'ı");
-  if (value.schemaVersion !== 1) throw new Error("Desteklenmeyen teklif malzeme maliyet temeli snapshot sürümü.");
+  if (value.schemaVersion !== 1 && value.schemaVersion !== 2) {
+    throw new Error("Desteklenmeyen teklif malzeme maliyet temeli snapshot sürümü.");
+  }
   if (value.basis !== "net-consumption" && value.basis !== "stock-sheet-purchase") {
     throw new Error("Teklif malzeme maliyet temeli net-consumption veya stock-sheet-purchase olmalıdır.");
   }
   const basis = value.basis;
+  const hasSourcePartIds = Object.prototype.hasOwnProperty.call(value, "sourcePartIds");
+  if (
+    (value.schemaVersion === 2 && (basis !== "stock-sheet-purchase" || !hasSourcePartIds)) ||
+    (value.schemaVersion === 1 && hasSourcePartIds)
+  ) {
+    throw new Error("Teklif malzeme maliyet temeli sürümü, levha satın alma Part kapsamı manifestiyle tutarlı olmalıdır.");
+  }
   const currencyCode = requireText(value.currencyCode, "Panel maliyet snapshot para birimi", 3);
   if (!currencyPattern.test(currencyCode)) throw new Error("Panel maliyet snapshot para birimi üç büyük harfli kod olmalıdır.");
   const panelCost = requireSafeInteger(value.panelMaterialCostMinor, "Snapshot panel malzeme maliyeti", 0);
@@ -746,6 +756,23 @@ function validateMaterialCostBasisSnapshot(value: unknown, quoteSummary: Record<
   }
   if (basis === "stock-sheet-purchase" && groupCostTotal !== BigInt(panelCost)) {
     throw new Error("Snapshot levha satın alma grup maliyetleri panel malzeme toplamıyla eşleşmiyor.");
+  }
+  if (value.schemaVersion === 2) {
+    const manifest = value.sourcePartIds;
+    if (!Array.isArray(manifest) || manifest.length !== partIds.size) {
+      throw new Error("Snapshot toplam kaynak Part kapsamı levha gruplarıyla eşleşmiyor.");
+    }
+    let previousManifestPartId: string | undefined;
+    for (const rawPartId of manifest) {
+      const partId = requireIdentifier(rawPartId, "Snapshot toplam kaynak Part kimliği");
+      if (previousManifestPartId !== undefined && previousManifestPartId >= partId) {
+        throw new Error("Snapshot toplam kaynak Part kimlikleri sıralı ve benzersiz olmalıdır.");
+      }
+      if (!partIds.has(partId)) {
+        throw new Error("Snapshot toplam kaynak Part kapsamı levha gruplarındaki Part kimlikleriyle eşleşmiyor.");
+      }
+      previousManifestPartId = partId;
+    }
   }
 
   const lineSources = quoteSummary.lineSources as Array<Record<string, unknown>>;

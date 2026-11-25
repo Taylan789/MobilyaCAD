@@ -522,6 +522,11 @@ test("saved JSON v2 and direct roll inputs preserve stock-sheet purchase basis a
   assert.ok(basis);
   assert.equal(snapshot.schemaVersion, 2);
   assert.equal(basis.basis, "stock-sheet-purchase");
+  assert.equal(basis.schemaVersion, 2);
+  assert.deepEqual(
+    basis.sourcePartIds,
+    [...new Set(basis.stockSheetGroups.flatMap(group => group.sourcePartIds))].sort()
+  );
   assert.equal(basis.currencyCode, "TRY");
   assert.equal(
     basis.panelMaterialCostMinor,
@@ -857,6 +862,11 @@ test("stock-sheet panel basis creates immutable quote snapshot v2 with group and
   assert.equal(result.quoteSummary?.status, "empty");
   assert.equal(result.snapshot?.schemaVersion, 2);
   assert.equal(result.snapshot?.materialCostBasis?.basis, "stock-sheet-purchase");
+  assert.equal(result.snapshot?.materialCostBasis?.schemaVersion, 2);
+  assert.deepEqual(
+    result.snapshot?.materialCostBasis?.sourcePartIds,
+    productionReport.result.parts.map(part => part.id).sort()
+  );
   assert.equal(
     result.snapshot?.materialCostBasis?.panelMaterialCostMinor,
     stockSheetPurchaseReport.result.totals.stockSheetPurchaseCostMinor
@@ -878,6 +888,8 @@ test("net-consumption quote snapshot v2 stores the selected basis without stock 
   assert.equal(result.status, "ready", result.diagnostics.join("; "));
   assert.equal(result.snapshot?.schemaVersion, 2);
   assert.equal(result.snapshot?.materialCostBasis?.basis, "net-consumption");
+  assert.equal(result.snapshot?.materialCostBasis?.schemaVersion, 1);
+  assert.equal(result.snapshot?.materialCostBasis?.sourcePartIds, undefined);
   assert.deepEqual(result.snapshot?.materialCostBasis?.stockSheetGroups, []);
   assert.equal(
     result.snapshot?.materialCostBasis?.grandTotalMinor,

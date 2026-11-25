@@ -82,7 +82,7 @@ function createStockBasisSnapshot() {
   const panelCost = 12500;
   snapshot.schemaVersion = 2;
   snapshot.materialCostBasis = {
-    schemaVersion: 1,
+    schemaVersion: 2,
     basis: "stock-sheet-purchase",
     currencyCode: "TRY",
     panelMaterialCostMinor: panelCost,
@@ -94,6 +94,7 @@ function createStockBasisSnapshot() {
     },
     grandTotalMinor: baseCost.grandTotalMinor + panelCost,
     materialSourceCount: 1,
+    sourcePartIds: ["part-a"],
     stockSheetGroups: [{
       groupId: JSON.stringify(["mdf-18", 180]),
       materialId: "mdf-18",
@@ -782,6 +783,8 @@ test("DOM-170 stock-sheet v2 basis, category totals and line provenance survive 
     const basis = pricingSnapshot.materialCostBasis;
     assert.ok(basis);
     assert.equal(basis.basis, "stock-sheet-purchase");
+    assert.equal(basis.schemaVersion, 2);
+    assert.deepEqual(basis.sourcePartIds, ["part-a"]);
     const costSummary = pricingSnapshot.quoteSummary.costSummary;
     assert.ok(costSummary);
     assert.equal(basis.materialCategoryTotalMinor, basis.panelMaterialCostMinor + basis.edgeBandingCostMinor);
@@ -865,4 +868,69 @@ test("DOM-170 stock-sheet v2 basis, category totals and line provenance survive 
     assert.equal(revisionAudit.counts.stockSheetGroupCount, 1);
     assert.deepEqual(revisionAudit.stockSheetGroups[0].sourcePartIds, ["part-a"]);
   }
+});
+
+test("DOM-171 standalone import and project restore reject tampered stock-sheet totals and Part coverage atomically", () => {
+  const source = appendProjectQuoteRevisionToProjectFile(
+    createV2Project(),
+    createRevision({ pricingSnapshot: createStockBasisSnapshot() })
+  );
+  assert.equal(source.status, "ready", source.diagnostics.join(" | "));
+  assert.ok(source.history);
+  const serialized = serializeProjectQuoteRevisionHistoryFile(source.history);
+  assert.equal(serialized.status, "ready", serialized.diagnostics.join(" | "));
+  assert.ok(serialized.json);
+
+  const tamperCases = [
+    {
+      name: "category totals",
+      mutate(basis) {
+        basis.categoryTotalsMinor.labor += 1;
+      }
+    },
+    {
+      name: "Part-group source coverage",
+      mutate(basis) {
+        basis.stockSheetGroups[0].sourcePartIds = ["foreign-part"];
+      }
+    }
+  ];
+
+  for (const tamper of tamperCases) {
+    const standaloneFile = JSON.parse(serialized.json);
+    tamper.mutate(standaloneFile.history.revisions[0].pricingSnapshot.materialCostBasis);
+    const tamperedJson = JSON.stringify(standaloneFile);
+
+    const target = createV2Project();
+    const targetBefore = structuredClone(target);
+    const imported = importProjectQuoteRevisionHistoryFileIntoProject(target, tamperedJson);
+    assert.equal(imported.status, "blocked", tamper.name);
+    assert.equal(imported.project, null, tamper.name);
+    assert.deepEqual(target, targetBefore, tamper.name);
+
+    const restoredProject = createV2Project({
+      quoteRevisionHistory: standaloneFile.history
+    });
+    const restored = readProjectQuoteRevisionHistoryFromProjectFile(restoredProject);
+    assert.equal(restored.status, "blocked", tamper.name);
+    assert.equal(restored.history, null, tamper.name);
+  }
+});
+
+test("DOM-171 legacy material-cost-basis v1 snapshots remain readable without a Part manifest", () => {
+  const legacySnapshot = createStockBasisSnapshot();
+  legacySnapshot.materialCostBasis.schemaVersion = 1;
+  delete legacySnapshot.materialCostBasis.sourcePartIds;
+  const appended = appendProjectQuoteRevisionToProjectFile(
+    createV2Project(),
+    createRevision({ pricingSnapshot: legacySnapshot })
+  );
+  assert.equal(appended.status, "ready", appended.diagnostics.join(" | "));
+  assert.ok(appended.project);
+
+  const restored = readProjectQuoteRevisionHistoryFromProjectFile(
+    JSON.parse(JSON.stringify(appended.project))
+  );
+  assert.equal(restored.status, "ready", restored.diagnostics.join(" | "));
+  assert.equal(restored.history?.revisions[0].pricingSnapshot.materialCostBasis.schemaVersion, 1);
 });

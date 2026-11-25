@@ -38,7 +38,8 @@ export interface ProjectQuoteStockSheetGroupSnapshot {
 }
 
 export interface ProjectQuoteMaterialCostBasisSnapshot {
-  schemaVersion: 1;
+  /** v1 is the legacy shape; v2 adds an aggregate Part-coverage manifest for stock-sheet purchases. */
+  schemaVersion: 1 | 2;
   basis: ProjectMaterialCostBasis;
   currencyCode: string;
   panelMaterialCostMinor: number;
@@ -48,6 +49,8 @@ export interface ProjectQuoteMaterialCostBasisSnapshot {
   grandTotalMinor: number;
   materialSourceCount: number;
   stockSheetGroups: readonly DeepReadonly<ProjectQuoteStockSheetGroupSnapshot>[];
+  /** Sorted unique union of all stock-sheet group Part IDs; present only in basis schema v2. */
+  sourcePartIds?: readonly string[];
 }
 
 export interface ProjectQuotePricingSnapshot {
@@ -509,8 +512,11 @@ function createMaterialCostBasisSnapshot(
   ) {
     throw new Error("Teklif panel ve kenar bandı maliyet toplamları güvenli ve tutarlı olmalıdır.");
   }
+  const sourcePartIds = result.basis === "stock-sheet-purchase"
+    ? [...new Set(stockSheetGroups.flatMap(group => [...group.sourcePartIds]))].sort()
+    : undefined;
   return {
-    schemaVersion: 1,
+    schemaVersion: result.basis === "stock-sheet-purchase" ? 2 : 1,
     basis: result.basis,
     currencyCode: result.currencyCode,
     panelMaterialCostMinor: result.panelMaterialCostMinor,
@@ -519,7 +525,8 @@ function createMaterialCostBasisSnapshot(
     categoryTotalsMinor: result.categoryTotalsMinor,
     grandTotalMinor: result.grandTotalMinor,
     materialSourceCount: result.materialSourceCount,
-    stockSheetGroups
+    stockSheetGroups,
+    ...(sourcePartIds === undefined ? {} : { sourcePartIds })
   };
 }
 
