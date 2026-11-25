@@ -1,0 +1,66 @@
+/* UI-DROPDOWN-MENU-TECHNICAL-001 — graphite command surfaces and deterministic focus states. */
+[data-slot="dropdown-menu-content"],
+[data-slot="dropdown-menu-sub-content"] {
+  border-color: color-mix(in oklab, var(--border) 88%, transparent);
+  box-shadow:
+    0 14px 32px rgb(0 0 0 / 0.32),
+    inset 0 1px 0 rgb(255 255 255 / 0.035);
+}
+
+[data-slot="dropdown-menu-item"][data-highlighted],
+[data-slot="dropdown-menu-sub-trigger"][data-highlighted],
+[data-slot="dropdown-menu-sub-trigger"][data-popup-open],
+[data-slot="dropdown-menu-checkbox-item"][data-highlighted],
+[data-slot="dropdown-menu-radio-item"][data-highlighted] {
+  background-color: color-mix(in oklab, var(--primary) 18%, var(--popover));
+  color: var(--foreground);
+}
+
+[data-slot="dropdown-menu-checkbox-item"][data-checked],
+[data-slot="dropdown-menu-radio-item"][data-checked] {
+  background-color: color-mix(in oklab, var(--primary) 10%, var(--popover));
+  color: var(--foreground);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-slot="dropdown-menu-content"],
+  [data-slot="dropdown-menu-sub-content"] {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+@media (forced-colors: active) {
+  [data-slot="dropdown-menu-content"],
+  [data-slot="dropdown-menu-sub-content"] {
+    border: 1px solid CanvasText;
+    background: Canvas;
+    color: CanvasText;
+    box-shadow: none;
+  }
+
+  [data-slot="dropdown-menu-item"],
+  [data-slot="dropdown-menu-sub-trigger"],
+  [data-slot="dropdown-menu-checkbox-item"],
+  [data-slot="dropdown-menu-radio-item"] {
+    color: CanvasText;
+  }
+
+  [data-slot="dropdown-menu-item"][data-highlighted],
+  [data-slot="dropdown-menu-sub-trigger"][data-highlighted],
+  [data-slot="dropdown-menu-checkbox-item"][data-highlighted],
+  [data-slot="dropdown-menu-radio-item"][data-highlighted] {
+    outline: 1px solid Highlight;
+    background: Highlight;
+    color: HighlightText;
+  }
+
+  [data-slot="dropdown-menu-separator"] {
+    background: CanvasText;
+  }
+
+  [data-slot="dropdown-menu-shortcut"] {
+    border-color: CanvasText;
+    color: CanvasText;
+  }
+}
