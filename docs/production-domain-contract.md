@@ -1453,3 +1453,9 @@ The check is intentionally append-specific: `validateProjectQuoteRevisionHistory
 This is append-only preflight: the normal history validator continues to accept a valid 2,000-revision history for read/export, while a further append is rejected. Missing history and below-capacity histories continue through the existing immutable clone, schema validation and final 16 MiB/64-level resource checks. JSON v1 behavior is unchanged. Accessor-backed or non-enumerable project history fields fail closed without invoking getters; JavaScript Proxy reflection traps remain outside this guarantee.
 
 The DOM-157 regression uses an envelope already over the 16 MiB limit together with a full sparse revision array whose first entry and incoming revision identifier are accessor-backed. The result must report the revision-cap blocker first, return no partial project/history, and leave both getter counters at zero.
+
+## JSON v1 zarfı reflection hata sınırı — DOM-159
+
+- Teklif geçmişi read, append ve standalone import API'leri legacy JSON v1 zarfında `quoteRevisionHistory` alanının own-property varlığını kontrol eder. Bu kontrol sırasında Proxy descriptor reflection trap'i hata fırlatırsa hata public API dışına sızdırılmaz; sonuç `blocked`, proje/geçmiş payload'ları ise null olur.
+- Bu koruma Proxy trap'lerinin çalışmasını engellemez ve Proxy nesnelerini güvenilir JSON verisi olarak kabul etmez. Yalnızca v1 discriminator kontrolündeki reflection hatasını fail-closed sonuca dönüştürür.
+- Normal v1 dosyaları `legacy` olarak okunmaya devam eder; v1 içinde `quoteRevisionHistory` bulunması yine blocked kalır. JSON v2, dosya şeması, mm/adet/maliyet hesapları ve CNC/adapter sözleşmeleri değişmez.

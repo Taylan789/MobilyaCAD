@@ -1784,3 +1784,20 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 1. INT-003 — UI sahibinin JSON v2 parser/save/open entegrasyonunu tamamlamasını takip etmek; frontend dosyalarına dokunmamak.
 2. DOM-153 — entegrasyon hazır olduğunda editör append → save → reopen → append domain sözleşmesini exact-SHA testleriyle doğrulamak.
 3. DOM-159 — entegrasyon sonrası standalone history import/export ile proje zarfı round-trip sınırlarını tekrar değerlendir; yalnızca kanıtlanmış bir boşluk varsa yeni dilim aç.
+
+## DOM-159 — Legacy v1 zarfı reflection hatalarını fail-closed yönet
+
+**Durum:** IMPLEMENTED — exact-SHA CI/QA/Pages verification pending.
+
+**Bulgu:** Legacy JSON v1 zarfı incelenirken `Object.prototype.hasOwnProperty.call(value, "quoteRevisionHistory")` kontrolü korumasızdı. Düz JSON dosyalarında sorun oluşmaz; ancak public domain API'lerine doğrudan verilen Proxy nesnesinin `getOwnPropertyDescriptor` trap'i hata fırlatırsa read/append/import çağrısı blocked sonuç yerine exception dışarı sızdırabiliyordu.
+
+**Kullanıcı akışı:** Eski bir v1 projeyi teklif geçmişi API'sine veren çağıran katman, malformed/özel nesne girdisinde uygulama akışını kıran beklenmeyen exception yerine tutarlı bir blocked sonucu alır.
+
+**Kabul kriterleri**
+- v1 discriminator kontrolündeki own-property reflection hatası genel bir güvenli-inceleme tanısıyla blocked döner.
+- `readProjectQuoteRevisionHistoryFromProjectFile`, `appendProjectQuoteRevisionToProjectFile` ve `importProjectQuoteRevisionHistoryFileIntoProject` hiçbirinde exception dışarı sızmaz; proje ve history payload'ları null kalır.
+- Normal v1 dosyası legacy olarak okunur; v1 içine quote history eklenmesi hâlâ blocked olur.
+- Proxy trap'lerinin çalıştırılmasını engellediği iddia edilmez; yalnızca trap hataları fail-closed biçimde yakalanır.
+- JSON v1/v2 şemaları, mm/adet/maliyet hesapları, frontend, adapter ve CNC sözleşmeleri değişmez.
+
+**Sonraki adımlar:** UI sahibinin INT-003 JSON v2 save/open entegrasyonu; entegrasyon tamamlanınca DOM-153 append → save → reopen → append round-trip. Fiziksel CNC doğrulaması bu dilimin kapsamında değildir.

@@ -376,3 +376,52 @@ test("DOM-158 import keeps empty v2 history import and v1 legacy rejection", () 
   assert.equal(legacyResult.history, null);
   assert.match(legacyResult.diagnostics.join(" | "), /JSON v1/);
 });
+
+test("DOM-159 legacy v1 reflection failures return blocked results from all project-history APIs", () => {
+  function createLegacyProjectWithThrowingHistoryDescriptor() {
+    let descriptorTrapCalls = 0;
+    const project = new Proxy({
+      format: "MobilyaCAD",
+      formatVersion: 1
+    }, {
+      getOwnPropertyDescriptor(target, key) {
+        if (key === "quoteRevisionHistory") {
+          descriptorTrapCalls += 1;
+          throw new Error("synthetic descriptor reflection failure");
+        }
+        return Reflect.getOwnPropertyDescriptor(target, key);
+      }
+    });
+    return { project, descriptorTrapCalls: () => descriptorTrapCalls };
+  }
+
+  const readTarget = createLegacyProjectWithThrowingHistoryDescriptor();
+  const read = readProjectQuoteRevisionHistoryFromProjectFile(readTarget.project);
+  assert.equal(read.status, "blocked");
+  assert.equal(read.projectId, null);
+  assert.equal(read.history, null);
+  assert.match(read.diagnostics.join(" | "), /güvenli biçimde incelenemedi/);
+  assert.equal(readTarget.descriptorTrapCalls(), 1);
+
+  const appendTarget = createLegacyProjectWithThrowingHistoryDescriptor();
+  const appended = appendProjectQuoteRevisionToProjectFile(
+    appendTarget.project,
+    createRevision("dom-159-append")
+  );
+  assert.equal(appended.status, "blocked");
+  assert.equal(appended.project, null);
+  assert.equal(appended.history, null);
+  assert.match(appended.diagnostics.join(" | "), /güvenli biçimde incelenemedi/);
+  assert.equal(appendTarget.descriptorTrapCalls(), 1);
+
+  const importTarget = createLegacyProjectWithThrowingHistoryDescriptor();
+  const imported = importProjectQuoteRevisionHistoryFileIntoProject(
+    importTarget.project,
+    createHistoryFile()
+  );
+  assert.equal(imported.status, "blocked");
+  assert.equal(imported.project, null);
+  assert.equal(imported.history, null);
+  assert.match(imported.diagnostics.join(" | "), /güvenli biçimde incelenemedi/);
+  assert.equal(importTarget.descriptorTrapCalls(), 1);
+});

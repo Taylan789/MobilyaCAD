@@ -1,3 +1,13 @@
+## 25 Kasım 2026 07:18 TRT — DOM-159 IMPLEMENTED (verification pending)
+
+- Base `dev/github-work` HEAD: `f3d38be0c385b631031db81ecf05429aa1833330`. The UI-owned PRs #208, #209, #210, #216 and #217 were merged by their owner into this baseline; exact-SHA CI/QA passed and Pages deployment is being verified before the next write.
+- Finding: legacy v1 `inspectProjectEnvelope` checked own-property presence of `quoteRevisionHistory` outside a try/catch. A Proxy `getOwnPropertyDescriptor` trap could therefore leak an exception from public quote-history read, append and import APIs.
+- Change: reflection failure now returns a generic fail-closed blocked envelope result. Added a regression covering all three public APIs, null partial payloads and exactly one descriptor-trap call per API. Normal v1 legacy read and v1 history rejection remain unchanged.
+- Changed files: `domain/production/projectQuoteRevisionProjectFile.ts`, `domain/production/projectQuoteRevisionProjectFileResourceLimits.test.mjs`, `docs/production-domain-contract.md`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`.
+- Automated checks: exact-SHA CI/QA/Pages are pending for this change; no local Node execution is claimed in this runtime.
+- Known limit: Proxy reflection traps can still execute; this change only contains thrown reflection errors and does not claim safe arbitrary Proxy execution. No frontend, adapter/performance-owned files, CNC output, secrets/settings or `main` changes.
+- Next: UI-owned INT-003 JSON v2 editor save/open integration; then DOM-153 editor append → save → reopen → append contract tests.
+
 ## 25 Kasım 2026 06:48 TRT — DOM-158 VERIFIED
 
 - Base `dev/github-work` HEAD: `9c18bcea5d9b27321ef671d20da380e4ce496eab`. Code/test commit: [`8b5d2fda`](https://github.com/Taylan789/MobilyaCAD/commit/8b5d2fdacc06825b568c944857a1da7aa14357e4).

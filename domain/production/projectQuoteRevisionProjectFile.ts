@@ -300,7 +300,22 @@ function inspectProjectEnvelope(value: unknown): ProjectEnvelopeInspection {
   }
 
   if (formatVersion === 1) {
-    if (Object.prototype.hasOwnProperty.call(value, PROJECT_QUOTE_REVISION_HISTORY_FIELD)) {
+    let hasQuoteRevisionHistory: boolean;
+    try {
+      hasQuoteRevisionHistory = Object.prototype.hasOwnProperty.call(
+        value,
+        PROJECT_QUOTE_REVISION_HISTORY_FIELD
+      );
+    } catch {
+      return {
+        status: "blocked",
+        project: null,
+        projectId: null,
+        diagnostics: ["Proje zarfı güvenli biçimde incelenemedi."]
+      };
+    }
+
+    if (hasQuoteRevisionHistory) {
       return {
         status: "blocked",
         project: null,
