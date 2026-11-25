@@ -8,7 +8,7 @@ MobilyaCAD'i tarayıcıda çalışan bir 3D mobilya yerleşim aracından; parame
 
 Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarılan veriler aynı kaynak parametreleri kullanmalı. Fiziksel üretime giden ölçüler, bağlantılar ve CNC işlemleri ancak gerçek üretici/atölye standardı doğrulandığında onaylı kabul edilebilir.
 
-## Doğrulanmış mevcut temel — 25 Kasım 2026
+## Doğrulanmış mevcut temel — 26 Kasım 2026
 
 | Alan | Mevcut durum | Sınır |
 |---|---|---|
@@ -24,7 +24,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 | Malzeme kataloğu | UI CRUD; mobilya varsayılan materialId ve çekmece grubunda varsayılan + dört panel grubu override; domain gövde/kitaplık motorları altı gövde panel grubu için malzeme override'ını doğrular | Gövde panel override'ları henüz frontend JSON v1/CSV ve UI akışına bağlanmadı; fiyat, tedarikçi ve fire henüz yok |
 | Proje dosyası | Yerel JSON v1 indirme/yükleme; saf serializer/parser; round-trip ve eski v1 uyumluluk; mm, mobilya ve çekmece grubu katalog referansları ile dört çekmece panel kalınlığının doğrulanması | Şema migrasyonu, otomatik kayıt ve kurtarma yok |
 | Teklif/maliyet | Kullanıcı fiyat tablosu malzeme tüketimini materialId + m2, donanımı hardwareId + özgün BOM birimi, kenar bandını edgeBandingId + açık mm/m birimi ile fiyatlandırır; kullanıcı girdili işçilik/operasyon tarifesi, tek para birimli birleşik teklif ve tarihli fiyat/tarife katalog snapshot'ı, DOM-014 doğrulanmış immutable append ve DOM-015 ortak satır aritmetiği doğrulaması vardır | Frontend/UI ve JSON v1/CSV kalıcı revizyon geçmişi entegrasyonu ayrı sahibindedir; tüm geçmişte ID tekilliği depolama katmanında doğrulanmalıdır; vergi, kur, iskonto, otomatik fire/kâr yüzdesi ve üretim onayı yok |
-| Test/CI | Latest verified exact-SHA [3532ee71](https://github.com/Taylan789/MobilyaCAD/commit/3532ee7122769ebf7d171e629696f0ded01e0846): CI [#45695923410](https://github.com/Taylan789/MobilyaCAD/actions/runs/45695923410), QA [#45695923351](https://github.com/Taylan789/MobilyaCAD/actions/runs/45695923351), Pages [#45695923248](https://github.com/Taylan789/MobilyaCAD/actions/runs/45695923248) all succeeded; Pages log confirms exact SHA at https://taylan789.github.io/MobilyaCAD/ | QA 318/318 frontend + 792/792 domain; DOM-174 test 433 passed; strict shared-domain TypeScript; lint 36 warnings / 0 errors; production build; production-only audit 0 vulnerabilities. Full install audit retains 4 moderate findings. Main JS bundle 1,698.03 kB (475.00 kB gzip), CSS 447.63 kB (75.53 kB gzip); viewport p95/memory NOT MEASURED. |
+| Test/CI | Latest verified exact-SHA [132e20a6](https://github.com/Taylan789/MobilyaCAD/commit/132e20a6dec1f2fa1322cb5b2acad5fc01bec900): CI [#45708700332](https://github.com/Taylan789/MobilyaCAD/actions/runs/45708700332), QA [#45708700517](https://github.com/Taylan789/MobilyaCAD/actions/runs/45708700517), Pages [#45708700298](https://github.com/Taylan789/MobilyaCAD/actions/runs/45708700298) all succeeded; Pages log confirms exact SHA at https://taylan789.github.io/MobilyaCAD/ | QA 323/323 frontend + 793/793 domain; DOM-175 test 434 passed; strict shared-domain TypeScript; lint 36 warnings / 0 errors; production build; production-only audit 0 vulnerabilities. Full install audit retains 4 moderate findings. Main JS bundle 1,698.57 kB (475.10 kB gzip), CSS 452.87 kB (76.20 kB gzip); viewport p95/memory NOT MEASURED. |
 
 ### Bilinen mimari ve veri boşlukları
 
@@ -2048,8 +2048,15 @@ Sonraki adım: Exact-SHA CI/QA/Pages sonuçlarını doğrula; ardından DOM-170 
 
 ### Next 3–5 domain/integration tasks
 
-1. DOM-175 — mixed v2/v1/no-basis append, audit and pairwise comparison regression coverage is implemented in the current commit; exact-SHA CI/QA/Pages validation is pending.
-2. DOM-176 — verify the same mixed history survives standalone quote-revision JSON file serialize/parse and remains appendable after parsing; do not claim editor-level JSON v2 save/open integration.
-3. UI-owned INT-003 PR #206 remains isolated; after actual editor startup/new/save/open envelope wiring, validate DOM-153 append → save → reopen → append.
-4. INT-002/PERF-001 remain specialist-owned; the integration/performance workflow job is disabled and no specialist branch was found. Do not edit adapter or benchmark ownership.
-5. Keep QA-003 blocked until INT-001 and INT-002 evidence is available. Keep viewport p95/memory NOT MEASURED; physical CNC/workshop checks remain human validation.
+1. DOM-176 — verify mixed manifest history survives standalone quote-revision JSON file serialize/parse and remains appendable after parsing; reconcile exact audit totals and pairwise comparison surfaces.
+2. UI-owned INT-003 PR #206 remains isolated; after actual editor startup/new/save/open envelope wiring, validate DOM-153 append → save → reopen → append.
+3. INT-002/PERF-001 remain specialist-owned; the integration/performance workflow job is disabled and no specialist branch was found. Do not edit adapter or benchmark ownership.
+4. Keep QA-003 blocked until INT-001 and INT-002 evidence is available.
+5. Keep viewport p95/memory NOT MEASURED until the specialist supplies a repeatable baseline; physical CNC/workshop checks remain human validation.
+
+## 26 Kasım 2026 00:56 TRT — DOM-175 VERIFIED
+
+- Mixed v2/v1/no-basis history append was validated with two sequential immutable appends; existing history snapshots remained unchanged.
+- Audit reconciled 6 stock-sheet purchase revisions, 4 manifest-v2, 2 legacy, 8 manifest references / 5 unique manifest Parts, and 10 total stock-sheet references / 7 unique Parts. Five selected comparison pairs agreed across group/full/source-map APIs; duplicate append failed closed.
+- Implementation [132e20a6](https://github.com/Taylan789/MobilyaCAD/commit/132e20a6dec1f2fa1322cb5b2acad5fc01bec900); exact-SHA CI [#45708700332](https://github.com/Taylan789/MobilyaCAD/actions/runs/45708700332), QA [#45708700517](https://github.com/Taylan789/MobilyaCAD/actions/runs/45708700517), Pages [#45708700298](https://github.com/Taylan789/MobilyaCAD/actions/runs/45708700298) all succeeded. QA 323/323 frontend + 793/793 domain; DOM-175 test #434 passed; lint 36 warnings/0 errors; production build and production audit passed.
+- Test site deployed from the exact implementation SHA. Bundle warning remains (JS 1,698.57 kB); viewport p95/memory and physical CNC/workshop validation remain unmeasured. No frontend/adapter/main changes.
