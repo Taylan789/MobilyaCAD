@@ -31,6 +31,19 @@ test("hover and keyboard focus strengthen the same existing add affordance", () 
   assert.match(card, /onClick=\{onAdd\}/);
 });
 
+test("compact desktop cards use a square icon cue to preserve preview space", () => {
+  const compactBlock = actionStyles.match(
+    /@media \(max-width: 820px\)\s*\{([\s\S]*?)\n\}/
+  )?.[1];
+
+  assert.ok(compactBlock, "the compact catalog breakpoint exists");
+  assert.match(compactBlock, /width:\s*32px\s*;/);
+  assert.match(compactBlock, /height:\s*32px\s*;/);
+  assert.match(compactBlock, /\.mc-catalog-card__add-label\s*\{\s*display:\s*none\s*;/);
+  assert.match(compactBlock, /\.cad-catalog-card\.mc-catalog-card \.mc-catalog-card__add svg\s*\{[\s\S]*?width:\s*15px\s*;[\s\S]*?height:\s*15px\s*;/);
+  assert.match(card, /aria-label=\{\x60\$\{item\.name\}[\s\S]*?\x60\}/);
+});
+
 test("the persistent cue respects reduced motion and Windows forced colors", () => {
   assert.match(actionStyles, /@media \(prefers-reduced-motion: reduce\)[\s\S]*?transition:\s*none !important/);
   assert.match(actionStyles, /@media \(forced-colors: active\)[\s\S]*?background:\s*ButtonFace/);
