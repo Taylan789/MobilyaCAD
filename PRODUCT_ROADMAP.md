@@ -24,7 +24,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 | Malzeme kataloğu | UI CRUD; mobilya varsayılan materialId ve çekmece grubunda varsayılan + dört panel grubu override; domain gövde/kitaplık motorları altı gövde panel grubu için malzeme override'ını doğrular | Gövde panel override'ları henüz frontend JSON v1/CSV ve UI akışına bağlanmadı; fiyat, tedarikçi ve fire henüz yok |
 | Proje dosyası | Yerel JSON v1 indirme/yükleme; saf serializer/parser; round-trip ve eski v1 uyumluluk; mm, mobilya ve çekmece grubu katalog referansları ile dört çekmece panel kalınlığının doğrulanması | Şema migrasyonu, otomatik kayıt ve kurtarma yok |
 | Teklif/maliyet | Kullanıcı fiyat tablosu malzeme tüketimini materialId + m2, donanımı hardwareId + özgün BOM birimi, kenar bandını edgeBandingId + açık mm/m birimi ile fiyatlandırır; kullanıcı girdili işçilik/operasyon tarifesi, tek para birimli birleşik teklif ve tarihli fiyat/tarife katalog snapshot'ı, DOM-014 doğrulanmış immutable append ve DOM-015 ortak satır aritmetiği doğrulaması vardır | Frontend/UI ve JSON v1/CSV kalıcı revizyon geçmişi entegrasyonu ayrı sahibindedir; tüm geçmişte ID tekilliği depolama katmanında doğrulanmalıdır; vergi, kur, iskonto, otomatik fire/kâr yüzdesi ve üretim onayı yok |
-| Test/CI | Verified exact-SHA `deb962ff3813b8a4257ef0fc361bb79cba391cb9`: CI [#45665861844](https://github.com/Taylan789/MobilyaCAD/actions/runs/45665861844), QA [#45665861889](https://github.com/Taylan789/MobilyaCAD/actions/runs/45665861889), Pages [#45665861859](https://github.com/Taylan789/MobilyaCAD/actions/runs/45665861859) all succeeded; Pages log confirms exact SHA at https://taylan789.github.io/MobilyaCAD/ | QA 306/306 frontend + 787/787 domain; strict shared-domain TypeScript; lint 36 warnings / 0 errors; production build; production-only audit 0 vulnerabilities. Full install audit retains 4 moderate findings. Main JS bundle 1,698.03 kB (475.00 kB gzip); viewport p95/memory NOT MEASURED. |
+| Test/CI | Latest verified exact-SHA [3532ee71](https://github.com/Taylan789/MobilyaCAD/commit/3532ee7122769ebf7d171e629696f0ded01e0846): CI [#45695923410](https://github.com/Taylan789/MobilyaCAD/actions/runs/45695923410), QA [#45695923351](https://github.com/Taylan789/MobilyaCAD/actions/runs/45695923351), Pages [#45695923248](https://github.com/Taylan789/MobilyaCAD/actions/runs/45695923248) all succeeded; Pages log confirms exact SHA at https://taylan789.github.io/MobilyaCAD/ | QA 318/318 frontend + 792/792 domain; DOM-174 test 433 passed; strict shared-domain TypeScript; lint 36 warnings / 0 errors; production build; production-only audit 0 vulnerabilities. Full install audit retains 4 moderate findings. Main JS bundle 1,698.03 kB (475.00 kB gzip), CSS 447.63 kB (75.53 kB gzip); viewport p95/memory NOT MEASURED. |
 
 ### Bilinen mimari ve veri boşlukları
 
@@ -599,7 +599,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 4. **INT-001 FRONTEND-OWNED** — domain/export contract and download-adapter wiring; product agent does not edit frontend.
 5. **INT-002/PERF-001 SPECIALIST-OWNED** — adapter round-trip and measured CAD profiling; QA-003 stays blocked until integration evidence.
 
-## 10/10 ölçülebilir kalite kapıları (20 Kasım 2026 baseline)
+## 10/10 ölçülebilir kalite kapıları (kanıt 25 Kasım 2026 güncellendi)
 
 Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ürün 10/10 kabul edilmez.
 
@@ -608,8 +608,8 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 | CAD Core | Geometri/transform/snap/seçim/undo-redo/save-load için deterministik test; 2D ve 3D aynı mm kaynak verisini kullanır | Temel 3D yerleşim ve transform var; tam 2D çizim, snap, undo-redo ve senkron contract eksik |
 | Üretim | Her Part için kaynak ID, quantity, mm ölçü, malzeme/kalınlık; unsupported geometri/export kısmi sonuç üretmeden blocker | Domain konstrüksiyon, tüketim, nesting freshness, teklif/revizyon ve JSON/CSV sözleşmeleri var; frontend adapter/CNC postprocessor eksik |
 | UX | Ana akışlarda işlevsel kontroller; klavye/focus, erişilebilirlik, responsive, boş/hata durumları otomatik doğrulanır | Frontend ayrı ajan alanında; gerçek tarayıcı görsel kabulü NOT MEASURED |
-| Performans | Referans sahnede p95 frame-time hedefi 16,7 ms (60 FPS), scene update p95 <100 ms, bellek ölçümü ve CI regression threshold | Referans sahne/benchmark NOT MEASURED; bu kontrolde aktif Integration/Performance run veya PR bulunmadı; PERF-001 ve INT-002 READY, QA-003 INT-001/INT-002'ye bağlı |
-| Güvenilirlik | Strict TS, test, build, audit; import/export round-trip 0 alan kaybı; invalid input 0 partial output | Latest verified SHA [a021b0a5](https://github.com/Taylan789/MobilyaCAD/commit/a021b0a5db7de0634ab33443d43890df20736db9): CI [#45685137601](https://github.com/Taylan789/MobilyaCAD/actions/runs/45685137601), QA [#45685137577](https://github.com/Taylan789/MobilyaCAD/actions/runs/45685137577), Pages [#45685137617](https://github.com/Taylan789/MobilyaCAD/actions/runs/45685137617) all passed; QA 314/314 frontend + 791/791 domain, strict shared-domain TS, lint 36 warnings/0 errors, production build and production-only audit 0 vulnerabilities. Full install audit reports 4 moderate findings; no dependency change. Vite JS bundle 1,698.03 kB (475.00 kB gzip), CSS 442.80 kB (75.05 kB gzip); viewport p95/memory remain NOT MEASURED. Overall 10/10 gate remains unchecked. |
+| Performans | Referans sahnede p95 frame-time hedefi 16,7 ms (60 FPS), scene update p95 <100 ms, bellek ölçümü ve CI regression threshold | Referans sahne/benchmark NOT MEASURED; Integration/Performance job skipped ve agent/integration-performance-* branch bulunmadı; PERF-001/INT-002 specialist-owned, QA-003 INT-001/INT-002'ye bağlı |
+| Güvenilirlik | Strict TS, test, build, audit; import/export round-trip 0 alan kaybı; invalid input 0 partial output | Latest verified SHA [3532ee71](https://github.com/Taylan789/MobilyaCAD/commit/3532ee7122769ebf7d171e629696f0ded01e0846): CI [#45695923410](https://github.com/Taylan789/MobilyaCAD/actions/runs/45695923410), QA [#45695923351](https://github.com/Taylan789/MobilyaCAD/actions/runs/45695923351), Pages [#45695923248](https://github.com/Taylan789/MobilyaCAD/actions/runs/45695923248) all passed; QA 318/318 frontend + 792/792 domain, strict shared-domain TS, lint 36 warnings/0 errors, production build and production-only audit 0 vulnerabilities. Full install audit reports 4 moderate findings; no dependency change. Vite JS bundle 1,698.03 kB (475.00 kB gzip), CSS 447.63 kB (75.53 kB gzip); viewport p95/memory remain NOT MEASURED. Overall 10/10 gate remains unchecked. |
 | Edge-band export | Direction, catalog ID, mm/m, Part/furniture provenance and strict JSON round-trip; malformed/unsupported input blocked | DOM-068 verified: 124 frontend + 468 domain tests, strict type-check, build and audit; see Actions |
 
 
@@ -2069,5 +2069,23 @@ Verified implementation [a021b0a5](https://github.com/Taylan789/MobilyaCAD/commi
 1. DOM-174 — compare manifest coverage for every non-adjacent revision pair in a mixed v2/v1 history and reconcile the comparison result with the source-map audit.
 2. UI-owned INT-003 PR #206 remains isolated; after actual editor startup/new/save/open envelope wiring, validate DOM-153 append → save → reopen → append.
 3. INT-002/PERF-001 remain specialist-owned; do not edit adapter or benchmark files while the specialist job/branch is absent.
+4. Keep QA-003 blocked until INT-001 and INT-002 evidence is available.
+5. Keep viewport p95/memory NOT MEASURED until the specialist supplies a repeatable baseline; physical CNC/workshop checks remain human validation.
+
+
+## 25 Kasım 2026 23:31 TRT — DOM-174 VERIFIED
+
+DOM-174 verifies that revision comparison is not limited to adjacent revisions and that the three domain comparison surfaces agree with the independent source-map audit.
+
+- Fixture: six chronological revisions alternating schema-v2 stock-sheet manifests and legacy schema-v1 stock-sheet bases, followed by a revision without a stock-sheet basis. All 10 non-adjacent pairs are checked.
+- For each pair, compareProjectQuoteRevisionStockSheetGroups, compareProjectQuoteRevisions and compareProjectQuoteRevisionSourceMaps return identical manifest comparison values. From/to coverage equals the per-revision audit's basis, schema version, manifest version and Part count. Comparable v2→v2 counts and ID changes reconcile; legacy/no-basis pairs return null counts and changes without inferred Part deltas.
+- Exact-SHA implementation [ea724ee5](https://github.com/Taylan789/MobilyaCAD/commit/ea724ee532dcbe4f86c5143ec598b918fecab0f3): CI [#45695587251](https://github.com/Taylan789/MobilyaCAD/actions/runs/45695587251), QA [#45695587084](https://github.com/Taylan789/MobilyaCAD/actions/runs/45695587084), Pages [#45695587158](https://github.com/Taylan789/MobilyaCAD/actions/runs/45695587158) all succeeded. QA 314/314 frontend + 792/792 domain; test 433 passed; strict TS, lint 36 warnings/0 errors, production build and production-only audit 0 vulnerabilities. Full install audit still reports 4 moderate findings.
+- Follow-on UI-owned transform mode rail commit [3532ee71](https://github.com/Taylan789/MobilyaCAD/commit/3532ee7122769ebf7d171e629696f0ded01e0846) is separately verified and deployed: CI #45695923410, QA #45695923351, Pages #45695923248; QA 318/318 frontend + 792/792 domain.
+- Bundle remains 1,698.03 kB JS (475.00 kB gzip) and 447.63 kB CSS (75.53 kB gzip); viewport p95/memory NOT MEASURED. Overall 10/10 gate remains unchecked. CNC/machine and physical workshop checks remain human validation.
+
+### Next 3–5 domain/integration tasks
+1. DOM-175 — verify appendProjectQuoteRevision preserves mixed v2/v1/no-basis manifest coverage, pairwise comparisons and project-wide audit totals after immutable appends; invalid append must remain atomic.
+2. UI-owned INT-003 PR #206 remains isolated; after actual editor startup/new/save/open envelope wiring, validate DOM-153 append → save → reopen → append.
+3. INT-002/PERF-001 remain specialist-owned; no adapter or benchmark changes until the specialist branch/job is active.
 4. Keep QA-003 blocked until INT-001 and INT-002 evidence is available.
 5. Keep viewport p95/memory NOT MEASURED until the specialist supplies a repeatable baseline; physical CNC/workshop checks remain human validation.

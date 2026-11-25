@@ -1581,3 +1581,14 @@ The output is additive to the existing domain result schema. Existing group-leve
 The source-map audit distinguishes two different project-history measures: manifest Part references are additive across schema-v2 stock-sheet revisions, while project-wide unique manifest Part IDs are deduplicated across those revisions. Each revision's unique count remains local to that revision. Legacy schema-v1 stock-sheet groups continue to contribute to the existing stock-sheet group/Part audit, but never to schema-v2 manifest reference or unique-ID totals; revisions without a stock-sheet purchase basis contribute to neither measure.
 
 The regression covers two v2 revisions with one shared Part ID, a legacy v1 stock-sheet revision, and a revision with no stock-sheet basis. It reconciles per-revision and project totals, verifies that legacy group Part IDs do not leak into manifest totals, checks the downstream source-integrity audit, and confirms that paired cost/source-line reordering does not change the aggregate audit. This is audit-only behavior: it does not alter pricing, Part geometry, JSON/CSV adapters, frontend wiring, CNC operations or physical production claims.
+
+
+## DOM-174 — Non-adjacent stock-sheet manifest comparison reconciliation
+
+The existing revision comparison APIs accept any later revision pair, not only adjacent revisions. The regression now checks every non-adjacent pair in a six-revision history containing schema-v2 stock-sheet manifests, legacy schema-v1 stock-sheet purchase snapshots, and a revision without a stock-sheet basis.
+
+- compareProjectQuoteRevisionStockSheetGroups, compareProjectQuoteRevisions and compareProjectQuoteRevisionSourceMaps must expose the same manifest comparison for each pair (the full quote comparison carries it under stockSheetGroupComparison).
+- Each comparison endpoint's from/to coverage must exactly match the corresponding source-map audit revision: basis, material-cost-basis schema version, manifest version and Part count.
+- For v2→v2 pairs, from/to Part counts, added/removed/unchanged counts and deterministic Part-ID changes reconcile with the two validated manifests and per-revision audit counters. Any pair with a legacy/no-basis side explicitly reports unavailable coverage and keeps counts/changes null; no legacy Part delta is inferred.
+- The six-revision fixture checks all 10 non-adjacent pairs, project totals (3 v2 revisions, 2 legacy revisions, 6 manifest references, 4 project-wide unique manifest Part IDs), deep-freeze and input immutability.
+- This is domain comparison/audit regression coverage only. JSON/CSV adapters remain specialist-owned; UI editor wiring, physical stock usage, CNC output and workshop certification are not implied.
