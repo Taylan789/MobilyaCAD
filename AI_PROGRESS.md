@@ -1,3 +1,20 @@
+## 25 Kasım 2026 09:53 TRT — DOM-161 VERIFIED
+
+- Base `dev/github-work` HEAD before the slice: `860af5abee1bed478368897a86abbabff310d8d0`. Code/test commit: [`279067c7`](https://github.com/Taylan789/MobilyaCAD/commit/279067c73135e19e36392be76f0fb2ca75e206cc).
+- Persisted JSON v2 `edgeBandingRollPricing` now feeds `createProjectQuotePricingSnapshot` when `edgeBandingPricingMode: "roll"` is explicit. Legacy v1, malformed/blocked extensions, ambiguous mode and duplicate persisted/explicit sources fail closed; roll count, price, Part IDs and plan/price provenance remain in the immutable snapshot.
+- Changed files: `domain/production/projectQuotePricingSnapshot.ts`, `domain/production/projectQuotePricingSnapshot.test.mjs`, `docs/production-domain-contract.md`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`.
+- Exact-SHA CI [#45563745096](https://github.com/Taylan789/MobilyaCAD/actions/runs/45563745096), QA [#45563745095](https://github.com/Taylan789/MobilyaCAD/actions/runs/45563745095) and Pages [#45563745097](https://github.com/Taylan789/MobilyaCAD/actions/runs/45563745097) all succeeded. QA: 277/277 frontend + 754/754 domain tests; strict shared-domain TypeScript; lint 36 warnings/0 errors; production build; production dependency audit 0 vulnerabilities.
+- Test site deployed from the verified SHA: https://taylan789.github.io/MobilyaCAD/.
+- Known limits: UI must pass the current v2 envelope after INT-003 is integrated; roll mode is explicit and never inferred. Legacy v1 roll persistence, CNC/machine output and physical production validation are not included. No frontend, adapter/performance-owned files, secrets/settings or `main` changes.
+- Next: UI-owned INT-003 editor save/open integration (draft PR #206); then DOM-153 editor append → save → reopen → append.
+
+## 25 Kasım 2026 09:04 TRT — DOM-160 VERIFIED
+
+- Code commit [757e959](https://github.com/Taylan789/MobilyaCAD/commit/757e959842a24c697ae1d5f92ce1b96f6a80359d) and test correction [357198f](https://github.com/Taylan789/MobilyaCAD/commit/357198fda15f71ae10aabf0a541174fcd05ebe19) added descriptor-safe JSON v2 edge-band roll-pricing reads, a 16 MiB UTF-8 / 64-level bounded deep clone, nested metadata isolation and fail-closed reflection-trap handling.
+- Exact-SHA CI [#45557877841](https://github.com/Taylan789/MobilyaCAD/actions/runs/45557877841), QA [#45557878887](https://github.com/Taylan789/MobilyaCAD/actions/runs/45557878887) and Pages [#45557877766](https://github.com/Taylan789/MobilyaCAD/actions/runs/45557877766) succeeded; QA: 272/272 frontend + 752/752 domain, strict TypeScript, lint 36 warnings/0 errors, production build and production dependency audit 0 vulnerabilities.
+- Test site deployed: https://taylan789.github.io/MobilyaCAD/. Full dependency installation audit still reported 4 moderate findings; production-only audit reported 0 vulnerabilities.
+- Next: INT-003 UI-owned JSON v2 editor save/open integration; DOM-153 remains dependent on it.
+
 ## 25 Kasım 2026 07:18 TRT — DOM-159 VERIFIED
 
 - Base `dev/github-work` HEAD: `f3d38be0c385b631031db81ecf05429aa1833330`. Code/test commit: [`585a4d4a`](https://github.com/Taylan789/MobilyaCAD/commit/585a4d4a01c4e097ca63a06bedcd86be58c4da49).

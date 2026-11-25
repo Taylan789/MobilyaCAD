@@ -774,7 +774,7 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 
 | ID | Sahip | Durum / kabul kriteri | Bağımlılık |
 |---|---|---|---|
-| DOM-161 | Ürün Geliştirme | IN PROGRESS — saved JSON v2 roll inputs feed quote snapshots only in explicit roll mode; Part/price provenance and fail-closed cases are tested | DOM-160 |
+| DOM-161 | Ürün Geliştirme | VERIFIED — [commit 279067c7](https://github.com/Taylan789/MobilyaCAD/commit/279067c73135e19e36392be76f0fb2ca75e206cc); CI #45563745096, QA #45563745095, Pages #45563745097 successful; 277 frontend + 754 domain tests; exact-SHA test site deployed | DOM-160 |
 | INT-003 | Arayüz Tasarımı | OPEN DRAFT [PR #206](https://github.com/Taylan789/MobilyaCAD/pull/206) — editor startup/new/save/open must retain v2 envelope and unknown metadata before merge | DOM-151/DOM-152 domain contract |
 | DOM-153 | Ürün Geliştirme | PLANNED after INT-003 — append → save → reopen → append preserves revision chain and immutable pricing snapshots | INT-003 |
 | INT-001 | Arayüz + Ürün | READY — connect canonical production report to editor and block unsupported geometry export; exact-SHA round-trip/export-block tests | Production-domain contract |
@@ -1317,14 +1317,16 @@ QA-003 remains blocked until INT-001 and INT-002 evidence exists. The Integratio
 - [ ] Production: canonical Part tree, material/edge-band/hardware/waste, nesting/cost and export reconciliation.
 - [ ] UX: functional controls, clear navigation, accessibility, responsive states and recovery.
 - [ ] Performance: repeatable viewport/bundle/memory baseline with measured improvements.
-- [ ] Reliability: typed validation, backward-compatible project schemas, lossless import/export and exact-SHA CI/QA evidence; DOM-148 adversarial envelope checks and DOM-160 bounded/deep-immutable roll-pricing persistence are verified; DOM-161 adds persisted-v2-to-quote snapshot reconciliation with explicit-mode and fail-closed regressions (verification pending); the overall 10/10 gate remains unchecked.
+- [ ] Reliability: typed validation, backward-compatible project schemas, lossless import/export and exact-SHA CI/QA evidence; DOM-148 adversarial envelope coverage, DOM-160 bounded/deep-immutable roll-pricing persistence and DOM-161 persisted-v2-to-quote snapshot reconciliation all passed exact-SHA CI/QA/Pages (latest QA 277 frontend + 754 domain, strict TypeScript, lint 36 warnings/0 errors, production build, production audit 0 vulnerabilities); the overall 10/10 gate remains unchecked.
 - [ ] Physical production: operator and machine-standard verification remains separate from automated checks.
 
-## Current domain queue — 23 November 2026
-- DOM-133: VERIFIED — [commit 0944028f](https://github.com/Taylan789/MobilyaCAD/commit/0944028fdf51c3b3e4fce0f5395e74885029239a), exact-SHA CI/QA/Pages successful.
-- DOM-134: VERIFIED — [test commit cbbe098c](https://github.com/Taylan789/MobilyaCAD/commit/cbbe098cc7e86d50b9c08a2c24bf752e09c1a09b); CI/QA passed (191 frontend + 675 domain, strict TS/build, lint 34 warnings/0 errors, production audit 0 vulnerabilities); Pages [#45248747497](https://github.com/Taylan789/MobilyaCAD/actions/runs/45248747497) deployed https://taylan789.github.io/MobilyaCAD/.
-- DOM-135: VERIFIED — code/test [2db79730](https://github.com/Taylan789/MobilyaCAD/commit/2db79730c805ebcc12148ac25d9362fa63591776); CI [#45256565667](https://github.com/Taylan789/MobilyaCAD/actions/runs/45256565667), QA [#45256565549](https://github.com/Taylan789/MobilyaCAD/actions/runs/45256565549), Pages [#45256565818](https://github.com/Taylan789/MobilyaCAD/actions/runs/45256565818) all succeeded (194 frontend + 676 domain tests; strict TypeScript, build, lint 34 warnings/0 errors, audit 0 vulnerabilities); deployed https://taylan789.github.io/MobilyaCAD/
-- DOM-130: remains deferred until serialization/adapter ownership is available.
+## Current domain queue — 25 November 2026
+- DOM-160: VERIFIED — JSON v2 edge-band roll-pricing envelope now has descriptor-safe reads, bounded deep clone/freeze and fail-closed reflection handling; exact-SHA CI #45557877841, QA #45557878887 and Pages #45557877766 passed.
+- DOM-161: VERIFIED — saved v2 roll inputs feed immutable quote snapshots in explicit roll mode; code/test [279067c7](https://github.com/Taylan789/MobilyaCAD/commit/279067c73135e19e36392be76f0fb2ca75e206cc), CI [#45563745096](https://github.com/Taylan789/MobilyaCAD/actions/runs/45563745096), QA [#45563745095](https://github.com/Taylan789/MobilyaCAD/actions/runs/45563745095), Pages [#45563745097](https://github.com/Taylan789/MobilyaCAD/actions/runs/45563745097); 277 frontend + 754 domain tests passed.
+- INT-003: UI-owned draft [PR #206](https://github.com/Taylan789/MobilyaCAD/pull/206); editor startup/new/save/open wiring is intentionally deferred until current App.tsx owners finish. Do not merge yet.
+- DOM-153: Product Development, planned only after INT-003; append → save → reopen → append must preserve the revision chain and immutable snapshots.
+- INT-001: UI + Product READY; frontend must consume canonical production data and fail closed for unsupported geometry exports.
+- INT-002/PERF-001: Integration/Performance-owned; workflow specialist job is disabled and no isolated branch/PR is verified. QA-003 remains blocked until INT-001/INT-002 evidence.
 
 ### DOM-134 verified acceptance
 Three valid quote revisions reconcile revision-local duplicate groups, line-reference counts, additive project totals and project-wide unique Part/hardware identities. Paired cost/source row reordering leaves the audit summary stable; source history is immutable and duplicate-group output is deeply frozen.
@@ -1830,7 +1832,7 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 **Exact-SHA doğrulaması:** [domain implementation 757e959](https://github.com/Taylan789/MobilyaCAD/commit/757e959842a24c697ae1d5f92ce1b96f6a80359d) ve [Proxy test correction 357198f](https://github.com/Taylan789/MobilyaCAD/commit/357198fda15f71ae10aabf0a541174fcd05ebe19). CI [#45557877841](https://github.com/Taylan789/MobilyaCAD/actions/runs/45557877841), QA [#45557878887](https://github.com/Taylan789/MobilyaCAD/actions/runs/45557878887) ve Pages [#45557877766](https://github.com/Taylan789/MobilyaCAD/actions/runs/45557877766) başarılı. QA: 272/272 frontend + 752/752 domain; strict shared-domain TypeScript, 36 lint uyarısı/0 hata, production build ve production dependency audit 0 vulnerability. Exact-SHA test site: https://taylan789.github.io/MobilyaCAD/.
 
 
-## DOM-161 — Saved edge-band roll pricing into quote snapshots (IN PROGRESS)
+## DOM-161 — Saved edge-band roll pricing into quote snapshots (VERIFIED 25 November 2026)
 
 **User flow:** An operator saves explicit roll lengths, fixed allowances and roll prices in a JSON v2 project. When creating a quote, the caller selects roll pricing explicitly and passes the current project envelope; the quote engine uses the saved inputs without copying them into a second UI/domain payload.
 
@@ -1842,6 +1844,8 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 - Legacy v1, blocked/malformed extensions, duplicate explicit-vs-persisted sources and ambiguous modes return blocked with no snapshot.
 - Existing explicit roll-array callers and default length pricing remain backward compatible.
 - Missing saved roll inputs never fall back to a fabricated length, price or waste percentage.
+
+**Exact-SHA verification:** code/test commit [279067c7](https://github.com/Taylan789/MobilyaCAD/commit/279067c73135e19e36392be76f0fb2ca75e206cc); CI [#45563745096](https://github.com/Taylan789/MobilyaCAD/actions/runs/45563745096), QA [#45563745095](https://github.com/Taylan789/MobilyaCAD/actions/runs/45563745095), Pages [#45563745097](https://github.com/Taylan789/MobilyaCAD/actions/runs/45563745097) all succeeded. QA: 277/277 frontend + 754/754 domain tests, strict shared-domain TypeScript, lint 36 warnings/0 errors, production build and production dependency audit 0 vulnerabilities. Exact-SHA test site deployed: https://taylan789.github.io/MobilyaCAD/.
 
 **Limits / next dependency:** This is a domain API, not editor UI wiring. INT-003 PR #206 remains draft and defers App integration; after it is completed, the UI owner must pass the current envelope. No machine/CNC output or physical production claim is introduced. Next domain work after this slice: DOM-153 editor append → save → reopen → append contract, but only after INT-003.
 
