@@ -1616,3 +1616,13 @@ Kaynak: `domain/production/projectQuoteRevisionFile.ts`.
 - Legacy revizyonlarda bulunmayan `sourceIntegrityVersion` alanı import sırasında uydurulmaz. Yeni append edilen revizyonlar `sourceIntegrityVersion: 1` taşır. Material-basis schema v1, manifest-v2 ve basis bulunmayan snapshot'lar kendi açık kapsamlarıyla korunur.
 - DOM-176 regresyonu, beş karışık revizyonu standalone JSON üzerinden round-trip eder, parse sonrası iki revizyon ekler, son geçmişi yeniden round-trip eder ve source-map/source-integrity audit ile beş non-adjacent comparison sonucunu uzlaştırır.
 - Bu domain API'si tek başına frontend editörünün startup/new/save/open akışına bağlı değildir. UI-owned INT-003 envelope state entegrasyonu ve DOM-153 gerçek editör save/reopen doğrulaması ayrı kabul kapılarıdır.
+
+
+## DOM-177 — Mixed standalone history import into a JSON v2 project
+
+- The regression imports a seven-revision standalone history into an empty MobilyaCAD project-v2 envelope with the same stable projectId. The source contains manifest-v2, legacy material-cost-basis-v1 and no-basis snapshots; the first five revisions retain the absent legacy source-integrity marker, while the final two carry strict marker v1.
+- Import is atomic and non-mutating: the empty target remains unchanged, the imported project identity and seven-revision order/previousRevisionId chain are preserved, and the project envelope is deeply immutable.
+- JSON stringify/parse followed by project-history restore must reproduce the exact source-map and source-integrity audits. Expected source-map totals: 6 stock-sheet purchase revisions, 4 manifest-v2, 2 legacy, 8 manifest Part references / 5 unique manifest Parts, and 10 total stock-sheet Part references / 7 unique Parts. Source-integrity totals: 2 strict + 5 legacy.
+- Manifest availability remains explicit across five representative pairs: v2→v2 comparable; legacy→v2 from-unavailable; v2→no-basis to-unavailable; legacy→no-basis both-unavailable; v2→no-basis to-unavailable. Group, full-quote and source-map comparison APIs must agree with the audit coverage.
+- After restore, a strict no-basis eighth revision is appended, the project is stringified/parsed again, and the standalone history is re-exported and parsed without changing the seven imported revisions or their audit totals. The final integrity audit is 3 strict + 5 legacy.
+- This is domain regression coverage for the existing project-envelope API. It does not complete the UI-owned editor startup/new/save/open integration, JSON/CSV adapter work, CNC output, or physical workshop validation.

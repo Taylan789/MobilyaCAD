@@ -2081,3 +2081,24 @@ Sonraki adım: Exact-SHA CI/QA/Pages sonuçlarını doğrula; ardından DOM-170 
 3. INT-002/PERF-001 specialist-owned kalır; job disabled ve specialist branch yok. Adapter/benchmark dosyalarına dokunma.
 4. QA-003, INT-001 ve INT-002 entegrasyon kanıtı gelene kadar blocked.
 5. Viewport p95/memory NOT MEASURED; CNC/makine/atölye doğrulaması insan doğrulamasıdır.
+
+
+## 26 Kasım 2026 02:16 TRT — DOM-177 implementation submitted
+
+**Kullanıcı akışı:** Atölye, yedi revizyonlu karışık teklif geçmişini standalone JSON dosyasından boş bir JSON v2 projesine aktarır; projeyi JSON olarak kaydedip yeniden açar, yeni revizyon ekler ve geçmişi tekrar dışa aktarır.
+
+**Kabul kriterleri:** projectId ve yedi revizyonun sırası/previousRevisionId zinciri korunur; ilk beş legacy sourceIntegrityVersion alanı yokluğu korunur, iki yeni kayıt strict marker v1 taşır; v2 manifest, legacy material-basis v1 ve no-basis kapsamları birbirine dönüştürülmez; target/source input mutasyona uğramaz; source-map ve source-integrity audit toplamları restore öncesi/sonrası eşleşir; grup/tam teklif/kaynak haritası karşılaştırmaları beş temsilî çiftte aynı manifest availability sonucunu verir. Restore sonrasında sekizinci strict no-basis revizyon eklenir ve standalone JSON tekrar parse edilerek doğrulanır.
+
+**Değişen dosyalar:** domain/production/projectQuoteRevisionProjectFile.test.mjs, docs/production-domain-contract.md, AI_COORDINATION.md ve PRODUCT_ROADMAP.md. AI_PROGRESS doğrulama sonrası commit SHA/Actions kanıtıyla güncellenecek.
+
+**Durum:** Kod/test dilimi commit ediliyor; exact-SHA CI, QA, production build ve Pages sonucu bekleniyor. Actions kanıtı gelmeden başarılı/verified kabul edilmeyecek.
+
+**10/10 kalite checklist etkisi:** Güvenilirlik alanında mixed-history import → project-v2 restore → append → standalone re-export zinciri için otomatik kapsam eklendi. Bu, tüm ürünün 10/10 olduğu anlamına gelmez. UI editor save/open entegrasyonu, adapter round-trip, viewport p95/bellek ölçümü ve fiziksel CNC/atölye doğrulaması hâlâ ayrı açık kapılardır.
+
+### Sıradaki 3–5 görev
+
+1. DOM-178 — project-v2 envelope içindeki bilinmeyen metadata ve own __proto__ JSON alanlarını standalone history import → stringify/parse → restore boyunca koru; accessor ve kaynak sınırı ihlallerini atomic blocked/null ile doğrula.
+2. UI-owned INT-003 PR #206 ayrı sahibinde kalır; editor startup/new/save/open envelope entegrasyonu ve exact-SHA frontend QA beklenir.
+3. DOM-153 — yalnızca INT-003 editör entegrasyonu tamamlandıktan sonra gerçek append → save → reopen → append akışını doğrula.
+4. INT-002/PERF-001 adapter, benchmark ve viewport p95/bellek işleri Integration/Performance sahibinde kalır; bu job şu anda disabled ve specialist branch bulunamadı.
+5. QA-003, INT-001/INT-002 kanıtı gelene kadar blocked; fiziksel CNC/makine doğrulaması insan doğrulamasıdır.
