@@ -76,6 +76,7 @@ import "./styles/workbench.css";
 import "./styles/workspace-viewport-fit.css";
 import "./styles/ui-inspector-layout-001.css";
 import "./styles/cad-graphite-workspace-001.css";
+import "./styles/ui-workspace-panel-toggle-labels-001.css";
 import "./styles/ui-production-dock-empty-state-001.css";
 import "./styles/cad-production-dock-collapse-001.css";
 import "./styles/ui-workspace-vertical-rhythm-001.css";

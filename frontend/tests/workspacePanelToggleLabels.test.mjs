@@ -4,7 +4,7 @@ import test from "node:test";
 
 const app = readFileSync(new URL("../src/App.tsx", import.meta.url), "utf8");
 const styles = readFileSync(
-  new URL("../src/styles/cad-graphite-workspace-001.css", import.meta.url),
+  new URL("../src/styles/ui-workspace-panel-toggle-labels-001.css", import.meta.url),
   "utf8"
 );
 
