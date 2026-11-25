@@ -1519,3 +1519,8 @@ Kaynaklar: `domain/production/projectEdgeBandingRollPlan.ts`, `projectEdgeBandin
 - Rulo ölçüsü 0.1 mm hassasiyetini, açık kullanıcı ek payını ve pozitif uzunluğu korur. Fiyat yalnızca kullanıcının sağladığı güvenli minor-unit tutarı ve üç büyük harfli para birimi koduyla hesaplanır.
 - Geçersiz nested girdi kısmi teklif, rulo planı veya maliyet toplamı üretmez. Bu doğrulama fire yüzdesi, fiyat, rulo standardı, CNC koordinatı veya fiziksel üretim uygunluğu tahmin etmez.
 - JSON v2 proje zarfındaki kayıtlı rulo uzantısı kendi descriptor-safe okuyucusunu kullanmaya devam eder; normal ve null-prototype JSON kayıtları geriye uyumludur.
+
+
+## Public quote source input boundary (DOM-166)
+
+`createProjectQuotePricingSnapshot` copies `productionReport`, `consumptionPriceTable`, `workItems` and `tariffTable` before passing them to quote calculators. The four sources share a bounded JSON-copy budget: maximum depth 64, 250,000 visited nodes and 16 MiB serialized UTF-8. Only finite JSON-like primitives, plain/null-prototype records with own enumerable data properties, and dense standard arrays are accepted. Accessors, inherited-only values, symbols, custom prototypes, sparse/extended arrays, cycles and Proxy reflection failures block the entire quote before any partial monetary summary or snapshot is exposed. The downstream domain validators remain responsible for business rules, units, currencies, price/tariff matching and catalog semantics; this boundary does not infer prices or machine standards.

@@ -813,3 +813,125 @@ test("quote snapshot blocks nested adjustment accessors on both quote paths with
   }
   assert.equal(getterCalls, 0);
 });
+
+
+test("quote snapshot copies every public pricing source before nested getters can run", () => {
+  const productionReport = structuredClone(createReport());
+  const consumptionPriceTable = structuredClone(consumptionPrices);
+  const workItemsInput = structuredClone(workItems);
+  const tariffTable = structuredClone(tariffs);
+  let getterCalls = 0;
+
+  const cases = [
+    {
+      key: "productionReport",
+      value: productionReport,
+      target: productionReport.result.parts[0],
+      property: "quantity"
+    },
+    {
+      key: "consumptionPriceTable",
+      value: consumptionPriceTable,
+      target: consumptionPriceTable[0],
+      property: "unitPriceMinor"
+    },
+    {
+      key: "workItems",
+      value: workItemsInput,
+      target: workItemsInput[0],
+      property: "duration"
+    },
+    {
+      key: "tariffTable",
+      value: tariffTable,
+      target: tariffTable[0],
+      property: "unitPriceMinor"
+    }
+  ];
+
+  for (const source of cases) {
+    assert.ok(source.target, source.key + " fixture target must exist");
+    Object.defineProperty(source.target, source.property, {
+      enumerable: true,
+      configurable: true,
+      get() {
+        getterCalls += 1;
+        return 1;
+      }
+    });
+
+    const result = createProjectQuotePricingSnapshot(createInput({
+      [source.key]: source.value
+    }));
+    assert.equal(result.status, "blocked", source.key);
+    assert.equal(result.quoteSummary, null, source.key);
+    assert.equal(result.snapshot, null, source.key);
+  }
+
+  assert.equal(getterCalls, 0);
+});
+
+test("quote snapshot blocks proxy reflection failures in each public source", () => {
+  const sources = [
+    ["productionReport", createReport()],
+    ["consumptionPriceTable", structuredClone(consumptionPrices)],
+    ["workItems", structuredClone(workItems)],
+    ["tariffTable", structuredClone(tariffs)]
+  ];
+
+  for (const [key, value] of sources) {
+    const proxy = new Proxy(value, {
+      getPrototypeOf() {
+        throw new Error("quote source prototype reflection failed");
+      }
+    });
+    let result;
+    assert.doesNotThrow(() => {
+      result = createProjectQuotePricingSnapshot(createInput({ [key]: proxy }));
+    }, key);
+    assert.equal(result.status, "blocked", key);
+    assert.equal(result.quoteSummary, null, key);
+    assert.equal(result.snapshot, null, key);
+  }
+});
+
+test("quote snapshot does not read inherited price fields from public source rows", () => {
+  const price = { ...consumptionPrices[0] };
+  delete price.unitPriceMinor;
+  let getterCalls = 0;
+  const original = Object.getOwnPropertyDescriptor(Object.prototype, "unitPriceMinor");
+  assert.equal(original, undefined);
+
+  try {
+    Object.defineProperty(Object.prototype, "unitPriceMinor", {
+      configurable: true,
+      get() {
+        getterCalls += 1;
+        return 1250;
+      }
+    });
+    const result = createProjectQuotePricingSnapshot(createInput({
+      consumptionPriceTable: [price]
+    }));
+    assert.equal(getterCalls, 0);
+    assert.equal(result.status, "blocked");
+    assert.equal(result.quoteSummary, null);
+    assert.equal(result.snapshot, null);
+  } finally {
+    if (original) Object.defineProperty(Object.prototype, "unitPriceMinor", original);
+    else Reflect.deleteProperty(Object.prototype, "unitPriceMinor");
+  }
+});
+
+test("quote source boundary enforces the shared nested-depth budget before pricing", () => {
+  const productionReport = createReport();
+  let nested = "bounded";
+  for (let index = 0; index < 64; index += 1) nested = { child: nested };
+  productionReport.metadata = nested;
+
+  const result = createProjectQuotePricingSnapshot(createInput({ productionReport }));
+  assert.equal(result.status, "blocked");
+  assert.equal(result.quoteSummary, null);
+  assert.equal(result.snapshot, null);
+  assert.match(result.diagnostics[0], /derinlik sınırını/);
+});

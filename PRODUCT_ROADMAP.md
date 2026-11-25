@@ -1939,3 +1939,19 @@ The first implementation SHA was not published after QA found one inherited-gett
 3. INT-003 — UI sahibinin PR #206 JSON v2 editör save/open entegrasyonu; domain tarafı frontend dosyalarına dokunmaz ve PR'ı merge etmez.
 4. DOM-153 — append → save → reopen → append quote revision history sözleşmesi; yalnızca INT-003 entegrasyonu tamamlandıktan sonra.
 5. CAD/üretim kalite kapıları — gerçek viewport p95/bellek baseline'ı ve CNC fixture/postprocessor gereksinimlerini ayrı sahiplik ve makine standardı doğrulamasıyla planla.
+
+
+## 25 Kasım 2026 15:09 TRT — DOM-166 (implementation submitted; exact-SHA verification pending)
+
+**Kullanıcı akışı:** Teklif snapshot API'sine üretim raporu, tüketim fiyat tablosu, işçilik satırları ve tarife tablosu gelir. Bu girdiler herhangi bir hesaplayıcı alan okumadan önce tek bir toplam kaynak bütçesiyle güvenli JSON kopyasına alınır.
+
+**Kabul kriterleri**
+- Dört kaynağın içindeki own getter'lar hiç çalışmaz; inherited-only fiyat alanı fiyat olarak kabul edilmez.
+- Her kaynaktaki Proxy reflection hatası public API dışına sızmaz; sonuç blocked, quoteSummary null ve snapshot null olur.
+- Kaynaklar toplamda en fazla 64 iç içe nesne/dizi seviyesi, 250.000 ziyaret edilmiş düğüm ve 16 MiB UTF-8 JSON boyutu kullanır.
+- Geçerli JSON v1 üretim raporu, fiyat satırları, işçilik süreleri ve tarife eşleşmesi mevcut para/ölçü/yuvarlama davranışını korur.
+- JSON v1/v2 proje dosyası şeması, frontend API'si, CNC/postprocessor veya fiyat varsayımları değiştirilmez.
+
+**Durum:** Domain kaynak ve regresyon testleri dev/github-work için tek commit olarak gönderiliyor; CI, QA ve Pages exact-SHA sonuçları bu kayıt anında henüz görülmedi. Test sitesi bu dilim için henüz güncellendi olarak işaretlenmez.
+
+**Sonraki adım:** Exact-SHA CI + QA + production build + Pages sonucunu doğrula; ardından DOM-167 saved/direct roll quote parity testlerine geç. UI-owned INT-003 PR #206 ve adapter/performance-owned PERF-001 / INT-002 kapsamına müdahale etme.

@@ -235,53 +235,60 @@ function deepFreeze<T>(value: T): DeepReadonly<T> {
 }
 
 
-const stockSheetReportMaxDepth = 64;
-const stockSheetReportMaxNodes = 250000;
-const stockSheetReportMaxBytes = 16 * 1024 * 1024;
+const boundedQuoteInputMaxDepth = 64;
+const boundedQuoteInputMaxNodes = 250000;
+const boundedQuoteInputMaxBytes = 16 * 1024 * 1024;
+
+type BoundedQuoteInputBudget = {
+  visitedNodes: number;
+  stringCodeUnits: number;
+};
 
 /**
- * Copies an untrusted stock-sheet report before any downstream validator reads it.
- * Only JSON-like data is accepted; accessors, custom prototypes, sparse arrays,
- * cycles, oversized payloads and reflection failures fail closed.
+ * Copies untrusted quote source data before downstream calculators inspect it.
+ * Only JSON-like values, plain/null-prototype records and dense standard arrays
+ * are accepted. Accessors, custom prototypes, cycles and reflection failures fail closed.
  */
-function copyBoundedStockSheetReport(value: unknown): unknown {
+function copyBoundedJsonValue(
+  value: unknown,
+  label: string,
+  budget: BoundedQuoteInputBudget = { visitedNodes: 0, stringCodeUnits: 0 }
+): unknown {
   const ancestors = new WeakSet<object>();
-  let visitedNodes = 0;
-  let stringCodeUnits = 0;
 
   function copy(current: unknown, depth: number): unknown {
-    visitedNodes += 1;
-    if (visitedNodes > stockSheetReportMaxNodes) {
-      throw new Error("Levha satın alma raporu düğüm sayısı sınırını aşıyor.");
+    budget.visitedNodes += 1;
+    if (budget.visitedNodes > boundedQuoteInputMaxNodes) {
+      throw new Error(label + " düğüm sayısı sınırını aşıyor.");
     }
 
     if (current === null || current === undefined || typeof current === "boolean") return current;
     if (typeof current === "string") {
-      stringCodeUnits += current.length;
-      if (stringCodeUnits > stockSheetReportMaxBytes) {
-        throw new Error("Levha satın alma raporu metin boyutu sınırını aşıyor.");
+      budget.stringCodeUnits += current.length;
+      if (budget.stringCodeUnits > boundedQuoteInputMaxBytes) {
+        throw new Error(label + " metin boyutu sınırını aşıyor.");
       }
       return current;
     }
     if (typeof current === "number") {
-      if (!Number.isFinite(current)) throw new Error("Levha satın alma raporu sonlu olmayan sayı içeremez.");
+      if (!Number.isFinite(current)) throw new Error(label + " sonlu olmayan sayı içeremez.");
       return current;
     }
     if (typeof current !== "object") {
-      throw new Error("Levha satın alma raporu yalnızca JSON uyumlu veri içerebilir.");
+      throw new Error(label + " yalnızca JSON uyumlu veri içerebilir.");
     }
-    if (depth > stockSheetReportMaxDepth) {
-      throw new Error("Levha satın alma raporu iç içe nesne/dizi derinliği sınırını aşıyor.");
+    if (depth > boundedQuoteInputMaxDepth) {
+      throw new Error(label + " iç içe nesne/dizi derinliği sınırını aşıyor.");
     }
     if (ancestors.has(current)) {
-      throw new Error("Levha satın alma raporu döngüsel referans içeremez.");
+      throw new Error(label + " döngüsel referans içeremez.");
     }
 
     ancestors.add(current);
     try {
       if (Array.isArray(current)) {
         if (Object.getPrototypeOf(current) !== Array.prototype) {
-          throw new Error("Levha satın alma raporu dizileri özel prototype içeremez.");
+          throw new Error(label + " dizileri özel prototype içeremez.");
         }
         const lengthDescriptor = Object.getOwnPropertyDescriptor(current, "length");
         const arrayLength = lengthDescriptor && "value" in lengthDescriptor
@@ -291,19 +298,19 @@ function copyBoundedStockSheetReport(value: unknown): unknown {
           typeof arrayLength !== "number" ||
           !Number.isSafeInteger(arrayLength) ||
           arrayLength < 0 ||
-          arrayLength > stockSheetReportMaxNodes
+          arrayLength > boundedQuoteInputMaxNodes
         ) {
-          throw new Error("Levha satın alma raporu dizi uzunluğu geçersiz veya sınır dışı.");
+          throw new Error(label + " dizi uzunluğu geçersiz veya sınır dışı.");
         }
 
         const keys = Reflect.ownKeys(current);
         if (keys.length !== arrayLength + 1) {
-          throw new Error("Levha satın alma raporu dizileri yoğun ve ek özelliksiz olmalıdır.");
+          throw new Error(label + " dizileri yoğun ve ek özelliksiz olmalıdır.");
         }
         for (const key of keys) {
           if (key === "length") continue;
           if (typeof key !== "string" || !/^(0|[1-9]\d*)$/.test(key) || Number(key) >= arrayLength) {
-            throw new Error("Levha satın alma raporu dizileri yalnızca sıralı indeks içerebilir.");
+            throw new Error(label + " dizileri yalnızca sıralı indeks içerebilir.");
           }
         }
 
@@ -311,7 +318,7 @@ function copyBoundedStockSheetReport(value: unknown): unknown {
         for (let index = 0; index < arrayLength; index += 1) {
           const descriptor = Object.getOwnPropertyDescriptor(current, String(index));
           if (!descriptor || !descriptor.enumerable || !("value" in descriptor)) {
-            throw new Error("Levha satın alma raporu dizileri own enumerable data property içermelidir.");
+            throw new Error(label + " dizileri own enumerable data property içermelidir.");
           }
           copied[index] = copy(descriptor.value, depth + 1);
         }
@@ -320,21 +327,21 @@ function copyBoundedStockSheetReport(value: unknown): unknown {
 
       const prototype = Object.getPrototypeOf(current);
       if (prototype !== Object.prototype && prototype !== null) {
-        throw new Error("Levha satın alma raporu düz JSON nesnelerinden oluşmalıdır.");
+        throw new Error(label + " düz JSON nesnelerinden oluşmalıdır.");
       }
 
       const copied = Object.create(null) as Record<string, unknown>;
       for (const key of Reflect.ownKeys(current)) {
         if (typeof key !== "string") {
-          throw new Error("Levha satın alma raporu sembol anahtarı içeremez.");
+          throw new Error(label + " sembol anahtarı içeremez.");
         }
-        stringCodeUnits += key.length;
-        if (stringCodeUnits > stockSheetReportMaxBytes) {
-          throw new Error("Levha satın alma raporu metin boyutu sınırını aşıyor.");
+        budget.stringCodeUnits += key.length;
+        if (budget.stringCodeUnits > boundedQuoteInputMaxBytes) {
+          throw new Error(label + " metin boyutu sınırını aşıyor.");
         }
         const descriptor = Object.getOwnPropertyDescriptor(current, key);
         if (!descriptor || !descriptor.enumerable || !("value" in descriptor)) {
-          throw new Error("Levha satın alma raporu own enumerable data property içermelidir.");
+          throw new Error(label + " own enumerable data property içermelidir.");
         }
         Object.defineProperty(copied, key, {
           value: copy(descriptor.value, depth + 1),
@@ -349,15 +356,47 @@ function copyBoundedStockSheetReport(value: unknown): unknown {
     }
   }
 
-  const copied = copy(value, 1);
+  return copy(value, 1);
+}
+
+function assertBoundedQuoteInputBytes(value: unknown, label: string): void {
+  const serialized = JSON.stringify(value);
+  if (
+    typeof serialized !== "string" ||
+    new TextEncoder().encode(serialized).byteLength > boundedQuoteInputMaxBytes
+  ) {
+    throw new Error(label + " UTF-8 boyut sınırını aşıyor.");
+  }
+}
+
+function copyBoundedStockSheetReport(value: unknown): unknown {
+  const label = "Levha satın alma raporu";
+  const copied = copyBoundedJsonValue(value, label);
   if (!isRecord(copied)) {
-    throw new Error("Levha satın alma raporu düz JSON nesnesi olmalıdır.");
+    throw new Error(label + " düz JSON nesnesi olmalıdır.");
   }
-  const serialized = JSON.stringify(copied);
-  if (typeof serialized !== "string" || new TextEncoder().encode(serialized).byteLength > stockSheetReportMaxBytes) {
-    throw new Error("Levha satın alma raporu UTF-8 boyut sınırını aşıyor.");
-  }
+  assertBoundedQuoteInputBytes(copied, label);
   return copied;
+}
+
+const quoteSourceFields = [
+  { key: "productionReport", label: "Teklif üretim raporu" },
+  { key: "consumptionPriceTable", label: "Teklif tüketim fiyat tablosu" },
+  { key: "workItems", label: "Teklif işçilik/operasyon satırları" },
+  { key: "tariffTable", label: "Teklif tarife tablosu" }
+] as const;
+
+/** Shares one resource budget across all four public quote source inputs. */
+function copyBoundedQuoteSources(input: Record<string, unknown>): void {
+  const budget: BoundedQuoteInputBudget = { visitedNodes: 0, stringCodeUnits: 0 };
+  const copied = Object.create(null) as Record<string, unknown>;
+  for (const source of quoteSourceFields) {
+    copied[source.key] = copyBoundedJsonValue(input[source.key], source.label, budget);
+  }
+  assertBoundedQuoteInputBytes(copied, "Teklif kaynak girdileri");
+  for (const source of quoteSourceFields) {
+    input[source.key] = copied[source.key];
+  }
 }
 
 function createStockSheetGroupSnapshots(value: unknown): ProjectQuoteStockSheetGroupSnapshot[] {
@@ -556,6 +595,7 @@ export function createProjectQuotePricingSnapshot(
           "Teklif malzeme maliyet temeli",
           materialCostBasisInputKeys
         );
+    copyBoundedQuoteSources(input);
     if (materialCostBasisInput?.basis === "stock-sheet-purchase" &&
         Object.prototype.hasOwnProperty.call(materialCostBasisInput, "stockSheetPurchaseReport")) {
       materialCostBasisInput.stockSheetPurchaseReport = copyBoundedStockSheetReport(
