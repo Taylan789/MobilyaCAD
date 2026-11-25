@@ -388,3 +388,38 @@
     cursor: not-allowed !important;
   }
 }
+
+/* UI-VIEWPORT-TOOLBAR-HIT-AREA-001 — give frequent desktop CAD controls a steadier pointer target. */
+@media (min-width: 761px) {
+  .studio-transform-tools button {
+    min-height: 32px !important;
+    height: 32px !important;
+  }
+
+  .studio-panel-tools button.studio-panel-toggle {
+    min-width: 32px !important;
+    width: 32px !important;
+    min-height: 32px !important;
+    height: 32px !important;
+  }
+}
+
+@media (min-width: 761px) and (max-width: 1120px) {
+  .studio-transform-tools button {
+    min-width: 32px !important;
+    width: 32px !important;
+  }
+}
+
+/* Keep the existing compact touch layout below the desktop breakpoint. */
+@media (max-width: 760px) {
+  .studio-transform-tools button {
+    min-height: 28px !important;
+    height: 28px !important;
+  }
+
+  .studio-panel-tools button.studio-panel-toggle {
+    min-height: 28px !important;
+    height: 28px !important;
+  }
+}
