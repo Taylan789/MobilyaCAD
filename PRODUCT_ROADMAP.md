@@ -1986,7 +1986,9 @@ The first implementation SHA was not published after QA found one inherited-gett
 
 **Dikey dilim:** `projectQuotePricingSnapshot.test.mjs` içinde doğrudan rulo girdisi ile JSON v2 kayıtlı rulo uzantısı, gerçek `stock-sheet-purchase` raporu ile birlikte karşılaştırılır. Tam snapshot eşitliğine ek olarak stock group Part/cost reconciliation ve edge-band roll line provenance bağımsız assert edilir.
 
-**Durum:** Implementation/test commit'i oluşturuluyor; exact-SHA CI, QA ve Pages doğrulaması henüz bekleniyor. UI-owned INT-003 PR #206 draft kalır; fiziksel rulo/atölye/CNC uygunluğu bu otomatik testin kapsamı değildir.
+**İlk exact-SHA sonucu:** [7fbaa51](https://github.com/Taylan789/MobilyaCAD/commit/7fbaa51ff24cb784752428f3afac519196053279) için CI [#45631251152](https://github.com/Taylan789/MobilyaCAD/actions/runs/45631251152) başarılı; QA [#45631251161](https://github.com/Taylan789/MobilyaCAD/actions/runs/45631251161) 783 domain testinin 1'ini yeni fixture'daki eksik `consumptionPriceList` metadata nedeniyle başarısız buldu. Pages [#45631251069](https://github.com/Taylan789/MobilyaCAD/actions/runs/45631251069) build'i tamamladı ancak exact-SHA QA kapısı başarısız olduğu için deploy adımı atlandı; bu SHA yayınlanmadı.
+
+**Düzeltme:** Rulo satırı mevcut quote sözleşmesinde `production-consumption` kaynağı olarak sınıflandığı için tarihli fiyat listesi kimlik/sürüm metadata'sı zorunludur. Test artık mevcut `consumptionPriceList` fixture'ını kullanır; yeni fiyat veya katalog varsayımı eklemez. Düzeltme commit'i için exact-SHA CI/QA/Pages sonucu bekleniyor. UI-owned INT-003 PR #206 draft kalır; fiziksel rulo/atölye/CNC uygunluğu bu otomatik testin kapsamı değildir.
 
 **Sıradaki görevler**
 1. DOM-169 — stock-sheet + roll maliyetlerine explicit labor/operation tarifeleri ve quote adjustment satırlarını ekleyerek kategori/genel toplamların tekil uzlaşmasını doğrula.

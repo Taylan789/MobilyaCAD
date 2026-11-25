@@ -482,7 +482,7 @@ test("saved JSON v2 and direct roll inputs preserve stock-sheet purchase basis a
     consumptionPriceTable: [],
     workItems: [],
     tariffTable: [],
-    consumptionPriceList: null,
+    consumptionPriceList,
     laborOperationTariffList: null,
     edgeBandingPricingMode: "roll",
     materialCostBasis: { basis: "stock-sheet-purchase", stockSheetPurchaseReport }

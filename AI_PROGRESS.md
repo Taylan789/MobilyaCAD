@@ -1175,3 +1175,13 @@
 - **Branch head after evidence update:** 0c9bc0d2c77c644a275d5e9b5ed475561f502a22; implementation/test commit 45121ab9c96f786d51c65af7976e3ae24cb1f14c.
 - **Next:** DOM-168 — extend parity to the stock-sheet-purchase material-cost-basis path and reconcile stock-group totals with roll-line Part/price provenance.
 
+
+
+## 25 Kasım 2026 17:07 TRT — DOM-168 ilk doğrulama bulgusu ve fixture düzeltmesi
+
+- İlk implementation/test commit: [7fbaa51ff24cb784752428f3afac519196053279](https://github.com/Taylan789/MobilyaCAD/commit/7fbaa51ff24cb784752428f3afac519196053279).
+- Exact-SHA CI [#45631251152](https://github.com/Taylan789/MobilyaCAD/actions/runs/45631251152) başarılı. QA [#45631251161](https://github.com/Taylan789/MobilyaCAD/actions/runs/45631251161) domain testlerini 783 çalıştırdı: 782 geçti, yeni DOM-168 fixture'ı eksik tarihli `consumptionPriceList` kimlik/sürüm metadata'sı nedeniyle başarısız oldu.
+- Pages [#45631251069](https://github.com/Taylan789/MobilyaCAD/actions/runs/45631251069) build başarılıydı; exact-SHA QA gate başarısız olduğu için deploy atlandı. Başarısız SHA test sitesine yayınlanmadı.
+- Kök neden: roll satırı mevcut API'de `production-consumption` kaynak türünde olduğundan snapshot, açık fiyat girdilerinden bağımsız olarak tarihli consumption price-list metadata'sı ister. Fixture mevcut `consumptionPriceList` örneğini kullanacak şekilde düzeltildi; fiyat, kur veya rulo standardı uydurulmadı.
+- Düzeltme commit SHA ve exact-SHA Actions sonuçları sonraki doğrulama kaydında eklenecek. Frontend, adapter/performance-owned dosyalar, CNC/makine, secrets/settings ve `main` değiştirilmedi.
+- Next: verify the corrected DOM-168 exact-SHA CI, QA, production build and Pages deployment; then DOM-169 — combine stock-sheet + roll material costs with explicit labor/operation and quote-adjustment lines.
