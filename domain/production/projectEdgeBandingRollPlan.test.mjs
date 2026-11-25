@@ -130,3 +130,23 @@ test("roll specification arrays and rows reject accessors, inherited fields, spa
   assert.equal(proxyResult.status, "blocked");
   assert.match(proxyResult.diagnostics.join(" "), /ownKeys trap failed/);
 });
+
+
+test("empty consumption checks normalized roll specs without reading a Proxy array length", () => {
+  let lengthReads = 0;
+  const specs = new Proxy([
+    { edgeBandingId: "pvc-18", rollLengthMm: 1000 }
+  ], {
+    get(target, key, receiver) {
+      if (key === "length") {
+        lengthReads += 1;
+        throw new Error("raw roll spec length read");
+      }
+      return Reflect.get(target, key, receiver);
+    }
+  });
+
+  const result = calculateProjectEdgeBandingRollPlan([], specs);
+  assert.equal(result.status, "blocked");
+  assert.equal(lengthReads, 0);
+});

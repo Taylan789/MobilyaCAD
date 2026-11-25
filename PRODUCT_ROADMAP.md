@@ -1927,7 +1927,11 @@ The first implementation SHA was not published after QA found one inherited-gett
 
 **Ölçülen 10/10 kalite kapıları — mevcut kanıt:** En son doğrulanmış taban SHA `9940200` için CI #45601036021 ve QA #45601036179 başarılı; QA 290 frontend + 773 domain testi, strict shared-domain TypeScript, lint 36 uyarı / 0 hata, production build ve production-only audit 0 bulgu. Vite ana bundle büyüklüğü ve viewport p95/bellek için yeni ölçüm yok; bu kapılar **NOT MEASURED**. Genel 10/10 durumu işaretlenmez. CNC/makine koordinatı ve fiziksel üretim doğrulaması operatör/atölye tarafından ayrıca yapılmalıdır.
 
-**Durum:** Kod/test teslimi hazır; exact-SHA CI/QA/Pages sonucu bekleniyor.
+**İlk exact-SHA doğrulaması:** [e77957c](https://github.com/Taylan789/MobilyaCAD/commit/e77957c2d5472a539f2f2a64c37be56d3744d1f2) için CI [#45602347319](https://github.com/Taylan789/MobilyaCAD/actions/runs/45602347319) başarılı; domain testleri 776/776 geçti. QA [#45602347365](https://github.com/Taylan789/MobilyaCAD/actions/runs/45602347365) strict TypeScript aşamasında TS18046 (`rollSpecs` unknown iken eski ham `.length` okuması) nedeniyle başarısız oldu; Pages [#45602347321](https://github.com/Taylan789/MobilyaCAD/actions/runs/45602347321) exact-SHA kapısında yayın yapmadan durdu. Bu SHA dağıtılmadı.
+
+**Düzeltme:** Boş tüketim dalı artık yalnızca descriptor-safe kopyalanmış `validatedSpecs.length` değerini kullanır; Proxy `get("length")` çağrısının sıfır olduğunu doğrulayan regresyon testi eklendi.
+
+**Durum:** Düzeltme commit'i oluşturuldu; exact-SHA CI/QA/Pages sonucu bekleniyor.
 
 **Sıradaki 3–5 küçük görev**
 1. DOM-166 — `productionReport`, tüketim fiyat tablosu, iş kalemleri ve tarife tablosunun public quote girişlerindeki nested descriptor sınırlarını audit et; yalnızca kanıtlanan açıkları testli düzelt.

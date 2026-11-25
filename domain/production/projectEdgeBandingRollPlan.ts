@@ -92,7 +92,7 @@ export function calculateProjectEdgeBandingRollPlan(
     );
     const groups = consumption as ProjectEdgeBandingConsumptionSummary[];
     if (groups.length === 0) {
-      if (rollSpecs.length !== 0) return blocked("Boş tüketim için kullanılmayan rulo tanımı verildi.");
+      if (validatedSpecs.length !== 0) return blocked("Boş tüketim için kullanılmayan rulo tanımı verildi.");
       return { status: "empty", plans: [], missingRollSpecs: [], diagnostics: [] };
     }
 
