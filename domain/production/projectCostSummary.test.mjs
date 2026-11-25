@@ -147,3 +147,60 @@ test("structured edge direction is preserved and limited to material lines", () 
   }
   assert.throws(() => calculateProjectCostSummary([line({ category: "labor", edgeDirection: "left" })]), /kenar yönü/);
 });
+test("cost-line accessors are rejected without invoking getters", () => {
+  const raw = line();
+  let getterCalls = 0;
+  Object.defineProperty(raw, "quantity", {
+    enumerable: true, configurable: true,
+    get() { getterCalls += 1; return 2.5; }
+  });
+  assert.throws(() => calculateProjectCostSummary([raw]), /own enumerable data property/);
+  assert.equal(getterCalls, 0);
+});
+
+test("inherited cost-line getters cannot supply missing fields", () => {
+  const raw = line();
+  delete raw.quantity;
+  let getterCalls = 0;
+  assert.equal(Object.getOwnPropertyDescriptor(Object.prototype, "quantity"), undefined);
+  try {
+    Object.defineProperty(Object.prototype, "quantity", {
+      configurable: true,
+      get() { getterCalls += 1; return 2.5; }
+    });
+    assert.throws(() => calculateProjectCostSummary([raw]), /miktarı/);
+    assert.equal(getterCalls, 0);
+  } finally {
+    Reflect.deleteProperty(Object.prototype, "quantity");
+  }
+});
+
+test("cost-line arrays reject sparse, extended and oversized inputs", () => {
+  const sparse = new Array(1);
+  assert.throws(() => calculateProjectCostSummary(sparse), /yoğun/);
+  const extended = [line()];
+  extended.extra = true;
+  assert.throws(() => calculateProjectCostSummary(extended), /sıralı indeks/);
+  assert.throws(() => calculateProjectCostSummary(new Array(10_001)), /10.000 satırlık/);
+});
+
+test("cost-line reflection failures become safe validation errors", () => {
+  const arrayProxy = new Proxy([line()], {
+    ownKeys() { throw new Error("cost array ownKeys failed"); }
+  });
+  assert.throws(() => calculateProjectCostSummary(arrayProxy), /güvenli biçimde incelenemedi/);
+  const lineProxy = new Proxy(line(), {
+    getOwnPropertyDescriptor(target, key) {
+      if (key === "quantity") throw new Error("cost line descriptor failed");
+      return Reflect.getOwnPropertyDescriptor(target, key);
+    }
+  });
+  assert.throws(() => calculateProjectCostSummary([lineProxy]), /güvenli biçimde incelenemedi/);
+});
+
+test("null-prototype cost-line records remain supported", () => {
+  const safeLine = Object.assign(Object.create(null), line());
+  const summary = calculateProjectCostSummary([safeLine]);
+  assert.equal(summary.status, "ready");
+  assert.equal(summary.grandTotalMinor, 3125);
+});

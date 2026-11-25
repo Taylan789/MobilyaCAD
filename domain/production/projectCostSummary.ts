@@ -64,8 +64,79 @@ const allowedLineKeys = new Set([
   "edgeDirection"
 ]);
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
+const maxCostLineCount = 10_000;
+
+function inspectCostInput<T>(read: () => T, label: string): T {
+  try {
+    return read();
+  } catch {
+    throw new Error(label + " güvenli biçimde incelenemedi.");
+  }
+}
+
+function copyCostLineRecord(value: unknown, index: number): Record<string, unknown> {
+  const label = "Maliyet kaleminin " + (index + 1) + ". satırı";
+  if (typeof value !== "object" || value === null) {
+    throw new Error(label + " geçerli bir nesne olmalıdır.");
+  }
+  if (inspectCostInput(() => Array.isArray(value), label)) {
+    throw new Error(label + " düz JSON nesnesi olmalıdır.");
+  }
+  const prototype = inspectCostInput(() => Object.getPrototypeOf(value), label);
+  if (prototype !== Object.prototype && prototype !== null) {
+    throw new Error(label + " düz JSON nesnesi olmalıdır.");
+  }
+
+  const copy = Object.create(null) as Record<string, unknown>;
+  const keys = inspectCostInput(() => Reflect.ownKeys(value), label);
+  for (const key of keys) {
+    if (typeof key !== "string") throw new Error(label + " sembol anahtarı içeremez.");
+    if (!allowedLineKeys.has(key)) throw new Error(label + " desteklenmeyen alan içeriyor: " + key + ".");
+    const descriptor = inspectCostInput(() => Object.getOwnPropertyDescriptor(value, key), label);
+    if (!descriptor || !descriptor.enumerable || !("value" in descriptor)) {
+      throw new Error(label + " own enumerable data property içermelidir.");
+    }
+    Object.defineProperty(copy, key, {
+      value: descriptor.value, enumerable: true, configurable: true, writable: true
+    });
+  }
+  return copy;
+}
+
+function copyCostLineInputs(value: unknown): Record<string, unknown>[] {
+  const label = "Proje maliyet kalemleri";
+  if (!inspectCostInput(() => Array.isArray(value), label)) {
+    throw new Error(label + " bir liste olmalıdır.");
+  }
+  const input = value as unknown[];
+  const prototype = inspectCostInput(() => Object.getPrototypeOf(input), label);
+  if (prototype !== Array.prototype) throw new Error(label + " standart bir liste olmalıdır.");
+
+  const lengthDescriptor = inspectCostInput(() => Object.getOwnPropertyDescriptor(input, "length"), label);
+  if (!lengthDescriptor || !("value" in lengthDescriptor) ||
+      typeof lengthDescriptor.value !== "number" || !Number.isSafeInteger(lengthDescriptor.value) ||
+      lengthDescriptor.value < 0 || lengthDescriptor.value > maxCostLineCount) {
+    throw new Error(label + " en fazla 10.000 satırlık güvenli bir liste olmalıdır.");
+  }
+  const length = lengthDescriptor.value;
+  const keys = inspectCostInput(() => Reflect.ownKeys(input), label);
+  if (keys.length !== length + 1) throw new Error(label + " yoğun ve ek özelliksiz olmalıdır.");
+  for (const key of keys) {
+    if (key === "length") continue;
+    if (typeof key !== "string" || !/^(0|[1-9]\d*)$/.test(key) || Number(key) >= length) {
+      throw new Error(label + " yalnızca sıralı indeks içerebilir.");
+    }
+  }
+
+  const copied: Record<string, unknown>[] = [];
+  for (let index = 0; index < length; index += 1) {
+    const descriptor = inspectCostInput(() => Object.getOwnPropertyDescriptor(input, String(index)), label);
+    if (!descriptor || !descriptor.enumerable || !("value" in descriptor)) {
+      throw new Error(label + " yoğun own enumerable data satırları içermelidir.");
+    }
+    copied.push(copyCostLineRecord(descriptor.value, index));
+  }
+  return copied;
 }
 
 function requireTrimmedText(value: unknown, label: string, maxLength: number): string {
@@ -168,10 +239,7 @@ function emptyCategoryTotals(): ProjectCostCategoryTotals {
  * currencies. Invalid input rejects the complete calculation.
  */
 export function calculateProjectCostSummary(value: unknown): ProjectCostSummary {
-  if (!Array.isArray(value)) {
-    throw new Error("Proje maliyet kalemleri bir liste olmalıdır.");
-  }
-
+  const validatedInputs = copyCostLineInputs(value);
   const lines: ProjectCostLine[] = [];
   const seenIds = new Set<string>();
   const categoryTotals = Object.fromEntries(
@@ -180,7 +248,7 @@ export function calculateProjectCostSummary(value: unknown): ProjectCostSummary 
   let grandTotal = 0n;
   let currencyCode: string | null = null;
 
-  for (const [index, rawLine] of value.entries()) {
+  for (const [index, rawLine] of validatedInputs.entries()) {
     const label = "Maliyet kaleminin " + (index + 1) + ". satırı";
     if (!isRecord(rawLine)) {
       throw new Error(label + " geçerli bir nesne olmalıdır.");

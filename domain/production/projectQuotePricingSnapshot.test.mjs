@@ -786,3 +786,30 @@ test("null-prototype quote snapshot request and catalog records remain supported
   assert.equal(result.snapshot?.consumptionPriceList?.catalogId, "workshop-materials");
 });
 
+test("quote snapshot blocks nested adjustment accessors on both quote paths without partial snapshots", () => {
+  const adjustment = {
+    id: "snapshot-safe-waste",
+    category: "waste",
+    description: "Kullanıcı girdili fire",
+    quantity: 1,
+    currencyCode: "TRY",
+    sourceReference: "snapshot-waste:v1"
+  };
+  let getterCalls = 0;
+  Object.defineProperty(adjustment, "unitPriceMinor", {
+    enumerable: true, configurable: true,
+    get() { getterCalls += 1; return 100; }
+  });
+
+  for (const materialCostBasis of [undefined, { basis: "net-consumption" }]) {
+    const result = createProjectQuotePricingSnapshot(createInput({
+      quoteAdjustments: [adjustment],
+      ...(materialCostBasis === undefined ? {} : { materialCostBasis })
+    }));
+    assert.equal(result.status, "blocked");
+    assert.equal(result.quoteSummary?.status, "blocked");
+    assert.equal(result.quoteSummary?.costSummary, null);
+    assert.equal(result.snapshot, null);
+  }
+  assert.equal(getterCalls, 0);
+});

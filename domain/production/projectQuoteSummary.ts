@@ -74,21 +74,64 @@ interface ResolvedQuoteOptions {
   edgeBandingRollPriceTable?: unknown;
   panelMaterialPricingMode: "included" | "excluded";
 }
+const quoteOptionKeys = new Set([
+  "edgeBandingPricingMode", "edgeBandingRollSpecs", "edgeBandingRollPriceTable", "panelMaterialPricingMode"
+]);
+
+function inspectQuoteOption<T>(read: () => T, label: string): T {
+  try { return read(); }
+  catch { throw new Error(label + " güvenli biçimde incelenemedi."); }
+}
+
+function copyQuoteOptions(value: unknown): Record<string, unknown> {
+  const label = "Teklif fiyatlama seçenekleri";
+  if (typeof value !== "object" || value === null ||
+      inspectQuoteOption(() => Array.isArray(value), label)) {
+    throw new Error(label + " geçerli bir nesne olmalıdır.");
+  }
+  const prototype = inspectQuoteOption(() => Object.getPrototypeOf(value), label);
+  if (prototype !== Object.prototype && prototype !== null) throw new Error(label + " düz JSON nesnesi olmalıdır.");
+
+  const copy = Object.create(null) as Record<string, unknown>;
+  const keys = inspectQuoteOption(() => Reflect.ownKeys(value), label);
+  for (const key of keys) {
+    if (typeof key !== "string") throw new Error(label + " sembol anahtarı içeremez.");
+    if (!quoteOptionKeys.has(key)) throw new Error(label + " desteklenmeyen alan içeriyor: " + key + ".");
+    const descriptor = inspectQuoteOption(() => Object.getOwnPropertyDescriptor(value, key), label);
+    if (!descriptor || !descriptor.enumerable || !("value" in descriptor)) {
+      throw new Error(label + " own enumerable data property içermelidir.");
+    }
+    Object.defineProperty(copy, key, {
+      value: descriptor.value, enumerable: true, configurable: true, writable: true
+    });
+  }
+  return copy;
+}
+
 function resolveQuoteOptions(value: unknown): ResolvedQuoteOptions {
   if (value === undefined) return { edgeBandingPricingMode: "length", panelMaterialPricingMode: "included" };
-  if (!isRecord(value)) throw new Error("Teklif fiyatlama seçenekleri geçerli bir nesne olmalıdır.");
-  const allowed = new Set(["edgeBandingPricingMode", "edgeBandingRollSpecs", "edgeBandingRollPriceTable", "panelMaterialPricingMode"]);
-  for (const key of Object.keys(value)) if (!allowed.has(key)) throw new Error("Teklif fiyatlama seçenekleri desteklenmeyen alan içeriyor: " + key + ".");
-  const mode = value.edgeBandingPricingMode ?? "length";
+  const options = copyQuoteOptions(value);
+  const mode = options.edgeBandingPricingMode === undefined || options.edgeBandingPricingMode === null
+    ? "length" : options.edgeBandingPricingMode;
   if (mode !== "length" && mode !== "roll") throw new Error("Kenar bandı fiyatlama modu length veya roll olmalıdır.");
-  const panelMaterialPricingMode = value.panelMaterialPricingMode ?? "included";
-  if (panelMaterialPricingMode !== "included" && panelMaterialPricingMode !== "excluded") throw new Error("Panel malzeme fiyatlama modu included veya excluded olmalıdır.");
+  const panelMaterialPricingMode = options.panelMaterialPricingMode === undefined || options.panelMaterialPricingMode === null
+    ? "included" : options.panelMaterialPricingMode;
+  if (panelMaterialPricingMode !== "included" && panelMaterialPricingMode !== "excluded") {
+    throw new Error("Panel malzeme fiyatlama modu included veya excluded olmalıdır.");
+  }
   if (mode === "length") {
-    if ("edgeBandingRollSpecs" in value || "edgeBandingRollPriceTable" in value) throw new Error("Rulo girdileri yalnızca roll fiyatlama modunda kullanılabilir.");
+    if (Object.prototype.hasOwnProperty.call(options, "edgeBandingRollSpecs") ||
+        Object.prototype.hasOwnProperty.call(options, "edgeBandingRollPriceTable")) {
+      throw new Error("Rulo girdileri yalnızca roll fiyatlama modunda kullanılabilir.");
+    }
     return { edgeBandingPricingMode: "length", panelMaterialPricingMode };
   }
-  if (!Array.isArray(value.edgeBandingRollSpecs) || !Array.isArray(value.edgeBandingRollPriceTable)) throw new Error("Roll modu açık rulo ölçüleri ve rulo fiyat tablosu listelerini gerektirir.");
-  return { edgeBandingPricingMode: "roll", edgeBandingRollSpecs: value.edgeBandingRollSpecs, edgeBandingRollPriceTable: value.edgeBandingRollPriceTable, panelMaterialPricingMode };
+  const rollSpecs = options.edgeBandingRollSpecs;
+  const rollPriceTable = options.edgeBandingRollPriceTable;
+  if (!inspectQuoteOption(() => Array.isArray(rollSpecs) && Array.isArray(rollPriceTable), "Rulo girdileri")) {
+    throw new Error("Roll modu açık rulo ölçüleri ve rulo fiyat tablosu listelerini gerektirir.");
+  }
+  return { edgeBandingPricingMode: "roll", edgeBandingRollSpecs: rollSpecs, edgeBandingRollPriceTable: rollPriceTable, panelMaterialPricingMode };
 }
 function hasCompleteHardwareSourceCoverage(consumption: ProjectPricedConsumptionSummary): boolean {
   if (consumption.status !== "ready") return true;
@@ -180,21 +223,15 @@ export function calculateProjectQuoteSummary(
   }
   let adjustmentSummary: ProjectCostSummary;
   try {
-    if (!Array.isArray(quoteAdjustments)) {
-      throw new Error("Teklif ek maliyetleri bir liste olmalıdır.");
-    }
-    for (const [index, rawLine] of quoteAdjustments.entries()) {
-      if (!isRecord(rawLine)) {
-        throw new Error("Teklif ek maliyetinin " + (index + 1) + ". satırı geçerli bir nesne olmalıdır.");
-      }
-      if (rawLine.category !== "waste" && rawLine.category !== "profit") {
+    adjustmentSummary = calculateProjectCostSummary(quoteAdjustments);
+    for (const line of adjustmentSummary.lines) {
+      if (line.category !== "waste" && line.category !== "profit") {
         throw new Error("Teklif ek maliyetleri yalnızca waste veya profit kategorisinde olabilir.");
       }
-      if (typeof rawLine.sourceReference !== "string") {
+      if (typeof line.sourceReference !== "string") {
         throw new Error("Her fire/kâr maliyet satırı için açık kaynak referansı zorunludur.");
       }
     }
-    adjustmentSummary = calculateProjectCostSummary(quoteAdjustments);
   } catch (error) {
     return {
       status: "blocked",

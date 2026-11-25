@@ -643,3 +643,46 @@ test("DOM-124 combined quote line sources carry hardware BOM provenance separate
     hardwareSource
   );
 });
+test("quote adjustment accessors are rejected without invoking getters or exposing partial totals", () => {
+  const adjustment = {
+    id: "safe-waste", category: "waste", description: "Açık fire", quantity: 1,
+    unitPriceMinor: 100, currencyCode: "TRY", sourceReference: "waste-entry:v1"
+  };
+  let getterCalls = 0;
+  Object.defineProperty(adjustment, "unitPriceMinor", {
+    enumerable: true, configurable: true,
+    get() { getterCalls += 1; return 100; }
+  });
+  const quote = calculateProjectQuoteSummary(createReport(), consumptionPrices, [], [], [adjustment]);
+  assert.equal(quote.status, "blocked");
+  assert.equal(quote.costSummary, null);
+  assert.deepEqual(quote.lineSources, []);
+  assert.equal(getterCalls, 0);
+});
+
+test("quote option accessors and Proxy reflection failures block without invoking getters", () => {
+  let getterCalls = 0;
+  const accessorOptions = {};
+  Object.defineProperty(accessorOptions, "panelMaterialPricingMode", {
+    enumerable: true, configurable: true,
+    get() { getterCalls += 1; return "excluded"; }
+  });
+  const accessorQuote = calculateProjectQuoteSummary(
+    createReport(), consumptionPrices, [], [], [], accessorOptions
+  );
+  assert.equal(accessorQuote.status, "blocked");
+  assert.equal(accessorQuote.costSummary, null);
+  assert.equal(getterCalls, 0);
+
+  const proxyOptions = new Proxy({}, {
+    ownKeys() { throw new Error("quote option ownKeys failed"); }
+  });
+  let proxyQuote;
+  assert.doesNotThrow(() => {
+    proxyQuote = calculateProjectQuoteSummary(
+      createReport(), consumptionPrices, [], [], [], proxyOptions
+    );
+  });
+  assert.equal(proxyQuote.status, "blocked");
+  assert.equal(proxyQuote.costSummary, null);
+});

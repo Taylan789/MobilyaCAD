@@ -1498,3 +1498,12 @@ The DOM-157 regression uses an envelope already over the 16 MiB limit together w
 - Aynı güvenli kopya hem material-cost-basis hesaplayıcısına hem snapshot grup/provenance çıkarımına gider; ikinci kez ham kullanıcı nesnesi okunmaz.
 - Proxy trap'lerinin çalıştırılmasını engellediği iddia edilmez; hata fırlatan reflection trap'leri public snapshot API dışına exception sızdırmadan blocked döner.
 - Net-consumption akışı, quote aritmetiği, mm/adet/para birimi kuralları ve mevcut geçerli stock-sheet snapshot çıktısı değişmez. CNC, makine veya fiziksel üretim doğrulaması değildir.
+## DOM-164 — Quote adjustment and public quote-request input safety
+
+- `calculateProjectCostSummary` snapshots its line array before reading line fields. The array must be a standard dense array with no extra own properties and at most 10,000 entries. Each line must be a plain or null-prototype record containing only allowed own enumerable data properties.
+- Accessors, inherited values, symbol keys, non-enumerable/unknown fields, custom prototypes, sparse or extended arrays, oversized lists and reflection-trap failures are rejected. Accessor getters are not invoked; invalid input throws a controlled validation error and no partial cost summary is returned.
+- `calculateProjectQuoteSummary` checks quote-specific waste/profit category and mandatory source reference only on normalized cost-summary lines. The caller's original adjustment objects are never read again.
+- Quote option envelopes and `calculateProjectQuoteWithMaterialCostBasis` top-level request envelopes use the same own-data-descriptor boundary and accept ordinary JSON and null-prototype records. Own/inherited getters and reflection failures fail closed.
+- Nested roll-spec/roll-price arrays and production/price/work-item source payloads remain delegated to their domain validators; this slice does not claim to deep-clone every nested quote source. Explicit prices, currencies, mm units, six-decimal quantity precision and half-up minor-unit rounding are unchanged.
+- Acceptance: direct cost-summary, direct quote, material-basis quote and quote-snapshot paths reject accessor/proxy inputs without getter calls or partial totals; normal JSON/null-prototype requests retain their previous arithmetic and provenance.
+- This is quote-domain input hardening only; no frontend, adapter, CNC/postprocessor, machine standard or physical-production behavior is introduced.

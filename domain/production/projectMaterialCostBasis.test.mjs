@@ -330,3 +330,44 @@ test("net and stock basis requests cannot mix their source reports", () => {
   assert.equal(netWithStock.status, "blocked");
   assert.equal(stockWithoutReport.status, "blocked");
 });
+test("material-basis request accessors and Proxy reflection failures fail closed", () => {
+  const productionReport = createQuoteProductionReport({ edgeBanding: false });
+  const request = quoteBasisInput(productionReport, { basis: "net-consumption" });
+  let getterCalls = 0;
+  Object.defineProperty(request, "basis", {
+    enumerable: true, configurable: true,
+    get() { getterCalls += 1; return "net-consumption"; }
+  });
+  const accessorResult = calculateProjectQuoteWithMaterialCostBasis(request);
+  assert.equal(accessorResult.status, "blocked");
+  assert.equal(accessorResult.grandTotalMinor, null);
+  assert.equal(getterCalls, 0);
+
+  const proxyRequest = new Proxy(
+    quoteBasisInput(productionReport, { basis: "net-consumption" }),
+    { ownKeys() { throw new Error("material basis ownKeys failed"); } }
+  );
+  let proxyResult;
+  assert.doesNotThrow(() => { proxyResult = calculateProjectQuoteWithMaterialCostBasis(proxyRequest); });
+  assert.equal(proxyResult.status, "blocked");
+  assert.equal(proxyResult.grandTotalMinor, null);
+});
+
+test("material-basis request cannot inherit a missing basis from Object.prototype", () => {
+  const productionReport = createQuoteProductionReport({ edgeBanding: false });
+  const request = quoteBasisInput(productionReport);
+  let getterCalls = 0;
+  assert.equal(Object.getOwnPropertyDescriptor(Object.prototype, "basis"), undefined);
+  try {
+    Object.defineProperty(Object.prototype, "basis", {
+      configurable: true,
+      get() { getterCalls += 1; return "net-consumption"; }
+    });
+    const result = calculateProjectQuoteWithMaterialCostBasis(request);
+    assert.equal(result.status, "blocked");
+    assert.equal(result.grandTotalMinor, null);
+    assert.equal(getterCalls, 0);
+  } finally {
+    Reflect.deleteProperty(Object.prototype, "basis");
+  }
+});

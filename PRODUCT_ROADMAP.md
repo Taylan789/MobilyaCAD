@@ -1897,3 +1897,16 @@ The first implementation SHA was not published after QA found one inherited-gett
 **Sınırlar:** Bu koruma yalnızca stock-sheet quote snapshot rapor girdisine uygulanır; diğer bağımsız domain girişlerinin kendi validator sorumluluğu sürer. JSON v1/v2 formatı, frontend, adapter, CNC/postprocessor, fiyat kaynağı veya fiziksel atölye davranışı değiştirilmez.
 
 **Durum:** VERIFIED — [commit ae76e538](https://github.com/Taylan789/MobilyaCAD/commit/ae76e538fcbd1aa60b22a5d42c602b04e58e4d42); exact-SHA CI [#45576697914](https://github.com/Taylan789/MobilyaCAD/actions/runs/45576697914), QA [#45576697866](https://github.com/Taylan789/MobilyaCAD/actions/runs/45576697866), Pages [#45576697868](https://github.com/Taylan789/MobilyaCAD/actions/runs/45576697868) başarılı. QA 283/283 frontend + 763/763 domain; strict shared-domain TypeScript, lint 36 uyarı/0 hata, production build ve production-only audit 0 açık bulgu. Test sitesi aynı SHA'dan dağıtıldı: https://taylan789.github.io/MobilyaCAD/. Üretim JS ana chunk'ı 1.698 MB (gzip 475 kB) olarak ölçüldü ve Vite 500 kB chunk uyarısı verdi; viewport p95/bellek ölçümü hâlâ NOT MEASURED. Sonraki domain adımı DOM-164: quote adjustment ve diğer nested quote input sınırlarının sahiplik/validator denetimi. UI-owned INT-003 editör save/open entegrasyonu ayrı kalır.
+## DOM-164 — Teklif ek kalemleri ve public quote request güvenliği (verification pending)
+
+**Kullanıcı akışı:** Operatör, teklifine açık fire/kâr kalemleri ekler veya kayıtlı proje üzerinden malzeme maliyet temeliyle teklif üretir. Domain, hesaplamadan önce dış girdileri güvenli biçimde normalize eder; bozuk/şüpheli girdide kısmi teklif göstermez.
+
+**Dikey dilim:** Ortak maliyet hesaplayıcısı en fazla 10.000 satırlık standart, yoğun diziyi ve yalnızca own enumerable data descriptor taşıyan plain/null-prototype satırları kabul eder. Quote option ve material-basis request zarfı descriptor-safe kopyalanır. Quote-specific kategori/kaynak kontrolü yalnızca normalize edilmiş satırlarda yapılır.
+
+**Kabul kriterleri**
+- Own/inherited getter çağrı sayısı sıfır; symbol, accessor, non-enumerable, custom prototype, sparse/extended array, 10.000 satır üstü ve reflection-trap girdileri fail-closed bloklanır.
+- Direct cost summary, direct quote, material-basis quote ve pricing snapshot yollarında geçersiz girdiden kısmi toplam/snapshot üretilmez.
+- Normal JSON ve null-prototype girdilerde mevcut para birimi, mm, adet, 6 ondalık miktar ve half-up minor-unit yuvarlama davranışı korunur.
+- Nested roll-spec/roll-price ve diğer kaynak raporların kendi validator sınırları ayrı kalır; bu görev bunları derin kopyaladığını iddia etmez.
+
+**Durum:** Kod ve regresyon testleri eklendi; exact-SHA CI/QA/Pages doğrulaması bekleniyor. Sonraki domain görevi DOM-165 — nested roll-spec/roll-price listelerinin descriptor-safe sınır denetimi; UI-owned INT-003 ve DOM-153 bağımlılığı ayrı kalır.

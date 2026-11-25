@@ -318,6 +318,40 @@ const quoteBasisInputKeys = new Set([
   "edgeBandingPricingMode", "edgeBandingRollSpecs", "edgeBandingRollPriceTable"
 ]);
 
+function inspectQuoteBasisInput<T>(read: () => T, label: string): T {
+  try { return read(); }
+  catch { throw new Error(label + " güvenli biçimde incelenemedi."); }
+}
+
+function copyQuoteBasisInput(value: unknown): QuoteRecord {
+  const label = "Teklif malzeme maliyet temeli isteği";
+  if (typeof value !== "object" || value === null ||
+      inspectQuoteBasisInput(() => Array.isArray(value), label)) {
+    throw new Error(label + " geçerli bir nesne olmalıdır.");
+  }
+  const prototype = inspectQuoteBasisInput(() => Object.getPrototypeOf(value), label);
+  if (prototype !== Object.prototype && prototype !== null) {
+    throw new Error(label + " düz JSON nesnesi olmalıdır.");
+  }
+
+  const copy = Object.create(null) as QuoteRecord;
+  const keys = inspectQuoteBasisInput(() => Reflect.ownKeys(value), label);
+  for (const key of keys) {
+    if (typeof key !== "string") throw new Error(label + " sembol anahtarı içeremez.");
+    if (!quoteBasisInputKeys.has(key)) {
+      throw new Error(label + " desteklenmeyen alan içeriyor: " + key + ".");
+    }
+    const descriptor = inspectQuoteBasisInput(() => Object.getOwnPropertyDescriptor(value, key), label);
+    if (!descriptor || !descriptor.enumerable || !("value" in descriptor)) {
+      throw new Error(label + " own enumerable data property içermelidir.");
+    }
+    Object.defineProperty(copy, key, {
+      value: descriptor.value, enumerable: true, configurable: true, writable: true
+    });
+  }
+  return copy;
+}
+
 function isQuoteRecord(value: unknown): value is QuoteRecord {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -503,47 +537,57 @@ function quoteBasisFailure(
  * each Part's material ID and normalized millimetre thickness.
  */
 export function calculateProjectQuoteWithMaterialCostBasis(value: unknown): ProjectQuoteMaterialCostBasisSummary {
-  if (!isQuoteRecord(value)) return blockedQuoteBasis(null, "Teklif malzeme maliyet temeli isteği geçerli bir nesne olmalıdır.");
-  const extra = Object.keys(value).find(key => !quoteBasisInputKeys.has(key));
-  if (extra !== undefined) return blockedQuoteBasis(null, "Teklif malzeme maliyet temeli isteği desteklenmeyen alan içeriyor: " + extra + ".");
-  if (value.schemaVersion !== 1) return blockedQuoteBasis(null, "Desteklenmeyen teklif malzeme maliyet temeli şema sürümü.");
-  if (value.basis !== "net-consumption" && value.basis !== "stock-sheet-purchase") {
+  let input: QuoteRecord;
+  try {
+    input = copyQuoteBasisInput(value);
+  } catch (error) {
+    return blockedQuoteBasis(null, quoteDiagnostic(error));
+  }
+  if (input.schemaVersion !== 1) return blockedQuoteBasis(null, "Desteklenmeyen teklif malzeme maliyet temeli şema sürümü.");
+  if (input.basis !== "net-consumption" && input.basis !== "stock-sheet-purchase") {
     return blockedQuoteBasis(null, "Teklif malzeme maliyet temeli net-consumption veya stock-sheet-purchase olmalıdır.");
   }
-  const basis = value.basis;
-  if (basis === "stock-sheet-purchase" && !("stockSheetPurchaseReport" in value)) {
+  const basis = input.basis;
+  if (basis === "stock-sheet-purchase" && !("stockSheetPurchaseReport" in input)) {
     return blockedQuoteBasis(basis, "Levha satın alma temeli için doğrulanmış stockSheetPurchaseReport zorunludur.");
   }
-  if (basis === "net-consumption" && "stockSheetPurchaseReport" in value) {
+  if (basis === "net-consumption" && "stockSheetPurchaseReport" in input) {
     return blockedQuoteBasis(basis, "Net tüketim temeli stockSheetPurchaseReport kabul etmez.");
   }
-  const edgeBandingPricingMode = value.edgeBandingPricingMode ?? "length";
+  const edgeBandingPricingMode = input.edgeBandingPricingMode ?? "length";
   if (edgeBandingPricingMode !== "length" && edgeBandingPricingMode !== "roll") {
     return blockedQuoteBasis(basis, "Kenar bandı fiyatlama modu length veya roll olmalıdır.");
   }
-  if (edgeBandingPricingMode === "length" && ("edgeBandingRollSpecs" in value || "edgeBandingRollPriceTable" in value)) {
+  if (edgeBandingPricingMode === "length" && ("edgeBandingRollSpecs" in input || "edgeBandingRollPriceTable" in input)) {
     return blockedQuoteBasis(basis, "Rulo girdileri yalnızca roll fiyatlama modunda kullanılabilir.");
   }
-  if (edgeBandingPricingMode === "roll" &&
-      (!Array.isArray(value.edgeBandingRollSpecs) || !Array.isArray(value.edgeBandingRollPriceTable))) {
-    return blockedQuoteBasis(basis, "Roll modu açık rulo ölçüleri ve rulo fiyat tablosu listelerini gerektirir.");
+  if (edgeBandingPricingMode === "roll") {
+    let hasRollArrays = false;
+    try {
+      hasRollArrays = Array.isArray(input.edgeBandingRollSpecs) && Array.isArray(input.edgeBandingRollPriceTable);
+    } catch {
+      return blockedQuoteBasis(basis, "Rulo girdileri güvenli biçimde incelenemedi.");
+    }
+    if (!hasRollArrays) {
+      return blockedQuoteBasis(basis, "Roll modu açık rulo ölçüleri ve rulo fiyat tablosu listelerini gerektirir.");
+    }
   }
 
   const basisSourceReport = basis === "net-consumption"
-    ? calculateProjectPricedConsumptionSummary(value.productionReport, value.consumptionPriceTable, { edgeBandingPricingMode })
-    : value.stockSheetPurchaseReport;
+    ? calculateProjectPricedConsumptionSummary(input.productionReport, input.consumptionPriceTable, { edgeBandingPricingMode })
+    : input.stockSheetPurchaseReport;
   const basisSummary = calculateProjectMaterialCostBasisSummary({ schemaVersion: 1, basis, sourceReport: basisSourceReport });
   const quoteOptions: ProjectQuoteEdgeBandingRollOptions = {
     edgeBandingPricingMode,
     panelMaterialPricingMode: basis === "stock-sheet-purchase" ? "excluded" : "included",
     ...(edgeBandingPricingMode === "roll" ? {
-      edgeBandingRollSpecs: value.edgeBandingRollSpecs,
-      edgeBandingRollPriceTable: value.edgeBandingRollPriceTable
+      edgeBandingRollSpecs: input.edgeBandingRollSpecs,
+      edgeBandingRollPriceTable: input.edgeBandingRollPriceTable
     } : {})
   };
   const quoteSummary = calculateProjectQuoteSummary(
-    value.productionReport, value.consumptionPriceTable, value.workItems,
-    value.tariffTable, value.quoteAdjustments, quoteOptions
+    input.productionReport, input.consumptionPriceTable, input.workItems,
+    input.tariffTable, input.quoteAdjustments, quoteOptions
   );
 
   if (basisSummary.status === "blocked" || quoteSummary.status === "blocked") return quoteBasisFailure(basis, basisSummary, quoteSummary, "blocked");
@@ -553,7 +597,7 @@ export function calculateProjectQuoteWithMaterialCostBasis(value: unknown): Proj
     return blockedQuoteBasis(basis, "Teklif malzeme maliyet temeli desteklenmeyen bir hesap durumunda.", quoteSummary, basisSummary.sourceCount);
   }
   if (basis === "stock-sheet-purchase") {
-    try { validateStockSheetPartCoverage(value.productionReport, basisSourceReport); }
+    try { validateStockSheetPartCoverage(input.productionReport, basisSourceReport); }
     catch (error) { return blockedQuoteBasis(basis, quoteDiagnostic(error), quoteSummary, basisSummary.sourceCount); }
   }
 
