@@ -8,7 +8,7 @@ MobilyaCAD'i tarayıcıda çalışan bir 3D mobilya yerleşim aracından; parame
 
 Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarılan veriler aynı kaynak parametreleri kullanmalı. Fiziksel üretime giden ölçüler, bağlantılar ve CNC işlemleri ancak gerçek üretici/atölye standardı doğrulandığında onaylı kabul edilebilir.
 
-## Doğrulanmış mevcut temel — 22 Kasım 2026
+## Doğrulanmış mevcut temel — 25 Kasım 2026
 
 | Alan | Mevcut durum | Sınır |
 |---|---|---|
@@ -24,7 +24,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 | Malzeme kataloğu | UI CRUD; mobilya varsayılan materialId ve çekmece grubunda varsayılan + dört panel grubu override; domain gövde/kitaplık motorları altı gövde panel grubu için malzeme override'ını doğrular | Gövde panel override'ları henüz frontend JSON v1/CSV ve UI akışına bağlanmadı; fiyat, tedarikçi ve fire henüz yok |
 | Proje dosyası | Yerel JSON v1 indirme/yükleme; saf serializer/parser; round-trip ve eski v1 uyumluluk; mm, mobilya ve çekmece grubu katalog referansları ile dört çekmece panel kalınlığının doğrulanması | Şema migrasyonu, otomatik kayıt ve kurtarma yok |
 | Teklif/maliyet | Kullanıcı fiyat tablosu malzeme tüketimini materialId + m2, donanımı hardwareId + özgün BOM birimi, kenar bandını edgeBandingId + açık mm/m birimi ile fiyatlandırır; kullanıcı girdili işçilik/operasyon tarifesi, tek para birimli birleşik teklif ve tarihli fiyat/tarife katalog snapshot'ı, DOM-014 doğrulanmış immutable append ve DOM-015 ortak satır aritmetiği doğrulaması vardır | Frontend/UI ve JSON v1/CSV kalıcı revizyon geçmişi entegrasyonu ayrı sahibindedir; tüm geçmişte ID tekilliği depolama katmanında doğrulanmalıdır; vergi, kur, iskonto, otomatik fire/kâr yüzdesi ve üretim onayı yok |
-| Test/CI | Verified test SHA [24b5bdc](https://github.com/Taylan789/MobilyaCAD/commit/24b5bdc358d6b8e5fa8404a063dde0f024fd3068): [CI #44968313006](https://github.com/Taylan789/MobilyaCAD/actions/runs/44968313006), [QA #44968312997](https://github.com/Taylan789/MobilyaCAD/actions/runs/44968312997), [Pages #44968312947](https://github.com/Taylan789/MobilyaCAD/actions/runs/44968312947) all succeeded | QA 142/142 frontend + 624/624 domain tests, strict domain TS, lint 32 warnings/0 errors, production build and audit 0 vulnerabilities |
+| Test/CI | Verified exact-SHA 0c9bc0d2: [CI #45626563361](https://github.com/Taylan789/MobilyaCAD/actions/runs/45626563361), [QA #45626563381](https://github.com/Taylan789/MobilyaCAD/actions/runs/45626563381), [Pages #45626563478](https://github.com/Taylan789/MobilyaCAD/actions/runs/45626563478) all succeeded | QA 297/297 frontend + 782/782 domain tests, strict shared-domain TypeScript, lint 36 warnings/0 errors, production build, production-only audit 0 vulnerabilities; test site deployed at https://taylan789.github.io/MobilyaCAD/ |
 
 ### Bilinen mimari ve veri boşlukları
 
@@ -1955,7 +1955,7 @@ The first implementation SHA was not published after QA found one inherited-gett
 
 **Sonraki adım:** Exact-SHA CI + QA + production build + Pages sonucunu doğrula; ardından DOM-167 saved/direct roll quote parity testlerine geç. UI-owned INT-003 PR #206 ve adapter/performance-owned PERF-001 / INT-002 kapsamına müdahale etme.
 
-## DOM-167 — Saved JSON v2 / direct roll quote parity (implementation submitted; verification pending)
+## DOM-167 — Saved JSON v2 / direct roll quote parity (VERIFIED — 25 Kasım 2026)
 
 **Kullanıcı akışı:** Atölye, kenar bandı rulo ölçüsü ve fiyatını ya doğrudan teklif girdisine verir ya da MobilyaCAD JSON v2 proje dosyasına kaydeder. Aynı proje ve aynı açık kullanıcı girdileri iki yoldan da aynı teklif tutarını ve kaynak izini üretmelidir.
 
@@ -1967,7 +1967,7 @@ The first implementation SHA was not published after QA found one inherited-gett
 - Line-only ve net-consumption snapshot yolları aynı sonucu verir; başarısız/eksik girdide kısmi teklif üretilmez.
 - JSON v1, frontend API, UI save/open akışı, fiyat varsayımları ve CNC/makine standardı değiştirilmez.
 
-**Durum:** IMPLEMENTED — exact-SHA CI, QA ve Pages doğrulaması bekleniyor. Test otomatik QA kapsamına eklendi; bu turda yerel test çalıştırıldığı iddia edilmez.
+**Durum:** VERIFIED — implementation/test commit [45121ab9](https://github.com/Taylan789/MobilyaCAD/commit/45121ab9c96f786d51c65af7976e3ae24cb1f14c); exact-SHA CI [#45626563361](https://github.com/Taylan789/MobilyaCAD/actions/runs/45626563361), QA [#45626563381](https://github.com/Taylan789/MobilyaCAD/actions/runs/45626563381) ve Pages [#45626563478](https://github.com/Taylan789/MobilyaCAD/actions/runs/45626563478) başarılı. QA 297/297 frontend + 782/782 domain; strict shared-domain TypeScript, lint 36 uyarı/0 hata, production build ve production-only audit 0 vulnerability. Test sitesi exact-SHA sürümden dağıtıldı: https://taylan789.github.io/MobilyaCAD/.
 
 **Sınır:** Bu domain parity testi, UI-owned INT-003 editor save/open entegrasyonunun tamamlandığı anlamına gelmez. Fiziksel rulo/atölye/CNC doğrulaması değildir.
 

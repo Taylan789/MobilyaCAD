@@ -1163,14 +1163,15 @@
 - **Other agent status:** AI Developer run [#45594366361](https://github.com/Taylan789/MobilyaCAD/actions/runs/45594366361) failed because OpenRouter returned HTTP 429 `free-models-per-day`, limit 50/remaining 0; reset timestamp resolves to 26 Nov 2026 03:00 TRT. No rerun was attempted because the daily quota had not reset and paid credits are not authorized. Integration/performance specialist job was skipped and no `integration-performance` branch was found. UI-owned PR [#206](https://github.com/Taylan789/MobilyaCAD/pull/206) remains open/draft and is not owned or merged by this automation.
 - **Next:** DOM-167 saved/direct JSON v2 roll quote parity tests; continue to keep INT-003 with the UI agent and PERF-001/INT-002 with the integration/performance owner.
 
-## 25 Kasım 2026 16:39 TRT — DOM-167 implementation (exact-SHA verification pending)
+## 25 Kasım 2026 16:39 TRT — DOM-167 VERIFIED
 
 - **Implementation commit:** [45121ab9](https://github.com/Taylan789/MobilyaCAD/commit/45121ab9c96f786d51c65af7976e3ae24cb1f14c).
 - **Base:** dev/github-work HEAD 318f72391bd9eac9ac6ff5f26db6b7fe62d98220; no active CI, QA or AI Developer run existed at write preflight. All five target blob SHAs were re-read and matched immediately before creating Git objects.
 - **Change:** Added a domain regression comparing direct roll specs/prices against the same values persisted in a MobilyaCAD JSON v2 envelope. The test checks both line-only and net-consumption material-cost-basis snapshot paths.
 - **Assertions:** Complete quoteSummary and immutable snapshot equality; grand total; roll count and purchased length; source Part IDs, furniture IDs, plan source reference and price source reference.
 - **Changed files:** domain/production/projectQuotePricingSnapshot.test.mjs, docs/production-domain-contract.md, AI_COORDINATION.md, PRODUCT_ROADMAP.md, AI_PROGRESS.md.
-- **Automated verification:** exact-SHA CI/QA/Pages results are pending after branch update. No local test execution is claimed.
+- **Automated verification:** CI [#45626563361](https://github.com/Taylan789/MobilyaCAD/actions/runs/45626563361), QA [#45626563381](https://github.com/Taylan789/MobilyaCAD/actions/runs/45626563381) and Pages [#45626563478](https://github.com/Taylan789/MobilyaCAD/actions/runs/45626563478) all succeeded for exact SHA 0c9bc0d2c77c644a275d5e9b5ed475561f502a22. QA: 297/297 frontend + 782/782 domain tests; strict shared-domain TypeScript, lint 36 warnings/0 errors, production build and production-only audit 0 vulnerabilities. Test site deployed: https://taylan789.github.io/MobilyaCAD/. No local test execution is claimed.
 - **Known limits:** No production calculator behavior changed. UI-owned INT-003 editor save/open wiring remains draft in PR #206; the integration/performance workflow specialist job is disabled and no specialist branch was found. AI Developer run #45594366361 failed on OpenRouter free-tier HTTP 429 (50/50 daily requests); paid fallback, secret changes and quota purchase are not authorized. No frontend, adapter/benchmark, CNC/machine, secrets/settings or main files changed.
+- **Branch head after evidence update:** 0c9bc0d2c77c644a275d5e9b5ed475561f502a22; implementation/test commit 45121ab9c96f786d51c65af7976e3ae24cb1f14c.
 - **Next:** DOM-168 — extend parity to the stock-sheet-purchase material-cost-basis path and reconcile stock-group totals with roll-line Part/price provenance.
 
