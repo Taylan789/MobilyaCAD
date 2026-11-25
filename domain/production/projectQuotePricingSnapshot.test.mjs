@@ -570,6 +570,224 @@ test("saved JSON v2 and direct roll inputs preserve stock-sheet purchase basis a
   );
 });
 
+test("DOM-169 reconciles stock-sheet purchase, roll, labor, operation and explicit quote adjustments", () => {
+  const productionReport = createEdgeBandingReport();
+  const stockSheetPurchaseReport = createStockSheetPurchaseReport(productionReport);
+  const quoteWorkItems = [
+    {
+      id: "assembly-labor",
+      category: "labor",
+      description: "Dolap montaj işçiliği",
+      duration: 1.5,
+      unit: "h",
+      tariffId: "labor-hourly"
+    },
+    {
+      id: "edge-trimming",
+      category: "operation",
+      description: "Kenar işleme operasyonu",
+      duration: 0.5,
+      unit: "h",
+      tariffId: "edge-operation-hourly"
+    }
+  ];
+  const quoteTariffs = [
+    {
+      tariffId: "labor-hourly",
+      category: "labor",
+      unit: "h",
+      unitPriceMinor: 2400,
+      currencyCode: "TRY",
+      sourceReference: "atolye-iscilik:v1"
+    },
+    {
+      tariffId: "edge-operation-hourly",
+      category: "operation",
+      unit: "h",
+      unitPriceMinor: 101,
+      currencyCode: "TRY",
+      sourceReference: "atolye-operasyon:v1"
+    }
+  ];
+  const quoteAdjustments = [
+    {
+      id: "waste-allowance",
+      category: "waste",
+      description: "Açık fire bedeli",
+      quantity: 1,
+      unit: "kalem",
+      unitPriceMinor: 1250,
+      currencyCode: "TRY",
+      sourceReference: "atolye-fire-girdisi:v1"
+    },
+    {
+      id: "profit-margin",
+      category: "profit",
+      description: "Açık kâr kalemi",
+      quantity: 1,
+      unit: "kalem",
+      unitPriceMinor: 2500,
+      currencyCode: "TRY",
+      sourceReference: "atolye-kar-girdisi:v1"
+    }
+  ];
+  const common = {
+    productionReport,
+    consumptionPriceTable: [],
+    workItems: quoteWorkItems,
+    tariffTable: quoteTariffs,
+    consumptionPriceList,
+    laborOperationTariffList,
+    quoteAdjustments,
+    edgeBandingPricingMode: "roll",
+    materialCostBasis: { basis: "stock-sheet-purchase", stockSheetPurchaseReport }
+  };
+  const directRollPricing = {
+    edgeBandingRollSpecs: [{
+      edgeBandingId: "pvc-a",
+      rollLengthMm: 100000,
+      sourceReference: "roll-spec:v1"
+    }],
+    edgeBandingRollPriceTable: [{
+      edgeBandingId: "pvc-a",
+      unit: "rulo",
+      unitPriceMinor: 15000,
+      currencyCode: "TRY",
+      sourceReference: "roll-prices:v1"
+    }]
+  };
+  const savedProject = createProjectFileWithRollPricing();
+  const direct = createProjectQuotePricingSnapshot(createInput({
+    ...common,
+    ...directRollPricing
+  }));
+  const saved = createProjectQuotePricingSnapshot(createInput({
+    ...common,
+    projectFile: savedProject
+  }));
+
+  assert.equal(direct.status, "ready", direct.diagnostics.join("; "));
+  assert.equal(saved.status, "ready", saved.diagnostics.join("; "));
+  assert.deepEqual(saved.quoteSummary, direct.quoteSummary);
+  assert.deepEqual(saved.snapshot, direct.snapshot);
+
+  const snapshot = saved.snapshot;
+  assert.ok(snapshot);
+  const quote = snapshot.quoteSummary;
+  const quoteCosts = quote.costSummary;
+  const basis = snapshot.materialCostBasis;
+  assert.ok(quoteCosts);
+  assert.ok(basis);
+  assert.equal(snapshot.schemaVersion, 2);
+  assert.equal(basis.basis, "stock-sheet-purchase");
+  assert.equal(basis.currencyCode, "TRY");
+  assert.equal(quoteCosts.currencyCode, "TRY");
+  assert.equal(quote.requiredLineCount, 5);
+  assert.equal(quote.pricedLineCount, 5);
+  assert.equal(quoteCosts.lineCount, 5);
+  assert.equal(quote.lineSources.length, quoteCosts.lines.length);
+  assert.equal(
+    new Set(quote.lineSources.map(source => source.costLineId)).size,
+    quoteCosts.lines.length
+  );
+  assert.deepEqual(
+    quote.lineSources.map(source => source.costLineId).sort(),
+    quoteCosts.lines.map(line => line.id).sort()
+  );
+
+  const panelPurchaseCost = stockSheetPurchaseReport.result.totals.stockSheetPurchaseCostMinor;
+  const expectedQuoteLineTotal = 15000 + 3600 + 51 + 1250 + 2500;
+  assert.equal(quoteCosts.grandTotalMinor, expectedQuoteLineTotal);
+  assert.equal(quoteCosts.categoryTotalsMinor.material, 15000);
+  assert.equal(quoteCosts.categoryTotalsMinor.hardware, 0);
+  assert.equal(quoteCosts.categoryTotalsMinor.labor, 3600);
+  assert.equal(quoteCosts.categoryTotalsMinor.operation, 51);
+  assert.equal(quoteCosts.categoryTotalsMinor.waste, 1250);
+  assert.equal(quoteCosts.categoryTotalsMinor.profit, 2500);
+
+  assert.equal(basis.panelMaterialCostMinor, panelPurchaseCost);
+  assert.equal(basis.edgeBandingCostMinor, 15000);
+  assert.equal(basis.materialCategoryTotalMinor, panelPurchaseCost + 15000);
+  assert.equal(basis.categoryTotalsMinor.material, panelPurchaseCost + 15000);
+  assert.equal(basis.categoryTotalsMinor.hardware, 0);
+  assert.equal(basis.categoryTotalsMinor.labor, 3600);
+  assert.equal(basis.categoryTotalsMinor.operation, 51);
+  assert.equal(basis.categoryTotalsMinor.waste, 1250);
+  assert.equal(basis.categoryTotalsMinor.profit, 2500);
+  assert.equal(
+    basis.grandTotalMinor,
+    panelPurchaseCost + expectedQuoteLineTotal
+  );
+  assert.equal(
+    basis.grandTotalMinor,
+    Object.values(basis.categoryTotalsMinor).reduce((sum, amount) => sum + amount, 0)
+  );
+  assert.equal(
+    basis.grandTotalMinor - quoteCosts.grandTotalMinor,
+    panelPurchaseCost
+  );
+
+  const sourceLine = (sourceType, sourceId) => {
+    const source = quote.lineSources.find(item =>
+      item.sourceType === sourceType && item.sourceId === sourceId
+    );
+    assert.ok(source, sourceType + ":" + sourceId);
+    const line = quoteCosts.lines.find(item => item.id === source.costLineId);
+    assert.ok(line, source.costLineId);
+    return { source, line };
+  };
+
+  const labor = sourceLine("labor-operation", "assembly-labor");
+  assert.equal(labor.source.tariffId, "labor-hourly");
+  assert.equal(labor.line.category, "labor");
+  assert.equal(labor.line.quantity, 1.5);
+  assert.equal(labor.line.unitPriceMinor, 2400);
+  assert.equal(labor.line.lineTotalMinor, 3600);
+
+  const operation = sourceLine("labor-operation", "edge-trimming");
+  assert.equal(operation.source.tariffId, "edge-operation-hourly");
+  assert.equal(operation.line.category, "operation");
+  assert.equal(operation.line.quantity, 0.5);
+  assert.equal(operation.line.unitPriceMinor, 101);
+  assert.equal(operation.line.lineTotalMinor, 51);
+
+  const waste = sourceLine("quote-adjustment", "waste-allowance");
+  assert.equal(waste.line.category, "waste");
+  assert.equal(waste.line.lineTotalMinor, 1250);
+  const profit = sourceLine("quote-adjustment", "profit-margin");
+  assert.equal(profit.line.category, "profit");
+  assert.equal(profit.line.lineTotalMinor, 2500);
+
+  const rollSource = quote.lineSources.find(source => source.unit === "rulo");
+  assert.ok(rollSource);
+  const rollLine = quoteCosts.lines.find(line => line.id === rollSource.costLineId);
+  assert.ok(rollLine);
+  assert.equal(rollLine.category, "material");
+  assert.equal(rollLine.quantity, 1);
+  assert.equal(rollLine.unitPriceMinor, 15000);
+  assert.equal(rollLine.lineTotalMinor, 15000);
+  assert.equal(rollSource.resourceType, "edge-banding");
+  assert.equal(rollSource.resourceId, "pvc-a");
+  assert.deepEqual(rollSource.sourcePartIds, ["snapshot-cabinet-1-left-side"]);
+  assert.deepEqual(rollSource.furnitureIds, ["snapshot-cabinet-1"]);
+  assert.equal(rollSource.rollCount, 1);
+  assert.equal(rollSource.purchasedLengthMm, 100000);
+  assert.equal(rollSource.planSourceReference, "roll-spec:v1");
+  assert.equal(rollSource.priceSourceReference, "roll-prices:v1");
+
+  assert.equal(quoteCosts.lines.filter(line => line.category === "material").length, 1);
+  assert.equal(quoteCosts.lines.some(line => line.category === "material" && line.unit === "m2"), false);
+  assert.equal(
+    basis.stockSheetGroups.reduce((sum, group) => sum + group.stockSheetCostMinor, 0),
+    panelPurchaseCost
+  );
+  assert.equal(
+    basis.stockSheetGroups.reduce((sum, group) => sum + group.sheetCount, 0),
+    stockSheetPurchaseReport.result.totals.sheetCount
+  );
+  assert.equal(basis.stockSheetGroups[0].sourceReference, "stock-sheet-price:v1");
+});
+
 test("saved project roll pricing requires explicit roll mode and rejects legacy, malformed or duplicate sources", () => {
   const projectFile = createProjectFileWithRollPricing();
   const missingMode = createProjectQuotePricingSnapshot(createInput({ projectFile }));

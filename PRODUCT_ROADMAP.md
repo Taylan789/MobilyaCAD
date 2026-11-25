@@ -1934,10 +1934,11 @@ The first implementation SHA was not published after QA found one inherited-gett
 **Durum:** VERIFIED — code/test commit [ffab4aa](https://github.com/Taylan789/MobilyaCAD/commit/ffab4aa29051182a825c1ba77428a911a48fad55); exact-SHA CI [#45602592844](https://github.com/Taylan789/MobilyaCAD/actions/runs/45602592844), QA [#45602592876](https://github.com/Taylan789/MobilyaCAD/actions/runs/45602592876), Pages [#45602593126](https://github.com/Taylan789/MobilyaCAD/actions/runs/45602593126) all successful. QA 290/290 frontend + 777/777 domain, strict shared-domain TypeScript, lint 36 warnings/0 errors, production build, production audit 0 vulnerabilities. Test site: https://taylan789.github.io/MobilyaCAD/. İlk SHA `e77957c` QA'da TS18046 ile durdu ve deploy edilmedi; `ffab4aa` raw Proxy length read regression'ını da kapatarak exact-SHA doğrulamayı geçti.
 
 **Sıradaki 3–5 küçük görev**
-1. DOM-168 — Extend saved/direct roll-input parity to stock-sheet-purchase material-cost-basis snapshots and reconcile stock-group plus roll-line provenance.
-2. INT-003 — UI-owned PR #206 save/open envelope integration; keep frontend files and PR ownership with the UI agent.
-3. DOM-153 — append → save → reopen → append quote revision history after INT-003 integration is verified.
-4. CAD/production quality gates — collect viewport p95/memory baseline and define CNC fixture/postprocessor requirements only with a confirmed machine standard.
+1. DOM-169 — stock-sheet purchase + roll + labor/operation + waste/profit birleşik teklifini exact-SHA testlerle doğrula (bu turda uygulandı; Actions sonucu bekleniyor).
+2. INT-003 — UI-owned PR #206 JSON v2 envelope startup/new/save/open entegrasyonu; frontend dosyaları ve PR sahipliği UI ajanında kalır.
+3. DOM-153 — INT-003 tamamlandıktan sonra editör append → save → reopen → append revision-history round-trip.
+4. DOM-170 — v2 quote revision append/import/restore zincirinde stock-sheet basis, kategori toplamları ve line-source provenance korunmasını domain seviyesinde doğrula.
+5. Performans/CNC kapısı — viewport p95/bellek baseline'ı uzman sahipliğinde; makine/postprocessor gereksinimleri yalnızca doğrulanmış üretici standardıyla.
 
 
 ## 25 Kasım 2026 15:09 TRT — DOM-166 (implementation submitted; exact-SHA verification pending)
@@ -1999,3 +2000,21 @@ The first implementation SHA was not published after QA found one inherited-gett
 2. INT-003 — UI sahibinin JSON v2 envelope startup/new/save/open entegrasyonu; PR #206 draft ve UI sahipliğinde kalır.
 3. DOM-153 — INT-003 tamamlandıktan sonra gerçek editör append → save → reopen → append revision round-trip.
 4. Performans kapısı — ana bundle bölme, viewport p95 ve bellek ölçümü için tekrarlanabilir baseline; adapter/benchmark sahipliği korunur.
+
+
+## 25 Kasım 2026 18:53 TRT — DOM-169 (implementation submitted; exact-SHA verification pending)
+
+Kullanıcı akışı: Atölye, levha satın alma maliyetini, rulo kenar bandı fiyatını, açık işçilik/operasyon tarifelerini ve kullanıcı tarafından girilen fire/kâr kalemlerini tek teklif snapshot'ında görür. Aynı fiyat girdileri doğrudan verildiğinde veya JSON v2 kayıtlı rulo uzantısından okunduğunda aynı sonuç üretilmelidir.
+
+Kabul kriterleri:
+- Direct roll girdileri ile kayıtlı JSON v2 roll uzantısı tam quoteSummary ve v2 snapshot açısından birebir eşleşir.
+- Panel satın alma maliyeti yalnızca doğrulanmış stock-sheet gruplarından gelir; net panel tüketim satırı olarak ikinci kez eklenmez.
+- Rulo, labor, operation, waste ve profit satırları kendi açık kaynak/tarife referanslarını ve miktarlarını korur.
+- Kategori ve genel toplamlar bağımsız fixture aritmetiğiyle uzlaşır; yarım minor-unit operasyon tutarı mevcut half-up kuralına göre yuvarlanır.
+- Teklifte tek para birimi ve açık tarihli katalog/tarife metadata kuralları korunur; fiyat veya makine standardı varsayılmaz.
+
+Durum: Test ve sözleşme dilimi commit edildi; exact-SHA CI, QA, production build ve Pages sonucu bekleniyor. Yeni SHA için GitHub Actions kanıtı gelmeden doğrulama başarılı sayılmayacak.
+
+Bilinen sınırlar: Bu test domain teklif/snapshot sözleşmesini doğrular; UI-owned INT-003 JSON v2 editor save/open akışını tamamlamaz. Fiyatlar sentetik test fixture'ıdır; gerçek atölye fiyatı değildir. Fiziksel CNC/makine üretim doğrulaması değildir.
+
+Sonraki adım: Exact-SHA CI/QA/Pages sonuçlarını doğrula; ardından DOM-170 revision append/import/restore içinde aynı maliyet temeli ve provenance alanlarını koru. INT-003 ve PERF-001/INT-002 sahiplikleri korunur.

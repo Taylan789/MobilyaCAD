@@ -1198,3 +1198,17 @@
 - **Regression assertions:** Direct roll lists and saved JSON v2 roll extension produce identical complete quoteSummary and v2 snapshot under `stock-sheet-purchase`. Stock-sheet group Part coverage, sheet/cost/currency totals and price source are checked independently from roll line Part/furniture IDs, roll count, purchased mm, plan reference and price reference. Panel purchase cost remains outside line-level quote to prevent double counting.
 - **Known constraints:** UI-owned INT-003 PR [#206](https://github.com/Taylan789/MobilyaCAD/pull/206) remains draft and intentionally unmerged; its editor startup/new/save/open wiring is still deferred. Integration/Performance specialist job is disabled and no specialist branch was verified. Latest AI Developer [#45594366361](https://github.com/Taylan789/MobilyaCAD/actions/runs/45594366361) remains failed on OpenRouter free-tier HTTP 429; no paid fallback, quota purchase, secret change or premature rerun. Vite main JS bundle remains 1,698.03 kB (475.00 kB gzip); viewport p95/memory remain NOT MEASURED. No frontend, adapter/benchmark, CNC/machine, secrets/settings or `main` files changed.
 - **Next:** DOM-169 — verify stock-sheet + roll material costs with explicit labor/operation tariff lines and quote adjustments; then keep INT-003 with the UI owner and DOM-153 dependent on its completed editor integration.
+
+
+## 25 Kasım 2026 18:53 TRT — DOM-169 implementation submitted; exact-SHA verification pending
+
+- Base: dev/github-work HEAD eb17f0d8a165074a2d35d5e5e1123b35350392c4; write preflight re-read this SHA and all five target blob SHAs. No active CI, QA or AI Developer Actions run existed at preflight.
+- Development slice: added a full stock-sheet-purchase + saved/direct JSON v2 roll + labor + operation + explicit waste/profit adjustment integration regression. It independently checks the stock-sheet panel amount, roll line, tariff/source mappings, quote category totals, grand total, no panel double-counting and half-up rounding of a 50.5 minor-unit operation amount to 51.
+- Changed files: domain/production/projectQuotePricingSnapshot.test.mjs, docs/production-domain-contract.md, AI_COORDINATION.md, PRODUCT_ROADMAP.md, AI_PROGRESS.md.
+- Implementation commit: SHA will be recorded in the exact-SHA verification follow-up after GitHub creates the commit object.
+- Base SHA evidence: CI #45636714715 passed; QA #45636714549 passed (783 domain tests, 0 failures; strict shared-domain TypeScript, lint 36 warnings / 0 errors, production build, production-only audit 0 vulnerabilities); Pages #45636714784 deployed exact base SHA to https://taylan789.github.io/MobilyaCAD/.
+- New SHA verification: pending; no local test run is claimed.
+- Known constraints: no production calculator source change was necessary; this slice hardens the end-to-end regression contract around existing calculators. UI-owned INT-003 PR #206 and UI PR #227 were not modified or merged. No frontend, adapter, benchmark, CNC/machine, secrets/settings or main changes.
+- AI Developer: run #45594366361 failed on OpenRouter free-tier HTTP 429 (50/50 daily quota; reset 26 Nov 2026 03:00 TRT). It was not rerun before reset; no paid fallback, credit purchase or secret/quota change is authorized.
+- Integration/Performance: specialist job was skipped and no agent/integration-performance-* branch was found; PERF-001 / INT-002 remain specialist-owned.
+- Next: verify exact-SHA CI/QA/Pages; then DOM-170 quote revision snapshot preservation. INT-003 remains UI-owned and DOM-153 waits for its save/open integration.
