@@ -1803,7 +1803,7 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 **Sonraki adımlar:** UI sahibinin INT-003 JSON v2 save/open entegrasyonu; entegrasyon tamamlanınca DOM-153 append → save → reopen → append round-trip. Fiziksel CNC doğrulaması bu dilimin kapsamında değildir.
 
 
-## DOM-160 — Kenar bandı rulo fiyatlama zarfı güvenliği (implementation; verification pending)
+## DOM-160 — Kenar bandı rulo fiyatlama zarfı güvenliği (Proxy regression correction; verification pending)
 
 **Kullanıcı akışı:** Kullanıcı, JSON v2 projesinde katalog kimliğine bağlı rulo uzunluğu, sabit ek pay ve rulo fiyatı saklar. Proje dosyası açılırken bu alan okunur; kaydetme sırasında diğer proje metadata alanları korunur.
 
@@ -1820,3 +1820,6 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 - JSON v1 legacy read ve v1 extension blocker değişmez; mevcut roll/price sorting, 0.1 mm, currency ve 1.000 satır kuralları korunur.
 
 **Sınırlar:** Bu domain dilimi UI save/open entegrasyonu, CNC, gerçek rulo/tedarik standardı, fiyat kaynağı veya fiziksel üretim doğrulaması değildir. UI sahibinin INT-003 JSON v2 editor entegrasyonu tamamlanmadan DOM-153 editör round-trip işi başlatılmaz.
+
+
+**İlk doğrulama düzeltmesi:** CI #45557729163 başarılıydı; QA #45557728923 751/752 test ile başarısız oldu. Tek başarısız test, yalnızca `ownKeys` trap'i olan Proxy için read API'nin blocked dönmesini bekliyordu; read API bu yolda proje anahtarlarını enumerate etmediği için doğru biçimde empty döndürmüştü. Üretim davranışı değiştirilmedi; regresyon artık read/write descriptor trap'i ve write clone ownKeys trap'ini ayrı ayrı doğruluyor. İlk Pages run #45557728945 exact-SHA QA gate nedeniyle başarısız oldu ve bu SHA yayınlanmadı.

@@ -172,17 +172,28 @@ test("inherited project and pricing accessors are never used", () => {
   assert.equal(getterCalls, 0);
 });
 
-test("project reflection trap failures return blocked instead of escaping", () => {
-  const unsafeProject = new Proxy(project(), {
-    ownKeys() { throw new Error("project reflection trap failed"); }
+test("project descriptor and ownKeys reflection trap failures return blocked instead of escaping", () => {
+  const descriptorTrapProject = new Proxy(project(), {
+    getOwnPropertyDescriptor(target, key) {
+      if (key === "format") throw new Error("project descriptor trap failed");
+      return Reflect.getOwnPropertyDescriptor(target, key);
+    }
   });
-  const read = readProjectEdgeBandingRollPricingFromProjectFile(unsafeProject);
+  const read = readProjectEdgeBandingRollPricingFromProjectFile(descriptorTrapProject);
   assert.equal(read.status, "blocked");
-  assert.match(read.diagnostics.join(" "), /reflection trap failed/);
-  const write = setProjectEdgeBandingRollPricingInProjectFile(unsafeProject, pricing());
-  assert.equal(write.status, "blocked");
-  assert.equal(write.project, null);
-  assert.match(write.diagnostics.join(" "), /reflection trap failed/);
+  assert.match(read.diagnostics.join(" "), /descriptor trap failed/);
+  const descriptorWrite = setProjectEdgeBandingRollPricingInProjectFile(descriptorTrapProject, pricing());
+  assert.equal(descriptorWrite.status, "blocked");
+  assert.equal(descriptorWrite.project, null);
+  assert.match(descriptorWrite.diagnostics.join(" "), /descriptor trap failed/);
+
+  const ownKeysTrapProject = new Proxy(project(), {
+    ownKeys() { throw new Error("project ownKeys trap failed"); }
+  });
+  const ownKeysWrite = setProjectEdgeBandingRollPricingInProjectFile(ownKeysTrapProject, pricing());
+  assert.equal(ownKeysWrite.status, "blocked");
+  assert.equal(ownKeysWrite.project, null);
+  assert.match(ownKeysWrite.diagnostics.join(" "), /ownKeys trap failed/);
 });
 
 test("v2 writes deep-clone and freeze unrelated project metadata", () => {
