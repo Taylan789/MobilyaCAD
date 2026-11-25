@@ -915,7 +915,7 @@ test("quote snapshot does not read inherited price fields from public source row
     }));
     assert.equal(getterCalls, 0);
     assert.equal(result.status, "blocked");
-    assert.equal(result.quoteSummary, null);
+    assert.equal(result.quoteSummary?.status, "blocked");
     assert.equal(result.snapshot, null);
   } finally {
     if (original) Object.defineProperty(Object.prototype, "unitPriceMinor", original);
@@ -933,5 +933,5 @@ test("quote source boundary enforces the shared nested-depth budget before prici
   assert.equal(result.status, "blocked");
   assert.equal(result.quoteSummary, null);
   assert.equal(result.snapshot, null);
-  assert.match(result.diagnostics[0], /derinlik sınırını/);
+  assert.match(result.diagnostics[0], /derinliği sınırını/);
 });

@@ -1952,6 +1952,6 @@ The first implementation SHA was not published after QA found one inherited-gett
 - Geçerli JSON v1 üretim raporu, fiyat satırları, işçilik süreleri ve tarife eşleşmesi mevcut para/ölçü/yuvarlama davranışını korur.
 - JSON v1/v2 proje dosyası şeması, frontend API'si, CNC/postprocessor veya fiyat varsayımları değiştirilmez.
 
-**Durum:** Domain kaynak ve regresyon testleri dev/github-work için tek commit olarak gönderiliyor; CI, QA ve Pages exact-SHA sonuçları bu kayıt anında henüz görülmedi. Test sitesi bu dilim için henüz güncellendi olarak işaretlenmez.
+**İlk doğrulama:** Code/test commit ca1a3768 için CI başarılı; QA domain suite 779/781 ile başarısız oldu. İki başarısızlık test beklentisindeydi: downstream validator'ın blocked quoteSummary nesnesini koruması ve Türkçe derinlik tanı metninin gerçek ifadesi. Pages exact-SHA kapısı başarısız QA nedeniyle deploy adımını atladı; test sitesi bu SHA'ya güncellenmedi. **Düzeltme:** test beklentileri mevcut API davranışına göre güncellendi; yeni exact-SHA doğrulama bekleniyor.
 
 **Sonraki adım:** Exact-SHA CI + QA + production build + Pages sonucunu doğrula; ardından DOM-167 saved/direct roll quote parity testlerine geç. UI-owned INT-003 PR #206 ve adapter/performance-owned PERF-001 / INT-002 kapsamına müdahale etme.
