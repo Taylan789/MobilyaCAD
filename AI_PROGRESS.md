@@ -1212,3 +1212,14 @@
 - AI Developer: run #45594366361 failed on OpenRouter free-tier HTTP 429 (50/50 daily quota; reset 26 Nov 2026 03:00 TRT). It was not rerun before reset; no paid fallback, credit purchase or secret/quota change is authorized.
 - Integration/Performance: specialist job was skipped and no agent/integration-performance-* branch was found; PERF-001 / INT-002 remain specialist-owned.
 - Next: verify exact-SHA CI/QA/Pages; then DOM-170 quote revision snapshot preservation. INT-003 remains UI-owned and DOM-153 waits for its save/open integration.
+
+
+## 25 Kasım 2026 19:03 TRT — DOM-169 Pages retry outcome
+
+- Documentation evidence commit: [693b6de6](https://github.com/Taylan789/MobilyaCAD/commit/693b6de6abc1098f78e35c68b9725e6de8fedd09); it records the implementation SHA 26294b35 and its exact-SHA CI/QA results.
+- Exact-SHA CI [#45650478874](https://github.com/Taylan789/MobilyaCAD/actions/runs/45650478874) succeeded. QA [#45650479011](https://github.com/Taylan789/MobilyaCAD/actions/runs/45650479011) succeeded: 300/300 frontend + 784/784 domain tests; strict shared-domain TypeScript, lint 36 warnings / 0 errors, production build and production-only audit 0 vulnerabilities.
+- Pages [#45650478862](https://github.com/Taylan789/MobilyaCAD/actions/runs/45650478862): build and exact-SHA CI/QA verification jobs succeeded, but the deploy job again failed creating the GitHub Pages deployment with HTTP 500 (request ID 5940:F7B88:22888AD:6CFC7AD:6B0706AF). No deployment for 693b6de was published.
+- The previous verified test-site deployment remains the 25 November 14:42 UTC deployment from SHA eb17f0d8: [Pages run #45636714784](https://github.com/Taylan789/MobilyaCAD/actions/runs/45636714784), https://taylan789.github.io/MobilyaCAD/.
+- A targeted rerun of the failed deploy job was attempted but the GitHub rerun tool returned an internal error. No rerun is claimed; no workflow, secret, environment or Pages setting was changed.
+- **Current limitation:** GitHub Pages deployment API is returning server-side HTTP 500 for two consecutive exact-SHA deployments even though CI, QA, build and gate succeed. Product code/tests are verified, but the test site is not updated to the new DOM-169 SHA.
+- **Next:** continue DOM-170 domain revision snapshot preservation; retry the Pages deployment only when the GitHub deployment endpoint is available. UI-owned INT-003 and specialist-owned PERF-001 / INT-002 remain untouched.
