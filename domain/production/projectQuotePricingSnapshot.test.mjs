@@ -532,3 +532,122 @@ test("stock-sheet snapshot rejects Part coverage drift instead of persisting for
   assert.equal(result.snapshot, null);
   assert.match(result.diagnostics[0], /proje dışı Part|Part kaynakları/);
 });
+
+test("quote snapshot request rejects own accessors without invoking their getters", () => {
+  const input = createInput();
+  let getterCalls = 0;
+  Object.defineProperty(input, "quotedOn", {
+    enumerable: true,
+    configurable: true,
+    get() {
+      getterCalls += 1;
+      return "2026-11-30";
+    }
+  });
+
+  const result = createProjectQuotePricingSnapshot(input);
+  assert.equal(getterCalls, 0);
+  assert.equal(result.status, "blocked");
+  assert.equal(result.quoteSummary, null);
+  assert.equal(result.snapshot, null);
+});
+
+test("an Object.prototype optional pricing getter cannot supply a missing quote mode", () => {
+  const original = Object.getOwnPropertyDescriptor(Object.prototype, "edgeBandingPricingMode");
+  assert.equal(original, undefined);
+  let getterCalls = 0;
+  try {
+    Object.defineProperty(Object.prototype, "edgeBandingPricingMode", {
+      configurable: true,
+      get() {
+        getterCalls += 1;
+        return "roll";
+      }
+    });
+    const result = createProjectQuotePricingSnapshot(createInput());
+    assert.equal(getterCalls, 0);
+    assert.equal(result.status, "ready", result.diagnostics.join("; "));
+    assert.equal(result.snapshot?.quoteSummary.costSummary?.lines.some(line => line.unit === "rulo"), false);
+  } finally {
+    Reflect.deleteProperty(Object.prototype, "edgeBandingPricingMode");
+  }
+});
+
+test("catalog-version own accessors are blocked without invoking getters", () => {
+  const catalog = { ...consumptionPriceList };
+  let getterCalls = 0;
+  Object.defineProperty(catalog, "version", {
+    enumerable: true,
+    configurable: true,
+    get() {
+      getterCalls += 1;
+      return "2026-11";
+    }
+  });
+
+  const result = createProjectQuotePricingSnapshot(createInput({ consumptionPriceList: catalog }));
+  assert.equal(getterCalls, 0);
+  assert.equal(result.status, "blocked");
+  assert.equal(result.snapshot, null);
+  assert.match(result.diagnostics[0], /own enumerable data property/);
+});
+
+test("material-cost-basis own accessors are blocked before quote calculation", () => {
+  const materialCostBasis = {};
+  let getterCalls = 0;
+  Object.defineProperty(materialCostBasis, "basis", {
+    enumerable: true,
+    configurable: true,
+    get() {
+      getterCalls += 1;
+      return "net-consumption";
+    }
+  });
+
+  const result = createProjectQuotePricingSnapshot(createInput({ materialCostBasis }));
+  assert.equal(getterCalls, 0);
+  assert.equal(result.status, "blocked");
+  assert.equal(result.quoteSummary, null);
+  assert.equal(result.snapshot, null);
+});
+
+test("request-envelope Proxy reflection failures return blocked instead of escaping", () => {
+  const proxies = [
+    new Proxy(createInput(), {
+      getPrototypeOf() {
+        throw new Error("prototype reflection failed");
+      }
+    }),
+    new Proxy(createInput(), {
+      ownKeys() {
+        throw new Error("ownKeys reflection failed");
+      }
+    }),
+    new Proxy(createInput(), {
+      getOwnPropertyDescriptor(target, key) {
+        if (key === "quotedOn") throw new Error("descriptor reflection failed");
+        return Reflect.getOwnPropertyDescriptor(target, key);
+      }
+    })
+  ];
+
+  for (const proxy of proxies) {
+    let result;
+    assert.doesNotThrow(() => {
+      result = createProjectQuotePricingSnapshot(proxy);
+    });
+    assert.equal(result.status, "blocked");
+    assert.equal(result.quoteSummary, null);
+    assert.equal(result.snapshot, null);
+  }
+});
+
+test("null-prototype quote snapshot request and catalog records remain supported", () => {
+  const input = Object.assign(Object.create(null), createInput());
+  input.consumptionPriceList = Object.assign(Object.create(null), consumptionPriceList);
+
+  const result = createProjectQuotePricingSnapshot(input);
+  assert.equal(result.status, "ready", result.diagnostics.join("; "));
+  assert.equal(result.snapshot?.consumptionPriceList?.catalogId, "workshop-materials");
+});
+

@@ -1479,3 +1479,12 @@ The DOM-157 regression uses an envelope already over the 16 MiB limit together w
 - Supplying `projectFile` together with explicit `edgeBandingRollSpecs` or `edgeBandingRollPriceTable` is rejected to avoid ambiguous pricing sources. Existing explicit-array callers remain backward compatible.
 - The same resolved options are used with both the normal quote path and the material-cost-basis path. Roll count, roll length, Part IDs, furniture IDs and plan/price source references remain in the immutable quote snapshot.
 - Frontend handoff: after INT-003 editor JSON v2 integration, pass the current project envelope and explicit roll mode; do not duplicate the persisted roll arrays in UI state. Length pricing remains an explicit independent mode. This API does not infer roll standards, prices, waste percentages or CNC operations.
+
+## DOM-162 — Quote pricing snapshot request-envelope descriptor safety
+
+- `createProjectQuotePricingSnapshot` copies the top-level request, catalog-version records and material-cost-basis record using own enumerable data descriptors before reading their fields. Copies use a null prototype, so inherited optional getters cannot supply a missing pricing mode or metadata value.
+- Own accessors, symbol keys, non-enumerable properties and custom prototypes are rejected. Prototype/ownKeys/property-descriptor reflection failures return a `blocked` result with null quote/snapshot payloads; getter calls are not used to validate request metadata.
+- Ordinary JSON objects and null-prototype records remain supported. Existing input keys, quote arithmetic, mm units, currency rules, JSON v1/v2 formats and explicit roll-vs-length selection do not change.
+- Scope boundary: production reports, price tables, work-item arrays, roll arrays and stock-sheet reports remain validated by their respective downstream domain calculators; this slice does not claim to recursively sanitize every nested payload or suppress Proxy traps. It converts reflection failures encountered while inspecting the request/metadata records into fail-closed results.
+- Automatic acceptance: own/inherited getter counters remain zero; prototype/ownKeys/descriptor trap failures do not escape; malformed metadata yields no partial quote/snapshot; ordinary and null-prototype requests retain the existing ready behavior.
+- No frontend, adapter, CNC/postprocessor, price source, machine standard or physical workshop behavior is introduced.

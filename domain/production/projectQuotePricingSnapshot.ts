@@ -115,7 +115,53 @@ const catalogIdPattern = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
 const datePattern = /^\d{4}-\d{2}-\d{2}$/;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
+  try {
+    return typeof value === "object" && value !== null && !Array.isArray(value);
+  } catch {
+    return false;
+  }
+}
+
+function copyOwnEnumerableDataRecord(
+  value: unknown,
+  label: string,
+  allowedKeys: ReadonlySet<string>,
+  invalidMessage = label + " geçerli bir nesne olmalıdır."
+): Record<string, unknown> {
+  if (!isRecord(value)) throw new Error(invalidMessage);
+
+  try {
+    const prototype = Object.getPrototypeOf(value);
+    if (prototype !== Object.prototype && prototype !== null) {
+      throw new Error(label + " düz JSON nesnesi olmalıdır.");
+    }
+
+    const copy = Object.create(null) as Record<string, unknown>;
+    for (const key of Reflect.ownKeys(value)) {
+      if (typeof key !== "string") {
+        throw new Error(label + " sembol anahtarı içeremez.");
+      }
+      if (!allowedKeys.has(key)) {
+        throw new Error(label + " desteklenmeyen alan içeriyor: " + key + ".");
+      }
+
+      const descriptor = Object.getOwnPropertyDescriptor(value, key);
+      if (!descriptor || !descriptor.enumerable || !("value" in descriptor)) {
+        throw new Error(label + " own enumerable data property içermelidir.");
+      }
+      Object.defineProperty(copy, key, {
+        value: descriptor.value,
+        enumerable: true,
+        configurable: true,
+        writable: true
+      });
+    }
+    return copy;
+  } catch (error) {
+    throw error instanceof Error
+      ? error
+      : new Error(label + " güvenli biçimde incelenemedi.");
+  }
 }
 
 function requireText(value: unknown, label: string, maxLength: number): string {
@@ -146,24 +192,22 @@ function validateCatalogVersion(
   label: string,
   quotedOn: string
 ): ProjectQuoteCatalogVersionInput {
-  if (!isRecord(value)) {
-    throw new Error(label + " katalog sürümü nesnesi olmalıdır.");
-  }
-  for (const key of Object.keys(value)) {
-    if (!catalogVersionKeys.has(key)) {
-      throw new Error(label + " desteklenmeyen alan içeriyor: " + key + ".");
-    }
-  }
+  const catalog = copyOwnEnumerableDataRecord(
+    value,
+    label,
+    catalogVersionKeys,
+    label + " katalog sürümü nesnesi olmalıdır."
+  );
 
-  const catalogId = requireText(value.catalogId, label + " katalog kimliği", 128);
+  const catalogId = requireText(catalog.catalogId, label + " katalog kimliği", 128);
   if (!catalogIdPattern.test(catalogId)) {
     throw new Error(label + " katalog kimliği geçersiz.");
   }
-  const version = requireText(value.version, label + " sürümü", 64);
-  const effectiveFrom = requireDateOnly(value.effectiveFrom, label + " başlangıç tarihi");
-  const effectiveTo = value.effectiveTo === undefined
+  const version = requireText(catalog.version, label + " sürümü", 64);
+  const effectiveFrom = requireDateOnly(catalog.effectiveFrom, label + " başlangıç tarihi");
+  const effectiveTo = catalog.effectiveTo === undefined
     ? undefined
-    : requireDateOnly(value.effectiveTo, label + " bitiş tarihi");
+    : requireDateOnly(catalog.effectiveTo, label + " bitiş tarihi");
 
   if (effectiveTo !== undefined && effectiveTo < effectiveFrom) {
     throw new Error(label + " bitiş tarihi başlangıç tarihinden önce olamaz.");
@@ -372,18 +416,32 @@ function blocked(message: string): ProjectQuotePricingSnapshotResult {
 export function createProjectQuotePricingSnapshot(
   value: unknown
 ): ProjectQuotePricingSnapshotResult {
-  if (!isRecord(value)) {
-    return blocked("Teklif fiyat snapshot girdisi geçerli bir nesne olmalıdır.");
-  }
-  for (const key of Object.keys(value)) {
-    if (!inputKeys.has(key)) {
-      return blocked("Teklif fiyat snapshot girdisi desteklenmeyen alan içeriyor: " + key + ".");
-    }
+  let input: Record<string, unknown>;
+  let materialCostBasisInput: Record<string, unknown> | undefined;
+  try {
+    input = copyOwnEnumerableDataRecord(
+      value,
+      "Teklif fiyat snapshot girdisi",
+      inputKeys
+    );
+    materialCostBasisInput = input.materialCostBasis === undefined
+      ? undefined
+      : copyOwnEnumerableDataRecord(
+          input.materialCostBasis,
+          "Teklif malzeme maliyet temeli",
+          materialCostBasisInputKeys
+        );
+  } catch (error) {
+    return blocked(
+      error instanceof Error
+        ? error.message
+        : "Teklif fiyat snapshot girdisi güvenli biçimde incelenemedi."
+    );
   }
 
   let quotedOn: string;
   try {
-    quotedOn = requireDateOnly(value.quotedOn, "Teklif tarihi");
+    quotedOn = requireDateOnly(input.quotedOn, "Teklif tarihi");
   } catch (error) {
     return blocked(error instanceof Error ? error.message : String(error));
   }
@@ -391,39 +449,31 @@ export function createProjectQuotePricingSnapshot(
   let quoteSummary: ProjectQuoteSummary;
   let materialCostBasisSnapshot: ProjectQuoteMaterialCostBasisSnapshot | undefined;
   try {
-    const quoteOptions = resolveEdgeBandingRollOptions(value);
-    if (value.materialCostBasis === undefined) {
+    const quoteOptions = resolveEdgeBandingRollOptions(input);
+    if (materialCostBasisInput === undefined) {
       quoteSummary = calculateProjectQuoteSummary(
-        value.productionReport,
-        value.consumptionPriceTable,
-        value.workItems,
-        value.tariffTable,
-        value.quoteAdjustments,
+        input.productionReport,
+        input.consumptionPriceTable,
+        input.workItems,
+        input.tariffTable,
+        input.quoteAdjustments,
         quoteOptions
       );
     } else {
-      if (!isRecord(value.materialCostBasis)) {
-        throw new Error("Teklif malzeme maliyet temeli geçerli bir nesne olmalıdır.");
-      }
-      for (const key of Object.keys(value.materialCostBasis)) {
-        if (!materialCostBasisInputKeys.has(key)) {
-          throw new Error("Teklif malzeme maliyet temeli desteklenmeyen alan içeriyor: " + key + ".");
-        }
-      }
       const basisRequest: Record<string, unknown> = {
         schemaVersion: 1,
-        basis: value.materialCostBasis.basis,
-        productionReport: value.productionReport,
-        consumptionPriceTable: value.consumptionPriceTable,
-        workItems: value.workItems,
-        tariffTable: value.tariffTable
+        basis: materialCostBasisInput.basis,
+        productionReport: input.productionReport,
+        consumptionPriceTable: input.consumptionPriceTable,
+        workItems: input.workItems,
+        tariffTable: input.tariffTable
       };
-      if (value.quoteAdjustments !== undefined) basisRequest.quoteAdjustments = value.quoteAdjustments;
+      if (input.quoteAdjustments !== undefined) basisRequest.quoteAdjustments = input.quoteAdjustments;
       if (quoteOptions.edgeBandingPricingMode !== undefined) basisRequest.edgeBandingPricingMode = quoteOptions.edgeBandingPricingMode;
       if (quoteOptions.edgeBandingRollSpecs !== undefined) basisRequest.edgeBandingRollSpecs = quoteOptions.edgeBandingRollSpecs;
       if (quoteOptions.edgeBandingRollPriceTable !== undefined) basisRequest.edgeBandingRollPriceTable = quoteOptions.edgeBandingRollPriceTable;
-      if (Object.prototype.hasOwnProperty.call(value.materialCostBasis, "stockSheetPurchaseReport")) {
-        basisRequest.stockSheetPurchaseReport = value.materialCostBasis.stockSheetPurchaseReport;
+      if (Object.prototype.hasOwnProperty.call(materialCostBasisInput, "stockSheetPurchaseReport")) {
+        basisRequest.stockSheetPurchaseReport = materialCostBasisInput.stockSheetPurchaseReport;
       }
       const basisResult = calculateProjectQuoteWithMaterialCostBasis(basisRequest);
       if (basisResult.status !== "ready") {
@@ -438,7 +488,7 @@ export function createProjectQuotePricingSnapshot(
         throw new Error("Hazır malzeme temelli teklif doğrulanmış teklif özeti içermelidir.");
       }
       quoteSummary = basisResult.quoteSummary;
-      materialCostBasisSnapshot = createMaterialCostBasisSnapshot(basisResult, value.materialCostBasis);
+      materialCostBasisSnapshot = createMaterialCostBasisSnapshot(basisResult, materialCostBasisInput);
     }
   } catch (error) {
     return blocked(error instanceof Error ? error.message : String(error));
@@ -464,23 +514,23 @@ export function createProjectQuotePricingSnapshot(
 
     if (
       hasConsumptionLines &&
-      (value.consumptionPriceList === undefined || value.consumptionPriceList === null)
+      (input.consumptionPriceList === undefined || input.consumptionPriceList === null)
     ) {
       throw new Error("Üretim tüketimi fiyatlı bir teklif için fiyat listesi kimliği, sürümü ve geçerlilik tarihi zorunludur.");
     }
     if (
       hasLaborOperationLines &&
-      (value.laborOperationTariffList === undefined || value.laborOperationTariffList === null)
+      (input.laborOperationTariffList === undefined || input.laborOperationTariffList === null)
     ) {
       throw new Error("İşçilik/operasyon içeren teklif için tarife listesi kimliği, sürümü ve geçerlilik tarihi zorunludur.");
     }
 
-    const consumptionPriceList = value.consumptionPriceList === undefined || value.consumptionPriceList === null
+    const consumptionPriceList = input.consumptionPriceList === undefined || input.consumptionPriceList === null
       ? null
-      : validateCatalogVersion(value.consumptionPriceList, "Fiyat listesi", quotedOn);
-    const laborOperationTariffList = value.laborOperationTariffList === undefined || value.laborOperationTariffList === null
+      : validateCatalogVersion(input.consumptionPriceList, "Fiyat listesi", quotedOn);
+    const laborOperationTariffList = input.laborOperationTariffList === undefined || input.laborOperationTariffList === null
       ? null
-      : validateCatalogVersion(value.laborOperationTariffList, "Tarife listesi", quotedOn);
+      : validateCatalogVersion(input.laborOperationTariffList, "Tarife listesi", quotedOn);
 
     const snapshot = deepFreeze({
       schemaVersion: materialCostBasisSnapshot === undefined ? 1 as const : 2 as const,

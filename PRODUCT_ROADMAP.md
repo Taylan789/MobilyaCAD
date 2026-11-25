@@ -609,7 +609,7 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 | Üretim | Her Part için kaynak ID, quantity, mm ölçü, malzeme/kalınlık; unsupported geometri/export kısmi sonuç üretmeden blocker | Domain konstrüksiyon, tüketim, nesting freshness, teklif/revizyon ve JSON/CSV sözleşmeleri var; frontend adapter/CNC postprocessor eksik |
 | UX | Ana akışlarda işlevsel kontroller; klavye/focus, erişilebilirlik, responsive, boş/hata durumları otomatik doğrulanır | Frontend ayrı ajan alanında; gerçek tarayıcı görsel kabulü NOT MEASURED |
 | Performans | Referans sahnede p95 frame-time hedefi 16,7 ms (60 FPS), scene update p95 <100 ms, bellek ölçümü ve CI regression threshold | Referans sahne/benchmark NOT MEASURED; bu kontrolde aktif Integration/Performance run veya PR bulunmadı; PERF-001 ve INT-002 READY, QA-003 INT-001/INT-002'ye bağlı |
-| Güvenilirlik | Strict TS, test, build, audit; import/export round-trip 0 alan kaybı; invalid input 0 partial output | 20 Nov 2026 verified SHA [67d462fa](https://github.com/Taylan789/MobilyaCAD/commit/67d462fa26df55b8f717067d73dd654dd7075d0e): QA 124/124 frontend + 579/579 domain; strict TS, lint (32 warnings/0 errors), production build and audit 0 vulnerabilities. DOM-076 strict CSV round-trip passed; JSON v1 schema unchanged. |
+| Güvenilirlik | Strict TS, test, build, audit; import/export round-trip 0 alan kaybı; invalid input 0 partial output | Latest verified base SHA [fda35c4](https://github.com/Taylan789/MobilyaCAD/commit/fda35c4b61aae9fea128d3eb7b21b359df8bdf51): exact-SHA QA [#45571389330](https://github.com/Taylan789/MobilyaCAD/actions/runs/45571389330) passed 283/283 frontend + 754/754 domain, strict shared-domain TS, lint 36 warnings/0 errors, production build and production audit 0 vulnerabilities. DOM-162 request-envelope hardening is implemented; its exact-SHA checks are pending. Overall 10/10 gate remains unchecked. |
 | Edge-band export | Direction, catalog ID, mm/m, Part/furniture provenance and strict JSON round-trip; malformed/unsupported input blocked | DOM-068 verified: 124 frontend + 468 domain tests, strict type-check, build and audit; see Actions |
 
 
@@ -1317,7 +1317,7 @@ QA-003 remains blocked until INT-001 and INT-002 evidence exists. The Integratio
 - [ ] Production: canonical Part tree, material/edge-band/hardware/waste, nesting/cost and export reconciliation.
 - [ ] UX: functional controls, clear navigation, accessibility, responsive states and recovery.
 - [ ] Performance: repeatable viewport/bundle/memory baseline with measured improvements.
-- [ ] Reliability: typed validation, backward-compatible project schemas, lossless import/export and exact-SHA CI/QA evidence; DOM-148 adversarial envelope coverage, DOM-160 bounded/deep-immutable roll-pricing persistence and DOM-161 persisted-v2-to-quote snapshot reconciliation all passed exact-SHA CI/QA/Pages (latest QA 277 frontend + 754 domain, strict TypeScript, lint 36 warnings/0 errors, production build, production audit 0 vulnerabilities); the overall 10/10 gate remains unchecked.
+- [ ] Reliability: typed validation, backward-compatible project schemas, lossless import/export and exact-SHA CI/QA evidence; latest verified base SHA fda35c4 passed 283 frontend + 754 domain tests, strict TypeScript, lint (36 warnings / 0 errors), production build and production audit (0 vulnerabilities). DOM-162 request-envelope descriptor hardening is awaiting exact-SHA verification; the overall 10/10 gate remains unchecked.
 - [ ] Physical production: operator and machine-standard verification remains separate from automated checks.
 
 ## Current domain queue — 25 November 2026
@@ -1785,9 +1785,11 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 - Otomatik kabul: büyük zarf + dolu geçmişte dolu-geçmiş tanısı kaynak sınırı tanısından önce gelir; accessor çağrı sayısı sıfırdır; boş geçmiş import'u ready, v1 import'u blocked olur.
 
 **Sıradaki küçük işler**
-1. INT-003 — UI sahibinin JSON v2 parser/save/open entegrasyonunu tamamlamasını takip etmek; frontend dosyalarına dokunmamak.
-2. DOM-153 — entegrasyon hazır olduğunda editör append → save → reopen → append domain sözleşmesini exact-SHA testleriyle doğrulamak.
-3. DOM-159 — entegrasyon sonrası standalone history import/export ile proje zarfı round-trip sınırlarını tekrar değerlendir; yalnızca kanıtlanmış bir boşluk varsa yeni dilim aç.
+1. DOM-162 — teklif fiyat snapshot istek zarfı descriptor güvenliğini exact-SHA CI/QA/Pages ile doğrula; başarısızsa getter/Proxy regresyonlarını düzelt.
+2. INT-003 — UI sahibinin JSON v2 parser/save/open entegrasyonunu tamamlamasını takip et; frontend dosyalarına dokunma ve draft PR #206'yı merge etme.
+3. DOM-153 — INT-003 tamamlandıktan sonra editör append → save → reopen → append round-trip sözleşmesini test et.
+4. DOM-163 — yalnızca yeni kanıt varsa kalan public quote snapshot giriş noktalarında nested metadata/reflection güvenliği boşluklarını incele.
+5. PERF-001 / INT-002 — specialist-owned adapter/profile işleri için gerçek etkin branch/PR ve ölçüm kanıtı bekle; disabled job'ı varmış gibi sunma.
 
 ## DOM-159 — Legacy v1 zarfı reflection hatalarını fail-closed yönet
 
@@ -1849,3 +1851,21 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 
 **Limits / next dependency:** This is a domain API, not editor UI wiring. INT-003 PR #206 remains draft and defers App integration; after it is completed, the UI owner must pass the current envelope. No machine/CNC output or physical production claim is introduced. Next domain work after this slice: DOM-153 editor append → save → reopen → append contract, but only after INT-003.
 
+## DOM-162 — Teklif fiyat snapshot istek zarfı descriptor güvenliği (25 Kasım 2026)
+
+**Kullanıcı akışı:** Teklif oluşturulurken tarih, fiyat/tarife katalog sürümleri, açık kenar bandı fiyatlama modu ve isteğe bağlı malzeme maliyet temeli domain snapshot API'sine verilir. Geçersiz metadata, beklenmeyen getter çalıştırmadan veya kısmi teklif üretmeden engellenmelidir.
+
+**Bulgu:** `createProjectQuotePricingSnapshot` dış request ve metadata kayıtlarını `Object.keys` + doğrudan property access ile okuyordu. Own accessor'lar çalışabilir, Object.prototype üzerinden miras alınan isteğe bağlı pricing getter'ı eksik alanı etkileyebilir, Proxy reflection hataları blocked sonuç yerine exception dışarı sızdırabilirdi.
+
+**Dikey dilim:** Request zarfı, katalog sürümü ve material-cost-basis kayıtları own enumerable data descriptor üzerinden kopyalanıp null-prototype nesnelere normalize edilir. Accessor, symbol, non-enumerable alan ve custom prototype fail-closed reddedilir. Prototype/ownKeys/descriptor reflection hataları blocked döner; quoteSummary ve snapshot null kalır.
+
+**Kabul kriterleri**
+- Own request, catalog-version ve material-cost-basis accessor getter çağrı sayısı sıfırdır.
+- Object.prototype inherited optional pricing getter'ı çağrılmaz ve eksik alanı dolduramaz.
+- getPrototypeOf, ownKeys ve getOwnPropertyDescriptor Proxy trap hataları public API dışına sızmaz; partial quote/snapshot dönmez.
+- Normal JSON nesneleri ve null-prototype kayıtlar aynı geçerli teklif sonucunu üretmeye devam eder.
+- Fiyat/para birimi/yuvarlama/mm/adet kuralları, JSON v1/v2 ve roll-vs-length seçimi değişmez.
+
+**Sınır:** Production report, price table, work-item, roll array ve stock-sheet report içeriği kendi downstream domain validator'larının sorumluluğunda kalır; bu slice bütün iç içe payload'ları recursive sanitize ettiğini iddia etmez. CNC/makine veya fiziksel atölye doğrulaması değildir.
+
+**Durum:** Implementation committed; exact-SHA CI/QA/Pages pending.
