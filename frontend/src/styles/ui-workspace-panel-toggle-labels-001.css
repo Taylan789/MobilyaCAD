@@ -40,3 +40,64 @@
     outline-offset: 2px !important;
   }
 }
+
+
+/* UI-WORKSPACE-PANEL-TOGGLE-FEEDBACK-001 — clear dock state and predictable hit targets. */
+.cad-app .studio-panel-toggle {
+  min-height: 34px !important;
+  border-radius: 4px !important;
+  transition: color 140ms ease, background-color 140ms ease, border-color 140ms ease, transform 140ms ease;
+}
+
+.cad-app .studio-panel-toggle:hover:not(:disabled) {
+  color: #eef4f7 !important;
+  background: #2d424d !important;
+  border-color: #69889b !important;
+}
+
+.cad-app .studio-panel-toggle[aria-pressed="true"] {
+  color: #f1f6f8 !important;
+  background: #3a5667 !important;
+  border-color: #7899ad !important;
+  box-shadow: inset 0 0 0 1px rgba(145, 180, 202, 0.12) !important;
+}
+
+.cad-app .studio-panel-toggle:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.cad-app .studio-panel-toggle:focus-visible {
+  outline: 2px solid #a9c7d8 !important;
+  outline-offset: 2px !important;
+}
+
+@media (max-width: 1100px) {
+  .cad-app .studio-panel-toggle {
+    width: 32px !important;
+    min-width: 32px !important;
+    min-height: 34px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cad-app .studio-panel-toggle {
+    transition: none !important;
+  }
+
+  .cad-app .studio-panel-toggle:active:not(:disabled) {
+    transform: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .cad-app .studio-panel-toggle[aria-pressed="true"] {
+    color: HighlightText !important;
+    background: Highlight !important;
+    border-color: Highlight !important;
+    box-shadow: none !important;
+  }
+
+  .cad-app .studio-panel-toggle:active:not(:disabled) {
+    transform: none;
+  }
+}
