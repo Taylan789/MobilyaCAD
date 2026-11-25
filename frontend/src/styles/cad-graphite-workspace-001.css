@@ -223,3 +223,102 @@
   .cad-inspector-scroll { padding-inline: 10px !important; }
   .cad-viewport-toolbar { padding-inline: 10px !important; }
 }
+
+
+/* UI-INSPECTOR-EMPTY-STATE-001 — compact, actionable no-selection context. */
+@media (min-width: 761px) {
+  .cad-app .cad-inspector .cad-inspector-empty {
+    display: grid !important;
+    grid-template-columns: 34px minmax(0, 1fr) !important;
+    grid-template-rows: auto auto;
+    align-items: center;
+    gap: 4px 10px !important;
+    min-height: 82px;
+    margin: 14px 2px !important;
+    padding: 11px 12px !important;
+    border: 1px dashed #405b6b !important;
+    border-left: 2px solid #7fa8c1 !important;
+    border-radius: 8px !important;
+    background: linear-gradient(145deg, rgba(40, 62, 76, .58), rgba(20, 32, 40, .72)) !important;
+    text-align: left;
+  }
+
+  .cad-app .cad-inspector .cad-inspector-empty > div {
+    display: grid !important;
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    width: 34px !important;
+    height: 34px !important;
+    place-items: center;
+    border-radius: 6px !important;
+    background: #2b4658 !important;
+    border: 1px solid #49677a !important;
+  }
+
+  .cad-app .cad-inspector .cad-inspector-empty > div svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .cad-app .cad-inspector .cad-inspector-empty > strong {
+    grid-column: 2;
+    grid-row: 1;
+    margin: 0;
+    color: #e2edf3 !important;
+    font-size: 10px;
+    font-weight: 720;
+    line-height: 1.25;
+  }
+
+  .cad-app .cad-inspector .cad-inspector-empty > p {
+    grid-column: 2;
+    grid-row: 2;
+    max-width: 100%;
+    margin: 0;
+    color: #9aafbd !important;
+    font-size: 8px;
+    line-height: 1.45;
+  }
+}
+
+@media (min-width: 761px) and (forced-colors: active) {
+  .cad-app .cad-inspector .cad-inspector-empty {
+    border-color: CanvasText !important;
+    border-left-color: Highlight !important;
+    background: Canvas !important;
+  }
+
+  .cad-app .cad-inspector .cad-inspector-empty > div {
+    border-color: CanvasText !important;
+    background: Canvas !important;
+  }
+
+  .cad-app .cad-inspector .cad-inspector-empty :is(strong, p) {
+    color: CanvasText !important;
+  }
+}
+
+
+/* Compact desktop inspector rail: preserve the two-column empty state at 761–900px. */
+@media (min-width: 761px) and (max-width: 900px) {
+  .cad-app .cad-inspector .cad-inspector-empty {
+    grid-template-columns: 30px minmax(0, 1fr) !important;
+    gap: 3px 8px !important;
+    min-height: 76px;
+    margin: 10px 1px !important;
+    padding: 9px 10px !important;
+  }
+
+  .cad-app .cad-inspector .cad-inspector-empty > div {
+    width: 30px !important;
+    height: 30px !important;
+  }
+
+  .cad-app .cad-inspector .cad-inspector-empty > strong {
+    font-size: 9px;
+  }
+
+  .cad-app .cad-inspector .cad-inspector-empty > p {
+    font-size: 7.5px;
+  }
+}
