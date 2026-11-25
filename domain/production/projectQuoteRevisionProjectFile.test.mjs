@@ -765,3 +765,104 @@ test("quote pricing snapshot v2 rejects tampered stock group arithmetic", () => 
   assert.equal(result.project, null);
   assert.match(result.diagnostics[0], /levha adedi × birim fiyatla eşleşmiyor/);
 });
+
+
+test("DOM-170 stock-sheet v2 basis, category totals and line provenance survive standalone import, restore and append", () => {
+  const snapshot = createStockBasisSnapshot();
+  const first = appendProjectQuoteRevisionToProjectFile(
+    createV2Project(),
+    createRevision({ pricingSnapshot: snapshot })
+  );
+  assert.equal(first.status, "ready", first.diagnostics.join(" | "));
+  assert.ok(first.project);
+  assert.ok(first.history);
+
+  const assertStockBasisSnapshot = (pricingSnapshot) => {
+    assert.equal(pricingSnapshot.schemaVersion, 2);
+    const basis = pricingSnapshot.materialCostBasis;
+    assert.ok(basis);
+    assert.equal(basis.basis, "stock-sheet-purchase");
+    const costSummary = pricingSnapshot.quoteSummary.costSummary;
+    assert.ok(costSummary);
+    assert.equal(basis.materialCategoryTotalMinor, basis.panelMaterialCostMinor + basis.edgeBandingCostMinor);
+    assert.deepEqual(basis.categoryTotalsMinor, {
+      ...costSummary.categoryTotalsMinor,
+      material: basis.materialCategoryTotalMinor
+    });
+    assert.equal(
+      basis.grandTotalMinor,
+      Object.values(basis.categoryTotalsMinor).reduce((sum, value) => sum + value, 0)
+    );
+    assert.deepEqual(
+      pricingSnapshot.quoteSummary.lineSources.map((source) => source.costLineId),
+      costSummary.lines.map((line) => line.id)
+    );
+    assert.deepEqual(
+      costSummary.lines
+        .filter((line) => line.category === "waste" || line.category === "profit")
+        .map((line) => ({ id: line.id, category: line.category, sourceReference: line.sourceReference })),
+      [
+        { id: "waste-project-file", category: "waste", sourceReference: "atolye-fire-hesabi:v1" },
+        { id: "profit-project-file", category: "profit", sourceReference: "teklif-kalemleri:rev1" }
+      ]
+    );
+    const group = basis.stockSheetGroups[0];
+    assert.ok(group);
+    assert.deepEqual(group.sourcePartIds, ["part-a"]);
+    assert.equal(group.sourceReference, "stock-sheet-price:v1");
+  };
+
+  assertStockBasisSnapshot(first.history.revisions[0].pricingSnapshot);
+  const serialized = serializeProjectQuoteRevisionHistoryFile(first.history);
+  assert.equal(serialized.status, "ready", serialized.diagnostics.join(" | "));
+  assert.ok(serialized.json);
+
+  const target = createV2Project();
+  const targetBefore = structuredClone(target);
+  const imported = importProjectQuoteRevisionHistoryFileIntoProject(target, serialized.json);
+  assert.equal(imported.status, "ready", imported.diagnostics.join(" | "));
+  assert.ok(imported.project);
+  assert.ok(imported.history);
+  assert.deepEqual(imported.history, first.history);
+  assert.deepEqual(imported.project.quoteRevisionHistory, first.history);
+  assert.deepEqual(target, targetBefore);
+
+  const restoredProject = JSON.parse(JSON.stringify(imported.project));
+  const restored = readProjectQuoteRevisionHistoryFromProjectFile(restoredProject);
+  assert.equal(restored.status, "ready", restored.diagnostics.join(" | "));
+  assert.deepEqual(restored.history, first.history);
+  assertStockBasisSnapshot(restored.history.revisions[0].pricingSnapshot);
+
+  const second = appendProjectQuoteRevisionToProjectFile(
+    restoredProject,
+    createRevision({
+      revisionId: "quote-r2",
+      createdAt: "2026-11-18T02:00:00+03:00",
+      pricingSnapshot: createStockBasisSnapshot()
+    })
+  );
+  assert.equal(second.status, "ready", second.diagnostics.join(" | "));
+  assert.ok(second.project);
+
+  const reloadedProject = JSON.parse(JSON.stringify(second.project));
+  const reloaded = readProjectQuoteRevisionHistoryFromProjectFile(reloadedProject);
+  assert.equal(reloaded.status, "ready", reloaded.diagnostics.join(" | "));
+  assert.deepEqual(reloaded.history?.revisions.map((revision) => revision.revisionId), ["quote-r1", "quote-r2"]);
+  assert.deepEqual(reloaded.history?.revisions.map((revision) => revision.previousRevisionId), [null, "quote-r1"]);
+  for (const revision of reloaded.history?.revisions ?? []) {
+    assertStockBasisSnapshot(revision.pricingSnapshot);
+  }
+
+  const comparison = compareProjectQuoteRevisions(reloaded.history, "quote-r1", "quote-r2");
+  assert.equal(comparison.status, "ready", comparison.diagnostics.join(" | "));
+  assert.ok(comparison.comparison?.stockSheetGroupComparison);
+  assert.equal(comparison.comparison?.stockSheetGroupComparison.toRevisionId, "quote-r2");
+
+  const sourceAudit = calculateProjectQuoteRevisionSourceMapAudit(reloaded.history);
+  assert.equal(sourceAudit.status, "ready", sourceAudit.diagnostics.join(" | "));
+  assert.equal(sourceAudit.audit?.revisions.length, 2);
+  for (const revisionAudit of sourceAudit.audit?.revisions ?? []) {
+    assert.equal(revisionAudit.counts.stockSheetGroupCount, 1);
+    assert.deepEqual(revisionAudit.stockSheetGroups[0].sourcePartIds, ["part-a"]);
+  }
+});

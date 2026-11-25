@@ -1549,3 +1549,12 @@ The stock-sheet-purchase quote path must keep the purchased panel-sheet amount s
 The regression independently reconciles the line-only quote totals and source mappings: labor and operation lines retain their tariff IDs and original quantities; quote adjustments retain their waste / profit categories and explicit source references; the roll line retains its Part/furniture IDs, roll count, purchased millimetres and plan/price references. A half-minor-unit operation fixture verifies the existing half-up rounding rule. The stock-sheet group costs sum to the panel purchase amount, which is added once to the material category and grand total without creating a duplicate panel consumption line.
 
 All prices, currencies, durations, tariffs and adjustments in the test are explicit synthetic fixture inputs, not defaults or workshop price recommendations. The dated consumption/tariff catalogue metadata remains mandatory where source types require it. This contract does not complete the UI-owned JSON v2 editor save/open flow and does not certify physical production, CNC coordinates or machine output.
+
+
+## DOM-170 — v2 stock-sheet basis through revision persistence
+
+The domain persistence path must preserve a schema-version-2 quote pricing snapshot when it is appended to a project JSON v2 envelope, serialized as a standalone quote-history file, imported into an empty project with the same `projectId`, restored through project JSON stringify/parse, and followed by another append.
+
+The regression verifies that the selected `stock-sheet-purchase` basis, stock-sheet group identity and Part/source references, panel/edge-band/material category totals, grand total, and line-level quote provenance survive every boundary. The base quote's waste/profit lines keep their original category and explicit `sourceReference`; their `costLineId` mapping remains aligned with the cost lines. A subsequent revision keeps the ordered `previousRevisionId` chain and remains comparable/auditable without synthesizing stock-sheet cost lines.
+
+The test uses explicit synthetic fixture amounts only. It does not infer supplier prices, currencies, yield, CNC operations or physical production standards. JSON v1 legacy history behavior remains unchanged. This domain regression does not claim the UI-owned editor startup/save/open wiring is complete; INT-003 remains with the frontend owner.
