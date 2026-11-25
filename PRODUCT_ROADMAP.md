@@ -1971,3 +1971,25 @@ The first implementation SHA was not published after QA found one inherited-gett
 
 **Sınır:** Bu domain parity testi, UI-owned INT-003 editor save/open entegrasyonunun tamamlandığı anlamına gelmez. Fiziksel rulo/atölye/CNC doğrulaması değildir.
 
+
+
+## 25 Kasım 2026 17:07 TRT — DOM-168 (implementation submitted; exact-SHA verification pending)
+
+**Kullanıcı akışı:** Atölye aynı JSON v2 projesini kullanarak kenar bandı rulo fiyatını doğrudan girdilerle veya kayıtlı proje uzantısından hesaplayabilir. Panel malzemesi için levha satın alma temeli seçildiğinde iki yol aynı teklif ve kaynak izini üretmelidir.
+
+**Kabul kriterleri**
+- Doğrudan rulo listeleri ve JSON v2 kayıtlı rulo uzantısı, `stock-sheet-purchase` temelinde aynı tam quoteSummary ve immutable v2 snapshot üretir.
+- Levha gruplarının Part kaynakları, adetleri, birim fiyatları, grup maliyetleri ve para birimi toplam panel satın alma maliyetiyle uzlaşır.
+- Rulo satırı Part/furniture kimlikleri, rulo adedi, satın alınan mm, plan ve fiyat referanslarını korur.
+- Panel satın alma maliyeti line-level quote'a tekrar eklenmez; birleşik material/grand total panel satın alma + kenar bandı + diğer açık maliyetleri bir kez sayar.
+- JSON v1, UI save/open, CNC/makine standardı ve fiyat varsayımları değişmez.
+
+**Dikey dilim:** `projectQuotePricingSnapshot.test.mjs` içinde doğrudan rulo girdisi ile JSON v2 kayıtlı rulo uzantısı, gerçek `stock-sheet-purchase` raporu ile birlikte karşılaştırılır. Tam snapshot eşitliğine ek olarak stock group Part/cost reconciliation ve edge-band roll line provenance bağımsız assert edilir.
+
+**Durum:** Implementation/test commit'i oluşturuluyor; exact-SHA CI, QA ve Pages doğrulaması henüz bekleniyor. UI-owned INT-003 PR #206 draft kalır; fiziksel rulo/atölye/CNC uygunluğu bu otomatik testin kapsamı değildir.
+
+**Sıradaki görevler**
+1. DOM-169 — stock-sheet + roll maliyetlerine explicit labor/operation tarifeleri ve quote adjustment satırlarını ekleyerek kategori/genel toplamların tekil uzlaşmasını doğrula.
+2. INT-003 — UI sahibinin JSON v2 envelope startup/new/save/open entegrasyonu; PR #206 draft ve UI sahipliğinde kalır.
+3. DOM-153 — INT-003 tamamlandıktan sonra gerçek editör append → save → reopen → append revision round-trip.
+4. Performans kapısı — ana bundle bölme, viewport p95 ve bellek ölçümü için tekrarlanabilir baseline; adapter/benchmark sahipliği korunur.

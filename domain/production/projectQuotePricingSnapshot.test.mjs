@@ -474,6 +474,102 @@ test("saved JSON v2 and direct roll inputs produce identical quote totals and Pa
   }
 });
 
+test("saved JSON v2 and direct roll inputs preserve stock-sheet purchase basis and separate edge-band provenance", () => {
+  const productionReport = createEdgeBandingReport();
+  const stockSheetPurchaseReport = createStockSheetPurchaseReport(productionReport);
+  const common = {
+    productionReport,
+    consumptionPriceTable: [],
+    workItems: [],
+    tariffTable: [],
+    consumptionPriceList: null,
+    laborOperationTariffList: null,
+    edgeBandingPricingMode: "roll",
+    materialCostBasis: { basis: "stock-sheet-purchase", stockSheetPurchaseReport }
+  };
+  const directRollPricing = {
+    edgeBandingRollSpecs: [{
+      edgeBandingId: "pvc-a",
+      rollLengthMm: 100000,
+      sourceReference: "roll-spec:v1"
+    }],
+    edgeBandingRollPriceTable: [{
+      edgeBandingId: "pvc-a",
+      unit: "rulo",
+      unitPriceMinor: 15000,
+      currencyCode: "TRY",
+      sourceReference: "roll-prices:v1"
+    }]
+  };
+  const savedProject = createProjectFileWithRollPricing();
+  const direct = createProjectQuotePricingSnapshot(createInput({
+    ...common,
+    ...directRollPricing
+  }));
+  const saved = createProjectQuotePricingSnapshot(createInput({
+    ...common,
+    projectFile: savedProject
+  }));
+
+  assert.equal(direct.status, "ready", direct.diagnostics.join("; "));
+  assert.equal(saved.status, "ready", saved.diagnostics.join("; "));
+  assert.deepEqual(saved.quoteSummary, direct.quoteSummary);
+  assert.deepEqual(saved.snapshot, direct.snapshot);
+
+  const snapshot = saved.snapshot;
+  const basis = snapshot?.materialCostBasis;
+  assert.ok(snapshot);
+  assert.ok(basis);
+  assert.equal(snapshot.schemaVersion, 2);
+  assert.equal(basis.basis, "stock-sheet-purchase");
+  assert.equal(basis.currencyCode, "TRY");
+  assert.equal(
+    basis.panelMaterialCostMinor,
+    stockSheetPurchaseReport.result.totals.stockSheetPurchaseCostMinor
+  );
+  assert.equal(basis.materialSourceCount, stockSheetPurchaseReport.result.groupCount);
+  assert.deepEqual(
+    basis.stockSheetGroups[0].sourcePartIds,
+    productionReport.result.parts.map(part => part.id).sort()
+  );
+  assert.equal(basis.stockSheetGroups[0].sourceReference, "stock-sheet-price:v1");
+  assert.equal(
+    basis.stockSheetGroups.reduce((sum, group) => sum + group.stockSheetCostMinor, 0),
+    basis.panelMaterialCostMinor
+  );
+  assert.equal(
+    basis.stockSheetGroups.reduce((sum, group) => sum + group.sheetCount, 0),
+    stockSheetPurchaseReport.result.totals.sheetCount
+  );
+  assert.ok(basis.stockSheetGroups.every(group => group.currencyCode === "TRY"));
+
+  const rollLine = snapshot.quoteSummary.costSummary?.lines.find(line => line.unit === "rulo");
+  const rollSource = snapshot.quoteSummary.lineSources.find(source => source.unit === "rulo");
+  assert.ok(rollLine);
+  assert.ok(rollSource);
+  assert.equal(rollLine.quantity, 1);
+  assert.equal(rollLine.lineTotalMinor, 15000);
+  assert.equal(snapshot.quoteSummary.costSummary?.lines.length, 1);
+  assert.deepEqual(rollSource.sourcePartIds, ["snapshot-cabinet-1-left-side"]);
+  assert.deepEqual(rollSource.furnitureIds, ["snapshot-cabinet-1"]);
+  assert.equal(rollSource.rollCount, 1);
+  assert.equal(rollSource.purchasedLengthMm, 100000);
+  assert.equal(rollSource.planSourceReference, "roll-spec:v1");
+  assert.equal(rollSource.priceSourceReference, "roll-prices:v1");
+
+  assert.equal(basis.edgeBandingCostMinor, rollLine.lineTotalMinor);
+  assert.equal(
+    basis.materialCategoryTotalMinor,
+    basis.panelMaterialCostMinor + basis.edgeBandingCostMinor
+  );
+  assert.equal(basis.categoryTotalsMinor.material, basis.materialCategoryTotalMinor);
+  assert.equal(basis.grandTotalMinor, basis.materialCategoryTotalMinor);
+  assert.equal(
+    basis.grandTotalMinor - snapshot.quoteSummary.costSummary.grandTotalMinor,
+    basis.panelMaterialCostMinor
+  );
+});
+
 test("saved project roll pricing requires explicit roll mode and rejects legacy, malformed or duplicate sources", () => {
   const projectFile = createProjectFileWithRollPricing();
   const missingMode = createProjectQuotePricingSnapshot(createInput({ projectFile }));

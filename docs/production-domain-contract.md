@@ -1531,3 +1531,12 @@ The quote snapshot boundary accepts exactly one roll-pricing source: either dire
 
 Regression coverage compares the complete quoteSummary and immutable snapshot for direct versus saved inputs in both the line-only quote path and the net-consumption material-cost-basis path. Equality covers cost totals, roll quantities and line amounts, Part/furniture source IDs, roll-plan source references and price-list source references. Prices, currency, roll length and allowance remain explicit user inputs; no roll standard, price or CNC operation is inferred. The editor's persistent JSON v2 save/open wiring remains UI-owned and is not claimed by this domain test.
 
+
+
+## DOM-168 — Saved/direct roll parity with stock-sheet-purchase basis
+
+With explicit `edgeBandingPricingMode: "roll"`, the quote snapshot API must produce the same immutable result when roll specifications/prices are supplied directly or read from the validated JSON v2 `edgeBandingRollPricing` envelope, including when the selected panel-material basis is `stock-sheet-purchase`.
+
+The stock-sheet purchase amount remains derived only from the validated nesting purchase report and is preserved in `materialCostBasis.stockSheetGroups` with stable group identity, normalized millimetre thickness, source Part IDs, sheet count, explicit per-sheet price, group cost, currency and price-source reference. Panel net-consumption lines remain excluded from the base quote in this mode. The edge-band roll remains an independent quote line whose Part/furniture IDs, roll count, purchased length and plan/price references are preserved. The combined material and grand totals reconcile the stock-sheet panel cost plus the edge-band roll cost without adding a synthetic panel line or double-counting either source.
+
+The regression compares the complete `quoteSummary` and v2 snapshot for direct and saved inputs, then independently checks stock-group Part/cost coverage and roll-line provenance. This is a domain snapshot contract only: it does not complete the UI-owned editor save/open integration, infer prices or roll standards, or validate physical workshop/CNC output.
