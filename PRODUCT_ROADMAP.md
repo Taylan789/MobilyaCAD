@@ -1773,7 +1773,7 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 
 ## DOM-158 — JSON v2 standalone history import preflight
 
-**Durum:** IMPLEMENTED — exact-SHA CI/QA/Pages verification pending.
+**Durum:** VERIFIED — [commit 8b5d2fda](https://github.com/Taylan789/MobilyaCAD/commit/8b5d2fdacc06825b568c944857a1da7aa14357e4); [CI #45542323197](https://github.com/Taylan789/MobilyaCAD/actions/runs/45542323197), [QA #45542323156](https://github.com/Taylan789/MobilyaCAD/actions/runs/45542323156) and [Pages #45542323163](https://github.com/Taylan789/MobilyaCAD/actions/runs/45542323163) all successful. QA 259 frontend + 745 domain tests; strict TypeScript, lint 36 warnings/0 errors, production build and production audit 0 vulnerabilities; exact-SHA test-site deployment.
 
 - Hedef proje kendi `quoteRevisionHistory` alanını taşıyorsa alanın own enumerable data descriptor'ı okunur; accessor getter çalıştırılmaz.
 - Geçmiş, hedef `projectId` ile doğrulanır. Dolu geçmiş varsa standalone dosya parse edilmeden ve 16 MiB'ye kadar çıkabilen diğer proje alanları kopyalanmadan import engellenir.

@@ -1,10 +1,10 @@
-## 25 Kasım 2026 06:43 TRT — DOM-158 IMPLEMENTED (verification pending)
+## 25 Kasım 2026 06:48 TRT — DOM-158 VERIFIED
 
-- Base `dev/github-work` HEAD: `9c18bcea5d9b27321ef671d20da380e4ce496eab`. Code/test commit SHA and exact-SHA Actions links will be filled after the commit and workflow results are available.
+- Base `dev/github-work` HEAD: `9c18bcea5d9b27321ef671d20da380e4ce496eab`. Code/test commit: [`8b5d2fda`](https://github.com/Taylan789/MobilyaCAD/commit/8b5d2fdacc06825b568c944857a1da7aa14357e4).
 - Import preflight: the target v2 envelope's own enumerable data descriptor for `quoteRevisionHistory` is inspected and validated before parsing the standalone history file or cloning unrelated project fields. A non-empty valid history blocks immediately; project identity mismatch and malformed/accessor-backed histories fail closed.
 - Regressions: oversized envelope + non-empty history returns the existing-history blocker before the 16 MiB limit; own accessor getter remains uncalled; explicit empty-history import remains ready; JSON v1 import remains blocked. No partial project/history and no source mutation.
 - Changed files: `domain/production/projectQuoteRevisionProjectFile.ts`, `domain/production/projectQuoteRevisionProjectFileResourceLimits.test.mjs`, `docs/production-domain-contract.md`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`.
-- Verification: pending exact-SHA CI, QA, production build and Pages deployment. No result is claimed until Actions completes.
+- Exact-SHA CI [#45542323197](https://github.com/Taylan789/MobilyaCAD/actions/runs/45542323197), QA [#45542323156](https://github.com/Taylan789/MobilyaCAD/actions/runs/45542323156) and Pages [#45542323163](https://github.com/Taylan789/MobilyaCAD/actions/runs/45542323163) all succeeded. QA: 259/259 frontend + 745/745 domain tests; strict shared-domain TypeScript, lint 36 warnings/0 errors, TypeScript + production build, production dependency audit 0 vulnerabilities. Exact-SHA deployment to https://taylan789.github.io/MobilyaCAD/ completed. Build retains the existing ~1.70 MB minified entry-chunk warning.
 - Known limits: JavaScript Proxy reflection traps remain outside descriptor-safety guarantees; this is not editor JSON v2 save/open integration or CNC/physical-production validation. No `frontend/**`, adapter/performance-owned files, secrets/settings or `main` changes.
 - Next: UI-owned INT-003 parser/save/open integration; then DOM-153 editor append → save → reopen → append contract tests.
 
