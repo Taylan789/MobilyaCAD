@@ -70,3 +70,91 @@
     color: CanvasText;
   }
 }
+
+/* UI-PRODUCTION-DOCK-EMPTY-DETAIL-002 — compact, left-aligned empty registers for parts and materials. */
+.cad-app .cad-dock-empty:not(.cad-dock-empty--waiting):not(.cad-dock-empty--clear) {
+  display: grid;
+  min-height: 76px;
+  grid-template-columns: 28px minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  align-content: center;
+  justify-content: start;
+  gap: 4px 12px;
+  padding: 10px 16px;
+  border: 1px solid rgba(116, 151, 173, .22);
+  border-left: 2px solid #789eb6;
+  border-radius: 0;
+  background: linear-gradient(100deg, rgba(42, 65, 80, .22), rgba(21, 34, 43, .08));
+  text-align: left;
+}
+
+.cad-app .cad-dock-empty:not(.cad-dock-empty--waiting):not(.cad-dock-empty--clear) > svg {
+  grid-column: 1;
+  grid-row: 1 / span 2;
+  width: 23px;
+  height: 23px;
+  align-self: center;
+  color: #91b4c9;
+  stroke-width: 1.7;
+}
+
+.cad-app .cad-dock-empty:not(.cad-dock-empty--waiting):not(.cad-dock-empty--clear) > strong {
+  grid-column: 2;
+  grid-row: 1;
+  color: #e0eaf0;
+  font-size: 12px;
+  font-weight: 720;
+  line-height: 1.25;
+}
+
+.cad-app .cad-dock-empty:not(.cad-dock-empty--waiting):not(.cad-dock-empty--clear) > span:last-child {
+  grid-column: 2;
+  grid-row: 2;
+  max-width: 600px;
+  color: #91a5b1;
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+@media (max-width: 700px) {
+  .cad-app .cad-dock-empty:not(.cad-dock-empty--waiting):not(.cad-dock-empty--clear) {
+    min-height: 68px;
+    grid-template-columns: 24px minmax(0, 1fr);
+    gap: 4px 9px;
+    padding: 9px 12px;
+  }
+
+  .cad-app .cad-dock-empty:not(.cad-dock-empty--waiting):not(.cad-dock-empty--clear) > svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .cad-app .cad-dock-empty:not(.cad-dock-empty--waiting):not(.cad-dock-empty--clear) > span:last-child {
+    font-size: 9px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cad-app .cad-dock-empty:not(.cad-dock-empty--waiting):not(.cad-dock-empty--clear) {
+    transition: none;
+    animation: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .cad-app .cad-dock-empty:not(.cad-dock-empty--waiting):not(.cad-dock-empty--clear) {
+    color: CanvasText;
+    border: 1px solid CanvasText;
+    border-left: 3px solid Highlight;
+    background: Canvas;
+  }
+
+  .cad-app .cad-dock-empty:not(.cad-dock-empty--waiting):not(.cad-dock-empty--clear) > svg {
+    color: Highlight;
+  }
+
+  .cad-app .cad-dock-empty:not(.cad-dock-empty--waiting):not(.cad-dock-empty--clear) > strong,
+  .cad-app .cad-dock-empty:not(.cad-dock-empty--waiting):not(.cad-dock-empty--clear) > span:last-child {
+    color: CanvasText;
+  }
+}
