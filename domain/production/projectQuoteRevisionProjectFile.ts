@@ -1,5 +1,6 @@
 import {
   appendProjectQuoteRevision,
+  getProjectQuoteRevisionAppendCapacityBlocker,
   validateProjectQuoteRevisionHistory,
   type ProjectQuoteRevisionHistory
 } from "./projectQuoteRevision.ts";
@@ -428,6 +429,24 @@ export function appendProjectQuoteRevisionToProjectFile(
   if (envelope.status === "legacy") {
     return blockedAppend(
       "Teklif revizyonu proje JSON v1 dosyasına eklenemez; önce kararlı projectId içeren v2 proje migrasyonu gerekir."
+    );
+  }
+
+  try {
+    const historyDescriptor = Object.getOwnPropertyDescriptor(
+      envelope.project,
+      PROJECT_QUOTE_REVISION_HISTORY_FIELD
+    );
+    if (historyDescriptor) {
+      if (!historyDescriptor.enumerable || !("value" in historyDescriptor)) {
+        return blockedAppend("Proje zarfı JSON dışı nesne alanı içeriyor.");
+      }
+      const capacityBlocker = getProjectQuoteRevisionAppendCapacityBlocker(historyDescriptor.value);
+      if (capacityBlocker !== null) return blockedAppend(capacityBlocker);
+    }
+  } catch (error) {
+    return blockedAppend(
+      error instanceof Error ? error.message : "Proje teklif revizyon kapasitesi güvenli biçimde doğrulanamadı."
     );
   }
 

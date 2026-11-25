@@ -1443,3 +1443,12 @@ The check is intentionally append-specific: `validateProjectQuoteRevisionHistory
 
 
 **DOM-156 doğrulaması:** [CI #45510837681](https://github.com/Taylan789/MobilyaCAD/actions/runs/45510837681), [QA #45510837534](https://github.com/Taylan789/MobilyaCAD/actions/runs/45510837534) ve [Pages #45510837542](https://github.com/Taylan789/MobilyaCAD/actions/runs/45510837542) aynı commit `e4daf7fad89aa5ef15ee2f85f3f00e14ce42894e` için başarılıdır. QA 245 frontend + 741 domain testi, strict TypeScript, lint 36 uyarı/0 hata, production build ve production-only audit 0 bulgu verdi. `npm ci` tam bağımlılık ağacında ayrıca 4 orta seviye bulgu raporladı; bu turda bağımlılık yükseltmesi yapılmadı.
+
+
+## DOM-157 — Project-v2 append capacity preflight
+
+`appendProjectQuoteRevisionToProjectFile` now inspects the project's own enumerable data descriptor for `quoteRevisionHistory` and uses the shared append-capacity guard on its own `revisions` array length before cloning the full project envelope. If 2,000 revisions already exist, the append returns `blocked` before traversing nested revision entries, reading the incoming revision, or measuring/copying the potentially 16 MiB project envelope.
+
+This is append-only preflight: the normal history validator continues to accept a valid 2,000-revision history for read/export, while a further append is rejected. Missing history and below-capacity histories continue through the existing immutable clone, schema validation and final 16 MiB/64-level resource checks. JSON v1 behavior is unchanged. Accessor-backed or non-enumerable project history fields fail closed without invoking getters; JavaScript Proxy reflection traps remain outside this guarantee.
+
+The DOM-157 regression uses an envelope already over the 16 MiB limit together with a full sparse revision array whose first entry and incoming revision identifier are accessor-backed. The result must report the revision-cap blocker first, return no partial project/history, and leave both getter counters at zero.

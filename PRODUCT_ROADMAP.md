@@ -1761,7 +1761,17 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 - Geriye uyumluluk: JSON v1/v2 şemaları, standalone dosya byte sınırı, mm/adet/maliyet hesapları değişmez.
 - Sınır: Proxy reflection trap'leri JavaScript descriptor API'lerinin doğası gereği engellenemez. Fiziksel CNC/atölye doğrulaması bu güvenlik dilimiyle ilgili değildir.
 
+## DOM-157 — JSON v2 proje append kapasite ön kontrolü
+
+**Durum:** IMPLEMENTED — exact-SHA CI/QA/Pages verification pending.
+
+- Project v2 append now reads the own data descriptor for `quoteRevisionHistory` and checks the existing `revisions` array length before copying the complete project envelope.
+- At the 2,000-revision cap, the operation returns `blocked` before traversing nested revision entries, reading the incoming revision, or reaching the 16 MiB envelope clone.
+- Acceptance: an oversized envelope plus a full sparse history returns the revision-cap diagnostic first; existing-entry and incoming-revision getters remain uncalled; no partial project/history is returned and the source references remain unchanged.
+- Compatibility: valid 2,000-revision histories remain readable/exportable; only an additional append is blocked. JSON v1, standalone 1 MiB history files, mm/quantity/cost calculations and CNC/adapter contracts are unchanged.
+- Boundary: proxy reflection traps remain outside the guarantee; physical CNC validation is unrelated to this data-safety slice.
+
 **Sıradaki küçük işler**
-1. DOM-157 — aynı kapasite preflight'ını project-v2 append girişinde, 16 MiB zarf kopyasından önce güvenli biçimde uygulamak.
+1. DOM-158 — project-v2 standalone history import: reject a non-empty target history before cloning a potentially large envelope; preserve empty-history import and v1 legacy behavior.
 2. INT-003 — UI sahibinin JSON v2 parser/save/open entegrasyonunu tamamlamasını takip etmek; frontend dosyalarına dokunmamak.
 3. DOM-153 — entegrasyon hazır olduğunda editör append → save → reopen → append domain sözleşmesini exact-SHA testleriyle doğrulamak.

@@ -1050,22 +1050,30 @@ function rejectExcessiveRevisionHistoryBeforeClone(value: Record<string, unknown
  * Rejects an append that would exceed the revision cap before validating/copying
  * the existing entries or reading the incoming revision payload.
  */
-function rejectFullRevisionHistoryBeforeAppend(value: unknown): void {
-  if (!isRecord(value)) return;
-  const revisionsDescriptor = Object.getOwnPropertyDescriptor(value, "revisions");
-  if (!revisionsDescriptor || !revisionsDescriptor.enumerable || !("value" in revisionsDescriptor)) return;
-  const revisions = revisionsDescriptor.value;
-  if (!Array.isArray(revisions)) return;
-  const lengthDescriptor = Object.getOwnPropertyDescriptor(revisions, "length");
-  const length = lengthDescriptor && "value" in lengthDescriptor ? lengthDescriptor.value : undefined;
-  if (
-    typeof length === "number" &&
-    Number.isSafeInteger(length) &&
-    length >= PROJECT_QUOTE_REVISION_HISTORY_MAX_REVISIONS
-  ) {
-    throw new Error(
-      "Teklif revizyon geçmişi en fazla " + PROJECT_QUOTE_REVISION_HISTORY_MAX_REVISIONS + " revizyon içerebilir."
-    );
+/**
+ * Returns a blocker when an append would exceed the revision cap, using only
+ * own data descriptors so full histories can be rejected before deep copying.
+ * Proxy reflection traps remain outside this guarantee.
+ */
+export function getProjectQuoteRevisionAppendCapacityBlocker(value: unknown): string | null {
+  try {
+    if (!isRecord(value)) return null;
+    const revisionsDescriptor = Object.getOwnPropertyDescriptor(value, "revisions");
+    if (!revisionsDescriptor || !revisionsDescriptor.enumerable || !("value" in revisionsDescriptor)) return null;
+    const revisions = revisionsDescriptor.value;
+    if (!Array.isArray(revisions)) return null;
+    const lengthDescriptor = Object.getOwnPropertyDescriptor(revisions, "length");
+    const length = lengthDescriptor && "value" in lengthDescriptor ? lengthDescriptor.value : undefined;
+    if (
+      typeof length === "number" &&
+      Number.isSafeInteger(length) &&
+      length >= PROJECT_QUOTE_REVISION_HISTORY_MAX_REVISIONS
+    ) {
+      return "Teklif revizyon geçmişi en fazla " + PROJECT_QUOTE_REVISION_HISTORY_MAX_REVISIONS + " revizyon içerebilir.";
+    }
+    return null;
+  } catch (error) {
+    return error instanceof Error ? error.message : String(error);
   }
 }
 
@@ -1158,11 +1166,8 @@ export function appendProjectQuoteRevision(
   historyValue: unknown,
   revisionValue: unknown
 ): ProjectQuoteRevisionHistoryResult {
-  try {
-    rejectFullRevisionHistoryBeforeAppend(historyValue);
-  } catch (error) {
-    return blockedHistory(error instanceof Error ? error.message : String(error));
-  }
+  const appendCapacityBlocker = getProjectQuoteRevisionAppendCapacityBlocker(historyValue);
+  if (appendCapacityBlocker !== null) return blockedHistory(appendCapacityBlocker);
   const validatedHistory = validateProjectQuoteRevisionHistory(historyValue);
   if (validatedHistory.status === "blocked" || validatedHistory.history === null) {
     return blockedHistory(validatedHistory.diagnostics[0] ?? "Teklif revizyon geçmişi doğrulanamadı.");

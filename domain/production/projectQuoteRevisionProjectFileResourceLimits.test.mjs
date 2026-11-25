@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
+import { PROJECT_QUOTE_REVISION_HISTORY_MAX_REVISIONS } from "./projectQuoteRevision.ts";
+
 import { calculateCabinetProjectProductionWithDiagnostics } from "./projectProduction.ts";
 import { createProjectQuotePricingSnapshot } from "./projectQuotePricingSnapshot.ts";
 import {
@@ -252,4 +254,50 @@ test("DOM-150 project-v2 history read rejects accessor fields without invoking g
   assert.equal(getterCalls, 0);
   assert.strictEqual(project.customEnvelope, customEnvelope);
   assert.equal("quoteRevisionHistory" in project, false);
+});
+
+
+test("DOM-157 project-v2 append checks revision capacity before cloning an oversized envelope", () => {
+  let existingRevisionGetterCalls = 0;
+  const revisions = new Array(PROJECT_QUOTE_REVISION_HISTORY_MAX_REVISIONS);
+  Object.defineProperty(revisions, "0", {
+    enumerable: true,
+    configurable: true,
+    get() {
+      existingRevisionGetterCalls += 1;
+      return {};
+    }
+  });
+  const history = {
+    schemaVersion: 1,
+    projectId: "project-dom-149",
+    revisions
+  };
+  const customEnvelope = {
+    payload: "x".repeat(PROJECT_QUOTE_REVISION_PROJECT_ENVELOPE_MAX_BYTES + 1)
+  };
+  const project = createProject({ customEnvelope, quoteRevisionHistory: history });
+
+  let incomingRevisionGetterCalls = 0;
+  const incomingRevision = createRevision("dom-157-incoming");
+  Object.defineProperty(incomingRevision, "revisionId", {
+    enumerable: true,
+    configurable: true,
+    get() {
+      incomingRevisionGetterCalls += 1;
+      return "dom-157-incoming";
+    }
+  });
+
+  const result = appendProjectQuoteRevisionToProjectFile(project, incomingRevision);
+
+  assert.equal(result.status, "blocked");
+  assert.equal(result.project, null);
+  assert.equal(result.history, null);
+  assert.match(result.diagnostics.join(" | "), /en fazla 2000 revizyon/);
+  assert.equal(existingRevisionGetterCalls, 0);
+  assert.equal(incomingRevisionGetterCalls, 0);
+  assert.strictEqual(project.customEnvelope, customEnvelope);
+  assert.strictEqual(project.quoteRevisionHistory, history);
+  assert.strictEqual(project.quoteRevisionHistory.revisions, revisions);
 });
