@@ -575,3 +575,45 @@
     background: Canvas !important;
   }
 }
+
+
+/* UI-INSPECTOR-DIMENSION-GRID-001 — use one technical row for selected-furniture dimensions when the inspector rail has room. */
+.cad-inspector-tabs {
+  min-width: 0;
+  container-type: inline-size;
+  container-name: cad-inspector;
+}
+
+@container cad-inspector (min-width: 270px) {
+  .cad-tab-content:not(.cad-tab-content-room) .cad-property-section:not(.cad-part-inspector) > .cad-dimension-fields {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 7px !important;
+  }
+
+  .cad-tab-content:not(.cad-tab-content-room) .cad-property-section:not(.cad-part-inspector) > .cad-dimension-fields > .cad-dimension-field:last-child {
+    grid-column: auto !important;
+  }
+
+  .cad-tab-content:not(.cad-tab-content-room) .cad-property-section:not(.cad-part-inspector) > .cad-dimension-fields .cad-dimension-field {
+    min-width: 0;
+    gap: 5px;
+  }
+
+  .cad-tab-content:not(.cad-tab-content-room) .cad-property-section:not(.cad-part-inspector) > .cad-dimension-fields .cad-dimension-field label {
+    overflow: hidden;
+    font-size: 8px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .cad-tab-content:not(.cad-tab-content-room) .cad-property-section:not(.cad-part-inspector) > .cad-dimension-fields .cad-input-with-unit input {
+    min-height: 34px !important;
+    padding-right: 31px !important;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .cad-tab-content:not(.cad-tab-content-room) .cad-property-section:not(.cad-part-inspector) > .cad-dimension-fields .cad-input-with-unit > span {
+    right: 7px;
+    font-size: 8px;
+  }
+}
