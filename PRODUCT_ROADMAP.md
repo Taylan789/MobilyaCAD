@@ -2036,20 +2036,20 @@ Sonraki adım: Exact-SHA CI/QA/Pages sonuçlarını doğrula; ardından DOM-170 
 
 **Sonraki adım:** Exact-SHA CI/QA/Pages sonuçlarını doğrula; ardından DOM-172 kapsamında revizyon karşılaştırma ve source audit çıktılarında schema-v2 Part manifest kapsamının ayrı ve açık raporlanmasını değerlendir.
 
-## 25 Kasım 2026 21:52 TRT — DOM-172 implementation submitted
+## 25 Kasım 2026 21:52 TRT — DOM-172 VERIFIED
 
 **Goal:** make the stock-sheet purchase snapshot's schema-v2 aggregate Part manifest visible as a distinct, auditable revision capability without changing legacy interpretation or specialist-owned adapters.
 
 - **Implemented in domain source:** source-map audit and source-integrity audit expose basis/schema/manifest coverage per revision and aggregate v2/legacy counts, manifest Part references and project-wide unique IDs.
 - **Comparison behavior:** stock-sheet group comparison and source-map provenance comparison include a manifest comparison. Exact Part additions/removals are emitted only when both revisions carry a validated schema-v2 manifest. A legacy-v1 or absent manifest produces an explicit unavailable status with null diff counts/changes.
 - **Acceptance criteria:** v2 manifest count and group Part coverage reconcile; v2→v2 diffs are deterministic; v1→v2 and v2→v1 do not invent changes; outputs remain immutable; existing group-level and monetary comparisons remain unchanged.
-- **Verification:** implementation and regressions are committed; exact-SHA CI, QA, production build and Pages result are pending. The previous base SHA `66cd8ccecc2e07090454a00d2989d4afbfe48ed4` had successful CI [#45671911991](https://github.com/Taylan789/MobilyaCAD/actions/runs/45671911991), QA [#45671912129](https://github.com/Taylan789/MobilyaCAD/actions/runs/45671912129) and Pages [#45671911758](https://github.com/Taylan789/MobilyaCAD/actions/runs/45671911758); Pages deployed that exact base SHA to https://taylan789.github.io/MobilyaCAD/.
+- **Exact-SHA verification:** implementation [0a04f260](https://github.com/Taylan789/MobilyaCAD/commit/0a04f260387d66b01e0c4879f4afe16e6fab8718); CI [#45681167545](https://github.com/Taylan789/MobilyaCAD/actions/runs/45681167545) passed; QA [#45681167621](https://github.com/Taylan789/MobilyaCAD/actions/runs/45681167621) passed with 310/310 frontend and 790/790 domain tests, strict shared-domain TypeScript, production build, lint 36 warnings / 0 errors, and production-only audit 0 vulnerabilities. Pages [#45681167542](https://github.com/Taylan789/MobilyaCAD/actions/runs/45681167542) deployed the exact implementation SHA to https://taylan789.github.io/MobilyaCAD/.
 - **Limits:** schema-v2 coverage is a domain audit/compare capability, not a signed provenance proof. JSON/CSV adapter round-trip, frontend wiring, physical workshop checks and CNC validation are not claimed.
 
 ### Next 3–5 domain/integration tasks
 
-1. Verify this DOM-172 commit on its exact SHA through CI, QA and Pages before changing any of the same files.
-2. Hand off the additive manifest comparison fields to the designated adapter owner for a versioned JSON/CSV round-trip; do not edit adapter-owned files while INT-002/PERF-001 ownership is unavailable.
+1. Hand off the additive manifest comparison fields to the designated adapter owner for a versioned JSON/CSV round-trip; do not edit adapter-owned files while INT-002/PERF-001 ownership is unavailable.
+2. Review multi-revision source-audit reconciliation after the adapter contract is assigned; preserve legacy v1 non-inference.
 3. Keep UI-owned INT-003 PR #206 isolated; after the editor's real save/open wiring lands, validate DOM-153 append → save → reopen → append.
 4. Continue domain work only after the current exact-SHA verification is complete; next independent target is a manifest-aware multi-revision source-audit reconciliation review.
 5. Keep bundle p95 viewport/memory profiling with the specialist owner; current viewport p95/memory remains NOT MEASURED.
