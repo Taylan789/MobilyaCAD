@@ -1604,3 +1604,15 @@ Kaynak test: \`domain/production/projectQuoteRevision.test.mjs\`.
 - Manifest v2 ↔ v2, legacy v1 ↔ v2, v2 ↔ no-basis ve legacy ↔ no-basis çiftlerinde grup karşılaştırması, tam maliyet karşılaştırması ve kaynak haritası karşılaştırması aynı manifest kapsam sonucunu verir. Legacy veya no-basis tarafta Part listesi yoksa eklenen/çıkarılan Part uydurulmaz.
 - Yinelenen revisionId ile yapılan geçersiz append \`blocked\` + \`history: null\` döndürür; mevcut geçmişte kısmi değişiklik oluşmaz.
 - Bu test domain append/audit davranışını doğrular; kalıcı depolama transaction'ı, UI entegrasyonu, proje JSON v2 editör akışı veya fiziksel CNC doğrulaması iddia etmez. JSON v2 save/open entegrasyonu ayrı UI sahibi INT-003 kapsamındadır.
+
+
+## DOM-176 — Standalone teklif revizyon geçmişi JSON dosyası
+
+Kaynak: `domain/production/projectQuoteRevisionFile.ts`.
+
+- `serializeProjectQuoteRevisionHistoryFile(history)` önce tüm geçmişi `validateProjectQuoteRevisionHistory` ile doğrular; yalnızca geçerli ve tam geçmişi `fileType: "mobilyacad-quote-revision-history"`, `schemaVersion: 1` ve `history` alanlarından oluşan standalone JSON zarfına yazar.
+- `parseProjectQuoteRevisionHistoryFile(json)` metin olmayan girdiyi, bozuk JSON'u, yanlış dosya türünü, bilinmeyen zarf alanlarını, desteklenmeyen sürümü ve geçersiz revizyon zincirini `blocked` + `history: null` ile reddeder. Dosya boyutu UTF-8 byte olarak en fazla 1 MiB'dir; serializer ve parser aynı sınırı uygular.
+- Başarılı parse sonucu domain validator tarafından yeniden doğrulanmış, immutable geçmiş döndürür. `appendProjectQuoteRevision` parse edilmiş bu geçmiş üzerinde güvenle kullanılabilir; sıra numarası ve `previousRevisionId` doğrulanmış son revizyondan türetilir.
+- Legacy revizyonlarda bulunmayan `sourceIntegrityVersion` alanı import sırasında uydurulmaz. Yeni append edilen revizyonlar `sourceIntegrityVersion: 1` taşır. Material-basis schema v1, manifest-v2 ve basis bulunmayan snapshot'lar kendi açık kapsamlarıyla korunur.
+- DOM-176 regresyonu, beş karışık revizyonu standalone JSON üzerinden round-trip eder, parse sonrası iki revizyon ekler, son geçmişi yeniden round-trip eder ve source-map/source-integrity audit ile beş non-adjacent comparison sonucunu uzlaştırır.
+- Bu domain API'si tek başına frontend editörünün startup/new/save/open akışına bağlı değildir. UI-owned INT-003 envelope state entegrasyonu ve DOM-153 gerçek editör save/reopen doğrulaması ayrı kabul kapılarıdır.
