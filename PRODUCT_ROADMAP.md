@@ -2373,3 +2373,23 @@ Sonraki adım: Exact-SHA CI/QA/Pages sonuçlarını doğrula; ardından DOM-170 
 3. INT-001/INT-002 — UI/specialist sahipliğinde desteklenen adapter round-trip ve geometri kayıpsızlığı.
 4. PERF-001 — specialist job/branch etkinleştiğinde viewport p95, scene update ve bellek baseline; henüz ölçülmedi.
 5. QA-003 — INT-001/INT-002 kanıtı sonrasında uçtan uca export/data-flow denetimi.
+
+## 26 Kasım 2026 15:46 TRT — DOM-190 legacy v1 provenance absence (implementation committed; verification pending)
+
+**Kullanıcı akışı:** Eski bir teklif geçmişinde levha fiyat kaynağı hiç kaydedilmemiş olabilir. Operatör bu geçmişi JSON olarak dışa aktarıp geri yüklediğinde eksik kaynak bilgisi eksik kalmalı; uygulama geçmişe sahte tedarikçi/fiyat kaynağı eklememelidir.
+
+**Kabul kriterleri:**
+- Legacy revision v1 ve material-cost-basis v1 grup girdisinde opsiyonel `sourceReference` yokluğu doğrulama, serialize, parse ve restore boyunca korunur.
+- Export edilmiş her grup için `Object.hasOwn(group, "sourceReference") === false`; `null`, boş string veya varsayılan değer üretilmez.
+- Source-map audit'te stock-sheet price-source reference sayısı sıfır kalır; iki tarafta da alan yoksa grup provenance karşılaştırması unchanged olur.
+- Source-integrity audit, group comparison, TRY para birimi, maliyet toplamları ve immutable history JSON round-trip öncesi/sonrası aynıdır.
+- Test yalnızca domain/geriye uyumluluk davranışını doğrular; CNC/atölye uygunluğu iddia etmez.
+
+**10/10 checklist delta:** Üretim verisi güvenilirliği/geriye uyumluluk için legacy provenance absence otomatik regresyonu eklendi. CAD Core ve UX değişmedi; viewport p95/bellek hâlâ ölçülmedi; büyük JS chunk uyarısı devam ediyor. Fiziksel levha verimi, kerf ve CNC/atölye onayı kapsam dışıdır.
+
+**Sıradaki 3–5 küçük görev:**
+1. DOM-191 — legacy v1 kaynağı eksik bir revizyon ile sonraki açık kaynak referanslı revizyonun karşılaştırmasında yalnızca yeni provenance bilgisinin eklendiğini göster; geçmişe kaynak tahmin etme ve v1 Part manifestini comparable sayma.
+2. UI-owned INT-003 — JSON v2 editor envelope startup/new/save/open integration; frontend dosyalarına bu ajan dokunmaz.
+3. INT-001/INT-002 — UI/specialist sahipliğinde desteklenen adapter round-trip ve geometri kayıpsızlığı.
+4. PERF-001 — specialist job/branch etkinleştiğinde viewport p95, scene update ve bellek baseline; şu anda ölçülmedi.
+5. QA-003 — INT-001/INT-002 exact-SHA adapter kanıtı sonrasında uçtan uca export/data-flow denetimi.

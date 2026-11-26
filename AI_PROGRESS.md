@@ -1549,3 +1549,15 @@
 - **Parallel ownership:** no `frontend/**`, adapter/benchmark-owned files, secrets/settings or `main` changes. UI-owned INT-003 PR [#206](https://github.com/Taylan789/MobilyaCAD/pull/206) remains draft and untouched. Integration/Performance specialist job remains disabled and no specialist branch was verified; PERF-001/INT-002 remain specialist-owned, QA-003 remains blocked pending their evidence.
 - **AI Developer:** run [#45743919035](https://github.com/Taylan789/MobilyaCAD/actions/runs/45743919035) failed on OpenRouter free-tier HTTP 429 (limit 50 / 0 remaining; reset 27 November 2026 03:00 TRT). It was not rerun before reset; no paid fallback, secret or quota setting was changed.
 - **Next:** DOM-190 — preserve the absence of optional stock-sheet `sourceReference` in legacy v1 revision history JSON round-trip without synthesizing a default; continue UI/specialist-owned INT-003, INT-001/INT-002 and PERF-001 handoffs separately.
+
+## 26 Kasım 2026 15:46 TRT — DOM-190 implementation (exact-SHA Actions pending)
+
+- **Base HEAD:** `dev/github-work` `8802efdb6020d95277d7ac10fb54a6c794eb07f5`.
+- **Implementation commit:** this entry will be completed with the exact SHA and CI/QA/Pages run IDs after GitHub Actions reports the result.
+- **Delivery:** added a legacy stock-sheet purchase material-cost-basis v1 revision-history regression. The optional group `sourceReference` is absent on both revisions and must remain absent through standalone JSON v1 serialize/parse/restore; no empty, null, placeholder or guessed source is accepted.
+- **Acceptance evidence in test:** legacy revision records have no `sourceIntegrityVersion`; v1 groups retain no own `sourceReference`; source-map audit reports zero stock-sheet price-source references; two absent references compare as one unchanged group; source-integrity audit, stock-sheet comparison, TRY currency, monetary totals and immutable source history reconcile before and after restore.
+- **Files:** `domain/production/projectQuoteRevision.test.mjs`, `docs/production-domain-contract.md`, `PRODUCT_ROADMAP.md`, `AI_COORDINATION.md`, `AI_PROGRESS.md`.
+- **Checks:** exact-SHA CI, QA and Pages are pending; do not treat the local/authoring change as verified until those Actions runs complete.
+- **Known limits:** no production calculation source or frontend/adapter/benchmark code changed. Supplier provenance, sheet yield/kerf, CNC and physical workshop validation remain unverified.
+- **Parallel ownership:** no `frontend/**`, adapter/benchmark-owned files, secrets/settings or `main` changes. UI-owned INT-003 PR #206 and specialist-owned INT-002/PERF-001 remain untouched.
+- **Next:** DOM-191 — compare a legacy v1 revision with missing price-source provenance against a later revision with an explicit source, without backfilling the legacy record or claiming a v1 aggregate Part manifest.

@@ -5145,3 +5145,94 @@ test("DOM-189 stock-sheet price-source provenance survives standalone revision-h
   assert.ok(Object.isFrozen(restoredComparison.comparison));
   assert.ok(Object.isFrozen(provenance));
 });
+
+test("DOM-190 legacy stock-sheet v1 history round-trip preserves absent price provenance without synthesizing a default", () => {
+  const fromSnapshot = createDom143StockSheetAuditSnapshot();
+  const toSnapshot = structuredClone(fromSnapshot);
+
+  for (const snapshot of [fromSnapshot, toSnapshot]) {
+    const basis = snapshot.materialCostBasis;
+    assert.ok(basis);
+    assert.equal(basis.schemaVersion, 1);
+    assert.equal(basis.basis, "stock-sheet-purchase");
+    assert.equal(basis.stockSheetGroups.length, 1);
+    delete basis.stockSheetGroups[0].sourceReference;
+    assert.equal(Object.hasOwn(basis.stockSheetGroups[0], "sourceReference"), false);
+  }
+
+  // createHistoryWithSnapshots uses the legacy revision shape without sourceIntegrityVersion.
+  const history = createHistoryWithSnapshots(fromSnapshot, toSnapshot);
+  const originalHistoryJson = JSON.stringify(history);
+  const validated = validateProjectQuoteRevisionHistory(history);
+  assert.equal(validated.status, "ready", validated.diagnostics.join("; "));
+  assert.ok(validated.history);
+  assert.equal(validated.history.revisions.every(revision => !Object.hasOwn(revision, "sourceIntegrityVersion")), true);
+
+  const originalAudit = calculateProjectQuoteRevisionSourceMapAudit(validated.history);
+  const originalIntegrity = calculateProjectQuoteRevisionSourceIntegrityAudit(validated.history);
+  const originalComparison = compareProjectQuoteRevisionSourceMaps(validated.history, "quote-r1", "quote-r2");
+  const originalGroupComparison = compareProjectQuoteRevisionStockSheetGroups(validated.history, "quote-r1", "quote-r2");
+  assert.equal(originalAudit.status, "ready", originalAudit.diagnostics.join("; "));
+  assert.equal(originalIntegrity.status, "ready", originalIntegrity.diagnostics.join("; "));
+  assert.equal(originalComparison.status, "ready", originalComparison.diagnostics.join("; "));
+  assert.equal(originalGroupComparison.status, "ready", originalGroupComparison.diagnostics.join("; "));
+  assert.ok(originalAudit.audit);
+  assert.ok(originalIntegrity.audit);
+  assert.ok(originalComparison.comparison);
+  assert.ok(originalGroupComparison.comparison);
+
+  for (const revision of originalAudit.audit.revisions) {
+    assert.equal(revision.counts.stockSheetPriceSourceReferenceCount, 0);
+  }
+  assert.equal(originalAudit.audit.totals.stockSheetPriceSourceReferenceCount, 0);
+
+  const exported = serializeProjectQuoteRevisionHistoryFile(validated.history);
+  assert.equal(exported.status, "ready", exported.diagnostics.join("; "));
+  assert.ok(exported.json);
+  const exportedEnvelope = JSON.parse(exported.json);
+  for (const revision of exportedEnvelope.revisions) {
+    const group = revision.pricingSnapshot.materialCostBasis.stockSheetGroups[0];
+    assert.equal(Object.hasOwn(group, "sourceReference"), false);
+  }
+
+  const restored = parseProjectQuoteRevisionHistoryFile(exported.json);
+  assert.equal(restored.status, "ready", restored.diagnostics.join("; "));
+  assert.ok(restored.history);
+  assert.deepEqual(restored.history, validated.history);
+  assert.equal(serializeProjectQuoteRevisionHistoryFile(restored.history).json, exported.json);
+
+  for (const revision of restored.history.revisions) {
+    const basis = revision.pricingSnapshot.materialCostBasis;
+    assert.equal(basis.schemaVersion, 1);
+    assert.equal(Object.hasOwn(basis.stockSheetGroups[0], "sourceReference"), false);
+    assert.equal(Object.hasOwn(revision, "sourceIntegrityVersion"), false);
+  }
+
+  const restoredAudit = calculateProjectQuoteRevisionSourceMapAudit(restored.history);
+  const restoredIntegrity = calculateProjectQuoteRevisionSourceIntegrityAudit(restored.history);
+  const restoredComparison = compareProjectQuoteRevisionSourceMaps(restored.history, "quote-r1", "quote-r2");
+  const restoredGroupComparison = compareProjectQuoteRevisionStockSheetGroups(restored.history, "quote-r1", "quote-r2");
+  assert.equal(restoredAudit.status, "ready", restoredAudit.diagnostics.join("; "));
+  assert.equal(restoredIntegrity.status, "ready", restoredIntegrity.diagnostics.join("; "));
+  assert.equal(restoredComparison.status, "ready", restoredComparison.diagnostics.join("; "));
+  assert.equal(restoredGroupComparison.status, "ready", restoredGroupComparison.diagnostics.join("; "));
+  assert.deepEqual(restoredAudit.audit, originalAudit.audit);
+  assert.deepEqual(restoredIntegrity.audit, originalIntegrity.audit);
+  assert.deepEqual(restoredComparison.comparison, originalComparison.comparison);
+  assert.deepEqual(restoredGroupComparison.comparison, originalGroupComparison.comparison);
+
+  const provenance = restoredComparison.comparison.stockSheetGroupProvenanceComparison;
+  assert.ok(provenance);
+  assert.deepEqual(provenance.counts, {
+    addedGroupCount: 0,
+    removedGroupCount: 0,
+    changedGroupCount: 0,
+    unchangedGroupCount: 1
+  });
+  assert.deepEqual(provenance.changes, []);
+  assert.equal(restoredGroupComparison.comparison.stockSheetCostDeltaMinor, 0);
+  assert.equal(restoredGroupComparison.comparison.grandTotalDeltaMinor, 0);
+  assert.equal(restored.history.revisions[0].pricingSnapshot.materialCostBasis.currencyCode, "TRY");
+  assert.equal(restored.history.revisions[1].pricingSnapshot.materialCostBasis.currencyCode, "TRY");
+  assert.equal(JSON.stringify(history), originalHistoryJson);
+});

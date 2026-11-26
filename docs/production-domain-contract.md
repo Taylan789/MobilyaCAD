@@ -1724,3 +1724,9 @@ Kaynak: `domain/production/projectQuoteRevisionFile.ts`.
 The standalone quote-revision history file remains the existing v1 envelope; no schema or adapter format change is required. A validated stock-sheet purchase group's optional `sourceReference` must survive serialize → parse → restore exactly. After restore, source-map audit, source-integrity audit, source-map comparison and stock-sheet group comparison must equal their pre-export results.
 
 The regression uses two schema-v2 stock-sheet snapshots that differ only in the user-supplied price-source reference. The restored comparison must report exactly one changed group with `changedFields: ["sourceReference"]`; the aggregate Part manifest remains comparable with no Part additions/removals, TRY currency and all material/group/grand totals remain unchanged, and the original history is not mutated. This proves provenance persistence only; it does not validate supplier authenticity, physical sheet yield, CNC output or workshop production.
+
+## DOM-190 — Legacy stock-sheet v1 optional price provenance
+
+Legacy quote revisions may contain a stock-sheet purchase material-cost-basis v1 group without the optional `sourceReference`. The standalone revision-history JSON v1 serializer/parser must preserve that absence exactly: do not add `null`, an empty string, a placeholder, or a guessed supplier reference. The restored group remains schema v1, and its source-map audit must report zero stock-sheet price-source references. If both compared revisions omit the field, provenance comparison reports the group as unchanged rather than inventing a source change.
+
+This is a backward-compatibility and provenance-preservation contract only. It does not certify supplier identity, sheet yield, kerf, nesting, CNC compatibility, or physical workshop suitability.
