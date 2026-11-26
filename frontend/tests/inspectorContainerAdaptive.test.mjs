@@ -35,3 +35,8 @@ test("existing motion and forced-colors accessibility rules remain present", () 
   assert.match(styles, /prefers-reduced-motion:\s*reduce/);
   assert.match(styles, /forced-colors:\s*active/);
 });
+
+test("active inspector tab state remains bound to the existing selection marker", () => {
+  assert.match(styles, /\.cad-inspector-tab-list button\[data-active="true"\]/);
+  assert.match(app, /aria-selected/);
+});
