@@ -1670,3 +1670,13 @@ Kaynak: `domain/production/projectQuoteRevisionFile.ts`.
 - The regression uses Buffer.byteLength(JSON.stringify(project), "utf8") as the byte-count oracle. Read, append and standalone import accept a final envelope of exactly 16 MiB and block a final envelope at 16 MiB + 1 byte.
 - Append/import overflow is tested while the input envelope itself remains below 16 MiB; blocked results contain no project/history payload, do not add a partial quoteRevisionHistory field, and do not mutate the input.
 - This is test-only evidence for the existing serializer contract. No production source/API, schema version, frontend wiring, adapter round-trip, CNC output or physical production validation is changed or claimed.
+
+
+## DOM-183 — Explicit bookshelf compartment shelves
+
+- The optional `shelves` array adds individually positioned bookshelf shelves without changing legacy `profile.shelfCount` requests. Omitted or empty `shelves` retains the existing behavior.
+- Each shelf records a stable ID, left/right cavity offsets, bottom-face elevation, front offset, depth, thickness, catalog material ID, four edge-band flags and grain direction. Dimensions are normalized to 0.1 mm before geometry checks.
+- A custom-shelf request must set `profile.shelfCount` to zero; the engine does not silently mix counted full-width shelves with explicit shelf geometry.
+- Every shelf must fit inside the calculated inner width, height and depth, use a catalog-supported thickness, avoid every full-height divider interval, and avoid 3D volume overlap with other shelves. Touching faces are allowed.
+- Each accepted shelf becomes a quantity-one Part with its measured span/depth, material identity, edge-band flags and placement metadata. The existing project Part aggregator and material-consumption summary consume these Parts without a new export or CNC claim.
+- This contract describes geometric placement and material accounting only. It does not infer shelf supports, fasteners, load capacity, drilling coordinates or machine-specific operations; workshop and physical-load validation remain human responsibilities.

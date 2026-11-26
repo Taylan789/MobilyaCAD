@@ -2208,3 +2208,22 @@ Sonraki adım: Exact-SHA CI/QA/Pages sonuçlarını doğrula; ardından DOM-170 
 - Performans: p95 viewport ve bellek ölçümü bu turda yapılmadı (NOT MEASURED). Üretim bundle çıktısı 1,703.34 kB JS / 475.72 kB gzip; mevcut >500 kB chunk uyarısı açık. Lint 36 mevcut frontend uyarısı verdi; frontend dosyaları UI sahibinde olduğu için değiştirilmedi.
 - Güvenlik: QA production-only audit 0 bulgu; npm install özeti 4 moderate toplam bağımlılık bulgusu bildirdi. Tam dependency tree incelemesi ayrı güvenlik işi olarak kalır.
 - UI/UX: bu domain commit'i görünür arayüz değişikliği değildir. Frontend yeniden tasarımı ve INT-003 PR #206 ayrı UI sahibindedir.
+
+
+## 26 Kasım 2026 — DOM-183: Kitaplık bölme rafları
+
+**Durum:** Domain ve test dilimi uygulandı; exact-SHA CI/QA/Pages doğrulaması bekleniyor.
+
+**Kullanıcı akışı:** Operatör, dikey bölücülerle oluşturulmuş kitaplık gözlerine her rafı ayrı kimlik ve mm koordinatlarıyla yerleştirir. Her raf için sol/sağ açıklık, alt kot, ön ofset, derinlik, kalınlık, katalog malzemesi, damar yönü ve dört kenar bantlama bayrağı açıkça verilir. Üretim motoru her rafı ayrı quantity-one Part olarak üretir.
+
+**Kabul kriterleri:**
+- Eski `shelfCount` istekleri ve `shelves` alanı olmayan/boş olan projeler aynı sonucu korur.
+- Özel raflar ile tam genişlik `shelfCount` aynı istekte karıştırılmaz.
+- Raf açıklığı hiçbir dikey bölücünün hacmine girmez; raf tek bir doğrulanmış açıklıkta kalır.
+- İç genişlik/yükseklik/derinlik, 0.1 mm normalizasyonu, katalog kalınlığı, benzersiz kimlik, kenar bayrakları ve damar yönü doğrulanır.
+- Raflar arası 3D hacim çakışması reddedilir; yüzey teması kabul edilir.
+- Project Part listesi ve material-consumption / edge-band summary yeni rafları aynı kaynak geometriyle toplar.
+
+**Bağımlılıklar ve riskler:** Ortak gövde iç ölçüleri ve DOM-182 divider interval'leri. Bu dilim bağlantı elemanı, raf pimi, taşıma kapasitesi, delik koordinatı veya CNC postprocessor üretmez; fiziksel montaj ve yük testi atölye doğrulaması gerektirir. Frontend entegrasyonu ayrı UI sahibindedir.
+
+**Sıradaki adım:** DOM-184 — kitaplık rafları için açık raf destek/donanım BOM sözleşmesi; gerçek üretici standardı ve donanım kataloğu olmadan ölçü/vida/delik varsayımı yapılmayacak.

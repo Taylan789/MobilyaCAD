@@ -1824,3 +1824,41 @@ test("kitaplık dikey bölücüleri proje Part listesi ve net malzeme özetinde 
   assert.equal(summary[0].edgeBanding.edgeCount, 1);
   assert.equal(summary[0].edgeBanding.totalLengthMm, 2000);
 });
+
+
+test("kitaplık bölme rafları proje parça listesi ve malzeme tüketimine eksiksiz aktarılır", () => {
+  const bookshelf = createBookshelfRequest("book-shelves");
+  bookshelf.profile.shelfCount = 0;
+  bookshelf.verticalDividers = [{
+    id: "center", offsetFromInnerLeftMm: 500, thicknessMm: 18, materialId: "mdf-18",
+    edgeBanding: { ...noBanding }, grainDirection: "length"
+  }];
+  bookshelf.shelves = [
+    {
+      id: "left", leftOffsetMm: 0, rightOffsetMm: 500, heightFromInnerBottomMm: 400,
+      frontOffsetMm: 0, depthMm: 282, thicknessMm: 8, materialId: "mdf-8",
+      edgeBanding: { ...noBanding, top: true }, grainDirection: "length"
+    },
+    {
+      id: "right", leftOffsetMm: 518, rightOffsetMm: 764, heightFromInnerBottomMm: 400,
+      frontOffsetMm: 0, depthMm: 282, thicknessMm: 8, materialId: "mdf-8",
+      edgeBanding: { ...noBanding, top: true }, grainDirection: "length"
+    }
+  ];
+  const result = calculateCabinetProjectProduction({ schemaVersion: 1, furniture: [bookshelf] });
+  const shelves = result.parts.filter((part) => part.id.startsWith("book-shelves-shelf-"));
+  assert.deepEqual(shelves.map((part) => [
+    part.id, part.width, part.length, part.thickness, part.quantity, part.materialId
+  ]), [
+    ["book-shelves-shelf-left", 282, 500, 8, 1, "mdf-8"],
+    ["book-shelves-shelf-right", 282, 246, 8, 1, "mdf-8"]
+  ]);
+  const mdf8 = calculateProjectMaterialConsumptionSummary(result).find((entry) => entry.materialId === "mdf-8");
+  assert.ok(mdf8);
+  assert.equal(mdf8.totalQuantity, 2);
+  assert.equal(mdf8.partLineCount, 2);
+  assert.deepEqual(mdf8.partIds, ["book-shelves-shelf-left", "book-shelves-shelf-right"]);
+  assert.equal(mdf8.panelAreaM2, 0.210372);
+  assert.equal(mdf8.volumeM3, 0.001682976);
+  assert.equal(mdf8.edgeBanding.edgeCount, 2);
+});
