@@ -158,3 +158,118 @@
     outline-offset: -4px;
   }
 }
+
+/* UI-PRODUCTION-DOCK-CONTAINER-ADAPTIVE-001 — fit the production register to the space left by the live side panels. */
+.cad-bottom-dock {
+  container-type: inline-size;
+  container-name: cad-production-dock;
+}
+
+@container cad-production-dock (max-width: 860px) {
+  .cad-bottom-dock-header {
+    gap: 10px;
+    padding-inline: 10px;
+  }
+
+  .cad-bottom-dock-title {
+    min-width: 0;
+    gap: 8px;
+  }
+
+  .cad-bottom-dock-title small {
+    display: none;
+  }
+
+  .cad-bottom-dock-tabs {
+    min-width: 0;
+    flex: 1 1 auto;
+    gap: 3px;
+  }
+
+  .cad-bottom-dock-tabs button {
+    min-width: 0;
+    gap: 6px;
+    padding-inline: 9px;
+    font-size: 9px;
+  }
+
+  .cad-bottom-dock-tabs button b {
+    min-width: 18px;
+    height: 18px;
+    padding-inline: 4px;
+  }
+
+  .cad-bottom-dock-metrics {
+    display: none;
+  }
+}
+
+@container cad-production-dock (max-width: 560px) {
+  .cad-bottom-dock-header {
+    min-height: 44px;
+    gap: 5px;
+    padding-inline: 7px;
+  }
+
+  .cad-bottom-dock-title {
+    gap: 6px;
+  }
+
+  .cad-dock-grip {
+    height: 22px;
+  }
+
+  .cad-dock-collapse {
+    width: 24px;
+    height: 24px;
+    flex-basis: 24px;
+    margin-left: 0;
+  }
+
+  .cad-bottom-dock-tabs {
+    gap: 2px;
+  }
+
+  .cad-bottom-dock-tabs button {
+    flex: 1 1 0;
+    justify-content: center;
+    gap: 4px;
+    padding-inline: 5px;
+    font-size: 8px;
+  }
+
+  .cad-bottom-dock-tabs button b {
+    min-width: 16px;
+    height: 16px;
+    padding-inline: 3px;
+    font-size: 8px;
+  }
+}
+
+@container cad-production-dock (max-width: 420px) {
+  .cad-bottom-dock-header {
+    gap: 4px;
+    padding-inline: 5px;
+  }
+
+  .cad-bottom-dock-title {
+    gap: 5px;
+  }
+
+  .cad-bottom-dock-title strong {
+    font-size: 10px;
+  }
+
+  .cad-bottom-dock-tabs button {
+    gap: 3px;
+    padding-inline: 3px;
+    font-size: 7px;
+  }
+
+  .cad-bottom-dock-tabs button b {
+    min-width: 14px;
+    height: 14px;
+    padding-inline: 2px;
+    font-size: 7px;
+  }
+}
