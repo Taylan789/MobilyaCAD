@@ -15,6 +15,7 @@ import type { MaterialUsageLocation } from "../../types/materialUsage";
 import "./MaterialCatalogManager.css";
 import "./MaterialCatalogManagerEmptyState.css";
 import "./MaterialPanelThicknessSelector.css";
+import "./MaterialCatalogManagerContainerLayout.css";
 
 interface MaterialCatalogManagerProps {
   materials: MaterialCatalogEntry[];

@@ -1,0 +1,100 @@
+/* UI-MATERIAL-CATALOG-CONTAINER-FIT-001 — fit the editor and inventory to the panel's real width, not the browser viewport. */
+.mc-material-library {
+  container-name: material-catalog;
+  container-type: inline-size;
+}
+
+@container material-catalog (max-width: 1120px) {
+  .mc-material-library__workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .mc-material-library__editor {
+    position: static;
+  }
+
+  .mc-material-library__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .mc-material-library__editor form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+
+  .mc-material-library__editor-heading,
+  .mc-material-library__draft-preview,
+  .mc-material-library__form-actions,
+  .mc-material-library__error {
+    grid-column: 1 / -1;
+  }
+}
+
+@container material-catalog (max-width: 720px) {
+  .mc-material-library__metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .mc-material-library__metric:last-child {
+    grid-column: 1 / -1;
+  }
+
+  .mc-material-library__grid,
+  .mc-material-library__editor form {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .mc-material-library__editor-heading,
+  .mc-material-library__draft-preview,
+  .mc-material-library__form-actions,
+  .mc-material-library__error {
+    grid-column: auto;
+  }
+}
+
+@container material-catalog (max-width: 520px) {
+  .mc-material-library__header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .mc-material-library__record-count {
+    align-self: flex-start;
+  }
+
+  .mc-material-library__catalog,
+  .mc-material-library__editor {
+    padding: 12px;
+  }
+
+  .mc-material-library__metrics {
+    gap: 6px;
+  }
+
+  .mc-material-library__metric {
+    padding: 10px;
+  }
+
+  .mc-material-library__metric > strong {
+    font-size: 21px;
+  }
+
+  .mc-material-card {
+    grid-template-columns: 88px minmax(0, 1fr);
+  }
+
+  .mc-material-card__body {
+    padding: 8px;
+  }
+
+  .mc-panel-preview:not(.mc-panel-preview--compact) {
+    grid-template-columns: minmax(0, 1fr) minmax(96px, .85fr);
+  }
+}
+
+@media (forced-colors: active) {
+  .mc-material-library__catalog,
+  .mc-material-library__editor {
+    border-color: CanvasText;
+  }
+}
