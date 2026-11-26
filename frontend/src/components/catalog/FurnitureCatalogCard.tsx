@@ -1,6 +1,8 @@
+import { useState } from "react";
 import { Plus, Ruler } from "lucide-react";
 import type { FurnitureCatalogItem } from "../../data/furnitureCatalog";
 import "./FurnitureCatalogCardAction.css";
+import "./FurnitureCatalogCardDragFeedback.css";
 
 interface FurnitureCatalogCardProps {
   item: FurnitureCatalogItem;
@@ -92,6 +94,7 @@ function FurniturePreview({ item }: { item: FurnitureCatalogItem }) {
 }
 
 export function FurnitureCatalogCard({ item, index, onAdd, onDragStart, onDragEnd }: FurnitureCatalogCardProps) {
+  const [isDragging, setIsDragging] = useState(false);
   const details = [
     item.doorCount ? `${item.doorCount} kapak` : "",
     item.drawerCount ? `${item.drawerCount} çekmece` : "",
@@ -106,13 +109,18 @@ export function FurnitureCatalogCard({ item, index, onAdd, onDragStart, onDragEn
     <button
       type="button"
       className="cad-catalog-card mc-catalog-card"
+      data-dragging={isDragging ? "true" : undefined}
       draggable
       onDragStart={(event) => {
+        setIsDragging(true);
         event.dataTransfer.effectAllowed = "copy";
         event.dataTransfer.setData("application/x-mobilyacad-catalog-id", item.id);
         onDragStart?.();
       }}
-      onDragEnd={onDragEnd}
+      onDragEnd={() => {
+        setIsDragging(false);
+        onDragEnd?.();
+      }}
       onClick={onAdd}
       title={`Tıkla ile ${item.name} modelini odaya ekle; sürükleyerek sahnede konumlandır.`}
       aria-label={`${item.name}, G × Y × D: ${dimensions} milimetre. Tıkla ile odaya ekle; sürükleyerek sahnede konumlandır.`}
