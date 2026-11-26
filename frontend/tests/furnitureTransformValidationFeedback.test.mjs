@@ -18,7 +18,8 @@ test("invalid position drafts explain the rejected axis and preserve the last co
   );
   assert.match(component, /setPositionDraft\(createPositionDraft\(furniture\.position\)\)/);
   assert.match(component, /id="furniture-position-error" role="status" aria-live="polite"/);
-  assert.match(component, /aria-describedby=\{positionError \? "furniture-position-help furniture-position-error" : "furniture-position-help"\}/);
+  assert.match(component, /aria-describedby="furniture-position-help"/);
+  assert.match(component, /aria-errormessage=\{positionError \? "furniture-position-error" : undefined\}/);
 });
 
 test("valid position commits retain the existing millimetre precision and clear the message", () => {
@@ -31,6 +32,8 @@ test("invalid rotation drafts explain the existing 0–359 degree limit and pres
   assert.match(component, /parsedValue < 0 \|\|\s*parsedValue > 359/);
   assert.match(component, /Dönüş açısı 0–359° aralığında olmalı; önceki değer korundu\./);
   assert.match(component, /id="furniture-rotation-error" role="status" aria-live="polite"/);
+  assert.match(component, /aria-describedby="furniture-rotation-help"/);
+  assert.match(component, /aria-errormessage=\{rotationError \? "furniture-rotation-error" : undefined\}/);
   assert.match(component, /setRotationDraft\(String\(furniture\.rotation\)\)/);
   assert.match(component, /setRotationError\(null\);\s*onRotationCommit\(parsedValue\)/);
 });
