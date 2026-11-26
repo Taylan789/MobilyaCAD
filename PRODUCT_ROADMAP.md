@@ -24,7 +24,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 | Malzeme kataloğu | UI CRUD; mobilya varsayılan materialId ve çekmece grubunda varsayılan + dört panel grubu override; domain gövde/kitaplık motorları altı gövde panel grubu için malzeme override'ını doğrular | Gövde panel override'ları henüz frontend JSON v1/CSV ve UI akışına bağlanmadı; fiyat, tedarikçi ve fire henüz yok |
 | Proje dosyası | Yerel JSON v1 indirme/yükleme; saf serializer/parser; round-trip ve eski v1 uyumluluk; mm, mobilya ve çekmece grubu katalog referansları ile dört çekmece panel kalınlığının doğrulanması | Şema migrasyonu, otomatik kayıt ve kurtarma yok |
 | Teklif/maliyet | Kullanıcı fiyat tablosu malzeme tüketimini materialId + m2, donanımı hardwareId + özgün BOM birimi, kenar bandını edgeBandingId + açık mm/m birimi ile fiyatlandırır; kullanıcı girdili işçilik/operasyon tarifesi, tek para birimli birleşik teklif ve tarihli fiyat/tarife katalog snapshot'ı, DOM-014 doğrulanmış immutable append ve DOM-015 ortak satır aritmetiği doğrulaması vardır | Frontend/UI ve JSON v1/CSV kalıcı revizyon geçmişi entegrasyonu ayrı sahibindedir; tüm geçmişte ID tekilliği depolama katmanında doğrulanmalıdır; vergi, kur, iskonto, otomatik fire/kâr yüzdesi ve üretim onayı yok |
-| Test/CI | Latest verified exact-SHA [1faaaae](https://github.com/Taylan789/MobilyaCAD/commit/1faaaae212f2d3afe7afa07c29ab10b6c547b870): CI [#45739502270](https://github.com/Taylan789/MobilyaCAD/actions/runs/45739502270), QA [#45739502245](https://github.com/Taylan789/MobilyaCAD/actions/runs/45739502245), Pages [#45739502255](https://github.com/Taylan789/MobilyaCAD/actions/runs/45739502255) all succeeded; QA 337/337 frontend + 798/798 domain; strict TS, lint 36 warnings/0 errors, production build, production-only audit 0 vulnerabilities | Project CSV ID/round-trip UI slice verified; DOM-179 follow-up exact-SHA validation pending. |
+| Test/CI | Latest verified exact-SHA [d6a654c](https://github.com/Taylan789/MobilyaCAD/commit/d6a654c76cb1315c9857e09c36b665067f9fa948): CI [#45742984051](https://github.com/Taylan789/MobilyaCAD/actions/runs/45742984051), QA [#45742983965](https://github.com/Taylan789/MobilyaCAD/actions/runs/45742983965), Pages [#45742983909](https://github.com/Taylan789/MobilyaCAD/actions/runs/45742983909) all succeeded; QA 337/337 frontend + 799/799 domain; DOM-179 test #514; strict TS, lint 36 warnings/0 errors, production build, production-only audit 0 vulnerabilities | Exact-SHA Pages deployment verified. |
 
 ### Bilinen mimari ve veri boşlukları
 
@@ -609,7 +609,7 @@ Kanıtı bulunmayan ölçüm **NOT MEASURED** kalır; checklist tamamlanmadan ü
 | Üretim | Her Part için kaynak ID, quantity, mm ölçü, malzeme/kalınlık; unsupported geometri/export kısmi sonuç üretmeden blocker | Domain konstrüksiyon, tüketim, nesting freshness, teklif/revizyon ve JSON/CSV sözleşmeleri var; frontend adapter/CNC postprocessor eksik |
 | UX | Ana akışlarda işlevsel kontroller; klavye/focus, erişilebilirlik, responsive, boş/hata durumları otomatik doğrulanır | Frontend ayrı ajan alanında; gerçek tarayıcı görsel kabulü NOT MEASURED |
 | Performans | Referans sahnede p95 frame-time hedefi 16,7 ms (60 FPS), scene update p95 <100 ms, bellek ölçümü ve CI regression threshold | Referans sahne/benchmark NOT MEASURED; Integration/Performance job skipped ve agent/integration-performance-* branch bulunmadı; PERF-001/INT-002 specialist-owned, QA-003 INT-001/INT-002'ye bağlı |
-| Güvenilirlik | Strict TS, test, build, audit; import/export round-trip 0 alan kaybı; invalid input 0 partial output | Latest verified exact-SHA [1faaaae](https://github.com/Taylan789/MobilyaCAD/commit/1faaaae212f2d3afe7afa07c29ab10b6c547b870): CI [#45739502270](https://github.com/Taylan789/MobilyaCAD/actions/runs/45739502270), QA [#45739502245](https://github.com/Taylan789/MobilyaCAD/actions/runs/45739502245), Pages [#45739502255](https://github.com/Taylan789/MobilyaCAD/actions/runs/45739502255) passed; QA 337/337 frontend + 798/798 domain; strict shared-domain TS, lint 36 warnings/0 errors, production build, production-only audit 0 vulnerabilities. JS 1,699.10 kB (475.21 kB gzip), CSS 463.83 kB (77.95 kB gzip); viewport p95/memory NOT MEASURED. Overall 10/10 gate remains unchecked. |
+| Güvenilirlik | Strict TS, test, build, audit; import/export round-trip 0 alan kaybı; invalid input 0 partial output | Latest verified exact-SHA [d6a654c](https://github.com/Taylan789/MobilyaCAD/commit/d6a654c76cb1315c9857e09c36b665067f9fa948): CI [#45742984051](https://github.com/Taylan789/MobilyaCAD/actions/runs/45742984051), QA [#45742983965](https://github.com/Taylan789/MobilyaCAD/actions/runs/45742983965), Pages [#45742983909](https://github.com/Taylan789/MobilyaCAD/actions/runs/45742983909) passed; QA 337/337 frontend + 799/799 domain; DOM-179 test #514; strict shared-domain TS, lint 36 warnings/0 errors, production build, production-only audit 0 vulnerabilities. JS 1,699.10 kB (475.21 kB gzip), CSS 463.83 kB (77.95 kB gzip); viewport p95/memory NOT MEASURED. Overall 10/10 gate remains unchecked. |
 | Edge-band export | Direction, catalog ID, mm/m, Part/furniture provenance and strict JSON round-trip; malformed/unsupported input blocked | DOM-068 verified: 124 frontend + 468 domain tests, strict type-check, build and audit; see Actions |
 
 
@@ -2099,7 +2099,7 @@ Sonraki adım: Exact-SHA CI/QA/Pages sonuçlarını doğrula; ardından DOM-170 
 2. UI-owned INT-003 PR #206 ayrı sahibinde kalır; editor startup/new/save/open envelope entegrasyonu ve exact-SHA frontend QA beklenir.
 3. DOM-153 — yalnızca INT-003 editör entegrasyonu tamamlandıktan sonra gerçek append → save → reopen → append akışını doğrula.
 4. INT-002/PERF-001 adapter, benchmark ve viewport p95/bellek işleri Integration/Performance sahibinde kalır; job disabled ve specialist branch bulunamadı.
-5. QA-003, INT-001/INT-002 kanıtı gelene kadar blocked; fiziksel CNC/makine doğrulaması insan doğrulamasıdır.
+5. QA-003 remains blocked on INT-002 specialist adapter/round-trip evidence (INT-001 project-CSV identity/round-trip is partial verified); fiziksel CNC/makine doğrulaması insan doğrulamasıdır.
 
 
 ## 26 Kasım 2026 03:43 TRT — DOM-178 implementation submitted
@@ -2122,17 +2122,17 @@ Sonraki adım: Exact-SHA CI/QA/Pages sonuçlarını doğrula; ardından DOM-170 
 
 
 
-## DOM-179 — Restored envelope append integrity (26 Kasım 2026 05:28 TRT; verification pending)
+## DOM-179 — Restored envelope append integrity (26 Kasım 2026 05:35 TRT; VERIFIED)
 
 **Kullanıcı akışı:** Boş JSON v2 projeye standalone teklif geçmişini aktar; proje dosyasını JSON olarak kaydet/aç; yeni revizyon ekle; tekrar aç ve geçmişi dışa aktar.
 
 **Kabul kriterleri:** Import sırasında korunan bilinmeyen üst seviye/iç içe metadata ve own `__proto__` JSON data keys restore ve append sonrasında kaybolmaz; prototype zinciri değişmez; append input'u mutasyona uğratmaz; ikinci revizyonun sıra/previous link'i geçerlidir; project-file read ve standalone serializer/parser aynı geçmişi döndürür.
 
-**Teslimat:** `domain/production/projectQuoteRevisionProjectFile.test.mjs` içine domain regresyonu eklendi. Production source/API değişmedi; frontend/adapter entegrasyonu iddia edilmez. Exact-SHA CI/QA/Pages sonuçları bekleniyor.
+**Teslimat:** `domain/production/projectQuoteRevisionProjectFile.test.mjs` içine domain regresyonu eklendi. Production source/API değişmedi; frontend/adapter entegrasyonu iddia edilmez. Exact-SHA CI [#45742984051](https://github.com/Taylan789/MobilyaCAD/actions/runs/45742984051), QA [#45742983965](https://github.com/Taylan789/MobilyaCAD/actions/runs/45742983965) ve Pages [#45742983909](https://github.com/Taylan789/MobilyaCAD/actions/runs/45742983909) başarılı; QA 337/337 frontend + 799/799 domain, DOM-179 test #514, strict TS, lint 36 uyarı/0 hata, production build ve production-only audit 0 vulnerability. Pages deployment log exact `pages_build_version` SHA'sını doğruladı.
 
 ### Sıradaki 3–5 küçük görev
 
-1. DOM-179 — exact-SHA CI/QA/Pages tamamla; test iki revizyonu, metadata/prototype güvenliğini ve input immutability'yi doğrulamalı.
+1. DOM-179 VERIFIED — import/restore/append/export round-trip, own `__proto__` metadata, prototype safety, revision sequence and input immutability passed on exact SHA d6a654c; test #514.
 2. DOM-180 — JSON v2 proje zarfında tam 64 seviye ve 16 MiB UTF-8 sınırlarının kabul edildiğini, sınır +1'in atomik blocked kaldığını doğrula.
 3. UI-owned INT-003 PR #206 — editor startup/new/save/open JSON v2 envelope wiring; PR draft/unmergeable, bu domain ajanı müdahale etmez.
 4. DOM-153 — INT-003 editor entegrasyonu sonrasında append → save → reopen → append tam kullanıcı akışı.
