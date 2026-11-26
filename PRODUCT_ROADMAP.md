@@ -2622,3 +2622,29 @@ Sıradaki küçük görevler:
 - Güvenilirlik: önceki teklif snapshot'ı immutable, revizyon zinciri ve JSON history round-trip kayıpsız; yanlış kalınlık/eksik fiyat fail-closed.
 - CAD Core / UX / performans: bu committe değişmedi; viewport p95 ve bellek hâlâ NOT MEASURED.
 - CNC/makine: çıktı veya fiziksel üretim onayı yok; operatör/üretici doğrulaması gerekir.
+
+
+## 27 Kasım 2026 02:47 TRT — DOM-201 kesitli özel panel teklif fiyatı (Actions pending)
+
+**Kullanıcı akışı:** Kullanıcı özel panel için gerçek açıklık geometrisi, adet, katalog malzemesi ve kullanıcı fiyat listesini sağlar. Teklif, açıklık alanını düşerek net panel yüzeyini fiyatlandırır; üretim adapter'ı geometriyi kayıpsız taşıyamadığı için kesitli panel export kilidi korunur.
+
+**Kabul kriterleri:**
+- 2000 × 600 mm dış panel ve açık 400 × 300 mm açıklık için net yüz alanı 1,080,000 mm² olmalıdır.
+- Part quantity 2 ile kullanıcı fiyatlı tüketim 2.16 m² olmalıdır.
+- Exact 38 mm materialId fiyatı 1,250 minor TRY/m² ise toplam 2,700 minor TRY olmalı; source Part ID `custom-worktop-panel` kalmalıdır.
+- `panelGeometry` taşıyan rapor `canExport=false` kalmalı; JSON v1/CSV export blocker kaldırılmamalıdır.
+
+**Durum:** Test ve sözleşme değişikliği oluşturuldu; implementation SHA ve exact-SHA CI/QA/Pages sonucu henüz pending. Başarılı doğrulama iddiası yok.
+
+**Sıradaki küçük görevler:**
+1. DOM-202 — bozuk, çakışan veya Part ölçüleriyle uyuşmayan cutout geometrisinin teklif snapshot/revision üretimini kısmi toplam olmadan engellediğini doğrula.
+2. UI-owned INT-003 — JSON v2 envelope'ı editor startup/new/save/open akışına bağla; `frontend/**` ve PR #206 UI ajanının sahipliğinde kalır.
+3. Specialist-owned INT-002 — JSON/CSV adapter round-trip ve kesit geometri kayıpsızlığı için exact-SHA kanıt; kanıt gelene kadar export blocker korunur.
+4. Specialist-owned PERF-001 — viewport p95, scene update ve bellek baseline'ını tekrarlanabilir şekilde ölç; şu an NOT MEASURED.
+5. QA-003 — INT-001/INT-002 exact-SHA adapter kanıtı geldikten sonra uçtan uca üretim/export data-flow audit.
+
+**10/10 checklist delta:**
+- Üretim/maliyet: net yüz alanı (outer − explicit cutouts), quantity çarpanı, exact materialId/kalınlık fiyatı, TRY toplamı ve kaynak Part ID regresyonu.
+- Güvenilirlik: geometri export'u desteklenmediğinde fail-closed kilit korunuyor.
+- CAD Core / UX / performans: bu dilimde değişmedi; viewport p95 ve bellek NOT MEASURED.
+- CNC/makine: CNC çıktısı veya fiziksel üretim onayı yok; operatör/üretici doğrulaması gerekir.

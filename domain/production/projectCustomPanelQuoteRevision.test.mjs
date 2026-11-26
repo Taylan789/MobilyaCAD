@@ -44,7 +44,8 @@ function createPanelReport(options = {}) {
         thicknessesMm: [Math.round(thicknessMm * 10) / 10],
         unit: "mm"
       }]
-    }]
+    }],
+    ...(options.panelCutouts === undefined ? {} : { panelCutouts: options.panelCutouts })
   });
 }
 
@@ -271,4 +272,59 @@ test("özel panelin exact kalınlık fiyatı eksikse teklif snapshot ve revizyon
   assert.equal(append.status, "blocked");
   assert.equal(append.project, null);
   assert.equal(append.history, null);
+});
+
+
+test("DOM-201 kesitli özel panel teklifi açıklık alanını düşer, quantity ve kaynak Part izini korur; export kilidini kaldırmaz", () => {
+  const report = createPanelReport({
+    panelCutouts: [{
+      partId: "custom-worktop-panel",
+      geometry: {
+        schemaVersion: 1,
+        widthMm: 2000,
+        lengthMm: 600,
+        thicknessMm: 38,
+        outerEdgeBanding: { ...noBanding },
+        cutouts: [{
+          id: "sink-opening",
+          xMm: 100,
+          yMm: 100,
+          widthMm: 400,
+          lengthMm: 300,
+          edgeBanding: { ...noBanding }
+        }]
+      }
+    }]
+  });
+
+  assert.equal(report.status, "ready", report.firstError ?? "Kesitli özel panel üretimi hazır olmalı.");
+  assert.ok(report.result);
+  assert.equal(report.canExport, false);
+  assert.ok(report.exportBlockers.some(message => /panelGeometry/.test(message)));
+
+  const part = report.result.parts[0];
+  assert.equal(part.id, "custom-worktop-panel");
+  assert.equal(part.quantity, 2);
+  assert.equal(part.panelGeometry.outerFaceAreaMm2, 1_200_000);
+  assert.equal(part.panelGeometry.cutoutAreaMm2, 120_000);
+  assert.equal(part.panelGeometry.netFaceAreaMm2, 1_080_000);
+
+  const priced = createPricingSnapshot(
+    report,
+    "workshop-cutout-v1",
+    "worktop-38-a",
+    1250
+  );
+  assert.equal(priced.status, "ready", priced.diagnostics.join(" "));
+  assert.ok(priced.snapshot);
+  assertPanelQuote(priced.snapshot, {
+    materialId: "worktop-38-a",
+    areaM2: 2.16,
+    unitPriceMinor: 1250,
+    totalMinor: 2700,
+    sourceReference: "workshop-materials:workshop-cutout-v1:worktop-38-a"
+  });
+  assert.equal(priced.snapshot.materialCostBasis.panelMaterialCostMinor, 2700);
+  assert.equal(priced.snapshot.quoteSummary.costSummary.grandTotalMinor, 2700);
+  assert.equal(report.canExport, false);
 });
