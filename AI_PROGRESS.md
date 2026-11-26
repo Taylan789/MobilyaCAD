@@ -1665,13 +1665,16 @@
 - **Next:** INT-003 — UI-owned JSON v2 editor startup/new/save/open integration; then exact-SHA INT-001/INT-002 adapter evidence, specialist-owned PERF-001 baseline, and QA-003 after those prerequisites.
 
 
-## 26 Kasım 2026 22:17 TRT — DOM-197 özel panel ailesi (doğrulama bekliyor)
+## 26 Kasım 2026 22:17 TRT — DOM-197 özel panel ailesi (VERIFIED)
 
 - **Base HEAD:** `dev/github-work` `eff12f35d89f79d3ed54d9c80f324b6f23aa3682`.
+- **Implementation commit:** [ea22d47fb1fbbe8a2b43c339d3efb26ab355952a](https://github.com/Taylan789/MobilyaCAD/commit/ea22d47fb1fbbe8a2b43c339d3efb26ab355952a), yalnızca `dev/github-work`.
 - **Teslimat:** Bağımsız `panel` ailesi eklendi. Kullanıcı açık mm genişlik/uzunluk/kalınlık, adet, malzeme kimliği veya legacy etiketi, dört kenar bantlama bayrağı ve damar yönü verir. Motor tek kararlı Part satırı üretir; katalog kimliği varsa gerçek kalınlığı katalogla eşleştirir.
 - **Uçtan uca kapsam:** Proje agregatörü yeni aileyi tanır. Açık dikdörtgen kesit mevcut `panelCutouts` ile Part'a bağlanır; net alan/hacim ve kenar bantlama özeti hesaplanır. Kesitli panel export adapter geometriyi koruyana kadar export engeli sürer.
-- **Kabul kriterleri:** 0.1 mm normalizasyonu, güvenli pozitif adet, malzeme/kalınlık eşleşmesi, explicit edge/grain, immutable input, proje Part kimliği, kesitli net tüketim ve export fail-closed.
-- **Dosyalar:** `domain/production/panelConstruction.ts`, `domain/production/panelConstruction.test.mjs`, `domain/production/projectProduction.ts`, `domain/production/projectProduction.test.mjs`, `.github/workflows/qa-test.yml`, `docs/production-domain-contract.md`, `AI_COORDINATION.md`, `AI_PROGRESS.md`, `PRODUCT_ROADMAP.md`.
-- **Kontroller:** Exact-SHA CI/QA/production build/Pages henüz tetiklenmedi; bu kayıt implementation commit öncesi durumdur. Test sonucu başarılı ilan edilmemiştir.
-- **Sınırlar:** Frontend değişmedi; özel panel editörü UI ajanı sözleşmesine devredildi. CNC, destek/taşıyıcı, montaj ve fiziksel tezgâh/raf güvenliği doğrulanmadı. Kesitli panel adapter export'u bilerek bloklanır.
+- **Değişen dosyalar:** `domain/production/panelConstruction.ts`, `domain/production/panelConstruction.test.mjs`, `domain/production/projectProduction.ts`, `domain/production/projectProduction.test.mjs`, `.github/workflows/qa-test.yml`, `docs/production-domain-contract.md`, `AI_COORDINATION.md`, `AI_PROGRESS.md`, `PRODUCT_ROADMAP.md`.
+- **Exact-SHA CI:** [#45882909727](https://github.com/Taylan789/MobilyaCAD/actions/runs/45882909727) SUCCESS — frontend production build ve lint.
+- **Exact-SHA QA:** [#45882909771](https://github.com/Taylan789/MobilyaCAD/actions/runs/45882909771) SUCCESS — 387/387 frontend + 837/837 domain test; yeni özel panel ve proje entegrasyon regresyonları geçti; shared-domain strict TypeScript, lint (36 warning / 0 error), production build ve production-only dependency audit (0 vulnerability) geçti.
+- **Exact-SHA Pages:** [#45882909861](https://github.com/Taylan789/MobilyaCAD/actions/runs/45882909861) SUCCESS — deployment log `pages_build_version=ea22d47fb1fbbe8a2b43c339d3efb26ab355952a` doğruladı; https://taylan789.github.io/MobilyaCAD/.
+- **Bilinen sınırlar:** Ana JS chunk 1.716 MB ve 500 kB üstü uyarı sürüyor; 36 lint warning var. Kesitli panel adapter export'u bilerek bloklanır. Frontend UI, yerleşim, bağlantı, taşıyıcı, CNC/postprocessor ve fiziksel tezgâh/raf güvenliği bu dilimde tamamlanmadı.
+- **Paralel roller:** `frontend/**` değiştirilmedi. UI ajanının önceki commit'i [eff12f3](https://github.com/Taylan789/MobilyaCAD/commit/eff12f35d89f79d3ed54d9c80f324b6f23aa3682) ayrı bir UI görünürlük iyileştirmesiydi; exact-SHA CI/QA/Pages başarıyla dağıtıldı. Integration/Performance branch'i bulunmadı; specialist-owned INT-002/PERF-001 ölçülmedi. AI Developer [#45810848741](https://github.com/Taylan789/MobilyaCAD/actions/runs/45810848741) OpenRouter free-model daily HTTP 429 ile başarısız; limit reset 27 Kasım 2026 03:00 TRT olduğundan bu turda rerun edilmedi; secret/ücretli fallback ayarı değiştirilmedi.
 - **Sonraki adım:** DOM-198 — özel panel Part'ının snapshot/nesting veri akışında kimlik, adet, malzeme, kalınlık ve damar yönü kayıpsızlığını doğrula; UI-owned editor handoff ve specialist-owned INT-002/PERF-001 ayrı kalır.

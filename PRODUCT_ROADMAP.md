@@ -2540,7 +2540,7 @@ Sıradaki küçük görevler:
 
 **Ürün akışı:** Kullanıcı mutfak tezgâhı, raf, dolgu veya özel mobilya parçası gibi tek bir dikdörtgen paneli; açık ölçü, adet, katalog malzemesi, kenar bantlama ve damar yönüyle tanımlar. Motor tek bir kararlı Part satırı üretir ve mevcut proje tüketim/nesting domain'ine verir. Bu aile herhangi bir joinery, yerleşim veya makine operasyonu tahmin etmez.
 
-**Kabul kriterleri:**
+**Kabul kriterleri — exact-SHA doğrulandı:**
 - Genişlik, uzunluk ve kalınlık pozitif/sonlu mm olarak 0.1 mm'ye normalize edilir; adet pozitif güvenli tam sayıdır.
 - Malzeme kimliği verilmişse katalogda bulunur ve gerçek kalınlıkla eşleşir; kimlik yoksa açık legacy malzeme etiketi korunur.
 - Dört dış kenar ve damar yönü açıkça sağlanır; tek Part kimliği `<furnitureId>-panel` ve açık quantity korunur.
@@ -2549,7 +2549,9 @@ Sıradaki küçük görevler:
 
 **10/10 checklist delta:** Üretim/parametrik kapsamına özel panel/tezgâh/raf temel ailesi eklendi; ölçü, adet, katalog kalınlığı, grain ve edge banding otomatik domain testleriyle kapsanır. CAD viewport/UX, save/open UI ve CNC/postprocessor değişmedi. CNC ve gerçek tezgâh/raf destek güvenliği insan/atölye doğrulaması gerektirir.
 
-**Doğrulama durumu:** Implementation ve exact-SHA CI/QA/production build/Pages sonuçları bu kayıt oluşturulurken beklemede; 10/10 iddiası yapılmaz.
+**Exact-SHA doğrulama:** Commit [ea22d47fb1fbbe8a2b43c339d3efb26ab355952a](https://github.com/Taylan789/MobilyaCAD/commit/ea22d47fb1fbbe8a2b43c339d3efb26ab355952a); CI [#45882909727](https://github.com/Taylan789/MobilyaCAD/actions/runs/45882909727) SUCCESS; QA [#45882909771](https://github.com/Taylan789/MobilyaCAD/actions/runs/45882909771) SUCCESS (387 frontend + 837 domain; strict shared-domain TS; lint 36 warnings / 0 errors; production build; audit 0 vulnerabilities); Pages [#45882909861](https://github.com/Taylan789/MobilyaCAD/actions/runs/45882909861) SUCCESS, exact SHA deployed to https://taylan789.github.io/MobilyaCAD/.
+
+**Bilinen riskler:** Ana JS chunk 1.716 MB; 500 kB üstü build warning sürüyor. Kesitli panel için export adapter geometriyi korumadığından export kapalı. CNC ve fiziksel montaj güvenliği insan/atölye doğrulaması gerektirir.
 
 **Sıradaki 3–5 küçük görev:**
 1. DOM-198 — özel panel Part snapshot ve nesting girişinde kimlik/adet/malzeme/kalınlık/damar kayıpsızlığını doğrula.
