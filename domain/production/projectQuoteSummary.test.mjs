@@ -622,7 +622,8 @@ test("DOM-124 combined quote line sources carry hardware BOM provenance separate
     hardwareId: "hinge-110",
     hardwareUnit: "adet",
     hardwareFurnitureIds: ["quote-cabinet-1", "quote-cabinet-2"],
-    hardwareSourceReferences: ["bom:catalog-a", "bom:catalog-z"]
+    hardwareSourceReferences: ["bom:catalog-a", "bom:catalog-z"],
+    priceSourceReference: "hardware-price:v2"
   });
   assert.equal(hardwareSource.sourcePartIds, undefined);
   assert.equal(hardwareSource.resourceType, undefined);

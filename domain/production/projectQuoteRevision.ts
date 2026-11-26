@@ -139,19 +139,19 @@ const costLineKeys = new Set([
 ]);
 const sourceKeys = new Set([
   "costLineId", "sourceType", "sourceId", "tariffId", "sourcePartIds",
-  "hardwareId", "hardwareUnit", "hardwareFurnitureIds", "hardwareSourceReferences", "hardwarePriceSourceReference",
+  "hardwareId", "hardwareUnit", "hardwareFurnitureIds", "hardwareSourceReferences",
   "resourceType", "resourceId", "unit", "edgeDirection", "rollCount", "rollLengthMm",
   "purchasedLengthMm", "furnitureIds", "planSourceReference", "priceSourceReference"
 ]);
 const hardwareMetadataKeys = new Set([
-  "hardwareId", "hardwareUnit", "hardwareFurnitureIds", "hardwareSourceReferences", "hardwarePriceSourceReference"
+  "hardwareId", "hardwareUnit", "hardwareFurnitureIds", "hardwareSourceReferences"
 ]);
 const requiredHardwareMetadataKeys = new Set([
   "hardwareId", "hardwareUnit", "hardwareFurnitureIds"
 ]);
 const rollMetadataKeys = new Set([
   "rollCount", "rollLengthMm", "purchasedLengthMm", "furnitureIds",
-  "planSourceReference", "priceSourceReference"
+  "planSourceReference"
 ]);
 const costCategories = ["material", "hardware", "labor", "operation", "waste", "profit"];
 const identifierPattern = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
@@ -523,7 +523,7 @@ function validateQuoteSummary(value: unknown, strictSourceIntegrity = false, all
         Object.prototype.hasOwnProperty.call(source, key)
       );
       if (source.resourceType === "material") {
-        if (line.category !== "material" || unit !== "m2" || edgeDirection !== undefined || sourceEdgeDirection !== undefined || hasRollMetadata) {
+        if (line.category !== "material" || unit !== "m2" || edgeDirection !== undefined || sourceEdgeDirection !== undefined || hasRollMetadata || source.priceSourceReference !== undefined) {
           throw new Error("Panel malzeme kaynak kimliği m2 birimiyle, yön ve rulo metadata olmadan eşleşmelidir.");
         }
         if (strictSourceIntegrity && (!Array.isArray(source.sourcePartIds) || source.sourcePartIds.length === 0)) {
@@ -553,7 +553,7 @@ function validateQuoteSummary(value: unknown, strictSourceIntegrity = false, all
         if (
           line.category !== "material" ||
           (unit !== "mm" && unit !== "m") ||
-          sourceEdgeDirection !== edgeDirection
+          sourceEdgeDirection !== edgeDirection || source.priceSourceReference !== undefined
         ) {
           throw new Error("Teklif kenar bandı kaynak kimliği, birim veya yön alanları tutarsız.");
         }
@@ -589,9 +589,9 @@ function validateQuoteSummary(value: unknown, strictSourceIntegrity = false, all
       if (source.hardwareSourceReferences !== undefined) {
         validateSortedIdentifiers(source.hardwareSourceReferences, "Teklif donanım BOM kaynak referansları");
       }
-      if (source.hardwarePriceSourceReference !== undefined) {
+      if (source.priceSourceReference !== undefined) {
         const priceSourceReference = requireText(
-          source.hardwarePriceSourceReference,
+          source.priceSourceReference,
           "Teklif donanım fiyat kaynak referansı",
           256
         );
@@ -599,6 +599,13 @@ function validateQuoteSummary(value: unknown, strictSourceIntegrity = false, all
           throw new Error("Teklif donanım fiyat kaynak referansı maliyet satırı kaynak referansıyla uyuşmalıdır.");
         }
       }
+    }
+    if (
+      source.priceSourceReference !== undefined &&
+      !hasHardwareMetadata &&
+      !(source.resourceType === "edge-banding" && source.unit === "rulo")
+    ) {
+      throw new Error("Teklif fiyat kaynak referansı yalnızca hardware veya rulo kenar bandı satırlarında kullanılabilir.");
     }
 
     if (strictSourceIntegrity) {

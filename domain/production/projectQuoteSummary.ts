@@ -33,8 +33,6 @@ export interface ProjectQuoteLineSource {
   hardwareUnit?: string;
   hardwareFurnitureIds?: string[];
   hardwareSourceReferences?: string[];
-  /** Exact user-supplied source reference for the hardware price-list row. */
-  hardwarePriceSourceReference?: string;
   /** Sorted unique production Part IDs for grouped consumption rows, when available. */
   sourcePartIds?: string[];
   /** Resource identity and units are machine-readable; descriptions are display-only. */
@@ -47,6 +45,7 @@ export interface ProjectQuoteLineSource {
   purchasedLengthMm?: number;
   furnitureIds?: string[];
   planSourceReference?: string;
+  /** User-supplied price-list source for hardware, or explicit roll-price source. */
   priceSourceReference?: string;
 }
 
@@ -364,7 +363,7 @@ export function calculateProjectQuoteSummary(
           : { hardwareSourceReferences: [...hardwareSource.sourceReferences] }),
         ...(line.sourceReference === undefined
           ? {}
-          : { hardwarePriceSourceReference: line.sourceReference })
+          : { priceSourceReference: line.sourceReference })
       }),
       ...(partSource === undefined ? {} : {
         sourcePartIds: [...partSource.sourcePartIds],

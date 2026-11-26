@@ -150,12 +150,14 @@ test("DOM-126a hardware BOM provenance survives validated quote revision, standa
     hardwareUnit: hardwareSource.hardwareUnit,
     hardwareFurnitureIds: hardwareSource.hardwareFurnitureIds,
     hardwareSourceReferences: hardwareSource.hardwareSourceReferences,
+    priceSourceReference: hardwareSource.priceSourceReference,
     sourcePartIds: hardwareSource.sourcePartIds
   }, {
     hardwareId: "hinge-110",
     hardwareUnit: "adet",
     hardwareFurnitureIds: ["revision-cabinet-1"],
     hardwareSourceReferences: ["bom:catalog-a", "bom:catalog-z"],
+    priceSourceReference: "hardware-price:v1",
     sourcePartIds: explicitHardwarePartIds
   });
   assert.deepEqual(hardwareSource.sourcePartIds, explicitHardwarePartIds);

@@ -142,8 +142,8 @@ test("DOM-185 shelf-support price source stays distinct from BOM provenance thro
   assert.ok(firstHardwareSource);
   assert.ok(secondHardwareSource);
   assert.deepEqual(firstHardwareSource.hardwareSourceReferences, ["manufacturer-catalogue:page-12"]);
-  assert.equal(firstHardwareSource.hardwarePriceSourceReference, "hardware-price-list:2026-11");
-  assert.equal(secondHardwareSource.hardwarePriceSourceReference, "hardware-price-list:2026-11-revised");
+  assert.equal(firstHardwareSource.priceSourceReference, "hardware-price-list:2026-11");
+  assert.equal(secondHardwareSource.priceSourceReference, "hardware-price-list:2026-11-revised");
   assert.deepEqual(firstHardwareSource.sourcePartIds, [shelfPart.id]);
 
   const firstHardwareLine = first.snapshot.quoteSummary.costSummary?.lines.find(line => line.category === "hardware");
@@ -153,8 +153,8 @@ test("DOM-185 shelf-support price source stays distinct from BOM provenance thro
   assert.equal(firstHardwareLine.quantity, 4);
   assert.equal(firstHardwareLine.unit, "adet");
   assert.equal(firstHardwareLine.unitPriceMinor, 175);
-  assert.equal(firstHardwareLine.sourceReference, firstHardwareSource.hardwarePriceSourceReference);
-  assert.equal(secondHardwareLine.sourceReference, secondHardwareSource.hardwarePriceSourceReference);
+  assert.equal(firstHardwareLine.sourceReference, firstHardwareSource.priceSourceReference);
+  assert.equal(secondHardwareLine.sourceReference, secondHardwareSource.priceSourceReference);
   assert.equal(first.snapshot.quoteSummary.costSummary?.grandTotalMinor, second.snapshot.quoteSummary.costSummary?.grandTotalMinor);
   assert.ok(Object.isFrozen(first.snapshot));
   assert.ok(Object.isFrozen(firstHardwareSource));
@@ -182,8 +182,8 @@ test("DOM-185 shelf-support price source stays distinct from BOM provenance thro
   );
   assert.ok(hardwareChange);
   assert.equal(hardwareChange.type, "changed");
-  assert.equal(hardwareChange.from.hardwarePriceSourceReference, "hardware-price-list:2026-11");
-  assert.equal(hardwareChange.to.hardwarePriceSourceReference, "hardware-price-list:2026-11-revised");
+  assert.equal(hardwareChange.from.priceSourceReference, "hardware-price-list:2026-11");
+  assert.equal(hardwareChange.to.priceSourceReference, "hardware-price-list:2026-11-revised");
 
   const serialized = serializeProjectQuoteRevisionHistoryFile(history.history);
   assert.equal(serialized.status, "ready", serialized.diagnostics.join("; "));
@@ -195,7 +195,7 @@ test("DOM-185 shelf-support price source stays distinct from BOM provenance thro
   const mismatched = structuredClone(first.snapshot);
   const mismatchedSource = mismatched.quoteSummary.lineSources.find(source => source.hardwareId === "shelf-support-001");
   assert.ok(mismatchedSource);
-  mismatchedSource.hardwarePriceSourceReference = "different-price-source";
+  mismatchedSource.priceSourceReference = "different-price-source";
   const blockedRevision = createRevision(mismatched, "dom-185-invalid-price-source", 1);
   assert.equal(blockedRevision.status, "blocked");
   assert.match(blockedRevision.diagnostics[0], /donanım fiyat kaynak referansı.*maliyet satırı kaynak referansıyla uyuşmalıdır/i);
