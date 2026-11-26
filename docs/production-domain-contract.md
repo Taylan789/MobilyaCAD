@@ -1785,3 +1785,21 @@ A standalone quote-history JSON v1 file may contain both a legacy material-cost-
 The regression checks that the legacy revision remains manifest-unavailable while the strict revision retains its v2 Part manifest. Comparing legacy to strict must report from-unavailable; comparing strict to a later revision with no material-cost basis must report to-unavailable. Group-level Part provenance is not promoted to an aggregate manifest. After append, project-wide additive counters must reconcile with the appended revision, while unique Part/furniture/BOM totals remain set-deduplicated. The imported envelope's own __proto__ JSON data keys remain ordinary data without prototype mutation or pollution.
 
 This is a domain persistence/audit regression only. It does not alter the project-file schema, frontend startup/save/open integration, adapters, supplier evidence, CNC output, sheet yield, kerf or physical workshop validation.
+
+
+## 26 Kasım 2026 — DOM-197: Bağımsız özel panel ailesi
+
+Kaynak: `domain/production/panelConstruction.ts`
+
+Çağrı: `calculatePanelConstruction({ schemaVersion: 1, family: "panel", furniture, profile, materials })`.
+
+- `furniture` açıkça `id`, `name`, `widthMm`, `lengthMm`, `thicknessMm`, `quantity`, `material` ve isteğe bağlı `materialId` taşır.
+- `profile`, dört dış kenar için boolean `edgeBanding` ve `length | width | none` damar yönünü zorunlu kılar.
+- Ölçüler mm'dir ve 0.1 mm'ye normalize edilir. Adet pozitif güvenli tam sayıdır; varsayılan adet, ölçü, konum veya birleştirme yöntemi üretilmez.
+- Her istek tek bir `<furnitureId>-panel` Part satırı üretir; `quantity` aynı Part satırında korunur. Parça `group: "panel"`, malzeme kimliği, kenar bantlama ve damar yönünü taşır.
+- `materialId` verilirse katalogda aynı kimlik ve gerçek kalınlık bulunmalıdır; yoksa istek bloklanır. Kimlik verilmeyen legacy serbest metin malzeme adı aynen korunur.
+- Aile, proje üretim agregatöründe `family: "panel"` olarak desteklenir. Part satırı mevcut net alan/hacim, kenar bantlama, Part snapshot ve nesting domain akışlarına temel veri sağlar.
+- Açık dikdörtgen geçiş açıklıkları mevcut `panelCutouts` isteğiyle tam Part kimliğine bağlanabilir. Kesit geometrisi net tüketimde hesaplanır; mevcut export adapter'ı bu geometriyi kayıpsız taşıdığı kanıtlanana kadar `canExport` kapalı kalır.
+- Bu modül yerleşim, bağlantı, ayak/taşıyıcı, kenar profili, fire, levha yerleşimi, delik, CNC koordinatı veya makine postprocessor'ı üretmez. Tezgâh/raf gibi gerçek kullanım için destek ve montaj güvenliği ayrıca tasarımcı/atölye tarafından doğrulanmalıdır.
+
+**Frontend entegrasyon sözleşmesi (UI-owned):** Özel panel oluşturma akışı `family: "panel"` ve yukarıdaki açık ölçü/adet/malzeme/kenar/damar alanlarını gönderir; sonuçta `parts[0]` ve `overallDimensionsMm` tüketilir. `panelGeometry` mevcut adapter'larda desteklenmiyorsa kesitli Part için dışa aktarma engeli kullanıcıya görünür olmalıdır. Bu turda `frontend/**` değiştirilmemiştir.

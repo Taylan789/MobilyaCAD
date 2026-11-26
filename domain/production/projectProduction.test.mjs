@@ -1934,3 +1934,91 @@ test("kitaplık bölme rafları proje parça listesi ve malzeme tüketimine eksi
   assert.equal(mdf8.volumeM3, 0.001682976);
   assert.equal(mdf8.edgeBanding.edgeCount, 2);
 });
+
+
+test("özel panel ailesi proje Part, net tüketim ve açık kesit geometrisi akışına bağlanır", () => {
+  const request = {
+    schemaVersion: 1,
+    family: "panel",
+    furniture: {
+      id: "custom-worktop",
+      name: "Özel tezgâh",
+      widthMm: 2000.04,
+      lengthMm: 600.04,
+      thicknessMm: 38.04,
+      quantity: 2,
+      material: "Legacy",
+      materialId: "worktop-38"
+    },
+    profile: {
+      edgeBanding: { top: true, bottom: false, left: true, right: true },
+      grainDirection: "length"
+    },
+    materials: [{
+      id: "worktop-38",
+      name: "Kompakt Tezgâh",
+      category: "panel",
+      thicknessesMm: [38],
+      unit: "mm"
+    }]
+  };
+
+  const baseline = calculateCabinetProjectProductionWithDiagnostics({
+    schemaVersion: 1,
+    furniture: [request]
+  });
+  assert.equal(baseline.status, "ready", baseline.firstError ?? "Özel panel üretimi hazır olmalı.");
+  assert.equal(baseline.canExport, true);
+  assert.ok(baseline.result);
+  assert.deepEqual(baseline.result.furniture, [{
+    furnitureId: "custom-worktop",
+    family: "panel",
+    overallDimensionsMm: { width: 2000, length: 600, thickness: 38 }
+  }]);
+
+  const part = baseline.result.parts[0];
+  assert.deepEqual(
+    [part.id, part.group, part.width, part.length, part.thickness, part.quantity, part.materialId, part.grainDirection],
+    ["custom-worktop-panel", "panel", 2000, 600, 38, 2, "worktop-38", "length"]
+  );
+
+  const withCutout = calculateCabinetProjectProductionWithDiagnostics({
+    schemaVersion: 1,
+    furniture: [request],
+    panelCutouts: [{
+      partId: part.id,
+      geometry: {
+        schemaVersion: 1,
+        widthMm: part.width,
+        lengthMm: part.length,
+        thicknessMm: part.thickness,
+        outerEdgeBanding: part.edgeBanding,
+        cutouts: [{
+          id: "explicit-service-opening",
+          xMm: 100,
+          yMm: 100,
+          widthMm: 300,
+          lengthMm: 200,
+          edgeBanding: { top: true, bottom: false, left: false, right: false }
+        }]
+      }
+    }]
+  });
+
+  assert.equal(withCutout.status, "ready", withCutout.firstError ?? "Açık kesit geometrisi doğrulanmalı.");
+  assert.equal(withCutout.canExport, false);
+  assert.ok(withCutout.exportBlockers.some((message) => message.includes("panelGeometry")));
+  assert.ok(withCutout.result);
+  const profiledPart = withCutout.result.parts[0];
+  assert.equal(profiledPart.panelGeometry?.netFaceAreaMm2, 1_140_000);
+  assert.equal(profiledPart.quantity, 2);
+
+  const summary = calculateProjectMaterialConsumptionSummary(withCutout.result);
+  assert.equal(summary.length, 1);
+  assert.equal(summary[0].materialId, "worktop-38");
+  assert.equal(summary[0].thicknessMm, 38);
+  assert.equal(summary[0].totalQuantity, 2);
+  assert.equal(summary[0].panelAreaM2, 2.28);
+  assert.equal(summary[0].volumeM3, 0.08664);
+  assert.equal(summary[0].edgeBanding.totalLengthMm, 7000);
+});

@@ -1663,3 +1663,15 @@
 - **Parallel lanes:** UI-owned INT-003 PR [#206](https://github.com/Taylan789/MobilyaCAD/pull/206) remains draft and untouched; open UI PRs were not merged. No agent/integration-performance branch or specialist PR was found; specialist job was skipped, so INT-002/PERF-001 remain specialist-owned and unverified. QA-003 remains dependent on INT-001/INT-002 evidence.
 - **AI Developer:** run [#45810848741](https://github.com/Taylan789/MobilyaCAD/actions/runs/45810848741) failed with OpenRouter free-model daily HTTP 429 (50/50 requests exhausted; reset 27 November 2026 03:00 TRT). No rerun was attempted before reset; no paid fallback, secret or quota setting was changed.
 - **Next:** INT-003 — UI-owned JSON v2 editor startup/new/save/open integration; then exact-SHA INT-001/INT-002 adapter evidence, specialist-owned PERF-001 baseline, and QA-003 after those prerequisites.
+
+
+## 26 Kasım 2026 22:17 TRT — DOM-197 özel panel ailesi (doğrulama bekliyor)
+
+- **Base HEAD:** `dev/github-work` `eff12f35d89f79d3ed54d9c80f324b6f23aa3682`.
+- **Teslimat:** Bağımsız `panel` ailesi eklendi. Kullanıcı açık mm genişlik/uzunluk/kalınlık, adet, malzeme kimliği veya legacy etiketi, dört kenar bantlama bayrağı ve damar yönü verir. Motor tek kararlı Part satırı üretir; katalog kimliği varsa gerçek kalınlığı katalogla eşleştirir.
+- **Uçtan uca kapsam:** Proje agregatörü yeni aileyi tanır. Açık dikdörtgen kesit mevcut `panelCutouts` ile Part'a bağlanır; net alan/hacim ve kenar bantlama özeti hesaplanır. Kesitli panel export adapter geometriyi koruyana kadar export engeli sürer.
+- **Kabul kriterleri:** 0.1 mm normalizasyonu, güvenli pozitif adet, malzeme/kalınlık eşleşmesi, explicit edge/grain, immutable input, proje Part kimliği, kesitli net tüketim ve export fail-closed.
+- **Dosyalar:** `domain/production/panelConstruction.ts`, `domain/production/panelConstruction.test.mjs`, `domain/production/projectProduction.ts`, `domain/production/projectProduction.test.mjs`, `.github/workflows/qa-test.yml`, `docs/production-domain-contract.md`, `AI_COORDINATION.md`, `AI_PROGRESS.md`, `PRODUCT_ROADMAP.md`.
+- **Kontroller:** Exact-SHA CI/QA/production build/Pages henüz tetiklenmedi; bu kayıt implementation commit öncesi durumdur. Test sonucu başarılı ilan edilmemiştir.
+- **Sınırlar:** Frontend değişmedi; özel panel editörü UI ajanı sözleşmesine devredildi. CNC, destek/taşıyıcı, montaj ve fiziksel tezgâh/raf güvenliği doğrulanmadı. Kesitli panel adapter export'u bilerek bloklanır.
+- **Sonraki adım:** DOM-198 — özel panel Part'ının snapshot/nesting veri akışında kimlik, adet, malzeme, kalınlık ve damar yönü kayıpsızlığını doğrula; UI-owned editor handoff ve specialist-owned INT-002/PERF-001 ayrı kalır.

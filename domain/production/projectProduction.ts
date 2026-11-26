@@ -1,4 +1,6 @@
 import { calculateCabinetConstruction } from "./cabinetConstruction.ts";
+import { calculatePanelConstruction } from "./panelConstruction.ts";
+import type { PanelConstructionPart, PanelConstructionResult } from "./panelConstruction.ts";
 import { calculateBookshelfConstruction } from "./bookshelfConstruction.ts";
 import type { BookshelfConstructionPart } from "./bookshelfConstruction.ts";
 import { calculateTableConstruction } from "./tableConstruction.ts";
@@ -45,6 +47,11 @@ export type CabinetProjectFurnitureResult =
       furnitureId: string;
       family: "table";
       overallDimensionsMm: TableConstructionResult["overallDimensionsMm"];
+    }
+  | {
+      furnitureId: string;
+      family: "panel";
+      overallDimensionsMm: PanelConstructionResult["overallDimensionsMm"];
     };
 
 export interface DrawerGroupProductionResult {
@@ -83,7 +90,7 @@ export interface ProjectEdgeBandingByEdge {
 }
 
 export type ProjectProductionPart = (
-  CabinetConstructionPart | BookshelfConstructionPart | DrawerBoxConstructionPart | TableConstructionPart | WardrobeConstructionPart | TvUnitConstructionPart
+  CabinetConstructionPart | BookshelfConstructionPart | DrawerBoxConstructionPart | TableConstructionPart | WardrobeConstructionPart | TvUnitConstructionPart | PanelConstructionPart
 ) & {
   /** Optional, explicitly validated panel profile; absent on legacy rectangular parts. */
   panelGeometry?: PanelCutoutGeometryResult;
@@ -106,7 +113,7 @@ export interface CabinetProjectProductionResult {
 }
 
 
-export type SupportedProjectFurnitureFamily = "cabinet" | "bookshelf" | "table" | "wardrobe" | "tv-unit" | "bathroom-vanity";
+export type SupportedProjectFurnitureFamily = "cabinet" | "bookshelf" | "table" | "wardrobe" | "tv-unit" | "bathroom-vanity" | "panel";
 
 export interface ProjectProductionMaterialIdentityConflict {
   materialId: string;
@@ -177,6 +184,7 @@ function readFurnitureFamily(value: unknown, index: number): SupportedProjectFur
   if (value.family === "wardrobe") return "wardrobe";
   if (value.family === "tv-unit") return "tv-unit";
   if (value.family === "bathroom-vanity") return "bathroom-vanity";
+  if (value.family === "panel") return "panel";
   throw new Error("Proje mobilya ailesi desteklenmiyor: " + String(value.family) + ".");
 }
 
@@ -271,6 +279,14 @@ function calculateFurnitureRequest(
   parts: readonly ProjectProductionPart[];
   hardwareItems?: readonly ProjectHardwareItem[];
 } {
+  if (family === "panel") {
+    const result = calculatePanelConstruction(request);
+    return {
+      furniture: { furnitureId, family: "panel", overallDimensionsMm: { ...result.overallDimensionsMm } },
+      parts: result.parts
+    };
+  }
+
   if (family === "table") {
     const result = calculateTableConstruction(request);
     return {
@@ -890,7 +906,7 @@ function readDrawerGroupId(value: unknown, index: number): string {
 }
 
 /**
- * Calculates and combines explicit cabinet, bookshelf, table, wardrobe, floor-standing TV-unit, bathroom-vanity and optional drawer-box requests.
+ * Calculates and combines explicit cabinet, bookshelf, table, wardrobe, floor-standing TV-unit, bathroom-vanity, custom-panel and optional drawer-box requests.
  *
  * Each cabinet is calculated independently using its own profile and material
  * catalogue. Drawer groups must reference one of those furniture IDs. The

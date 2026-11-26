@@ -2534,3 +2534,26 @@ Sıradaki küçük görevler:
 2. INT-001/INT-002 — adapter geometri/adet kayıpsızlığı exact-SHA kanıtı.
 3. PERF-001 — specialist lane etkinleştiğinde viewport p95/scene update/memory baseline; şu anda ölçülmedi.
 4. QA-003 — INT-001/INT-002 kanıtından sonra uçtan uca data-flow audit.
+
+
+## 26 Kasım 2026 22:17 TRT — DOM-197: Bağımsız özel panel ailesi
+
+**Ürün akışı:** Kullanıcı mutfak tezgâhı, raf, dolgu veya özel mobilya parçası gibi tek bir dikdörtgen paneli; açık ölçü, adet, katalog malzemesi, kenar bantlama ve damar yönüyle tanımlar. Motor tek bir kararlı Part satırı üretir ve mevcut proje tüketim/nesting domain'ine verir. Bu aile herhangi bir joinery, yerleşim veya makine operasyonu tahmin etmez.
+
+**Kabul kriterleri:**
+- Genişlik, uzunluk ve kalınlık pozitif/sonlu mm olarak 0.1 mm'ye normalize edilir; adet pozitif güvenli tam sayıdır.
+- Malzeme kimliği verilmişse katalogda bulunur ve gerçek kalınlıkla eşleşir; kimlik yoksa açık legacy malzeme etiketi korunur.
+- Dört dış kenar ve damar yönü açıkça sağlanır; tek Part kimliği `<furnitureId>-panel` ve açık quantity korunur.
+- Proje agregatörü aileyi tanır; kesit geometrisi Part kimliğine bağlanır; net tüketim ve bant uzunluğu quantity ile hesaplanır.
+- Kesitli Part, adapter geometriyi kayıpsız taşıdığı kanıtlanana kadar dışa aktarılamaz.
+
+**10/10 checklist delta:** Üretim/parametrik kapsamına özel panel/tezgâh/raf temel ailesi eklendi; ölçü, adet, katalog kalınlığı, grain ve edge banding otomatik domain testleriyle kapsanır. CAD viewport/UX, save/open UI ve CNC/postprocessor değişmedi. CNC ve gerçek tezgâh/raf destek güvenliği insan/atölye doğrulaması gerektirir.
+
+**Doğrulama durumu:** Implementation ve exact-SHA CI/QA/production build/Pages sonuçları bu kayıt oluşturulurken beklemede; 10/10 iddiası yapılmaz.
+
+**Sıradaki 3–5 küçük görev:**
+1. DOM-198 — özel panel Part snapshot ve nesting girişinde kimlik/adet/malzeme/kalınlık/damar kayıpsızlığını doğrula.
+2. UI-owned INT-003 — JSON v2 editor startup/new/save/open ve özel panel editör akışını ayrı frontend dalında tamamla.
+3. Specialist-owned INT-002 — adapter JSON/CSV round-trip ve kesitli geometri korumasını exact-SHA testle kanıtla; kanıt yoksa export bloklu kalır.
+4. Specialist-owned PERF-001 — viewport p95, scene update ve bellek baseline ölç; şu an NOT MEASURED.
+5. QA-003 — INT-001/INT-002 kanıtı sonrası uçtan uca üretim/export data-flow denetimi.
