@@ -2453,7 +2453,7 @@ Sıradaki küçük görevler:
 
 **10/10 checklist delta:** Üretim/teklif veri bütünlüğü, immutable revizyon zinciri ve geriye uyumluluk üç ardışık revizyonla otomatik regresyon kapsamına genişletildi. CAD Core/UX değişmedi; viewport p95/bellek hâlâ ölçülmedi. Tedarikçi doğruluğu, levha verimi/kerf, CNC ve fiziksel atölye onayı bu testle doğrulanmış sayılmaz.
 
-**Doğrulama:** Implementation commit oluşturuluyor; exact-SHA CI, QA ve Pages sonuçları henüz bekleniyor. Test sitesi güncel sürüme geçişi yalnızca Pages deployment run başarıyla tamamlandığında doğrulanacaktır.
+**Doğrulama:** Implementation [f71879b40956ea0b45c4b7bf0622997a05fb978d](https://github.com/Taylan789/MobilyaCAD/commit/f71879b40956ea0b45c4b7bf0622997a05fb978d) on `dev/github-work`. Exact-SHA CI [#45853697010](https://github.com/Taylan789/MobilyaCAD/actions/runs/45853697010) SUCCESS; QA [#45853697073](https://github.com/Taylan789/MobilyaCAD/actions/runs/45853697073) SUCCESS — 378/378 frontend + 825/825 domain tests, DOM-193 test #458 passed, strict shared-domain TypeScript, lint 36 warnings/0 errors, production build and production-only audit 0 vulnerabilities. Pages [#45853697145](https://github.com/Taylan789/MobilyaCAD/actions/runs/45853697145) SUCCESS; deployment log confirms `pages_build_version=f71879b40956ea0b45c4b7bf0622997a05fb978d` at https://taylan789.github.io/MobilyaCAD/.
 
 **Sıradaki küçük görevler:**
 1. DOM-194 — project-file envelope append yolunda legacy → explicit → explicit provenance zincirini ve bilinmeyen metadata'yı birlikte round-trip doğrula.
