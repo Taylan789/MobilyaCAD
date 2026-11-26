@@ -1636,3 +1636,10 @@ Kaynak: `domain/production/projectQuoteRevisionFile.ts`.
 - The existing envelope clone limits remain explicit: at most 16 MiB UTF-8 and 64 nested object/array levels. The import regression checks that both over-limit cases fail closed without mutating the target.
 - This slice adds end-to-end domain contract coverage for the existing descriptor-safe clone/import implementation; it does not introduce a new project format or complete UI editor startup/new/save/open integration, JSON/CSV adapter round-trip, CNC output or physical workshop validation.
 
+
+
+## DOM-179 — Restored project envelope and immutable quote-history append
+
+- User flow: import a standalone quote-revision history into an empty JSON v2 project, persist it through JSON stringify/parse, reopen the restored envelope, append the next revision, save/reopen again and export the resulting history.
+- Acceptance: unrelated top-level/nested metadata and own `__proto__` JSON data keys remain own enumerable data properties through import, restore and append; object prototypes remain unchanged; the original target/restored input is not mutated; the appended revision sequence and previous-revision link are valid; project-history read and standalone JSON export/parser return the same two-revision history.
+- This is a domain contract regression, not editor startup/new/save/open integration. UI-owned INT-003 remains separate; no frontend or CSV adapter file is changed.

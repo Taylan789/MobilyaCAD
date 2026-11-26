@@ -1305,3 +1305,63 @@ test("DOM-178 standalone import blocks project-envelope depth and UTF-8 size lim
   assert.equal(Object.hasOwn(oversizedTarget, PROJECT_QUOTE_REVISION_HISTORY_FIELD), false);
 });
 
+
+test("DOM-179 imported prototype-sensitive metadata survives restore and immutable revision append", () => {
+  const source = appendProjectQuoteRevisionToProjectFile(createV2Project(), createRevision());
+  assert.equal(source.status, "ready", source.diagnostics.join("; "));
+  assert.ok(source.history);
+  const standalone = serializeProjectQuoteRevisionHistoryFile(source.history);
+  assert.equal(standalone.status, "ready", standalone.diagnostics.join("; "));
+  assert.ok(standalone.json);
+
+  const target = JSON.parse('{"format":"MobilyaCAD","formatVersion":2,"projectId":"project-42","room":{"width":4000,"length":5000,"height":2800,"unit":"mm"},"furniture":[],"materials":[],"metadata":{"owner":"workshop","custom":{"label":"keep","__proto__":{"nestedMarker":"preserved"}}},"__proto__":{"envelopeMarker":"preserved"}}');
+  const targetBefore = JSON.stringify(target);
+  const imported = importProjectQuoteRevisionHistoryFileIntoProject(target, standalone.json);
+  assert.equal(imported.status, "ready", imported.diagnostics.join("; "));
+  assert.ok(imported.project);
+
+  const restored = JSON.parse(JSON.stringify(imported.project));
+  const restoredBeforeAppend = JSON.stringify(restored);
+  const appended = appendProjectQuoteRevisionToProjectFile(restored, createRevision({
+    revisionId: "quote-r2",
+    createdAt: "2026-11-18T02:00:00+03:00"
+  }));
+  assert.equal(appended.status, "ready", appended.diagnostics.join("; "));
+  assert.ok(appended.project);
+  assert.ok(appended.history);
+  assert.equal(appended.history.revisions.length, 2);
+  assert.equal(appended.history.revisions[1].revisionId, "quote-r2");
+  assert.equal(appended.history.revisions[1].previousRevisionId, "quote-r1");
+  assert.equal(JSON.stringify(restored), restoredBeforeAppend);
+  assert.equal(JSON.stringify(target), targetBefore);
+
+  const rootPrototypeData = Object.getOwnPropertyDescriptor(appended.project, "__proto__");
+  assert.ok(rootPrototypeData);
+  assert.equal("value" in rootPrototypeData, true);
+  assert.deepEqual(rootPrototypeData.value, { envelopeMarker: "preserved" });
+  assert.equal(Object.getPrototypeOf(appended.project), Object.prototype);
+  assert.equal(appended.project.metadata.owner, "workshop");
+  const nestedPrototypeData = Object.getOwnPropertyDescriptor(appended.project.metadata.custom, "__proto__");
+  assert.ok(nestedPrototypeData);
+  assert.equal("value" in nestedPrototypeData, true);
+  assert.deepEqual(nestedPrototypeData.value, { nestedMarker: "preserved" });
+
+  const reloaded = JSON.parse(JSON.stringify(appended.project));
+  assert.equal(Object.getPrototypeOf(reloaded), Object.prototype);
+  assert.equal(Object.hasOwn(reloaded, "__proto__"), true);
+  assert.deepEqual(reloaded["__proto__"], { envelopeMarker: "preserved" });
+  assert.equal(Object.hasOwn(reloaded.metadata.custom, "__proto__"), true);
+  assert.deepEqual(reloaded.metadata.custom["__proto__"], { nestedMarker: "preserved" });
+  assert.equal(({}).envelopeMarker, undefined);
+  assert.equal(({}).nestedMarker, undefined);
+
+  const reloadedHistory = readProjectQuoteRevisionHistoryFromProjectFile(reloaded);
+  assert.equal(reloadedHistory.status, "ready", reloadedHistory.diagnostics.join("; "));
+  assert.deepEqual(reloadedHistory.history, appended.history);
+  const finalExport = serializeProjectQuoteRevisionHistoryFile(reloadedHistory.history);
+  assert.equal(finalExport.status, "ready", finalExport.diagnostics.join("; "));
+  assert.ok(finalExport.json);
+  const finalParsed = parseProjectQuoteRevisionHistoryFile(finalExport.json);
+  assert.equal(finalParsed.status, "ready", finalParsed.diagnostics.join("; "));
+  assert.deepEqual(finalParsed.history, reloadedHistory.history);
+});
