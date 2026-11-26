@@ -24,7 +24,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 | Malzeme kataloğu | UI CRUD; mobilya varsayılan materialId ve çekmece grubunda varsayılan + dört panel grubu override; domain gövde/kitaplık motorları altı gövde panel grubu için malzeme override'ını doğrular | Gövde panel override'ları henüz frontend JSON v1/CSV ve UI akışına bağlanmadı; fiyat, tedarikçi ve fire henüz yok |
 | Proje dosyası | Yerel JSON v1 indirme/yükleme; saf serializer/parser; round-trip ve eski v1 uyumluluk; mm, mobilya ve çekmece grubu katalog referansları ile dört çekmece panel kalınlığının doğrulanması | Şema migrasyonu, otomatik kayıt ve kurtarma yok |
 | Teklif/maliyet | Kullanıcı fiyat tablosu malzeme tüketimini materialId + m2, donanımı hardwareId + özgün BOM birimi, kenar bandını edgeBandingId + açık mm/m birimi ile fiyatlandırır; hardware BOM üretici/katalog referansı `hardwareSourceReferences` alanında, donanım fiyat satırının isteğe bağlı `sourceReference` değeri ise exact hardware cost line ve revision cost-line snapshot'ta ayrı izlenir; kullanıcı girdili işçilik/operasyon tarifesi, tek para birimli birleşik teklif ve tarihli fiyat/tarife katalog snapshot'ı vardır | Eksik donanım fiyatı teklif snapshot'ını bloklar; fiyat, para birimi veya kaynak referansı varsayılmaz. Frontend/UI ve JSON v1/CSV kalıcı revizyon geçmişi entegrasyonu ayrı sahibindedir; vergi, kur, iskonto, otomatik fire/kâr yüzdesi ve üretim onayı yok |
-| Test/CI | Latest verified exact SHA [b9ba589b0d5bef575e0e58d642574f597fbac1fd](https://github.com/Taylan789/MobilyaCAD/commit/b9ba589b0d5bef575e0e58d642574f597fbac1fd): CI [#45784169304](https://github.com/Taylan789/MobilyaCAD/actions/runs/45784169304), QA [#45784169276](https://github.com/Taylan789/MobilyaCAD/actions/runs/45784169276) and Pages [#45784169272](https://github.com/Taylan789/MobilyaCAD/actions/runs/45784169272) SUCCESS; QA 355/355 frontend + 817/817 domain; strict shared-domain TS, lint 36 warnings/0 errors, production build, production-only audit 0 vulnerabilities | Pages deployment log confirms `pages_build_version=b9ba589b0d5bef575e0e58d642574f597fbac1fd` at https://taylan789.github.io/MobilyaCAD/. |
+| Test/CI | Latest verified exact SHA [fbfeabe8a0cb91b2303bb6828f72a9707492cb60](https://github.com/Taylan789/MobilyaCAD/commit/fbfeabe8a0cb91b2303bb6828f72a9707492cb60): CI [#45785925148](https://github.com/Taylan789/MobilyaCAD/actions/runs/45785925148) and QA [#45785924988](https://github.com/Taylan789/MobilyaCAD/actions/runs/45785924988) SUCCESS; QA 355/355 frontend + 818/818 domain; strict shared-domain type-check, lint 36 warnings/0 errors, production build and production-only audit 0 vulnerabilities | Pages [#45785925029](https://github.com/Taylan789/MobilyaCAD/actions/runs/45785925029) SUCCESS; exact `pages_build_version=fbfeabe8a0cb91b2303bb6828f72a9707492cb60`; https://taylan789.github.io/MobilyaCAD/ |
 
 ### Bilinen mimari ve veri boşlukları
 
@@ -2269,7 +2269,7 @@ Sonraki adım: Exact-SHA CI/QA/Pages sonuçlarını doğrula; ardından DOM-170 
 
 ## 26 Kasım 2026 — DOM-186: Hardware price-source-only source-map audit
 
-**Durum:** IMPLEMENTED — exact-SHA GitHub Actions verification pending.
+**Durum:** VERIFIED — [commit fbfeabe8](https://github.com/Taylan789/MobilyaCAD/commit/fbfeabe8a0cb91b2303bb6828f72a9707492cb60); exact-SHA CI [#45785925148](https://github.com/Taylan789/MobilyaCAD/actions/runs/45785925148), QA [#45785924988](https://github.com/Taylan789/MobilyaCAD/actions/runs/45785924988) and Pages [#45785925029](https://github.com/Taylan789/MobilyaCAD/actions/runs/45785925029) all SUCCESS.
 
 **Kullanıcı akışı:** Operatör aynı donanım satırı için fiyat tablosu revizyonunu değiştirir; üretici BOM kaynağı, bağlı Part kimlikleri, miktar ve tutar aynı kalabilir. Teklif revizyonu ve kaynak haritası bu fiyat kaynağı değişikliğini ayrı bir provenance değişikliği olarak göstermelidir.
 
@@ -2285,7 +2285,7 @@ Sonraki adım: Exact-SHA CI/QA/Pages sonuçlarını doğrula; ardından DOM-170 
 - Üretim: hardware price provenance ile manufacturer BOM/Part provenance ayrımı otomatik regresyonla kapsandı; üretici fitting uyumluluğu, delik, montaj ve yük doğrulaması insan/üretici kontrolüdür.
 - UX: görünür frontend değişikliği yok; `frontend/**` UI ajanının sahipliğinde.
 - Performans: viewport p95/bellek ölçülmedi; mevcut büyük JS chunk uyarısı devam ediyor.
-- Güvenilirlik: exact source-reference comparison, zero monetary delta, unchanged BOM/Part trace ve immutable history için test eklendi; CI/QA/Pages sonucu bekleniyor.
+- Güvenilirlik: exact source-reference comparison, zero monetary delta, unchanged BOM/Part trace ve immutable history için test eklendi; QA 355/355 frontend + 818/818 domain; strict shared-domain type-check, lint 36 warnings/0 errors, production build and production-only audit 0 vulnerabilities passed. Pages exact-SHA deployment confirmed.
 - Üretim güvenliği: CNC koordinatı/postprocessor veya fiziksel üretim uygunluğu iddia edilmez.
 
 **Sıradaki 3–5 küçük görev:**

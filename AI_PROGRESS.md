@@ -1487,12 +1487,15 @@
 - **Next:** DOM-186 — price-source-only revision comparison/source-map audit; then continue UI-owned JSON v2 editor envelope integration without touching frontend files.
 
 
-## 26 Kasım 2026 11:42 TRT — DOM-186 implementation (exact-SHA verification pending)
+## 26 Kasım 2026 11:47 TRT — DOM-186 implementation (VERIFIED)
 
 - **Base:** `dev/github-work` HEAD `1255c1459ab9385577cc92ef22d44ed241643356`; no active CI, QA or Pages run at the time of the change.
 - **Delivery:** added a focused regression to `domain/production/projectQuoteRevision.test.mjs`. It changes only the user-supplied hardware price-table `ProjectCostLine.sourceReference`, then verifies quote revision comparison, source-map audit and source-map provenance comparison. Exactly one hardware provenance line changes; monetary deltas remain zero; manufacturer BOM references and source Part IDs remain unchanged; history remains immutable.
 - **Files:** `domain/production/projectQuoteRevision.test.mjs`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`.
-- **Commit:** pending GitHub commit response. Exact-SHA CI/QA/Pages checks are pending; no local execution or Actions success is claimed.
-- **10/10 checklist delta:** production provenance/revision correctness gains this explicit regression; CAD Core and UX are unchanged; viewport p95/memory remains NOT MEASURED; lint/build/security results are pending for this SHA. CNC, fitting compatibility, drilling, mounting and load safety remain manufacturer/workshop human validation.
+- **Implementation commit:** [fbfeabe8a0cb91b2303bb6828f72a9707492cb60](https://github.com/Taylan789/MobilyaCAD/commit/fbfeabe8a0cb91b2303bb6828f72a9707492cb60) on `dev/github-work`.
+- **CI:** [#45785925148](https://github.com/Taylan789/MobilyaCAD/actions/runs/45785925148) SUCCESS; shared-domain TypeScript and production build passed.
+- **QA:** [#45785924988](https://github.com/Taylan789/MobilyaCAD/actions/runs/45785924988) SUCCESS — 355/355 frontend + 818/818 domain tests, 0 failures; strict shared-domain type-check, lint 36 warnings / 0 errors, production build and production-only audit 0 vulnerabilities.
+- **Pages:** [#45785925029](https://github.com/Taylan789/MobilyaCAD/actions/runs/45785925029) SUCCESS; deployment log confirms exact `pages_build_version=fbfeabe8a0cb91b2303bb6828f72a9707492cb60` and https://taylan789.github.io/MobilyaCAD/.
+- **10/10 checklist delta:** production provenance/revision correctness now has an exact-SHA automated regression. CAD Core and UX are unchanged; viewport p95/memory remains NOT MEASURED. CNC, fitting compatibility, drilling, mounting and load safety remain manufacturer/workshop human validation.
 - **Known limits:** no frontend, JSON/CSV adapter, integration/performance-owned, secret/settings or `main` files changed. Integration/Performance job remains disabled and no specialist branch is verified. AI Developer run [#45743919035](https://github.com/Taylan789/MobilyaCAD/actions/runs/45743919035) failed on OpenRouter free-tier HTTP 429 (daily limit 50, remaining 0); reset is 27 November 2026 03:00 TRT, so it was not rerun.
 - **Next:** DOM-187 — verify material and edge-banding price-source-only provenance changes without unit or currency conversion; then continue the separately owned INT-003/INT-001/INT-002 and PERF-001 handoffs.
