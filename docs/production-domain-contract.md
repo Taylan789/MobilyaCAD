@@ -1821,3 +1821,19 @@ Kaynaklar: `domain/production/panelConstruction.ts`, `projectProduction.ts`, `pr
 - `validateProjectSheetCutPlanFreshness` JSON v2/v3 için güncel tam proje snapshot'ını kayıtlı snapshot ile kanonik olarak karşılaştırır. Özel panelin ölçüsü, adedi, malzeme adı/kimliği, kalınlığı, damar yönü, kenar bantlama bayrakları veya başka bir Part alanı değişirse plan `stale` olur; `result` ve `json` null kalır. Hariç tutulan özel paneldeki değişiklik de aynı şekilde stale üretir.
 - JSON v2/v3 freshness çağrısında mevcut kullanıcı seçimi `currentSelectedPartIds` zorunludur. Seçim sırası/kapsamı değişirse yine stale döner. JSON v1 legacy planlarında tam proje snapshot'ı bulunmadığından yalnızca kayıtlı seçili kaynak Part'lar karşılaştırılır.
 - Bu doğrulama yalnızca kaydedilmiş makine-bağımsız kesim planının mevcut domain Part verisiyle eşleşmesini sağlar. Kesitli geometri nesting/export adapter'ında desteklenmiyorsa export fail-closed kalır; CNC koordinatı, makine standardı veya fiziksel üretim güvenliği doğrulaması değildir.
+
+
+## DOM-200 — özel panelden kullanıcı fiyatlı teklif revizyonuna domain sözleşmesi
+
+**Kaynak akışı:** calculateCabinetProjectProductionWithDiagnostics içindeki açık family panel isteği tek kararlı furnitureId-panel Part üretir. calculateProjectPricedConsumptionSummary bu Part'ı katalog materialId + gerçek thicknessMm + m2 anahtarıyla fiyatlar; miktar, projectMaterialSummary tarafından quantity ağırlıklı net yüz alanıdır. Fiyat girdisi kullanıcıya aittir: unitPriceMinor, currencyCode, sourceReference ve fiyat listesi kimliği/sürümü/geçerlilik tarihleri açıkça sağlanmalıdır.
+
+**Teklif/revizyon sözleşmesi:**
+- Teklif satırı quantity net m² tüketimini, unitPriceMinor kullanıcı fiyatını ve lineTotalMinor yuvarlanmış satır tutarını taşır; lineSources aynı maliyet satırını resourceType material, resourceId, unit m2 ve kaynak Part ID listesiyle eşleştirir.
+- materialCostBasis: { basis: net-consumption } kullanıldığında panel maliyet temeli ile teklif material kategori/genel toplamı aynı kaynaktan uzlaştırılır. Hazır snapshot v2 zarfında bu temel, fiyat para birimi ve kaynak sayısıyla immutable saklanır.
+- Yeni ölçü/adet/katalog malzeme değişikliği yeni üretim raporu ve yeni kullanıcı fiyat tablosu/sürümüyle yeni teklif snapshot'ı üretir. Önceki revizyonun fiyatı, miktarı, toplamı ve kaynak Part ID'si sonradan değiştirilmez.
+- Aynı materialId için yanlış kalınlık fiyatı legacy fiyat olarak otomatik seçilmez; eksik/eşleşmeyen fiyat incomplete döndürür, costSummary ve revizyon snapshot'ı üretmez. Partial monetary total sunulmaz.
+- Proje JSON v2 quote revision append ve standalone history JSON serialize/parse akışı, revision ID/number/previous link ve kaynak satırı eşlemesini korur.
+
+**Otomatik kabul testi:** domain/production/projectCustomPanelQuoteRevision.test.mjs iki gerçek özel panel raporunu 2.4 m² × 1,250 = 3,000 minor TRY ve 3.78 m² × 1,400 = 5,292 minor TRY olarak karşılaştırır; aynı Part ID kaynağını, farklı katalog sürümlerini, immutable ilk snapshot'ı ve iki revizyon JSON round-trip'ini denetler. 36 mm fiyatın 38 mm panele uygulanmasını ve eksik fiyatla revizyon oluşmasını reddeder. Exact-SHA CI/QA/Pages sonucu henüz beklenmektedir.
+
+**Sınırlar:** Bu test UI save/open, adapter JSON v1/CSV, cutout-aware fiyat, nesting yerleşim optimizasyonu, CNC/postprocessor veya fiziksel atölye uygunluğu sağlamaz. Kesitli panelin export blocker'ı kaldırılmaz; gerçek makine/atölye doğrulaması yapılmış sayılmaz.

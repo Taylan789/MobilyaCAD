@@ -2604,3 +2604,21 @@ Sıradaki küçük görevler:
 3. Specialist-owned INT-002 — adapter JSON/CSV round-trip ve kesitli geometri kayıpsızlığı için exact-SHA kanıt; kanıt yoksa export bloklu kalır.
 4. Specialist-owned PERF-001 — viewport p95, scene update ve bellek baseline ölç; şu an NOT MEASURED.
 5. QA-003 — INT-001/INT-002 exact-SHA kanıtından sonra uçtan uca üretim/export data-flow denetimi.
+
+
+## Güncel ürün kuyruğu — 27 Kasım 2026 01:39 TRT
+
+**DOM-200 — kullanıcı fiyatlı özel panel teklifi:** family panel Part'ının gerçek net m² miktarı, açık materialId + 38 mm kalınlık fiyatı, fiyat kaynağı ve TRY para birimiyle teklif snapshot'ına; oradan JSON v2 proje revizyonlarına ve history JSON round-trip'ine kadar otomatik testle doğrulanıyor. İlk/son teklif revizyonu aynı Part ID kaynağını korurken farklı ölçü/adet/malzeme/fiyat listesi sürümlerini immutable olarak saklar. Yanlış kalınlık fiyatı uygulanmaz; eksik fiyat kısmi toplam oluşturmaz. Exact-SHA CI/QA/Pages henüz bekleniyor; bu aşamada tamamlandı iddiası yok.
+
+**Sıradaki 3–5 küçük görev:**
+1. DOM-201 — kesit/açıklık içeren özel panel teklifinde net yüz alanının (outer area − explicit cutout geometry) fiyatlandırmaya taşındığını, quantity ve source Part ID tutarlılığını doğrula; unsupported export blocker'ı koru.
+2. UI-owned INT-003 — JSON v2 envelope'ı editor startup/new/save/open akışına bağla; frontend/** yalnızca UI ajanının sahibidir, PR #206 draft kalır ve bu otomasyon tarafından merge edilmez.
+3. Specialist-owned INT-002 / PERF-001 — ayrı agent/integration-performance branch/job/PR gerçekten etkinleştiğinde adapter geometri/adet round-trip ve viewport p95/scene update/bellek ölçümü; bu turda branch yok, job skipped, metrikler NOT MEASURED.
+4. QA-003 — INT-001/INT-002 exact-SHA adapter kanıtından sonra uçtan uca üretim/export data-flow audit.
+5. Kesim/teklif entegrasyonu — material/edge-banding kaynakları, kullanıcı katalog sürümleri ve Part snapshot freshness arasında yeni aileler için aynı exact-source sözleşmesini genişlet; fiyat veya fire varsayma.
+
+**10/10 checklist — bu turdaki ölçülebilir delta:**
+- Üretim/maliyet: özel panel net m² × kullanıcı birim fiyatı, exact kalınlık ve katalog kimliği; satır/kategori/genel toplam ve source Part eşlemesi.
+- Güvenilirlik: önceki teklif snapshot'ı immutable, revizyon zinciri ve JSON history round-trip kayıpsız; yanlış kalınlık/eksik fiyat fail-closed.
+- CAD Core / UX / performans: bu committe değişmedi; viewport p95 ve bellek hâlâ NOT MEASURED.
+- CNC/makine: çıktı veya fiziksel üretim onayı yok; operatör/üretici doğrulaması gerekir.
