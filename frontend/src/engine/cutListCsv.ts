@@ -3,6 +3,13 @@ import type { Part } from "../types/part";
 type CsvCell = string | number;
 type CsvRow = { furnitureName: string; furnitureId?: string; part: Part };
 
+export interface ParsedProjectCutListCsvRow {
+  furnitureName: string;
+  part: Part;
+}
+
+const partIdHeader = "Parça ID";
+
 const csvHeaders = [
   "Mobilya",
   "Parça",
@@ -96,15 +103,18 @@ function validateCutListPart(part: Part): void {
   }
 }
 
-function serializeCutListRows(rows: readonly CsvRow[], includeFurnitureId = false): string {
+function serializeCutListRows(rows: readonly CsvRow[], includeFurnitureId = false, includePartId = false): string {
   for (const row of rows) {
     if (typeof row.furnitureName !== "string" || row.furnitureName.trim() === "") {
       throw new Error("Kesim listesi için mobilya adı belirtilmelidir.");
     }
     validateCutListPart(row.part);
+    if (includePartId && (typeof row.part.id !== "string" || row.part.id.trim() === "" || row.part.id.trim() !== row.part.id || typeof row.furnitureId !== "string" || row.furnitureId.trim() === "" || row.furnitureId !== row.part.furnitureId)) {
+      throw new Error("Proje CSV dışa aktarımı için parça ve mobilya kimlikleri geçerli olmalıdır.");
+    }
   }
 
-  // Keep the established CSV header unchanged for ordinary rectangular parts.
+  // Single-furniture CSV header remains stable; project CSV adds identity columns.
   // Drawer metadata columns are appended only when a source group or explicit
   // grain direction exists, so those values are no longer silently discarded.
   const includeDrawerMetadata = rows.some(({ part }) =>
@@ -114,18 +124,22 @@ function serializeCutListRows(rows: readonly CsvRow[], includeFurnitureId = fals
     typeof part.productionNote === "string" && part.productionNote.trim() !== ""
   );
   const headers = [
-    ...(includeFurnitureId
-      ? [csvHeaders[0], "Mobilya ID", ...csvHeaders.slice(1)]
-      : csvHeaders),
+    csvHeaders[0],
+    ...(includeFurnitureId ? ["Mobilya ID"] : []),
+    csvHeaders[1],
+    ...(includePartId ? [partIdHeader] : []),
+    ...csvHeaders.slice(2),
     ...(includeDrawerMetadata ? drawerMetadataHeaders : []),
     ...(includeProductionNote ? productionNoteHeaders : [])
   ];
   const csvRows: CsvCell[][] = [
     headers,
     ...rows.map(({ furnitureName, furnitureId, part }) => {
-      const cells: CsvCell[] = [
+      const row: CsvCell[] = [
         furnitureName,
+        ...(includeFurnitureId ? [furnitureId ?? ""] : []),
         part.name,
+        ...(includePartId ? [part.id] : []),
         part.width,
         part.length,
         part.thickness,
@@ -137,9 +151,6 @@ function serializeCutListRows(rows: readonly CsvRow[], includeFurnitureId = fals
         part.edgeBanding.left ? "Evet" : "Hayır",
         part.edgeBanding.right ? "Evet" : "Hayır"
       ];
-      const row = includeFurnitureId
-        ? [cells[0], furnitureId ?? "", ...cells.slice(1)]
-        : cells;
 
       if (includeDrawerMetadata) {
         row.push(part.drawerGroupId ?? "", formatGrainDirection(part.grainDirection));
@@ -189,7 +200,12 @@ export function createProjectCutListCsv(
     throw new Error("Kesim listesi için en az bir parça gereklidir.");
   }
 
+  const seenPartIds = new Set<string>();
   const rows = parts.map((part) => {
+    if (typeof part.id !== "string" || part.id.trim() === "" || part.id.trim() !== part.id || seenPartIds.has(part.id)) {
+      throw new Error("Proje CSV dışa aktarımı için parça kimlikleri geçerli ve benzersiz olmalıdır.");
+    }
+    seenPartIds.add(part.id);
     const furnitureName = furnitureNames.get(part.furnitureId);
     if (typeof furnitureName !== "string" || furnitureName.trim() === "") {
       throw new Error("Parça için mobilya adı eşleşmesi bulunamadı.");
@@ -197,5 +213,148 @@ export function createProjectCutListCsv(
     return { furnitureName, furnitureId: part.furnitureId, part };
   });
 
-  return serializeCutListRows(rows, true);
+  return serializeCutListRows(rows, true, true);
+}
+
+
+function parseCsvRecords(source: string): string[][] {
+  if (typeof source !== "string" || source.length === 0) throw new Error("Proje CSV dosyası boş olamaz.");
+  const input = source.charCodeAt(0) === 0xfeff ? source.slice(1) : source;
+  const records: string[][] = [];
+  let record: string[] = [];
+  let field = "";
+  let quoted = false;
+  let quoteClosed = false;
+  for (let index = 0; index < input.length; index += 1) {
+    const character = input[index];
+    if (quoted) {
+      if (character === '"') {
+        if (input[index + 1] === '"') { field += '"'; index += 1; }
+        else { quoted = false; quoteClosed = true; }
+      } else field += character;
+      continue;
+    }
+    if (quoteClosed) {
+      if (character === ";") { record.push(field); field = ""; quoteClosed = false; continue; }
+      if (character === "\r" || character === "\n") {
+        record.push(field);
+        if (record.length > 1 || record[0] !== "") records.push(record);
+        record = []; field = ""; quoteClosed = false;
+        if (character === "\r" && input[index + 1] === "\n") index += 1;
+        continue;
+      }
+      throw new Error("CSV tırnaklı alanından sonra yalnızca ayırıcı veya satır sonu gelebilir.");
+    }
+    if (character === '"') {
+      if (field !== "") throw new Error("CSV tırnak karakteri alanın başında bulunmalıdır.");
+      quoted = true; continue;
+    }
+    if (character === ";") { record.push(field); field = ""; continue; }
+    if (character === "\r" || character === "\n") {
+      record.push(field);
+      if (record.length > 1 || record[0] !== "") records.push(record);
+      record = []; field = "";
+      if (character === "\r" && input[index + 1] === "\n") index += 1;
+      continue;
+    }
+    field += character;
+  }
+  if (quoted) throw new Error("CSV dosyasında kapatılmamış tırnaklı alan var.");
+  if (quoteClosed || field !== "" || record.length > 0) {
+    record.push(field);
+    if (record.length > 1 || record[0] !== "") records.push(record);
+  }
+  return records;
+}
+
+function requiredCsvText(value: string, label: string): string {
+  if (value.trim() === "") throw new Error(label + " boş olamaz.");
+  return value;
+}
+
+function requiredCsvIdentifier(value: string, label: string): string {
+  if (value.trim() === "" || value.trim() !== value) throw new Error(label + " geçerli bir kimlik olmalıdır.");
+  return value;
+}
+
+function positiveCsvNumber(value: string, label: string): number {
+  if (value.trim() === "") throw new Error(label + " boş olamaz.");
+  const number = Number(value);
+  if (!Number.isFinite(number) || number <= 0) throw new Error(label + " pozitif ve sonlu bir mm değeri olmalıdır.");
+  return number;
+}
+
+function positiveCsvInteger(value: string, label: string): number {
+  const number = positiveCsvNumber(value, label);
+  if (!Number.isSafeInteger(number)) throw new Error(label + " pozitif güvenli tam sayı olmalıdır.");
+  return number;
+}
+
+function csvBoolean(value: string, label: string): boolean {
+  if (value === "Evet") return true;
+  if (value === "Hayır") return false;
+  throw new Error(label + " yalnızca Evet veya Hayır olabilir.");
+}
+
+/** Parses only the identity-complete project CSV emitted by createProjectCutListCsv. */
+export function parseProjectCutListCsv(content: string): ParsedProjectCutListCsvRow[] {
+  const records = parseCsvRecords(content);
+  if (records.length < 2) throw new Error("Proje CSV dosyası başlık ve en az bir parça satırı taşımalıdır.");
+  const headers = records[0];
+  const allowed = [...csvHeaders, "Mobilya ID", partIdHeader, ...drawerMetadataHeaders, ...productionNoteHeaders];
+  const seen = new Set<string>();
+  for (const header of headers) {
+    if (seen.has(header)) throw new Error("Proje CSV dosyasında yinelenen sütun başlığı var: " + header + ".");
+    seen.add(header);
+    if (!allowed.includes(header)) throw new Error("Proje CSV dosyasında desteklenmeyen sütun var: " + header + ".");
+  }
+  const required = ["Mobilya", "Mobilya ID", "Parça", partIdHeader, "Genişlik (mm)", "Uzunluk (mm)", "Kalınlık (mm)", "Adet", "Malzeme", "Malzeme ID", "Bant Üst", "Bant Alt", "Bant Sol", "Bant Sağ"];
+  const missing = required.find((header) => !seen.has(header));
+  if (missing !== undefined) throw new Error("Kayıpsız proje CSV round-trip için zorunlu sütun eksik: " + missing + ".");
+  const column = new Map(headers.map((header, index) => [header, index]));
+  const read = (row: string[], header: string): string => row[column.get(header) as number];
+  const hasDrawerMetadata = column.has("Çekmece Grubu ID") || column.has("Damar Yönü");
+  if (hasDrawerMetadata && (!column.has("Çekmece Grubu ID") || !column.has("Damar Yönü"))) {
+    throw new Error("Çekmece CSV metadata sütunları birlikte bulunmalıdır.");
+  }
+  const seenPartIds = new Set<string>();
+  return records.slice(1).map((row, rowIndex) => {
+    const line = rowIndex + 2;
+    if (row.length !== headers.length) throw new Error("Proje CSV " + line + ". satırındaki sütun sayısı başlıkla eşleşmiyor.");
+    const id = requiredCsvIdentifier(read(row, partIdHeader), "Parça ID");
+    if (seenPartIds.has(id)) throw new Error("Proje CSV dosyasında yinelenen Parça ID var: " + id + ".");
+    seenPartIds.add(id);
+    const furnitureId = requiredCsvIdentifier(read(row, "Mobilya ID"), "Mobilya ID");
+    const materialId = read(row, "Malzeme ID");
+    const drawerGroupId = hasDrawerMetadata ? read(row, "Çekmece Grubu ID") : "";
+    const grain = hasDrawerMetadata ? read(row, "Damar Yönü") : "Belirtilmedi";
+    const note = column.has("Üretim Notu") ? read(row, "Üretim Notu") : "";
+    let grainDirection: Part["grainDirection"];
+    if (grain === "Boy") grainDirection = "length";
+    else if (grain === "En") grainDirection = "width";
+    else if (grain === "Belirtilmedi") grainDirection = "none";
+    else throw new Error("Proje CSV " + line + ". satırındaki damar yönü geçersiz.");
+    const part: Part = {
+      id,
+      furnitureId,
+      name: requiredCsvText(read(row, "Parça"), "Parça adı"),
+      width: positiveCsvNumber(read(row, "Genişlik (mm)"), "Genişlik"),
+      length: positiveCsvNumber(read(row, "Uzunluk (mm)"), "Uzunluk"),
+      thickness: positiveCsvNumber(read(row, "Kalınlık (mm)"), "Kalınlık"),
+      quantity: positiveCsvInteger(read(row, "Adet"), "Adet"),
+      material: requiredCsvText(read(row, "Malzeme"), "Malzeme"),
+      edgeBanding: {
+        top: csvBoolean(read(row, "Bant Üst"), "Bant Üst"),
+        bottom: csvBoolean(read(row, "Bant Alt"), "Bant Alt"),
+        left: csvBoolean(read(row, "Bant Sol"), "Bant Sol"),
+        right: csvBoolean(read(row, "Bant Sağ"), "Bant Sağ")
+      },
+      cncOperations: [],
+      grainDirection,
+      ...(materialId === "" ? {} : { materialId: requiredCsvIdentifier(materialId, "Malzeme ID") }),
+      ...(drawerGroupId === "" ? {} : { drawerGroupId: requiredCsvIdentifier(drawerGroupId, "Çekmece Grubu ID") }),
+      ...(note === "" ? {} : { productionNote: note })
+    };
+    return { furnitureName: requiredCsvText(read(row, "Mobilya"), "Mobilya adı"), part };
+  });
 }
