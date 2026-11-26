@@ -1,0 +1,57 @@
+/* UI-CATALOG-DRAG-SOURCE-FEEDBACK-001 — expose the existing catalog drag lifecycle without changing placement. */
+.cad-catalog-card.mc-catalog-card[data-dragging="true"] {
+  cursor: grabbing !important;
+  border-color: #a4c8dc !important;
+  background: linear-gradient(145deg, #2a4351 0%, #203642 100%) !important;
+  box-shadow:
+    0 0 0 2px rgba(141, 184, 209, .24),
+    inset 0 0 0 1px rgba(203, 225, 238, .12) !important;
+}
+
+.cad-catalog-card.mc-catalog-card[data-dragging="true"] .mc-catalog-card__visual {
+  border-right-color: rgba(171, 204, 222, .42);
+  background-color: #203744;
+}
+
+.cad-catalog-card.mc-catalog-card[data-dragging="true"] .mc-catalog-card__visual::before {
+  position: absolute;
+  z-index: 4;
+  top: 7px;
+  right: 7px;
+  padding: 4px 5px;
+  content: "SÜRÜKLENİYOR";
+  color: #e9f4fa;
+  background: rgba(23, 42, 53, .94);
+  border: 1px solid rgba(157, 196, 219, .65);
+  border-radius: 3px;
+  font: 700 7px/1 "Geist Variable", sans-serif;
+  letter-spacing: .08em;
+  pointer-events: none;
+}
+
+.cad-catalog-card.mc-catalog-card[data-dragging="true"] .mc-catalog-card__add {
+  visibility: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cad-catalog-card.mc-catalog-card[data-dragging="true"] {
+    transition: none !important;
+  }
+}
+
+@media (forced-colors: active) {
+  .cad-catalog-card.mc-catalog-card[data-dragging="true"] {
+    color: HighlightText;
+    background: Canvas !important;
+    border-color: Highlight !important;
+    outline: 1px solid Highlight;
+    box-shadow: none !important;
+    forced-color-adjust: auto;
+  }
+
+  .cad-catalog-card.mc-catalog-card[data-dragging="true"] .mc-catalog-card__visual::before {
+    color: HighlightText;
+    background: Highlight;
+    border-color: Highlight;
+  }
+}
