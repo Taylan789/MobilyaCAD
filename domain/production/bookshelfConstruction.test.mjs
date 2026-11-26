@@ -47,7 +47,10 @@ function createRequest(overrides = {}) {
       : { panelMaterialOverrides: overrides.panelMaterialOverrides }),
     ...(overrides.verticalDividers === undefined
       ? {}
-      : { verticalDividers: overrides.verticalDividers })
+      : { verticalDividers: overrides.verticalDividers }),
+    ...(overrides.shelves === undefined
+      ? {}
+      : { shelves: overrides.shelves })
   };
 }
 
