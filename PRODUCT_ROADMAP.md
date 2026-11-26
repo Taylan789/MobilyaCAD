@@ -2174,7 +2174,7 @@ Sonraki adım: Exact-SHA CI/QA/Pages sonuçlarını doğrula; ardından DOM-170 
 5. QA-003, INT-001/INT-002 adapter round-trip kanıtına kadar blocked; viewport p95/memory NOT MEASURED ve fiziksel CNC/makine/atölye doğrulaması insan kontrolüdür.
 
 
-## 26 Kasım 2026 08:40 TRT — DOM-182 implemented (exact-SHA verification pending)
+## 26 Kasım 2026 08:40 TRT — DOM-182 implemented and verified (SHA 6e33056474c1c23d0cc7c667b670fcb44a80ad18)
 
 **Kullanıcı akışı:** Kitaplık tasarımında operatör, iç sol yüzden mm cinsinden ofseti, gerçek panel kalınlığını, katalog malzemesini, kenar bantlama bayraklarını ve damar yönünü açıkça tanımlayarak tam yükseklikte dikey bölücü ekler. Domain motoru bu bölücüyü aynı üretim Part listesine taşır; malzeme tüketimi aynı listeden hesaplanır.
 
@@ -2182,11 +2182,11 @@ Sonraki adım: Exact-SHA CI/QA/Pages sonuçlarını doğrula; ardından DOM-170 
 
 **Kabul / risk:** Domain testleri parça ölçülerini, adet/malzeme kimliğini, Part agregasyonunu ve net malzeme/bant özetini doğrular. UI entegrasyonu ayrı frontend sahibindedir; bu teslimat görünür bir arayüz veya CNC/montaj onayı iddia etmez. Fiziksel bağlantı/delik/taşıma kapasitesi atölye doğrulaması gerektirir.
 
-**Doğrulama:** Base HEAD `93ade7e61688f5be9c1307cd134b9b241ba07e80` için CI [#45762872835](https://github.com/Taylan789/MobilyaCAD/actions/runs/45762872835), QA [#45762872796](https://github.com/Taylan789/MobilyaCAD/actions/runs/45762872796) ve Pages [#45762872830](https://github.com/Taylan789/MobilyaCAD/actions/runs/45762872830) başarılıydı. DOM-182 implementation SHA ve exact-SHA sonuçları commit sonrasında eklenecek; bu değişiklik için henüz test başarısı iddia edilmez.
+**Exact-SHA doğrulama:** [CI #45763849005](https://github.com/Taylan789/MobilyaCAD/actions/runs/45763849005) başarılı; [QA #45763848992](https://github.com/Taylan789/MobilyaCAD/actions/runs/45763848992) başarılı (807 test, 807 geçti, 0 kaldı; shared-domain type-check, lint, production build ve production dependency audit adımları başarılı); [Pages #45763849102](https://github.com/Taylan789/MobilyaCAD/actions/runs/45763849102) başarılı ve SHA `6e33056474c1c23d0cc7c667b670fcb44a80ad18` yayımlandı. Test sitesi: https://taylan789.github.io/MobilyaCAD/.
 
 ### Sıradaki 3–5 küçük görev
 
-1. DOM-182 — exact-SHA CI/QA/Pages sonuçlarını doğrula; kitaplık bölücülerinin proje Part ve malzeme özetiyle birleştiğini kanıtla.
+1. DOM-182 — DONE; 807/807 QA testi, CI/type-check ve Pages deploy exact-SHA kanıtı mevcut.
 2. DOM-183 — bölücü aralıklarını referans alan açık ölçülü kitaplık bölme rafları; önce çakışma/boşluk/kenar bandı ve katalog kurallarını test et.
 3. UI-owned INT-003 PR #206 — editor startup/new/save/open JSON v2 envelope wiring ayrı sahibinde kalır; DOM-153 yalnızca entegrasyon sonrası başlar.
 4. INT-002/PERF-001 — adapter round-trip ve viewport p95/bellek ölçümleri Integration/Performance sahibinde; workflow job disabled, specialist branch kanıtı yok.
@@ -2199,3 +2199,12 @@ Sonraki adım: Exact-SHA CI/QA/Pages sonuçlarını doğrula; ardından DOM-170 
 - Exact-SHA CI [#45763718867](https://github.com/Taylan789/MobilyaCAD/actions/runs/45763718867) and QA [#45763718912](https://github.com/Taylan789/MobilyaCAD/actions/runs/45763718912) failed because the new result type omitted the `CabinetConstructionPart` import and the widened project Part union required an explicit cutout-opening callback type. QA's domain test runner passed, but the overall job failed at strict TypeScript/build; this is not a green QA result.
 - Pages [#45763718913](https://github.com/Taylan789/MobilyaCAD/actions/runs/45763718913) failed its required build gate and did not publish the broken SHA. The last verified test-site deployment remains base SHA `93ade7e61688f5be9c1307cd134b9b241ba07e80`.
 - Correction adds the missing type import and explicit `PanelCutoutGeometryResult["cutouts"][number]` annotation. Exact-SHA rerun/deployment remains pending; no frontend, adapter, secrets/settings, or main changes.
+
+
+### DOM-182 ölçülen kalite notu — 26 Kasım 2026
+
+- Güvenilirlik: 807/807 otomatik test geçti; shared domain type-check, lint, production build ve production-only security audit başarılı (0 production dependency vulnerability).
+- Üretim: yeni divider Part satırları aynı material-consumption ve edge-banding summary üzerinden doğrulandı. Fiziksel montaj, bağlantı elemanı, yük taşıma ve CNC koordinatı bu teslimatın kapsamı değildir; atölye doğrulaması gerekir.
+- Performans: p95 viewport ve bellek ölçümü bu turda yapılmadı (NOT MEASURED). Üretim bundle çıktısı 1,703.34 kB JS / 475.72 kB gzip; mevcut >500 kB chunk uyarısı açık. Lint 36 mevcut frontend uyarısı verdi; frontend dosyaları UI sahibinde olduğu için değiştirilmedi.
+- Güvenlik: QA production-only audit 0 bulgu; npm install özeti 4 moderate toplam bağımlılık bulgusu bildirdi. Tam dependency tree incelemesi ayrı güvenlik işi olarak kalır.
+- UI/UX: bu domain commit'i görünür arayüz değişikliği değildir. Frontend yeniden tasarımı ve INT-003 PR #206 ayrı UI sahibindedir.
