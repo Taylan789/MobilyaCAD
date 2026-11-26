@@ -16,6 +16,7 @@ import "./MaterialCatalogManager.css";
 import "./MaterialCatalogManagerEmptyState.css";
 import "./MaterialPanelThicknessSelector.css";
 import "./MaterialCatalogManagerContainerLayout.css";
+import "./MaterialCatalogUsageTrace.css";
 
 interface MaterialCatalogManagerProps {
   materials: MaterialCatalogEntry[];
@@ -164,6 +165,7 @@ export function MaterialCatalogManager({
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [materialFilter, setMaterialFilter] = useState<"all" | "used" | "unused">("all");
+  const [expandedUsageMaterialIds, setExpandedUsageMaterialIds] = useState<string[]>([]);
 
   useEffect(() => {
     setDraft(emptyDraft);
@@ -417,6 +419,8 @@ export function MaterialCatalogManager({
                 const isReferenced = referencedMaterialIds.has(material.id);
                 const usages = usageByMaterialId.get(material.id) ?? [];
                 const furnitureCount = new Set(usages.map((usage) => usage.furnitureId)).size;
+                const usageExpanded = expandedUsageMaterialIds.includes(material.id);
+                const visibleUsages = usageExpanded ? usages : usages.slice(0, 8);
                 return (
                   <article
                     key={material.id}
@@ -488,7 +492,7 @@ export function MaterialCatalogManager({
                             <small>{furnitureCount} mobilya</small>
                           </summary>
                           <ul>
-                            {usages.slice(0, 8).map((usage, index) => (
+                            {visibleUsages.map((usage, index) => (
                               <li key={usage.furnitureId + "-" + (usage.partId ?? usage.partName) + "-" + index}>
                                 <button
                                   type="button"
@@ -503,7 +507,25 @@ export function MaterialCatalogManager({
                             ))}
                           </ul>
                           {usages.length > 8 && (
-                            <p>+ {usages.length - 8} ek kullanım noktası</p>
+                            <button
+                              type="button"
+                              className="mc-material-card__locations-more"
+                              aria-expanded={usageExpanded}
+                              aria-label={
+                                usageExpanded
+                                  ? material.name + " kullanım listesini ilk 8 kayda daralt"
+                                  : material.name + " için kalan " + (usages.length - 8) + " kullanım noktasını göster"
+                              }
+                              onClick={() => setExpandedUsageMaterialIds((current) =>
+                                usageExpanded
+                                  ? current.filter((id) => id !== material.id)
+                                  : [...current, material.id]
+                              )}
+                            >
+                              {usageExpanded
+                                ? "İlk 8 kullanımı göster"
+                                : "+ " + (usages.length - 8) + " kullanım noktasını göster"}
+                            </button>
                           )}
                         </details>
                       )}
