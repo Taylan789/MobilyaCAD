@@ -2212,7 +2212,7 @@ Sonraki adım: Exact-SHA CI/QA/Pages sonuçlarını doğrula; ardından DOM-170 
 
 ## 26 Kasım 2026 — DOM-183: Kitaplık bölme rafları
 
-**Durum:** Domain ve test dilimi uygulandı; exact-SHA CI/QA/Pages doğrulaması bekleniyor.
+**Durum:** VERIFIED — implementation `47ab46de848eeadafc83905209cf2b2113d0ff55`, test-fixture correction `6cb0d9807c8d7794257fb7c78288f051a519d22f`. Exact-SHA CI [#45772704166](https://github.com/Taylan789/MobilyaCAD/actions/runs/45772704166), QA [#45772704138](https://github.com/Taylan789/MobilyaCAD/actions/runs/45772704138) and Pages [#45772704183](https://github.com/Taylan789/MobilyaCAD/actions/runs/45772704183) all SUCCESS. QA: 350/350 unit tests and 812/812 domain tests; shared-domain type-check, lint, production build and production dependency audit passed. Pages deployment log confirms exact `pages_build_version` `6cb0d9807c8d7794257fb7c78288f051a519d22f`; test site: https://taylan789.github.io/MobilyaCAD/.
 
 **Kullanıcı akışı:** Operatör, dikey bölücülerle oluşturulmuş kitaplık gözlerine her rafı ayrı kimlik ve mm koordinatlarıyla yerleştirir. Her raf için sol/sağ açıklık, alt kot, ön ofset, derinlik, kalınlık, katalog malzemesi, damar yönü ve dört kenar bantlama bayrağı açıkça verilir. Üretim motoru her rafı ayrı quantity-one Part olarak üretir.
 
