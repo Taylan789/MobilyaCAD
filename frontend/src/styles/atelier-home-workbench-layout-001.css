@@ -695,6 +695,7 @@
   .atelier-welcome,
   .atelier-start-card,
   .atelier-card-visual,
+  .atelier-primary-action,
   .atelier-open-action,
   .atelier-empty-project,
   .atelier-recent .atelier-section-heading button {
@@ -713,6 +714,7 @@
     outline-offset: 3px !important;
   }
 
+  .atelier-primary-action,
   .atelier-eyebrow,
   .atelier-welcome h1,
   .atelier-welcome h1 em,
