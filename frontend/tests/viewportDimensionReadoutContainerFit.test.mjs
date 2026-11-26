@@ -13,6 +13,12 @@ test("live viewport axes switch to a two-column register at 521–560px canvas w
   assert.notEqual(markerIndex, -1, "the focused viewport density rule must exist");
 
   const rule = styles.slice(markerIndex);
+  const commentEnd = rule.indexOf("*/");
+  const containerStart = rule.indexOf("@container cad-viewport");
+  assert.ok(
+    commentEnd >= 0 && commentEnd < containerStart,
+    "the 521–560px container rule must not remain inside the marker comment"
+  );
   assert.match(
     rule,
     /@container cad-viewport \(min-width: 521px\) and \(max-width: 560px\)/
