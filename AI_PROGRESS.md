@@ -1456,3 +1456,13 @@
 - **Updated regressions:** bookshelf shelf-support quote/revision comparison; quote summary source mapping; revision-history hardware provenance; quote-summary JSON/CSV round-trip; missing hardware price still returns incomplete with no snapshot.
 - **Corrected commit / exact-SHA CI, QA and Pages:** pending.
 - **Next:** DOM-186 — independently verify price-source-only changes across quote revision comparison and source-map audit; UI-owned JSON v2 editor envelope work remains separate.
+
+
+## DOM-185 final correction — 26 Kasım 2026 11:14 TRT
+
+- **Initial implementation:** [3c469575795c370b71e402c88e2cf16c2ba291cc](https://github.com/Taylan789/MobilyaCAD/commit/3c469575795c370b71e402c88e2cf16c2ba291cc). CI [#45782637626](https://github.com/Taylan789/MobilyaCAD/actions/runs/45782637626) SUCCESS; QA [#45782637565](https://github.com/Taylan789/MobilyaCAD/actions/runs/45782637565) FAILED (814/817); Pages [#45782637742](https://github.com/Taylan789/MobilyaCAD/actions/runs/45782637742) build SUCCESS, gate FAILED, deploy SKIPPED. The new `hardwarePriceSourceReference` property was not part of existing strict quote JSON/CSV source-map contracts.
+- **Second attempt:** [032bd72104a4d59558bdd2b84eaa0d2d38d86e74](https://github.com/Taylan789/MobilyaCAD/commit/032bd72104a4d59558bdd2b84eaa0d2d38d86e74). CI [#45783411587](https://github.com/Taylan789/MobilyaCAD/actions/runs/45783411587) SUCCESS; QA [#45783411521](https://github.com/Taylan789/MobilyaCAD/actions/runs/45783411521) FAILED (814/817); Pages [#45783411664](https://github.com/Taylan789/MobilyaCAD/actions/runs/45783411664) build SUCCESS, gate FAILED, deploy SKIPPED. Reusing `priceSourceReference` for hardware violated its roll-purchase-only validation contract.
+- **Final correction:** no hardware price field is added to `ProjectQuoteLineSource`. The exact user-supplied hardware price reference remains on `ProjectCostLine.sourceReference`, already copied into immutable revision cost-line snapshots/comparisons and supported by existing quote-summary JSON/CSV and revision-comparison CSV. Manufacturer BOM evidence remains in `hardwareSourceReferences`.
+- **Updated regressions:** real bookshelf shelf-support Part trace; distinct BOM and cost-line price references; price-source-only revision comparison and comparison-CSV round-trip without monetary delta; standalone revision-history JSON round-trip; missing hardware price still returns incomplete with no snapshot.
+- **Final correction commit / exact-SHA CI, QA and Pages:** pending.
+- **Next:** DOM-186 — independently verify price-source-only changes across quote revision comparison and source-map audit; UI-owned JSON v2 editor envelope work remains separate.

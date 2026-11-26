@@ -104,7 +104,6 @@ test("DOM-129 project history and quote-summary JSON/CSV preserve hardware BOM p
   assert.equal(hardwareSource.hardwareUnit, "adet");
   assert.deepEqual(hardwareSource.hardwareFurnitureIds, ["quote-export-cabinet"]);
   assert.deepEqual(hardwareSource.hardwareSourceReferences, ["bom:catalog-a", "bom:catalog-z"]);
-  assert.equal(hardwareSource.priceSourceReference, "hardware-prices:v1");
   assert.notDeepEqual(hardwareSource.hardwareSourceReferences, [hardwareLine.sourceReference]);
   assert.deepEqual(jsonParsed.summary.lineSources.find((source) => source.hardwareId === "hinge-110"), hardwareSource);
   assert.deepEqual(csvParsed.summary.lineSources.find((source) => source.hardwareId === "hinge-110"), hardwareSource);

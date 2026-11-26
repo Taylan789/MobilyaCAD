@@ -28,7 +28,7 @@ export interface ProjectQuoteLineSource {
   sourceType: "production-consumption" | "labor-operation" | "quote-adjustment";
   sourceId: string;
   tariffId?: string;
-  /** Hardware BOM identity is separate from the hardware price-list reference. */
+  /** Hardware BOM identity is separate from the price reference stored on the matching cost line. */
   hardwareId?: string;
   hardwareUnit?: string;
   hardwareFurnitureIds?: string[];
@@ -45,7 +45,7 @@ export interface ProjectQuoteLineSource {
   purchasedLengthMm?: number;
   furnitureIds?: string[];
   planSourceReference?: string;
-  /** User-supplied price-list source for hardware, or explicit roll-price source. */
+  /** Explicit source of purchased roll-price rows; hardware price provenance stays on the cost line. */
   priceSourceReference?: string;
 }
 
@@ -361,9 +361,6 @@ export function calculateProjectQuoteSummary(
         ...(hardwareSource.sourceReferences === undefined
           ? {}
           : { hardwareSourceReferences: [...hardwareSource.sourceReferences] }),
-        ...(line.sourceReference === undefined
-          ? {}
-          : { priceSourceReference: line.sourceReference })
       }),
       ...(partSource === undefined ? {} : {
         sourcePartIds: [...partSource.sourcePartIds],
