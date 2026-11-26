@@ -78,3 +78,188 @@
     color: CanvasText;
   }
 }
+
+
+/* UI-MATERIAL-EMPTY-STATE-INSTRUMENT-001 — make the real empty states compact, directional and consistent with the material workbench. */
+.mc-material-library__empty:not(.mc-material-library__empty--search) {
+  position: relative;
+  display: grid;
+  min-height: 128px;
+  grid-template-columns: 42px minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  align-content: center;
+  align-items: center;
+  justify-content: initial;
+  justify-items: start;
+  gap: 4px 12px;
+  overflow: hidden;
+  padding: 16px;
+  border: 1px solid rgba(145, 180, 202, .22);
+  border-radius: 5px;
+  background: linear-gradient(112deg, rgba(39, 58, 70, .72), rgba(22, 35, 43, .76));
+  text-align: left;
+}
+
+.mc-material-library__empty:not(.mc-material-library__empty--search)::before {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 2px;
+  content: "";
+  background: linear-gradient(180deg, #9abbd0, rgba(105, 142, 164, .28));
+}
+
+.mc-material-library__empty > svg {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  grid-column: 1;
+  grid-row: 1 / 3;
+  align-self: center;
+  padding: 10px;
+  border: 1px solid rgba(145, 180, 202, .26);
+  border-radius: 5px;
+  background: rgba(9, 18, 24, .34);
+  color: #a8c5d6;
+  box-sizing: border-box;
+}
+
+.mc-material-library__empty > strong {
+  grid-column: 2;
+  align-self: end;
+  color: #e5edf2;
+  font-size: 12px;
+  font-weight: 680;
+  letter-spacing: -.015em;
+  line-height: 1.35;
+}
+
+.mc-material-library__empty > p {
+  grid-column: 2;
+  align-self: start;
+  max-width: 520px;
+  margin: 0;
+  color: #a4b4bd;
+  font-size: 10px;
+  line-height: 1.55;
+  text-align: left;
+}
+
+.mc-material-library__empty--search {
+  position: relative;
+  min-height: 132px;
+  align-items: flex-start;
+  gap: 7px;
+  padding: 14px 16px;
+  overflow: hidden;
+  border: 1px solid rgba(145, 180, 202, .22);
+  border-left: 2px solid #8eabc0;
+  border-radius: 5px;
+  background: linear-gradient(112deg, rgba(34, 51, 62, .78), rgba(20, 32, 40, .82));
+  text-align: left;
+}
+
+.mc-material-library__empty--search > svg {
+  width: 32px;
+  height: 32px;
+  padding: 7px;
+  align-self: flex-start;
+}
+
+.mc-material-library__empty--search > strong {
+  font-size: 12px;
+}
+
+.mc-material-library__empty--search > p {
+  max-width: 100%;
+  margin-top: -3px;
+}
+
+.mc-material-library__empty--search .mc-material-library__empty-context {
+  justify-content: flex-start;
+  margin-top: 2px;
+}
+
+.mc-material-library__empty--search > button {
+  min-height: 30px;
+  margin-top: 3px;
+}
+
+.mc-material-library__empty > button:focus-visible {
+  outline: 2px solid #b4d3e4;
+  outline-offset: 3px;
+}
+
+@media (max-width: 560px) {
+  .mc-material-library__empty:not(.mc-material-library__empty--search) {
+    min-height: 112px;
+    grid-template-columns: 34px minmax(0, 1fr);
+    gap: 4px 9px;
+    padding: 12px;
+  }
+
+  .mc-material-library__empty > svg {
+    width: 34px;
+    height: 34px;
+    padding: 7px;
+  }
+
+  .mc-material-library__empty--search {
+    min-height: 0;
+    padding: 12px;
+  }
+
+  .mc-material-library__empty--search > svg {
+    width: 30px;
+    height: 30px;
+  }
+}
+
+@media (max-height: 700px) and (min-width: 761px) {
+  .mc-material-library__empty:not(.mc-material-library__empty--search) {
+    min-height: 108px;
+    padding-block: 12px;
+  }
+
+  .mc-material-library__empty--search {
+    min-height: 112px;
+    padding-block: 11px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mc-material-library__empty,
+  .mc-material-library__empty * {
+    scroll-behavior: auto;
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+@media (forced-colors: active) {
+  .mc-material-library__empty,
+  .mc-material-library__empty--search {
+    border: 1px solid CanvasText;
+    border-left: 2px solid Highlight;
+    background: Canvas;
+    color: CanvasText;
+  }
+
+  .mc-material-library__empty::before {
+    background: Highlight;
+  }
+
+  .mc-material-library__empty > svg {
+    border-color: CanvasText;
+    background: Canvas;
+    color: CanvasText;
+  }
+
+  .mc-material-library__empty > strong,
+  .mc-material-library__empty > p {
+    color: CanvasText;
+  }
+
+  .mc-material-library__empty > button:focus-visible {
+    outline-color: Highlight;
+  }
+}
