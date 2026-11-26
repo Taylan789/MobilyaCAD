@@ -200,3 +200,143 @@
     transition: none !important;
   }
 }
+
+
+/* UI-WORKSPACE-COLLAPSED-RAIL-001 — keep the two existing left-dock destinations legible when collapsed. */
+@media (min-width: 761px) {
+  .cad-workspace--left-collapsed .studio-sidebar-switch {
+    display: flex;
+    flex: 0 0 56px;
+    width: 56px;
+    min-width: 56px;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 7px;
+    padding: 9px 4px;
+    background: linear-gradient(180deg, #1d2b35 0%, #17232b 100%);
+    border-right: 0;
+    border-radius: 0;
+  }
+
+  .cad-workspace--left-collapsed .studio-sidebar-switch button {
+    position: relative;
+    display: flex;
+    width: 46px;
+    min-width: 46px;
+    height: 52px;
+    min-height: 52px;
+    flex: 0 0 auto;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 5px 2px 4px;
+    overflow: visible;
+    color: #91a6b2;
+    background: #1b2a34;
+    border: 1px solid #3b5360;
+    border-left: 2px solid transparent;
+    border-radius: 5px;
+    font-size: 6px;
+    font-weight: 760;
+    letter-spacing: 0.025em;
+    line-height: 1;
+    text-transform: uppercase;
+    white-space: nowrap;
+    transition: color 140ms ease, background-color 140ms ease, border-color 140ms ease, transform 140ms ease;
+  }
+
+  .cad-workspace--left-collapsed .studio-sidebar-switch button svg {
+    width: 17px;
+    height: 17px;
+    flex: 0 0 auto;
+    color: #a8c1d0;
+  }
+
+  .cad-workspace--left-collapsed .studio-sidebar-switch button[aria-selected="true"] {
+    color: #f0f6f9;
+    background: linear-gradient(155deg, #2d4b5c 0%, #243b49 100%);
+    border-color: #65869a;
+    border-left-color: #a7c9dc;
+    box-shadow: inset 0 1px rgba(238, 247, 251, 0.08), 0 3px 9px rgba(0, 0, 0, 0.2);
+  }
+
+  .cad-workspace--left-collapsed .studio-sidebar-switch button[aria-selected="true"] svg {
+    color: #d5e8f2;
+  }
+
+  .cad-workspace--left-collapsed .studio-sidebar-switch button:hover:not([aria-selected="true"]) {
+    color: #e6f0f5;
+    background: #263d49;
+    border-color: #617f91;
+  }
+
+  .cad-workspace--left-collapsed .studio-sidebar-switch button:active {
+    transform: translateY(1px);
+  }
+
+  .cad-workspace--left-collapsed .studio-sidebar-switch button:focus-visible {
+    outline: 2px solid #b3d0e0;
+    outline-offset: 2px;
+    z-index: 2;
+  }
+
+  /* The second existing tab already carries the live scene item count. */
+  .cad-workspace--left-collapsed .studio-sidebar-switch button:nth-child(2) > span {
+    display: inline-flex;
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    min-width: 13px;
+    height: 13px;
+    align-items: center;
+    justify-content: center;
+    padding: 0 3px;
+    color: #eef5f8;
+    background: #36576a;
+    border: 1px solid #7797aa;
+    border-radius: 999px;
+    font-size: 7px;
+    font-weight: 800;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cad-workspace--left-collapsed .studio-sidebar-switch button {
+    transition: none;
+    transform: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .cad-workspace--left-collapsed .studio-sidebar-switch {
+    background: Canvas;
+    border-right: 1px solid CanvasText;
+  }
+
+  .cad-workspace--left-collapsed .studio-sidebar-switch button {
+    color: ButtonText;
+    background: ButtonFace;
+    border-color: ButtonText;
+    box-shadow: none;
+  }
+
+  .cad-workspace--left-collapsed .studio-sidebar-switch button[aria-selected="true"] {
+    color: HighlightText;
+    background: Highlight;
+    border-color: Highlight;
+  }
+
+  .cad-workspace--left-collapsed .studio-sidebar-switch button:nth-child(2) > span {
+    color: ButtonText;
+    background: ButtonFace;
+    border-color: ButtonText;
+  }
+
+  .cad-workspace--left-collapsed .studio-sidebar-switch button:focus-visible {
+    outline: 2px solid Highlight;
+    outline-offset: 2px;
+  }
+}
