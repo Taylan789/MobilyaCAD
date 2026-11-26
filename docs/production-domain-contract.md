@@ -1690,3 +1690,13 @@ Kaynak: `domain/production/projectQuoteRevisionFile.ts`.
 - The source reference is recorded as user-supplied catalogue evidence; the application does not fetch or certify a manufacturer's catalogue. Unknown/empty references and invalid quantities fail closed. Omitted or empty supportHardware preserves the existing bookshelf result.
 - Any resulting hardwareItems still blocks project JSON v1/CSV export until the separately owned adapters preserve the complete BOM row and Part provenance. No frontend files or adapter code are changed by this domain slice.
 - Physical shelf-support selection, screw/fastener compatibility, mounting geometry, drilling coordinates, load rating and workshop validation remain human/manufacturer responsibilities.
+
+
+## DOM-185 — Shelf-support hardware price provenance in quote snapshots
+
+- A ready hardware cost line keeps two separate evidence channels: `hardwareSourceReferences` are the manufacturer/catalogue references supplied with the shelf BOM row; `hardwarePriceSourceReference` is the optional user-supplied source reference from the matching hardware price-table row.
+- The price-source field is copied from the exact priced cost line into the machine-readable quote line source. The cost line's existing `sourceReference` remains unchanged; revision validation rejects a supplied hardware price-source reference that differs from that cost-line reference.
+- No hardware price, currency, unit conversion or source reference is inferred. If the explicit hardware price is missing, the quote remains incomplete and no quote snapshot or partial source map is returned. A price row without a source reference remains compatible with the existing optional price-table contract; the new snapshot field is simply absent.
+- Older quote snapshots without `hardwarePriceSourceReference` remain valid. The additive field is carried by the existing quote-summary and revision-history JSON structures; no new project JSON schema version or frontend/CSV adapter behavior is claimed.
+- Regression coverage uses a real bookshelf shelf-support BOM row linked to its exact generated shelf Part, distinguishes manufacturer BOM evidence from price-list evidence, checks price-source-only revision comparison, validates standalone revision-history JSON round-trip and rejects mismatched provenance.
+- This is a quote/audit contract only. It does not certify supplier prices, manufacturer catalogue authenticity, fitting compatibility, mounting, drilling, load capacity or physical workshop safety.

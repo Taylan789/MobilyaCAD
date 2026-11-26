@@ -1434,3 +1434,15 @@
 - **Limits:** manufacturer catalogue content is user-supplied and not fetched/certified; no support count, screws, drilling coordinates, mounting geometry, load rating or CNC operation is inferred. Hardware-bearing projects remain blocked from JSON v1/CSV export until adapter support exists.
 - **Ownership:** no frontend/**, adapter/performance-owned files, secrets/settings or main changes. UI-owned INT-003 PR #206 remains draft/untouched; INT-002/PERF-001 remain specialist-owned (workflow job disabled; no specialist branch verified).
 - **Next:** DOM-185 — connect explicit user-supplied hardware price-source provenance to quote snapshots without default prices; JSON/CSV persistence remains a separate UI/adapter handoff.
+
+
+## 26 Kasım 2026 11:14 TRT — DOM-185 implementation handoff (verification pending)
+
+- **Base:** `dev/github-work` HEAD `046aa0800bccd59e0dc344f2b4b6115f7daf0b26`; exact target blob SHAs were re-read immediately before writing.
+- **Delivery:** quote line sources now distinguish manufacturer BOM evidence (`hardwareSourceReferences`) from the exact user-supplied hardware price-row evidence (`hardwarePriceSourceReference`). Revision validation checks the new optional reference against the monetary cost line's existing `sourceReference`; older snapshots without the additive field remain accepted.
+- **Regression:** a real bookshelf `supportHardware` BOM row is priced and tied to its exact shelf Part; price-source-only revision change is compared without monetary delta; standalone revision-history JSON round-trip is checked; mismatched provenance is rejected; missing price returns incomplete with no snapshot or partial source map.
+- **Changed files:** `domain/production/projectQuoteSummary.ts`, `domain/production/projectQuoteRevision.ts`, `domain/production/projectQuoteHardwarePriceProvenance.test.mjs`, `docs/production-domain-contract.md`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`.
+- **Commit / Actions / Pages:** implementation commit and exact-SHA CI/QA/Pages runs are pending. No test or deployment success is claimed yet.
+- **Known limits:** price/source data is user-supplied; no price/default/currency conversion is invented. JSON/CSV adapter persistence remains UI/specialist-owned. Physical hardware compatibility, mounting, drilling, load and workshop validation remain human/manufacturer responsibilities.
+- **Parallel lanes:** no frontend, adapter/benchmark-owned, secrets/settings or `main` files changed. AI Developer run [#45743919035](https://github.com/Taylan789/MobilyaCAD/actions/runs/45743919035) failed because OpenRouter free-tier daily quota was exhausted (HTTP 429; reset 27 November 2026 03:00 TRT); no rerun, paid fallback or secret change. Integration/Performance job remains skipped/disabled with no specialist branch verified; UI-owned PR #206 remains untouched.
+- **Next:** DOM-186 — independently verify hardware price-source-only revision/source-map audit changes; then continue UI-owned JSON v2 editor envelope integration without modifying frontend files.

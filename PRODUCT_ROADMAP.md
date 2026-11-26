@@ -23,8 +23,8 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 | Kenar bantlama / malzeme tüketimi | Domain summary shared Part list calculates quantity-weighted net area/volume, directional edge-banding and catalog/Part/furniture provenance; DOM-067 JSON v1, DOM-076 strict CSV v1, DOM-071 explicit roll-input JSON v2 persistence and DOM-160 descriptor-safe, deep-immutable v2 envelope writes | JSON/CSV round-trip automatically verified; frontend download adapter, waste/yield, kerf, edge-band thickness and CNC output remain missing |
 | Malzeme kataloğu | UI CRUD; mobilya varsayılan materialId ve çekmece grubunda varsayılan + dört panel grubu override; domain gövde/kitaplık motorları altı gövde panel grubu için malzeme override'ını doğrular | Gövde panel override'ları henüz frontend JSON v1/CSV ve UI akışına bağlanmadı; fiyat, tedarikçi ve fire henüz yok |
 | Proje dosyası | Yerel JSON v1 indirme/yükleme; saf serializer/parser; round-trip ve eski v1 uyumluluk; mm, mobilya ve çekmece grubu katalog referansları ile dört çekmece panel kalınlığının doğrulanması | Şema migrasyonu, otomatik kayıt ve kurtarma yok |
-| Teklif/maliyet | Kullanıcı fiyat tablosu malzeme tüketimini materialId + m2, donanımı hardwareId + özgün BOM birimi, kenar bandını edgeBandingId + açık mm/m birimi ile fiyatlandırır; kullanıcı girdili işçilik/operasyon tarifesi, tek para birimli birleşik teklif ve tarihli fiyat/tarife katalog snapshot'ı, DOM-014 doğrulanmış immutable append ve DOM-015 ortak satır aritmetiği doğrulaması vardır | Frontend/UI ve JSON v1/CSV kalıcı revizyon geçmişi entegrasyonu ayrı sahibindedir; tüm geçmişte ID tekilliği depolama katmanında doğrulanmalıdır; vergi, kur, iskonto, otomatik fire/kâr yüzdesi ve üretim onayı yok |
-| Test/CI | Latest verified exact-SHA [4792c96](https://github.com/Taylan789/MobilyaCAD/commit/4792c96ed9175b1af3dd556ef2424c356f8d15fe): CI [#45749853857](https://github.com/Taylan789/MobilyaCAD/actions/runs/45749853857), QA [#45749853815](https://github.com/Taylan789/MobilyaCAD/actions/runs/45749853815), Pages [#45749853790](https://github.com/Taylan789/MobilyaCAD/actions/runs/45749853790) all succeeded; QA 337/337 frontend + 801/801 domain; DOM-180 tests #515/#516; strict TS, lint 36 warnings/0 errors, production build, production-only audit 0 vulnerabilities | Exact-SHA Pages deployment verified at https://taylan789.github.io/MobilyaCAD/. |
+| Teklif/maliyet | Kullanıcı fiyat tablosu malzeme tüketimini materialId + m2, donanımı hardwareId + özgün BOM birimi, kenar bandını edgeBandingId + açık mm/m birimi ile fiyatlandırır; hardware BOM üretici/katalog referansı ile donanım fiyat satırının isteğe bağlı sourceReference değeri quote line source ve immutable revision snapshot'ta ayrı izlenir; kullanıcı girdili işçilik/operasyon tarifesi, tek para birimli birleşik teklif ve tarihli fiyat/tarife katalog snapshot'ı vardır | Eksik donanım fiyatı teklif snapshot'ını bloklar; fiyat, para birimi veya kaynak referansı varsayılmaz. Frontend/UI ve JSON v1/CSV kalıcı revizyon geçmişi entegrasyonu ayrı sahibindedir; vergi, kur, iskonto, otomatik fire/kâr yüzdesi ve üretim onayı yok |
+| Test/CI | Latest verified base SHA `046aa0800bccd59e0dc344f2b4b6115f7daf0b26`: CI [#45781107802](https://github.com/Taylan789/MobilyaCAD/actions/runs/45781107802), QA [#45781107798](https://github.com/Taylan789/MobilyaCAD/actions/runs/45781107798) and Pages [#45781107832](https://github.com/Taylan789/MobilyaCAD/actions/runs/45781107832) succeeded; QA 355/355 frontend + 815/815 domain; strict TS, lint 36 warnings/0 errors, production build, production-only audit 0 vulnerabilities | Exact-SHA deployment verified at https://taylan789.github.io/MobilyaCAD/. |
 
 ### Bilinen mimari ve veri boşlukları
 
@@ -1515,12 +1515,11 @@ Three valid quote revisions reconcile revision-local duplicate groups, line-refe
 **10/10 kalite durumu:** Güvenilirlikte root-inclusive depth ve final-output UTF-8 boundary kontratı otomatik doğrulandı. Genel 10/10 hedefi tamamlanmadı: viewport p95/bellek NOT MEASURED, ana JS chunk 1,699.10 kB ve 500 kB uyarısı sürüyor; CNC/makine/atölye uygunluğu fiziksel insan doğrulaması gerektirir.
 
 **Sıradaki 3–5 küçük görev**
-1. DOM-146: revizyon zinciri kaynak/önceki-revizyon bağlantılarının import ve geri yükleme sırasında tutarlılığını denetle.
-2. DOM-143C-json / INT-002: stock-sheet group comparison alanlarını JSON comparison şemasına geriye uyumlu ekle; yalnızca doğrulanmış uzman branch/PR ve dosya sahipliği varsa.
-3. DOM-143D: CSV'de deterministik stock-sheet group rows ve Part/source-reference provenance deltas — adapter sahibi kapsamı; uzman sahiplik kanıtı olmadan bu dosyalara dokunma.
-4. PERF-001: ölçülebilir 2D/3D baseline ve profiling; yalnızca entegrasyon/performance uzmanının sahiplenilmiş dosyalarında.
-5. QA-003: INT-001 ve INT-002 kanıtları tamamlandığında uçtan uca export/data-flow denetimi.
-
+1. DOM-186: hardware price-source-only changes için quote revision comparison ve source-map audit kapsamını bağımsız fixture ile doğrula; monetary delta olmadan kaynak değişimi görünür kalmalı.
+2. UI-owned INT-003 PR #206: editor startup/new/save/open JSON v2 envelope wiring ayrı UI sahibinde kalır; DOM-153 yalnızca bu entegrasyondan sonra başlar.
+3. INT-001/INT-002: JSON/CSV adapter round-trip ve unsupported geometry fail-closed kanıtları; adapter dosyaları UI/specialist sahipliğinde kalır.
+4. INT-002/PERF-001: adapter contract testleri ve viewport p95/bellek ölçümü; yalnızca gerçek Integration/Performance sahibi/branch'i varsa.
+5. QA-003: INT-001/INT-002 exact-SHA adapter kanıtı ve UI envelope entegrasyonu tamamlandığında uçtan uca export/data-flow denetimi.
 
 **DOM-143C-domain QA düzeltme notu — 24 Kasım 2026**
 - İlk QA, üretim karşılaştırma kodundan değil iki test beklentisinden başarısız oldu: karışık fixture'da hardware satırı bulunmuyor (labor satırı var) ve project-file testi eski blocked sonucunu bekliyordu.
@@ -2247,3 +2246,14 @@ Sonraki adım: Exact-SHA CI/QA/Pages sonuçlarını doğrula; ardından DOM-170 
 **Bağımlılıklar ve riskler:** DOM-183 shelf Part kimlikleri ve mevcut project-level hardware BOM/trace altyapısı. Kaynak referansı kullanıcı tarafından sağlanır ve kaydedilir; uygulama katalog içeriğini otomatik doğrulamaz. Gerçek destek tipi, vida/delik/montaj ölçüsü, yük kapasitesi, malzeme uyumluluğu ve fiziksel güvenlik üretici/atölye doğrulaması gerektirir.
 
 **Sıradaki adım:** DOM-185 — kullanıcı tarafından sağlanan donanım fiyat/kaynak provenance'ını teklif snapshot'ına bağlamak; katalog fiyatı veya varsayılan destek miktarı uydurulmayacak. JSON/CSV persistence UI/adapter sahipliğinde kalır.
+
+
+## 26 Kasım 2026 11:14 TRT — DOM-185 hardware price-source provenance (verification pending)
+
+**Kullanıcı akışı:** Operatör kitaplık rafı için üretici/katalog destek BOM satırını ve hardware fiyat tablosu satırını ayrı ayrı sağlar. Teklif snapshot'ı BOM kaynağını ve fiyat kaynağını birbirinden ayırt ederek saklar.
+
+**Teslimat:** `hardwarePriceSourceReference` yalnızca açık hardware fiyat satırındaki `sourceReference` varsa quote line source'a eklenir. Üretici BOM referansı `hardwareSourceReferences` alanında kalır; maliyet satırının mevcut `sourceReference` alanıyla tutarlılık revision validator tarafından kontrol edilir. Eski snapshot'larda yeni alanın bulunmaması geriye uyumludur.
+
+**Kabul kriterleri:** gerçek shelf Part bağlantısı; BOM/price source ayrımı; aynı toplamla fiyat kaynağı değişikliğinin revision comparison'da görünmesi; standalone revision JSON round-trip; uyuşmayan kaynak blocked; eksik hardware price için incomplete + snapshot null. Varsayılan fiyat veya para birimi oluşturulmaz.
+
+**Sınırlar:** bu domain/quote sözleşmesi frontend görünür özelliği veya JSON/CSV adapter round-trip değildir. Fiyat kaynağı kullanıcı girdisidir; üretici katalog doğrulaması, fitting uyumluluğu, montaj, delik ve yük kapasitesi fiziksel/üretici doğrulaması gerektirir.

@@ -139,12 +139,12 @@ const costLineKeys = new Set([
 ]);
 const sourceKeys = new Set([
   "costLineId", "sourceType", "sourceId", "tariffId", "sourcePartIds",
-  "hardwareId", "hardwareUnit", "hardwareFurnitureIds", "hardwareSourceReferences",
+  "hardwareId", "hardwareUnit", "hardwareFurnitureIds", "hardwareSourceReferences", "hardwarePriceSourceReference",
   "resourceType", "resourceId", "unit", "edgeDirection", "rollCount", "rollLengthMm",
   "purchasedLengthMm", "furnitureIds", "planSourceReference", "priceSourceReference"
 ]);
 const hardwareMetadataKeys = new Set([
-  "hardwareId", "hardwareUnit", "hardwareFurnitureIds", "hardwareSourceReferences"
+  "hardwareId", "hardwareUnit", "hardwareFurnitureIds", "hardwareSourceReferences", "hardwarePriceSourceReference"
 ]);
 const requiredHardwareMetadataKeys = new Set([
   "hardwareId", "hardwareUnit", "hardwareFurnitureIds"
@@ -588,6 +588,16 @@ function validateQuoteSummary(value: unknown, strictSourceIntegrity = false, all
       validateSortedIdentifiers(source.hardwareFurnitureIds, "Teklif donanım mobilya kimlikleri");
       if (source.hardwareSourceReferences !== undefined) {
         validateSortedIdentifiers(source.hardwareSourceReferences, "Teklif donanım BOM kaynak referansları");
+      }
+      if (source.hardwarePriceSourceReference !== undefined) {
+        const priceSourceReference = requireText(
+          source.hardwarePriceSourceReference,
+          "Teklif donanım fiyat kaynak referansı",
+          256
+        );
+        if (line.sourceReference !== priceSourceReference) {
+          throw new Error("Teklif donanım fiyat kaynak referansı maliyet satırı kaynak referansıyla uyuşmalıdır.");
+        }
       }
     }
 
