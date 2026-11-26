@@ -5292,9 +5292,13 @@ test("DOM-191 legacy v1 stock-sheet provenance addition is visible without fabri
   assert.deepEqual(groupComparison.comparison.groupChanges[0].changedFields, ["sourceReference"]);
   assert.equal(Object.hasOwn(groupComparison.comparison.groupChanges[0].from, "sourceReference"), false);
   assert.deepEqual(groupComparison.comparison.stockSheetManifestComparison, manifest);
-  assert.equal(groupComparison.comparison.stockSheetPartCounts.fromPartCount, 1);
-  assert.equal(groupComparison.comparison.stockSheetPartCounts.toPartCount, 1);
-  assert.equal(groupComparison.comparison.stockSheetPartCounts.unchangedPartCount, 1);
+  const expectedStockSheetPartCount = fromBasis.stockSheetGroups[0].sourcePartIds.length;
+  assert.equal(groupComparison.comparison.stockSheetPartCounts.fromPartCount, expectedStockSheetPartCount);
+  assert.equal(groupComparison.comparison.stockSheetPartCounts.toPartCount, expectedStockSheetPartCount);
+  assert.equal(groupComparison.comparison.stockSheetPartCounts.unchangedPartCount, expectedStockSheetPartCount);
+  assert.equal(groupComparison.comparison.stockSheetPartCounts.addedPartCount, 0);
+  assert.equal(groupComparison.comparison.stockSheetPartCounts.removedPartCount, 0);
+  assert.equal(groupComparison.comparison.stockSheetPartCounts.movedPartCount, 0);
   assert.equal(groupComparison.comparison.stockSheetCostDeltaMinor, 0);
   assert.equal(groupComparison.comparison.sheetCountDelta, 0);
   assert.equal(groupComparison.comparison.grandTotalDeltaMinor, 0);

@@ -2404,8 +2404,10 @@ Sonraki adım: Exact-SHA CI/QA/Pages sonuçlarını doğrula; ardından DOM-170 
 - Eski revizyonun alan yokluğu korunur; null, boş değer veya tahmini tedarikçi eklenmez.
 - İki maliyet temeli de schema v1 ise aggregate Part manifest karşılaştırması both-unavailable kalır; group-level Part ID'leri aggregate manifest yerine kullanılmaz.
 - Standalone JSON v1 round-trip sonrasında audit, integrity audit, provenance/group comparisons ve TRY tutarları değişmez.
-- Bu dilim tedarikçi doğruluğu, levha verimi, kerf, nesting, CNC veya fiziksel atölye uygunluğu iddiası taşımaz.
-- Exact-SHA CI/QA/Pages doğrulaması commit sonrası bekleniyor.
+- İlk exact-SHA CI [#45831987115](https://github.com/Taylan789/MobilyaCAD/actions/runs/45831987115) SUCCESS. İlk QA [#45831987078](https://github.com/Taylan789/MobilyaCAD/actions/runs/45831987078) FAILED 822/823: yalnızca yeni testte fixture'ın 4 Part içermesine rağmen adet 1 sabitlenmişti; üretim davranışında hata yok.
+- Pages [#45831987091](https://github.com/Taylan789/MobilyaCAD/actions/runs/45831987091) build SUCCESS, ancak CI+QA exact-SHA kapısı geçmediği için deploy bekletildi.
+- Düzeltme: beklenen Part sayısı fixture'ın kaynak Part listesinden türetiliyor; ekleme/silme/taşıma sayılarının sıfır olduğu ayrıca doğrulanıyor. Düzeltilmiş exact-SHA Actions bekleniyor.
+- Fiziksel tedarikçi doğruluğu, levha verimi, kerf, nesting, CNC veya atölye uygunluğu bu testle doğrulanmaz.
 
 Sıradaki küçük görevler:
 1. DOM-192 — legacy kaynak alanı eksik → sonraki açık kaynaklı schema-v1 revizyonu geçişini immutable append sonrasında da koru; eski kayıt backfill edilmesin.

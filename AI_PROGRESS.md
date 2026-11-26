@@ -1576,15 +1576,16 @@
 - **Measured build:** JS 1,711.52 kB / 476.99 kB gzip; CSS 475.26 kB. Viewport p95 and memory remain NOT MEASURED.
 - **Known limits:** supplier provenance, sheet yield/kerf, CNC and physical workshop validation remain unverified; no frontend, adapter, benchmark, secret/settings or main changes.
 
-## 26 Kasım 2026 16:37 TRT — DOM-191 implementation (exact-SHA verification pending)
+## 26 Kasım 2026 16:37 TRT — DOM-191 implementation and first QA diagnosis
 
 - Base HEAD: dev/github-work 87297fa67f8052e53506dcb79b5feb91c77de3a6.
-- Commit SHA: GitHub SHA will be inserted in the verification follow-up.
-- Delivery: regression covers a schema-v1 stock-sheet group with absent legacy sourceReference and a later explicit user-supplied reference.
-- Acceptance: source audit counts 0 then 1; both comparisons report exactly one sourceReference change; the legacy object remains property-absent; both v1 aggregate manifests remain unavailable; group-level Part IDs are not promoted to an aggregate manifest; stock-sheet and quote totals, TRY currency and immutable history remain unchanged.
-- Round-trip: standalone revision-history JSON v1 preserves the legacy absence and later explicit value; restored audit, integrity audit and comparisons equal pre-export results.
-- Files: domain/production/projectQuoteRevision.test.mjs, docs/production-domain-contract.md, PRODUCT_ROADMAP.md, AI_COORDINATION.md, AI_PROGRESS.md.
-- Actions: exact-SHA CI, QA and Pages are pending; no success is claimed for this commit.
-- Known limits: no production calculation code, frontend, adapter/benchmark, machine postprocessor, secrets/settings or main changes. Supplier authenticity, sheet yield/kerf, CNC and workshop validation remain unverified.
-- AI Developer: run #45810848741 failed on OpenRouter free-tier HTTP 429 (50/50 daily requests used; reset 27 November 2026 03:00 TRT). It is not rerun before reset; no paid fallback or quota/settings change.
-- Next: DOM-192 — preserve this legacy-absence to explicit-source transition after immutable append without backfilling the historical revision.
+- Implementation commit: [82bee401](https://github.com/Taylan789/MobilyaCAD/commit/82bee401371dae2809ae05bf8cfa75b569a31be1).
+- Delivery: regression compares a legacy schema-v1 stock-sheet group with absent sourceReference against a later revision carrying an explicit user-supplied reference; no production calculation source changed.
+- Initial exact-SHA CI [#45831987115](https://github.com/Taylan789/MobilyaCAD/actions/runs/45831987115) SUCCESS.
+- Initial exact-SHA QA [#45831987078](https://github.com/Taylan789/MobilyaCAD/actions/runs/45831987078) FAILED 822/823. Evidence: the new test expected one source Part, but the existing fixture contains four. This is a test expectation defect; all frontend tests passed 369/369 and no production behavior failure was reported.
+- Pages [#45831987091](https://github.com/Taylan789/MobilyaCAD/actions/runs/45831987091) built the site successfully but withheld deployment at the exact-SHA CI+QA gate. The live site remains on the prior verified SHA.
+- Correction: derive the expected unchanged Part count from the fixture's sourcePartIds and explicitly assert zero added/removed/moved Parts. Corrected Actions are pending.
+- Files: domain/production/projectQuoteRevision.test.mjs, docs/production-domain-contract.md, PRODUCT_ROADMAP.md, AI_PROGRESS.md, AI_COORDINATION.md.
+- Known limits: no frontend, adapter/benchmark, machine postprocessor, secrets/settings or main changes. Supplier authenticity, sheet yield/kerf, CNC and physical workshop validation remain unverified.
+- AI Developer: run [#45810848741](https://github.com/Taylan789/MobilyaCAD/actions/runs/45810848741) failed on OpenRouter free-tier HTTP 429 (50/50 daily requests used; reset 27 November 2026 03:00 TRT). It is not rerun before reset; no paid fallback or quota/settings change.
+- Next: verify the corrected DOM-191 exact-SHA CI, QA and Pages before proceeding to DOM-192.
