@@ -423,3 +423,103 @@
     height: 28px !important;
   }
 }
+
+/* UI-VIEWPORT-TOOLBAR-CONTAINER-DENSITY-001 — let the viewport toolbar respond to its real workspace width, not only the browser width.
+   This keeps the transform and panel commands legible when both side docks are expanded. */
+.cad-viewport-toolbar {
+  container-name: cad-viewport-toolbar;
+  container-type: inline-size;
+  min-width: 0 !important;
+}
+
+.cad-viewport-title {
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+}
+
+.cad-viewport-title > div {
+  min-width: 0 !important;
+}
+
+.cad-viewport-title strong,
+.cad-viewport-title small {
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.studio-viewport-actions {
+  flex: 0 1 auto !important;
+  min-width: 0 !important;
+}
+
+@container cad-viewport-toolbar (max-width: 760px) {
+  .cad-viewport-title {
+    gap: 8px !important;
+  }
+
+  .cad-viewport-title small,
+  .studio-viewport-actions .studio-view-label {
+    display: none !important;
+  }
+
+  .studio-viewport-actions {
+    gap: 3px !important;
+  }
+}
+
+@container cad-viewport-toolbar (max-width: 620px) {
+  .studio-transform-tools button {
+    width: 32px !important;
+    min-width: 32px !important;
+    padding-inline: 0 !important;
+    gap: 0 !important;
+    font-size: 0 !important;
+  }
+
+  .studio-transform-tools button svg {
+    width: 14px !important;
+    height: 14px !important;
+  }
+}
+
+@container cad-viewport-toolbar (max-width: 520px) {
+  .cad-viewport-title {
+    gap: 6px !important;
+  }
+
+  .cad-viewport-title-icon {
+    width: 28px !important;
+    height: 28px !important;
+    flex: 0 0 28px !important;
+  }
+
+  .cad-viewport-title strong {
+    max-width: 12ch !important;
+    font-size: 10px !important;
+  }
+
+  .studio-viewport-actions {
+    gap: 2px !important;
+    padding: 2px !important;
+  }
+
+  .studio-viewport-actions > .studio-heading-divider {
+    display: none !important;
+  }
+
+  .studio-panel-tools {
+    border-left: 0 !important;
+    padding-left: 2px !important;
+  }
+
+  .studio-panel-tools button.studio-panel-toggle {
+    width: 30px !important;
+    min-width: 30px !important;
+  }
+
+  .studio-viewport-actions .studio-unit-pill {
+    min-width: 28px !important;
+    height: 20px !important;
+  }
+}
