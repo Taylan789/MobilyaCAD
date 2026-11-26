@@ -746,7 +746,7 @@
 }
 
 
-/* UI-VIEWPORT-READOUT-CONTAINER-521-560-001 — keep the three live room axes legible when side panels leave a 521–560px canvas.
+/* UI-VIEWPORT-READOUT-CONTAINER-521-560-001 — keep the three live room axes legible when side panels leave a 521–560px canvas. */
 @container cad-viewport (min-width: 521px) and (max-width: 560px) {
   .cad-viewport-dimension-readout {
     width: min(248px, calc(100% - 16px));
