@@ -37,5 +37,6 @@ test("launcher transitions respect reduced motion and Windows forced-colors sett
   assert.match(css, /transition:\s*none !important/);
   assert.match(css, /@media \(forced-colors: active\)/);
   assert.match(css, /background:\s*Canvas !important/);
+  assert.match(css, /\.atelier-primary-action,/);
   assert.match(css, /outline:\s*2px solid Highlight !important/);
 });
