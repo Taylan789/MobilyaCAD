@@ -161,3 +161,38 @@
   }
   .cad-transform-reference > summary { color: CanvasText; }
 }
+
+
+/* UI-TRANSFORM-VALIDATION-FEEDBACK-001 — explain rejected drafts without changing geometry commits. */
+.cad-transform-validation {
+  display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  gap: 7px;
+  margin: -3px 0 0 !important;
+  padding: 7px 8px;
+  color: #e6bf91 !important;
+  border: 1px solid rgba(195, 148, 112, .3);
+  border-left: 2px solid #c39470;
+  border-radius: 5px;
+  background: rgba(111, 75, 48, .16);
+  font-size: 8px !important;
+  font-weight: 620;
+  line-height: 1.45 !important;
+}
+.cad-transform-validation svg {
+  width: 13px;
+  height: 13px;
+  flex: 0 0 auto;
+  margin-top: 1px;
+  color: #d5a77d;
+}
+@media (forced-colors: active) {
+  .cad-transform-validation {
+    color: CanvasText !important;
+    border-color: Highlight;
+    border-left-color: Highlight;
+    background: Canvas;
+  }
+  .cad-transform-validation svg { color: Highlight; }
+}
