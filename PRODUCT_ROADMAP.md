@@ -2348,7 +2348,7 @@ Sonraki adım: Exact-SHA CI/QA/Pages sonuçlarını doğrula; ardından DOM-170 
 
 ## 26 Kasım 2026 — DOM-189: Standalone revision-history JSON provenance round-trip
 
-**Durum:** IMPLEMENTATION COMMITTED — exact-SHA CI, QA and Pages validation pending.
+**Durum:** VERIFIED — [implementation commit 2a3e5ce7](https://github.com/Taylan789/MobilyaCAD/commit/2a3e5ce7a8070dee0306ca97938c1915afe2d2bb); exact-SHA CI [#45809056992](https://github.com/Taylan789/MobilyaCAD/actions/runs/45809056992), QA [#45809057029](https://github.com/Taylan789/MobilyaCAD/actions/runs/45809057029) and Pages [#45809056997](https://github.com/Taylan789/MobilyaCAD/actions/runs/45809056997) all SUCCESS.
 
 **Kullanıcı akışı:** Operatör iki teklif revizyonu arasında levha satın alma fiyat kaynağını günceller, teklif revizyon geçmişini JSON olarak dışa aktarır ve yeniden içe alır. Geri yüklenen geçmişte kaynak haritası denetimi ve karşılaştırması aynı provenance farkını göstermelidir.
 
@@ -2359,8 +2359,10 @@ Sonraki adım: Exact-SHA CI/QA/Pages sonuçlarını doğrula; ardından DOM-170 
 - Schema-v2 aggregate Part manifesti değişmez; TRY, levha adedi, birim fiyat, grup maliyeti ve proje toplamı değişmez.
 - Kaynak history mutasyona uğramaz; invalid/unsupported file input mevcut fail-closed validator davranışını korur.
 
-**10/10 kalite checklist — bu dilimin etkisi (Actions doğrulaması bekliyor):**
-- Üretim/güvenilirlik: stock-sheet price provenance için standalone JSON restore sonrası audit/comparison eşitliği otomatik regresyonla kapsandı.
+**Otomatik doğrulama:** QA 361/361 frontend + 821/821 domain tests (DOM-189 included); strict shared-domain TypeScript, lint 36 warnings / 0 errors, production build and production-only audit 0 vulnerabilities all passed. Pages log confirms exact-SHA deployment to https://taylan789.github.io/MobilyaCAD/.
+
+**10/10 kalite checklist — bu dilimin doğrulanmış etkisi:**
+- Üretim/güvenilirlik: stock-sheet price provenance için standalone JSON restore sonrası audit/comparison eşitliği otomatik regresyonla kapsandı; source-map/source-integrity audits and comparisons are unchanged by serialize/parse.
 - CAD Core ve UX: bu domain testi diliminde değişmedi; frontend sahipliği UI ajanında.
 - Performans: viewport p95/bellek ölçümü bu dilimde yapılmadı; mevcut bundle uyarısı için yeni ölçüm yok.
 - CNC/atölye: tedarikçi fiyat doğruluğu, levha yield/kerf ve fiziksel üretim uygunluğu doğrulanmış sayılmaz.
