@@ -2265,3 +2265,32 @@ Sonraki adım: Exact-SHA CI/QA/Pages sonuçlarını doğrula; ardından DOM-170 
 **Düzeltme geçmişi:** 3c46957 ve 032bd72 exact-SHA QA başarısızlıkları source-map sözleşmesiyle uyumsuz alan ekleme girişimlerinden kaynaklandı; 066adb6'da bu alanlar kaldırıldı, kalan tek test-harness hatası b9ba589'da düzeltildi. İki başarısız implementation SHA Pages gate nedeniyle yayımlanmadı; yalnızca bu son doğrulanmış SHA dağıtıldı.
 
 **Sıradaki 3–5 görev:** DOM-186 price-source-only comparison/source-map audit; UI-owned INT-003 JSON v2 editor envelope; INT-001/INT-002 adapter round-trip; specialist-owned PERF-001 viewport p95/memory; QA-003 end-to-end export/data-flow audit.
+
+
+## 26 Kasım 2026 — DOM-186: Hardware price-source-only source-map audit
+
+**Durum:** IMPLEMENTED — exact-SHA GitHub Actions verification pending.
+
+**Kullanıcı akışı:** Operatör aynı donanım satırı için fiyat tablosu revizyonunu değiştirir; üretici BOM kaynağı, bağlı Part kimlikleri, miktar ve tutar aynı kalabilir. Teklif revizyonu ve kaynak haritası bu fiyat kaynağı değişikliğini ayrı bir provenance değişikliği olarak göstermelidir.
+
+**Kabul kriterleri:**
+- Yalnızca `ProjectCostLine.sourceReference` değiştiğinde hem teklif revizyon karşılaştırması hem kaynak haritası denetimi eski/yeni fiyat kaynağını korur.
+- Kaynak haritası karşılaştırması yalnızca ilgili hardware cost line için tek `changed` satırı üretir; eklenen/silinen satır veya parasal delta uydurmaz.
+- Manufacturer BOM `hardwareSourceReferences` ve source Part kimlikleri değişmeden kalır.
+- Audit ve comparison işlemleri geçmişi mutasyona uğratmaz ve doğrulanmış sonuçları immutable döndürür.
+- Yeni source-map alanı, varsayılan fiyat, kur dönüşümü veya adapter şeması eklenmez.
+
+**10/10 kalite checklist — bu dilimin ölçülen etkisi:**
+- CAD Core: bu domain diliminde değişmedi; geometri, 3D senkronizasyon, transform, snap ve save/load puanı yeniden ölçülmedi.
+- Üretim: hardware price provenance ile manufacturer BOM/Part provenance ayrımı otomatik regresyonla kapsandı; üretici fitting uyumluluğu, delik, montaj ve yük doğrulaması insan/üretici kontrolüdür.
+- UX: görünür frontend değişikliği yok; `frontend/**` UI ajanının sahipliğinde.
+- Performans: viewport p95/bellek ölçülmedi; mevcut büyük JS chunk uyarısı devam ediyor.
+- Güvenilirlik: exact source-reference comparison, zero monetary delta, unchanged BOM/Part trace ve immutable history için test eklendi; CI/QA/Pages sonucu bekleniyor.
+- Üretim güvenliği: CNC koordinatı/postprocessor veya fiziksel üretim uygunluğu iddia edilmez.
+
+**Sıradaki 3–5 küçük görev:**
+1. DOM-187 — material ve edge-banding price-source-only değişikliklerini source-map provenance comparison içinde doğrula; birim/para birimi dönüştürme.
+2. UI-owned INT-003 — JSON v2 editör zarfı, proje aç/kaydet entegrasyonu; bu ajan frontend/adapter dosyalarına dokunmaz.
+3. INT-001/INT-002 — yalnızca UI/specialist sahipliğinde desteklenen adapter round-trip ve kayıpsızlık kanıtı.
+4. PERF-001 — specialist branch/job etkinleştiğinde viewport p95, scene update ve bellek baseline ölçümü; şu anda ölçülmedi.
+5. QA-003 — INT-001/INT-002 kanıtı sonrasında uçtan uca export/data-flow denetimi.

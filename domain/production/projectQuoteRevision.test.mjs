@@ -4778,3 +4778,73 @@ test("DOM-176 standalone JSON round-trip keeps mixed manifest history appendable
   assert.match(duplicateAppend.diagnostics[0], /revisionId benzersiz/);
   assert.equal(serializeProjectQuoteRevisionHistoryFile(parsedFinal.history).json, finalExport.json);
 });
+
+
+test("DOM-186 hardware price-source-only changes remain visible in quote revision and source-map audits", () => {
+  const fromSnapshot = createDom131AuditSnapshot();
+  const toSnapshot = createDom131AuditSnapshot();
+  const fromHardwareLine = fromSnapshot.quoteSummary.costSummary?.lines.find(line => line.id === "dom-131-hardware");
+  const toHardwareLine = toSnapshot.quoteSummary.costSummary?.lines.find(line => line.id === "dom-131-hardware");
+  const fromHardwareSource = fromSnapshot.quoteSummary.lineSources.find(source => source.costLineId === "dom-131-hardware");
+  const toHardwareSource = toSnapshot.quoteSummary.lineSources.find(source => source.costLineId === "dom-131-hardware");
+  assert.ok(fromHardwareLine);
+  assert.ok(toHardwareLine);
+  assert.ok(fromHardwareSource);
+  assert.ok(toHardwareSource);
+
+  // Only the user-supplied hardware price-list reference changes; BOM and Part provenance stay fixed.
+  toHardwareLine.sourceReference = "price-list:hinge-110:revision-2";
+  const history = createHistoryWithSnapshots(fromSnapshot, toSnapshot);
+  const originalHistoryJson = JSON.stringify(history);
+  const validation = validateProjectQuoteRevisionHistory(history);
+  assert.equal(validation.status, "ready", validation.diagnostics.join("; "));
+
+  const audit = calculateProjectQuoteRevisionSourceMapAudit(history);
+  assert.equal(audit.status, "ready", audit.diagnostics.join("; "));
+  assert.ok(audit.audit);
+  const fromAuditLine = audit.audit.revisions[0].lines.find(line => line.costLineId === "dom-131-hardware");
+  const toAuditLine = audit.audit.revisions[1].lines.find(line => line.costLineId === "dom-131-hardware");
+  assert.ok(fromAuditLine);
+  assert.ok(toAuditLine);
+  assert.equal(fromAuditLine.sourceReference, "price-list:hinge-110");
+  assert.equal(toAuditLine.sourceReference, "price-list:hinge-110:revision-2");
+  assert.deepEqual(fromAuditLine.hardwareSourceReferences, toAuditLine.hardwareSourceReferences);
+  assert.deepEqual(fromAuditLine.sourcePartIds, toAuditLine.sourcePartIds);
+
+  const sourceMapComparison = compareProjectQuoteRevisionSourceMaps(history, "quote-r1", "quote-r2");
+  assert.equal(sourceMapComparison.status, "ready", sourceMapComparison.diagnostics.join("; "));
+  assert.ok(sourceMapComparison.comparison);
+  assert.deepEqual(sourceMapComparison.comparison.counts, {
+    addedLineCount: 0,
+    removedLineCount: 0,
+    changedLineCount: 1,
+    unchangedLineCount: sourceMapComparison.comparison.fromLineCount - 1
+  });
+  assert.equal(sourceMapComparison.comparison.changes.length, 1);
+  const provenanceChange = sourceMapComparison.comparison.changes[0];
+  assert.equal(provenanceChange.costLineId, "dom-131-hardware");
+  assert.equal(provenanceChange.type, "changed");
+  assert.equal(provenanceChange.from?.sourceReference, fromHardwareLine.sourceReference);
+  assert.equal(provenanceChange.to?.sourceReference, toHardwareLine.sourceReference);
+  assert.deepEqual(provenanceChange.from?.hardwareSourceReferences, fromHardwareSource.hardwareSourceReferences);
+  assert.deepEqual(provenanceChange.to?.hardwareSourceReferences, toHardwareSource.hardwareSourceReferences);
+  assert.deepEqual(provenanceChange.from?.sourcePartIds, fromHardwareSource.sourcePartIds);
+  assert.deepEqual(provenanceChange.to?.sourcePartIds, toHardwareSource.sourcePartIds);
+
+  const quoteComparison = compareProjectQuoteRevisions(history, "quote-r1", "quote-r2");
+  assert.equal(quoteComparison.status, "ready", quoteComparison.diagnostics.join("; "));
+  assert.ok(quoteComparison.comparison);
+  const hardwareChange = quoteComparison.comparison.lineChanges.find(change =>
+    change.from?.sourceId === "bom-hinge-1" && change.to?.sourceId === "bom-hinge-1"
+  );
+  assert.ok(hardwareChange);
+  assert.equal(hardwareChange.type, "changed");
+  assert.equal(hardwareChange.from?.sourceReference, fromHardwareLine.sourceReference);
+  assert.equal(hardwareChange.to?.sourceReference, toHardwareLine.sourceReference);
+  assert.equal(quoteComparison.comparison.categoryDeltasMinor.hardware, 0);
+  assert.equal(quoteComparison.comparison.grandTotalDeltaMinor, 0);
+
+  assert.equal(JSON.stringify(history), originalHistoryJson);
+  assert.ok(Object.isFrozen(audit.audit));
+  assert.ok(Object.isFrozen(sourceMapComparison.comparison));
+});
