@@ -1501,14 +1501,18 @@
 - **Next:** DOM-187 — verify material and edge-banding price-source-only provenance changes without unit or currency conversion; then continue the separately owned INT-003/INT-001/INT-002 and PERF-001 handoffs.
 
 
-## 26 Kasım 2026 12:06 TRT — DOM-187 implementation (exact-SHA verification pending)
+## 26 Kasım 2026 12:12 TRT — DOM-187 VERIFIED
 
 - **Base HEAD:** `dev/github-work` `7c177ee69ef529de8d3e1664138334883018abeb`.
-- **Delivery:** added a focused regression in `domain/production/projectQuoteRevision.test.mjs`. It changes only the user-supplied material price-list reference and edge-band roll price reference across two immutable quote revisions. The source-map audit/comparison must report exactly two changed provenance rows; material/edge-band units, TRY currency, quantities, unit prices, line totals, roll plan reference, Part/furniture IDs and roll lengths remain unchanged. The monetary comparison must report zero category and grand-total deltas.
+- **Implementation commit:** [71c10ae1ed6b7aba17fd57a41fa493b8915fad73](https://github.com/Taylan789/MobilyaCAD/commit/71c10ae1ed6b7aba17fd57a41fa493b8915fad73).
+- **Delivery:** added a focused regression in `domain/production/projectQuoteRevision.test.mjs`. It changes only the user-supplied material price-list reference and edge-band roll price reference across two immutable quote revisions. Source-map audit/comparison reports exactly two changed provenance rows; material/edge-band units, TRY currency, quantities, unit prices, line totals, roll plan reference, Part/furniture IDs and roll lengths remain unchanged. Monetary comparison reports zero category and grand-total deltas.
 - **Files:** `domain/production/projectQuoteRevision.test.mjs`, `docs/production-domain-contract.md`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`.
-- **Implementation commit:** pending GitHub commit response. Exact-SHA CI/QA/Pages results are pending; no local execution or Actions success is claimed.
-- **Test site:** remains on the last verified SHA `7c177ee69ef529de8d3e1664138334883018abeb` at https://taylan789.github.io/MobilyaCAD/ until the new SHA passes CI + QA + production build and Pages confirms the exact deployed SHA.
+- **CI:** [#45789559597](https://github.com/Taylan789/MobilyaCAD/actions/runs/45789559597) SUCCESS; frontend build/lint job passed.
+- **QA:** [#45789559560](https://github.com/Taylan789/MobilyaCAD/actions/runs/45789559560) SUCCESS — 355/355 frontend + 819/819 domain tests, 0 failures; strict shared-domain TypeScript, lint 36 warnings / 0 errors, production build and production-only audit 0 vulnerabilities.
+- **Pages:** [#45789559675](https://github.com/Taylan789/MobilyaCAD/actions/runs/45789559675) SUCCESS; deploy log confirms exact `pages_build_version=71c10ae1ed6b7aba17fd57a41fa493b8915fad73` and https://taylan789.github.io/MobilyaCAD/.
+- **10/10 checklist delta:** material and edge-band price-source provenance now has exact-SHA automated coverage. CAD Core and UX unchanged; viewport p95/memory remains NOT MEASURED. Build still reports a >500 kB JS chunk (1,710.38 kB / 476.76 kB gzip) and CSS 470.17 kB. CNC, edge-band application and workshop safety remain human validation.
+- **Test site:** updated to the verified SHA `71c10ae1ed6b7aba17fd57a41fa493b8915fad73`.
 - **Parallel ownership:** no `frontend/**` or adapter/performance-owned files changed. UI-owned INT-003 PR #206 remains draft and untouched. Integration/Performance workflow job remains disabled and no specialist branch was found; PERF-001/INT-002 remain specialist-owned.
-- **AI Developer:** run [#45743919035](https://github.com/Taylan789/MobilyaCAD/actions/runs/45743919035) was inspected; it failed with OpenRouter free-tier HTTP 429 (`free-models-per-day`, 50 limit / 0 remaining, reset 27 November 2026 03:00 TRT). No rerun is safe before reset; no paid fallback, secret or quota change was attempted.
+- **AI Developer:** run [#45743919035](https://github.com/Taylan789/MobilyaCAD/actions/runs/45743919035) failed with OpenRouter free-tier HTTP 429 (`free-models-per-day`, 50 limit / 0 remaining, reset 27 November 2026 03:00 TRT). It was not rerun because the daily quota had not reset; no paid fallback, secret or quota change was attempted.
 - **Known limits:** this is domain provenance regression coverage, not frontend visibility, adapter export, currency conversion, physical edge-band validation or CNC readiness.
 - **Next:** DOM-188 — compare stock-sheet purchase group price-source provenance across revision source-map audit/comparison while preserving manifest Part coverage and all monetary/unit/currency values.

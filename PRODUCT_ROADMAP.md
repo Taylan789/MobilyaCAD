@@ -24,7 +24,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 | Malzeme kataloğu | UI CRUD; mobilya varsayılan materialId ve çekmece grubunda varsayılan + dört panel grubu override; domain gövde/kitaplık motorları altı gövde panel grubu için malzeme override'ını doğrular | Gövde panel override'ları henüz frontend JSON v1/CSV ve UI akışına bağlanmadı; fiyat, tedarikçi ve fire henüz yok |
 | Proje dosyası | Yerel JSON v1 indirme/yükleme; saf serializer/parser; round-trip ve eski v1 uyumluluk; mm, mobilya ve çekmece grubu katalog referansları ile dört çekmece panel kalınlığının doğrulanması | Şema migrasyonu, otomatik kayıt ve kurtarma yok |
 | Teklif/maliyet | Kullanıcı fiyat tablosu malzeme tüketimini materialId + m2, donanımı hardwareId + özgün BOM birimi, kenar bandını edgeBandingId + açık mm/m birimi ile fiyatlandırır; hardware BOM üretici/katalog referansı `hardwareSourceReferences` alanında, donanım fiyat satırının isteğe bağlı `sourceReference` değeri ise exact hardware cost line ve revision cost-line snapshot'ta ayrı izlenir; kullanıcı girdili işçilik/operasyon tarifesi, tek para birimli birleşik teklif ve tarihli fiyat/tarife katalog snapshot'ı vardır | Eksik donanım fiyatı teklif snapshot'ını bloklar; fiyat, para birimi veya kaynak referansı varsayılmaz. Frontend/UI ve JSON v1/CSV kalıcı revizyon geçmişi entegrasyonu ayrı sahibindedir; vergi, kur, iskonto, otomatik fire/kâr yüzdesi ve üretim onayı yok |
-| Test/CI | Latest verified exact SHA [fbfeabe8a0cb91b2303bb6828f72a9707492cb60](https://github.com/Taylan789/MobilyaCAD/commit/fbfeabe8a0cb91b2303bb6828f72a9707492cb60): CI [#45785925148](https://github.com/Taylan789/MobilyaCAD/actions/runs/45785925148) and QA [#45785924988](https://github.com/Taylan789/MobilyaCAD/actions/runs/45785924988) SUCCESS; QA 355/355 frontend + 818/818 domain; strict shared-domain type-check, lint 36 warnings/0 errors, production build and production-only audit 0 vulnerabilities | Pages [#45785925029](https://github.com/Taylan789/MobilyaCAD/actions/runs/45785925029) SUCCESS; exact `pages_build_version=fbfeabe8a0cb91b2303bb6828f72a9707492cb60`; https://taylan789.github.io/MobilyaCAD/ |
+| Test/CI | Latest verified exact SHA [71c10ae1ed6b7aba17fd57a41fa493b8915fad73](https://github.com/Taylan789/MobilyaCAD/commit/71c10ae1ed6b7aba17fd57a41fa493b8915fad73): CI [#45789559597](https://github.com/Taylan789/MobilyaCAD/actions/runs/45789559597) and QA [#45789559560](https://github.com/Taylan789/MobilyaCAD/actions/runs/45789559560) SUCCESS; QA 355/355 frontend + 819/819 domain; strict shared-domain TypeScript, lint 36 warnings/0 errors, production build, production-only audit 0 vulnerabilities | Pages [#45789559675](https://github.com/Taylan789/MobilyaCAD/actions/runs/45789559675) SUCCESS; exact `pages_build_version=71c10ae1ed6b7aba17fd57a41fa493b8915fad73`; https://taylan789.github.io/MobilyaCAD/; bundle JS 1,710.38 kB (476.76 kB gzip), CSS 470.17 kB; viewport p95/memory NOT MEASURED |
 
 ### Bilinen mimari ve veri boşlukları
 
@@ -2298,7 +2298,7 @@ Sonraki adım: Exact-SHA CI/QA/Pages sonuçlarını doğrula; ardından DOM-170 
 
 ## 26 Kasım 2026 — DOM-187: Material and edge-band price-source provenance
 
-**Durum:** IMPLEMENTED — exact-SHA GitHub Actions verification pending.
+**Durum:** VERIFIED — [commit 71c10ae](https://github.com/Taylan789/MobilyaCAD/commit/71c10ae1ed6b7aba17fd57a41fa493b8915fad73); exact-SHA CI [#45789559597](https://github.com/Taylan789/MobilyaCAD/actions/runs/45789559597), QA [#45789559560](https://github.com/Taylan789/MobilyaCAD/actions/runs/45789559560) and Pages [#45789559675](https://github.com/Taylan789/MobilyaCAD/actions/runs/45789559675) all SUCCESS.
 
 **Kullanıcı akışı:** Operatör malzeme fiyat listesini veya kenar bandı rulo fiyat listesini revize eder. Teklif revizyonunda yalnızca fiyat kaynağı değişikliği görünür; ölçü birimi, miktar, para birimi, birim fiyat, satır toplamı, Part/furniture bağlantıları ve kenar planı değişmez.
 
@@ -2313,8 +2313,8 @@ Sonraki adım: Exact-SHA CI/QA/Pages sonuçlarını doğrula; ardından DOM-170 
 **10/10 kalite checklist — bu dilimin ölçülen etkisi:**
 - CAD Core ve UX: değişmedi; frontend sahipliği UI ajanında.
 - Üretim: material ve edge-band roll price-source provenance karşılaştırması otomatik regresyonla kapsandı; fiziksel rulo/kenar bandı standardı doğrulanmış sayılmaz.
-- Güvenilirlik: tam iki provenance-only değişiklik, sıfır monetary delta, sabit unit/currency/Part bağlantıları ve immutable history test ediliyor; Actions doğrulaması bekliyor.
-- Performans: viewport p95/bellek ölçülmedi; büyük JS chunk uyarısı sürüyor.
+- Güvenilirlik: QA 355/355 frontend + 819/819 domain; strict shared-domain TypeScript, lint 36 warnings/0 errors, production build and production-only audit 0 vulnerabilities passed. Exact-SHA CI/QA/Pages all successful.
+- Performans: viewport p95/bellek ölçülmedi; büyük JS chunk uyarısı sürüyor (JS 1,710.38 kB / 476.76 kB gzip; CSS 470.17 kB).
 - CNC/atölye: makine koordinatı veya fiziksel üretim onayı iddia edilmez.
 
 **Sıradaki 3–5 küçük görev:**
