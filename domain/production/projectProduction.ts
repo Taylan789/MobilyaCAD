@@ -255,7 +255,7 @@ function readProjectEdgeBandingAssignment(value: unknown, index: number): Projec
 }
 
 function partHasBandedEdge(part: ProjectProductionPart, edge: ProjectEdgeBandingEdge): boolean {
-  return part.edgeBanding[edge] || (part.panelGeometry?.cutouts.some((opening) => opening.edgeBanding[edge]) ?? false);
+  return part.edgeBanding[edge] || (part.panelGeometry?.cutouts.some((opening: PanelCutoutGeometryResult["cutouts"][number]) => opening.edgeBanding[edge]) ?? false);
 }
 
 function partHasBandedEdges(part: ProjectProductionPart): boolean {

@@ -2191,3 +2191,11 @@ Sonraki adım: Exact-SHA CI/QA/Pages sonuçlarını doğrula; ardından DOM-170 
 3. UI-owned INT-003 PR #206 — editor startup/new/save/open JSON v2 envelope wiring ayrı sahibinde kalır; DOM-153 yalnızca entegrasyon sonrası başlar.
 4. INT-002/PERF-001 — adapter round-trip ve viewport p95/bellek ölçümleri Integration/Performance sahibinde; workflow job disabled, specialist branch kanıtı yok.
 5. QA-003 — INT-001/INT-002 exact-SHA adapter kanıtı gelene kadar blocked. Genel 10/10 kapısı açık; viewport p95/bellek NOT MEASURED, fiziksel CNC/montaj doğrulaması insan kontrolüdür.
+
+
+### DOM-182 type-check correction — 26 Kasım 2026 08:43 TRT
+
+- Initial implementation [1af2a2d](https://github.com/Taylan789/MobilyaCAD/commit/1af2a2d08b94b17efb4554c32f6dd383167620a1) added the bookshelf divider domain slice and regression tests.
+- Exact-SHA CI [#45763718867](https://github.com/Taylan789/MobilyaCAD/actions/runs/45763718867) and QA [#45763718912](https://github.com/Taylan789/MobilyaCAD/actions/runs/45763718912) failed because the new result type omitted the `CabinetConstructionPart` import and the widened project Part union required an explicit cutout-opening callback type. QA's domain test runner passed, but the overall job failed at strict TypeScript/build; this is not a green QA result.
+- Pages [#45763718913](https://github.com/Taylan789/MobilyaCAD/actions/runs/45763718913) failed its required build gate and did not publish the broken SHA. The last verified test-site deployment remains base SHA `93ade7e61688f5be9c1307cd134b9b241ba07e80`.
+- Correction adds the missing type import and explicit `PanelCutoutGeometryResult["cutouts"][number]` annotation. Exact-SHA rerun/deployment remains pending; no frontend, adapter, secrets/settings, or main changes.

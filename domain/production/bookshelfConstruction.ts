@@ -12,6 +12,7 @@ import {
 import type {
   BackPanelConstruction,
   CabinetConstructionFurniture,
+  CabinetConstructionPart,
   CabinetConstructionResult,
   EdgeBandingEdges
 } from "./cabinetConstruction.ts";
