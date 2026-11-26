@@ -2289,8 +2289,37 @@ Sonraki adım: Exact-SHA CI/QA/Pages sonuçlarını doğrula; ardından DOM-170 
 - Üretim güvenliği: CNC koordinatı/postprocessor veya fiziksel üretim uygunluğu iddia edilmez.
 
 **Sıradaki 3–5 küçük görev:**
-1. DOM-187 — material ve edge-banding price-source-only değişikliklerini source-map provenance comparison içinde doğrula; birim/para birimi dönüştürme.
+1. DOM-188 — stock-sheet purchase group sourceReference-only changes across quote revisions; preserve manifest Part coverage, units, currency and monetary totals without FX conversion.
 2. UI-owned INT-003 — JSON v2 editör zarfı, proje aç/kaydet entegrasyonu; bu ajan frontend/adapter dosyalarına dokunmaz.
 3. INT-001/INT-002 — yalnızca UI/specialist sahipliğinde desteklenen adapter round-trip ve kayıpsızlık kanıtı.
 4. PERF-001 — specialist branch/job etkinleştiğinde viewport p95, scene update ve bellek baseline ölçümü; şu anda ölçülmedi.
 5. QA-003 — INT-001/INT-002 kanıtı sonrasında uçtan uca export/data-flow denetimi.
+
+
+## 26 Kasım 2026 — DOM-187: Material and edge-band price-source provenance
+
+**Durum:** IMPLEMENTED — exact-SHA GitHub Actions verification pending.
+
+**Kullanıcı akışı:** Operatör malzeme fiyat listesini veya kenar bandı rulo fiyat listesini revize eder. Teklif revizyonunda yalnızca fiyat kaynağı değişikliği görünür; ölçü birimi, miktar, para birimi, birim fiyat, satır toplamı, Part/furniture bağlantıları ve kenar planı değişmez.
+
+**Kabul kriterleri:**
+- Material consumption satırındaki kullanıcı girdili `ProjectCostLine.sourceReference` değişikliği source-map audit ve comparison içinde korunur.
+- Edge-band roll satırında hem cost-line `sourceReference` hem `priceSourceReference` yeni fiyat kaynağını gösterir; `planSourceReference` aynı kalır.
+- Source-map comparison tam iki `changed` provenance satırı üretir; added/removed satır üretmez.
+- Quantity, `m2` / `rulo` birimleri, TRY para birimi, fiyatlar, satır ve genel toplamlar değişmez; kur veya birim dönüşümü yapılmaz.
+- Part/furniture kimlikleri ve roll ölçüleri korunur; geçmiş ve sonuçlar immutable kalır.
+- Yeni adapter alanı, varsayılan fiyat veya üretici fiyatı eklenmez.
+
+**10/10 kalite checklist — bu dilimin ölçülen etkisi:**
+- CAD Core ve UX: değişmedi; frontend sahipliği UI ajanında.
+- Üretim: material ve edge-band roll price-source provenance karşılaştırması otomatik regresyonla kapsandı; fiziksel rulo/kenar bandı standardı doğrulanmış sayılmaz.
+- Güvenilirlik: tam iki provenance-only değişiklik, sıfır monetary delta, sabit unit/currency/Part bağlantıları ve immutable history test ediliyor; Actions doğrulaması bekliyor.
+- Performans: viewport p95/bellek ölçülmedi; büyük JS chunk uyarısı sürüyor.
+- CNC/atölye: makine koordinatı veya fiziksel üretim onayı iddia edilmez.
+
+**Sıradaki 3–5 küçük görev:**
+1. DOM-188 — stock-sheet purchase group `sourceReference` değişikliklerini source-map audit/comparison içinde izlenebilir yap; manifest Part coverage ve tutarları değiştirme.
+2. UI-owned INT-003 — JSON v2 editor envelope startup/new/save/open integration; bu ajan frontend dosyalarına dokunmaz.
+3. INT-001/INT-002 — UI/specialist sahipliğinde desteklenen adapter round-trip ve geometri kayıpsızlığı.
+4. PERF-001 — specialist job/branch etkinleştiğinde viewport p95, scene update ve bellek baseline; henüz ölçülmedi.
+5. QA-003 — INT-001/INT-002 kanıtı sonrasında uçtan uca export/data-flow audit.

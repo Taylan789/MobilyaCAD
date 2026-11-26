@@ -1700,3 +1700,12 @@ Kaynak: `domain/production/projectQuoteRevisionFile.ts`.
 - Existing quote-summary JSON/CSV, standalone revision-history JSON and revision-comparison CSV already preserve the cost-line `sourceReference`; no new source-map property, schema version or adapter implementation change is introduced.
 - Regression coverage uses a real bookshelf shelf-support BOM row linked to its exact generated shelf Part, distinguishes manufacturer BOM evidence from price-list evidence, checks price-source-only revision comparison and CSV round-trip without a monetary delta, validates standalone revision-history JSON round-trip and verifies missing-price no-snapshot behavior.
 - This is a quote/audit contract only. It does not certify supplier prices, manufacturer catalogue authenticity, fitting compatibility, mounting, drilling, load capacity or physical workshop safety.
+
+
+## Material ve kenar bandı fiyat kaynağı revizyon karşılaştırması — DOM-187
+
+- Malzeme tüketim satırının kullanıcı girdili fiyat kaynağı `ProjectCostLine.sourceReference` alanında korunur; revizyon source-map audit ve comparison bu alanı maliyet satırı kimliğiyle eşleştirir.
+- Kenar bandı rulo satırında fiyat listesi referansı `ProjectCostLine.sourceReference` ve `ProjectQuoteLineSource.priceSourceReference` alanlarında taşınır. Kesim/rulo planının `planSourceReference` alanı ayrı kalır ve fiyat listesi revizyonuyla değişmez.
+- Yalnızca fiyat kaynağı değiştiğinde source-map comparison birer material ve edge-banding provenance değişikliği raporlar; satır ekleme/silme, Part/furniture kimliği değişimi veya kısmi geçmiş üretmez.
+- Bu karşılaştırma fiyatı yeniden hesaplamaz, birim/para birimi dönüştürmez ve fiyatın üretici tarafından doğrulandığını iddia etmez. Miktar, birim, currencyCode, unitPriceMinor, lineTotalMinor ve toplamlar mevcut snapshot değerlerinde kalır.
+- Kaynak referansları kullanıcı girdisidir; fiziksel rulo ölçüsü, bant uyumluluğu, uygulama toleransı ve atölye standardı ayrıca doğrulanmalıdır. CNC/makine çıktısı bu sözleşmenin kapsamında değildir.

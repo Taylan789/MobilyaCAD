@@ -4848,3 +4848,126 @@ test("DOM-186 hardware price-source-only changes remain visible in quote revisio
   assert.ok(Object.isFrozen(audit.audit));
   assert.ok(Object.isFrozen(sourceMapComparison.comparison));
 });
+
+
+test("DOM-187 material and edge-banding price-source-only changes preserve units, currency and quote totals", () => {
+  const fromSnapshot = createRollSnapshot();
+  const toSnapshot = createRollSnapshot();
+  const fromCostSummary = fromSnapshot.quoteSummary.costSummary;
+  const toCostSummary = toSnapshot.quoteSummary.costSummary;
+  assert.ok(fromCostSummary);
+  assert.ok(toCostSummary);
+
+  const fromMaterialSource = fromSnapshot.quoteSummary.lineSources.find(source => source.resourceType === "material");
+  const toMaterialSource = toSnapshot.quoteSummary.lineSources.find(source => source.resourceType === "material");
+  const fromEdgeBandSource = fromSnapshot.quoteSummary.lineSources.find(source => source.resourceType === "edge-banding");
+  const toEdgeBandSource = toSnapshot.quoteSummary.lineSources.find(source => source.resourceType === "edge-banding");
+  assert.ok(fromMaterialSource);
+  assert.ok(toMaterialSource);
+  assert.ok(fromEdgeBandSource);
+  assert.ok(toEdgeBandSource);
+
+  const fromMaterialLine = fromCostSummary.lines.find(line => line.id === fromMaterialSource.costLineId);
+  const toMaterialLine = toCostSummary.lines.find(line => line.id === toMaterialSource.costLineId);
+  const fromEdgeBandLine = fromCostSummary.lines.find(line => line.id === fromEdgeBandSource.costLineId);
+  const toEdgeBandLine = toCostSummary.lines.find(line => line.id === toEdgeBandSource.costLineId);
+  assert.ok(fromMaterialLine);
+  assert.ok(toMaterialLine);
+  assert.ok(fromEdgeBandLine);
+  assert.ok(toEdgeBandLine);
+
+  // Only user-supplied price references change; no quantity, unit, price or currency is recalculated.
+  toMaterialLine.sourceReference = "material-prices:mdf-18:revision-2";
+  toEdgeBandLine.sourceReference = "roll-prices:v2";
+  toEdgeBandSource.priceSourceReference = "roll-prices:v2";
+
+  const history = createHistoryWithSnapshots(fromSnapshot, toSnapshot);
+  const originalHistoryJson = JSON.stringify(history);
+  const audit = calculateProjectQuoteRevisionSourceMapAudit(history);
+  assert.equal(audit.status, "ready", audit.diagnostics.join("; "));
+  assert.ok(audit.audit);
+
+  const fromAudit = audit.audit.revisions[0];
+  const toAudit = audit.audit.revisions[1];
+  const fromMaterialAuditLine = fromAudit.lines.find(line => line.costLineId === fromMaterialSource.costLineId);
+  const toMaterialAuditLine = toAudit.lines.find(line => line.costLineId === toMaterialSource.costLineId);
+  const fromEdgeBandAuditLine = fromAudit.lines.find(line => line.costLineId === fromEdgeBandSource.costLineId);
+  const toEdgeBandAuditLine = toAudit.lines.find(line => line.costLineId === toEdgeBandSource.costLineId);
+  assert.ok(fromMaterialAuditLine);
+  assert.ok(toMaterialAuditLine);
+  assert.ok(fromEdgeBandAuditLine);
+  assert.ok(toEdgeBandAuditLine);
+  assert.equal(fromMaterialAuditLine.sourceReference, fromMaterialLine.sourceReference);
+  assert.equal(toMaterialAuditLine.sourceReference, "material-prices:mdf-18:revision-2");
+  assert.equal(fromEdgeBandAuditLine.sourceReference, "roll-prices:v1");
+  assert.equal(toEdgeBandAuditLine.sourceReference, "roll-prices:v2");
+  assert.equal(fromEdgeBandAuditLine.priceSourceReference, "roll-prices:v1");
+  assert.equal(toEdgeBandAuditLine.priceSourceReference, "roll-prices:v2");
+  assert.equal(fromEdgeBandAuditLine.planSourceReference, "roll-spec:v1");
+  assert.equal(toEdgeBandAuditLine.planSourceReference, "roll-spec:v1");
+  assert.deepEqual(fromMaterialAuditLine.sourcePartIds, toMaterialAuditLine.sourcePartIds);
+  assert.deepEqual(fromEdgeBandAuditLine.sourcePartIds, toEdgeBandAuditLine.sourcePartIds);
+  assert.deepEqual(fromEdgeBandAuditLine.furnitureIds, toEdgeBandAuditLine.furnitureIds);
+  assert.equal(fromEdgeBandAuditLine.rollCount, toEdgeBandAuditLine.rollCount);
+  assert.equal(fromEdgeBandAuditLine.rollLengthMm, toEdgeBandAuditLine.rollLengthMm);
+  assert.equal(fromEdgeBandAuditLine.purchasedLengthMm, toEdgeBandAuditLine.purchasedLengthMm);
+  assert.equal(fromEdgeBandAuditLine.resourceUnit, toEdgeBandAuditLine.resourceUnit);
+
+  const sourceMapComparison = compareProjectQuoteRevisionSourceMaps(history, "quote-r1", "quote-r2");
+  assert.equal(sourceMapComparison.status, "ready", sourceMapComparison.diagnostics.join("; "));
+  assert.ok(sourceMapComparison.comparison);
+  assert.deepEqual(sourceMapComparison.comparison.counts, {
+    addedLineCount: 0,
+    removedLineCount: 0,
+    changedLineCount: 2,
+    unchangedLineCount: sourceMapComparison.comparison.fromLineCount - 2
+  });
+  assert.equal(sourceMapComparison.comparison.fromLineCount, sourceMapComparison.comparison.toLineCount);
+  assert.deepEqual(
+    sourceMapComparison.comparison.changes.map(change => change.costLineId).sort(),
+    [fromMaterialSource.costLineId, fromEdgeBandSource.costLineId].sort()
+  );
+  const materialChange = sourceMapComparison.comparison.changes.find(change => change.costLineId === fromMaterialSource.costLineId);
+  const edgeBandChange = sourceMapComparison.comparison.changes.find(change => change.costLineId === fromEdgeBandSource.costLineId);
+  assert.equal(materialChange?.type, "changed");
+  assert.equal(materialChange?.from?.sourceReference, fromMaterialLine.sourceReference);
+  assert.equal(materialChange?.to?.sourceReference, "material-prices:mdf-18:revision-2");
+  assert.deepEqual(materialChange?.from?.sourcePartIds, materialChange?.to?.sourcePartIds);
+  assert.equal(edgeBandChange?.type, "changed");
+  assert.equal(edgeBandChange?.from?.sourceReference, "roll-prices:v1");
+  assert.equal(edgeBandChange?.to?.sourceReference, "roll-prices:v2");
+  assert.equal(edgeBandChange?.from?.priceSourceReference, "roll-prices:v1");
+  assert.equal(edgeBandChange?.to?.priceSourceReference, "roll-prices:v2");
+  assert.equal(edgeBandChange?.from?.planSourceReference, edgeBandChange?.to?.planSourceReference);
+  assert.deepEqual(edgeBandChange?.from?.sourcePartIds, edgeBandChange?.to?.sourcePartIds);
+
+  const commercialLines = snapshot => snapshot.quoteSummary.costSummary.lines.map(line => ({
+    id: line.id,
+    category: line.category,
+    quantity: line.quantity,
+    unit: line.unit,
+    unitPriceMinor: line.unitPriceMinor,
+    lineTotalMinor: line.lineTotalMinor,
+    currencyCode: line.currencyCode
+  }));
+  assert.deepEqual(commercialLines(fromSnapshot), commercialLines(toSnapshot));
+  assert.equal(fromSnapshot.quoteSummary.currencyCode, "TRY");
+  assert.equal(toSnapshot.quoteSummary.currencyCode, "TRY");
+
+  const monetaryComparison = compareProjectQuoteRevisions(history, "quote-r1", "quote-r2");
+  assert.equal(monetaryComparison.status, "ready", monetaryComparison.diagnostics.join("; "));
+  assert.ok(monetaryComparison.comparison);
+  assert.equal(monetaryComparison.comparison.grandTotalDeltaMinor, 0);
+  assert.deepEqual(monetaryComparison.comparison.categoryDeltasMinor, {
+    material: 0,
+    hardware: 0,
+    labor: 0,
+    operation: 0,
+    waste: 0,
+    profit: 0
+  });
+
+  assert.equal(JSON.stringify(history), originalHistoryJson);
+  assert.ok(Object.isFrozen(audit.audit));
+  assert.ok(Object.isFrozen(sourceMapComparison.comparison));
+});

@@ -1499,3 +1499,16 @@
 - **10/10 checklist delta:** production provenance/revision correctness now has an exact-SHA automated regression. CAD Core and UX are unchanged; viewport p95/memory remains NOT MEASURED. CNC, fitting compatibility, drilling, mounting and load safety remain manufacturer/workshop human validation.
 - **Known limits:** no frontend, JSON/CSV adapter, integration/performance-owned, secret/settings or `main` files changed. Integration/Performance job remains disabled and no specialist branch is verified. AI Developer run [#45743919035](https://github.com/Taylan789/MobilyaCAD/actions/runs/45743919035) failed on OpenRouter free-tier HTTP 429 (daily limit 50, remaining 0); reset is 27 November 2026 03:00 TRT, so it was not rerun.
 - **Next:** DOM-187 — verify material and edge-banding price-source-only provenance changes without unit or currency conversion; then continue the separately owned INT-003/INT-001/INT-002 and PERF-001 handoffs.
+
+
+## 26 Kasım 2026 12:06 TRT — DOM-187 implementation (exact-SHA verification pending)
+
+- **Base HEAD:** `dev/github-work` `7c177ee69ef529de8d3e1664138334883018abeb`.
+- **Delivery:** added a focused regression in `domain/production/projectQuoteRevision.test.mjs`. It changes only the user-supplied material price-list reference and edge-band roll price reference across two immutable quote revisions. The source-map audit/comparison must report exactly two changed provenance rows; material/edge-band units, TRY currency, quantities, unit prices, line totals, roll plan reference, Part/furniture IDs and roll lengths remain unchanged. The monetary comparison must report zero category and grand-total deltas.
+- **Files:** `domain/production/projectQuoteRevision.test.mjs`, `docs/production-domain-contract.md`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`.
+- **Implementation commit:** pending GitHub commit response. Exact-SHA CI/QA/Pages results are pending; no local execution or Actions success is claimed.
+- **Test site:** remains on the last verified SHA `7c177ee69ef529de8d3e1664138334883018abeb` at https://taylan789.github.io/MobilyaCAD/ until the new SHA passes CI + QA + production build and Pages confirms the exact deployed SHA.
+- **Parallel ownership:** no `frontend/**` or adapter/performance-owned files changed. UI-owned INT-003 PR #206 remains draft and untouched. Integration/Performance workflow job remains disabled and no specialist branch was found; PERF-001/INT-002 remain specialist-owned.
+- **AI Developer:** run [#45743919035](https://github.com/Taylan789/MobilyaCAD/actions/runs/45743919035) was inspected; it failed with OpenRouter free-tier HTTP 429 (`free-models-per-day`, 50 limit / 0 remaining, reset 27 November 2026 03:00 TRT). No rerun is safe before reset; no paid fallback, secret or quota change was attempted.
+- **Known limits:** this is domain provenance regression coverage, not frontend visibility, adapter export, currency conversion, physical edge-band validation or CNC readiness.
+- **Next:** DOM-188 — compare stock-sheet purchase group price-source provenance across revision source-map audit/comparison while preserving manifest Part coverage and all monetary/unit/currency values.
