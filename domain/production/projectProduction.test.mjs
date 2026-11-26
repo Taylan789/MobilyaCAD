@@ -6,7 +6,10 @@ import {
   calculateCabinetProjectProductionWithDiagnostics
 } from "./projectProduction.ts";
 import { BOOKSHELF_PANEL_GROUPS } from "./bookshelfConstruction.ts";
-import { calculateProjectMaterialConsumptionSummary } from "./projectMaterialSummary.ts";
+import {
+  calculateProjectHardwareBomTrace,
+  calculateProjectMaterialConsumptionSummary
+} from "./projectMaterialSummary.ts";
 import { compareProjectPartSnapshots, createProjectPartSnapshot, validateProjectPartSnapshot } from "./projectPartSnapshot.ts";
 
 const materials = [
@@ -347,6 +350,75 @@ test("aile ayrımlı proje agregatörü kitaplık parçalarını ortak tüketim 
     materialSummary.reduce((total, entry) => total + entry.totalQuantity, 0),
     11
   );
+});
+
+test("kitaplık raf destek BOM'u üretici katalog referansını ve tam raf Part bağını proje çıktısına taşır", () => {
+  const bookshelf = createBookshelfRequest("book-support");
+  bookshelf.profile.shelfCount = 0;
+  bookshelf.shelves = [{
+    id: "lower",
+    leftOffsetMm: 0,
+    rightOffsetMm: 764,
+    heightFromInnerBottomMm: 500,
+    frontOffsetMm: 0,
+    depthMm: 282,
+    thicknessMm: 18,
+    materialId: "mdf-18",
+    edgeBanding: { ...noBanding },
+    grainDirection: "length",
+    supportHardware: [{
+      id: "support-a",
+      hardwareId: "fixture-maker-shelf-support-01",
+      name: "Fixture shelf support",
+      quantity: 4,
+      unit: "adet",
+      sourceReference: "fixture manufacturer catalogue / page 12"
+    }]
+  }];
+
+  const report = calculateCabinetProjectProductionWithDiagnostics({
+    schemaVersion: 1,
+    furniture: [bookshelf]
+  });
+
+  assert.equal(report.status, "ready");
+  assert.equal(report.canExport, false);
+  assert.ok(report.exportBlockers.some((blocker) => /hardwareItems/.test(blocker)));
+  assert.deepEqual(report.result.hardwareItems, [{
+    id: "book-support-shelf-lower-hardware-support-a",
+    furnitureId: "book-support",
+    hardwareId: "fixture-maker-shelf-support-01",
+    name: "Fixture shelf support",
+    quantity: 4,
+    unit: "adet",
+    sourceReference: "fixture manufacturer catalogue / page 12",
+    sourcePartIds: ["book-support-shelf-lower"]
+  }]);
+  assert.deepEqual(calculateProjectHardwareBomTrace(report.result), [{
+    bomRowId: "book-support-shelf-lower-hardware-support-a",
+    furnitureId: "book-support",
+    hardwareId: "fixture-maker-shelf-support-01",
+    name: "Fixture shelf support",
+    bomQuantity: 4,
+    unit: "adet",
+    sourceReference: "fixture manufacturer catalogue / page 12",
+    sourceParts: [{
+      partId: "book-support-shelf-lower",
+      name: "Raf lower",
+      quantity: 1,
+      material: "MDF Lam 18",
+      materialId: "mdf-18",
+      widthMm: 282,
+      lengthMm: 764,
+      thicknessMm: 18
+    }]
+  }]);
+
+  const legacy = calculateCabinetProjectProduction({
+    schemaVersion: 1,
+    furniture: [createBookshelfRequest("book-support-legacy")]
+  });
+  assert.equal(legacy.hardwareItems, undefined);
 });
 
 test("proje agregatörü bilinmeyen mobilya ailesini cabinet olarak varsaymaz", () => {

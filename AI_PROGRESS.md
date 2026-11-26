@@ -1422,3 +1422,15 @@
 - **Known limits:** no shelf supports, pins, screws, load capacity, drilling coordinates, CNC operations or machine-specific output are inferred. Physical support/load/assembly validation requires the workshop and manufacturer data. Frontend integration remains UI-owned; no visible UI redesign is claimed. Existing bundle warning and viewport p95/memory NOT MEASURED remain open.
 - **Parallel lanes:** AI Developer run [#45743919035](https://github.com/Taylan789/MobilyaCAD/actions/runs/45743919035) remains blocked by OpenRouter free-model daily HTTP 429 until 27 November 2026 03:00 TRT; no rerun, paid fallback, secret or quota change. UI-owned PR #206 and specialist-owned INT-002/PERF-001 remain untouched.
 - **Next:** DOM-184 — define explicit shelf-support/hardware BOM inputs only from a supplied manufacturer/catalogue specification; do not invent drilling, screw or load values.
+
+
+## 26 Kasım 2026 10:59 TRT — DOM-184 implementation (verification pending)
+
+- **Base:** dev/github-work HEAD 44a5102f9f2af371a50ba5dd9ec802cdebcafcfc; implementation commit SHA will be recorded after GitHub creates the commit.
+- **Delivery:** optional BookshelfShelfSpec.supportHardware captures exact user-supplied manufacturer catalogue identity/name/reference, positive finite quantity and explicit unit. The domain emits furniture/shelf-scoped hardware BOM rows with an exact sourcePartIds link to the containing shelf Part.
+- **Files:** `domain/production/bookshelfConstruction.ts`, `domain/production/bookshelfConstruction.test.mjs`, `domain/production/projectProduction.ts`, `domain/production/projectProduction.test.mjs`, `docs/production-domain-contract.md`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`.
+- **Acceptance:** omitted/empty supportHardware preserves legacy results; duplicate row IDs, missing catalogue identity/reference, invalid quantity and unknown fields are rejected; project aggregation and calculateProjectHardwareBomTrace preserve the BOM row and exact shelf snapshot.
+- **Automation:** exact-SHA CI, QA, shared-domain type-check, lint, production build, production audit and Pages deployment are pending. No test has been claimed successful in this handoff.
+- **Limits:** manufacturer catalogue content is user-supplied and not fetched/certified; no support count, screws, drilling coordinates, mounting geometry, load rating or CNC operation is inferred. Hardware-bearing projects remain blocked from JSON v1/CSV export until adapter support exists.
+- **Ownership:** no frontend/**, adapter/performance-owned files, secrets/settings or main changes. UI-owned INT-003 PR #206 remains draft/untouched; INT-002/PERF-001 remain specialist-owned (workflow job disabled; no specialist branch verified).
+- **Next:** DOM-185 — connect explicit user-supplied hardware price-source provenance to quote snapshots without default prices; JSON/CSV persistence remains a separate UI/adapter handoff.

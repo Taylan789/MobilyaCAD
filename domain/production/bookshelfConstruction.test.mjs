@@ -433,3 +433,68 @@ test("kitaplıkta shelves alanı boş bırakıldığında mevcut raf ve proje da
   const explicitEmpty = calculateBookshelfConstruction(createRequest({ profile: { shelfCount: 0 }, shelves: [] }));
   assert.deepEqual(explicitEmpty, legacy);
 });
+
+
+test("kitaplık raf destek BOM satırları katalog kimliğini, referansı ve açık miktarı korur", () => {
+  const result = calculateBookshelfConstruction(createRequest({
+    profile: { shelfCount: 0 },
+    shelves: [createShelf({
+      supportHardware: [{
+        id: "support-a",
+        hardwareId: "fixture-maker-shelf-support-01",
+        name: "Fixture shelf support",
+        quantity: 4,
+        unit: "adet",
+        sourceReference: "fixture manufacturer catalogue / page 12"
+      }]
+    })]
+  }));
+
+  assert.deepEqual(result.hardwareItems, [{
+    id: "book-1-shelf-lower-hardware-support-a",
+    furnitureId: "book-1",
+    hardwareId: "fixture-maker-shelf-support-01",
+    name: "Fixture shelf support",
+    quantity: 4,
+    unit: "adet",
+    sourceReference: "fixture manufacturer catalogue / page 12",
+    sourcePartIds: ["book-1-shelf-lower"]
+  }]);
+
+  const withoutHardware = calculateBookshelfConstruction(createRequest({
+    profile: { shelfCount: 0 }, shelves: [createShelf()]
+  }));
+  const withEmptyHardware = calculateBookshelfConstruction(createRequest({
+    profile: { shelfCount: 0 }, shelves: [createShelf({ supportHardware: [] })]
+  }));
+  assert.deepEqual(withEmptyHardware, withoutHardware);
+});
+
+test("kitaplık raf destek BOM satırlarında eksik katalog kaynağı, geçersiz adet ve yinelenen kimlik reddedilir", () => {
+  const valid = {
+    id: "support-a",
+    hardwareId: "fixture-maker-shelf-support-01",
+    name: "Fixture shelf support",
+    quantity: 4,
+    unit: "adet",
+    sourceReference: "fixture manufacturer catalogue / page 12"
+  };
+  const invalid = [
+    { ...valid, sourceReference: " " },
+    { ...valid, hardwareId: "" },
+    { ...valid, quantity: 0 },
+    { ...valid, quantity: Number.POSITIVE_INFINITY },
+    { ...valid, quantity: Number.MAX_SAFE_INTEGER + 1 },
+    { ...valid, unsupported: true }
+  ];
+  for (const item of invalid) {
+    assert.throws(() => calculateBookshelfConstruction(createRequest({
+      profile: { shelfCount: 0 },
+      shelves: [createShelf({ supportHardware: [item] })]
+    })));
+  }
+  assert.throws(() => calculateBookshelfConstruction(createRequest({
+    profile: { shelfCount: 0 },
+    shelves: [createShelf({ supportHardware: [valid, { ...valid, hardwareId: "other" }] })]
+  })), /yinelenen destek donanımı satır kimliği/);
+});

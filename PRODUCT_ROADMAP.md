@@ -2226,4 +2226,22 @@ Sonraki adım: Exact-SHA CI/QA/Pages sonuçlarını doğrula; ardından DOM-170 
 
 **Bağımlılıklar ve riskler:** Ortak gövde iç ölçüleri ve DOM-182 divider interval'leri. Bu dilim bağlantı elemanı, raf pimi, taşıma kapasitesi, delik koordinatı veya CNC postprocessor üretmez; fiziksel montaj ve yük testi atölye doğrulaması gerektirir. Frontend entegrasyonu ayrı UI sahibindedir.
 
-**Sıradaki adım:** DOM-184 — kitaplık rafları için açık raf destek/donanım BOM sözleşmesi; gerçek üretici standardı ve donanım kataloğu olmadan ölçü/vida/delik varsayımı yapılmayacak.
+**Sıradaki adım:** DOM-185 — kullanıcı kataloğundan gelen raf destek BOM fiyat/kaynak provenance'ını teklif snapshot'ına bağlamak; fiyat veya üretici standardı varsayılmayacak. JSON/CSV adapter entegrasyonu UI/specialist sahipliğinde kalır.
+
+
+## DOM-184 — Manufacturer-referenced bookshelf shelf-support BOM
+
+**Durum:** Domain implementation committed; exact-SHA CI/QA/Pages verification pending.
+
+**Kullanıcı akışı:** Operatör, her açık ölçülü kitaplık rafına üretici kataloğundan seçtiği raf desteği/donanım satırını açıkça ekler. Satırın katalog kimliği, katalog adı, kaynak referansı, miktarı ve birimi kullanıcı tarafından sağlanır. Üretim motoru bu satırı aynı rafın Part kimliğine bağlayarak proje BOM'una taşır.
+
+**Kabul kriterleri:**
+- supportHardware opsiyoneldir; alanın yokluğu veya boş liste eski raf/kitaplık sonuçlarını değiştirmez.
+- Katalog donanım kimliği/adı/kaynak referansı ve birim boş olamaz; quantity pozitif, sonlu ve güvenli sayısal aralıkta olmalıdır.
+- Raf BOM satır kimlikleri raf içinde benzersizdir; miktar/birim dönüştürülmez veya geometri üzerinden türetilmez.
+- Her BOM satırı yalnızca onu içeren shelf Part'a bağlanır; ortak hardware BOM validator ve BOM trace aynı kimlik/kaynak/quantity değerlerini korur.
+- hardwareItems varlığında mevcut JSON v1/CSV export blocker korunur; unsupported adapter'a veri sızdırılmaz.
+
+**Bağımlılıklar ve riskler:** DOM-183 shelf Part kimlikleri ve mevcut project-level hardware BOM/trace altyapısı. Kaynak referansı kullanıcı tarafından sağlanır ve kaydedilir; uygulama katalog içeriğini otomatik doğrulamaz. Gerçek destek tipi, vida/delik/montaj ölçüsü, yük kapasitesi, malzeme uyumluluğu ve fiziksel güvenlik üretici/atölye doğrulaması gerektirir.
+
+**Sıradaki adım:** DOM-185 — kullanıcı tarafından sağlanan donanım fiyat/kaynak provenance'ını teklif snapshot'ına bağlamak; katalog fiyatı veya varsayılan destek miktarı uydurulmayacak. JSON/CSV persistence UI/adapter sahipliğinde kalır.

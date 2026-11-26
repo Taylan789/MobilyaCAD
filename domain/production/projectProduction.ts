@@ -269,6 +269,7 @@ function calculateFurnitureRequest(
 ): {
   furniture: CabinetProjectFurnitureResult;
   parts: readonly ProjectProductionPart[];
+  hardwareItems?: readonly ProjectHardwareItem[];
 } {
   if (family === "table") {
     const result = calculateTableConstruction(request);
@@ -282,13 +283,24 @@ function calculateFurnitureRequest(
     };
   }
 
-  const result = family === "bookshelf"
-    ? calculateBookshelfConstruction(request)
-    : family === "wardrobe"
-      ? calculateWardrobeConstruction(request)
-      : family === "tv-unit"
-        ? calculateTvUnitConstruction(request)
-        : calculateCabinetConstruction(request);
+  if (family === "bookshelf") {
+    const result = calculateBookshelfConstruction(request);
+    return {
+      furniture: {
+        furnitureId,
+        family,
+        innerDimensionsMm: { ...result.innerDimensionsMm }
+      },
+      parts: result.parts,
+      ...(result.hardwareItems === undefined ? {} : { hardwareItems: result.hardwareItems })
+    };
+  }
+
+  const result = family === "wardrobe"
+    ? calculateWardrobeConstruction(request)
+    : family === "tv-unit"
+      ? calculateTvUnitConstruction(request)
+      : calculateCabinetConstruction(request);
   const hasExplicitFamily = isRecord(request) && request.family !== undefined;
 
   return {
@@ -355,6 +367,7 @@ export function calculateCabinetProjectProductionWithDiagnostics(
   const furnitureResults: CabinetProjectFurnitureResult[] = [];
   const drawerGroups: DrawerGroupProductionResult[] = [];
   const hardwareItems: ProjectHardwareItem[] = [];
+  const constructionHardwareRequests: unknown[] = [];
   const parts: ProjectProductionPart[] = [];
   const seenFurnitureIds = new Set<string>();
   const calculatedFurnitureIds = new Set<string>();
@@ -469,6 +482,9 @@ export function calculateCabinetProjectProductionWithDiagnostics(
           throw new Error(`Proje içinde yinelenen üretim parçası kimliği: ${part.id}.`);
         }
         seenPartIds.add(part.id);
+      }
+      if (calculated.hardwareItems !== undefined) {
+        constructionHardwareRequests.push(...calculated.hardwareItems);
       }
 
       furnitureResults.push(calculated.furniture);
@@ -619,7 +635,10 @@ export function calculateCabinetProjectProductionWithDiagnostics(
   }
 
   const partById = new Map<string, ProjectProductionPart>(parts.map((part) => [part.id, part] as const));
-  const hardwareRequests = (value.hardwareItems ?? []) as readonly unknown[];
+  const hardwareRequests = [
+    ...constructionHardwareRequests,
+    ...((value.hardwareItems ?? []) as readonly unknown[])
+  ];
   for (const [index, request] of hardwareRequests.entries()) {
     let item: ProjectHardwareItem;
     try {

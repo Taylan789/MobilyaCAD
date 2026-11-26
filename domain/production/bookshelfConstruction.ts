@@ -50,6 +50,19 @@ export interface BookshelfVerticalDividerSpec {
   grainDirection: BookshelfGrainDirection;
 }
 
+export interface BookshelfShelfSupportHardwareSpec {
+  id: string;
+  /** Exact manufacturer-catalogue item identity supplied by the operator. */
+  hardwareId: string;
+  /** Catalogue name; no generic fitting name is inferred. */
+  name: string;
+  /** Explicit BOM quantity and unit; no support count is calculated from shelf geometry. */
+  quantity: number;
+  unit: string;
+  /** Manufacturer catalogue URL, document/page or part-number reference. */
+  sourceReference: string;
+}
+
 export interface BookshelfShelfSpec {
   id: string;
   /** Left edge from the inside face of the left side panel, in mm. */
@@ -65,6 +78,8 @@ export interface BookshelfShelfSpec {
   materialId: string;
   edgeBanding: EdgeBandingEdges;
   grainDirection: BookshelfGrainDirection;
+  /** Optional user-supplied manufacturer-catalogue BOM rows for this exact shelf. */
+  supportHardware?: readonly BookshelfShelfSupportHardwareSpec[];
 }
 
 export interface BookshelfConstructionRequest {
@@ -93,12 +108,25 @@ export interface BookshelfShelfPart extends CabinetConstructionPart {
   grainDirection: BookshelfGrainDirection;
 }
 
+export interface BookshelfConstructionHardwareItem {
+  id: string;
+  furnitureId: string;
+  hardwareId: string;
+  name: string;
+  quantity: number;
+  unit: string;
+  sourceReference: string;
+  sourcePartIds: string[];
+}
+
 export type BookshelfConstructionPart =
   CabinetConstructionPart | BookshelfDividerPart | BookshelfShelfPart;
 
 export interface BookshelfConstructionResult extends Omit<CabinetConstructionResult, "parts"> {
   family: "bookshelf";
   parts: BookshelfConstructionPart[];
+  /** Present only when explicit shelf-support catalogue rows were supplied. */
+  hardwareItems?: BookshelfConstructionHardwareItem[];
 }
 
 const NO_DOOR_BANDING: EdgeBandingEdges = {
@@ -134,6 +162,8 @@ const MATERIAL_ID_PATTERN = /^[a-z0-9][a-z0-9._-]{0,63}$/;
 const SHELF_ID_PATTERN = /^[a-z0-9][a-z0-9._-]{0,63}$/;
 const MAX_VERTICAL_DIVIDERS = 100;
 const MAX_BOOKSHELF_SHELVES = 500;
+const MAX_SHELF_SUPPORT_HARDWARE_ITEMS = 100;
+const MAX_BOOKSHELF_SUPPORT_HARDWARE_ITEMS = 1000;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -231,11 +261,38 @@ function validateBookshelfDivider(value: unknown, index: number): BookshelfVerti
   };
 }
 
+function validateBookshelfShelfSupportHardware(value: unknown, index: number): BookshelfShelfSupportHardwareSpec {
+  const item = requireRecord(value, "Kitaplık raf destek donanımının " + (index + 1) + ". kaydı");
+  const allowedKeys = ["id", "hardwareId", "name", "quantity", "unit", "sourceReference"];
+  for (const key of Object.keys(item)) {
+    if (!allowedKeys.includes(key)) {
+      throw new Error("Kitaplık raf destek donanımında desteklenmeyen alan: " + key + ".");
+    }
+  }
+  const readText = (raw: unknown, label: string, maxLength: number): string => {
+    if (typeof raw !== "string" || raw.trim() === "" || raw.trim() !== raw || raw.length > maxLength) {
+      throw new Error(label + " boş olmayan, sınırlandırılmış ve kenar boşluğu içermeyen bir metin olmalıdır.");
+    }
+    return raw;
+  };
+  const id = readText(item.id, "Kitaplık raf destek donanımı satır kimliği", 64);
+  if (!SHELF_ID_PATTERN.test(id)) throw new Error("Kitaplık raf destek donanımı satır kimliği geçersiz.");
+  const hardwareId = readText(item.hardwareId, id + " üretici katalog donanım kimliği", 128);
+  const name = readText(item.name, id + " üretici katalog donanım adı", 256);
+  const unit = readText(item.unit, id + " donanım birimi", 32);
+  const sourceReference = readText(item.sourceReference, id + " üretici katalog kaynak referansı", 2048);
+  if (typeof item.quantity !== "number" || !Number.isFinite(item.quantity) ||
+      item.quantity <= 0 || item.quantity > Number.MAX_SAFE_INTEGER) {
+    throw new Error(id + " donanım adedi pozitif, sonlu ve güvenli sayısal aralıkta olmalıdır.");
+  }
+  return { id, hardwareId, name, quantity: item.quantity, unit, sourceReference };
+}
+
 function validateBookshelfShelf(value: unknown, index: number): BookshelfShelfSpec {
   const shelf = requireRecord(value, "Kitaplık rafının " + (index + 1) + ". kaydı");
   const allowedKeys = [
     "id", "leftOffsetMm", "rightOffsetMm", "heightFromInnerBottomMm",
-    "frontOffsetMm", "depthMm", "thicknessMm", "materialId", "edgeBanding", "grainDirection"
+    "frontOffsetMm", "depthMm", "thicknessMm", "materialId", "edgeBanding", "grainDirection", "supportHardware"
   ];
   for (const key of Object.keys(shelf)) {
     if (!allowedKeys.includes(key)) {
@@ -267,6 +324,21 @@ function validateBookshelfShelf(value: unknown, index: number): BookshelfShelfSp
     }
     edgeBanding[edge] = rawEdges[edge] as boolean;
   }
+  const rawSupportHardware = shelf.supportHardware;
+  if (rawSupportHardware !== undefined &&
+      (!Array.isArray(rawSupportHardware) || rawSupportHardware.length > MAX_SHELF_SUPPORT_HARDWARE_ITEMS)) {
+    throw new Error(id + " raf destek donanımı en fazla " + MAX_SHELF_SUPPORT_HARDWARE_ITEMS + " katalog satırı içeren bir liste olmalıdır.");
+  }
+  const seenSupportHardwareIds = new Set<string>();
+  const supportHardware = (rawSupportHardware ?? []).map((entry, hardwareIndex) => {
+    const item = validateBookshelfShelfSupportHardware(entry, hardwareIndex);
+    if (seenSupportHardwareIds.has(item.id)) {
+      throw new Error(id + " rafında yinelenen destek donanımı satır kimliği: " + item.id + ".");
+    }
+    seenSupportHardwareIds.add(item.id);
+    return item;
+  });
+
   return {
     id,
     leftOffsetMm: requireNonNegativeMm(shelf.leftOffsetMm, "Kitaplık raf sol ofseti"),
@@ -277,7 +349,8 @@ function validateBookshelfShelf(value: unknown, index: number): BookshelfShelfSp
     thicknessMm: requirePositiveMm(shelf.thicknessMm, "Kitaplık raf kalınlığı"),
     materialId,
     edgeBanding,
-    grainDirection: shelf.grainDirection
+    grainDirection: shelf.grainDirection,
+    ...(rawSupportHardware === undefined ? {} : { supportHardware })
   };
 }
 
@@ -413,6 +486,13 @@ export function validateBookshelfConstructionRequest(
       thicknessMm: toTenthsMm(shelf.thicknessMm, "Kitaplık raf kalınlığı") / 10
     };
   });
+  const totalSupportHardwareItems = shelves.reduce(
+    (total, shelf) => total + (shelf.supportHardware?.length ?? 0),
+    0
+  );
+  if (totalSupportHardwareItems > MAX_BOOKSHELF_SUPPORT_HARDWARE_ITEMS) {
+    throw new Error("Kitaplık raf destek donanımı toplamı " + MAX_BOOKSHELF_SUPPORT_HARDWARE_ITEMS + " katalog satırını aşamaz.");
+  }
 
   if (verticalDividers.length > 0 && cabinetRequest.profile.shelfCount > 0) {
     throw new Error("Kitaplık dikey bölücülerinde tam genişlik raf adedi sıfır olmalıdır; bölme rafları shelves alanında açıkça tanımlanmalıdır.");
@@ -577,9 +657,23 @@ export function calculateBookshelfConstruction(
     };
   });
 
+  const hardwareItems: BookshelfConstructionHardwareItem[] = (request.shelves ?? []).flatMap((shelf) =>
+    (shelf.supportHardware ?? []).map((item) => ({
+      id: request.furniture.id + "-shelf-" + shelf.id + "-hardware-" + item.id,
+      furnitureId: request.furniture.id,
+      hardwareId: item.hardwareId,
+      name: item.name,
+      quantity: item.quantity,
+      unit: item.unit,
+      sourceReference: item.sourceReference,
+      sourcePartIds: [request.furniture.id + "-shelf-" + shelf.id]
+    }))
+  );
+
   return {
     ...result,
     family: "bookshelf",
-    parts: [...result.parts, ...dividerParts, ...shelfParts]
+    parts: [...result.parts, ...dividerParts, ...shelfParts],
+    ...(hardwareItems.length === 0 ? {} : { hardwareItems })
   };
 }

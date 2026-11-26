@@ -1680,3 +1680,13 @@ Kaynak: `domain/production/projectQuoteRevisionFile.ts`.
 - Every shelf must fit inside the calculated inner width, height and depth, use a catalog-supported thickness, avoid every full-height divider interval, and avoid 3D volume overlap with other shelves. Touching faces are allowed.
 - Each accepted shelf becomes a quantity-one Part with its measured span/depth, material identity, edge-band flags and placement metadata. The existing project Part aggregator and material-consumption summary consume these Parts without a new export or CNC claim.
 - This contract describes geometric placement and material accounting only. It does not infer shelf supports, fasteners, load capacity, drilling coordinates or machine-specific operations; workshop and physical-load validation remain human responsibilities.
+
+
+## DOM-184 — Manufacturer-referenced bookshelf shelf-support BOM
+
+- Each explicit shelves[] row may optionally contain supportHardware[]. Every row requires a stable local ID, exact user-supplied manufacturer catalogue hardwareId, catalogue name, positive finite quantity, explicit unit and non-empty sourceReference (catalogue URL, document/page or part-number reference).
+- The engine preserves the supplied quantity and unit verbatim. It does not derive support count from shelf width/depth, select a fitting, convert units, infer a manufacturer, or generate screw, drilling, mounting or load values.
+- A nested row is linked to exactly the shelf Part that contains it. Its project BOM ID is deterministically scoped by furniture ID, shelf ID and local BOM row ID; sourcePartIds contains that exact generated shelf Part ID. The shared project hardware validator and calculateProjectHardwareBomTrace then validate and expose the same provenance.
+- The source reference is recorded as user-supplied catalogue evidence; the application does not fetch or certify a manufacturer's catalogue. Unknown/empty references and invalid quantities fail closed. Omitted or empty supportHardware preserves the existing bookshelf result.
+- Any resulting hardwareItems still blocks project JSON v1/CSV export until the separately owned adapters preserve the complete BOM row and Part provenance. No frontend files or adapter code are changed by this domain slice.
+- Physical shelf-support selection, screw/fastener compatibility, mounting geometry, drilling coordinates, load rating and workshop validation remain human/manufacturer responsibilities.
