@@ -101,3 +101,32 @@
     transform: none;
   }
 }
+
+
+/* UI-PANEL-TOGGLE-CONTAINER-FIT-001 — keep dock labels available when the viewport rail has room,
+   even if the browser window is narrow; switch to icon-only targets when the actual rail contracts. */
+@container cad-viewport-toolbar (min-width: 821px) {
+  .cad-app .studio-panel-toggle {
+    width: auto !important;
+    min-width: 29px !important;
+    padding-inline: 8px !important;
+    gap: 6px !important;
+  }
+
+  .cad-app .studio-panel-toggle__label {
+    display: inline !important;
+  }
+}
+
+@container cad-viewport-toolbar (max-width: 820px) {
+  .cad-app .studio-panel-toggle {
+    width: 32px !important;
+    min-width: 32px !important;
+    padding-inline: 0 !important;
+    gap: 0 !important;
+  }
+
+  .cad-app .studio-panel-toggle__label {
+    display: none !important;
+  }
+}
