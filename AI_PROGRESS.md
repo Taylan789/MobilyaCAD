@@ -1553,11 +1553,22 @@
 ## 26 Kasım 2026 15:46 TRT — DOM-190 implementation (exact-SHA Actions pending)
 
 - **Base HEAD:** `dev/github-work` `8802efdb6020d95277d7ac10fb54a6c794eb07f5`.
-- **Implementation commit:** this entry will be completed with the exact SHA and CI/QA/Pages run IDs after GitHub Actions reports the result.
+- **Implementation commit:** [81c381dc](https://github.com/Taylan789/MobilyaCAD/commit/81c381dce64cfc93b78597e12fcb3ed28989e2c9) on `dev/github-work`.
 - **Delivery:** added a legacy stock-sheet purchase material-cost-basis v1 revision-history regression. The optional group `sourceReference` is absent on both revisions and must remain absent through standalone JSON v1 serialize/parse/restore; no empty, null, placeholder or guessed source is accepted.
 - **Acceptance evidence in test:** legacy revision records have no `sourceIntegrityVersion`; v1 groups retain no own `sourceReference`; source-map audit reports zero stock-sheet price-source references; two absent references compare as one unchanged group; source-integrity audit, stock-sheet comparison, TRY currency, monetary totals and immutable source history reconcile before and after restore.
 - **Files:** `domain/production/projectQuoteRevision.test.mjs`, `docs/production-domain-contract.md`, `PRODUCT_ROADMAP.md`, `AI_COORDINATION.md`, `AI_PROGRESS.md`.
-- **Checks:** exact-SHA CI, QA and Pages are pending; do not treat the local/authoring change as verified until those Actions runs complete.
+- **First exact-SHA checks:** CI [#45823301249](https://github.com/Taylan789/MobilyaCAD/actions/runs/45823301249) SUCCESS. QA [#45823301243](https://github.com/Taylan789/MobilyaCAD/actions/runs/45823301243) FAILED 821/822: the new test read `revisions` from the outer file envelope, while the existing v1 contract stores them under `history.revisions`. Pages [#45823301260](https://github.com/Taylan789/MobilyaCAD/actions/runs/45823301260) failed the exact-SHA CI+QA gate; deployment was not performed.
 - **Known limits:** no production calculation source or frontend/adapter/benchmark code changed. Supplier provenance, sheet yield/kerf, CNC and physical workshop validation remain unverified.
 - **Parallel ownership:** no `frontend/**`, adapter/benchmark-owned files, secrets/settings or `main` changes. UI-owned INT-003 PR #206 and specialist-owned INT-002/PERF-001 remain untouched.
+- **Correction:** read the already-supported `history.revisions` envelope path in the test fixture; no product serializer/parser behavior changes. Correction Actions are pending.
 - **Next:** DOM-191 — compare a legacy v1 revision with missing price-source provenance against a later revision with an explicit source, without backfilling the legacy record or claiming a v1 aggregate Part manifest.
+
+
+## 26 Kasım 2026 15:50 TRT — DOM-190 QA correction (verification pending)
+
+- **Base HEAD:** `dev/github-work` `81c381dce64cfc93b78597e12fcb3ed28989e2c9`.
+- **Correction:** fixed only the new regression's inspection path from the outer envelope to the existing `history.revisions` property. The standalone v1 serializer/parser contract and production code are unchanged.
+- **Evidence-driven diagnosis:** initial CI succeeded; QA reported exactly one failure (821/822), `exportedEnvelope.revisions is not iterable`, at the new assertion. All other domain tests passed. Pages correctly withheld deployment because the exact-SHA QA gate failed.
+- **Files:** `domain/production/projectQuoteRevision.test.mjs`, `AI_PROGRESS.md`, `AI_COORDINATION.md`.
+- **Checks:** corrected commit CI/QA/Pages are pending; no success is claimed until their exact-SHA runs complete.
+- **Known limits:** supplier provenance, sheet yield/kerf, CNC and physical workshop validation remain unverified; no frontend, adapter, benchmark, secret/settings or main changes.

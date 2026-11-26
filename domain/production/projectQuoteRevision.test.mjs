@@ -5190,7 +5190,7 @@ test("DOM-190 legacy stock-sheet v1 history round-trip preserves absent price pr
   assert.equal(exported.status, "ready", exported.diagnostics.join("; "));
   assert.ok(exported.json);
   const exportedEnvelope = JSON.parse(exported.json);
-  for (const revision of exportedEnvelope.revisions) {
+  for (const revision of exportedEnvelope.history.revisions) {
     const group = revision.pricingSnapshot.materialCostBasis.stockSheetGroups[0];
     assert.equal(Object.hasOwn(group, "sourceReference"), false);
   }
