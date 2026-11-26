@@ -1730,3 +1730,11 @@ The regression uses two schema-v2 stock-sheet snapshots that differ only in the 
 Legacy quote revisions may contain a stock-sheet purchase material-cost-basis v1 group without the optional `sourceReference`. The standalone revision-history JSON v1 serializer/parser must preserve that absence exactly: do not add `null`, an empty string, a placeholder, or a guessed supplier reference. The restored group remains schema v1, and its source-map audit must report zero stock-sheet price-source references. If both compared revisions omit the field, provenance comparison reports the group as unchanged rather than inventing a source change.
 
 This is a backward-compatibility and provenance-preservation contract only. It does not certify supplier identity, sheet yield, kerf, nesting, CNC compatibility, or physical workshop suitability.
+
+## DOM-191 — Legacy v1 stock-sheet provenance transition
+
+A legacy revision may have a schema-v1 stock-sheet purchase group with no sourceReference, while a later revision has an explicit user-supplied price-source reference for the same stable group. The old group must remain property-absent; the later value is reported as new provenance, not as evidence about the historical supplier.
+
+The source-map audit reports zero stock-sheet price-source references on the legacy revision and one on the later revision. Source-map provenance comparison reports exactly one changed group with changedFields containing only sourceReference; the from snapshot must not own a sourceReference property. The stock-sheet group comparison may reconcile existing group-level Part IDs and costs, but the aggregate manifest comparison remains both-unavailable with null counts and changes because neither schema-v1 basis carries the schema-v2 aggregate Part manifest. Group-level IDs must never be promoted to an aggregate manifest.
+
+The standalone revision-history JSON v1 round-trip preserves the missing legacy property and the later explicit value. When no other pricing input changes, stock-sheet cost, sheet count, TRY currency, category totals and grand total remain unchanged. No supplier, price, currency conversion, sheet yield, kerf, nesting or CNC data is inferred or certified.

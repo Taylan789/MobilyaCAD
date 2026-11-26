@@ -2397,3 +2397,19 @@ Sonraki adım: Exact-SHA CI/QA/Pages sonuçlarını doğrula; ardından DOM-170 
 3. INT-001/INT-002 — UI/specialist sahipliğinde desteklenen adapter round-trip ve geometri kayıpsızlığı.
 4. PERF-001 — specialist job/branch etkinleştiğinde viewport p95, scene update ve bellek baseline; şu anda ölçülmedi.
 5. QA-003 — INT-001/INT-002 exact-SHA adapter kanıtı sonrasında uçtan uca export/data-flow denetimi.
+
+## 26 Kasım 2026 — DOM-191 legacy v1 kaynak geçişi
+
+- Eski schema-v1 levha grubu kaynak referansı taşımıyorken sonraki revizyonda kullanıcı girdisi eklenmesi, tek bir sourceReference provenance değişikliği olarak raporlanır.
+- Eski revizyonun alan yokluğu korunur; null, boş değer veya tahmini tedarikçi eklenmez.
+- İki maliyet temeli de schema v1 ise aggregate Part manifest karşılaştırması both-unavailable kalır; group-level Part ID'leri aggregate manifest yerine kullanılmaz.
+- Standalone JSON v1 round-trip sonrasında audit, integrity audit, provenance/group comparisons ve TRY tutarları değişmez.
+- Bu dilim tedarikçi doğruluğu, levha verimi, kerf, nesting, CNC veya fiziksel atölye uygunluğu iddiası taşımaz.
+- Exact-SHA CI/QA/Pages doğrulaması commit sonrası bekleniyor.
+
+Sıradaki küçük görevler:
+1. DOM-192 — legacy kaynak alanı eksik → sonraki açık kaynaklı schema-v1 revizyonu geçişini immutable append sonrasında da koru; eski kayıt backfill edilmesin.
+2. UI-owned INT-003 — JSON v2 project envelope'ı editor startup/new/save/open akışına bağla; frontend/** dosyalarına bu ajan dokunmaz.
+3. INT-001/INT-002 — desteklenen adapter round-trip ve geometri kayıpsızlığı için ayrı sahiplikte kanıt üret.
+4. PERF-001 — specialist job/branch etkinleştiğinde viewport p95, scene update ve bellek baseline ölç; henüz ölçülmedi.
+5. QA-003 — INT-001/INT-002 exact-SHA kanıtından sonra uçtan uca export/data-flow denetimi.

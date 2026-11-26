@@ -1575,3 +1575,16 @@
 - **Exact-SHA Pages:** [#45823486156](https://github.com/Taylan789/MobilyaCAD/actions/runs/45823486156) SUCCESS; deploy log confirms `pages_build_version=6c3111084ed139c61def54c09b4ff41ad3be9772` at https://taylan789.github.io/MobilyaCAD/.
 - **Measured build:** JS 1,711.52 kB / 476.99 kB gzip; CSS 475.26 kB. Viewport p95 and memory remain NOT MEASURED.
 - **Known limits:** supplier provenance, sheet yield/kerf, CNC and physical workshop validation remain unverified; no frontend, adapter, benchmark, secret/settings or main changes.
+
+## 26 Kasım 2026 16:37 TRT — DOM-191 implementation (exact-SHA verification pending)
+
+- Base HEAD: dev/github-work 87297fa67f8052e53506dcb79b5feb91c77de3a6.
+- Commit SHA: GitHub SHA will be inserted in the verification follow-up.
+- Delivery: regression covers a schema-v1 stock-sheet group with absent legacy sourceReference and a later explicit user-supplied reference.
+- Acceptance: source audit counts 0 then 1; both comparisons report exactly one sourceReference change; the legacy object remains property-absent; both v1 aggregate manifests remain unavailable; group-level Part IDs are not promoted to an aggregate manifest; stock-sheet and quote totals, TRY currency and immutable history remain unchanged.
+- Round-trip: standalone revision-history JSON v1 preserves the legacy absence and later explicit value; restored audit, integrity audit and comparisons equal pre-export results.
+- Files: domain/production/projectQuoteRevision.test.mjs, docs/production-domain-contract.md, PRODUCT_ROADMAP.md, AI_COORDINATION.md, AI_PROGRESS.md.
+- Actions: exact-SHA CI, QA and Pages are pending; no success is claimed for this commit.
+- Known limits: no production calculation code, frontend, adapter/benchmark, machine postprocessor, secrets/settings or main changes. Supplier authenticity, sheet yield/kerf, CNC and workshop validation remain unverified.
+- AI Developer: run #45810848741 failed on OpenRouter free-tier HTTP 429 (50/50 daily requests used; reset 27 November 2026 03:00 TRT). It is not rerun before reset; no paid fallback or quota/settings change.
+- Next: DOM-192 — preserve this legacy-absence to explicit-source transition after immutable append without backfilling the historical revision.
