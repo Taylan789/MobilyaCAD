@@ -1626,3 +1626,13 @@ Kaynak: `domain/production/projectQuoteRevisionFile.ts`.
 - Manifest availability remains explicit across five representative pairs: v2→v2 comparable; legacy→v2 from-unavailable; v2→no-basis to-unavailable; legacy→no-basis both-unavailable; v2→no-basis to-unavailable. Group, full-quote and source-map comparison APIs must agree with the audit coverage.
 - After restore, a strict no-basis eighth revision is appended, the project is stringified/parsed again, and the standalone history is re-exported and parsed without changing the seven imported revisions or their audit totals. The final integrity audit is 3 strict + 5 legacy.
 - This is domain regression coverage for the existing project-envelope API. It does not complete the UI-owned editor startup/new/save/open integration, JSON/CSV adapter work, CNC output, or physical workshop validation.
+
+
+## DOM-178 — Safe project-envelope metadata preservation during standalone import
+
+- The standalone-history import path preserves unrelated top-level and nested JSON v2 project metadata while adding the validated quoteRevisionHistory extension. Own enumerable __proto__ properties are treated as JSON data, not as prototype mutations, and remain present after import plus JSON stringify/parse and project-history restore.
+- The regression checks the root and nested own-property descriptors, verifies that their prototypes remain Object.prototype, and confirms that no prototype pollution occurs. The original target project remains unchanged.
+- Nested own accessors and Proxy reflection failures must return blocked with project: null and history: null; accessors are never invoked and no partial history is written.
+- The existing envelope clone limits remain explicit: at most 16 MiB UTF-8 and 64 nested object/array levels. The import regression checks that both over-limit cases fail closed without mutating the target.
+- This slice adds end-to-end domain contract coverage for the existing descriptor-safe clone/import implementation; it does not introduce a new project format or complete UI editor startup/new/save/open integration, JSON/CSV adapter round-trip, CNC output or physical workshop validation.
+

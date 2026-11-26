@@ -2095,8 +2095,28 @@ Sonraki adım: Exact-SHA CI/QA/Pages sonuçlarını doğrula; ardından DOM-170 
 
 ### Sıradaki 3–5 görev
 
-1. DOM-178 — project-v2 envelope içindeki bilinmeyen metadata ve own __proto__ JSON alanlarını standalone history import → stringify/parse → restore boyunca koru; accessor ve kaynak sınırı ihlallerini atomic blocked/null ile doğrula.
+1. DOM-178 — IMPLEMENTED; exact-SHA CI/QA/Pages pending. Domain regressions cover unknown metadata and own __proto__ JSON data through import/restore, accessor/Proxy rejection, and atomic 16 MiB / 64-level limit blocks.
 2. UI-owned INT-003 PR #206 ayrı sahibinde kalır; editor startup/new/save/open envelope entegrasyonu ve exact-SHA frontend QA beklenir.
 3. DOM-153 — yalnızca INT-003 editör entegrasyonu tamamlandıktan sonra gerçek append → save → reopen → append akışını doğrula.
 4. INT-002/PERF-001 adapter, benchmark ve viewport p95/bellek işleri Integration/Performance sahibinde kalır; job disabled ve specialist branch bulunamadı.
 5. QA-003, INT-001/INT-002 kanıtı gelene kadar blocked; fiziksel CNC/makine doğrulaması insan doğrulamasıdır.
+
+
+## 26 Kasım 2026 03:43 TRT — DOM-178 implementation submitted
+
+**Kullanıcı akışı:** Atölye, standalone teklif revizyon geçmişini boş bir JSON v2 projeye aktarır; proje zarfındaki diğer özel alanlar ve JSON'dan gelen own __proto__ anahtarları kaybolmadan korunur; proje stringify/parse sonrasında yeniden açıldığında teklif geçmişi okunabilir kalır.
+
+**Kabul kriterleri:** Üst seviye ve iç içe metadata ile own __proto__ data descriptor'ları import ve restore sonrasında korunur; hiçbir nesnenin prototype zinciri değiştirilmez; target input mutasyona uğramaz. Nested accessor ve Proxy reflection hataları getter çalıştırmadan blocked/null döndürür. 64 seviye ve 16 MiB UTF-8 envelope sınırlarının aşılması partial project/history üretmeden bloklanır.
+
+**Teslimat:** Üç domain regresyon testi eklendi; mevcut descriptor-safe clone/import implementasyonu bu uçtan uca sözleşmeye karşı doğrulanacak. Kaynak davranışı değişmedi; yeni project formatı, frontend veya adapter API'si eklenmedi.
+
+**Doğrulama:** Exact-SHA CI, QA, production build, dependency audit ve Pages deployment bu commit için bekleniyor. Başarı/10/10 iddiası gerçek Actions sonucu görülmeden yapılmayacak.
+
+### Sıradaki 3–5 görev
+
+1. DOM-178 exact-SHA CI/QA/Pages sonuçlarını doğrula; başarısız fixture veya tip kontrolünü testleri zayıflatmadan düzelt.
+2. UI-owned INT-003 PR #206 draft/ayrı sahiplikte kalır; editor startup/new/save/open envelope wiring ve exact-SHA QA tamamlanmadan DOM-153'e geçme.
+3. DOM-153 — yalnızca INT-003 editör entegrasyonu sonrasında append → save → reopen → append domain/editor round-trip sözleşmesi.
+4. INT-002/PERF-001 adapter, benchmark ve viewport p95/bellek işleri Integration/Performance sahibinde kalır; workflow job disabled ve specialist branch bulunamadı.
+5. QA-003, INT-001/INT-002 kanıtı gelene kadar blocked; fiziksel CNC/makine/atölye doğrulaması insan doğrulamasıdır.
+

@@ -7,6 +7,8 @@ import {
   appendProjectQuoteRevisionToProjectFile,
   importProjectQuoteRevisionHistoryFileIntoProject,
   PROJECT_QUOTE_REVISION_HISTORY_FIELD,
+  PROJECT_QUOTE_REVISION_PROJECT_ENVELOPE_MAX_BYTES,
+  PROJECT_QUOTE_REVISION_PROJECT_ENVELOPE_MAX_DEPTH,
   readProjectQuoteRevisionHistoryFromProjectFile
 } from "./projectQuoteRevisionProjectFile.ts";
 import {
@@ -1195,3 +1197,111 @@ test("DOM-177 imports seven-revision mixed history into an empty v2 project, res
   assert.equal(JSON.stringify(sourceHistory), sourceHistoryJson);
   assert.equal(JSON.stringify(target), targetBefore);
 });
+
+test("DOM-178 preserves unknown project metadata and own __proto__ JSON keys through standalone import and restore", () => {
+  const source = appendProjectQuoteRevisionToProjectFile(createV2Project(), createRevision());
+  assert.equal(source.status, "ready", source.diagnostics.join("; "));
+  assert.ok(source.history);
+  const standaloneJson = serializeImportFixture(source.history);
+  const target = JSON.parse('{"format":"MobilyaCAD","formatVersion":2,"projectId":"project-42","room":{"width":4000,"length":5000,"height":2800,"unit":"mm"},"furniture":[],"materials":[],"metadata":{"owner":"workshop","custom":{"label":"keep","__proto__":{"nestedMarker":"preserved"}}},"__proto__":{"envelopeMarker":"preserved"}}');
+  const targetBefore = JSON.stringify(target);
+  const imported = importProjectQuoteRevisionHistoryFileIntoProject(target, standaloneJson);
+  assert.equal(imported.status, "ready", imported.diagnostics.join("; "));
+  assert.ok(imported.project);
+  assert.ok(imported.history);
+  assert.ok(Object.isFrozen(imported.project));
+  assert.equal(Object.getPrototypeOf(imported.project), Object.prototype);
+  assert.equal(Object.hasOwn(imported.project, "__proto__"), true);
+  const rootPrototypeData = Object.getOwnPropertyDescriptor(imported.project, "__proto__");
+  assert.ok(rootPrototypeData);
+  assert.equal("value" in rootPrototypeData, true);
+  assert.deepEqual(rootPrototypeData.value, { envelopeMarker: "preserved" });
+  assert.equal(imported.project.metadata.owner, "workshop");
+  assert.equal(Object.isFrozen(imported.project.metadata), true);
+  assert.equal(Object.getPrototypeOf(imported.project.metadata.custom), Object.prototype);
+  assert.equal(Object.hasOwn(imported.project.metadata.custom, "__proto__"), true);
+  const nestedPrototypeData = Object.getOwnPropertyDescriptor(imported.project.metadata.custom, "__proto__");
+  assert.ok(nestedPrototypeData);
+  assert.equal("value" in nestedPrototypeData, true);
+  assert.deepEqual(nestedPrototypeData.value, { nestedMarker: "preserved" });
+  const restored = JSON.parse(JSON.stringify(imported.project));
+  assert.equal(Object.getPrototypeOf(restored), Object.prototype);
+  assert.equal(Object.hasOwn(restored, "__proto__"), true);
+  assert.deepEqual(restored["__proto__"], { envelopeMarker: "preserved" });
+  assert.equal(Object.hasOwn(restored.metadata.custom, "__proto__"), true);
+  assert.deepEqual(restored.metadata.custom["__proto__"], { nestedMarker: "preserved" });
+  assert.equal(({}).envelopeMarker, undefined);
+  assert.equal(({}).nestedMarker, undefined);
+  const restoredHistory = readProjectQuoteRevisionHistoryFromProjectFile(restored);
+  assert.equal(restoredHistory.status, "ready", restoredHistory.diagnostics.join("; "));
+  assert.deepEqual(restoredHistory.history, source.history);
+  assert.equal(JSON.stringify(target), targetBefore);
+  assert.equal(Object.hasOwn(target, PROJECT_QUOTE_REVISION_HISTORY_FIELD), false);
+});
+
+test("DOM-178 standalone import rejects nested accessors and Proxy reflection failures without partial output", () => {
+  const source = appendProjectQuoteRevisionToProjectFile(createV2Project(), createRevision());
+  assert.equal(source.status, "ready");
+  assert.ok(source.history);
+  const standaloneJson = serializeImportFixture(source.history);
+  const target = createV2Project({ metadata: { label: "preserved" } });
+  let getterCalls = 0;
+  const unsafeGetter = () => {
+    getterCalls += 1;
+    return "must not execute";
+  };
+  Object.defineProperty(target.metadata, "unsafe", {
+    enumerable: true,
+    configurable: true,
+    get: unsafeGetter
+  });
+  const result = importProjectQuoteRevisionHistoryFileIntoProject(target, standaloneJson);
+  assert.equal(result.status, "blocked");
+  assert.equal(result.project, null);
+  assert.equal(result.history, null);
+  assert.equal(getterCalls, 0);
+  assert.equal(Object.getOwnPropertyDescriptor(target.metadata, "unsafe").get, unsafeGetter);
+  assert.equal(Object.hasOwn(target, PROJECT_QUOTE_REVISION_HISTORY_FIELD), false);
+  assert.equal(target.metadata.label, "preserved");
+  const proxyMetadata = new Proxy({ label: "proxy" }, {
+    ownKeys() {
+      throw new Error("reflection denied");
+    }
+  });
+  const proxyTarget = createV2Project({ metadata: proxyMetadata });
+  const proxyResult = importProjectQuoteRevisionHistoryFileIntoProject(proxyTarget, standaloneJson);
+  assert.equal(proxyResult.status, "blocked");
+  assert.equal(proxyResult.project, null);
+  assert.equal(proxyResult.history, null);
+  assert.match(proxyResult.diagnostics.join(" | "), /reflection denied/);
+  assert.equal(Object.hasOwn(proxyTarget, PROJECT_QUOTE_REVISION_HISTORY_FIELD), false);
+});
+
+test("DOM-178 standalone import blocks project-envelope depth and UTF-8 size limit violations atomically", () => {
+  const source = appendProjectQuoteRevisionToProjectFile(createV2Project(), createRevision());
+  assert.equal(source.status, "ready");
+  assert.ok(source.history);
+  const standaloneJson = serializeImportFixture(source.history);
+  const deepTarget = createV2Project();
+  let nested = { leaf: "preserved" };
+  for (let index = 0; index <= PROJECT_QUOTE_REVISION_PROJECT_ENVELOPE_MAX_DEPTH; index += 1) {
+    nested = { next: nested };
+  }
+  deepTarget.metadata = nested;
+  const deepResult = importProjectQuoteRevisionHistoryFileIntoProject(deepTarget, standaloneJson);
+  assert.equal(deepResult.status, "blocked");
+  assert.equal(deepResult.project, null);
+  assert.equal(deepResult.history, null);
+  assert.match(deepResult.diagnostics.join(" | "), /64/);
+  assert.equal(Object.hasOwn(deepTarget, PROJECT_QUOTE_REVISION_HISTORY_FIELD), false);
+  const oversizedTarget = createV2Project({
+    metadata: { payload: "x".repeat(PROJECT_QUOTE_REVISION_PROJECT_ENVELOPE_MAX_BYTES + 1) }
+  });
+  const oversizedResult = importProjectQuoteRevisionHistoryFileIntoProject(oversizedTarget, standaloneJson);
+  assert.equal(oversizedResult.status, "blocked");
+  assert.equal(oversizedResult.project, null);
+  assert.equal(oversizedResult.history, null);
+  assert.match(oversizedResult.diagnostics.join(" | "), /16 MiB/);
+  assert.equal(Object.hasOwn(oversizedTarget, PROJECT_QUOTE_REVISION_HISTORY_FIELD), false);
+});
+
