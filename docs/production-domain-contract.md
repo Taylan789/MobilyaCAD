@@ -1654,7 +1654,7 @@ Kaynak: `domain/production/projectQuoteRevisionFile.ts`.
 
 ## DOM-181 — Escaped JSON string byte accounting
 
-- The existing project-envelope resource budget measures the serialized JSON representation in UTF-8 bytes. The boundary fixture includes U+0000 and U+001F control characters (escaped as \\u0000 / \\u001f), LF/TAB short escapes, lone high and low surrogates (well-formed JSON.stringify escapes as \\ud800 / \\udc00), and a valid astral character (four UTF-8 bytes).
+- The existing project-envelope resource budget measures the serialized JSON representation in UTF-8 bytes. The boundary fixture includes U+0000 and U+001F control characters (escaped as \u0000 / \u001f), LF/TAB short escapes, lone high and low surrogates (well-formed JSON.stringify escapes as \ud800 / \udc00), and a valid astral character (four UTF-8 bytes).
 - The regression uses Buffer.byteLength(JSON.stringify(project), "utf8") as the byte-count oracle. Read, append and standalone import accept a final envelope of exactly 16 MiB and block a final envelope at 16 MiB + 1 byte.
 - Append/import overflow is tested while the input envelope itself remains below 16 MiB; blocked results contain no project/history payload, do not add a partial quoteRevisionHistory field, and do not mutate the input.
 - This is test-only evidence for the existing serializer contract. No production source/API, schema version, frontend wiring, adapter round-trip, CNC output or physical production validation is changed or claimed.

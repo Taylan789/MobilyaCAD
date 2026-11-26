@@ -2155,7 +2155,7 @@ Sonraki adım: Exact-SHA CI/QA/Pages sonuçlarını doğrula; ardından DOM-170 
 4. INT-002/PERF-001 specialist-owned; bu turda agent/integration-performance branch bulunamadı ve specialist job skipped. Adapter/benchmark dosyalarına dokunulmaz.
 5. QA-003, INT-001/INT-002 exact-SHA adapter ve round-trip kanıtı gelene kadar blocked; viewport p95/memory NOT MEASURED, fiziksel CNC/makine/atölye doğrulaması insan kontrolüdür.
 
-## DOM-181 — Escaped JSON byte accounting at the 16 MiB boundary (26 Kasım 2026 07:02 TRT; IMPLEMENTED, verification pending)
+## DOM-181 — Escaped JSON byte accounting at the 16 MiB boundary (26 Kasım 2026 07:06 TRT; VERIFIED)
 
 **Kullanıcı akışı:** JSON v2 proje zarfına kontrol karakterleri veya Unicode surrogate içeren özel metadata kaydedilir; teklif geçmişi okunur, eklenir veya standalone geçmiş içe aktarılır. Boyut limiti gerçek serileştirilmiş JSON UTF-8 çıktısına uygulanır.
 
@@ -2163,7 +2163,7 @@ Sonraki adım: Exact-SHA CI/QA/Pages sonuçlarını doğrula; ardından DOM-170 
 
 **Teslimat:** domain/production/projectQuoteRevisionProjectFile.test.mjs içine DOM-181 regresyonu eklendi. Mevcut UTF-8 byte hesabı ve serializer sözleşmesi değiştirilmedi; üretim kaynağı/API değişikliği yok. Kontrol karakterleri ve lone surrogate'ların JSON kaçış uzunlukları ile geçerli surrogate pair'in 4 UTF-8 byte hesabı aynı gerçek JSON serileştirme çıktısına karşı test edilir.
 
-**Doğrulama:** Exact-SHA CI/QA/Pages henüz bekleniyor; başarılı sonuç görülmeden test sitesi güncellendi sayılmaz.
+**Exact-SHA doğrulama:** Implementation commit [2ab8b79357e22894aefa3d6aa64f666722cba2f1](https://github.com/Taylan789/MobilyaCAD/commit/2ab8b79357e22894aefa3d6aa64f666722cba2f1); CI [#45752954951](https://github.com/Taylan789/MobilyaCAD/actions/runs/45752954951), QA [#45752954816](https://github.com/Taylan789/MobilyaCAD/actions/runs/45752954816) ve Pages [#45752954849](https://github.com/Taylan789/MobilyaCAD/actions/runs/45752954849) exact SHA için başarılı. QA 337/337 frontend + 802/802 domain; DOM-181 test #517, strict shared-domain TypeScript, lint 36 uyarı/0 hata, production build ve production-only audit 0 vulnerability. Pages deployment logu pages_build_version değerinin tam olarak 2ab8b79357e22894aefa3d6aa64f666722cba2f1 olduğunu doğruladı: https://taylan789.github.io/MobilyaCAD/.
 
 ### Sıradaki 3–5 küçük görev
 
