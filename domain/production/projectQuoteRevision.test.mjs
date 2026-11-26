@@ -5341,3 +5341,158 @@ test("DOM-191 legacy v1 stock-sheet provenance addition is visible without fabri
   );
   assert.equal(JSON.stringify(history), originalHistoryJson);
 });
+
+
+test("DOM-192 immutable append preserves legacy stock-sheet source absence and later explicit provenance", () => {
+  const fromSnapshot = createDom143StockSheetAuditSnapshot();
+  const toSnapshot = structuredClone(fromSnapshot);
+  const fromBasis = fromSnapshot.materialCostBasis;
+  const toBasis = toSnapshot.materialCostBasis;
+  assert.ok(fromBasis);
+  assert.ok(toBasis);
+  assert.equal(fromSnapshot.schemaVersion, 2);
+  assert.equal(fromBasis.schemaVersion, 1);
+  assert.equal(toBasis.schemaVersion, 1);
+  assert.equal(fromBasis.stockSheetGroups.length, 1);
+  assert.equal(toBasis.stockSheetGroups.length, 1);
+
+  delete fromBasis.stockSheetGroups[0].sourceReference;
+  const appendedSourceReference = "stock-sheet-price:user-supplied:append-r2";
+  toBasis.stockSheetGroups[0].sourceReference = appendedSourceReference;
+
+  const history = {
+    projectId: "project-42",
+    revisions: [createHistoryRevision({ pricingSnapshot: fromSnapshot })]
+  };
+  const originalHistoryJson = JSON.stringify(history);
+  const validated = validateProjectQuoteRevisionHistory(history);
+  assert.equal(validated.status, "ready", validated.diagnostics.join("; "));
+  assert.ok(validated.history);
+  assert.equal(validated.history.revisions.length, 1);
+  assert.equal(Object.hasOwn(validated.history.revisions[0], "sourceIntegrityVersion"), false);
+
+  const validatedHistoryJson = JSON.stringify(validated.history);
+  const appended = appendProjectQuoteRevision(validated.history, {
+    revisionId: "quote-r2",
+    createdAt: "2026-11-17T11:00:00Z",
+    pricingSnapshot: toSnapshot
+  });
+  assert.equal(appended.status, "ready", appended.diagnostics.join("; "));
+  assert.ok(appended.history);
+  assert.equal(appended.history.revisions.length, 2);
+
+  const [legacyRevision, appendedRevision] = appended.history.revisions;
+  assert.equal(legacyRevision.revisionId, "quote-r1");
+  assert.equal(Object.hasOwn(legacyRevision, "sourceIntegrityVersion"), false);
+  assert.equal(legacyRevision.sourceIntegrityVersion, undefined);
+  assert.equal(appendedRevision.revisionId, "quote-r2");
+  assert.equal(appendedRevision.previousRevisionId, "quote-r1");
+  assert.equal(appendedRevision.revisionNumber, 2);
+  assert.equal(appendedRevision.sourceIntegrityVersion, 1);
+  assert.equal(legacyRevision.pricingSnapshot.materialCostBasis.schemaVersion, 1);
+  assert.equal(appendedRevision.pricingSnapshot.materialCostBasis.schemaVersion, 1);
+  assert.equal(
+    Object.hasOwn(legacyRevision.pricingSnapshot.materialCostBasis.stockSheetGroups[0], "sourceReference"),
+    false
+  );
+  assert.equal(
+    appendedRevision.pricingSnapshot.materialCostBasis.stockSheetGroups[0].sourceReference,
+    appendedSourceReference
+  );
+  assert.equal(JSON.stringify(history), originalHistoryJson);
+  assert.equal(JSON.stringify(validated.history), validatedHistoryJson);
+  assert.ok(Object.isFrozen(appended.history));
+  assert.ok(Object.isFrozen(appended.history.revisions));
+  assert.ok(Object.isFrozen(appendedRevision.pricingSnapshot));
+
+  const audit = calculateProjectQuoteRevisionSourceMapAudit(appended.history);
+  const integrity = calculateProjectQuoteRevisionSourceIntegrityAudit(appended.history);
+  assert.equal(audit.status, "ready", audit.diagnostics.join("; "));
+  assert.equal(integrity.status, "ready", integrity.diagnostics.join("; "));
+  assert.equal(audit.audit.revisions[0].counts.stockSheetPriceSourceReferenceCount, 0);
+  assert.equal(audit.audit.revisions[1].counts.stockSheetPriceSourceReferenceCount, 1);
+  assert.equal(audit.audit.totals.stockSheetPriceSourceReferenceCount, 1);
+  assert.equal(integrity.audit.revisionCount, 2);
+  assert.equal(integrity.audit.strictRevisionCount, 1);
+  assert.equal(integrity.audit.legacyRevisionCount, 1);
+
+  const sourceMap = compareProjectQuoteRevisionSourceMaps(appended.history, "quote-r1", "quote-r2");
+  assert.equal(sourceMap.status, "ready", sourceMap.diagnostics.join("; "));
+  assert.equal(sourceMap.comparison.fromSourceIntegrityVersion, null);
+  assert.equal(sourceMap.comparison.toSourceIntegrityVersion, 1);
+  const manifest = sourceMap.comparison.stockSheetManifestComparison;
+  assert.equal(manifest.status, "both-unavailable");
+  assert.equal(manifest.from.materialCostBasisSchemaVersion, 1);
+  assert.equal(manifest.to.materialCostBasisSchemaVersion, 1);
+  assert.equal(manifest.counts, null);
+  assert.equal(manifest.changes, null);
+
+  const provenance = sourceMap.comparison.stockSheetGroupProvenanceComparison;
+  assert.deepEqual(provenance.counts, {
+    addedGroupCount: 0,
+    removedGroupCount: 0,
+    changedGroupCount: 1,
+    unchangedGroupCount: 0
+  });
+  assert.equal(provenance.changes.length, 1);
+  assert.deepEqual(provenance.changes[0].changedFields, ["sourceReference"]);
+  assert.equal(Object.hasOwn(provenance.changes[0].from, "sourceReference"), false);
+  assert.equal(provenance.changes[0].to.sourceReference, appendedSourceReference);
+
+  const groupComparison = compareProjectQuoteRevisionStockSheetGroups(appended.history, "quote-r1", "quote-r2");
+  assert.equal(groupComparison.status, "ready", groupComparison.diagnostics.join("; "));
+  assert.equal(groupComparison.comparison.groupCounts.changedGroupCount, 1);
+  assert.deepEqual(groupComparison.comparison.groupChanges[0].changedFields, ["sourceReference"]);
+  assert.equal(Object.hasOwn(groupComparison.comparison.groupChanges[0].from, "sourceReference"), false);
+  assert.deepEqual(groupComparison.comparison.stockSheetManifestComparison, manifest);
+  const expectedPartCount = fromBasis.stockSheetGroups[0].sourcePartIds.length;
+  assert.equal(groupComparison.comparison.stockSheetPartCounts.fromPartCount, expectedPartCount);
+  assert.equal(groupComparison.comparison.stockSheetPartCounts.toPartCount, expectedPartCount);
+  assert.equal(groupComparison.comparison.stockSheetPartCounts.unchangedPartCount, expectedPartCount);
+  assert.equal(groupComparison.comparison.stockSheetPartCounts.addedPartCount, 0);
+  assert.equal(groupComparison.comparison.stockSheetPartCounts.removedPartCount, 0);
+  assert.equal(groupComparison.comparison.stockSheetPartCounts.movedPartCount, 0);
+  assert.equal(groupComparison.comparison.stockSheetCostDeltaMinor, 0);
+  assert.equal(groupComparison.comparison.sheetCountDelta, 0);
+  assert.equal(groupComparison.comparison.grandTotalDeltaMinor, 0);
+
+  const monetaryComparison = compareProjectQuoteRevisions(appended.history, "quote-r1", "quote-r2");
+  assert.equal(monetaryComparison.status, "ready", monetaryComparison.diagnostics.join("; "));
+  assert.equal(monetaryComparison.comparison.grandTotalDeltaMinor, 0);
+
+  const exported = serializeProjectQuoteRevisionHistoryFile(appended.history);
+  assert.equal(exported.status, "ready", exported.diagnostics.join("; "));
+  assert.ok(exported.json);
+  const restored = parseProjectQuoteRevisionHistoryFile(exported.json);
+  assert.equal(restored.status, "ready", restored.diagnostics.join("; "));
+  assert.ok(restored.history);
+  assert.deepEqual(restored.history, appended.history);
+  assert.equal(
+    Object.hasOwn(
+      restored.history.revisions[0].pricingSnapshot.materialCostBasis.stockSheetGroups[0],
+      "sourceReference"
+    ),
+    false
+  );
+  assert.equal(
+    restored.history.revisions[1].pricingSnapshot.materialCostBasis.stockSheetGroups[0].sourceReference,
+    appendedSourceReference
+  );
+  assert.equal(Object.hasOwn(restored.history.revisions[0], "sourceIntegrityVersion"), false);
+  assert.equal(restored.history.revisions[1].sourceIntegrityVersion, 1);
+
+  assert.deepEqual(calculateProjectQuoteRevisionSourceMapAudit(restored.history).audit, audit.audit);
+  assert.deepEqual(calculateProjectQuoteRevisionSourceIntegrityAudit(restored.history).audit, integrity.audit);
+  assert.deepEqual(
+    compareProjectQuoteRevisionSourceMaps(restored.history, "quote-r1", "quote-r2").comparison,
+    sourceMap.comparison
+  );
+  assert.deepEqual(
+    compareProjectQuoteRevisionStockSheetGroups(restored.history, "quote-r1", "quote-r2").comparison,
+    groupComparison.comparison
+  );
+  assert.deepEqual(
+    compareProjectQuoteRevisions(restored.history, "quote-r1", "quote-r2").comparison,
+    monetaryComparison.comparison
+  );
+});

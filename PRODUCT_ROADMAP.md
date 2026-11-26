@@ -24,7 +24,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 | Malzeme kataloğu | UI CRUD; mobilya varsayılan materialId ve çekmece grubunda varsayılan + dört panel grubu override; domain gövde/kitaplık motorları altı gövde panel grubu için malzeme override'ını doğrular | Gövde panel override'ları henüz frontend JSON v1/CSV ve UI akışına bağlanmadı; fiyat, tedarikçi ve fire henüz yok |
 | Proje dosyası | Yerel JSON v1 indirme/yükleme; saf serializer/parser; round-trip ve eski v1 uyumluluk; mm, mobilya ve çekmece grubu katalog referansları ile dört çekmece panel kalınlığının doğrulanması | Şema migrasyonu, otomatik kayıt ve kurtarma yok |
 | Teklif/maliyet | Kullanıcı fiyat tablosu malzeme tüketimini materialId + m2, donanımı hardwareId + özgün BOM birimi, kenar bandını edgeBandingId + açık mm/m birimi ile fiyatlandırır; hardware BOM üretici/katalog referansı `hardwareSourceReferences` alanında, donanım fiyat satırının isteğe bağlı `sourceReference` değeri ise exact hardware cost line ve revision cost-line snapshot'ta ayrı izlenir; kullanıcı girdili işçilik/operasyon tarifesi, tek para birimli birleşik teklif ve tarihli fiyat/tarife katalog snapshot'ı vardır | Eksik donanım fiyatı teklif snapshot'ını bloklar; fiyat, para birimi veya kaynak referansı varsayılmaz. Frontend/UI ve JSON v1/CSV kalıcı revizyon geçmişi entegrasyonu ayrı sahibindedir; vergi, kur, iskonto, otomatik fire/kâr yüzdesi ve üretim onayı yok |
-| Test/CI | Exact verified branch HEAD [54e3c1734d4f0918b32202cf016ceccf51b3e624](https://github.com/Taylan789/MobilyaCAD/commit/54e3c1734d4f0918b32202cf016ceccf51b3e624): CI [#45805438263](https://github.com/Taylan789/MobilyaCAD/actions/runs/45805438263), QA [#45805438085](https://github.com/Taylan789/MobilyaCAD/actions/runs/45805438085), Pages [#45805438063](https://github.com/Taylan789/MobilyaCAD/actions/runs/45805438063) SUCCESS; QA 361/361 frontend + 820/820 domain | strict shared-domain TypeScript, lint 36 warnings/0 errors, production build, production-only audit 0 vulnerabilities; full dependency audit reports 4 moderate findings | Pages deployment pages_build_version exactly matches 54e3c1734d4f0918b32202cf016ceccf51b3e624 at https://taylan789.github.io/MobilyaCAD/; JS 1,710.46 kB (476.79 kB gzip), CSS 472.79 kB; viewport p95/memory NOT MEASURED |
+| Test/CI | Exact verified branch HEAD [3150103c](https://github.com/Taylan789/MobilyaCAD/commit/3150103c67d623f9c9a65b59e211aa508f016b12): CI [#45840832302](https://github.com/Taylan789/MobilyaCAD/actions/runs/45840832302), QA [#45840832280](https://github.com/Taylan789/MobilyaCAD/actions/runs/45840832280), Pages [#45840832273](https://github.com/Taylan789/MobilyaCAD/actions/runs/45840832273) SUCCESS; QA 371/371 frontend + 823/823 domain | strict shared-domain TypeScript, lint 36 warnings/0 errors, production build, production-only audit 0 vulnerabilities | Pages deployment pages_build_version exactly matches 3150103c67d623f9c9a65b59e211aa508f016b12 at https://taylan789.github.io/MobilyaCAD/; JS 1,711.52 kB (476.99 kB gzip), CSS 475.74 kB; viewport p95/memory NOT MEASURED |
 
 ### Bilinen mimari ve veri boşlukları
 
@@ -2414,4 +2414,27 @@ Sıradaki küçük görevler:
 2. UI-owned INT-003 — JSON v2 project envelope'ı editor startup/new/save/open akışına bağla; frontend/** dosyalarına bu ajan dokunmaz.
 3. INT-001/INT-002 — desteklenen adapter round-trip ve geometri kayıpsızlığı için ayrı sahiplikte kanıt üret.
 4. PERF-001 — specialist job/branch etkinleştiğinde viewport p95, scene update ve bellek baseline ölç; henüz ölçülmedi.
+5. QA-003 — INT-001/INT-002 exact-SHA kanıtından sonra uçtan uca export/data-flow denetimi.
+
+
+## 26 Kasım 2026 17:45 TRT — DOM-192 immutable append regression (Actions pending)
+
+**Kullanıcı akışı:** Eski teklif geçmişinde aynı levha grubunun fiyat kaynağı kaydedilmemiş olabilir. Operatör yeni bir revizyon eklediğinde yalnızca yeni revizyonun kullanıcı tarafından sağlanan fiyat kaynağı görünür olmalı; geçmiş revizyon sessizce güncellenmemelidir.
+
+**Kabul kriterleri:**
+- Başlangıçtaki schema-v1 revizyonu `sourceReference` ve `sourceIntegrityVersion` alanlarına sahip değildir.
+- `appendProjectQuoteRevision` ile eklenen sonraki schema-v1 maliyet temeli açık `sourceReference` değerini ve mevcut strict `sourceIntegrityVersion: 1` işaretini korur.
+- Audit 0 legacy / 1 appended source reference gösterir; source-map karşılaştırması yalnızca `sourceReference` alanını değişmiş sayar.
+- Aggregate Part manifesti iki schema-v1 snapshot için `both-unavailable` kalır; grup Part kimlikleri, adet, TRY, levha maliyeti ve genel teklif toplamı değişmez.
+- Immutable append orijinal ve doğrulanmış önceki geçmişi değiştirmez; standalone JSON v1 round-trip iki revizyonun alan varlığını ve audit/comparison sonuçlarını korur.
+
+**10/10 checklist delta:** Üretim/teklif veri bütünlüğü ve geriye uyumluluk için append sonrası provenance geçişi otomatik regresyon kapsamına alındı. CAD Core ve UX değişmedi; viewport p95/bellek ölçülmedi. CNC, tedarikçi doğruluğu, levha verimi/kerf ve fiziksel atölye uygunluğu bu testle doğrulanmış sayılmaz.
+
+**Doğrulama:** Bu commit için exact-SHA CI, QA ve Pages henüz bekleniyor; önceki HEAD 3150103c exact-SHA CI/QA/Pages başarılıydı. Yeni commit deploy edildiği iddia edilmez.
+
+**Sıradaki 3–5 küçük görev:**
+1. DOM-193 — ikinci immutable append sonrasında legacy kaynak yokluğu, ilk explicit source ve sonraki provenance değişimini birlikte koru; audit toplamlarını ve revizyon zincirini doğrula.
+2. UI-owned INT-003 — JSON v2 envelope'ı editor startup/new/save/open akışına bağla; bu ajan frontend dosyalarına dokunmaz.
+3. INT-001/INT-002 — desteklenen adapter round-trip ve geometri kayıpsızlığı için ayrı sahiplikte kanıt üret.
+4. PERF-001 — specialist job/branch mevcut olduğunda viewport p95, scene update ve bellek baseline ölç; şu anda specialist branch doğrulanmadı.
 5. QA-003 — INT-001/INT-002 exact-SHA kanıtından sonra uçtan uca export/data-flow denetimi.
