@@ -187,7 +187,7 @@ test("DOM-185 shelf-support price source stays distinct from BOM provenance thro
   assert.equal(hardwareChange.from.sourceReference, "hardware-price-list:2026-11");
   assert.equal(hardwareChange.to.sourceReference, "hardware-price-list:2026-11-revised");
 
-  const comparisonCsv = serializeProjectQuoteRevisionComparisonCsv(comparison.comparison);
+  const comparisonCsv = serializeProjectQuoteRevisionComparisonCsv(comparison);
   assert.equal(comparisonCsv.status, "ready", comparisonCsv.diagnostics.join("; "));
   assert.ok(comparisonCsv.csv);
   const comparisonCsvParsed = parseProjectQuoteRevisionComparisonCsv(comparisonCsv.csv);

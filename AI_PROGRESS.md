@@ -1466,3 +1466,11 @@
 - **Updated regressions:** real bookshelf shelf-support Part trace; distinct BOM and cost-line price references; price-source-only revision comparison and comparison-CSV round-trip without monetary delta; standalone revision-history JSON round-trip; missing hardware price still returns incomplete with no snapshot.
 - **Final correction commit / exact-SHA CI, QA and Pages:** pending.
 - **Next:** DOM-186 — independently verify price-source-only changes across quote revision comparison and source-map audit; UI-owned JSON v2 editor envelope work remains separate.
+
+
+## DOM-185 third-run test harness correction — 26 Kasım 2026
+
+- **Third implementation:** [066adb689c69c4afd7cdbb40eb7e13de2ac4a0a6](https://github.com/Taylan789/MobilyaCAD/commit/066adb689c69c4afd7cdbb40eb7e13de2ac4a0a6). CI [#45783904521](https://github.com/Taylan789/MobilyaCAD/actions/runs/45783904521) SUCCESS; QA [#45783904529](https://github.com/Taylan789/MobilyaCAD/actions/runs/45783904529) FAILED with 816/817 domain tests. The only failure was the new DOM-185 test passing `comparison.comparison` instead of the full validated result envelope to `serializeProjectQuoteRevisionComparisonCsv`; the serializer correctly rejected the unsupported `schemaVersion` at the envelope level.
+- **Pages:** [#45783904390](https://github.com/Taylan789/MobilyaCAD/actions/runs/45783904390) build SUCCESS; CI+QA gate did not authorize deploy. Test site remains on the last verified deployment.
+- **Fix:** the test now passes the full `compareProjectQuoteRevisions` result to the existing CSV serializer. No production source, adapter or frontend code changed in this correction.
+- **Next exact-SHA validation:** pending; no success or deployment is claimed until CI, QA and Pages finish.
