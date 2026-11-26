@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { createProjectSheetNestingBatches } from "./projectSheetNestingBatches.ts";
+import { calculateCabinetProjectProductionWithDiagnostics } from "./projectProduction.ts";
 import { createProjectSheetCutPlan } from "./projectSheetCutPlan.ts";
 import { serializeProjectSheetCutPlanJson } from "./projectSheetCutPlanFile.ts";
 import { validateProjectSheetCutPlanFreshness } from "./projectSheetCutPlanFreshness.ts";
@@ -346,4 +347,148 @@ test("JSON v3 stock-sheet provenance is preserved when fresh and export is block
   // Stale validation intentionally returns no partial export; the original saved v3
   // envelope remains unchanged and retains the user-provided source/revision metadata.
   assert.deepEqual(JSON.parse(jsonV3).result.groups[0].stockSheetSource, stockSheetSource);
+});
+
+
+const customPanelMaterials = [
+  { id: "mdf-18", name: "MDF Lam 18", category: "panel", thicknessesMm: [18], unit: "mm" },
+  { id: "plywood-18", name: "Kontrplak 18", category: "panel", thicknessesMm: [18], unit: "mm" },
+  { id: "mdf-8", name: "MDF Lam 8", category: "panel", thicknessesMm: [8], unit: "mm" }
+];
+
+function customPanelRequest(id, overrides = {}) {
+  const isCounter = id === "custom-counter";
+  return {
+    schemaVersion: 1,
+    family: "panel",
+    furniture: {
+      id,
+      name: isCounter ? "Tezgâh paneli" : "Ek raf",
+      widthMm: isCounter ? 1200 : 900,
+      lengthMm: isCounter ? 620 : 400,
+      thicknessMm: 18,
+      quantity: isCounter ? 3 : 2,
+      material: "MDF Lam 18",
+      materialId: "mdf-18",
+      ...overrides.furniture
+    },
+    profile: {
+      edgeBanding: isCounter
+        ? { top: true, bottom: false, left: true, right: false }
+        : { top: false, bottom: true, left: false, right: true },
+      grainDirection: isCounter ? "length" : "width",
+      ...overrides.profile
+    },
+    materials: customPanelMaterials
+  };
+}
+
+function customPanelProductionReport(selectedRequest, excludedRequest) {
+  const report = calculateCabinetProjectProductionWithDiagnostics({
+    schemaVersion: 1,
+    furniture: [selectedRequest, excludedRequest]
+  });
+  assert.equal(report.status, "ready", report.firstError ?? "Özel panel üretim raporu hazır olmalı.");
+  assert.equal(report.canExport, true);
+  assert.ok(report.result);
+  return report;
+}
+
+function customPanelSavedPlanJson(productionReport, selectedPartIds) {
+  const batches = createProjectSheetNestingBatches({
+    schemaVersion: 1,
+    productionReport,
+    partIds: selectedPartIds,
+    stockSheets: [{
+      sheet: {
+        materialId: "mdf-18",
+        widthMm: 2800,
+        lengthMm: 2070,
+        thicknessMm: 18,
+        grainDirection: "length"
+      },
+      kerfMm: 3.2
+    }]
+  });
+  assert.equal(batches.status, "ready", batches.diagnostics.join(" "));
+  assert.ok(batches.result);
+  const layoutReports = batches.result.batches.map((group) => ({
+    groupId: JSON.stringify([group.materialId, Math.round(group.thicknessMm * 10)]),
+    layoutReport: calculateSheetNestingLayout(group.batch)
+  }));
+  const plan = createProjectSheetCutPlan({
+    schemaVersion: 1,
+    batchReport: batches,
+    layoutReports
+  });
+  assert.equal(plan.status, "ready", plan.diagnostics.join(" "));
+  assert.ok(plan.json);
+  return plan.json;
+}
+
+test("özel panel ölçü, adet, malzeme, kalınlık, damar ve kenar düzenlemeleri kayıtlı JSON v2 kesim planını stale yapar", () => {
+  const selectedPartId = "custom-counter-panel";
+  const selectedPartIds = [selectedPartId];
+  const originalSelected = customPanelRequest("custom-counter");
+  const originalExcluded = customPanelRequest("custom-shelf");
+  const originalReport = customPanelProductionReport(originalSelected, originalExcluded);
+  const savedPlanJson = customPanelSavedPlanJson(originalReport, selectedPartIds);
+  const savedPlanBefore = savedPlanJson;
+
+  assert.equal(JSON.parse(savedPlanJson).formatVersion, 2);
+  const initiallyFresh = validateProjectSheetCutPlanFreshness({
+    schemaVersion: 1,
+    savedPlanJson,
+    productionReport: originalReport,
+    currentSelectedPartIds: selectedPartIds
+  });
+  assert.equal(initiallyFresh.status, "fresh", initiallyFresh.diagnostics.join(" "));
+
+  const edits = [
+    ["genişlik", { furniture: { widthMm: 1250 } }],
+    ["uzunluk", { furniture: { lengthMm: 650 } }],
+    ["adet", { furniture: { quantity: 4 } }],
+    ["malzeme", { furniture: { material: "Kontrplak 18", materialId: "plywood-18" } }],
+    ["kalınlık", { furniture: { thicknessMm: 8, material: "MDF Lam 8", materialId: "mdf-8" } }],
+    ["damar yönü", { profile: { grainDirection: "width" } }],
+    ["kenar bantlama", {
+      profile: { edgeBanding: { top: false, bottom: true, left: true, right: false } }
+    }]
+  ];
+
+  for (const [label, overrides] of edits) {
+    const editedReport = customPanelProductionReport(
+      customPanelRequest("custom-counter", overrides),
+      originalExcluded
+    );
+    const stale = validateProjectSheetCutPlanFreshness({
+      schemaVersion: 1,
+      savedPlanJson,
+      productionReport: editedReport,
+      currentSelectedPartIds: selectedPartIds
+    });
+    assertNotFresh(stale, "stale");
+    assert.match(
+      stale.diagnostics.join(" "),
+      /custom-counter-panel üretim Part snapshot'ı değişmiş/,
+      label + " değişikliği kayıtlı özel panel snapshot'ını geçersiz kılmalıdır."
+    );
+  }
+
+  const editedExcludedReport = customPanelProductionReport(
+    originalSelected,
+    customPanelRequest("custom-shelf", {
+      furniture: { quantity: 3 },
+      profile: { edgeBanding: { top: true, bottom: false, left: false, right: true } }
+    })
+  );
+  const excludedStale = validateProjectSheetCutPlanFreshness({
+    schemaVersion: 1,
+    savedPlanJson,
+    productionReport: editedExcludedReport,
+    currentSelectedPartIds: selectedPartIds
+  });
+  assertNotFresh(excludedStale, "stale");
+  assert.match(excludedStale.diagnostics.join(" "), /custom-shelf-panel üretim Part snapshot'ı değişmiş/);
+  assert.equal(savedPlanJson, savedPlanBefore);
 });

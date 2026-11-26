@@ -1810,3 +1810,14 @@ Kaynak: `domain/production/panelConstruction.ts`
 - `createProjectSheetNestingBatches`, seçilen dikdörtgen özel paneli yalnızca aynı `materialId` + normalize kalınlık için kullanıcı tarafından tanımlanmış levha grubuna aktarır. Part kimliği, genişlik/uzunluk/kalınlık, quantity ve grain yönü nesting girdisinde korunur.
 - Proje Part snapshot'ı seçilen ve seçilmeyen tüm Part kayıtlarını kaynak sırasıyla saklar. Böylece seçilmeyen panelin malzeme, ölçü, adet, damar ve kenar bantlama verileri de snapshot karşılaştırmasında görünür kalır.
 - Bu sözleşme yalnızca doğrulanmış dikdörtgen nesting girdisini kapsar; yerleşim optimizasyonu, kesitli panel nesting'i, adapter round-trip veya CNC/postprocessor uyumluluğu iddiası değildir. Kesit geometrisi mevcut fail-closed kapısında kalır.
+
+
+### 2.7 Özel panel değişiklikleri ve kayıtlı kesim planı freshness
+
+Kaynaklar: `domain/production/panelConstruction.ts`, `projectProduction.ts`, `projectSheetCutPlan.ts` ve `projectSheetCutPlanFreshness.ts`.
+
+- `family: "panel"` isteği açık mm genişlik/uzunluk/kalınlık, pozitif adet, malzeme kimliği/etiketi, dört kenar bandı ve damar yönüyle tek `<furnitureId>-panel` Part satırı üretir. Katalog kimliği verilmişse gerçek kalınlık katalogda bulunmalıdır.
+- `createProjectSheetNestingBatches` tam proje Part snapshot'ını (seçilen ve hariç tutulan kayıtlar) üretir; bu snapshot JSON v2/v3 kesim planı zarfında saklanır.
+- `validateProjectSheetCutPlanFreshness` JSON v2/v3 için güncel tam proje snapshot'ını kayıtlı snapshot ile kanonik olarak karşılaştırır. Özel panelin ölçüsü, adedi, malzeme adı/kimliği, kalınlığı, damar yönü, kenar bantlama bayrakları veya başka bir Part alanı değişirse plan `stale` olur; `result` ve `json` null kalır. Hariç tutulan özel paneldeki değişiklik de aynı şekilde stale üretir.
+- JSON v2/v3 freshness çağrısında mevcut kullanıcı seçimi `currentSelectedPartIds` zorunludur. Seçim sırası/kapsamı değişirse yine stale döner. JSON v1 legacy planlarında tam proje snapshot'ı bulunmadığından yalnızca kayıtlı seçili kaynak Part'lar karşılaştırılır.
+- Bu doğrulama yalnızca kaydedilmiş makine-bağımsız kesim planının mevcut domain Part verisiyle eşleşmesini sağlar. Kesitli geometri nesting/export adapter'ında desteklenmiyorsa export fail-closed kalır; CNC koordinatı, makine standardı veya fiziksel üretim güvenliği doğrulaması değildir.

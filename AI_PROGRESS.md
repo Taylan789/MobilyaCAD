@@ -1692,3 +1692,15 @@
 - **Parallel lanes:** UI-owned INT-003 PR [#206](https://github.com/Taylan789/MobilyaCAD/pull/206) remains draft and unmerged; its description explicitly defers editor startup/new/save/open wiring until App.tsx owners finish. No `agent/integration-performance-*` branch was found and the specialist job was skipped; INT-002/PERF-001 remain specialist-owned and unverified. QA-003 remains blocked on INT-001/INT-002 evidence.
 - **AI Developer:** [run #45810848741](https://github.com/Taylan789/MobilyaCAD/actions/runs/45810848741) failed with OpenRouter free-model daily HTTP 429 (limit 50, remaining 0; reset 27 November 2026 03:00 TRT). It was not rerun before reset; no paid fallback, secret or quota setting was changed.
 - **Next:** DOM-199 — verify custom-panel dimension/material/thickness/grain/edge changes invalidate an existing saved cut-plan freshness snapshot; keep INT-003, INT-002 and PERF-001 ownership isolated.
+
+
+## 27 Kasım 2026 00:58 TRT — DOM-199 IMPLEMENTED (exact-SHA verification pending)
+
+- **Base HEAD:** `dev/github-work` `e2c557ab3b1066b1ff83770e61ec0644c0e5a735`.
+- **Implementation commit:** this entry is included in the implementation commit; the resulting SHA and exact-SHA Actions evidence will be recorded after GitHub creates and verifies that commit.
+- **Delivery:** Added a real custom-panel production → selected nesting batch → JSON v2 project Part snapshot → saved cut-plan freshness regression. A baseline remains fresh; changing width, length, quantity, catalogue material, thickness, grain direction or any edge-band flag makes the saved plan stale with null result/JSON. A changed excluded custom panel also invalidates the full project snapshot. The saved plan input remains unchanged.
+- **Changed files:** `domain/production/projectSheetCutPlanFreshness.test.mjs`, `docs/production-domain-contract.md`, `AI_COORDINATION.md`, `AI_PROGRESS.md`, `PRODUCT_ROADMAP.md`. No `frontend/**`, adapter/benchmark-owned file, runtime CNC/machine output, secret/setting or `main` change.
+- **Automated checks:** exact-SHA CI, QA, strict shared-domain TypeScript, lint, production build, production dependency audit and Pages deployment are pending; no result is claimed yet.
+- **Known limits:** This is a domain freshness contract test, not editor UI wiring or cutout-aware nesting/export. CNC, machine-specific postprocessor and physical workshop validation remain unverified.
+- **Parallel lanes:** UI-owned INT-003 PR [#206](https://github.com/Taylan789/MobilyaCAD/pull/206) remains draft and unmerged; its App startup/new/save/open integration is explicitly deferred. No integration/performance specialist branch exists; that workflow job remains disabled and INT-002/PERF-001 stay specialist-owned. Latest AI Developer [#45890606689](https://github.com/Taylan789/MobilyaCAD/actions/runs/45890606689) failed on OpenRouter free-model daily HTTP 429; reset is 27 November 2026 03:00 TRT, so it was not rerun.
+- **Next:** DOM-200 — reconcile custom-panel edits with user-priced material consumption and immutable quote snapshot/revision source totals without inventing prices; UI/adapter integration remains with its owners.

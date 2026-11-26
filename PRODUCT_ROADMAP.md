@@ -2581,3 +2581,26 @@ Sıradaki küçük görevler:
 3. Specialist-owned INT-002 — adapter JSON/CSV round-trip ve kesit geometri kayıpsızlığı için exact-SHA kanıt; kanıt yoksa export bloklu kalır.
 4. Specialist-owned PERF-001 — viewport p95, scene update ve bellek baseline; şu an NOT MEASURED.
 5. QA-003 — INT-001/INT-002 exact-SHA kanıtından sonra uçtan uca export/data-flow denetimi.
+
+
+## 27 Kasım 2026 00:58 TRT — DOM-199 özel panel düzenlemelerinde kesim planı freshness
+
+**Kullanıcı akışı:** Kullanıcı özel panelin ölçüsünü, adedini, katalog malzemesini/kalınlığını, damar yönünü veya kenar bantlamasını düzenler. Önceden kaydedilmiş JSON v2/v3 kesim planı, eski üretim snapshot'ına dayanarak yeniden dışa aktarılmamalıdır.
+
+**Kabul kriterleri:**
+- Gerçek özel panel domain isteği üretim agregatöründen geçer; seçilen panel nesting batch'ine ve tam proje Part snapshot'ına taşınır.
+- Değişmeyen proje için kaydedilmiş JSON v2 kesim planı `fresh` kalır.
+- Genişlik, uzunluk, adet, katalog malzeme kimliği/adı, kalınlık, damar yönü ve dört kenar bandı değişikliklerinin her biri `stale` üretir; kısmi `result/json` dönmez.
+- Nesting'e seçilmeyen özel panel değiştiğinde de tam proje snapshot'ı üzerinden plan `stale` olur.
+- Kaydedilmiş JSON girdisi mutasyona uğramaz; legacy JSON v1 freshness davranışı değişmez.
+
+**10/10 checklist delta:** Üretim veri güvenilirliği, tam proje snapshot'ı ve export öncesi freshness kapısı için özel panel odaklı uçtan uca otomatik regresyon eklendi. CAD viewport/UX, editor save/open UI, perform p95/bellek ve CNC/makine doğrulaması bu dilimde değişmedi/ölçülmedi.
+
+**Durum:** Test ve sözleşme dokümantasyonu implementation commit'ine eklendi; exact-SHA CI/QA/Pages sonucu bekleniyor.
+
+**Sıradaki 3–5 küçük görev:**
+1. DOM-200 — özel panel değişikliklerinin kullanıcı fiyatlı malzeme tüketimi ve immutable quote snapshot/revision toplamlarıyla tutarlı kalmasını doğrula; fiyat/para birimi kaynağı uydurma.
+2. UI-owned INT-003 — JSON v2 editor startup/new/save/open ve özel panel editör akışı; `frontend/**` yalnızca UI ajanının sahipliğindedir.
+3. Specialist-owned INT-002 — adapter JSON/CSV round-trip ve kesitli geometri kayıpsızlığı için exact-SHA kanıt; kanıt yoksa export bloklu kalır.
+4. Specialist-owned PERF-001 — viewport p95, scene update ve bellek baseline ölç; şu an NOT MEASURED.
+5. QA-003 — INT-001/INT-002 exact-SHA kanıtından sonra uçtan uca üretim/export data-flow denetimi.
