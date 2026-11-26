@@ -1510,3 +1510,104 @@ test("DOM-180 accepts exactly 16 MiB UTF-8 and blocks the next byte across read,
   assert.equal(Object.hasOwn(importTarget, PROJECT_QUOTE_REVISION_HISTORY_FIELD), false);
 });
 
+test("DOM-181 counts escaped control characters and lone surrogates at the project-envelope byte boundary", () => {
+  const maxBytes = PROJECT_QUOTE_REVISION_PROJECT_ENVELOPE_MAX_BYTES;
+  const escapedPayloadPrefix = "\u0000\u001f\n\t\uD800x\uDC00🚀";
+
+  function serializedUtf8Bytes(project) {
+    const serialized = JSON.stringify(project);
+    assert.ok(serialized.includes("\\u0000"));
+    assert.ok(serialized.includes("\\u001f"));
+    assert.ok(serialized.includes("\\n"));
+    assert.ok(serialized.includes("\\t"));
+    assert.ok(serialized.includes("\\ud800"));
+    assert.ok(serialized.includes("\\udc00"));
+    assert.ok(serialized.includes("🚀"));
+    return Buffer.byteLength(serialized, "utf8");
+  }
+
+  function createProjectWithExactUtf8Bytes(totalBytes) {
+    const project = createV2Project({ metadata: { payload: escapedPayloadPrefix } });
+    const baseBytes = serializedUtf8Bytes(project);
+    const paddingBytes = totalBytes - baseBytes;
+    assert.ok(paddingBytes >= 0);
+    project.metadata.payload += "x".repeat(paddingBytes);
+    assert.equal(serializedUtf8Bytes(project), totalBytes);
+    return project;
+  }
+
+  const readTarget = createProjectWithExactUtf8Bytes(maxBytes);
+  const exactRead = readProjectQuoteRevisionHistoryFromProjectFile(readTarget);
+  assert.equal(exactRead.status, "empty", exactRead.diagnostics.join("; "));
+  assert.equal(exactRead.history?.revisions.length, 0);
+  readTarget.metadata.payload += "x";
+  assert.equal(serializedUtf8Bytes(readTarget), maxBytes + 1);
+  const blockedRead = readProjectQuoteRevisionHistoryFromProjectFile(readTarget);
+  assert.equal(blockedRead.status, "blocked");
+  assert.equal(blockedRead.projectId, null);
+  assert.equal(blockedRead.history, null);
+
+  const baseAppend = appendProjectQuoteRevisionToProjectFile(
+    createV2Project({ metadata: { payload: escapedPayloadPrefix } }),
+    createRevision()
+  );
+  assert.equal(baseAppend.status, "ready", baseAppend.diagnostics.join("; "));
+  assert.ok(baseAppend.project);
+  const appendPaddingBytes = maxBytes - serializedUtf8Bytes(baseAppend.project);
+  assert.ok(appendPaddingBytes > 0);
+  const appendTarget = createV2Project({
+    metadata: { payload: escapedPayloadPrefix + "x".repeat(appendPaddingBytes) }
+  });
+  assert.ok(serializedUtf8Bytes(appendTarget) < maxBytes);
+  const exactAppend = appendProjectQuoteRevisionToProjectFile(appendTarget, createRevision());
+  assert.equal(exactAppend.status, "ready", exactAppend.diagnostics.join("; "));
+  assert.ok(exactAppend.project);
+  assert.equal(serializedUtf8Bytes(exactAppend.project), maxBytes);
+  assert.equal(exactAppend.history?.revisions.length, 1);
+  const appendPayloadBeforeOverflow = appendTarget.metadata.payload;
+  appendTarget.metadata.payload += "x";
+  const blockedAppendInput = JSON.stringify(appendTarget);
+  assert.ok(Buffer.byteLength(blockedAppendInput, "utf8") < maxBytes);
+  const blockedAppend = appendProjectQuoteRevisionToProjectFile(appendTarget, createRevision());
+  assert.equal(blockedAppend.status, "blocked");
+  assert.equal(blockedAppend.project, null);
+  assert.equal(blockedAppend.history, null);
+  assert.equal(JSON.stringify(appendTarget), blockedAppendInput);
+  assert.equal(appendTarget.metadata.payload, appendPayloadBeforeOverflow + "x");
+  assert.equal(Object.hasOwn(appendTarget, PROJECT_QUOTE_REVISION_HISTORY_FIELD), false);
+
+  const source = appendProjectQuoteRevisionToProjectFile(createV2Project(), createRevision());
+  assert.equal(source.status, "ready", source.diagnostics.join("; "));
+  assert.ok(source.history);
+  const standalone = serializeProjectQuoteRevisionHistoryFile(source.history);
+  assert.equal(standalone.status, "ready", standalone.diagnostics.join("; "));
+  assert.ok(standalone.json);
+  const baseImport = importProjectQuoteRevisionHistoryFileIntoProject(
+    createV2Project({ metadata: { payload: escapedPayloadPrefix } }),
+    standalone.json
+  );
+  assert.equal(baseImport.status, "ready", baseImport.diagnostics.join("; "));
+  assert.ok(baseImport.project);
+  const importPaddingBytes = maxBytes - serializedUtf8Bytes(baseImport.project);
+  assert.ok(importPaddingBytes > 0);
+  const importTarget = createV2Project({
+    metadata: { payload: escapedPayloadPrefix + "x".repeat(importPaddingBytes) }
+  });
+  assert.ok(serializedUtf8Bytes(importTarget) < maxBytes);
+  const exactImport = importProjectQuoteRevisionHistoryFileIntoProject(importTarget, standalone.json);
+  assert.equal(exactImport.status, "ready", exactImport.diagnostics.join("; "));
+  assert.ok(exactImport.project);
+  assert.equal(serializedUtf8Bytes(exactImport.project), maxBytes);
+  assert.equal(exactImport.history?.revisions.length, 1);
+  const importPayloadBeforeOverflow = importTarget.metadata.payload;
+  importTarget.metadata.payload += "x";
+  const blockedImportInput = JSON.stringify(importTarget);
+  assert.ok(Buffer.byteLength(blockedImportInput, "utf8") < maxBytes);
+  const blockedImport = importProjectQuoteRevisionHistoryFileIntoProject(importTarget, standalone.json);
+  assert.equal(blockedImport.status, "blocked");
+  assert.equal(blockedImport.project, null);
+  assert.equal(blockedImport.history, null);
+  assert.equal(JSON.stringify(importTarget), blockedImportInput);
+  assert.equal(importTarget.metadata.payload, importPayloadBeforeOverflow + "x");
+  assert.equal(Object.hasOwn(importTarget, PROJECT_QUOTE_REVISION_HISTORY_FIELD), false);
+});

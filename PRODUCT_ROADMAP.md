@@ -2155,3 +2155,20 @@ Sonraki adım: Exact-SHA CI/QA/Pages sonuçlarını doğrula; ardından DOM-170 
 4. INT-002/PERF-001 specialist-owned; bu turda agent/integration-performance branch bulunamadı ve specialist job skipped. Adapter/benchmark dosyalarına dokunulmaz.
 5. QA-003, INT-001/INT-002 exact-SHA adapter ve round-trip kanıtı gelene kadar blocked; viewport p95/memory NOT MEASURED, fiziksel CNC/makine/atölye doğrulaması insan kontrolüdür.
 
+## DOM-181 — Escaped JSON byte accounting at the 16 MiB boundary (26 Kasım 2026 07:02 TRT; IMPLEMENTED, verification pending)
+
+**Kullanıcı akışı:** JSON v2 proje zarfına kontrol karakterleri veya Unicode surrogate içeren özel metadata kaydedilir; teklif geçmişi okunur, eklenir veya standalone geçmiş içe aktarılır. Boyut limiti gerçek serileştirilmiş JSON UTF-8 çıktısına uygulanır.
+
+**Kabul kriterleri:** U+0000/U+001F, LF/TAB, eşleşmemiş high/low surrogate ve geçerli astral karakter içeren payload için Buffer.byteLength(JSON.stringify(project), "utf8") oracle kabul edilir. Read, append ve import son çıktıda tam 16 MiB boyutu kabul eder; +1 byte durumunu blocked döndürür. Append/import giriş zarfı limit altında kalırken son çıktı aşımını atomik engeller; project/history kısmi dönmez ve giriş nesnesi değişmez.
+
+**Teslimat:** domain/production/projectQuoteRevisionProjectFile.test.mjs içine DOM-181 regresyonu eklendi. Mevcut UTF-8 byte hesabı ve serializer sözleşmesi değiştirilmedi; üretim kaynağı/API değişikliği yok. Kontrol karakterleri ve lone surrogate'ların JSON kaçış uzunlukları ile geçerli surrogate pair'in 4 UTF-8 byte hesabı aynı gerçek JSON serileştirme çıktısına karşı test edilir.
+
+**Doğrulama:** Exact-SHA CI/QA/Pages henüz bekleniyor; başarılı sonuç görülmeden test sitesi güncellendi sayılmaz.
+
+### Sıradaki 3–5 küçük görev
+
+1. DOM-181 exact-SHA CI, QA ve Pages sonuçlarını doğrula; QA domain regresyonunun geçtiğini ve deployment SHA'sının eşleştiğini kanıtla.
+2. UI-owned INT-003 PR #206 ayrı sahibinde kalır; editor startup/new/save/open JSON v2 envelope wiring ve exact-SHA QA tamamlanmadan domain tarafında DOM-153'e geçme.
+3. DOM-153 — INT-003 sonrasında append → save → reopen → append gerçek proje dosyası akışını doğrula.
+4. INT-002/PERF-001 adapter, benchmark ve viewport p95/bellek ölçümleri Integration/Performance sahibinde kalır; bu turda job disabled ve specialist branch kanıtı yoktur.
+5. QA-003, INT-001/INT-002 adapter round-trip kanıtına kadar blocked; viewport p95/memory NOT MEASURED ve fiziksel CNC/makine/atölye doğrulaması insan kontrolüdür.
