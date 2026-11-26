@@ -2559,3 +2559,25 @@ Sıradaki küçük görevler:
 3. Specialist-owned INT-002 — adapter JSON/CSV round-trip ve kesitli geometri korumasını exact-SHA testle kanıtla; kanıt yoksa export bloklu kalır.
 4. Specialist-owned PERF-001 — viewport p95, scene update ve bellek baseline ölç; şu an NOT MEASURED.
 5. QA-003 — INT-001/INT-002 kanıtı sonrası uçtan uca üretim/export data-flow denetimi.
+
+## 26 Kasım 2026 23:06 TRT — DOM-198 özel panel snapshot / nesting sözleşmesi
+
+**Kullanıcı akışı:** Kullanıcı bir projeye farklı malzeme ve kalınlıktaki özel paneller ekler; yalnızca bir paneli nesting batch'ine seçer. Seçilen parçanın kimliği, mm ölçüsü, adedi, malzemesi ve damar yönü batch'e taşınırken seçilmeyen panellerin tam üretim Part kayıtları proje snapshot'ında korunur.
+
+**Kabul kriterleri:**
+- Seçilen özel panelin kararlı Part ID'si, 0.1 mm mm ölçüleri, pozitif adet, katalog materialId/kalınlık ve grain yönü nesting girdisinde aynen korunur.
+- Kenar bantlama ve diğer Part alanları tam proje snapshot'ında kanonik JSON olarak saklanır.
+- Seçilmeyen özel panelin ID'si excluded listesinde kalır ve snapshot kaydında malzeme/ölçü/adet/grain/edge verisi kaybolmaz.
+- Üretim raporu değişmez; batch toplam adedi seçilen Part quantity ile eşleşir.
+- Kesitli panel nesting/export desteği, CNC ve fiziksel üretim doğrulaması bu görev kapsamı dışındadır.
+
+**10/10 checklist delta:** Üretim veri bütünlüğü ve nesting girişine giden Part kimliği/adet/malzeme/grain tutarlılığı için seçili + seçilmemiş özel panel regresyonu ekleniyor. UI, CAD viewport ve adapter davranışı değişmez.
+
+**Durum:** Domain regression eklendi; exact-SHA GitHub Actions CI/QA doğrulaması bekleniyor.
+
+**Sıradaki küçük görevler:**
+1. DOM-199 — özel panel ölçü/malzeme/kalınlık/damar/kenar değişikliğinin kayıtlı kesim planı freshness sonucunu stale yaptığını doğrula.
+2. UI-owned INT-003 — JSON v2 editor startup/new/save/open ve özel panel editör akışı; frontend/** yalnızca UI ajanının sahipliğindedir.
+3. Specialist-owned INT-002 — adapter JSON/CSV round-trip ve kesit geometri kayıpsızlığı için exact-SHA kanıt; kanıt yoksa export bloklu kalır.
+4. Specialist-owned PERF-001 — viewport p95, scene update ve bellek baseline; şu an NOT MEASURED.
+5. QA-003 — INT-001/INT-002 exact-SHA kanıtından sonra uçtan uca export/data-flow denetimi.

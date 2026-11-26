@@ -1803,3 +1803,10 @@ Kaynak: `domain/production/panelConstruction.ts`
 - Bu modül yerleşim, bağlantı, ayak/taşıyıcı, kenar profili, fire, levha yerleşimi, delik, CNC koordinatı veya makine postprocessor'ı üretmez. Tezgâh/raf gibi gerçek kullanım için destek ve montaj güvenliği ayrıca tasarımcı/atölye tarafından doğrulanmalıdır.
 
 **Frontend entegrasyon sözleşmesi (UI-owned):** Özel panel oluşturma akışı `family: "panel"` ve yukarıdaki açık ölçü/adet/malzeme/kenar/damar alanlarını gönderir; sonuçta `parts[0]` ve `overallDimensionsMm` tüketilir. `panelGeometry` mevcut adapter'larda desteklenmiyorsa kesitli Part için dışa aktarma engeli kullanıcıya görünür olmalıdır. Bu turda `frontend/**` değiştirilmemiştir.
+
+## Özel panel Part snapshot ve nesting sözleşmesi
+
+- `panel` ailesi üretim raporunda tek kararlı Part kimliği (`<furnitureId>-panel`), mm ölçüleri, açık adet, katalog malzeme kimliği, kalınlık, damar yönü ve dört kenar bantlama bayrağı üretir.
+- `createProjectSheetNestingBatches`, seçilen dikdörtgen özel paneli yalnızca aynı `materialId` + normalize kalınlık için kullanıcı tarafından tanımlanmış levha grubuna aktarır. Part kimliği, genişlik/uzunluk/kalınlık, quantity ve grain yönü nesting girdisinde korunur.
+- Proje Part snapshot'ı seçilen ve seçilmeyen tüm Part kayıtlarını kaynak sırasıyla saklar. Böylece seçilmeyen panelin malzeme, ölçü, adet, damar ve kenar bantlama verileri de snapshot karşılaştırmasında görünür kalır.
+- Bu sözleşme yalnızca doğrulanmış dikdörtgen nesting girdisini kapsar; yerleşim optimizasyonu, kesitli panel nesting'i, adapter round-trip veya CNC/postprocessor uyumluluğu iddiası değildir. Kesit geometrisi mevcut fail-closed kapısında kalır.
