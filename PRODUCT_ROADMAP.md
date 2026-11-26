@@ -2488,7 +2488,7 @@ Sıradaki küçük görevler:
 5. QA-003 — INT-001/INT-002 exact-SHA kanıtından sonra uçtan uca export/data-flow denetimi.
 
 
-## 26 Kasım 2026 20:07 TRT — DOM-195 standalone history import into project JSON v2 (Actions pending)
+## 26 Kasım 2026 20:07 TRT — DOM-195 standalone history import into project JSON v2 (VERIFIED)
 
 **Kullanıcı akışı:** Atölye, önceki teklif geçmişini ayrı JSON v1 geçmiş dosyası olarak saklamıştır. Kullanıcı bunu aynı proje kimliğine sahip, henüz geçmiş içermeyen JSON v2 projesine aktarır; projeyi kaydedip tekrar açar, yeni revizyon ekler ve son geçmişi dışa aktarır. Var olan bir geçmiş sessizce değiştirilemez.
 
@@ -2502,7 +2502,7 @@ Sıradaki küçük görevler:
 
 **10/10 checklist delta:** Proje dosyası güvenilirliği, teklif revizyonu geriye uyumluluğu ve veri kayıpsızlığı için birleşik import → restore → append → export regresyonu eklendi. CAD geometrisi, 3D senkronizasyon ve UX bu dilimde değişmedi. Viewport p95/bellek NOT MEASURED; büyük JS chunk uyarısı ve mevcut lint uyarıları sürüyor. CNC, tedarikçi doğruluğu, kerf/levha verimi ve fiziksel atölye uygunluğu insan/üretici doğrulaması gerektirir.
 
-**Doğrulama:** İlk implementation commit'inin exact-SHA CI/QA/Pages sonuçları geldikten sonra buraya kaydedilecek.
+**Doğrulama:** Implementation [6422193ca4c788b5c343ad347e7b2edde9885d7a](https://github.com/Taylan789/MobilyaCAD/commit/6422193ca4c788b5c343ad347e7b2edde9885d7a) on dev/github-work. Exact-SHA CI [#45865536152](https://github.com/Taylan789/MobilyaCAD/actions/runs/45865536152) SUCCESS. Exact-SHA QA [#45865536280](https://github.com/Taylan789/MobilyaCAD/actions/runs/45865536280) SUCCESS — 378/378 frontend + 827/827 domain tests; DOM-195 passed as domain test #542; strict shared-domain TypeScript; lint 36 warnings / 0 errors; production build; production-only audit 0 vulnerabilities. Exact-SHA Pages [#45865536182](https://github.com/Taylan789/MobilyaCAD/actions/runs/45865536182) SUCCESS; deployment log confirms pages_build_version=6422193ca4c788b5c343ad347e7b2edde9885d7a at https://taylan789.github.io/MobilyaCAD/.
 
 **Sıradaki 3–5 görev:**
 1. DOM-196 — mixed-version imported history için source-map/integrity audit totals'ını import, project restore ve append sınırlarında karşılaştır; legacy manifest yokluğunu koru.
