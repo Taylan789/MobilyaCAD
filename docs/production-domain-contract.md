@@ -1756,3 +1756,12 @@ The three-revision history must preserve the original property absence, the firs
 
 The two appends must preserve revision numbers and previous-revision links, group Part identities, sheet quantity, user-entered price/currency and all monetary totals. The original history, validated history and first append remain immutable. Standalone quote-revision JSON v1 serialize/parse must preserve all three source states and reproduce the same audit and comparison results. This verifies data integrity only; it does not certify supplier identity, sheet yield, kerf, nesting quality, CNC compatibility or physical workshop suitability.
 
+
+
+## DOM-194 — JSON v2 project-envelope append / restore / export
+
+- A MobilyaCAD JSON v2 envelope may already contain a validated quote history whose first stock-sheet purchase group uses material-cost-basis schema v1 and has no own sourceReference property. Two appendProjectQuoteRevisionToProjectFile calls must preserve that legacy absence and the two later user-supplied source values independently; the second append is performed after a JSON stringify/parse restore.
+- After the final project JSON export/parse, readProjectQuoteRevisionHistoryFromProjectFile must return the same three-revision chain. The source-map audit remains [0, 1, 1] with total two; integrity audit remains one legacy and two strict revisions; adjacent and non-adjacent comparisons report only sourceReference; schema-v1 aggregate Part-manifest comparison remains both-unavailable.
+- Part IDs, sheet count, TRY currency, stock-sheet cost and quote grand total remain unchanged. The original project envelope and the first restored envelope are not mutated.
+- Unknown top-level and nested metadata, including own __proto__ JSON data keys, must survive both appends and the final export/restore. Object prototypes remain unchanged and prototype pollution does not occur.
+- This is a domain regression for the existing JSON v2 envelope API. It does not implement UI-owned editor startup/new/save/open integration (INT-003), adapter download wiring, CNC output, supplier verification, or physical workshop validation.

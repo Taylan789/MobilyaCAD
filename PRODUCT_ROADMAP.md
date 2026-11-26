@@ -593,11 +593,11 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 
 ## Next 5 small tasks
 
-1. **DOM-120 VERIFIED** — independent mixed-stock project cut-plan area-summary reconciliation; [test commit 31ca52de](https://github.com/Taylan789/MobilyaCAD/commit/31ca52de6334d4f36b0b37e7594d20affde91c16), exact-SHA CI/QA/Pages successful (172 frontend + 649 domain tests).
-2. **DOM-121 VERIFIED** — canonical Part-snapshot provenance for mixed-family material/edge-band summaries, including source-order invariance; [CI #45090552662](https://github.com/Taylan789/MobilyaCAD/actions/runs/45090552662), [QA #45090552670](https://github.com/Taylan789/MobilyaCAD/actions/runs/45090552670), [Pages #45090552717](https://github.com/Taylan789/MobilyaCAD/actions/runs/45090552717) successful (172 frontend + 650 domain; strict TS, lint, build, audit).
-3. **DOM-122 READY** — quote-cost totals reconcile against priced-consumption and labor/operation source lines.
-4. **INT-001 FRONTEND-OWNED** — domain/export contract and download-adapter wiring; product agent does not edit frontend.
-5. **INT-002/PERF-001 SPECIALIST-OWNED** — adapter round-trip and measured CAD profiling; QA-003 stays blocked until integration evidence.
+1. **DOM-194 IMPLEMENTED — exact-SHA Actions pending** — JSON v2 project-envelope append across a stringify/parse restore; preserve legacy → explicit → explicit stock-sheet provenance and unknown metadata.
+2. **DOM-195 PLANNED** — verify standalone quote-history import into an empty JSON v2 envelope, followed by immutable append and re-export, without overwriting existing history or losing unrelated metadata.
+3. **INT-003 UI-OWNED** — wire the JSON v2 envelope through editor startup/new/save/open; frontend files remain owned by the UI agent.
+4. **INT-001/INT-002 UI + SPECIALIST-OWNED** — supported adapter round-trip and geometry/quantity preservation; unsupported cutouts, edge-band assignments and CNC operations remain fail-closed.
+5. **PERF-001 / QA-003 SPECIALIST + QA-OWNED** — measured viewport/scene/memory baseline and end-to-end export reconciliation after exact-SHA adapter evidence; currently NOT MEASURED / BLOCKED.
 
 ## 10/10 ölçülebilir kalite kapıları (kanıt 26 Kasım 2026 güncellendi)
 
@@ -2462,3 +2462,27 @@ Sıradaki küçük görevler:
 4. PERF-001 — specialist job/branch etkinleştiğinde viewport p95, scene update ve bellek baseline ölç; şu anda ölçülmedi.
 5. QA-003 — INT-001/INT-002 exact-SHA kanıtından sonra uçtan uca export/data-flow denetimi.
 
+
+
+## 26 Kasım 2026 19:18 TRT — DOM-194 JSON v2 project-envelope provenance round-trip (Actions pending)
+
+**Kullanıcı akışı:** Eski bir teklif revizyonu JSON v2 proje dosyasında kayıtlıdır. İlk yeni revizyon kullanıcı tarafından sağlanan fiyat kaynağını ekler; dosya JSON olarak dışa aktarılıp yeniden açıldıktan sonra ikinci revizyon farklı bir açık kaynak değeri ekler. Geçmiş revizyonlar ve projeye ait diğer metadata değişmeden kalmalıdır.
+
+**Kabul kriterleri:**
+- Başlangıçtaki legacy schema-v1 stock-sheet grubu kendi sourceReference alanını taşımaz; ilk ve ikinci append sonrasında bu alan geçmiş revizyona eklenmez.
+- İki append, JSON stringify/parse restore sınırını aşar; son okuma r1 → r2 → r3 zincirini ve previousRevisionId/revisionNumber değerlerini korur.
+- Kaynak audit'i revizyon bazında [0, 1, 1], toplamda 2 referans gösterir; integrity audit 1 legacy + 2 strict revizyon raporlar.
+- r1→r2, r2→r3 ve r1→r3 karşılaştırmaları yalnızca sourceReference değişimini raporlar; schema-v1 aggregate Part manifest both-unavailable kalır.
+- Part kimlikleri, levha adedi, TRY para birimi, levha maliyeti ve teklif genel toplamı değişmez; orijinal ve ilk restore edilmiş proje nesneleri immutable kalır.
+- Bilinmeyen üst seviye/iç içe metadata ve own __proto__ JSON data key'leri korunur; prototype değişmez ve pollution oluşmaz.
+
+**10/10 checklist delta:** Üretim/teklif veri bütünlüğü, proje JSON v2 append/restore güvenilirliği ve geriye uyumluluk için uçtan uca domain regresyonu eklendi. CAD Core ve UX değişmedi; viewport p95/bellek hâlâ NOT MEASURED. Tedarikçi doğruluğu, levha verimi/kerf, CNC ve fiziksel atölye uygunluğu bu testle doğrulanmış sayılmaz.
+
+**Doğrulama:** Test ve dokümantasyon değişikliği dev/github-work üzerine atomik commit ediliyor; exact-SHA CI, QA ve Pages sonuçları henüz bekleniyor. Test sitesi yalnızca Pages deployment başarıyla tamamlanırsa bu SHA'ya güncel kabul edilecektir.
+
+**Sıradaki küçük görevler:**
+1. DOM-195 — standalone quote-history JSON v1 import'unu boş JSON v2 project envelope'a aktar; ardından immutable append, JSON export/restore ve unknown metadata korumasını doğrula; mevcut non-empty history overwrite edilmesin.
+2. UI-owned INT-003 — JSON v2 envelope'ı editor startup/new/save/open akışına bağla; frontend dosyaları UI agent'ına aittir.
+3. INT-001/INT-002 — desteklenen adapter round-trip ve geometri/adet kayıpsızlığı için ayrı sahiplikte exact-SHA kanıtı üret.
+4. PERF-001 — specialist job/branch etkinleştiğinde viewport p95, scene update ve bellek baseline ölç; şu anda ölçülmedi.
+5. QA-003 — INT-001/INT-002 exact-SHA kanıtından sonra uçtan uca export/data-flow denetimi.

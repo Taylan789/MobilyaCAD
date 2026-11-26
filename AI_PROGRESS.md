@@ -1620,3 +1620,15 @@
 - **AI Developer:** [run #45810848741](https://github.com/Taylan789/MobilyaCAD/actions/runs/45810848741) failed with OpenRouter free-tier HTTP 429 (50/50 requests used; reset 27 November 2026 03:00 TRT). No rerun before reset, paid fallback, secret or quota change.
 - **Next:** DOM-194 — verify the JSON v2 project-file append path preserves the legacy → explicit → explicit provenance chain and unrelated envelope metadata through restore/export; then continue the UI-owned INT-003 and specialist-owned INT-002/PERF-001 handoffs.
 
+
+
+## 26 Kasım 2026 19:18 TRT — DOM-194 JSON v2 project-envelope provenance round-trip (Actions pending)
+
+- **Base HEAD:** dev/github-work 163820a17747ef9d42f151d00e4ce2d468c89757.
+- **Delivery:** domain/production/projectQuoteRevision.test.mjs now exercises two appendProjectQuoteRevisionToProjectFile calls separated by JSON stringify/parse restore. The three revisions preserve the legacy absent sourceReference, first explicit user source and second explicit user source; revision links/numbers, source-map counts [0, 1, 1], integrity counts (1 legacy + 2 strict), source-only comparisons and the v1 aggregate manifest's both-unavailable state are asserted.
+- **Data integrity:** Part IDs, sheet count, TRY currency, stock-sheet cost and quote grand total remain unchanged. Unknown top-level/nested metadata and own __proto__ JSON data keys survive both appends and final export/restore; ordinary prototypes remain unchanged; original and first-restored inputs remain immutable.
+- **Files:** domain/production/projectQuoteRevision.test.mjs, docs/production-domain-contract.md, AI_COORDINATION.md, PRODUCT_ROADMAP.md, AI_PROGRESS.md.
+- **Commit:** exact SHA is assigned by GitHub at commit creation and will be recorded with the exact-SHA validation evidence.
+- **Exact-SHA CI / QA / Pages:** pending; no test-site deployment is claimed for this new change yet.
+- **Known limits:** no production runtime/API change and no frontend/**, adapter/benchmark-owned, secrets/settings or main files changed. UI-owned INT-003 remains separate; INT-002/PERF-001 remain specialist-owned and no specialist branch was verified. CNC, supplier authenticity, sheet yield/kerf and physical workshop suitability remain unverified; viewport p95/memory remain NOT MEASURED.
+- **Next:** DOM-195 — verify standalone history import into an empty JSON v2 envelope, then immutable append and export/restore with metadata preservation and non-empty-history overwrite protection.
