@@ -93,8 +93,12 @@ function FurniturePreview({ item }: { item: FurnitureCatalogItem }) {
   );
 }
 
-export function FurnitureCatalogCard({ item, index, onAdd, onDragStart, onDragEnd }: FurnitureCatalogCardProps) {
+export function FurnitureCatalogCard({ item, index, onAdd, onDragStart, onDragEnd: notifyDragEnd }: FurnitureCatalogCardProps) {
   const [isDragging, setIsDragging] = useState(false);
+  const onDragEnd = () => {
+    setIsDragging(false);
+    notifyDragEnd?.();
+  };
   const details = [
     item.doorCount ? `${item.doorCount} kapak` : "",
     item.drawerCount ? `${item.drawerCount} çekmece` : "",
@@ -117,10 +121,7 @@ export function FurnitureCatalogCard({ item, index, onAdd, onDragStart, onDragEn
         event.dataTransfer.setData("application/x-mobilyacad-catalog-id", item.id);
         onDragStart?.();
       }}
-      onDragEnd={() => {
-        setIsDragging(false);
-        onDragEnd?.();
-      }}
+      onDragEnd={onDragEnd}
       onClick={onAdd}
       title={`Tıkla ile ${item.name} modelini odaya ekle; sürükleyerek sahnede konumlandır.`}
       aria-label={`${item.name}, G × Y × D: ${dimensions} milimetre. Tıkla ile odaya ekle; sürükleyerek sahnede konumlandır.`}
