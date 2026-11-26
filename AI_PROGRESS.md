@@ -1576,16 +1576,16 @@
 - **Measured build:** JS 1,711.52 kB / 476.99 kB gzip; CSS 475.26 kB. Viewport p95 and memory remain NOT MEASURED.
 - **Known limits:** supplier provenance, sheet yield/kerf, CNC and physical workshop validation remain unverified; no frontend, adapter, benchmark, secret/settings or main changes.
 
-## 26 Kasım 2026 16:37 TRT — DOM-191 implementation and first QA diagnosis
+## 26 Kasım 2026 16:47 TRT — DOM-191 verified
 
 - Base HEAD: dev/github-work 87297fa67f8052e53506dcb79b5feb91c77de3a6.
 - Implementation commit: [82bee401](https://github.com/Taylan789/MobilyaCAD/commit/82bee401371dae2809ae05bf8cfa75b569a31be1).
-- Delivery: regression compares a legacy schema-v1 stock-sheet group with absent sourceReference against a later revision carrying an explicit user-supplied reference; no production calculation source changed.
-- Initial exact-SHA CI [#45831987115](https://github.com/Taylan789/MobilyaCAD/actions/runs/45831987115) SUCCESS.
-- Initial exact-SHA QA [#45831987078](https://github.com/Taylan789/MobilyaCAD/actions/runs/45831987078) FAILED 822/823. Evidence: the new test expected one source Part, but the existing fixture contains four. This is a test expectation defect; all frontend tests passed 369/369 and no production behavior failure was reported.
-- Pages [#45831987091](https://github.com/Taylan789/MobilyaCAD/actions/runs/45831987091) built the site successfully but withheld deployment at the exact-SHA CI+QA gate. The live site remains on the prior verified SHA.
-- Correction: derive the expected unchanged Part count from the fixture's sourcePartIds and explicitly assert zero added/removed/moved Parts. Corrected Actions are pending.
-- Files: domain/production/projectQuoteRevision.test.mjs, docs/production-domain-contract.md, PRODUCT_ROADMAP.md, AI_PROGRESS.md, AI_COORDINATION.md.
-- Known limits: no frontend, adapter/benchmark, machine postprocessor, secrets/settings or main changes. Supplier authenticity, sheet yield/kerf, CNC and physical workshop validation remain unverified.
-- AI Developer: run [#45810848741](https://github.com/Taylan789/MobilyaCAD/actions/runs/45810848741) failed on OpenRouter free-tier HTTP 429 (50/50 daily requests used; reset 27 November 2026 03:00 TRT). It is not rerun before reset; no paid fallback or quota/settings change.
-- Next: verify the corrected DOM-191 exact-SHA CI, QA and Pages before proceeding to DOM-192.
+- Evidence-driven correction commit: [54febb60](https://github.com/Taylan789/MobilyaCAD/commit/54febb60dcf7378c8e293954d7bb6ba711c61c36); only the new regression's Part-count expectation changed from a hard-coded 1 to the four source Part IDs in the fixture, with zero added/removed/moved assertions.
+- Exact-SHA CI [#45832339844](https://github.com/Taylan789/MobilyaCAD/actions/runs/45832339844) SUCCESS.
+- Exact-SHA QA [#45832339808](https://github.com/Taylan789/MobilyaCAD/actions/runs/45832339808) SUCCESS — 369/369 frontend + 823/823 domain tests; strict shared-domain TypeScript; lint 36 warnings / 0 errors; TypeScript + production build; production-only audit 0 vulnerabilities.
+- Exact-SHA Pages [#45832339931](https://github.com/Taylan789/MobilyaCAD/actions/runs/45832339931) SUCCESS; deployment log confirms pages_build_version=54febb60dcf7378c8e293954d7bb6ba711c61c36 at https://taylan789.github.io/MobilyaCAD/.
+- Acceptance: legacy sourceReference remains absent; later explicit user source is the only changed provenance field; both schema-v1 aggregate manifests remain unavailable; group-level Part IDs reconcile without being promoted to an aggregate manifest; stock-sheet/quote monetary deltas remain zero; standalone JSON v1 restore reproduces audits and comparisons without mutating history.
+- Known limits: supplier authenticity, sheet yield/kerf, nesting, CNC and physical workshop suitability remain unverified. Viewport p95/memory remain NOT MEASURED; the existing large-bundle warning remains. The full install audit has previously reported 4 moderate findings; production-only audit for this SHA is clean.
+- Parallel ownership: no frontend/**, adapter/benchmark, secrets/settings or main changes. UI-owned PR #250 remains draft and is not deployed; UI-owned INT-003 PR #206 remains draft pending editor integration. Integration/Performance specialist job was skipped/disabled; no specialist branch was verified.
+- AI Developer: run [#45810848741](https://github.com/Taylan789/MobilyaCAD/actions/runs/45810848741) failed on OpenRouter free-tier HTTP 429 (50/50 daily requests used; reset 27 November 2026 03:00 TRT). It was not rerun before reset; no paid fallback or quota/settings change.
+- Next: DOM-192 — preserve the legacy-absence → explicit-source transition after immutable append without backfilling the historical revision.
