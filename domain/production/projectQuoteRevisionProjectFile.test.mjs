@@ -1729,3 +1729,210 @@ test("DOM-195 imports a legacy-to-strict standalone history into an empty v2 pro
   assert.match(overwrite.diagnostics.join(" | "), /sessizce değiştiremez/);
   assert.equal(JSON.stringify(reloaded), reloadedBeforeOverwrite);
 });
+
+
+test("DOM-196 reconciles mixed legacy/strict manifest audits through standalone import, project restore and append", () => {
+  const createManifestSnapshot = (partId, manifestVersion, sourceReference) => {
+    const snapshot = createStockBasisSnapshot();
+    snapshot.materialCostBasis.stockSheetGroups[0].sourcePartIds = [partId];
+    snapshot.materialCostBasis.stockSheetGroups[0].sourceReference = sourceReference;
+    if (manifestVersion === 1) {
+      snapshot.materialCostBasis.schemaVersion = 1;
+      delete snapshot.materialCostBasis.sourcePartIds;
+    } else {
+      snapshot.materialCostBasis.schemaVersion = 2;
+      snapshot.materialCostBasis.sourcePartIds = [partId];
+    }
+    return snapshot;
+  };
+  const legacyCreated = createProjectQuoteRevision({
+    projectId: "project-42",
+    revisionId: "quote-r1",
+    revisionNumber: 1,
+    createdAt: "2026-11-17T20:00:00Z",
+    previousRevision: null,
+    pricingSnapshot: createManifestSnapshot("legacy-part", 1, "legacy-sheet-source:v1")
+  });
+  assert.equal(legacyCreated.status, "ready", legacyCreated.diagnostics.join("; "));
+  assert.ok(legacyCreated.revision);
+  assert.equal(Object.hasOwn(legacyCreated.revision, "sourceIntegrityVersion"), false);
+
+  const sourceProject = createV2Project({
+    quoteRevisionHistory: {
+      schemaVersion: 1,
+      projectId: "project-42",
+      revisions: [legacyCreated.revision]
+    }
+  });
+  const sourceBefore = JSON.stringify(sourceProject);
+  const sourceAppend = appendProjectQuoteRevisionToProjectFile(sourceProject, createRevision({
+    revisionId: "quote-r2",
+    createdAt: "2026-11-18T01:00:00Z",
+    pricingSnapshot: createManifestSnapshot("strict-part", 2, "strict-sheet-source:v2")
+  }));
+  assert.equal(sourceAppend.status, "ready", sourceAppend.diagnostics.join("; "));
+  assert.ok(sourceAppend.history);
+  assert.deepEqual(
+    sourceAppend.history.revisions.map((revision) => Object.hasOwn(revision, "sourceIntegrityVersion") ? revision.sourceIntegrityVersion : null),
+    [null, 1]
+  );
+  assert.deepEqual(
+    sourceAppend.history.revisions.map((revision) => revision.pricingSnapshot.materialCostBasis?.schemaVersion ?? null),
+    [1, 2]
+  );
+  assert.equal(JSON.stringify(sourceProject), sourceBefore);
+  const sourceHistoryBeforeImport = JSON.stringify(sourceAppend.history);
+
+  const getAudits = (history) => {
+    const sourceMap = calculateProjectQuoteRevisionSourceMapAudit(history);
+    const integrity = calculateProjectQuoteRevisionSourceIntegrityAudit(history);
+    assert.equal(sourceMap.status, "ready", sourceMap.diagnostics.join("; "));
+    assert.equal(integrity.status, "ready", integrity.diagnostics.join("; "));
+    assert.ok(sourceMap.audit);
+    assert.ok(integrity.audit);
+    return { sourceMap: sourceMap.audit, integrity: integrity.audit };
+  };
+  const sourceAudits = getAudits(sourceAppend.history);
+  const sourceTotals = sourceAudits.sourceMap.totals;
+  assert.deepEqual({
+    purchase: sourceTotals.stockSheetPurchaseRevisionCount,
+    manifestV2: sourceTotals.stockSheetManifestV2RevisionCount,
+    legacyManifest: sourceTotals.stockSheetLegacyManifestRevisionCount,
+    manifestPartReferences: sourceTotals.stockSheetManifestPartReferenceCount,
+    manifestUniqueParts: sourceTotals.stockSheetManifestUniquePartIdCount,
+    groupPartReferences: sourceTotals.stockSheetPartReferenceCount,
+    groupUniqueParts: sourceTotals.stockSheetUniquePartIdCount
+  }, {
+    purchase: 2,
+    manifestV2: 1,
+    legacyManifest: 1,
+    manifestPartReferences: 1,
+    manifestUniqueParts: 1,
+    groupPartReferences: 2,
+    groupUniqueParts: 2
+  });
+  assert.deepEqual([
+    sourceAudits.integrity.strictRevisionCount,
+    sourceAudits.integrity.legacyRevisionCount,
+    sourceAudits.integrity.stockSheetPurchaseRevisionCount,
+    sourceAudits.integrity.stockSheetManifestV2RevisionCount,
+    sourceAudits.integrity.stockSheetLegacyManifestRevisionCount,
+    sourceAudits.integrity.stockSheetManifestPartReferenceCount,
+    sourceAudits.integrity.stockSheetManifestUniquePartIdCount
+  ], [1, 1, 2, 1, 1, 1, 1]);
+
+  const standalone = serializeProjectQuoteRevisionHistoryFile(sourceAppend.history);
+  assert.equal(standalone.status, "ready", standalone.diagnostics.join("; "));
+  assert.ok(standalone.json);
+  const target = JSON.parse('{"format":"MobilyaCAD","formatVersion":2,"projectId":"project-42","room":{"width":4000,"length":5000,"height":2800,"unit":"mm"},"furniture":[],"materials":[],"metadata":{"custom":{"__proto__":{"marker":"preserved"}}},"__proto__":{"envelopeMarker":"preserved"}}');
+  const targetBefore = JSON.stringify(target);
+  const imported = importProjectQuoteRevisionHistoryFileIntoProject(target, standalone.json);
+  assert.equal(imported.status, "ready", imported.diagnostics.join("; "));
+  assert.ok(imported.project);
+  assert.ok(imported.history);
+  assert.deepEqual(getAudits(imported.history), sourceAudits);
+  assert.equal(JSON.stringify(target), targetBefore);
+  assert.equal(Object.hasOwn(target, PROJECT_QUOTE_REVISION_HISTORY_FIELD), false);
+  assert.equal(Object.getPrototypeOf(imported.project), Object.prototype);
+  assert.deepEqual(imported.project["__proto__"], { envelopeMarker: "preserved" });
+  assert.deepEqual(imported.project.metadata.custom["__proto__"], { marker: "preserved" });
+
+  const restoredProject = JSON.parse(JSON.stringify(imported.project));
+  const restored = readProjectQuoteRevisionHistoryFromProjectFile(restoredProject);
+  assert.equal(restored.status, "ready", restored.diagnostics.join("; "));
+  assert.ok(restored.history);
+  const restoredAudits = getAudits(restored.history);
+  assert.deepEqual(restoredAudits, sourceAudits);
+  assert.equal(restoredAudits.sourceMap.revisions[0].stockSheetManifestVersion, null);
+  assert.equal(restoredAudits.sourceMap.revisions[0].stockSheetManifestPartCount, null);
+  assert.equal(restoredAudits.sourceMap.revisions[1].stockSheetManifestVersion, 2);
+  assert.equal(restoredAudits.sourceMap.revisions[1].stockSheetManifestPartCount, 1);
+
+  const legacyToStrict = compareProjectQuoteRevisionStockSheetGroups(restored.history, "quote-r1", "quote-r2");
+  const legacyToStrictSourceMap = compareProjectQuoteRevisionSourceMaps(restored.history, "quote-r1", "quote-r2");
+  assert.equal(legacyToStrict.status, "ready", legacyToStrict.diagnostics.join("; "));
+  assert.equal(legacyToStrictSourceMap.status, "ready", legacyToStrictSourceMap.diagnostics.join("; "));
+  assert.equal(legacyToStrict.comparison?.stockSheetManifestComparison.status, "from-unavailable");
+  assert.deepEqual(
+    legacyToStrictSourceMap.comparison?.stockSheetManifestComparison,
+    legacyToStrict.comparison?.stockSheetManifestComparison
+  );
+
+  const restoredBeforeAppend = JSON.stringify(restoredProject);
+  const appended = appendProjectQuoteRevisionToProjectFile(restoredProject, createRevision({
+    revisionId: "quote-r3",
+    createdAt: "2026-11-19T01:00:00Z"
+  }));
+  assert.equal(appended.status, "ready", appended.diagnostics.join("; "));
+  assert.ok(appended.project);
+  assert.ok(appended.history);
+  assert.equal(JSON.stringify(restoredProject), restoredBeforeAppend);
+  assert.deepEqual(
+    appended.history.revisions.map((revision) => Object.hasOwn(revision, "sourceIntegrityVersion") ? revision.sourceIntegrityVersion : null),
+    [null, 1, 1]
+  );
+  assert.equal(appended.history.revisions[2].pricingSnapshot.materialCostBasis, undefined);
+
+  const appendedAudits = getAudits(appended.history);
+  assert.equal(appendedAudits.sourceMap.revisionCount, 3);
+  assert.equal(appendedAudits.integrity.revisionCount, 3);
+  assert.equal(appendedAudits.integrity.strictRevisionCount, 2);
+  assert.equal(appendedAudits.integrity.legacyRevisionCount, 1);
+  assert.deepEqual({
+    purchase: appendedAudits.sourceMap.totals.stockSheetPurchaseRevisionCount,
+    manifestV2: appendedAudits.sourceMap.totals.stockSheetManifestV2RevisionCount,
+    legacyManifest: appendedAudits.sourceMap.totals.stockSheetLegacyManifestRevisionCount,
+    manifestPartReferences: appendedAudits.sourceMap.totals.stockSheetManifestPartReferenceCount,
+    manifestUniqueParts: appendedAudits.sourceMap.totals.stockSheetManifestUniquePartIdCount,
+    groupPartReferences: appendedAudits.sourceMap.totals.stockSheetPartReferenceCount,
+    groupUniqueParts: appendedAudits.sourceMap.totals.stockSheetUniquePartIdCount
+  }, {
+    purchase: 2,
+    manifestV2: 1,
+    legacyManifest: 1,
+    manifestPartReferences: 1,
+    manifestUniqueParts: 1,
+    groupPartReferences: 2,
+    groupUniqueParts: 2
+  });
+
+  const deduplicatedTotals = new Set([
+    "uniquePartIdCount",
+    "uniqueHardwareFurnitureIdCount",
+    "uniqueHardwareBomReferenceCount",
+    "stockSheetUniquePartIdCount",
+    "stockSheetManifestUniquePartIdCount"
+  ]);
+  for (const [key, value] of Object.entries(appendedAudits.sourceMap.totals)) {
+    if (deduplicatedTotals.has(key)) continue;
+    const before = sourceAudits.sourceMap.totals[key];
+    const added = appendedAudits.sourceMap.revisions[2].counts[key];
+    if (typeof value === "number") {
+      assert.equal(value, before + added, key);
+    } else {
+      for (const nestedKey of Object.keys(value)) {
+        assert.equal(value[nestedKey], before[nestedKey] + added[nestedKey], key + "." + nestedKey);
+      }
+    }
+  }
+
+  const strictToMissing = compareProjectQuoteRevisionStockSheetGroups(appended.history, "quote-r2", "quote-r3");
+  assert.equal(strictToMissing.status, "ready", strictToMissing.diagnostics.join("; "));
+  assert.equal(strictToMissing.comparison?.stockSheetManifestComparison.status, "to-unavailable");
+
+  const reloadedProject = JSON.parse(JSON.stringify(appended.project));
+  const reloaded = readProjectQuoteRevisionHistoryFromProjectFile(reloadedProject);
+  assert.equal(reloaded.status, "ready", reloaded.diagnostics.join("; "));
+  assert.ok(reloaded.history);
+  const finalExport = serializeProjectQuoteRevisionHistoryFile(reloaded.history);
+  assert.equal(finalExport.status, "ready", finalExport.diagnostics.join("; "));
+  assert.ok(finalExport.json);
+  const finalParsed = parseProjectQuoteRevisionHistoryFile(finalExport.json);
+  assert.equal(finalParsed.status, "ready", finalParsed.diagnostics.join("; "));
+  assert.deepEqual(finalParsed.history, appended.history);
+  assert.deepEqual(getAudits(finalParsed.history), appendedAudits);
+  assert.equal(JSON.stringify(sourceAppend.history), sourceHistoryBeforeImport);
+  assert.equal(JSON.stringify(target), targetBefore);
+  assert.equal(({}).envelopeMarker, undefined);
+  assert.equal(({}).marker, undefined);
+});

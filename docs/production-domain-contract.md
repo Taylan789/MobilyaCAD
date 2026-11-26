@@ -1776,3 +1776,12 @@ The two appends must preserve revision numbers and previous-revision links, grou
 - Final project-history read and standalone JSON v1 export/parse must return the same full revision chain.
 - Attempting to import another standalone history into the now non-empty project must return blocked, with null partial output and no mutation of the existing project.
 - This verifies the existing domain import/append contract only; it does not complete UI-owned INT-003 editor startup/new/save/open integration or certify supplier, CNC or physical workshop data.
+
+
+## DOM-196 — Imported mixed-version source-map and integrity audit reconciliation
+
+A standalone quote-history JSON v1 file may contain both a legacy material-cost-basis v1 revision without an aggregate Part manifest and a strict v2 revision with an explicit aggregate Part manifest. Import into an empty matching JSON v2 project, project JSON stringify/parse restore, immutable append and final standalone export/parse must preserve source-map and source-integrity audit results.
+
+The regression checks that the legacy revision remains manifest-unavailable while the strict revision retains its v2 Part manifest. Comparing legacy to strict must report from-unavailable; comparing strict to a later revision with no material-cost basis must report to-unavailable. Group-level Part provenance is not promoted to an aggregate manifest. After append, project-wide additive counters must reconcile with the appended revision, while unique Part/furniture/BOM totals remain set-deduplicated. The imported envelope's own __proto__ JSON data keys remain ordinary data without prototype mutation or pollution.
+
+This is a domain persistence/audit regression only. It does not alter the project-file schema, frontend startup/save/open integration, adapters, supplier evidence, CNC output, sheet yield, kerf or physical workshop validation.

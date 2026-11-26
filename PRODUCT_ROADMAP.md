@@ -2510,3 +2510,26 @@ Sıradaki küçük görevler:
 3. INT-001/INT-002 — UI/specialist sahipliğindeki adapter round-trip ve geometri/adet kayıpsızlığı için exact-SHA kanıtı.
 4. PERF-001 — specialist lane etkinleştiğinde viewport p95, scene update ve bellek baseline ölçümü; şu anda ölçülmedi.
 5. QA-003 — INT-001/INT-002 exact-SHA kanıtından sonra uçtan uca data-flow audit.
+
+
+## 26 Kasım 2026 21:50 TRT — DOM-196 mixed-version history audit reconciliation (IMPLEMENTATION COMMITTED; CHECKS PENDING)
+
+**Kullanıcı akışı:** Atölye, legacy malzeme maliyet temeli v1 ve strict v2 Part manifest'i içeren karışık teklif geçmişini ayrı JSON v1 dosyasından boş ve aynı projectId'li JSON v2 projesine aktarır; projeyi kaydeder/açar, yeni revizyon ekler ve geçmişi tekrar dışa aktarır.
+
+**Kabul kriterleri:**
+- Import öncesi, import sonrası ve project JSON stringify/parse restore sonrasında source-map ve source-integrity audit nesneleri birebir aynı kalır.
+- Legacy material-cost-basis v1 revizyonunun aggregate Part manifest'i yok olarak kalır; strict v2 manifest'in açık Part referansları korunur.
+- Legacy → strict karşılaştırması from-unavailable; strict → maliyet temeli olmayan sonraki revizyon to-unavailable döndürür. Grup Part kimlikleri aggregate manifest yerine geçirilmez.
+- Append sonrası additive audit sayaçları önceki toplam + yeni revizyon sayacıyla uzlaşır; unique Part/furniture/BOM kimlikleri küme olarak deduplicate edilir.
+- Import, restore, append ve export input'ları immutable kalır; own __proto__ JSON alanları veri olarak korunur, prototype pollution oluşmaz.
+
+**10/10 checklist delta:** Veri güvenilirliği, legacy uyumluluk ve export kayıpsızlığı için mixed-manifest import/restore/append audit regresyonu eklendi. Runtime domain API'si ve frontend sözleşmesi değişmedi. UI, CAD geometri/3D senkronizasyon, viewport performansı ve CNC/makine davranışı bu dilimin kapsamında değildir.
+
+**Doğrulama:** Implementation commit oluşturuldu; exact-SHA CI/QA/Pages sonuçları bekleniyor. Bu aşamada hiçbir Actions sonucu başarılı ilan edilmez.
+
+**Sıradaki işler:**
+1. DOM-196 exact-SHA CI/QA/Pages sonuçlarını incele; başarısızsa loga göre düzelt.
+2. INT-003 — UI ajanının JSON v2 editor startup/new/save/open entegrasyonu; frontend/** dış sahiplik alanıdır.
+3. INT-001/INT-002 — adapter geometri/adet kayıpsızlığı exact-SHA kanıtı.
+4. PERF-001 — specialist lane etkinleştiğinde viewport p95/scene update/memory baseline; şu anda ölçülmedi.
+5. QA-003 — INT-001/INT-002 kanıtından sonra uçtan uca data-flow audit.
