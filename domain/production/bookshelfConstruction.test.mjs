@@ -44,7 +44,22 @@ function createRequest(overrides = {}) {
     materials: overrides.materials ?? materials,
     ...(overrides.panelMaterialOverrides === undefined
       ? {}
-      : { panelMaterialOverrides: overrides.panelMaterialOverrides })
+      : { panelMaterialOverrides: overrides.panelMaterialOverrides }),
+    ...(overrides.verticalDividers === undefined
+      ? {}
+      : { verticalDividers: overrides.verticalDividers })
+  };
+}
+
+function createDivider(overrides = {}) {
+  return {
+    id: "left",
+    offsetFromInnerLeftMm: 300,
+    thicknessMm: 18,
+    materialId: "mdf-18",
+    edgeBanding: { ...noBanding, left: true },
+    grainDirection: "length",
+    ...overrides
   };
 }
 
@@ -226,4 +241,87 @@ test("sıfır raf açıkça tanımlanır ve raf satırı üretmez", () => {
 
   assert.equal(result.parts.some((part) => part.id === "book-1-shelf"), false);
   assert.equal(result.parts.length, 4);
+});
+
+
+test("kitaplık dikey bölücüleri açık iç ölçü, katalog malzemesi ve konumla parça listesine eklenir", () => {
+  const result = calculateBookshelfConstruction(createRequest({
+    profile: { shelfCount: 0 },
+    verticalDividers: [
+      createDivider({ id: "left", offsetFromInnerLeftMm: 300 }),
+      createDivider({ id: "right", offsetFromInnerLeftMm: 500, materialId: "ply-18", grainDirection: "width" })
+    ]
+  }));
+
+  assert.deepEqual(result.parts.slice(-2).map((part) => part.id), [
+    "book-1-vertical-divider-left",
+    "book-1-vertical-divider-right"
+  ]);
+  assert.deepEqual(result.parts.slice(-2).map((part) => [
+    part.width, part.length, part.thickness, part.quantity, part.materialId
+  ]), [
+    [282, 2000, 18, 1, "mdf-18"],
+    [282, 2000, 18, 1, "ply-18"]
+  ]);
+  assert.deepEqual(result.parts.slice(-2).map((part) => part.offsetFromInnerLeftMm), [300, 500]);
+  assert.equal(result.parts.at(-2).grainDirection, "length");
+  assert.equal(result.parts.at(-2).edgeBanding.left, true);
+  assert.equal(result.parts.at(-1).grainDirection, "width");
+  assert.equal(result.parts.at(-1).material, "Kontrplak 18");
+  assert.equal(result.parts.filter((part) => part.id === "book-1-shelf").length, 0);
+});
+
+test("kitaplık dikey bölücüleri yinelenen kimlik, çakışma ve iç genişlik taşmasını reddeder", () => {
+  assert.throws(() => calculateBookshelfConstruction(createRequest({
+    profile: { shelfCount: 0 },
+    verticalDividers: [createDivider(), createDivider({ offsetFromInnerLeftMm: 500 })]
+  })), /yinelenen dikey bölücü kimliği/);
+
+  assert.throws(() => calculateBookshelfConstruction(createRequest({
+    profile: { shelfCount: 0 },
+    verticalDividers: [
+      createDivider({ id: "left", offsetFromInnerLeftMm: 300 }),
+      createDivider({ id: "right", offsetFromInnerLeftMm: 310 })
+    ]
+  })), /birbiriyle çakışamaz/);
+
+  assert.throws(() => calculateBookshelfConstruction(createRequest({
+    profile: { shelfCount: 0 },
+    verticalDividers: [createDivider({ offsetFromInnerLeftMm: 750 })]
+  })), /iç genişlik sınırını aşıyor/);
+});
+
+test("kitaplık dikey bölücüleri gerçek katalog kalınlığı, yön ve kenar bayrakları ister", () => {
+  assert.throws(() => calculateBookshelfConstruction(createRequest({
+    profile: { shelfCount: 0 },
+    verticalDividers: [createDivider({ thicknessMm: 16 })]
+  })), /16 mm kalınlık katalogda tanımlı değil/);
+
+  assert.throws(() => calculateBookshelfConstruction(createRequest({
+    profile: { shelfCount: 0 },
+    verticalDividers: [createDivider({ materialId: "missing-panel" })]
+  })), /malzemesi katalogda bulunamadı/);
+
+  assert.throws(() => calculateBookshelfConstruction(createRequest({
+    profile: { shelfCount: 0 },
+    verticalDividers: [createDivider({ grainDirection: "vertical" })]
+  })), /damar yönü/);
+
+  assert.throws(() => calculateBookshelfConstruction(createRequest({
+    profile: { shelfCount: 0 },
+    verticalDividers: [createDivider({ edgeBanding: { ...noBanding, top: "yes" } })]
+  })), /boolean olmalıdır/);
+});
+
+test("kitaplık dikey bölücülerinde tam genişlik rafı reddeder; eski istekler değişmeden kalır", () => {
+  assert.throws(() => calculateBookshelfConstruction(createRequest({
+    verticalDividers: [createDivider()]
+  })), /tam genişlik raf adedi sıfır olmalıdır/);
+
+  const withoutField = calculateBookshelfConstruction(createRequest({ profile: { shelfCount: 0 } }));
+  const explicitEmpty = calculateBookshelfConstruction(createRequest({
+    profile: { shelfCount: 0 },
+    verticalDividers: []
+  }));
+  assert.deepEqual(explicitEmpty, withoutField);
 });

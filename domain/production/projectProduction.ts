@@ -1,5 +1,6 @@
 import { calculateCabinetConstruction } from "./cabinetConstruction.ts";
 import { calculateBookshelfConstruction } from "./bookshelfConstruction.ts";
+import type { BookshelfConstructionPart } from "./bookshelfConstruction.ts";
 import { calculateTableConstruction } from "./tableConstruction.ts";
 import { calculateWardrobeConstruction } from "./wardrobeConstruction.ts";
 import { calculateTvUnitConstruction } from "./tvUnitConstruction.ts";
@@ -82,7 +83,7 @@ export interface ProjectEdgeBandingByEdge {
 }
 
 export type ProjectProductionPart = (
-  CabinetConstructionPart | DrawerBoxConstructionPart | TableConstructionPart | WardrobeConstructionPart | TvUnitConstructionPart
+  CabinetConstructionPart | BookshelfConstructionPart | DrawerBoxConstructionPart | TableConstructionPart | WardrobeConstructionPart | TvUnitConstructionPart
 ) & {
   /** Optional, explicitly validated panel profile; absent on legacy rectangular parts. */
   panelGeometry?: PanelCutoutGeometryResult;

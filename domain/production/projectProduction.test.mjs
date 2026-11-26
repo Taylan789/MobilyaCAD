@@ -1787,3 +1787,40 @@ test("normalleştirilmiş katalog adları mixed family üretimde birleşir, fark
     ["cab-material-normalized"], 1, 1
   ]);
 });
+
+
+test("kitaplık dikey bölücüleri proje Part listesi ve net malzeme özetinde korunur", () => {
+  const bookshelf = createBookshelfRequest("book-divider-project");
+  bookshelf.profile.shelfCount = 0;
+  bookshelf.verticalDividers = [{
+    id: "center",
+    offsetFromInnerLeftMm: 373,
+    thicknessMm: 18,
+    materialId: "mdf-18",
+    edgeBanding: { ...noBanding, left: true },
+    grainDirection: "length"
+  }];
+
+  const report = calculateCabinetProjectProductionWithDiagnostics({
+    schemaVersion: 1,
+    furniture: [bookshelf]
+  });
+
+  assert.equal(report.status, "ready");
+  assert.equal(report.canExport, true);
+  assert.equal(report.result.parts.length, 5);
+  const divider = report.result.parts.find((part) => part.id === "book-divider-project-vertical-divider-center");
+  assert.ok(divider);
+  assert.deepEqual([
+    divider.width, divider.length, divider.thickness, divider.quantity,
+    divider.materialId, divider.offsetFromInnerLeftMm, divider.grainDirection
+  ], [282, 2000, 18, 1, "mdf-18", 373, "length"]);
+
+  const summary = calculateProjectMaterialConsumptionSummary(report.result);
+  assert.equal(summary.length, 1);
+  assert.equal(summary[0].materialId, "mdf-18");
+  assert.equal(summary[0].totalQuantity, 5);
+  assert.equal(summary[0].partIds.includes(divider.id), true);
+  assert.equal(summary[0].edgeBanding.edgeCount, 1);
+  assert.equal(summary[0].edgeBanding.totalLengthMm, 2000);
+});

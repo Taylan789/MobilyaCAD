@@ -105,6 +105,18 @@ Kaynak: domain/production/bookshelfConstruction.ts
 - Kalınlığı override edilen her grup için seçili malzeme kimliği (grup override'ı veya mobilyanın varsayılan `materialId` değeri) zorunludur ve katalog kaydının `thicknessesMm` listesinde gerçek kalınlık bulunmalıdır. Serbest metin legacy malzeme, grup kalınlığı override'ı verilmediğinde geriye uyumlu kalır.
 - Dikey bölücü, raf aralığı, duvar sabitlemesi, delik, bağlantı, donanım, nesting, CNC, fire veya üretim güvenliği hesabı bu dilime dahil değildir; bunlar ayrı ve açık parametreli dilimlerdir.
 
+### 2.6 Kitaplık dikey bölücüleri
+
+Kaynak: `domain/production/bookshelfConstruction.ts`
+
+- Sürüm 1 kitaplık isteği, geriye uyumluluk için opsiyonel root `verticalDividers` listesi kabul eder; alanın olmaması veya `[]` verilmesi mevcut kitaplık parça listesini değiştirmez.
+- Her bölücü açık `id`, iç sol yüzden `offsetFromInnerLeftMm`, `thicknessMm`, katalog `materialId`, dört kenar için `edgeBanding` bayrakları ve `grainDirection` taşır. Varsayılan kalınlık, malzeme, bağlantı veya konum üretilmez.
+- Bölücü, doğrulanmış kitaplık iç derinliği boyunca ve net iç yüksekliği boyunca tek bir tam yükseklik Part satırı olarak üretilir. Yalnızca yatay ofset ve kalınlık aralığı doğrulanır; bağlantı/delik, montaj payı veya CNC koordinatı hesaplanmaz.
+- Bölücü listesi en fazla 100 kayıt içerir; kimlikler benzersizdir; bölücüler 0.1 mm hassasiyetinde normalize edilir, iç genişlik sınırını aşamaz ve birbirleriyle çakışamaz. Seçilen katalog malzemesi gerçek bölücü kalınlığını içermelidir.
+- Tam genişlik `shelfCount` ile dikey bölücü aynı anda kullanılamaz; bu kombinasyon sessizce kesişen parçalara dönüştürülmez. Bölme bazlı raf yerleşimi sonraki ayrı dilimdir.
+- Proje agregatörü bu satırları aynı `parts` listesine taşır; malzeme özeti quantity, net alan/hacim ve açık kenar bayraklarını aynı kaynak Part listesi üzerinden hesaplar.
+- Bu opsiyonel istek alanı mevcut JSON v1 dosya biçimini veya frontend adapter'ını kendiliğinden değiştirmez. UI entegrasyonu, kitaplık isteğine açık `verticalDividers` listesi göndermeli; bölücü varken tam genişlik raf sayısını sıfır tutmalı ve domain blocked tanılarını göstermelidir.
+
 ### 2.7 Masa ailesinin proje agregatörüne bağlanması
 
 Kaynaklar: `domain/production/tableConstruction.ts`, `domain/production/projectProduction.ts`, `domain/production/projectMaterialSummary.ts`.

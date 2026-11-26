@@ -2172,3 +2172,22 @@ Sonraki adım: Exact-SHA CI/QA/Pages sonuçlarını doğrula; ardından DOM-170 
 3. DOM-153 — INT-003 sonrasında append → save → reopen → append gerçek proje dosyası akışını doğrula.
 4. INT-002/PERF-001 adapter, benchmark ve viewport p95/bellek ölçümleri Integration/Performance sahibinde kalır; bu turda job disabled ve specialist branch kanıtı yoktur.
 5. QA-003, INT-001/INT-002 adapter round-trip kanıtına kadar blocked; viewport p95/memory NOT MEASURED ve fiziksel CNC/makine/atölye doğrulaması insan kontrolüdür.
+
+
+## 26 Kasım 2026 08:40 TRT — DOM-182 implemented (exact-SHA verification pending)
+
+**Kullanıcı akışı:** Kitaplık tasarımında operatör, iç sol yüzden mm cinsinden ofseti, gerçek panel kalınlığını, katalog malzemesini, kenar bantlama bayraklarını ve damar yönünü açıkça tanımlayarak tam yükseklikte dikey bölücü ekler. Domain motoru bu bölücüyü aynı üretim Part listesine taşır; malzeme tüketimi aynı listeden hesaplanır.
+
+**Teslimat:** Opsiyonel v1 `verticalDividers` alanı eklendi. Bölücü kimliği, 0.1 mm normalize edilmiş ofset/kalınlık, katalog kalınlığı, iç genişlik sınırı, çakışma, kenar bayrakları ve damar yönü doğrulanır. Geriye dönük eski istekler alan olmadan aynı sonucu verir. Bölücü varken tam genişlik raf adedi fail-closed engellenir; bölme bazlı raflar henüz kapsam dışıdır.
+
+**Kabul / risk:** Domain testleri parça ölçülerini, adet/malzeme kimliğini, Part agregasyonunu ve net malzeme/bant özetini doğrular. UI entegrasyonu ayrı frontend sahibindedir; bu teslimat görünür bir arayüz veya CNC/montaj onayı iddia etmez. Fiziksel bağlantı/delik/taşıma kapasitesi atölye doğrulaması gerektirir.
+
+**Doğrulama:** Base HEAD `93ade7e61688f5be9c1307cd134b9b241ba07e80` için CI [#45762872835](https://github.com/Taylan789/MobilyaCAD/actions/runs/45762872835), QA [#45762872796](https://github.com/Taylan789/MobilyaCAD/actions/runs/45762872796) ve Pages [#45762872830](https://github.com/Taylan789/MobilyaCAD/actions/runs/45762872830) başarılıydı. DOM-182 implementation SHA ve exact-SHA sonuçları commit sonrasında eklenecek; bu değişiklik için henüz test başarısı iddia edilmez.
+
+### Sıradaki 3–5 küçük görev
+
+1. DOM-182 — exact-SHA CI/QA/Pages sonuçlarını doğrula; kitaplık bölücülerinin proje Part ve malzeme özetiyle birleştiğini kanıtla.
+2. DOM-183 — bölücü aralıklarını referans alan açık ölçülü kitaplık bölme rafları; önce çakışma/boşluk/kenar bandı ve katalog kurallarını test et.
+3. UI-owned INT-003 PR #206 — editor startup/new/save/open JSON v2 envelope wiring ayrı sahibinde kalır; DOM-153 yalnızca entegrasyon sonrası başlar.
+4. INT-002/PERF-001 — adapter round-trip ve viewport p95/bellek ölçümleri Integration/Performance sahibinde; workflow job disabled, specialist branch kanıtı yok.
+5. QA-003 — INT-001/INT-002 exact-SHA adapter kanıtı gelene kadar blocked. Genel 10/10 kapısı açık; viewport p95/bellek NOT MEASURED, fiziksel CNC/montaj doğrulaması insan kontrolüdür.
