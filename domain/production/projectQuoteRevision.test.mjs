@@ -5496,3 +5496,183 @@ test("DOM-192 immutable append preserves legacy stock-sheet source absence and l
     monetaryComparison.comparison
   );
 });
+
+
+test("DOM-193 preserves legacy and first explicit stock-sheet provenance across a second immutable append", () => {
+  const legacySnapshot = createDom143StockSheetAuditSnapshot();
+  const firstSnapshot = structuredClone(legacySnapshot);
+  const secondSnapshot = structuredClone(legacySnapshot);
+  const legacyBasis = legacySnapshot.materialCostBasis;
+  const firstBasis = firstSnapshot.materialCostBasis;
+  const secondBasis = secondSnapshot.materialCostBasis;
+  assert.ok(legacyBasis);
+  assert.ok(firstBasis);
+  assert.ok(secondBasis);
+  assert.equal(legacyBasis.schemaVersion, 1);
+  assert.equal(firstBasis.schemaVersion, 1);
+  assert.equal(secondBasis.schemaVersion, 1);
+  assert.equal(legacyBasis.stockSheetGroups.length, 1);
+  assert.equal(firstBasis.stockSheetGroups.length, 1);
+  assert.equal(secondBasis.stockSheetGroups.length, 1);
+
+  delete legacyBasis.stockSheetGroups[0].sourceReference;
+  const firstSourceReference = "stock-sheet-price:user-supplied:append-r2";
+  const secondSourceReference = "stock-sheet-price:user-supplied:append-r3";
+  firstBasis.stockSheetGroups[0].sourceReference = firstSourceReference;
+  secondBasis.stockSheetGroups[0].sourceReference = secondSourceReference;
+
+  const history = {
+    projectId: "project-42",
+    revisions: [createHistoryRevision({ pricingSnapshot: legacySnapshot })]
+  };
+  const originalHistoryJson = JSON.stringify(history);
+  const validated = validateProjectQuoteRevisionHistory(history);
+  assert.equal(validated.status, "ready", validated.diagnostics.join("; "));
+  assert.ok(validated.history);
+  assert.equal(validated.history.revisions.length, 1);
+  const validatedHistoryJson = JSON.stringify(validated.history);
+
+  const firstAppend = appendProjectQuoteRevision(validated.history, {
+    revisionId: "quote-r2",
+    createdAt: "2026-11-17T11:00:00Z",
+    pricingSnapshot: firstSnapshot
+  });
+  assert.equal(firstAppend.status, "ready", firstAppend.diagnostics.join("; "));
+  assert.ok(firstAppend.history);
+  assert.equal(firstAppend.history.revisions.length, 2);
+  const firstAppendJson = JSON.stringify(firstAppend.history);
+
+  const secondAppend = appendProjectQuoteRevision(firstAppend.history, {
+    revisionId: "quote-r3",
+    createdAt: "2026-11-17T12:00:00Z",
+    pricingSnapshot: secondSnapshot
+  });
+  assert.equal(secondAppend.status, "ready", secondAppend.diagnostics.join("; "));
+  assert.ok(secondAppend.history);
+  assert.equal(secondAppend.history.revisions.length, 3);
+
+  const [legacyRevision, firstExplicitRevision, secondExplicitRevision] = secondAppend.history.revisions;
+  assert.equal(legacyRevision.revisionId, "quote-r1");
+  assert.equal(Object.hasOwn(legacyRevision, "sourceIntegrityVersion"), false);
+  assert.equal(firstExplicitRevision.revisionId, "quote-r2");
+  assert.equal(firstExplicitRevision.previousRevisionId, "quote-r1");
+  assert.equal(firstExplicitRevision.revisionNumber, 2);
+  assert.equal(firstExplicitRevision.sourceIntegrityVersion, 1);
+  assert.equal(secondExplicitRevision.revisionId, "quote-r3");
+  assert.equal(secondExplicitRevision.previousRevisionId, "quote-r2");
+  assert.equal(secondExplicitRevision.revisionNumber, 3);
+  assert.equal(secondExplicitRevision.sourceIntegrityVersion, 1);
+
+  const legacyGroup = legacyRevision.pricingSnapshot.materialCostBasis.stockSheetGroups[0];
+  const firstGroup = firstExplicitRevision.pricingSnapshot.materialCostBasis.stockSheetGroups[0];
+  const secondGroup = secondExplicitRevision.pricingSnapshot.materialCostBasis.stockSheetGroups[0];
+  assert.equal(legacyRevision.pricingSnapshot.materialCostBasis.schemaVersion, 1);
+  assert.equal(firstExplicitRevision.pricingSnapshot.materialCostBasis.schemaVersion, 1);
+  assert.equal(secondExplicitRevision.pricingSnapshot.materialCostBasis.schemaVersion, 1);
+  assert.equal(Object.hasOwn(legacyGroup, "sourceReference"), false);
+  assert.equal(firstGroup.sourceReference, firstSourceReference);
+  assert.equal(secondGroup.sourceReference, secondSourceReference);
+  const withoutSourceReference = group => {
+    const copy = structuredClone(group);
+    delete copy.sourceReference;
+    return copy;
+  };
+  assert.deepEqual(withoutSourceReference(legacyGroup), withoutSourceReference(firstGroup));
+  assert.deepEqual(withoutSourceReference(firstGroup), withoutSourceReference(secondGroup));
+
+  assert.equal(JSON.stringify(history), originalHistoryJson);
+  assert.equal(JSON.stringify(validated.history), validatedHistoryJson);
+  assert.equal(JSON.stringify(firstAppend.history), firstAppendJson);
+  assert.ok(Object.isFrozen(secondAppend.history));
+  assert.ok(Object.isFrozen(secondAppend.history.revisions));
+  assert.ok(Object.isFrozen(secondExplicitRevision.pricingSnapshot));
+
+  const audit = calculateProjectQuoteRevisionSourceMapAudit(secondAppend.history);
+  const integrity = calculateProjectQuoteRevisionSourceIntegrityAudit(secondAppend.history);
+  assert.equal(audit.status, "ready", audit.diagnostics.join("; "));
+  assert.equal(integrity.status, "ready", integrity.diagnostics.join("; "));
+  assert.deepEqual(
+    audit.audit.revisions.map(revision => revision.counts.stockSheetPriceSourceReferenceCount),
+    [0, 1, 1]
+  );
+  assert.equal(audit.audit.totals.stockSheetPriceSourceReferenceCount, 2);
+  assert.equal(integrity.audit.revisionCount, 3);
+  assert.equal(integrity.audit.strictRevisionCount, 2);
+  assert.equal(integrity.audit.legacyRevisionCount, 1);
+
+  const assertSourceOnlyTransition = (fromRevisionId, toRevisionId, fromReference, toReference) => {
+    const result = compareProjectQuoteRevisionSourceMaps(secondAppend.history, fromRevisionId, toRevisionId);
+    assert.equal(result.status, "ready", result.diagnostics.join("; "));
+    assert.equal(result.comparison.stockSheetManifestComparison.status, "both-unavailable");
+    const provenance = result.comparison.stockSheetGroupProvenanceComparison;
+    assert.deepEqual(provenance.counts, {
+      addedGroupCount: 0,
+      removedGroupCount: 0,
+      changedGroupCount: 1,
+      unchangedGroupCount: 0
+    });
+    assert.equal(provenance.changes.length, 1);
+    const change = provenance.changes[0];
+    assert.deepEqual(change.changedFields, ["sourceReference"]);
+    assert.equal(Object.hasOwn(change.from, "sourceReference"), fromReference !== undefined);
+    assert.equal(Object.hasOwn(change.to, "sourceReference"), true);
+    if (fromReference !== undefined) assert.equal(change.from.sourceReference, fromReference);
+    assert.equal(change.to.sourceReference, toReference);
+    return result;
+  };
+
+  const legacyToFirst = assertSourceOnlyTransition("quote-r1", "quote-r2", undefined, firstSourceReference);
+  const firstToSecond = assertSourceOnlyTransition("quote-r2", "quote-r3", firstSourceReference, secondSourceReference);
+  const legacyToSecond = assertSourceOnlyTransition("quote-r1", "quote-r3", undefined, secondSourceReference);
+
+  const groupComparison = compareProjectQuoteRevisionStockSheetGroups(secondAppend.history, "quote-r2", "quote-r3");
+  assert.equal(groupComparison.status, "ready", groupComparison.diagnostics.join("; "));
+  assert.equal(groupComparison.comparison.groupCounts.changedGroupCount, 1);
+  assert.deepEqual(groupComparison.comparison.groupChanges[0].changedFields, ["sourceReference"]);
+  assert.equal(groupComparison.comparison.stockSheetManifestComparison.status, "both-unavailable");
+  const expectedPartCount = legacyBasis.stockSheetGroups[0].sourcePartIds.length;
+  assert.equal(groupComparison.comparison.stockSheetPartCounts.fromPartCount, expectedPartCount);
+  assert.equal(groupComparison.comparison.stockSheetPartCounts.toPartCount, expectedPartCount);
+  assert.equal(groupComparison.comparison.stockSheetPartCounts.unchangedPartCount, expectedPartCount);
+  assert.equal(groupComparison.comparison.stockSheetPartCounts.addedPartCount, 0);
+  assert.equal(groupComparison.comparison.stockSheetPartCounts.removedPartCount, 0);
+  assert.equal(groupComparison.comparison.stockSheetPartCounts.movedPartCount, 0);
+  assert.equal(groupComparison.comparison.stockSheetCostDeltaMinor, 0);
+  assert.equal(groupComparison.comparison.sheetCountDelta, 0);
+  assert.equal(groupComparison.comparison.grandTotalDeltaMinor, 0);
+
+  const monetaryComparison = compareProjectQuoteRevisions(secondAppend.history, "quote-r2", "quote-r3");
+  assert.equal(monetaryComparison.status, "ready", monetaryComparison.diagnostics.join("; "));
+  assert.equal(monetaryComparison.comparison.grandTotalDeltaMinor, 0);
+
+  const exported = serializeProjectQuoteRevisionHistoryFile(secondAppend.history);
+  assert.equal(exported.status, "ready", exported.diagnostics.join("; "));
+  assert.ok(exported.json);
+  const restored = parseProjectQuoteRevisionHistoryFile(exported.json);
+  assert.equal(restored.status, "ready", restored.diagnostics.join("; "));
+  assert.ok(restored.history);
+  assert.deepEqual(restored.history, secondAppend.history);
+  assert.equal(serializeProjectQuoteRevisionHistoryFile(restored.history).json, exported.json);
+  assert.deepEqual(calculateProjectQuoteRevisionSourceMapAudit(restored.history).audit, audit.audit);
+  assert.deepEqual(calculateProjectQuoteRevisionSourceIntegrityAudit(restored.history).audit, integrity.audit);
+  assert.deepEqual(
+    compareProjectQuoteRevisionSourceMaps(restored.history, "quote-r1", "quote-r2").comparison,
+    legacyToFirst.comparison
+  );
+  assert.deepEqual(
+    compareProjectQuoteRevisionSourceMaps(restored.history, "quote-r2", "quote-r3").comparison,
+    firstToSecond.comparison
+  );
+  assert.deepEqual(
+    compareProjectQuoteRevisionSourceMaps(restored.history, "quote-r1", "quote-r3").comparison,
+    legacyToSecond.comparison
+  );
+  assert.deepEqual(
+    compareProjectQuoteRevisionStockSheetGroups(restored.history, "quote-r2", "quote-r3").comparison,
+    groupComparison.comparison
+  );
+  assert.deepEqual(
+    compareProjectQuoteRevisions(restored.history, "quote-r2", "quote-r3").comparison,
+    monetaryComparison.comparison
+  );
+});

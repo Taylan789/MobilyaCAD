@@ -2438,3 +2438,27 @@ Sıradaki küçük görevler:
 3. INT-001/INT-002 — desteklenen adapter round-trip ve geometri kayıpsızlığı için ayrı sahiplikte kanıt üret.
 4. PERF-001 — specialist job/branch mevcut olduğunda viewport p95, scene update ve bellek baseline ölç; şu anda specialist branch doğrulanmadı.
 5. QA-003 — INT-001/INT-002 exact-SHA kanıtından sonra uçtan uca export/data-flow denetimi.
+
+## 26 Kasım 2026 18:50 TRT — DOM-193 second immutable append (Actions pending)
+
+**Kullanıcı akışı:** Eski bir teklif revizyonunda levha fiyat kaynağı yoktur. İlk yeni revizyon kullanıcı tarafından girilen kaynağı ekler; sonraki revizyon fiyat kaynağını değiştirir. Önceki iki revizyonun geçmişi geriye dönük değiştirilmemelidir.
+
+**Kabul kriterleri:**
+- Üç revizyon sırası ve previousRevisionId zinciri r1 → r2 → r3 olarak korunur.
+- Legacy r1 kendi `sourceReference` ve `sourceIntegrityVersion` alanlarını taşımamaya devam eder; r2'nin ilk açık kaynağı r3 eklendiğinde değişmez; r3 yalnızca kendi açık kaynağını taşır.
+- Kaynak audit'i revizyon bazında [0, 1, 1], toplamda 2 kaynak gösterir; integrity audit 1 legacy + 2 strict revizyon raporlar.
+- r1→r2, r2→r3 ve r1→r3 karşılaştırmalarında tek değişen alan `sourceReference` olur; schema-v1 aggregate Part manifest her karşılaştırmada `both-unavailable` kalır.
+- Part kimlikleri, levha adedi, kullanıcı fiyatı/para birimi ve teklif toplamları değişmez; eski geçmiş, doğrulanmış geçmiş ve ilk append immutable kalır.
+- Standalone JSON v1 round-trip üç kaynak durumunu, audit'i ve karşılaştırmaları kayıpsız geri yükler.
+
+**10/10 checklist delta:** Üretim/teklif veri bütünlüğü, immutable revizyon zinciri ve geriye uyumluluk üç ardışık revizyonla otomatik regresyon kapsamına genişletildi. CAD Core/UX değişmedi; viewport p95/bellek hâlâ ölçülmedi. Tedarikçi doğruluğu, levha verimi/kerf, CNC ve fiziksel atölye onayı bu testle doğrulanmış sayılmaz.
+
+**Doğrulama:** Implementation commit oluşturuluyor; exact-SHA CI, QA ve Pages sonuçları henüz bekleniyor. Test sitesi güncel sürüme geçişi yalnızca Pages deployment run başarıyla tamamlandığında doğrulanacaktır.
+
+**Sıradaki küçük görevler:**
+1. DOM-194 — project-file envelope append yolunda legacy → explicit → explicit provenance zincirini ve bilinmeyen metadata'yı birlikte round-trip doğrula.
+2. UI-owned INT-003 — JSON v2 envelope'ı editor startup/new/save/open akışına bağla; frontend dosyaları UI agent'ına aittir.
+3. INT-001/INT-002 — desteklenen adapter round-trip ve geometri kayıpsızlığı için ayrı sahiplikte exact-SHA kanıtı üret.
+4. PERF-001 — specialist job/branch etkinleştiğinde viewport p95, scene update ve bellek baseline ölç; şu anda ölçülmedi.
+5. QA-003 — INT-001/INT-002 exact-SHA kanıtından sonra uçtan uca export/data-flow denetimi.
+

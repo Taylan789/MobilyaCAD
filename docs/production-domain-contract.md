@@ -1747,3 +1747,12 @@ A validated legacy history may end with a schema-v1 stock-sheet purchase group t
 The source-map audit must continue to report zero stock-sheet price-source references on the legacy revision and one on the appended revision. Source-map provenance comparison reports exactly one changed group with `changedFields: ["sourceReference"]`, while the aggregate Part-manifest comparison remains `both-unavailable` because neither basis carries the schema-v2 aggregate manifest. Group-level Part IDs, sheet count, TRY currency, stock-sheet cost and quote grand total remain unchanged. The original input history and already validated history are immutable.
 
 The standalone revision-history JSON v1 round-trip preserves both the absent legacy property and the later explicit source, along with each revision's legacy/strict marker. This is a history-append and backward-compatibility contract only; it does not certify supplier identity, price authenticity, sheet yield, kerf, nesting, CNC compatibility or physical workshop suitability.
+
+## DOM-193 — Multiple immutable appends preserve legacy and explicit stock-sheet provenance
+
+A validated quote history may begin with a schema-v1 stock-sheet group that has no own `sourceReference`. A first immutable append may add an explicit user-supplied source for that group; a second append may replace it with a different explicit source. Neither append may backfill the legacy revision or rewrite the first explicit revision.
+
+The three-revision history must preserve the original property absence, the first appended source, and the second appended source independently. The source-map audit reports per-revision source-reference counts `[0, 1, 1]` and a project total of two; the integrity audit reports one legacy and two strict revisions. Adjacent and non-adjacent source-map comparisons report exactly one changed group with `changedFields: ["sourceReference"]`. The aggregate Part-manifest comparison remains `both-unavailable` for schema-v1 material-cost bases.
+
+The two appends must preserve revision numbers and previous-revision links, group Part identities, sheet quantity, user-entered price/currency and all monetary totals. The original history, validated history and first append remain immutable. Standalone quote-revision JSON v1 serialize/parse must preserve all three source states and reproduce the same audit and comparison results. This verifies data integrity only; it does not certify supplier identity, sheet yield, kerf, nesting quality, CNC compatibility or physical workshop suitability.
+
