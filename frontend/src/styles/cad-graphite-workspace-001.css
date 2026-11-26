@@ -331,3 +331,53 @@
     --cad-dock-right: clamp(284px, 21vw, 326px);
   }
 }
+
+
+/* UI-SCENE-TREE-STICKY-SEARCH-001 — keep navigation reachable in long scenes. */
+.cad-app .studio-tree-search {
+  position: sticky !important;
+  top: 42px !important;
+  z-index: 3 !important;
+  margin: 0 -10px 9px !important;
+  padding-inline: 10px !important;
+  background: linear-gradient(180deg, #1d2c36 0%, #192630 100%) !important;
+  border-bottom: 1px solid #3b515e !important;
+  box-shadow: 0 7px 12px rgba(6, 12, 17, .2) !important;
+}
+
+@media (max-width: 820px) {
+  .cad-app .cad-sidebar-content > .studio-scene-tree {
+    display: flex !important;
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    flex-direction: column !important;
+    padding: 12px 10px 16px !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: #536d7d transparent;
+    scrollbar-gutter: stable;
+  }
+
+  .cad-app .studio-tree-heading {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 4 !important;
+    min-height: 42px !important;
+    margin: -12px -10px 10px !important;
+    padding: 8px 10px !important;
+    background: linear-gradient(180deg, #1e2d37, #192630) !important;
+    border-bottom: 1px solid #3b515e !important;
+  }
+}
+
+@media (forced-colors: active) {
+  .cad-app .studio-tree-search {
+    color: CanvasText !important;
+    background: Canvas !important;
+    border-bottom-color: CanvasText !important;
+    box-shadow: none !important;
+  }
+}
