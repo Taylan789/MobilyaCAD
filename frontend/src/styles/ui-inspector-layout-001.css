@@ -617,3 +617,65 @@
     font-size: 8px;
   }
 }
+
+
+/* UI-INSPECTOR-CONTAINER-ADAPTIVE-001 — adapt the inspector navigation and room dimensions to the rail's actual width. */
+@container cad-inspector (max-width: 255px) {
+  .cad-inspector-tab-list {
+    display: grid !important;
+    height: auto !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 3px !important;
+    padding: 4px !important;
+  }
+
+  .cad-inspector-tab-list button {
+    display: inline-flex !important;
+    min-width: 0;
+    min-height: 34px !important;
+    flex-direction: row !important;
+    align-items: center;
+    justify-content: flex-start !important;
+    gap: 6px !important;
+    padding: 5px 7px !important;
+    font-size: 8px !important;
+    line-height: 1.2 !important;
+    text-align: left;
+  }
+
+  .cad-inspector-tab-list button svg {
+    width: 12px !important;
+    height: 12px !important;
+    flex: 0 0 auto;
+  }
+
+  .cad-tab-content-room[data-state="active"] .cad-property-section:first-child {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .cad-tab-content-room[data-state="active"] .cad-property-section:first-child > .cad-field:nth-child(2),
+  .cad-tab-content-room[data-state="active"] .cad-property-section:first-child > .cad-field:nth-child(3),
+  .cad-tab-content-room[data-state="active"] .cad-property-section:first-child > .cad-field:nth-child(4) {
+    grid-column: 1;
+    padding: 8px;
+  }
+
+  .cad-tab-content-room[data-state="active"] .cad-property-section:first-child > .cad-field:nth-child(4) {
+    margin-top: 0;
+  }
+}
+
+@container cad-inspector (max-width: 225px) {
+  .cad-inspector-tab-list button {
+    min-height: 32px !important;
+    gap: 5px !important;
+    padding-inline: 5px !important;
+    font-size: 7px !important;
+  }
+
+  .cad-inspector-tab-list button svg {
+    width: 11px !important;
+    height: 11px !important;
+  }
+}
