@@ -1765,3 +1765,14 @@ The two appends must preserve revision numbers and previous-revision links, grou
 - Part IDs, sheet count, TRY currency, stock-sheet cost and quote grand total remain unchanged. The original project envelope and the first restored envelope are not mutated.
 - Unknown top-level and nested metadata, including own __proto__ JSON data keys, must survive both appends and the final export/restore. Object prototypes remain unchanged and prototype pollution does not occur.
 - This is a domain regression for the existing JSON v2 envelope API. It does not implement UI-owned editor startup/new/save/open integration (INT-003), adapter download wiring, CNC output, supplier verification, or physical workshop validation.
+
+
+## DOM-195 — Standalone history import into an empty JSON v2 project envelope
+
+- A validated standalone quote-history JSON v1 file containing a mixed legacy/strict revision chain may be imported only into an empty JSON v2 project envelope with the same stable projectId.
+- Import preserves revision IDs, numbers, previous-revision links and each revision's own integrity-marker presence. A legacy revision must remain marker-absent; import must not backfill or upgrade it.
+- After the imported project is serialized as project JSON and restored, a new immutable revision append must extend the imported chain without mutating the original target, imported result or restored input.
+- Unknown top-level and nested project metadata, including own __proto__ JSON data keys, must survive import, project JSON stringify/parse, append and final restore without prototype mutation or pollution.
+- Final project-history read and standalone JSON v1 export/parse must return the same full revision chain.
+- Attempting to import another standalone history into the now non-empty project must return blocked, with null partial output and no mutation of the existing project.
+- This verifies the existing domain import/append contract only; it does not complete UI-owned INT-003 editor startup/new/save/open integration or certify supplier, CNC or physical workshop data.

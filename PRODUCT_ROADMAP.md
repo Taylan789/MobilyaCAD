@@ -2486,3 +2486,27 @@ Sıradaki küçük görevler:
 3. INT-001/INT-002 — desteklenen adapter round-trip ve geometri/adet kayıpsızlığı için ayrı sahiplikte exact-SHA kanıtı üret.
 4. PERF-001 — specialist job/branch etkinleştiğinde viewport p95, scene update ve bellek baseline ölç; şu anda ölçülmedi.
 5. QA-003 — INT-001/INT-002 exact-SHA kanıtından sonra uçtan uca export/data-flow denetimi.
+
+
+## 26 Kasım 2026 20:07 TRT — DOM-195 standalone history import into project JSON v2 (Actions pending)
+
+**Kullanıcı akışı:** Atölye, önceki teklif geçmişini ayrı JSON v1 geçmiş dosyası olarak saklamıştır. Kullanıcı bunu aynı proje kimliğine sahip, henüz geçmiş içermeyen JSON v2 projesine aktarır; projeyi kaydedip tekrar açar, yeni revizyon ekler ve son geçmişi dışa aktarır. Var olan bir geçmiş sessizce değiştirilemez.
+
+**Kabul kriterleri:**
+- İçe aktarılan iki revizyonlu mixed legacy/strict zincir revision ID, numara ve previousRevisionId sırasını korur; legacy revizyonun own sourceIntegrityVersion yokluğu korunur, yeni revizyonlar strict marker taşır.
+- Import yalnızca aynı projectId'li boş v2 envelope'da başarılıdır; hedef, kaynak geçmiş ve import girdileri mutate edilmez.
+- Project JSON stringify/parse restore sonrasında append, imported zinciri r1 → r2 → r3 olarak genişletir; önceki nesneler değişmez.
+- Bilinmeyen üst seviye/iç içe metadata ve own __proto__ JSON data key'leri import → restore → append → restore boyunca korunur; object prototype değişmez ve pollution oluşmaz.
+- Son project history read ve standalone JSON v1 export/parse aynı üç revizyonu döndürür.
+- Non-empty project history üzerine ikinci standalone import blocked olur; partial output dönmez ve hedef proje değişmez.
+
+**10/10 checklist delta:** Proje dosyası güvenilirliği, teklif revizyonu geriye uyumluluğu ve veri kayıpsızlığı için birleşik import → restore → append → export regresyonu eklendi. CAD geometrisi, 3D senkronizasyon ve UX bu dilimde değişmedi. Viewport p95/bellek NOT MEASURED; büyük JS chunk uyarısı ve mevcut lint uyarıları sürüyor. CNC, tedarikçi doğruluğu, kerf/levha verimi ve fiziksel atölye uygunluğu insan/üretici doğrulaması gerektirir.
+
+**Doğrulama:** İlk implementation commit'inin exact-SHA CI/QA/Pages sonuçları geldikten sonra buraya kaydedilecek.
+
+**Sıradaki 3–5 görev:**
+1. DOM-196 — mixed-version imported history için source-map/integrity audit totals'ını import, project restore ve append sınırlarında karşılaştır; legacy manifest yokluğunu koru.
+2. UI-owned INT-003 — JSON v2 envelope'ı editor startup/new/save/open akışına bağla; frontend/** yalnızca UI ajanının sahipliğindedir.
+3. INT-001/INT-002 — UI/specialist sahipliğindeki adapter round-trip ve geometri/adet kayıpsızlığı için exact-SHA kanıtı.
+4. PERF-001 — specialist lane etkinleştiğinde viewport p95, scene update ve bellek baseline ölçümü; şu anda ölçülmedi.
+5. QA-003 — INT-001/INT-002 exact-SHA kanıtından sonra uçtan uca data-flow audit.
