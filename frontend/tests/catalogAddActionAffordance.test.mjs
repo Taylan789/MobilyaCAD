@@ -11,7 +11,7 @@ const cardSource = await readFile(
   "utf8",
 );
 
-test("catalog add affordance is visible and has a deliberate desktop target", () => {
+test("catalog add affordance is visible and more legible on wide desktop", () => {
   const baseRule = actionStyles.match(
     /\.cad-catalog-card\.mc-catalog-card \.mc-catalog-card__add\s*\{([^}]*)\}/,
   );
@@ -22,14 +22,14 @@ test("catalog add affordance is visible and has a deliberate desktop target", ()
   assert.match(actionStyles, /\.mc-catalog-card:focus-visible \.mc-catalog-card__add/);
 });
 
-test("compact and medium layouts retain a 36px icon-only action", () => {
+test("compact and medium layouts preserve the established 32px icon-only action", () => {
   assert.match(
     actionStyles,
-    /@media \(max-width: 820px\)[\s\S]*?width:\s*36px;[\s\S]*?height:\s*36px;[\s\S]*?\.mc-catalog-card__add-label\s*\{\s*display:\s*none;/,
+    /@media \(max-width: 820px\)[\s\S]*?width:\s*32px;[\s\S]*?height:\s*32px;[\s\S]*?\.mc-catalog-card__add-label\s*\{\s*display:\s*none;/,
   );
   assert.match(
     actionStyles,
-    /@media \(min-width: 821px\) and \(max-width: 1360px\)[\s\S]*?width:\s*36px;[\s\S]*?height:\s*36px;/,
+    /@media \(min-width: 821px\) and \(max-width: 1360px\)[\s\S]*?width:\s*32px;[\s\S]*?height:\s*32px;/,
   );
 });
 
