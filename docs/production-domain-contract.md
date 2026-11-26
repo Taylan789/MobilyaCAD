@@ -1709,3 +1709,12 @@ Kaynak: `domain/production/projectQuoteRevisionFile.ts`.
 - Yalnızca fiyat kaynağı değiştiğinde source-map comparison birer material ve edge-banding provenance değişikliği raporlar; satır ekleme/silme, Part/furniture kimliği değişimi veya kısmi geçmiş üretmez.
 - Bu karşılaştırma fiyatı yeniden hesaplamaz, birim/para birimi dönüştürmez ve fiyatın üretici tarafından doğrulandığını iddia etmez. Miktar, birim, currencyCode, unitPriceMinor, lineTotalMinor ve toplamlar mevcut snapshot değerlerinde kalır.
 - Kaynak referansları kullanıcı girdisidir; fiziksel rulo ölçüsü, bant uyumluluğu, uygulama toleransı ve atölye standardı ayrıca doğrulanmalıdır. CNC/makine çıktısı bu sözleşmenin kapsamında değildir.
+
+
+## DOM-188 — Stock-sheet purchase price-source provenance comparison
+
+- The revision source-map audit exposes each stock-sheet purchase group's stable groupId, material/thickness identity, Part references and optional user-supplied sourceReference; stock-sheet purchase groups remain separate from quote cost lines.
+- compareProjectQuoteRevisionSourceMaps now includes stockSheetGroupProvenanceComparison. It matches groups by stable groupId and reports added, removed or changed provenance, with changed fields limited to sourcePartIds and sourceReference. Price, quantity, sheet count, currency and monetary totals remain the responsibility of the existing stock-sheet group / quote comparison APIs.
+- A price-source-only change is represented as one changed group with changedFields containing only sourceReference; the v2 aggregate Part-manifest comparison remains independently available and unchanged when Part membership is unchanged.
+- No FX conversion, price inference, catalogue verification or production-machine data is performed. Legacy v1 snapshots retain group-level Part provenance, while aggregate manifest comparison remains explicitly unavailable unless both revisions carry schema v2.
+- Physical sheet yield, saw kerf, nesting quality, supplier price authenticity and CNC/workshop suitability remain outside this domain contract and require separately supplied standards or human validation.

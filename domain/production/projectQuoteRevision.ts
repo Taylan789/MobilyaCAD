@@ -2709,6 +2709,36 @@ export interface ProjectQuoteRevisionSourceMapProvenanceChange {
   to: ProjectQuoteRevisionSourceMapProvenance | null;
 }
 
+export interface ProjectQuoteRevisionSourceMapStockSheetGroupProvenance {
+  groupId: string;
+  materialId: string;
+  thicknessMm: number;
+  sourcePartIds: readonly string[];
+  sourceReference?: string;
+}
+
+export type ProjectQuoteRevisionSourceMapStockSheetGroupChangedField =
+  | "sourcePartIds"
+  | "sourceReference";
+
+export interface ProjectQuoteRevisionSourceMapStockSheetGroupProvenanceChange {
+  type: "added" | "removed" | "changed";
+  groupId: string;
+  from: ProjectQuoteRevisionSourceMapStockSheetGroupProvenance | null;
+  to: ProjectQuoteRevisionSourceMapStockSheetGroupProvenance | null;
+  changedFields: readonly ProjectQuoteRevisionSourceMapStockSheetGroupChangedField[];
+}
+
+export interface ProjectQuoteRevisionSourceMapStockSheetGroupProvenanceComparison {
+  counts: {
+    addedGroupCount: number;
+    removedGroupCount: number;
+    changedGroupCount: number;
+    unchangedGroupCount: number;
+  };
+  changes: readonly ProjectQuoteRevisionSourceMapStockSheetGroupProvenanceChange[];
+}
+
 export interface ProjectQuoteRevisionSourceMapProvenanceComparison {
   schemaVersion: 1;
   projectId: string;
@@ -2719,6 +2749,7 @@ export interface ProjectQuoteRevisionSourceMapProvenanceComparison {
   fromSourceIntegrityVersion: 1 | null;
   toSourceIntegrityVersion: 1 | null;
   stockSheetManifestComparison: DeepReadonly<ProjectQuoteRevisionStockSheetManifestComparison>;
+  stockSheetGroupProvenanceComparison?: DeepReadonly<ProjectQuoteRevisionSourceMapStockSheetGroupProvenanceComparison>;
   fromLineCount: number;
   toLineCount: number;
   counts: {
@@ -2760,6 +2791,85 @@ function createSourceMapProvenanceSnapshot(
     ...(line.hardwareFurnitureIds === undefined ? {} : { hardwareFurnitureIds: [...line.hardwareFurnitureIds] }),
     ...(line.hardwareSourceReferences === undefined ? {} : { hardwareSourceReferences: [...line.hardwareSourceReferences] })
   };
+}
+
+function createSourceMapStockSheetGroupProvenanceSnapshot(
+  group: ProjectQuoteRevisionSourceMapAuditStockSheetGroup
+): ProjectQuoteRevisionSourceMapStockSheetGroupProvenance {
+  return {
+    groupId: group.groupId,
+    materialId: group.materialId,
+    thicknessMm: group.thicknessMm,
+    sourcePartIds: [...group.sourcePartIds],
+    ...(group.sourceReference === undefined ? {} : { sourceReference: group.sourceReference })
+  };
+}
+
+function compareSourceMapStockSheetGroupProvenance(
+  fromGroups: readonly ProjectQuoteRevisionSourceMapAuditStockSheetGroup[],
+  toGroups: readonly ProjectQuoteRevisionSourceMapAuditStockSheetGroup[]
+): ProjectQuoteRevisionSourceMapStockSheetGroupProvenanceComparison {
+  const fromById = new Map(fromGroups.map(group => [group.groupId, group]));
+  const toById = new Map(toGroups.map(group => [group.groupId, group]));
+  const groupIds = [...new Set([...fromById.keys(), ...toById.keys()])].sort();
+  const counts = {
+    addedGroupCount: 0,
+    removedGroupCount: 0,
+    changedGroupCount: 0,
+    unchangedGroupCount: 0
+  };
+  const changes: ProjectQuoteRevisionSourceMapStockSheetGroupProvenanceChange[] = [];
+
+  for (const groupId of groupIds) {
+    const fromGroup = fromById.get(groupId) ?? null;
+    const toGroup = toById.get(groupId) ?? null;
+    if (fromGroup === null) {
+      if (toGroup === null) continue;
+      counts.addedGroupCount += 1;
+      changes.push({
+        type: "added",
+        groupId,
+        from: null,
+        to: createSourceMapStockSheetGroupProvenanceSnapshot(toGroup),
+        changedFields: []
+      });
+      continue;
+    }
+    if (toGroup === null) {
+      counts.removedGroupCount += 1;
+      changes.push({
+        type: "removed",
+        groupId,
+        from: createSourceMapStockSheetGroupProvenanceSnapshot(fromGroup),
+        to: null,
+        changedFields: []
+      });
+      continue;
+    }
+
+    const changedFields: ProjectQuoteRevisionSourceMapStockSheetGroupChangedField[] = [];
+    if (fromGroup.sourcePartIds.length !== toGroup.sourcePartIds.length ||
+        fromGroup.sourcePartIds.some((partId, index) => partId !== toGroup.sourcePartIds[index])) {
+      changedFields.push("sourcePartIds");
+    }
+    if ((fromGroup.sourceReference ?? null) !== (toGroup.sourceReference ?? null)) {
+      changedFields.push("sourceReference");
+    }
+    if (changedFields.length === 0) {
+      counts.unchangedGroupCount += 1;
+      continue;
+    }
+    counts.changedGroupCount += 1;
+    changes.push({
+      type: "changed",
+      groupId,
+      from: createSourceMapStockSheetGroupProvenanceSnapshot(fromGroup),
+      to: createSourceMapStockSheetGroupProvenanceSnapshot(toGroup),
+      changedFields
+    });
+  }
+
+  return { counts, changes };
 }
 
 function blockedSourceMapProvenanceComparison(
@@ -2856,6 +2966,10 @@ export function compareProjectQuoteRevisionSourceMaps(
         fromSourceIntegrityVersion: fromAudit.sourceIntegrityVersion,
         toSourceIntegrityVersion: toAudit.sourceIntegrityVersion,
         stockSheetManifestComparison: compareStockSheetManifestCoverage(fromRevision, toRevision),
+        stockSheetGroupProvenanceComparison: compareSourceMapStockSheetGroupProvenance(
+          fromAudit.stockSheetGroups,
+          toAudit.stockSheetGroups
+        ),
         fromLineCount: fromAudit.lines.length,
         toLineCount: toAudit.lines.length,
         counts,

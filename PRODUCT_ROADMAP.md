@@ -24,7 +24,7 @@ Temel ilke: ekrandaki model, hesaplama motoru, kesim listesi ve dışa aktarıla
 | Malzeme kataloğu | UI CRUD; mobilya varsayılan materialId ve çekmece grubunda varsayılan + dört panel grubu override; domain gövde/kitaplık motorları altı gövde panel grubu için malzeme override'ını doğrular | Gövde panel override'ları henüz frontend JSON v1/CSV ve UI akışına bağlanmadı; fiyat, tedarikçi ve fire henüz yok |
 | Proje dosyası | Yerel JSON v1 indirme/yükleme; saf serializer/parser; round-trip ve eski v1 uyumluluk; mm, mobilya ve çekmece grubu katalog referansları ile dört çekmece panel kalınlığının doğrulanması | Şema migrasyonu, otomatik kayıt ve kurtarma yok |
 | Teklif/maliyet | Kullanıcı fiyat tablosu malzeme tüketimini materialId + m2, donanımı hardwareId + özgün BOM birimi, kenar bandını edgeBandingId + açık mm/m birimi ile fiyatlandırır; hardware BOM üretici/katalog referansı `hardwareSourceReferences` alanında, donanım fiyat satırının isteğe bağlı `sourceReference` değeri ise exact hardware cost line ve revision cost-line snapshot'ta ayrı izlenir; kullanıcı girdili işçilik/operasyon tarifesi, tek para birimli birleşik teklif ve tarihli fiyat/tarife katalog snapshot'ı vardır | Eksik donanım fiyatı teklif snapshot'ını bloklar; fiyat, para birimi veya kaynak referansı varsayılmaz. Frontend/UI ve JSON v1/CSV kalıcı revizyon geçmişi entegrasyonu ayrı sahibindedir; vergi, kur, iskonto, otomatik fire/kâr yüzdesi ve üretim onayı yok |
-| Test/CI | Latest verified exact SHA [71c10ae1ed6b7aba17fd57a41fa493b8915fad73](https://github.com/Taylan789/MobilyaCAD/commit/71c10ae1ed6b7aba17fd57a41fa493b8915fad73): CI [#45789559597](https://github.com/Taylan789/MobilyaCAD/actions/runs/45789559597) and QA [#45789559560](https://github.com/Taylan789/MobilyaCAD/actions/runs/45789559560) SUCCESS; QA 355/355 frontend + 819/819 domain; strict shared-domain TypeScript, lint 36 warnings/0 errors, production build, production-only audit 0 vulnerabilities | Pages [#45789559675](https://github.com/Taylan789/MobilyaCAD/actions/runs/45789559675) SUCCESS; exact `pages_build_version=71c10ae1ed6b7aba17fd57a41fa493b8915fad73`; https://taylan789.github.io/MobilyaCAD/; bundle JS 1,710.38 kB (476.76 kB gzip), CSS 470.17 kB; viewport p95/memory NOT MEASURED |
+| Test/CI | Exact verified branch HEAD [a871b1454b94fd9c9689ecc7a1cf0d57a633b378](https://github.com/Taylan789/MobilyaCAD/commit/a871b1454b94fd9c9689ecc7a1cf0d57a633b378): CI [#45804929363](https://github.com/Taylan789/MobilyaCAD/actions/runs/45804929363), QA [#45804929386](https://github.com/Taylan789/MobilyaCAD/actions/runs/45804929386), Pages [#45804929408](https://github.com/Taylan789/MobilyaCAD/actions/runs/45804929408) SUCCESS; QA 361/361 frontend + 819/819 domain | strict shared-domain TypeScript, lint 36 warnings/0 errors, production build, production-only audit 0 vulnerabilities; full dependency audit reports 4 moderate findings | Pages deployment pages_build_version exactly matches a871b1454b94fd9c9689ecc7a1cf0d57a633b378 at https://taylan789.github.io/MobilyaCAD/; JS 1,710.46 kB (476.79 kB gzip), CSS 472.79 kB; viewport p95/memory NOT MEASURED |
 
 ### Bilinen mimari ve veri boşlukları
 
@@ -2322,4 +2322,26 @@ Sonraki adım: Exact-SHA CI/QA/Pages sonuçlarını doğrula; ardından DOM-170 
 2. UI-owned INT-003 — JSON v2 editor envelope startup/new/save/open integration; bu ajan frontend dosyalarına dokunmaz.
 3. INT-001/INT-002 — UI/specialist sahipliğinde desteklenen adapter round-trip ve geometri kayıpsızlığı.
 4. PERF-001 — specialist job/branch etkinleştiğinde viewport p95, scene update ve bellek baseline; henüz ölçülmedi.
+5. QA-003 — INT-001/INT-002 kanıtı sonrasında uçtan uca export/data-flow audit.
+
+
+## 26 Kasım 2026 13:47 TRT — DOM-188 stock-sheet price-source provenance
+
+**Durum:** IMPLEMENTED — exact-SHA CI/QA/Pages validation pending.
+
+**Kullanıcı akışı:** Atölye aynı malzeme/kalınlık grubunda levha satın alma fiyat kaynağını günceller. Teklif revizyonu kaynak haritasında bu değişiklik görünür olmalı; levha grubu kimliği, Part kapsamı, para birimi, levha adedi, birim fiyat, grup maliyeti ve proje toplamı sessizce değişmemelidir.
+
+**Teslim edilen domain dilimi:**
+- Source-map audit'teki mevcut stock-sheet group sourceReference ve Part izini koruyan veriyi kullanan yeni stockSheetGroupProvenanceComparison API alanı eklendi.
+- Gruplar kararlı groupId ile eşleştirilir; sourcePartIds ve sourceReference değişiklikleri ayrı changed-field olarak raporlanır. Maliyet, sheet count ve currency karşılaştırması mevcut stock-sheet group/quote API'lerinde kalır.
+- Schema-v2 aggregate manifest karşılaştırması ayrı ve değişmeden korunur. Legacy v1 manifestinin olmadığı durumlarda Part kapsamı uydurulmaz.
+- DOM-188 regresyonu price-source-only değişikliği, tek changed provenance group, değişmeyen manifest, TRY, levha maliyeti, kategori/genel toplam ve immutable history ile doğrular.
+
+**10/10 checklist delta:** Üretim/teklif provenance izlenebilirliği için otomatik domain kapsamı eklendi; CAD Core ve UX değişmedi. Viewport p95/bellek ölçülmedi; bundle uyarısı devam ediyor. CNC, kerf, levha fire/yield, tedarikçi fiyat doğruluğu ve fiziksel atölye standardı bu değişiklikle doğrulanmış sayılmaz.
+
+**Sonraki 3–5 görev:**
+1. DOM-189 — stock-sheet sourceReference değerini standalone quote revision history JSON round-trip boyunca koru ve restore sonrası source-map audit/comparison ile doğrula.
+2. UI-owned INT-003 — JSON v2 editor envelope startup/new/save/open integration; frontend dosyalarına bu ajan dokunmaz.
+3. INT-001/INT-002 — UI/specialist sahipliğinde desteklenen adapter round-trip ve geometri kayıpsızlığı.
+4. PERF-001 — specialist job/branch etkinleştiğinde viewport p95, scene update ve bellek baseline; şu anda ölçülmedi.
 5. QA-003 — INT-001/INT-002 kanıtı sonrasında uçtan uca export/data-flow audit.
