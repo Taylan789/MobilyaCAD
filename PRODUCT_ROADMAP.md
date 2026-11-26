@@ -2573,7 +2573,7 @@ Sıradaki küçük görevler:
 
 **10/10 checklist delta:** Üretim veri bütünlüğü ve nesting girişine giden Part kimliği/adet/malzeme/grain tutarlılığı için seçili + seçilmemiş özel panel regresyonu ekleniyor. UI, CAD viewport ve adapter davranışı değişmez.
 
-**Durum:** Domain regression eklendi; exact-SHA GitHub Actions CI/QA doğrulaması bekleniyor.
+**Durum:** VERIFIED — implementation [96904d1d9e5ce577919da2f9cecb45acca0860d5](https://github.com/Taylan789/MobilyaCAD/commit/96904d1d9e5ce577919da2f9cecb45acca0860d5); exact-SHA CI [#45888896593](https://github.com/Taylan789/MobilyaCAD/actions/runs/45888896593), QA [#45888896546](https://github.com/Taylan789/MobilyaCAD/actions/runs/45888896546) and Pages [#45888896526](https://github.com/Taylan789/MobilyaCAD/actions/runs/45888896526) SUCCESS. QA: 387/387 frontend + 838/838 domain, DOM-198 test #87, strict TS, lint 36 warnings / 0 errors, production build, production-only audit 0 vulnerabilities. Pages build version matches the implementation SHA.
 
 **Sıradaki küçük görevler:**
 1. DOM-199 — özel panel ölçü/malzeme/kalınlık/damar/kenar değişikliğinin kayıtlı kesim planı freshness sonucunu stale yaptığını doğrula.
