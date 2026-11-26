@@ -11,7 +11,7 @@ test("collapsed left dock keeps the existing library and scene tabs visibly name
   assert.match(app, /role="tab" aria-selected={leftPanelMode === "catalog"}/);
   assert.match(app, /role="tab" aria-selected={leftPanelMode === "scene"}/);
   assert.match(rail, /button\s*\{[\s\S]*?flex-direction:\s*column/);
-  assert.match(rail, /font-size:\s*6px/);
+  assert.match(rail, /font-size:\s*7px/);
   assert.match(rail, /text-transform:\s*uppercase/);
 });
 
