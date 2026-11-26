@@ -1564,11 +1564,14 @@
 - **Next:** DOM-191 — compare a legacy v1 revision with missing price-source provenance against a later revision with an explicit source, without backfilling the legacy record or claiming a v1 aggregate Part manifest.
 
 
-## 26 Kasım 2026 15:50 TRT — DOM-190 QA correction (verification pending)
+## 26 Kasım 2026 15:50 TRT — DOM-190 QA correction (VERIFIED)
 
 - **Base HEAD:** `dev/github-work` `81c381dce64cfc93b78597e12fcb3ed28989e2c9`.
-- **Correction:** fixed only the new regression's inspection path from the outer envelope to the existing `history.revisions` property. The standalone v1 serializer/parser contract and production code are unchanged.
+- **Correction commit:** [6c311108](https://github.com/Taylan789/MobilyaCAD/commit/6c3111084ed139c61def54c09b4ff41ad3be9772) on `dev/github-work`; fixed only the new regression's inspection path from the outer envelope to the existing `history.revisions` property. The standalone v1 serializer/parser contract and production code are unchanged.
 - **Evidence-driven diagnosis:** initial CI succeeded; QA reported exactly one failure (821/822), `exportedEnvelope.revisions is not iterable`, at the new assertion. All other domain tests passed. Pages correctly withheld deployment because the exact-SHA QA gate failed.
 - **Files:** `domain/production/projectQuoteRevision.test.mjs`, `AI_PROGRESS.md`, `AI_COORDINATION.md`.
-- **Checks:** corrected commit CI/QA/Pages are pending; no success is claimed until their exact-SHA runs complete.
+- **Exact-SHA CI:** [#45823486332](https://github.com/Taylan789/MobilyaCAD/actions/runs/45823486332) SUCCESS — frontend build, TypeScript and lint completed; 36 existing warnings / 0 errors.
+- **Exact-SHA QA:** [#45823486223](https://github.com/Taylan789/MobilyaCAD/actions/runs/45823486223) SUCCESS — 369/369 frontend + 822/822 domain tests; strict shared-domain TypeScript; production build; production-only dependency audit 0 vulnerabilities. Full install audit still reports 4 moderate findings.
+- **Exact-SHA Pages:** [#45823486156](https://github.com/Taylan789/MobilyaCAD/actions/runs/45823486156) SUCCESS; deploy log confirms `pages_build_version=6c3111084ed139c61def54c09b4ff41ad3be9772` at https://taylan789.github.io/MobilyaCAD/.
+- **Measured build:** JS 1,711.52 kB / 476.99 kB gzip; CSS 475.26 kB. Viewport p95 and memory remain NOT MEASURED.
 - **Known limits:** supplier provenance, sheet yield/kerf, CNC and physical workshop validation remain unverified; no frontend, adapter, benchmark, secret/settings or main changes.

@@ -2374,7 +2374,11 @@ Sonraki adım: Exact-SHA CI/QA/Pages sonuçlarını doğrula; ardından DOM-170 
 4. PERF-001 — specialist job/branch etkinleştiğinde viewport p95, scene update ve bellek baseline; henüz ölçülmedi.
 5. QA-003 — INT-001/INT-002 kanıtı sonrasında uçtan uca export/data-flow denetimi.
 
-## 26 Kasım 2026 15:46 TRT — DOM-190 legacy v1 provenance absence (implementation committed; verification pending)
+## 26 Kasım 2026 15:46 TRT — DOM-190 legacy v1 provenance absence (VERIFIED)
+
+**Commit:** implementation [81c381dc](https://github.com/Taylan789/MobilyaCAD/commit/81c381dce64cfc93b78597e12fcb3ed28989e2c9), test correction [6c311108](https://github.com/Taylan789/MobilyaCAD/commit/6c3111084ed139c61def54c09b4ff41ad3be9772).
+
+**Otomatik doğrulama:** CI [#45823486332](https://github.com/Taylan789/MobilyaCAD/actions/runs/45823486332) SUCCESS; QA [#45823486223](https://github.com/Taylan789/MobilyaCAD/actions/runs/45823486223) SUCCESS (369/369 frontend + 822/822 domain, strict shared-domain TypeScript, lint 36 warnings / 0 errors, production build, production-only audit 0 vulnerabilities); Pages [#45823486156](https://github.com/Taylan789/MobilyaCAD/actions/runs/45823486156) SUCCESS with exact `pages_build_version=6c3111084ed139c61def54c09b4ff41ad3be9772` at https://taylan789.github.io/MobilyaCAD/. Full dependency install audit still reports 4 moderate findings.
 
 **Kullanıcı akışı:** Eski bir teklif geçmişinde levha fiyat kaynağı hiç kaydedilmemiş olabilir. Operatör bu geçmişi JSON olarak dışa aktarıp geri yüklediğinde eksik kaynak bilgisi eksik kalmalı; uygulama geçmişe sahte tedarikçi/fiyat kaynağı eklememelidir.
 
