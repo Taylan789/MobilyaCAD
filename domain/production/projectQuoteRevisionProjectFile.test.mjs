@@ -1365,3 +1365,148 @@ test("DOM-179 imported prototype-sensitive metadata survives restore and immutab
   assert.equal(finalParsed.status, "ready", finalParsed.diagnostics.join("; "));
   assert.deepEqual(finalParsed.history, reloadedHistory.history);
 });
+
+
+test("DOM-180 accepts 64 total object/array levels and blocks level 65 across read, append and import", () => {
+  const source = appendProjectQuoteRevisionToProjectFile(createV2Project(), createRevision());
+  assert.equal(source.status, "ready", source.diagnostics.join("; "));
+  assert.ok(source.history);
+  const standalone = serializeProjectQuoteRevisionHistoryFile(source.history);
+  assert.equal(standalone.status, "ready", standalone.diagnostics.join("; "));
+  assert.ok(standalone.json);
+
+  function createProjectWithDepth(totalDepth) {
+    // Root project envelope is level 1; metadata starts at level 2.
+    let nested = { leaf: "preserved" };
+    for (let level = 0; level < totalDepth - 2; level += 1) {
+      nested = level % 2 === 0 ? { next: nested } : [nested];
+    }
+    return createV2Project({ metadata: nested });
+  }
+
+  const exactDepthProject = createProjectWithDepth(PROJECT_QUOTE_REVISION_PROJECT_ENVELOPE_MAX_DEPTH);
+  const exactRead = readProjectQuoteRevisionHistoryFromProjectFile(exactDepthProject);
+  assert.equal(exactRead.status, "empty", exactRead.diagnostics.join("; "));
+  assert.equal(exactRead.projectId, "project-42");
+  assert.equal(exactRead.history?.revisions.length, 0);
+
+  const exactAppend = appendProjectQuoteRevisionToProjectFile(
+    createProjectWithDepth(PROJECT_QUOTE_REVISION_PROJECT_ENVELOPE_MAX_DEPTH),
+    createRevision()
+  );
+  assert.equal(exactAppend.status, "ready", exactAppend.diagnostics.join("; "));
+  assert.equal(exactAppend.history?.revisions.length, 1);
+  assert.equal(readProjectQuoteRevisionHistoryFromProjectFile(exactAppend.project).status, "ready");
+
+  const exactImport = importProjectQuoteRevisionHistoryFileIntoProject(
+    createProjectWithDepth(PROJECT_QUOTE_REVISION_PROJECT_ENVELOPE_MAX_DEPTH),
+    standalone.json
+  );
+  assert.equal(exactImport.status, "ready", exactImport.diagnostics.join("; "));
+  assert.equal(exactImport.history?.revisions.length, 1);
+  assert.equal(readProjectQuoteRevisionHistoryFromProjectFile(exactImport.project).status, "ready");
+
+  const tooDeepProject = createProjectWithDepth(PROJECT_QUOTE_REVISION_PROJECT_ENVELOPE_MAX_DEPTH + 1);
+  const before = JSON.stringify(tooDeepProject);
+  const blockedRead = readProjectQuoteRevisionHistoryFromProjectFile(tooDeepProject);
+  assert.equal(blockedRead.status, "blocked");
+  assert.equal(blockedRead.projectId, null);
+  assert.equal(blockedRead.history, null);
+
+  const blockedAppend = appendProjectQuoteRevisionToProjectFile(tooDeepProject, createRevision());
+  assert.equal(blockedAppend.status, "blocked");
+  assert.equal(blockedAppend.project, null);
+  assert.equal(blockedAppend.history, null);
+
+  const blockedImport = importProjectQuoteRevisionHistoryFileIntoProject(tooDeepProject, standalone.json);
+  assert.equal(blockedImport.status, "blocked");
+  assert.equal(blockedImport.project, null);
+  assert.equal(blockedImport.history, null);
+  assert.equal(JSON.stringify(tooDeepProject), before);
+  assert.equal(Object.hasOwn(tooDeepProject, PROJECT_QUOTE_REVISION_HISTORY_FIELD), false);
+});
+
+test("DOM-180 accepts exactly 16 MiB UTF-8 and blocks the next byte across read, append and import", () => {
+  const maxBytes = PROJECT_QUOTE_REVISION_PROJECT_ENVELOPE_MAX_BYTES;
+
+  function utf8Payload(byteLength) {
+    return "é".repeat(Math.floor(byteLength / 2)) + "x".repeat(byteLength % 2);
+  }
+
+  function createProjectWithExactUtf8Bytes(totalBytes) {
+    const project = createV2Project({ metadata: { payload: "" } });
+    const baseBytes = Buffer.byteLength(JSON.stringify(project), "utf8");
+    const payloadBytes = totalBytes - baseBytes;
+    assert.ok(payloadBytes >= 0);
+    project.metadata.payload = utf8Payload(payloadBytes);
+    assert.equal(Buffer.byteLength(JSON.stringify(project), "utf8"), totalBytes);
+    return project;
+  }
+
+  const readTarget = createProjectWithExactUtf8Bytes(maxBytes);
+  const exactRead = readProjectQuoteRevisionHistoryFromProjectFile(readTarget);
+  assert.equal(exactRead.status, "empty", exactRead.diagnostics.join("; "));
+  readTarget.metadata.payload += "x";
+  assert.equal(Buffer.byteLength(JSON.stringify(readTarget), "utf8"), maxBytes + 1);
+  const blockedRead = readProjectQuoteRevisionHistoryFromProjectFile(readTarget);
+  assert.equal(blockedRead.status, "blocked");
+  assert.equal(blockedRead.projectId, null);
+  assert.equal(blockedRead.history, null);
+
+  const baseAppend = appendProjectQuoteRevisionToProjectFile(
+    createV2Project({ metadata: { payload: "" } }),
+    createRevision()
+  );
+  assert.equal(baseAppend.status, "ready", baseAppend.diagnostics.join("; "));
+  assert.ok(baseAppend.project);
+  const appendPayloadBytes = maxBytes - Buffer.byteLength(JSON.stringify(baseAppend.project), "utf8");
+  assert.ok(appendPayloadBytes > 0);
+  const appendTarget = createV2Project({ metadata: { payload: utf8Payload(appendPayloadBytes) } });
+  assert.ok(Buffer.byteLength(JSON.stringify(appendTarget), "utf8") < maxBytes);
+  const exactAppend = appendProjectQuoteRevisionToProjectFile(appendTarget, createRevision());
+  assert.equal(exactAppend.status, "ready", exactAppend.diagnostics.join("; "));
+  assert.ok(exactAppend.project);
+  assert.equal(Buffer.byteLength(JSON.stringify(exactAppend.project), "utf8"), maxBytes);
+  const exactAppendPayload = appendTarget.metadata.payload;
+  assert.equal(exactAppend.project.metadata.payload, exactAppendPayload);
+  appendTarget.metadata.payload += "x";
+  assert.equal(Buffer.byteLength(JSON.stringify(appendTarget), "utf8") < maxBytes, true);
+  const blockedAppend = appendProjectQuoteRevisionToProjectFile(appendTarget, createRevision());
+  assert.equal(blockedAppend.status, "blocked");
+  assert.equal(blockedAppend.project, null);
+  assert.equal(blockedAppend.history, null);
+  assert.equal(appendTarget.metadata.payload.length, exactAppendPayload.length + 1);
+  assert.equal(Object.hasOwn(appendTarget, PROJECT_QUOTE_REVISION_HISTORY_FIELD), false);
+
+  const source = appendProjectQuoteRevisionToProjectFile(createV2Project(), createRevision());
+  assert.equal(source.status, "ready");
+  assert.ok(source.history);
+  const standalone = serializeProjectQuoteRevisionHistoryFile(source.history);
+  assert.equal(standalone.status, "ready");
+  assert.ok(standalone.json);
+  const baseImport = importProjectQuoteRevisionHistoryFileIntoProject(
+    createV2Project({ metadata: { payload: "" } }),
+    standalone.json
+  );
+  assert.equal(baseImport.status, "ready", baseImport.diagnostics.join("; "));
+  assert.ok(baseImport.project);
+  const importPayloadBytes = maxBytes - Buffer.byteLength(JSON.stringify(baseImport.project), "utf8");
+  assert.ok(importPayloadBytes > 0);
+  const importTarget = createV2Project({ metadata: { payload: utf8Payload(importPayloadBytes) } });
+  assert.ok(Buffer.byteLength(JSON.stringify(importTarget), "utf8") < maxBytes);
+  const exactImport = importProjectQuoteRevisionHistoryFileIntoProject(importTarget, standalone.json);
+  assert.equal(exactImport.status, "ready", exactImport.diagnostics.join("; "));
+  assert.ok(exactImport.project);
+  assert.equal(Buffer.byteLength(JSON.stringify(exactImport.project), "utf8"), maxBytes);
+  const exactImportPayload = importTarget.metadata.payload;
+  assert.equal(exactImport.project.metadata.payload, exactImportPayload);
+  importTarget.metadata.payload += "x";
+  assert.equal(Buffer.byteLength(JSON.stringify(importTarget), "utf8") < maxBytes, true);
+  const blockedImport = importProjectQuoteRevisionHistoryFileIntoProject(importTarget, standalone.json);
+  assert.equal(blockedImport.status, "blocked");
+  assert.equal(blockedImport.project, null);
+  assert.equal(blockedImport.history, null);
+  assert.equal(importTarget.metadata.payload.length, exactImportPayload.length + 1);
+  assert.equal(Object.hasOwn(importTarget, PROJECT_QUOTE_REVISION_HISTORY_FIELD), false);
+});
+

@@ -1643,3 +1643,12 @@ Kaynak: `domain/production/projectQuoteRevisionFile.ts`.
 - User flow: import a standalone quote-revision history into an empty JSON v2 project, persist it through JSON stringify/parse, reopen the restored envelope, append the next revision, save/reopen again and export the resulting history.
 - Acceptance: unrelated top-level/nested metadata and own `__proto__` JSON data keys remain own enumerable data properties through import, restore and append; object prototypes remain unchanged; the original target/restored input is not mutated; the appended revision sequence and previous-revision link are valid; project-history read and standalone JSON export/parser return the same two-revision history.
 - This is a domain contract regression, not editor startup/new/save/open integration. UI-owned INT-003 remains separate; no frontend or CSV adapter file is changed.
+
+## DOM-180 — Inclusive JSON v2 project-envelope resource boundaries
+
+- The project envelope depth budget counts the root object as level 1. Exactly 64 total object/array levels are accepted; level 65 is blocked.
+- The 16 MiB budget is measured in serialized UTF-8 JSON bytes, not JavaScript UTF-16 code units. Boundary regressions use multi-byte UTF-8 text and compare against Buffer.byteLength(JSON.stringify(project), "utf8").
+- readProjectQuoteRevisionHistoryFromProjectFile accepts exactly 16 MiB and blocks at 16 MiB + 1 byte. appendProjectQuoteRevisionToProjectFile and importProjectQuoteRevisionHistoryFileIntoProject are checked against the final envelope after adding the history extension: an exactly 16 MiB result is accepted, while a final result one byte larger returns blocked, project: null, and history: null.
+- The same exact-depth / depth-plus-one checks cover read, append and standalone import. Blocked append/import leave their input envelopes unchanged and do not add a partial quoteRevisionHistory property.
+- These are domain boundary regressions for the existing JSON v2 extension; no new schema version, frontend wiring, adapter round-trip, CNC output or physical production validation is implied.
+
