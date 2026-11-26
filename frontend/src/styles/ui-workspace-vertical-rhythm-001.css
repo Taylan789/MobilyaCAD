@@ -452,3 +452,52 @@
     box-shadow: none !important;
   }
 }
+
+/* UI-WORKSPACE-SHORT-HEIGHT-001 — reclaim vertical room on compact desktop windows without hiding production data. */
+@media (min-width: 821px) and (min-height: 701px) and (max-height: 820px) {
+  .cad-app .cad-main-area {
+    grid-template-rows: 34px 46px minmax(240px, 1fr) clamp(128px, 16vh, 160px) !important;
+  }
+
+  .cad-app .studio-workspace-heading {
+    min-height: 34px !important;
+    height: 34px !important;
+    padding-block: 0 !important;
+  }
+
+  .cad-app .cad-viewport-toolbar {
+    min-height: 46px !important;
+    height: 46px !important;
+  }
+
+  .cad-app .cad-bottom-dock-header {
+    min-height: 40px !important;
+    height: 40px !important;
+    flex: 0 0 40px !important;
+    gap: 10px !important;
+  }
+
+  .cad-app .cad-bottom-dock-title {
+    min-width: 120px !important;
+    gap: 6px !important;
+  }
+
+  .cad-app .cad-bottom-dock-tabs button {
+    padding-block: 5px !important;
+  }
+
+  .cad-app .cad-dock-table th,
+  .cad-app .cad-dock-table td {
+    padding-block: 4px !important;
+  }
+
+  .cad-app .cad-main-area.has-collapsed-production-dock {
+    grid-template-rows: 34px 46px minmax(240px, 1fr) 58px !important;
+  }
+
+  .cad-app .cad-bottom-dock.is-collapsed .cad-bottom-dock-header {
+    min-height: 0 !important;
+    height: 100% !important;
+    flex: 1 1 auto !important;
+  }
+}
