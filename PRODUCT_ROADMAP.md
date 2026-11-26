@@ -2345,3 +2345,29 @@ Sonraki adım: Exact-SHA CI/QA/Pages sonuçlarını doğrula; ardından DOM-170 
 3. INT-001/INT-002 — UI/specialist sahipliğinde desteklenen adapter round-trip ve geometri kayıpsızlığı.
 4. PERF-001 — specialist job/branch etkinleştiğinde viewport p95, scene update ve bellek baseline; şu anda ölçülmedi.
 5. QA-003 — INT-001/INT-002 kanıtı sonrasında uçtan uca export/data-flow audit.
+
+## 26 Kasım 2026 — DOM-189: Standalone revision-history JSON provenance round-trip
+
+**Durum:** IMPLEMENTATION COMMITTED — exact-SHA CI, QA and Pages validation pending.
+
+**Kullanıcı akışı:** Operatör iki teklif revizyonu arasında levha satın alma fiyat kaynağını günceller, teklif revizyon geçmişini JSON olarak dışa aktarır ve yeniden içe alır. Geri yüklenen geçmişte kaynak haritası denetimi ve karşılaştırması aynı provenance farkını göstermelidir.
+
+**Kabul kriterleri:**
+- Stock-sheet group `sourceReference` mevcut standalone v1 revision-history JSON zarfında kayıpsız korunur; yeni schema veya adapter alanı eklenmez.
+- Restore sonrası source-map audit, source-integrity audit, source-map comparison ve stock-sheet group comparison pre-export sonuçlarıyla aynıdır.
+- Yalnızca fiyat kaynağı değiştiğinde tam bir changed group ve yalnızca `sourceReference` changed field üretilir.
+- Schema-v2 aggregate Part manifesti değişmez; TRY, levha adedi, birim fiyat, grup maliyeti ve proje toplamı değişmez.
+- Kaynak history mutasyona uğramaz; invalid/unsupported file input mevcut fail-closed validator davranışını korur.
+
+**10/10 kalite checklist — bu dilimin etkisi (Actions doğrulaması bekliyor):**
+- Üretim/güvenilirlik: stock-sheet price provenance için standalone JSON restore sonrası audit/comparison eşitliği otomatik regresyonla kapsandı.
+- CAD Core ve UX: bu domain testi diliminde değişmedi; frontend sahipliği UI ajanında.
+- Performans: viewport p95/bellek ölçümü bu dilimde yapılmadı; mevcut bundle uyarısı için yeni ölçüm yok.
+- CNC/atölye: tedarikçi fiyat doğruluğu, levha yield/kerf ve fiziksel üretim uygunluğu doğrulanmış sayılmaz.
+
+**Sıradaki 3–5 küçük görev:**
+1. DOM-190 — legacy stock-sheet v1 history içinde opsiyonel sourceReference yokluğunu standalone JSON round-trip boyunca aynen koru; sahte/varsayılan kaynak üretme.
+2. UI-owned INT-003 — JSON v2 editor envelope startup/new/save/open integration; frontend dosyalarına bu ajan dokunmaz.
+3. INT-001/INT-002 — UI/specialist sahipliğinde desteklenen adapter round-trip ve geometri kayıpsızlığı.
+4. PERF-001 — specialist job/branch etkinleştiğinde viewport p95, scene update ve bellek baseline; henüz ölçülmedi.
+5. QA-003 — INT-001/INT-002 kanıtı sonrasında uçtan uca export/data-flow denetimi.

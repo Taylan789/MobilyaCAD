@@ -1718,3 +1718,9 @@ Kaynak: `domain/production/projectQuoteRevisionFile.ts`.
 - A price-source-only change is represented as one changed group with changedFields containing only sourceReference; the v2 aggregate Part-manifest comparison remains independently available and unchanged when Part membership is unchanged.
 - No FX conversion, price inference, catalogue verification or production-machine data is performed. Legacy v1 snapshots retain group-level Part provenance, while aggregate manifest comparison remains explicitly unavailable unless both revisions carry schema v2.
 - Physical sheet yield, saw kerf, nesting quality, supplier price authenticity and CNC/workshop suitability remain outside this domain contract and require separately supplied standards or human validation.
+
+## DOM-189 — Standalone revision-history JSON stock-sheet provenance round-trip
+
+The standalone quote-revision history file remains the existing v1 envelope; no schema or adapter format change is required. A validated stock-sheet purchase group's optional `sourceReference` must survive serialize → parse → restore exactly. After restore, source-map audit, source-integrity audit, source-map comparison and stock-sheet group comparison must equal their pre-export results.
+
+The regression uses two schema-v2 stock-sheet snapshots that differ only in the user-supplied price-source reference. The restored comparison must report exactly one changed group with `changedFields: ["sourceReference"]`; the aggregate Part manifest remains comparable with no Part additions/removals, TRY currency and all material/group/grand totals remain unchanged, and the original history is not mutated. This proves provenance persistence only; it does not validate supplier authenticity, physical sheet yield, CNC output or workshop production.
