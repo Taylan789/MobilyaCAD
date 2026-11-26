@@ -2596,7 +2596,7 @@ Sıradaki küçük görevler:
 
 **10/10 checklist delta:** Üretim veri güvenilirliği, tam proje snapshot'ı ve export öncesi freshness kapısı için özel panel odaklı uçtan uca otomatik regresyon eklendi. CAD viewport/UX, editor save/open UI, perform p95/bellek ve CNC/makine doğrulaması bu dilimde değişmedi/ölçülmedi.
 
-**Durum:** Test ve sözleşme dokümantasyonu implementation commit'ine eklendi; exact-SHA CI/QA/Pages sonucu bekleniyor.
+**Durum:** VERIFIED — implementation [ea92da77d71c1e79d92754f11cac234bf0f5da7f](https://github.com/Taylan789/MobilyaCAD/commit/ea92da77d71c1e79d92754f11cac234bf0f5da7f); exact-SHA CI [#45902162133](https://github.com/Taylan789/MobilyaCAD/actions/runs/45902162133), QA [#45902162093](https://github.com/Taylan789/MobilyaCAD/actions/runs/45902162093) ve Pages [#45902162123](https://github.com/Taylan789/MobilyaCAD/actions/runs/45902162123) SUCCESS. QA 389/389 frontend + 839/839 domain; DOM-199 test #692; strict TypeScript, lint 36 warnings/0 errors, production build, production-only audit 0 vulnerabilities; Pages build version exact SHA.
 
 **Sıradaki 3–5 küçük görev:**
 1. DOM-200 — özel panel değişikliklerinin kullanıcı fiyatlı malzeme tüketimi ve immutable quote snapshot/revision toplamlarıyla tutarlı kalmasını doğrula; fiyat/para birimi kaynağı uydurma.

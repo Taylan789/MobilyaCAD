@@ -1694,8 +1694,18 @@
 - **Next:** DOM-199 — verify custom-panel dimension/material/thickness/grain/edge changes invalidate an existing saved cut-plan freshness snapshot; keep INT-003, INT-002 and PERF-001 ownership isolated.
 
 
-## 27 Kasım 2026 00:58 TRT — DOM-199 IMPLEMENTED (exact-SHA verification pending)
+## 27 Kasım 2026 00:58 TRT — DOM-199 VERIFIED
 
+- **Base HEAD:** `dev/github-work` `e2c557ab3b1066b1ff83770e61ec0644c0e5a735`.
+- **Implementation commit:** [`ea92da77d71c1e79d92754f11cac234bf0f5da7f`](https://github.com/Taylan789/MobilyaCAD/commit/ea92da77d71c1e79d92754f11cac234bf0f5da7f).
+- **Delivery:** Added a real custom-panel production → selected nesting batch → JSON v2 project Part snapshot → saved cut-plan freshness regression. A baseline remains fresh; changing width, length, quantity, catalogue material, thickness, grain direction or any edge-band flag makes the saved plan stale with null result/JSON. A changed excluded custom panel also invalidates the full project snapshot. The saved plan input remains unchanged.
+- **Changed files:** `domain/production/projectSheetCutPlanFreshness.test.mjs`, `docs/production-domain-contract.md`, `AI_COORDINATION.md`, `AI_PROGRESS.md`, `PRODUCT_ROADMAP.md`. No `frontend/**`, adapter/benchmark-owned file, runtime CNC/machine output, secret/setting or `main` change.
+- **Exact-SHA CI:** [#45902162133](https://github.com/Taylan789/MobilyaCAD/actions/runs/45902162133) SUCCESS — frontend production build and lint.
+- **Exact-SHA QA:** [#45902162093](https://github.com/Taylan789/MobilyaCAD/actions/runs/45902162093) SUCCESS — 389/389 frontend + 839/839 domain tests; DOM-199 passed as domain test #692; strict shared-domain TypeScript, lint 36 warnings / 0 errors, production build and production-only dependency audit 0 vulnerabilities.
+- **Exact-SHA Pages:** [#45902162123](https://github.com/Taylan789/MobilyaCAD/actions/runs/45902162123) SUCCESS — deployment log confirms `pages_build_version=ea92da77d71c1e79d92754f11cac234bf0f5da7f` at https://taylan789.github.io/MobilyaCAD/.
+- **Known limits:** This is a domain freshness contract test, not editor UI wiring or cutout-aware nesting/export. The build retains its existing >500 kB chunk warning; lint retains 36 warnings. CNC, machine-specific postprocessor and physical workshop validation remain unverified.
+- **Parallel lanes:** UI-owned INT-003 PR [#206](https://github.com/Taylan789/MobilyaCAD/pull/206) remains draft and unmerged; its App startup/new/save/open integration is explicitly deferred. No integration/performance specialist branch exists; that workflow job remains disabled and INT-002/PERF-001 stay specialist-owned. Latest AI Developer [#45890606689](https://github.com/Taylan789/MobilyaCAD/actions/runs/45890606689) failed on OpenRouter free-model daily HTTP 429; reset is 27 November 2026 03:00 TRT, so it was not rerun.
+- **Next:** DOM-200 — reconcile custom-panel edits with user-priced material consumption and immutable quote snapshot/revision source totals without inventing prices; UI/adapter integration remains with its owners.
 - **Base HEAD:** `dev/github-work` `e2c557ab3b1066b1ff83770e61ec0644c0e5a735`.
 - **Implementation commit:** this entry is included in the implementation commit; the resulting SHA and exact-SHA Actions evidence will be recorded after GitHub creates and verifies that commit.
 - **Delivery:** Added a real custom-panel production → selected nesting batch → JSON v2 project Part snapshot → saved cut-plan freshness regression. A baseline remains fresh; changing width, length, quantity, catalogue material, thickness, grain direction or any edge-band flag makes the saved plan stale with null result/JSON. A changed excluded custom panel also invalidates the full project snapshot. The saved plan input remains unchanged.
