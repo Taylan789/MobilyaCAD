@@ -2231,7 +2231,7 @@ Sonraki adım: Exact-SHA CI/QA/Pages sonuçlarını doğrula; ardından DOM-170 
 
 ## DOM-184 — Manufacturer-referenced bookshelf shelf-support BOM
 
-**Durum:** Domain implementation committed; exact-SHA CI/QA/Pages verification pending.
+**Durum:** VERIFIED — commit [60db74731a3498d0910a2a988f629191df3673b9](https://github.com/Taylan789/MobilyaCAD/commit/60db74731a3498d0910a2a988f629191df3673b9); CI [#45780523636](https://github.com/Taylan789/MobilyaCAD/actions/runs/45780523636), QA [#45780523812](https://github.com/Taylan789/MobilyaCAD/actions/runs/45780523812) and Pages [#45780523647](https://github.com/Taylan789/MobilyaCAD/actions/runs/45780523647) SUCCESS. QA 355/355 frontend + 815/815 domain; exact-SHA test-site deployment confirmed.
 
 **Kullanıcı akışı:** Operatör, her açık ölçülü kitaplık rafına üretici kataloğundan seçtiği raf desteği/donanım satırını açıkça ekler. Satırın katalog kimliği, katalog adı, kaynak referansı, miktarı ve birimi kullanıcı tarafından sağlanır. Üretim motoru bu satırı aynı rafın Part kimliğine bağlayarak proje BOM'una taşır.
 
@@ -2241,6 +2241,8 @@ Sonraki adım: Exact-SHA CI/QA/Pages sonuçlarını doğrula; ardından DOM-170 
 - Raf BOM satır kimlikleri raf içinde benzersizdir; miktar/birim dönüştürülmez veya geometri üzerinden türetilmez.
 - Her BOM satırı yalnızca onu içeren shelf Part'a bağlanır; ortak hardware BOM validator ve BOM trace aynı kimlik/kaynak/quantity değerlerini korur.
 - hardwareItems varlığında mevcut JSON v1/CSV export blocker korunur; unsupported adapter'a veri sızdırılmaz.
+
+**Doğrulama ve ölçülen durum:** 355/355 frontend + 815/815 domain testleri geçti; shared-domain strict TypeScript, production build ve production-only audit (0 vulnerability) başarılı. Lint 36 mevcut frontend uyarısı / 0 hata. Exact-SHA Pages deployment başarılı. Bu domain dilimi görünür UI yenilemesi değildir; hardwareItems mevcut JSON v1/CSV export blocker'ını korur.
 
 **Bağımlılıklar ve riskler:** DOM-183 shelf Part kimlikleri ve mevcut project-level hardware BOM/trace altyapısı. Kaynak referansı kullanıcı tarafından sağlanır ve kaydedilir; uygulama katalog içeriğini otomatik doğrulamaz. Gerçek destek tipi, vida/delik/montaj ölçüsü, yük kapasitesi, malzeme uyumluluğu ve fiziksel güvenlik üretici/atölye doğrulaması gerektirir.
 
