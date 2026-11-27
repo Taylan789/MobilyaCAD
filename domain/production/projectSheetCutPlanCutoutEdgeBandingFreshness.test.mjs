@@ -3,6 +3,7 @@ import test from "node:test";
 import { calculateCabinetProjectProductionWithDiagnostics } from "./projectProduction.ts";
 import { createProjectSheetNestingBatches } from "./projectSheetNestingBatches.ts";
 import { createProjectSheetCutPlan } from "./projectSheetCutPlan.ts";
+import { createFreshProjectSheetCutPlanExport } from "./projectSheetCutPlanExport.ts";
 import { validateProjectSheetCutPlanFreshness } from "./projectSheetCutPlanFreshness.ts";
 import { calculateSheetNestingLayout } from "./sheetNestingLayout.ts";
 
@@ -208,5 +209,80 @@ test("DOM-204 JSON v2/v3 freshness rejects cutout inner-edge flag edits on an ex
     const stale = validateFreshness(savedPlanJson, editedGeometry);
     assertStaleWithoutPartialExport(stale);
     assert.equal(JSON.parse(savedPlanJson).result.projectPartSnapshot.parts.length, 2);
+  }
+});
+
+ 
+test("DOM-205 downstream v2/v3 export gate rejects stale cutout edge-band edits", () => {
+  const originalReport = cutoutProjectReport();
+  const jsonV2 = savedPlanV2(originalReport);
+  const plans = [
+    ["v2", jsonV2],
+    ["v3", savedPlanV3(jsonV2)]
+  ];
+  const changedReports = [
+    ["catalog identity", cutoutProjectReport({ topBandingId: "pvc-inner-top-revised" })],
+    ["explicit unit", cutoutProjectReport({ topBandingUnit: "mm" })],
+    ["cutout edge flag", cutoutProjectReport({ sinkBottomBanded: true })]
+  ];
+  const selectedPartIds = [selectedPartId];
+  const exportReport = (savedPlanJson, productionReport) =>
+    createFreshProjectSheetCutPlanExport({
+      schemaVersion: 1,
+      freshness: {
+        schemaVersion: 1,
+        savedPlanJson,
+        productionReport,
+        currentSelectedPartIds: selectedPartIds
+      }
+    });
+  // Test-only override isolates the freshness gate from the real adapter blocker.
+  // The actual production report remains non-exportable and is asserted below.
+  const adapterReadyForFreshnessOnly = (report) => ({
+    ...report,
+    canExport: true,
+    exportBlockers: []
+  });
+
+  for (const [version, savedPlanJson] of plans) {
+    const unchanged = exportReport(
+      savedPlanJson,
+      adapterReadyForFreshnessOnly(originalReport)
+    );
+    assert.equal(unchanged.status, "ready", version);
+    assert.equal(unchanged.freshnessStatus, "fresh", version);
+    assert.equal(unchanged.json, savedPlanJson, version);
+    assert.deepEqual(unchanged.sourcePartIds, selectedPartIds, version);
+
+    for (const [change, changedReport] of changedReports) {
+      const stale = exportReport(
+        savedPlanJson,
+        adapterReadyForFreshnessOnly(changedReport)
+      );
+      assert.equal(stale.status, "blocked", version + " " + change);
+      assert.equal(stale.freshnessStatus, "stale", version + " " + change);
+      assert.equal(stale.result, null, version + " " + change);
+      assert.equal(stale.json, null, version + " " + change);
+      assert.deepEqual(stale.sourcePartIds, selectedPartIds, version + " " + change);
+      assert.match(
+        stale.diagnostics.join(" "),
+        /custom-worktop-panel üretim Part snapshot'ı değişmiş/,
+        version + " " + change
+      );
+    }
+
+    const actualAdapterBlock = exportReport(savedPlanJson, originalReport);
+    assert.equal(actualAdapterBlock.status, "blocked", version);
+    assert.equal(actualAdapterBlock.freshnessStatus, "blocked", version);
+    assert.equal(actualAdapterBlock.result, null, version);
+    assert.equal(actualAdapterBlock.json, null, version);
+    assert.ok(
+      actualAdapterBlock.productionDiagnostics?.some((item) => /panelGeometry/.test(item.message)),
+      version + " panelGeometry export blocker must remain visible"
+    );
+    assert.ok(
+      actualAdapterBlock.productionDiagnostics?.some((item) => /edgeBandingByEdge/.test(item.message)),
+      version + " edgeBandingByEdge export blocker must remain visible"
+    );
   }
 });

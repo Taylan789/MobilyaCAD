@@ -2732,3 +2732,27 @@ Sıradaki küçük görevler:
 - Performans: bu dilimde ölçülmedi; viewport p95 ve bellek NOT MEASURED.
 - CNC/makine: üretim çıktısı veya fiziksel onay yok; operatör/üretici doğrulaması gerekir.
 
+## 27 Kasım 2026 06:11 TRT — DOM-205 downstream kesim planı export freshness (Actions pending)
+
+**Kullanıcı akışı:** Kullanıcı bir levha kesim planı kaydeder; aynı projede nesting dışında bırakılmış kesitli özel panelin iç kenar bandı sonradan değişir. Eski kayıt, dışa aktarım ekranında güncel/üretilebilir gibi görünmemelidir.
+
+**Kabul kriterleri:**
+- JSON v2/v3 değişmeyen proje için freshness + downstream export kapısı ready/fresh kalır.
+- Hariç kesitli Part'ın iç kenar bandı katalog kimliği, açık mm/m birimi veya açıklık kenarı bayrağı değiştiğinde downstream export blocked/stale olur; result ve json null kalır.
+- Test, freshness kapısını adapter blocker'ından bağımsız izole eder; ayrıca gerçek üretim raporunda panelGeometry ve edgeBandingByEdge blocker'larının hâlâ export'u durdurduğunu kanıtlar.
+- JSON v1 okunabilirliği korunur; JSON v1/CSV adapter desteği, CNC/postprocessor veya fiziksel üretim uygunluğu iddia edilmez.
+
+**Durum:** Kod/test ve sözleşme commit'i bu turda oluşturuldu; exact-SHA CI, QA ve Pages doğrulaması tetiklenmeyi bekliyor. Test dosyası domain/production/projectSheetCutPlanCutoutEdgeBandingFreshness.test.mjs; domain runtime API değişmedi. Frontend, adapter/benchmark ve CNC dosyalarına dokunulmadı.
+
+**10/10 checklist delta:**
+- Üretim/veri doğruluğu: kesitli hariç Part'taki inner-edge ID/unit/flag değişiklikleri downstream v2/v3 export freshness kapısına kadar taşınır.
+- Güvenilirlik: stale plan result/json=null; gerçek adapter blocker'ları aynen korunur.
+- CAD Core / UX / performans: bu dilimde değişmedi; viewport p95 ve bellek hâlâ NOT MEASURED.
+- CNC/makine: makine çıktısı veya fiziksel üretim onayı yok; operatör/üretici doğrulaması gerekir.
+
+**Sıradaki 3–5 küçük görev:**
+1. DOM-206 — hariç kesitli Part'ın açıklık x/y/width/length değişikliklerinin JSON v2/v3 freshness ve null export kapısına etkisini doğrula.
+2. UI-owned INT-003 — JSON v2 project envelope'ı editor startup/new/save/open akışına bağla; PR #206 draft ve UI ajanının sahipliğinde.
+3. Specialist-owned INT-002 — JSON/CSV adapter round-trip ve kesit geometri kayıpsızlığı için exact-SHA kanıt; kanıt gelene kadar export blocker korunur.
+4. Specialist-owned PERF-001 — viewport p95, scene update ve bellek baseline'ını tekrarlanabilir ölç; şu an NOT MEASURED.
+5. QA-003 — INT-001/INT-002 exact-SHA adapter kanıtı geldikten sonra uçtan uca üretim/export data-flow audit.

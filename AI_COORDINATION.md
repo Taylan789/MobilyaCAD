@@ -964,3 +964,12 @@ Bu dosya dört geliştirme/denetim rolünün ortak görev panosu ve entegrasyon 
 - Exact-SHA QA details: unit tests 401/401; shared domain tests 846/846, 0 failures; strict shared-domain type-check passed; lint 36 existing warnings / 0 errors; production build passed; production-only audit 0 vulnerabilities. The QA log contains DOM-204 subtests #662 and #663, both passing. Pages deployment log confirms pages_build_version=81696ac96e91d2f0e35b9f72d5a3a8b430d64132 and environment URL https://taylan789.github.io/MobilyaCAD/.
 - Next: DOM-205 — verify a cutout edge-band edit cannot leave any downstream saved cut-plan consumer marked exportable/fresh; keep adapter and frontend integration ownership separate.
 
+## DOM-205 — downstream kayıtlı kesim planı export freshness (ürün geliştirme)
+
+| ID | Görev | Sahip | Durum | Kabul / teslim kanıtı | Sonraki |
+|---|---|---|---|---|---|
+| DOM-205 | Verify cutout inner-edge catalog ID, unit and cutout-edge edits cannot leave a saved JSON v2/v3 cut plan exportable/fresh | Ürün Geliştirme | IMPLEMENTED — exact-SHA CI/QA/Pages pending; see next progress verification | Cross-consumer regression uses real excluded cutout Part; unchanged v2/v3 passes a controlled freshness-only fixture; catalog ID/unit/edge-flag edits return stale with null result/json; real production report still blocks on panelGeometry + edgeBandingByEdge | DOM-206 |
+
+- Sahiplik: yalnızca domain/production test dosyası ve frontend dışı dokümantasyon. frontend/**, adapter/benchmark-owned dosyalar, CNC/postprocessor ve main değiştirilmedi.
+- UI-owned INT-003 PR #206 ayrı/draft kalır. Integration/Performance workflow job if: false olduğu için specialist branch/PR yok; INT-002/PERF-001 specialist-owned ve doğrulanmamış, QA-003 adapter kanıtına bağlıdır.
+- Sonraki domain işi: DOM-206 — hariç kesitli Part'ın açıklık konumu/ölçüsü değiştiğinde JSON v2/v3 plan freshness'inin stale/null export üretmesini doğrula.

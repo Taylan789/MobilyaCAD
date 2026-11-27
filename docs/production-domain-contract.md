@@ -1876,3 +1876,10 @@ Kaynaklar: `domain/production/panelConstruction.ts`, `projectProduction.ts`, `pr
 - Regresyon domain/production/projectSheetCutPlanCutoutEdgeBandingFreshness.test.mjs gerçek proje üretim agregatörünü kullanır: bir dikdörtgen panel nesting'e seçilir, kesitli özel panel hariç tutulur ancak tam snapshot'a girer. Assignment ID, unit ve cutout edge flag değişiklikleri v2/v3 freshness'i stale yapar.
 - Bu doğrulama kesitli paneli nesting'e dahil etmez. panelGeometry ve edgeBandingByEdge mevcut JSON v1/CSV adapter'ında kayıpsız desteklenmediğinden canExport=false ve export blocker'ları korunur. CNC/postprocessor, makine standardı veya fiziksel atölye doğrulaması değildir.
 
+## DOM-205 — Kesit iç kenar bandı değişikliklerinde downstream kesim planı export kapısı
+
+- createFreshProjectSheetCutPlanExport, kaydedilmiş JSON v2/v3 planları için freshness doğrulamasını tüketen tek ready-export kapısıdır. Kaydedilmiş tam proje snapshot'ındaki hariç kesitli Part'ın iç kenar bandı katalog kimliği, açık mm/m birimi veya cutout kenar bayrağı değişmişse freshness stale olur; export status=blocked, result=null ve json=null döndürür.
+- DOM-205 regresyonu aynı gerçek iki-panel proje fixture'ını JSON v2 ve v3 için kullanır. Değişmeyen plan freshness/export kapısından geçer; üç farklı cutout edge-band değişikliği, testte adapter kapısı kontrollü olarak açılmış olsa dahi downstream export'u stale nedeniyle durdurur.
+- Aynı test gerçek üretim raporunu da kullanarak mevcut panelGeometry ve edgeBandingByEdge export blocker'larının korunduğunu doğrular. Test-only override yalnızca freshness katmanını izole eder; ürünün canExport değerini değiştirmez.
+- JSON v1 legacy planları okunabilir kalır ancak ready-export kapısından geçmez. Mevcut JSON v1/CSV adapter'ının kesit geometri ve yönsel kenar bandı alanlarını kayıpsız taşıdığı iddia edilmez; adapter desteği kanıtlanana kadar fail-closed davranış korunur.
+- Otomatik kabul testi: domain/production/projectSheetCutPlanCutoutEdgeBandingFreshness.test.mjs. CNC/postprocessor, makine standardı veya fiziksel atölye uygunluğu doğrulaması değildir.
