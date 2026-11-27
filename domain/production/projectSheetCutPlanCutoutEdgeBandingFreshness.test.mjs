@@ -25,8 +25,28 @@ function cutoutProjectReport({
   topBandingId = "pvc-inner-top",
   topBandingUnit = "m",
   sinkBottomBanded = false,
-  sinkOpening = {}
+  sinkOpening = {},
+  cutouts
 } = {}) {
+  const defaultCutouts = [
+          {
+            id: "sink-opening",
+            xMm: sinkOpening.xMm ?? 100,
+            yMm: sinkOpening.yMm ?? 100,
+            widthMm: sinkOpening.widthMm ?? 400,
+            lengthMm: sinkOpening.lengthMm ?? 300,
+            edgeBanding: { top: true, bottom: sinkBottomBanded, left: true, right: false }
+          },
+          {
+            id: "cooktop-opening",
+            xMm: 800,
+            yMm: 100,
+            widthMm: 300,
+            lengthMm: 200,
+            edgeBanding: { top: true, bottom: false, left: false, right: true }
+          }
+        ];
+
   const report = calculateCabinetProjectProductionWithDiagnostics({
     schemaVersion: 1,
     furniture: [
@@ -59,24 +79,7 @@ function cutoutProjectReport({
         lengthMm: 600,
         thicknessMm: 38,
         outerEdgeBanding: { ...noBanding },
-        cutouts: [
-          {
-            id: "sink-opening",
-            xMm: sinkOpening.xMm ?? 100,
-            yMm: sinkOpening.yMm ?? 100,
-            widthMm: sinkOpening.widthMm ?? 400,
-            lengthMm: sinkOpening.lengthMm ?? 300,
-            edgeBanding: { top: true, bottom: sinkBottomBanded, left: true, right: false }
-          },
-          {
-            id: "cooktop-opening",
-            xMm: 800,
-            yMm: 100,
-            widthMm: 300,
-            lengthMm: 200,
-            edgeBanding: { top: true, bottom: false, left: false, right: true }
-          }
-        ]
+        cutouts: cutouts ?? defaultCutouts
       }
     }],
     edgeBandingAssignments: [
@@ -328,6 +331,109 @@ test("DOM-206 JSON v2/v3 freshness and downstream export reject excluded cutout 
       assertStaleWithoutPartialExport(stale);
 
       const downstream = exportReport(savedPlanJson, adapterReadyForFreshnessOnly(editedReport));
+      assert.equal(downstream.status, "blocked", version + " " + change);
+      assert.equal(downstream.freshnessStatus, "stale", version + " " + change);
+      assert.equal(downstream.result, null, version + " " + change);
+      assert.equal(downstream.json, null, version + " " + change);
+      assert.deepEqual(downstream.sourcePartIds, selectedPartIds, version + " " + change);
+      assert.match(
+        downstream.diagnostics.join(" "),
+        /custom-worktop-panel üretim Part snapshot'ı değişmiş/,
+        version + " " + change
+      );
+
+      // The real production report must keep both unsupported-field blockers.
+      const adapterBlocked = exportReport(savedPlanJson, editedReport);
+      assert.equal(adapterBlocked.status, "blocked", version + " " + change);
+      assert.equal(adapterBlocked.result, null, version + " " + change);
+      assert.equal(adapterBlocked.json, null, version + " " + change);
+      assert.ok(adapterBlocked.productionDiagnostics?.some((item) => /panelGeometry/.test(item.message)));
+      assert.ok(adapterBlocked.productionDiagnostics?.some((item) => /edgeBandingByEdge/.test(item.message)));
+    }
+
+    if (version === "v3") {
+      assert.deepEqual(
+        JSON.parse(savedPlanJson).result.groups[0].stockSheetSource,
+        { sourceId: "stock-sheet-source-01", revision: "rev-2026-11" }
+      );
+    }
+  }
+});
+
+
+test("DOM-207 JSON v2/v3 freshness and downstream export reject excluded cutout opening add, remove, ID and order changes", () => {
+  const originalCutouts = [
+    {
+      id: "sink-opening",
+      xMm: 100,
+      yMm: 100,
+      widthMm: 400,
+      lengthMm: 300,
+      edgeBanding: { top: true, bottom: false, left: true, right: false }
+    },
+    {
+      id: "cooktop-opening",
+      xMm: 800,
+      yMm: 100,
+      widthMm: 300,
+      lengthMm: 200,
+      edgeBanding: { top: true, bottom: false, left: false, right: true }
+    }
+  ];
+  const openingChanges = [
+    ["opening added", [
+      ...originalCutouts,
+      {
+        id: "third-opening",
+        xMm: 1300,
+        yMm: 100,
+        widthMm: 200,
+        lengthMm: 200,
+        edgeBanding: { ...noBanding }
+      }
+    ]],
+    ["opening removed", [originalCutouts[0]]],
+    ["opening ID", [
+      { ...originalCutouts[0], id: "sink-opening-revised" },
+      originalCutouts[1]
+    ]],
+    ["opening order", [...originalCutouts].reverse()]
+  ];
+  const originalReport = cutoutProjectReport({ cutouts: originalCutouts });
+  const jsonV2 = savedPlanV2(originalReport);
+  const plans = [["v2", jsonV2], ["v3", savedPlanV3(jsonV2)]];
+  const selectedPartIds = [selectedPartId];
+  const exportReport = (savedPlanJson, productionReport) =>
+    createFreshProjectSheetCutPlanExport({
+      schemaVersion: 1,
+      freshness: {
+        schemaVersion: 1,
+        savedPlanJson,
+        productionReport,
+        currentSelectedPartIds: selectedPartIds
+      }
+    });
+  // Test-only override isolates freshness from the still-unsupported adapter fields.
+  const adapterReadyForFreshnessOnly = (report) => ({
+    ...report,
+    canExport: true,
+    exportBlockers: []
+  });
+
+  for (const [version, savedPlanJson] of plans) {
+    const unchanged = validateFreshness(savedPlanJson, originalReport);
+    assert.equal(unchanged.status, "fresh", version);
+    assert.equal(unchanged.json, savedPlanJson, version);
+
+    for (const [change, openings] of openingChanges) {
+      const editedReport = cutoutProjectReport({ cutouts: openings });
+      const stale = validateFreshness(savedPlanJson, editedReport);
+      assertStaleWithoutPartialExport(stale);
+
+      const downstream = exportReport(
+        savedPlanJson,
+        adapterReadyForFreshnessOnly(editedReport)
+      );
       assert.equal(downstream.status, "blocked", version + " " + change);
       assert.equal(downstream.freshnessStatus, "stale", version + " " + change);
       assert.equal(downstream.result, null, version + " " + change);

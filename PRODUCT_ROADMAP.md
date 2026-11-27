@@ -2778,7 +2778,35 @@ Sıradaki küçük görevler:
 - CNC/makine: üretim çıktısı veya fiziksel atölye doğrulaması yok; operatör/üretici doğrulaması gerekir.
 
 **Sıradaki 3–5 küçük görev:**
-1. DOM-207 — excluded cutout Part'ta açıklık ekleme/silme/ID ve sıralama değişikliklerinin v2/v3 freshness/export kapısını doğrula.
+1. DOM-208 — hariç kesitli Part'ın panelGeometry şema, pano ölçüsü ve dış kenar metadata değişikliklerinde freshness/fail-closed davranışını doğrula.
+2. UI-owned INT-003 — JSON v2 project envelope'ı editor startup/new/save/open akışına bağla; PR #206 ve frontend/** UI ajanının sahipliğindedir.
+3. Specialist-owned INT-002 — JSON/CSV adapter round-trip ve kesit geometri kayıpsızlığı için exact-SHA kanıt; kanıt gelene kadar export blocker korunur.
+4. Specialist-owned PERF-001 — viewport p95, scene update ve bellek baseline'ını tekrarlanabilir ölç; şu an NOT MEASURED.
+5. QA-003 — INT-001/INT-002 exact-SHA adapter kanıtından sonra uçtan uca üretim/export data-flow audit.
+
+
+## 27 Kasım 2026 08:48 TRT — DOM-207 açıklık listesi bütünlüğü ve freshness (Actions pending)
+
+**Ürün kararı:** Kesitli bir Part nesting seçiminden hariç olsa bile proje kesim planının tam snapshot'ında kalır. Açıklık listesinin üyeliği, her açıklığın kimliği ve sırası üretim verisidir; yalnızca mevcut açıklık ölçülerini karşılaştırmak yeterli değildir.
+
+**Kabul kriterleri:**
+- Gerçek iki-panel proje agregatörü dikdörtgen Part'ı nesting'e seçer; kesitli özel panel tam snapshot'ta hariç Part olarak kalır.
+- JSON v2/v3 değişmeyen projede fresh kalır.
+- Hariç Part'a açıklık ekleme, açıklık silme, açıklık ID'si değiştirme ve aynı açıklıkların sırasını değiştirme işlemlerinin her biri freshness'i stale yapar.
+- Her değişiklik downstream export'u `blocked`, `result=null`, `json=null` durumuna getirir; test-only adapter override freshness kapısını izole eder.
+- Gerçek üretim raporundaki `panelGeometry` ve `edgeBandingByEdge` adapter blocker'ları korunur; v3 stock-sheet source metadata ve kaydedilmiş JSON değişmez.
+
+**Durum:** Test ve sözleşme commit ediliyor; exact-SHA CI, QA ve Pages sonucu bekleniyor. Runtime domain kaynağı değişmedi: `createProjectPartSnapshot` zaten tam Part kaydını kanonik JSON olarak alıyor ve array sırasını koruyor. Bu dilim, eksik kalan dört liste mutasyonunun regresyon kanıtını ekler; kesitli panel nesting/export desteği iddia etmez.
+
+**10/10 checklist delta:**
+- Üretim/veri doğruluğu: hariç Part'taki açıklık ekleme/silme/ID/sıra değişiklikleri v2/v3 freshness testlerine eklenir.
+- Güvenilirlik: değişmeyen plan fresh; her liste mutasyonu stale ve downstream export null; gerçek adapter blocker'ları korunur.
+- CAD Core / UX: bu domain diliminde değişmedi; frontend sahipliği UI ajanında kalır.
+- Performans: ölçülmedi; viewport p95 ve bellek NOT MEASURED.
+- CNC/makine: nesting veya CNC üretim desteği eklenmedi; fiziksel atölye doğrulaması gerekir.
+
+**Sıradaki 3–5 küçük görev:**
+1. DOM-208 — hariç kesitli Part'ın panelGeometry şema, pano ölçüsü ve dış kenar metadata değişikliklerinde freshness/fail-closed davranışını doğrula.
 2. UI-owned INT-003 — JSON v2 project envelope'ı editor startup/new/save/open akışına bağla; PR #206 ve frontend/** UI ajanının sahipliğindedir.
 3. Specialist-owned INT-002 — JSON/CSV adapter round-trip ve kesit geometri kayıpsızlığı için exact-SHA kanıt; kanıt gelene kadar export blocker korunur.
 4. Specialist-owned PERF-001 — viewport p95, scene update ve bellek baseline'ını tekrarlanabilir ölç; şu an NOT MEASURED.

@@ -1894,3 +1894,12 @@ Kaynaklar: `domain/production/panelConstruction.ts`, `projectProduction.ts`, `pr
 
 
 **DOM-206 doğrulaması:** Implementation [4b72a34cf35eb677a6518be69d27da11db0562a2](https://github.com/Taylan789/MobilyaCAD/commit/4b72a34cf35eb677a6518be69d27da11db0562a2); CI [#45942934395](https://github.com/Taylan789/MobilyaCAD/actions/runs/45942934395), QA [#45942934439](https://github.com/Taylan789/MobilyaCAD/actions/runs/45942934439) ve exact-SHA Pages [#45942934489](https://github.com/Taylan789/MobilyaCAD/actions/runs/45942934489) başarılı. 407 frontend + 848 domain testi geçti; gerçek kesit geometri adapter blocker'ları değişmedi.
+
+
+## DOM-207 — Hariç kesitli Part açıklık listesi freshness
+
+- `panelGeometry.cutouts[]` proje Part snapshot'ının parçasıdır. Açıklık ekleme veya silme, açıklık kimliğini değiştirme ve aynı açıklıkların sırasını değiştirme, nesting seçiminden hariç tutulan kesitli Part'ın üretim verisini değiştirir.
+- JSON v2/v3 kaydedilmiş planında değişmeyen proje fresh kalır. Bu dört liste değişikliğinin her biri `validateProjectSheetCutPlanFreshness` sonucunu `stale` yapmalı; `createFreshProjectSheetCutPlanExport` ise `blocked`, `result=null`, `json=null` döndürmelidir.
+- DOM-207 regresyonu gerçek iki-panel proje agregatörünü kullanır; dikdörtgen Part seçili kalır, kesitli özel panel tam proje snapshot'ında hariç Part olarak korunur. Test-only adapter override yalnızca freshness kapısını izole eder; gerçek üretim raporundaki `panelGeometry` ve `edgeBandingByEdge` export blocker'ları ayrıca doğrulanır.
+- JSON v3 stock-sheet source metadata ve kaydedilmiş JSON değişmez. Bu dilim kesitli geometriyi nesting'e veya JSON v1/CSV adapter'ına eklemez; mevcut fail-closed davranış sürer.
+- CNC koordinatı, postprocessor veya fiziksel atölye uygunluğu iddiası değildir; makine/operatör doğrulaması ayrı gereklidir.
