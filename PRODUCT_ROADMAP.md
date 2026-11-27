@@ -2862,8 +2862,31 @@ Sıradaki küçük görevler:
 **Durum:** VERIFIED — [7b4a1517](https://github.com/Taylan789/MobilyaCAD/commit/7b4a1517eb95788ade26c944fc53736715f6c0d0); [CI #45961079534](https://github.com/Taylan789/MobilyaCAD/actions/runs/45961079534) SUCCESS, [QA #45961079509](https://github.com/Taylan789/MobilyaCAD/actions/runs/45961079509) SUCCESS (415/415 frontend + 853/853 domain, DOM-209 #270/#271/#696), [Pages #45961079519](https://github.com/Taylan789/MobilyaCAD/actions/runs/45961079519) SUCCESS. Strict shared-domain TypeScript, production build and production-only audit (0 vulnerabilities) passed; lint 36 warnings / 0 errors. Pages deployment log confirms exact SHA and https://taylan789.github.io/MobilyaCAD/.
 
 **Sıradaki 3–5 küçük görev:**
-1. DOM-210 — aynı aşırı büyük panelGeometry vakasını gerçek proje agregatörü ve kayıtlı kesim planı freshness/export yolundan geçir; blocked/null ve kısmi sonuç olmadığını kanıtla.
+1. DOM-211 — 8 MiB sınırının tam kabul edilen kenarını gerçek agregatör ve JSON v2/v3 kayıtlı plan/freshness akışında doğrula; geometri metadata'sı kayıpsız kalmalı.
 2. UI-owned INT-003 — JSON v2 envelope editor startup/new/save/open akışına bağlanmalı; PR #206 ayrı/draft kalır, frontend/** bu domain ajanının kapsamı değildir.
 3. Specialist-owned INT-002 — JSON/CSV adapter round-trip ve geometri/miktar sadakati için exact-SHA kanıt; kanıt gelene kadar desteklenmeyen geometri export blocker'ı korunur.
 4. Specialist-owned PERF-001 — viewport p95, scene update ve bellek baseline ölçümü; integration/performance workflow job şu anda `if: false`, specialist branch/PR kanıtı yok.
 5. QA-003 — INT-001/INT-002 adapter kanıtı geldikten sonra uçtan uca üretim/export data-flow audit.
+
+
+## 27 Kasım 2026 11:41 TRT — DOM-210 gerçek proje agregatörü ve kayıtlı plan fail-closed doğrulaması
+
+**Ürün kararı:** Kesitli özel panel nesting seçiminden hariç tutulsa bile proje Part snapshot'ında korunur. Snapshot bütçesi aşıldığında yalnızca seçili Part'ları döndürmek veya önceki kayıtlı planı güncelmiş gibi kabul etmek veri kaybı yaratır; tüm proje batch ve kayıtlı plan freshness/export akışı atomik olarak bloklanmalıdır.
+
+**Kabul kriterleri ve regresyon kapsamı:**
+- Gerçek iki-panel üretim fixture'ında hariç kesitli Part'a 8 MiB sınırını aşan metadata eklenince createProjectSheetNestingBatches blocked, result=null ve projectPartSnapshot olmadan dönmelidir.
+- Blocked batch'ten createProjectSheetCutPlan kısmi plan veya JSON üretmemelidir.
+- Değişmemiş proje JSON v2/v3 planları fresh kalmalıdır.
+- Aynı hariç Part güncel snapshot sınırını aştığında v2/v3 freshness ve downstream saved-plan export blocked, result=null, json=null üretmelidir.
+- Test-only adapter override yalnızca freshness kapısına ulaşmak içindir; gerçek panelGeometry / edgeBandingByEdge export engelleri kaldırılmaz.
+
+**10/10 checklist delta:**
+- Üretim/veri doğruluğu: hariç tutulan Part metadata'sı sessizce atılmaz; tüm proje snapshot'ı atomik biçimde reddedilir.
+- Güvenilirlik: gerçek agregatör, kesim planı ve kayıtlı v2/v3 freshness/export tüketicileri aynı 8 MiB sınırını uygular.
+- Geriye uyumluluk: değişmemiş v2/v3 kayıtlı plan fixture'ları fresh kalır.
+- CAD Core / UX: domain-only regresyon dilimi; frontend/** UI ajanının sahipliğinde.
+- Performans: viewport p95/bellek hâlâ NOT MEASURED; bu test runtime benchmark iddiası değildir.
+- CNC/makine: CNC/postprocessor veya fiziksel üretim uygunluğu iddiası yok.
+
+**Durum:** IMPLEMENTED — exact-SHA CI/QA/Pages doğrulaması bekleniyor.
+**Sıradaki görevler:** DOM-211 tam 8 MiB sınırının gerçek agregatör/v2/v3 akışında kabulünü doğrular; UI-owned INT-003 PR #206, specialist-owned INT-002/PERF-001 ve bunlara bağlı QA-003 sahiplikleri değişmez.

@@ -582,3 +582,76 @@ test("DOM-208 JSON v2/v3 freshness tracks excluded cutout Part geometry schema, 
     assert.ok(blocked.blockedFurniture.length > 0, label);
   }
 });
+
+
+test("DOM-210 oversized excluded Part snapshot blocks the real batch aggregator and saved v2/v3 freshness export", () => {
+  const originalReport = cutoutProjectReport();
+  const jsonV2 = savedPlanV2(originalReport);
+  const plans = [["v2", jsonV2], ["v3", savedPlanV3(jsonV2)]];
+  const oversizedReport = structuredClone(cutoutProjectReport());
+  const oversizedPart = oversizedReport.result.parts.find((part) => part.id === cutoutPartId);
+  assert.ok(oversizedPart?.panelGeometry, "Hariç kesitli Part geometri metadata'sı taşımalı.");
+  oversizedPart.panelGeometry.snapshotPayload = "x".repeat(8 * 1024 * 1024);
+
+  const batches = createProjectSheetNestingBatches({
+    schemaVersion: 1,
+    productionReport: oversizedReport,
+    partIds: [selectedPartId],
+    stockSheets: [{
+      sheet: {
+        materialId: "mdf-18",
+        widthMm: 1200,
+        lengthMm: 1000,
+        thicknessMm: 18,
+        grainDirection: "length"
+      },
+      kerfMm: 3
+    }]
+  });
+  assert.equal(batches.status, "blocked");
+  assert.equal(batches.result, null);
+  assert.equal(batches.projectPartSnapshot, undefined);
+  assert.match(batches.diagnostics.join(" "), /8 MiB UTF-8/);
+
+  const cutPlan = createProjectSheetCutPlan({
+    schemaVersion: 1,
+    batchReport: batches,
+    layoutReports: []
+  });
+  assert.equal(cutPlan.status, "blocked");
+  assert.equal(cutPlan.result, null);
+  assert.equal(cutPlan.json, null);
+
+  for (const [version, savedPlanJson] of plans) {
+    const unchanged = validateFreshness(savedPlanJson, originalReport);
+    assert.equal(unchanged.status, "fresh", version);
+
+    const freshness = validateFreshness(savedPlanJson, oversizedReport);
+    assert.equal(freshness.status, "blocked", version);
+    assert.equal(freshness.result, null, version);
+    assert.equal(freshness.json, null, version);
+    assert.match(freshness.diagnostics.join(" "), /8 MiB UTF-8/, version);
+
+    // Test-only adapter bypass isolates the full-project snapshot freshness gate.
+    const freshnessExport = createFreshProjectSheetCutPlanExport({
+      schemaVersion: 1,
+      freshness: {
+        schemaVersion: 1,
+        savedPlanJson,
+        productionReport: {
+          ...oversizedReport,
+          canExport: true,
+          exportBlockers: []
+        },
+        currentSelectedPartIds: [selectedPartId]
+      }
+    });
+    assert.equal(freshnessExport.status, "blocked", version);
+    assert.equal(freshnessExport.freshnessStatus, "blocked", version);
+    assert.equal(freshnessExport.result, null, version);
+    assert.equal(freshnessExport.json, null, version);
+    assert.deepEqual(freshnessExport.sourcePartIds, [selectedPartId], version);
+    assert.match(freshnessExport.diagnostics.join(" "), /8 MiB UTF-8/, version);
+    assert.equal(JSON.parse(savedPlanJson).formatVersion, version === "v2" ? 2 : 3);
+  }
+});

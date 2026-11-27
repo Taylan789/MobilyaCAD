@@ -1927,3 +1927,12 @@ Kaynaklar: `domain/production/panelConstruction.ts`, `projectProduction.ts`, `pr
 The version-1 `projectPartSnapshot` envelope is bounded to **8 MiB UTF-8** after JSON string escaping, including entry IDs and array/object framing. Canonical Part records are also bounded during traversal, and nested object/array depth is limited to **64 containers** (the Part root counts as level 1). The byte budget is checked incrementally while canonical JSON is built; validation checks the escaped snapshot-entry budget before parsing its embedded JSON string.
 
 An over-limit or over-depth snapshot is rejected as a whole. `createProjectPartSnapshot` does not return a partial list, and `serializeProjectSheetCutPlanJson` returns `status: "blocked"` with `json: null` before producing cut-plan JSON. Existing valid JSON v2/v3 snapshot fixtures remain supported under these limits. This guard does not add cutout nesting, JSON v1/CSV adapter support, CNC output, machine coordinates, or physical-production approval.
+
+
+## DOM-210 — bounded Part snapshot failure through the project and saved-plan consumers
+
+- The regression starts from the real two-panel production report: the rectangular MDF Part is selected for nesting and the cutout worktop Part is excluded. The excluded Part remains part of the canonical full-project snapshot.
+- An oversized metadata field attached to the excluded Part must make createProjectSheetNestingBatches return blocked, result=null, and no projectPartSnapshot. The downstream createProjectSheetCutPlan must also return blocked, result=null, and json=null; no selected-only or partial snapshot may escape.
+- Previously saved JSON v2 and v3 plans remain fresh against the unchanged production report. When the current excluded Part exceeds the 8 MiB UTF-8 snapshot envelope budget, both v2 and v3 freshness checks return blocked, result=null, and json=null.
+- The saved-plan export test uses a test-only adapter-ready override solely to reach the full-project freshness gate. The real production report's unsupported panelGeometry / edgeBandingByEdge adapter blockers remain in force; this does not add JSON v1/CSV support.
+- This is an automated domain regression contract, not a nesting algorithm, CNC/postprocessor, machine-coordinate or physical workshop approval.

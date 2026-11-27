@@ -1869,3 +1869,15 @@
 
 
 - **Verification-record update:** the implementation commit above is exact-SHA verified and deployed. This follow-up documentation commit records its evidence; no domain or frontend source is changed in this evidence-only update.
+
+
+## 27 Kasım 2026 11:41 TRT — DOM-210 implementation (exact-SHA verification pending)
+
+- **Base HEAD:** dev/github-work 879a39945ef3576c0796924414f079fd8a48075a.
+- **Delivery:** Added a real two-panel project regression. The excluded cutout Part receives oversized metadata; the real nesting-batch aggregator must block with no result or partial Part snapshot, and the downstream cut-plan builder must emit no JSON.
+- **Saved-plan coverage:** Existing unchanged JSON v2/v3 fixtures remain fresh. The same oversized current Part makes v2/v3 freshness and saved-plan export return blocked/null. The export test uses a test-only adapter-ready override only to exercise freshness; unsupported real adapter fields remain blocked.
+- **Changed files:** domain/production/projectSheetCutPlanCutoutEdgeBandingFreshness.test.mjs, docs/production-domain-contract.md, AI_COORDINATION.md, PRODUCT_ROADMAP.md, AI_PROGRESS.md.
+- **Implementation commit:** this change set; SHA and exact-SHA CI/QA/Pages URLs will be recorded after GitHub creates the commit and Actions finish.
+- **Automated verification:** not yet observed for this new SHA. No test success is claimed before Actions results.
+- **Known limits:** no runtime production algorithm change, JSON v1/CSV adapter support, CNC/postprocessor, machine coordinates, physical workshop validation, frontend/** change or performance baseline.
+- **Next:** DOM-211 — exercise the exact accepted 8 MiB boundary through the real aggregator and saved JSON v2/v3 freshness flow; then retain UI-owned INT-003 and specialist-owned INT-002/PERF-001 boundaries.
