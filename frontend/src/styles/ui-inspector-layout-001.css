@@ -679,3 +679,82 @@
     height: 11px !important;
   }
 }
+
+
+/* UI-INSPECTOR-SELECTION-CONTEXT-001 — distinguish the live room, furniture and part scope. */
+.cad-app .cad-inspector > div[aria-live="polite"]:has(> div:first-child svg.lucide-layers-3) {
+  border-left: 2px solid #c39470 !important;
+  background: linear-gradient(112deg, rgba(108, 78, 56, .28), rgba(17, 29, 38, .76)) !important;
+}
+
+.cad-app .cad-inspector > div[aria-live="polite"]:has(> div:first-child svg.lucide-box) {
+  border-left: 2px solid #91b4c9 !important;
+  background: linear-gradient(112deg, rgba(49, 76, 92, .38), rgba(17, 29, 38, .76)) !important;
+}
+
+.cad-app .cad-inspector > div[aria-live="polite"]:has(> div:first-child svg.lucide-house) {
+  border-left: 2px solid #718996 !important;
+  background: linear-gradient(112deg, rgba(54, 70, 81, .34), rgba(17, 29, 38, .76)) !important;
+}
+
+.cad-app .cad-inspector > div[aria-live="polite"]:has(> div:first-child svg.lucide-layers-3) > div:first-child {
+  color: #f0d5bf !important;
+  border-color: rgba(195, 148, 112, .52) !important;
+  background: #49372c !important;
+}
+
+.cad-app .cad-inspector > div[aria-live="polite"]:has(> div:first-child svg.lucide-box) > div:first-child {
+  color: #d4e7f2 !important;
+  border-color: #56758a !important;
+  background: #38586e !important;
+}
+
+.cad-app .cad-inspector > div[aria-live="polite"]:has(> div:first-child svg.lucide-house) > div:first-child {
+  color: #c3d0d7 !important;
+  border-color: #657985 !important;
+  background: #2d3c46 !important;
+}
+
+.cad-app .cad-inspector > div[aria-live="polite"]:has(> div:first-child svg.lucide-layers-3) > div:nth-child(2) > span {
+  color: #d0a98a !important;
+}
+
+.cad-app .cad-inspector > div[aria-live="polite"]:has(> div:first-child svg.lucide-box) > div:nth-child(2) > span {
+  color: #a9c7d8 !important;
+}
+
+.cad-app .cad-inspector > div[aria-live="polite"]:has(> div:first-child svg.lucide-house) > div:nth-child(2) > span {
+  color: #a7b6bf !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cad-app .cad-inspector > div[aria-live="polite"]:has(> div:first-child svg.lucide-layers-3),
+  .cad-app .cad-inspector > div[aria-live="polite"]:has(> div:first-child svg.lucide-box),
+  .cad-app .cad-inspector > div[aria-live="polite"]:has(> div:first-child svg.lucide-house) {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+@media (forced-colors: active) {
+  .cad-app .cad-inspector > div[aria-live="polite"]:has(> div:first-child svg.lucide-layers-3),
+  .cad-app .cad-inspector > div[aria-live="polite"]:has(> div:first-child svg.lucide-box) {
+    border-left-color: Highlight !important;
+    background: Canvas !important;
+  }
+
+  .cad-app .cad-inspector > div[aria-live="polite"]:has(> div:first-child svg.lucide-house) {
+    border-left-color: CanvasText !important;
+    background: Canvas !important;
+  }
+
+  .cad-app .cad-inspector > div[aria-live="polite"]:has(> div:first-child svg) > div:first-child {
+    color: CanvasText !important;
+    border-color: CanvasText !important;
+    background: Canvas !important;
+  }
+
+  .cad-app .cad-inspector > div[aria-live="polite"]:has(> div:first-child svg) > div:nth-child(2) > span {
+    color: CanvasText !important;
+  }
+}
