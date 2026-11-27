@@ -1,4 +1,12 @@
-/* UI-CATALOG-CONSTRUCTION-REGISTER-001 — show only manufacturer/catalog construction fields that are explicitly present. */
+/* UI-CATALOG-CONSTRUCTION-FIELDS-001 — expose explicit construction fields as a compact, scannable register. */
+.cad-catalog-card.mc-catalog-card.has-construction {
+  min-height: 122px !important;
+}
+
+.cad-catalog-card.mc-catalog-card.has-construction .mc-catalog-card__visual {
+  min-height: 122px;
+}
+
 .mc-catalog-card__content.has-construction {
   gap: 3px;
   padding-block: 7px;
@@ -7,17 +15,14 @@
 .mc-catalog-card__construction {
   display: flex;
   min-width: 0;
-  align-items: center;
-  gap: 5px;
+  flex-direction: column;
+  gap: 3px;
   overflow: hidden;
   color: #a9beca;
-  font-size: 7px;
-  font-weight: 650;
-  line-height: 1.2;
-  white-space: nowrap;
 }
 
 .mc-catalog-card__construction-label {
+  display: block;
   flex: 0 0 auto;
   color: #c29a7b;
   font-size: 6px;
@@ -26,21 +31,65 @@
   line-height: 1.2;
 }
 
-.mc-catalog-card__construction > span:last-child {
+.mc-catalog-card__construction-entries {
+  display: grid;
   min-width: 0;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 3px 8px;
+}
+
+.mc-catalog-card__construction-entry {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 1px;
   overflow: hidden;
+}
+
+.mc-catalog-card__construction-entry-label {
+  overflow: hidden;
+  color: #7f99a7;
+  font-size: 6px;
+  font-weight: 750;
+  letter-spacing: .07em;
+  line-height: 1.2;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-@media (max-width: 820px) {
-  .mc-catalog-card__construction {
+.mc-catalog-card__construction-entry-value {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  color: #d0dde3;
+  font-size: 7px;
+  font-weight: 650;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 560px) {
+  .cad-catalog-card.mc-catalog-card.has-construction {
+    min-height: 118px !important;
+  }
+
+  .cad-catalog-card.mc-catalog-card.has-construction .mc-catalog-card__visual {
+    min-height: 118px;
+  }
+
+  .mc-catalog-card__construction-entries {
+    gap: 3px 6px;
+  }
+
+  .mc-catalog-card__construction-entry-value {
     font-size: 6.5px;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .mc-catalog-card__construction {
+  .mc-catalog-card__construction,
+  .mc-catalog-card__construction-entry {
     scroll-behavior: auto;
     transition: none;
     animation: none;
@@ -49,7 +98,9 @@
 
 @media (forced-colors: active) {
   .mc-catalog-card__construction,
-  .mc-catalog-card__construction-label {
+  .mc-catalog-card__construction-label,
+  .mc-catalog-card__construction-entry-label,
+  .mc-catalog-card__construction-entry-value {
     color: CanvasText;
   }
 }
