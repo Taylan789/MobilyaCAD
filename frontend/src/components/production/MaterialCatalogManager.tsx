@@ -383,6 +383,14 @@ export function MaterialCatalogManager({
               <Layers3 aria-hidden="true" />
               <strong>Kütüphane henüz boş</strong>
               <p>Kullandığın MDF, suntalam ve diğer panel türlerini tanımlayarak başlayabilirsin.</p>
+              <a
+                className="mc-material-library__empty-action"
+                href="#material-catalog-form"
+                aria-controls="material-catalog-form"
+              >
+                <Plus aria-hidden="true" />
+                <span>Malzeme tanımla</span>
+              </a>
             </div>
           ) : filteredMaterials.length === 0 ? (
             <div className="mc-material-library__empty mc-material-library__empty--search" role="status">
@@ -538,7 +546,7 @@ export function MaterialCatalogManager({
         </section>
 
         <aside className="mc-material-library__editor">
-          <form onSubmit={submitMaterial}>
+          <form id="material-catalog-form" tabIndex={-1} onSubmit={submitMaterial}>
             <div className="mc-material-library__editor-heading">
               <div>
                 <span className="mc-material-library__eyebrow">MALZEME TANIMI</span>
