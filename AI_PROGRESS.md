@@ -2213,3 +2213,18 @@
 - **Parallel ownership:** UI-owned INT-003 PR #206 remains draft/unmerged; no Integration/Performance specialist branch was found and its workflow job remains disabled, so INT-002/PERF-001 remain specialist-owned and QA-003 waits for adapter evidence.
 - **AI Developer:** run [#46062919972](https://github.com/Taylan789/MobilyaCAD/actions/runs/46062919972) failed on OpenRouter free-model daily HTTP 429; reset is 28 November 2026 03:00 TRT. No rerun before reset, paid fallback, or secret/quota change.
 - **Next:** DOM-224 — verify duplicate/mismatched nested Part snapshot identity through the real JSON v2/v3 restore/freshness/export boundary without duplicating direct validator tests.
+
+
+## 28 Kasım 2026 01:51 TRT — DOM-224 VERIFIED
+
+- **Base HEAD:** `323a813674a5c78d0db9e23ebfda1651d669ff65` on `dev/github-work`; branch and target document blob SHAs were re-read immediately before this documentation update. No active AI Developer or QA run was present.
+- **Test commit:** [74bf4d2b3c81fbbae888500885ff2f8a6915b3c8](https://github.com/Taylan789/MobilyaCAD/commit/74bf4d2b3c81fbbae888500885ff2f8a6915b3c8).
+- **Changed implementation/test file:** `domain/production/projectSheetCutPlanCutoutEdgeBandingFreshness.test.mjs`. This documentation commit updates `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, and `AI_PROGRESS.md`.
+- **Delivery:** JSON v2/v3 restore regression covers duplicate snapshot entry IDs and mismatched nested Part JSON IDs through the real parser, serializer, freshness and freshness-gated export APIs. Invalid files return blocked/null at every boundary; no partial result, JSON or source ID list leaks.
+- **Exact-SHA CI:** [#46078981789](https://github.com/Taylan789/MobilyaCAD/actions/runs/46078981789) SUCCESS.
+- **Exact-SHA QA:** [#46078981618](https://github.com/Taylan789/MobilyaCAD/actions/runs/46078981618) SUCCESS — 447/447 frontend + 869/869 domain tests; DOM-224 #684 passed; strict shared-domain TypeScript, lint 36 warnings / 0 errors, production build and production-only audit (0 vulnerabilities) passed.
+- **Exact-SHA Pages:** [#46078981609](https://github.com/Taylan789/MobilyaCAD/actions/runs/46078981609) SUCCESS — deployment log confirms `pages_build_version=74bf4d2b3c81fbbae888500885ff2f8a6915b3c8` at https://taylan789.github.io/MobilyaCAD/.
+- **Known limits:** no runtime geometry/calculation change or visible UI change; JSON v1/CSV adapter limitations remain; no CNC/postprocessor, machine-coordinate or physical workshop validation; viewport p95/memory NOT MEASURED.
+- **Parallel ownership:** no `frontend/**`, adapter/benchmark-owned, workflow, secrets/settings or `main` files changed. No Integration/Performance specialist branch was found; INT-002/PERF-001 remain specialist-owned and QA-003 waits for adapter evidence. UI-owned PRs remain untouched.
+- **AI Developer:** [#46062919972](https://github.com/Taylan789/MobilyaCAD/actions/runs/46062919972) failed on OpenRouter free-model daily HTTP 429 (limit 50, remaining 0; reset 28 November 2026 03:00 TRT). No rerun before reset, paid fallback, secret or quota change.
+- **Next:** DOM-225 — duplicate stable IDs in the current production Part list must block restored JSON v2/v3 freshness/export atomically.

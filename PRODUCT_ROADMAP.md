@@ -3263,3 +3263,33 @@ The first regression commit (347d89c) correctly reached the shared snapshot budg
 - CNC/makine: postprocessor, makine koordinatı ve fiziksel üretim onayı eklenmez; atölye doğrulaması insan sorumluluğundadır.
 
 **Durum:** VERIFIED — correction commit [8a02f186](https://github.com/Taylan789/MobilyaCAD/commit/8a02f186edfbc3dcf3df8c45532597116d258272); exact-SHA CI [#46073348896](https://github.com/Taylan789/MobilyaCAD/actions/runs/46073348896) SUCCESS, QA [#46073348909](https://github.com/Taylan789/MobilyaCAD/actions/runs/46073348909) SUCCESS (446/446 frontend + 868/868 domain; DOM-223 #683), Pages [#46073348926](https://github.com/Taylan789/MobilyaCAD/actions/runs/46073348926) SUCCESS with pages_build_version exactly matching the correction SHA. Comparator content diagnostics now follow current production Part order while preserving identity-based comparison; no geometry/CNC behavior or visible UI changed. DOM-224 sonraki domain dilimi: JSON v2/v3 plan restore sırasında duplicate/mismatched Part snapshot kimliğinin freshness/export sınırına kısmi sonuç bırakmadan taşınmasını doğrula; doğrudan snapshot validator testleriyle zaten kapsanan temel kontrolleri tekrar etme.
+
+
+## 28 Kasım 2026 01:51 TRT — DOM-224 VERIFIED
+
+## DOM-224 — JSON v2/v3 nested Part kimliği bütünlüğü
+
+**Kullanıcı akışı:** Kullanıcı tam proje Part snapshot'ı içeren JSON v2/v3 kesim planını yeniden açar. Dosyanın snapshot zarfında yinelenen Part ID veya entry ID ile nested Part JSON içindeki `id` uyuşmazlığı varsa kayıt kısmi/yanlış kimlikle kullanılmamalı; freshness ve dışa aktarma güvenli biçimde durmalıdır.
+
+**Kabul kriterleri:**
+- Gerçek üretim agregatörü ve nesting akışıyla oluşturulmuş geçerli JSON v2 ve v3 planları parse → serialize → restore sonrasında fresh kalır.
+- Her iki formatta duplicate snapshot entry ID ve mismatched nested JSON Part ID ayrı senaryolarda parser tarafından blocked/null olarak reddedilir.
+- Blocked parse sonucu serialize edilince JSON üretilmez; freshness ve freshness-gated export `blocked`, `result=null`, `json=null`, `sourcePartIds=[]` döndürür.
+- Tanı duplicate veya mismatched kimlik sebebini açıkça belirtir; geçerli v2/v3 plan akışı değişmez.
+- Test doğrudan validator'a değil gerçek parser, serializer, freshness ve export API'lerine dayanır.
+
+**10/10 checklist delta:**
+- Üretim/veri doğruluğu: kayıtlı Part ID ile nested Part JSON ID uyuşmazlığı ve duplicate kimlik, v2/v3 restore sınırında kısmi sonuç bırakmadan engellenir.
+- Güvenilirlik/geriye uyumluluk: geçerli v2/v3 round-trip ve fail-closed bozukluk yolları otomatik testlidir.
+- CAD Core / UX: görünür UI ve runtime davranışı değişmez; frontend/** UI ajanının sahipliğindedir.
+- Performans: viewport p95/bellek NOT MEASURED; bu regresyon benchmark değildir.
+- CNC/makine: CNC/postprocessor, makine koordinatı veya fiziksel üretim onayı eklenmez; atölye doğrulaması insan sorumluluğundadır.
+
+**Durum:** VERIFIED — test commit [74bf4d2b](https://github.com/Taylan789/MobilyaCAD/commit/74bf4d2b3c81fbbae888500885ff2f8a6915b3c8); exact-SHA CI [#46078981789](https://github.com/Taylan789/MobilyaCAD/actions/runs/46078981789), QA [#46078981618](https://github.com/Taylan789/MobilyaCAD/actions/runs/46078981618) (447 frontend + 869 domain, DOM-224 #684), Pages [#46078981609](https://github.com/Taylan789/MobilyaCAD/actions/runs/46078981609) SUCCESS; deployment build version matches the exact test SHA.
+
+**Sıradaki 3–5 küçük görev:**
+1. DOM-225 — güncel production Part listesinde duplicate stable ID oluştuğunda restored JSON v2/v3 freshness ve export atomik blocked kalmalı; selected source ID ve null sonuç sözleşmesi test edilmeli.
+2. DOM-226 — restored full-project snapshot'taki eksik/fazla excluded Part kayıtlarının current production Part coverage ile karşılaştırmasını v2/v3 freshness/export üzerinden doğrula.
+3. DOM-227 — currentSelectedPartIds duplicate/order/missing senaryolarında freshness/export durum ve kaynak kimliği sözleşmesini gerçek API sınırında doğrula.
+4. UI-owned INT-003 — JSON v2 project envelope editor startup/new/save/open entegrasyonu; yalnızca UI ajanı frontend/** dosyalarında çalışır.
+5. Specialist-owned INT-002/PERF-001 ve QA-003 — adapter round-trip ve viewport p95/bellek ölçümü için gerçek specialist branch/PR kanıtı beklenir; sahiplik devri olmadan adapter/benchmark dosyalarına dokunulmaz.
