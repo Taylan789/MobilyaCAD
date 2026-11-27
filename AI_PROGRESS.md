@@ -2005,3 +2005,14 @@
 - **Correction history:** first attempt 79bee1aa passed CI but QA failed 847/848 because the nested test was attached to DOM-210. It was moved under DOM-214's async exact-boundary fixture; failed SHA was not deployed.
 - **Known limits:** real panelGeometry / edgeBandingByEdge export blockers remain; JSON v1/CSV adapter round-trip, CNC/postprocessor, machine coordinates and physical workshop validation are not claimed. Viewport p95/memory NOT MEASURED.
 - **Next:** DOM-216 — verify fail-closed freshness/export after a Part is added, removed or its stable ID changes in restored JSON v2/v3.
+
+
+## 27 Kasım 2026 17:06 TRT — DOM-215 verification-record tree correction (Actions pending)
+
+- **Current base HEAD:** `11016ed6a69ee2bbaf129abd2130e4b3bfb46438`.
+- **Root cause:** the documentation-only commit 11016ed6 was created from the first failed attempt's tree `272d90f...` rather than the verified correction tree `4cff6f4...`. This accidentally restored the earlier misplaced DOM-215 test block even though the docs stated the feature was verified.
+- **Exact-SHA CI:** [#46012692948](https://github.com/Taylan789/MobilyaCAD/actions/runs/46012692948) SUCCESS.
+- **Exact-SHA QA:** [#46012693286](https://github.com/Taylan789/MobilyaCAD/actions/runs/46012693286) FAILURE — 424 frontend + 847/848 domain; the same `SyntaxError: Unexpected reserved word` returned because the test file reverted to the first attempt.
+- **Exact-SHA Pages:** [#46012693023](https://github.com/Taylan789/MobilyaCAD/actions/runs/46012693023) build SUCCESS, exact-SHA CI/QA gate FAILURE, deploy skipped. The failed docs SHA was not published; the last verified deployment remains feature SHA 4cff6f4e.
+- **Correction:** restore the verified test blob `54fabb43b0811de6fc81f40cced29ec7617e6a90` from 4cff6f4 while retaining current roadmap, coordination and progress files. This correction commit SHA is pending.
+- **Next:** exact-SHA CI/QA/Pages for the restored tree; only then record the final verification state.
