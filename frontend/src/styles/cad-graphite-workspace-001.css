@@ -381,3 +381,30 @@
     box-shadow: none !important;
   }
 }
+
+/* UI-SCENE-TREE-FOCUS-SCROLL-001 — keep keyboard-focused rows clear of the sticky hierarchy/search rails. */
+.cad-app .studio-scene-tree {
+  scroll-padding-block-start: 88px;
+  scroll-padding-block-end: 14px;
+}
+
+.cad-app .studio-tree-room,
+.cad-app .studio-tree-object-select,
+.cad-app .studio-tree-part,
+.cad-app .studio-tree-disclosure,
+.cad-app .studio-tree-visibility-toggle {
+  scroll-margin-block: 6px 12px;
+}
+
+@media (max-width: 820px) {
+  .cad-app .cad-sidebar-content > .studio-scene-tree {
+    scroll-padding-block-start: 90px;
+    scroll-padding-block-end: 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cad-app .studio-scene-tree {
+    scroll-behavior: auto !important;
+  }
+}
