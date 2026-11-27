@@ -1,4 +1,4 @@
-/* UI-CATALOG-CONSTRUCTION-FIELDS-001 — expose explicit construction fields as a compact, scannable register. */
+/* UI-CATALOG-CONSTRUCTION-READABILITY-001 — improve real construction metadata legibility without increasing card density. */
 .cad-catalog-card.mc-catalog-card.has-construction {
   min-height: 122px !important;
 }
@@ -16,7 +16,7 @@
   display: flex;
   min-width: 0;
   flex-direction: column;
-  gap: 3px;
+  gap: 4px;
   overflow: hidden;
   color: #a9beca;
 }
@@ -25,34 +25,34 @@
   display: block;
   flex: 0 0 auto;
   color: #c29a7b;
-  font-size: 6px;
+  font-size: 7px;
   font-weight: 800;
-  letter-spacing: .09em;
-  line-height: 1.2;
+  letter-spacing: .1em;
+  line-height: 1.25;
 }
 
 .mc-catalog-card__construction-entries {
   display: grid;
   min-width: 0;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 3px 8px;
+  gap: 4px 7px;
 }
 
 .mc-catalog-card__construction-entry {
   display: flex;
   min-width: 0;
   flex-direction: column;
-  gap: 1px;
+  gap: 2px;
   overflow: hidden;
 }
 
 .mc-catalog-card__construction-entry-label {
   overflow: hidden;
-  color: #7f99a7;
-  font-size: 6px;
-  font-weight: 750;
-  letter-spacing: .07em;
-  line-height: 1.2;
+  color: #8da7b5;
+  font-size: 7px;
+  font-weight: 760;
+  letter-spacing: .055em;
+  line-height: 1.25;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -61,10 +61,12 @@
   display: block;
   min-width: 0;
   overflow: hidden;
-  color: #d0dde3;
-  font-size: 7px;
-  font-weight: 650;
-  line-height: 1.25;
+  color: #d9e4e9;
+  font-size: 8px;
+  font-weight: 680;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.3;
+  letter-spacing: -.01em;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -82,8 +84,12 @@
     gap: 3px 6px;
   }
 
-  .mc-catalog-card__construction-entry-value {
+  .mc-catalog-card__construction-entry-label {
     font-size: 6.5px;
+  }
+
+  .mc-catalog-card__construction-entry-value {
+    font-size: 7px;
   }
 }
 
