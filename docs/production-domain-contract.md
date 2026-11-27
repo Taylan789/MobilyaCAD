@@ -1891,3 +1891,6 @@ Kaynaklar: `domain/production/panelConstruction.ts`, `projectProduction.ts`, `pr
 - DOM-206 testi gerçek iki-panel proje agregatörünü kullanır; değişmeyen v2/v3 fresh kalır, dört geometri alanının her biri ayrı değiştirildiğinde freshness ve downstream export stale/null davranışını doğrular.
 - Test-only adapter override yalnızca freshness davranışını izole eder. Gerçek raporun `panelGeometry` ve `edgeBandingByEdge` blocker'ları korunur; kesitli geometri JSON v1/CSV adapter'ında destekleniyor sayılmaz.
 - Bu sözleşme makine-bağımsız freshness kontrolüdür; nesting'e kesitli panel eklemez, CNC koordinatı/postprocessor veya fiziksel atölye güvenliği doğrulaması değildir.
+
+
+**DOM-206 doğrulaması:** Implementation [4b72a34cf35eb677a6518be69d27da11db0562a2](https://github.com/Taylan789/MobilyaCAD/commit/4b72a34cf35eb677a6518be69d27da11db0562a2); CI [#45942934395](https://github.com/Taylan789/MobilyaCAD/actions/runs/45942934395), QA [#45942934439](https://github.com/Taylan789/MobilyaCAD/actions/runs/45942934439) ve exact-SHA Pages [#45942934489](https://github.com/Taylan789/MobilyaCAD/actions/runs/45942934489) başarılı. 407 frontend + 848 domain testi geçti; gerçek kesit geometri adapter blocker'ları değişmedi.

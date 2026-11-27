@@ -1805,14 +1805,18 @@
 - **Next:** DOM-204 — prove that changing a cutout inner-edge band ID/unit invalidates saved JSON v2/v3 cut-plan freshness while export remains fail-closed; then preserve UI-owned INT-003 and specialist-owned INT-002/PERF-001 boundaries.
 
 
-## 27 Kasım 2026 07:54 TRT — DOM-206 hariç kesitli Part açıklık geometrisi freshness (Actions pending)
+## 27 Kasım 2026 07:54 TRT — DOM-206 hariç kesitli Part açıklık geometrisi freshness (VERIFIED)
 
 - **Base HEAD:** `dev/github-work` `7a6f27043fc8c0eb072290b9022513254ad75c31`.
 - **Kullanıcı akışı:** Kullanıcı yalnızca dikdörtgen paneli nesting'e seçer; aynı projedeki kesitli özel panel hariç kalır. Hariç panelde açıklığın x/y konumu veya genişlik/uzunluğu değiştiğinde kayıtlı kesim planı eski geometriyi kullanmamalıdır.
 - **Teslimat:** Gerçek `calculateCabinetProjectProductionWithDiagnostics` proje fixture'ında ilk açıklığın x, y, width ve length alanlarını ayrı ayrı değiştirerek JSON v2/v3 freshness ve `createFreshProjectSheetCutPlanExport` kapısını doğrulayan DOM-206 regresyonu eklendi. Değişmeyen plan fresh kalır; her geometri değişikliği stale/blocked, `result=null`, `json=null` üretir.
 - **Güvenlik/kapsam:** Test-only adapter override yalnızca freshness katmanını izole eder. Gerçek rapor hâlâ `panelGeometry` ve `edgeBandingByEdge` blocker'larıyla export edilemez. Runtime domain kodu, frontend, adapter, benchmark, CNC, workflow, secrets/settings ve `main` değiştirilmedi.
 - **Değişen dosyalar:** `domain/production/projectSheetCutPlanCutoutEdgeBandingFreshness.test.mjs`, `docs/production-domain-contract.md`, `AI_COORDINATION.md`, `AI_PROGRESS.md`, `PRODUCT_ROADMAP.md`.
-- **Otomatik doğrulama:** Bu commit için GitHub Actions CI, QA ve Pages sonuçları henüz bekleniyor; yerel checkout/test çalıştırıldığı iddia edilmiyor.
+- **Implementation commit:** [4b72a34cf35eb677a6518be69d27da11db0562a2](https://github.com/Taylan789/MobilyaCAD/commit/4b72a34cf35eb677a6518be69d27da11db0562a2).
+- **Exact-SHA CI:** [#45942934395](https://github.com/Taylan789/MobilyaCAD/actions/runs/45942934395) SUCCESS — frontend TypeScript production build and lint.
+- **Exact-SHA QA:** [#45942934439](https://github.com/Taylan789/MobilyaCAD/actions/runs/45942934439) SUCCESS — 407/407 frontend + 848/848 domain tests; strict shared-domain TypeScript, lint 36 warnings / 0 errors, production build and production-only audit (0 vulnerabilities).
+- **Exact-SHA Pages:** [#45942934489](https://github.com/Taylan789/MobilyaCAD/actions/runs/45942934489) SUCCESS — deployment log confirms `pages_build_version=4b72a34cf35eb677a6518be69d27da11db0562a2` at https://taylan789.github.io/MobilyaCAD/.
+- **Build observation:** existing >500 kB chunk warning remains; main JS 1,717.26 kB (477.91 kB gzip), CSS 496.59 kB (82.20 kB gzip). No performance claim is made.
 - **Bilinen sınırlar:** Kesitli geometri JSON v1/CSV adapter'ında desteklenmiyor; CNC/postprocessor veya fiziksel üretim uygunluğu yok. Viewport p95/bellek NOT MEASURED.
 - **Paralel işler:** UI-owned PR [#265](https://github.com/Taylan789/MobilyaCAD/pull/265) ayrı kalıyor; QA [#45942284817](https://github.com/Taylan789/MobilyaCAD/actions/runs/45942284817) 408/408 frontend + 847/847 domain test geçti, ancak exact-head CI bu turda doğrulanamadı; merge/deploy yapılmadı. AI Developer [#45931417737](https://github.com/Taylan789/MobilyaCAD/actions/runs/45931417737) OpenRouter free daily HTTP 429 nedeniyle başarısız; reset 28 Kasım 2026 03:00 TRT, bu nedenle erken rerun yapılmadı.
 - **Sonraki adım:** DOM-207 — excluded cutout Part'ta açıklık ekleme/silme/ID ve sıralama değişikliklerinin v2/v3 freshness ve downstream null-export kapısını doğrula; UI-owned INT-003, specialist-owned INT-002/PERF-001 ve QA-003 bağımlılıklarını koru.

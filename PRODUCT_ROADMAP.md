@@ -2768,7 +2768,7 @@ Sıradaki küçük görevler:
 - Test-only adapter override freshness kapısını izole eder; gerçek üretim raporunda `panelGeometry` ve `edgeBandingByEdge` blocker'ları korunur.
 - v3 stock-sheet source metadata ve kaydedilmiş JSON immutable kalır.
 
-**Durum:** Kod/test/dokümantasyon commit edildi; exact-SHA CI, QA ve Pages sonucu bekleniyor. Runtime API zaten tam Part kaydını canonical JSON olarak snapshot'lıyor; bu dilim yeni hesap davranışı uydurmaz, eksik regresyon kanıtını tamamlar.
+**Durum:** VERIFIED — [implementation commit 4b72a34cf35eb677a6518be69d27da11db0562a2](https://github.com/Taylan789/MobilyaCAD/commit/4b72a34cf35eb677a6518be69d27da11db0562a2); exact-SHA CI [#45942934395](https://github.com/Taylan789/MobilyaCAD/actions/runs/45942934395), QA [#45942934439](https://github.com/Taylan789/MobilyaCAD/actions/runs/45942934439) ve Pages [#45942934489](https://github.com/Taylan789/MobilyaCAD/actions/runs/45942934489) SUCCESS. QA 407/407 frontend + 848/848 domain test; strict TypeScript, lint (36 warnings / 0 errors), production build ve production-only audit (0 vulnerabilities) geçti. Test sitesi aynı SHA ile https://taylan789.github.io/MobilyaCAD/ adresine dağıtıldı. Runtime API zaten tam Part kaydını canonical JSON olarak snapshot'lıyor; bu dilim yeni hesap davranışı uydurmaz, eksik regresyon kanıtını tamamlar.
 
 **10/10 checklist delta:**
 - Üretim/veri doğruluğu: hariç Part açıklık koordinatları ve ölçüleri v2/v3 freshness kapsamına otomatik testle bağlanır.
