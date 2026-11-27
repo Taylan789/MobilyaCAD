@@ -1866,3 +1866,13 @@ Kaynaklar: `domain/production/panelConstruction.ts`, `projectProduction.ts`, `pr
 - Bir iç kenar bandı fiyatı eksik veya yanlış birimdeyse tüm fiyatlı tüketim `incomplete` olur; `snapshot`, `costSummary` ve `lineSources` kısmi sonuç vermez. Varsayılan fiyat veya birim dönüşümü uydurulmaz.
 - Kabul regresyonu `domain/production/projectEdgeBandingQuoteRevision.test.mjs` içinde gerçek özel panel proje agregatörünü kullanır: iki açıklıkta 700 mm üst, 300 mm sol ve 200 mm sağ iç kenar / panel; quantity 2 ile sırasıyla 1.4 m, 600 mm ve 400 mm fiyat miktarı. Her satırın kullanıcı fiyatı, kaynak referansı, edgeDirection ve aynı `custom-worktop-panel` Part ID'si teklif revizyon JSON round-trip'inde doğrulanır.
 - `panelGeometry` ve `edgeBandingByEdge` mevcut JSON v1/CSV adapter'ında kayıpsız taşınmadığından `canExport=false` kalır. Bu domain testi CNC/postprocessor, kesim yolu, nesting veya fiziksel atölye güvenliği doğrulaması değildir.
+
+## DOM-204 — Kesit iç kenar bandı ataması ve JSON v2/v3 kesim planı freshness
+
+- createProjectSheetNestingBatches tam proje Part snapshot'ını seçim uygulanmadan önce üretir. Nesting seçimi yalnızca dikdörtgen Part'ları içerse bile hariç tutulan kesitli özel panel snapshot'ta kalır.
+- createProjectPartSnapshot her Part kaydını kanonik JSON olarak saklar; panelGeometry.cutouts[].edgeBanding iç kenar bayrakları ve edgeBandingByEdge katalog kimliği/birimi bu kaydın parçasıdır.
+- validateProjectSheetCutPlanFreshness JSON v2/v3'te tam proje snapshot'ını karşılaştırır. Hariç kesitli Part'ın iç kenar bandı katalog kimliği, açık mm/m birimi veya cutout kenar bayrağı değiştiğinde kayıtlı plan stale olur; result ve json null kalır.
+- Aynı proje ve aynı currentSelectedPartIds ile değişmeyen v2/v3 plan fresh kalır. JSON v3 stockSheetSource metadata'sı giriş dosyasında korunur; freshness kontrolü kaydedilmiş JSON'u değiştirmez.
+- Regresyon domain/production/projectSheetCutPlanCutoutEdgeBandingFreshness.test.mjs gerçek proje üretim agregatörünü kullanır: bir dikdörtgen panel nesting'e seçilir, kesitli özel panel hariç tutulur ancak tam snapshot'a girer. Assignment ID, unit ve cutout edge flag değişiklikleri v2/v3 freshness'i stale yapar.
+- Bu doğrulama kesitli paneli nesting'e dahil etmez. panelGeometry ve edgeBandingByEdge mevcut JSON v1/CSV adapter'ında kayıpsız desteklenmediğinden canExport=false ve export blocker'ları korunur. CNC/postprocessor, makine standardı veya fiziksel atölye doğrulaması değildir.
+

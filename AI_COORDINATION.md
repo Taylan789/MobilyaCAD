@@ -950,3 +950,16 @@ Bu dosya dört geliştirme/denetim rolünün ortak görev panosu ve entegrasyon 
 - No agent/integration-performance-* branch or specialist PR is present. The Integration/Performance workflow job remains disabled (if: false); INT-002/PERF-001 remain specialist-owned and unverified. QA-003 remains blocked until the required adapter evidence exists.
 - Latest AI Developer run [#45890606689](https://github.com/Taylan789/MobilyaCAD/actions/runs/45890606689) failed with OpenRouter free-model daily HTTP 429; reset passed at 03:00 TRT. No rerun during the current branch write/verification window because it would introduce a concurrent writer on `dev/github-work`; no paid fallback, secret, quota or workflow setting was changed.
 - Next domain slice after DOM-199: DOM-200 — reconcile custom-panel edits with user-priced material consumption and immutable quote snapshot/revision source totals; use only explicit catalogue prices and currencies.
+
+## 27 Kasım 2026 05:26 TRT — DOM-204 implementation (exact-SHA validation pending)
+
+| ID | Görev | Sahip | Durum | Kabul / teslim kanıtı | Sonraki |
+|---|---|---|---|---|---|
+| DOM-204 | Verify cutout inner-edge catalog ID/unit and cutout edge-flag edits invalidate saved JSON v2/v3 cut-plan freshness, including an excluded custom panel | Ürün Geliştirme | IMPLEMENTED — base 031df341; exact-SHA CI/QA/Pages pending | New domain regression builds a real two-panel project, nests only the rectangular panel, snapshots the excluded cutout panel, proves unchanged v2/v3 stays fresh, and catalog ID/unit or inner-edge flag edits return stale with null result/json; panelGeometry/edgeBandingByEdge export blockers remain | DOM-205 |
+
+- Base HEAD before this slice: 031df3415768ffb6fce332c9164ad6864e3713b9, merged UI PR #262. Base CI #45924916792, QA #45924916795 and Pages #45924916931 succeeded; Pages log confirms that exact SHA at https://taylan789.github.io/MobilyaCAD/. No active dev-branch Actions run was present before this write.
+- Changed files: domain/production/projectSheetCutPlanCutoutEdgeBandingFreshness.test.mjs, docs/production-domain-contract.md, PRODUCT_ROADMAP.md, AI_COORDINATION.md. No frontend/**, adapter/benchmark-owned file, CNC/postprocessor, secret/setting or main change.
+- Latest AI Developer run #45920651690 failed in the OpenCode product job with OpenRouter free-models-per-day HTTP 429 (limit 50, remaining 0; reset 28 November 2026 00:00 UTC / 03:00 TRT). The integration/performance job was skipped. Rerun is not safe before that reset; no paid fallback, secret, quota or workflow setting was changed. No agent/integration-performance branch was found; INT-002/PERF-001 remain specialist-owned, QA-003 remains blocked.
+- UI-owned INT-003 PR #206 remains draft and unmerged; editor startup/new/save/open integration is not claimed.
+- Next: DOM-205 — verify a cutout edge-band edit cannot leave any downstream saved cut-plan consumer marked exportable/fresh; keep adapter and frontend integration ownership separate.
+

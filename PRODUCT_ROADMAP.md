@@ -2701,3 +2701,34 @@ Sıradaki küçük görevler:
 3. Specialist-owned INT-002 — adapter JSON/CSV round-trip ve kesit geometri kayıpsızlığı için exact-SHA kanıt; kanıt gelene kadar export blocker korunur.
 4. Specialist-owned PERF-001 — viewport p95, scene update ve bellek baseline; henüz NOT MEASURED.
 5. QA-003 — INT-001/INT-002 exact-SHA kanıtından sonra uçtan uca üretim/export data-flow audit.
+
+## 27 Kasım 2026 05:26 TRT — DOM-204 kesit iç kenar bandı değişikliklerinde JSON v2/v3 freshness (Actions pending)
+
+**Kullanıcı akışı:** Kullanıcı bir dikdörtgen panel için levha kesim planı kaydederken aynı projedeki kesitli özel paneli nesting seçiminden hariç bırakabilir. Hariç panelin açıklık iç kenar bandı katalog kimliği/birimi veya hangi açıklık kenarlarının bantlı olduğu değişirse eski proje kesim planı artık güncel sayılmamalıdır.
+
+**Kabul kriterleri:**
+- Nesting seçimi yalnızca dikdörtgen Part'ı içerirken tam proje Part snapshot'ı kesitli ve hariç tutulan özel paneli de korur.
+- JSON v2 ve v3'te değişmeyen proje fresh kalır; güncel currentSelectedPartIds zorunluluğu sürer.
+- Hariç özel panelin edgeBandingAssignments katalog kimliği veya açık mm/m birimi değişirse kayıtlı plan stale olur.
+- panelGeometry.cutouts[].edgeBanding iç kenar bayrağı değişirse kayıtlı plan stale olur.
+- Stale sonuçta result=null ve json=null; kaynak Part listesi ve tanılar korunur. Önceki JSON v3 stock-sheet source metadata'sı değiştirilmez.
+- panelGeometry ve edgeBandingByEdge mevcut JSON v1/CSV adapter'ında desteklenmediği için export blocker kaldırılmaz.
+
+**Durum:** IMPLEMENTED — yeni domain regresyonu domain/production/projectSheetCutPlanCutoutEdgeBandingFreshness.test.mjs; exact-SHA CI/QA/Pages sonuçları bekleniyor.
+
+**Sınırlar:** Bu dilim kesitli paneli nesting'e dahil etmez, JSON v1/CSV adapter'ını değiştirmez ve CNC/postprocessor veya fiziksel atölye uygunluğu iddiası taşımaz. Makine/atölye doğrulaması insan sorumluluğudur.
+
+**Sıradaki 3–5 küçük görev:**
+1. DOM-205 — cutout edge-band değişiminden sonra downstream kesim planı tüketicilerinin stale/null export kapısını koruduğunu çapraz tüketici regresyonuyla doğrula.
+2. UI-owned INT-003 — JSON v2 project envelope'ı editor startup/new/save/open akışına bağla; PR #206 draft kalır, frontend/** UI ajanının sahipliğindedir.
+3. Specialist-owned INT-002 — adapter JSON/CSV round-trip ve kesit geometri kayıpsızlığı için exact-SHA kanıt; kanıt gelene kadar export blocker korunur.
+4. Specialist-owned PERF-001 — viewport p95, scene update ve bellek baseline'ını tekrarlanabilir ölç; şu an NOT MEASURED.
+5. QA-003 — INT-001/INT-002 exact-SHA kanıtından sonra uçtan uca üretim/export data-flow audit.
+
+**10/10 checklist delta:**
+- Üretim/veri doğruluğu: hariç tutulan kesitli panelin iç kenar bayrağı, exact katalog kimliği ve birimi tam proje snapshot'ında freshness girdisi olarak korunur; v2/v3 stale kapısı otomatik testlenir.
+- Güvenilirlik: unchanged baseline fresh; assignment ID/unit veya cutout edge flag değişikliği stale ve null result/json; v3 metadata korunur.
+- CAD Core / UX: bu domain diliminde değişmedi; UI agent sahipliği korunuyor.
+- Performans: bu dilimde ölçülmedi; viewport p95 ve bellek NOT MEASURED.
+- CNC/makine: üretim çıktısı veya fiziksel onay yok; operatör/üretici doğrulaması gerekir.
+
