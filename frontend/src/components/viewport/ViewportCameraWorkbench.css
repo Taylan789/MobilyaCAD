@@ -840,3 +840,36 @@
     height: 11px;
   }
 }
+
+
+/* UI-VIEWPORT-READOUT-COMPACT-DESKTOP-001 — reclaim canvas space on compact desktop workstations. */
+@media (min-width: 761px) and (max-width: 1320px) and (min-height: 661px) and (max-height: 820px) {
+  .cad-viewport-dimension-readout {
+    left: 10px;
+    bottom: 10px;
+    width: min(278px, calc(100% - 20px));
+    gap: 6px;
+    padding: 7px 8px 8px;
+  }
+
+  .cad-viewport-dimension-readout__header {
+    gap: 6px;
+    padding-bottom: 5px;
+  }
+
+  .cad-viewport-dimension-readout__header > span {
+    font-size: 7px;
+  }
+
+  .cad-viewport-dimension-readout__header > small {
+    font-size: 8px;
+  }
+
+  .cad-viewport-dimension-readout__dimensions > div {
+    padding-inline: 5px;
+  }
+
+  .cad-viewport-dimension-readout__dimensions strong {
+    font-size: 11px;
+  }
+}
