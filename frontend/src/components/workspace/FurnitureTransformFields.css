@@ -196,3 +196,23 @@
   }
   .cad-transform-validation svg { color: Highlight; }
 }
+
+
+/* UI-TRANSFORM-ERROR-STATE-ARIA-001 — expose rejected numeric drafts on the exact control. */
+.cad-transform-axis-value input[aria-invalid="true"],
+.cad-transform-rotation__value input[aria-invalid="true"] {
+  border-color: rgba(211, 154, 113, .82) !important;
+  background: rgba(65, 42, 29, .42) !important;
+  box-shadow: 0 0 0 1px rgba(195, 148, 112, .16);
+}
+.cad-transform-axis-value input[aria-invalid="true"]:focus-visible,
+.cad-transform-rotation__value input[aria-invalid="true"]:focus-visible {
+  outline-color: #d5a77d !important;
+}
+@media (forced-colors: active) {
+  .cad-transform-axis-value input[aria-invalid="true"],
+  .cad-transform-rotation__value input[aria-invalid="true"] {
+    border-color: Highlight !important;
+    outline-color: Highlight !important;
+  }
+}

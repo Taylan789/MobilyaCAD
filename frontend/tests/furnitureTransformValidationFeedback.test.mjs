@@ -19,7 +19,8 @@ test("invalid position drafts explain the rejected axis and preserve the last co
   assert.match(component, /setPositionDraft\(createPositionDraft\(furniture\.position\)\)/);
   assert.match(component, /id="furniture-position-error" role="status" aria-live="polite"/);
   assert.match(component, /aria-describedby="furniture-position-help"/);
-  assert.match(component, /aria-errormessage=\{positionError \? "furniture-position-error" : undefined\}/);
+  assert.ok(component.includes('aria-invalid={positionError?.startsWith(`${axis.key.toUpperCase()} `) ?? false}'));
+  assert.ok(component.includes('aria-errormessage={positionError?.startsWith(`${axis.key.toUpperCase()} `) ? "furniture-position-error" : undefined}'));
 });
 
 test("valid position commits retain the existing millimetre precision and clear the message", () => {
@@ -33,6 +34,7 @@ test("invalid rotation drafts explain the existing 0–359 degree limit and pres
   assert.match(component, /Dönüş açısı 0–359° aralığında olmalı; önceki değer korundu\./);
   assert.match(component, /id="furniture-rotation-error" role="status" aria-live="polite"/);
   assert.match(component, /aria-describedby="furniture-rotation-help"/);
+  assert.match(component, /aria-invalid=\{Boolean\(rotationError\)\}/);
   assert.match(component, /aria-errormessage=\{rotationError \? "furniture-rotation-error" : undefined\}/);
   assert.match(component, /setRotationDraft\(String\(furniture\.rotation\)\)/);
   assert.match(component, /setRotationError\(null\);\s*onRotationCommit\(parsedValue\)/);
@@ -41,6 +43,8 @@ test("invalid rotation drafts explain the existing 0–359 degree limit and pres
 test("transform validation feedback uses the technical warning surface and forced-colors fallback", () => {
   assert.match(styles, /\.cad-transform-validation\s*\{[\s\S]*?display:\s*flex/);
   assert.match(styles, /border-left:\s*2px solid/);
+  assert.match(styles, /\.cad-transform-axis-value input\[aria-invalid="true"\]/);
+  assert.match(styles, /\.cad-transform-rotation__value input\[aria-invalid="true"\]/);
   assert.match(styles, /@media\s*\(forced-colors:\s*active\)/);
   assert.match(styles, /color:\s*CanvasText\s*!important/);
 });
