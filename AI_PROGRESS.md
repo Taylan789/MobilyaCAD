@@ -1970,7 +1970,7 @@
 ## 27 Kasım 2026 16:54 TRT — DOM-215 implementation (Actions pending)
 
 - **Base HEAD:** `ed0e4ee8b646e2290bf421f3e36a0b33c5fb4590` on `dev/github-work`.
-- **Implementation commit SHA:** pending GitHub commit response; exact SHA and Actions evidence will be recorded after the run completes.
+- **First attempt SHA:** [79bee1aa8c1a0629f5e5cc3568c7b754ce0cfec9](https://github.com/Taylan789/MobilyaCAD/commit/79bee1aa8c1a0629f5e5cc3568c7b754ce0cfec9); QA found the misplaced nested async test and the correction is recorded below.
 - **Delivery:** DOM-214 exact 8 MiB multi-Part fixture now covers JSON v2/v3 parse → serialize → restore, stable snapshot bytes, v3 stock-sheet source provenance, canonical object-key-order invariance, and stale/null freshness plus blocked/null export after project Part array reordering.
 - **Changed files:** `domain/production/projectSheetCutPlanCutoutEdgeBandingFreshness.test.mjs`, `docs/production-domain-contract.md`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`.
 - **Checks before this commit:** base HEAD CI [#46010022234](https://github.com/Taylan789/MobilyaCAD/actions/runs/46010022234), QA [#46010022151](https://github.com/Taylan789/MobilyaCAD/actions/runs/46010022151) and Pages [#46010022295](https://github.com/Taylan789/MobilyaCAD/actions/runs/46010022295) were SUCCESS; Pages log confirmed the exact base SHA deployment. These do not verify this new commit.
@@ -1988,5 +1988,20 @@
 - **Exact-SHA QA:** [#46011893309](https://github.com/Taylan789/MobilyaCAD/actions/runs/46011893309) FAILURE — unit tests passed; domain tests 847/848. The only failure was `SyntaxError: Unexpected reserved word`, caused by placing the nested `await t.test` block in the synchronous DOM-210 test callback rather than the DOM-214 async fixture. Strict type-check, lint, production build and audit were skipped after the domain failure.
 - **Exact-SHA Pages:** [#46011893384](https://github.com/Taylan789/MobilyaCAD/actions/runs/46011893384) build SUCCESS, exact-SHA CI/QA gate FAILURE, deploy skipped. No broken SHA was published; last verified site remains https://taylan789.github.io/MobilyaCAD/ at base SHA `ed0e4ee8b646e2290bf421f3e36a0b33c5fb4590`.
 - **Correction:** move the nested DOM-215 subtest from DOM-210 into the DOM-214 async exact-boundary test, where `plans`, `exactReport` and `exactSnapshot` are defined. No production runtime or frontend source changes.
-- **Correction commit SHA:** pending GitHub commit response.
-- **Next:** exact-SHA CI/QA/Pages verification; do not mark DOM-215 complete until all three succeed.
+- **Correction commit SHA:** [4cff6f4e4ed00f9d1f9b3a94e19df59e8cfdc7b9](https://github.com/Taylan789/MobilyaCAD/commit/4cff6f4e4ed00f9d1f9b3a94e19df59e8cfdc7b9).
+- **Exact-SHA CI:** [#46012253926](https://github.com/Taylan789/MobilyaCAD/actions/runs/46012253926) SUCCESS.
+- **Exact-SHA QA:** [#46012253982](https://github.com/Taylan789/MobilyaCAD/actions/runs/46012253982) SUCCESS — 424/424 frontend + 859/859 domain tests; DOM-215 passed; strict shared-domain TypeScript, lint (36 warnings / 0 errors), production build and production-only audit (0 vulnerabilities) passed. Full dependency installation reported 4 moderate advisories.
+- **Exact-SHA Pages:** [#46012254039](https://github.com/Taylan789/MobilyaCAD/actions/runs/46012254039) SUCCESS; deployment log confirms pages_build_version=4cff6f4e4ed00f9d1f9b3a94e19df59e8cfdc7b9 and https://taylan789.github.io/MobilyaCAD/.
+- **Status:** DOM-215 VERIFIED. The first implementation SHA 79bee1aa failed QA due a test-placement syntax error and was not deployed; correction 4cff6f4e is the verified delivery.
+- **Next:** DOM-216 — restored v2/v3 freshness must fail closed when a Part is added, removed or its stable ID changes.
+
+
+## 27 Kasım 2026 17:04 TRT — DOM-215 VERIFIED
+
+- **Verified implementation SHA:** [4cff6f4e4ed00f9d1f9b3a94e19df59e8cfdc7b9](https://github.com/Taylan789/MobilyaCAD/commit/4cff6f4e4ed00f9d1f9b3a94e19df59e8cfdc7b9).
+- **CI:** [#46012253926](https://github.com/Taylan789/MobilyaCAD/actions/runs/46012253926) SUCCESS.
+- **QA:** [#46012253982](https://github.com/Taylan789/MobilyaCAD/actions/runs/46012253982) SUCCESS — 424 frontend + 859 domain tests, 0 failures; nested DOM-215 subtest passed. Strict shared-domain TypeScript and production build passed; lint 36 warnings / 0 errors; production-only dependency audit 0 vulnerabilities. Full install reported 4 moderate dependency advisories.
+- **Pages:** [#46012254039](https://github.com/Taylan789/MobilyaCAD/actions/runs/46012254039) SUCCESS; pages_build_version exactly matches 4cff6f4e4ed00f9d1f9b3a94e19df59e8cfdc7b9; live test site https://taylan789.github.io/MobilyaCAD/.
+- **Correction history:** first attempt 79bee1aa passed CI but QA failed 847/848 because the nested test was attached to DOM-210. It was moved under DOM-214's async exact-boundary fixture; failed SHA was not deployed.
+- **Known limits:** real panelGeometry / edgeBandingByEdge export blockers remain; JSON v1/CSV adapter round-trip, CNC/postprocessor, machine coordinates and physical workshop validation are not claimed. Viewport p95/memory NOT MEASURED.
+- **Next:** DOM-216 — verify fail-closed freshness/export after a Part is added, removed or its stable ID changes in restored JSON v2/v3.
