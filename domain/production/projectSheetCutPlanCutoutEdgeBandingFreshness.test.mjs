@@ -1410,3 +1410,73 @@ test("DOM-216 restored JSON v2/v3 plans become stale when project Parts are adde
     }
   }
 });
+
+
+test("DOM-217 restored JSON v2/v3 cut plans become stale when an excluded Part quantity changes", () => {
+  const baselineReport = cutoutProjectReport();
+  const baselineExcludedPart = baselineReport.result.parts.find((part) => part.id === cutoutPartId);
+  assert.ok(baselineExcludedPart);
+  assert.equal(baselineExcludedPart.quantity, 2);
+
+  const changedReport = {
+    ...baselineReport,
+    result: {
+      ...baselineReport.result,
+      parts: baselineReport.result.parts.map((part) =>
+        part.id === cutoutPartId
+          ? { ...part, quantity: part.quantity + 1 }
+          : part
+      )
+    }
+  };
+  const changedExcludedPart = changedReport.result.parts.find((part) => part.id === cutoutPartId);
+  assert.equal(changedExcludedPart?.quantity, baselineExcludedPart.quantity + 1);
+  assert.deepEqual(
+    changedReport.result.parts.find((part) => part.id === selectedPartId),
+    baselineReport.result.parts.find((part) => part.id === selectedPartId)
+  );
+
+  const jsonV2 = savedPlanV2(baselineReport);
+  const plans = [
+    ["v2", jsonV2],
+    ["v3", savedPlanV3(jsonV2)]
+  ];
+
+  for (const [version, sourceJson] of plans) {
+    const parsed = parseProjectSheetCutPlanJson(sourceJson);
+    assert.equal(parsed.status, "ready", version);
+    const restored = serializeProjectSheetCutPlanJson(parsed);
+    assert.equal(restored.status, "ready", version);
+    assert.ok(restored.json, version);
+    assert.equal(JSON.parse(restored.json).formatVersion, version === "v2" ? 2 : 3, version);
+    assert.equal(validateFreshness(restored.json, baselineReport).status, "fresh", version);
+
+    const stale = validateFreshness(restored.json, changedReport);
+    assert.equal(stale.status, "stale", version);
+    assert.equal(stale.result, null, version);
+    assert.equal(stale.json, null, version);
+    assert.deepEqual(stale.sourcePartIds, [selectedPartId], version);
+    assert.match(
+      stale.diagnostics.join(" "),
+      /custom-worktop-panel üretim Part snapshot'ı değişmiş/,
+      version
+    );
+
+    // Bypass only the known adapter blockers to prove the freshness gate itself
+    // blocks the export; this does not claim panelGeometry/edgeBandingByEdge support.
+    const staleExport = createFreshProjectSheetCutPlanExport({
+      schemaVersion: 1,
+      freshness: {
+        schemaVersion: 1,
+        savedPlanJson: restored.json,
+        productionReport: { ...changedReport, canExport: true, exportBlockers: [] },
+        currentSelectedPartIds: [selectedPartId]
+      }
+    });
+    assert.equal(staleExport.status, "blocked", version);
+    assert.equal(staleExport.freshnessStatus, "stale", version);
+    assert.equal(staleExport.result, null, version);
+    assert.equal(staleExport.json, null, version);
+    assert.deepEqual(staleExport.sourcePartIds, [selectedPartId], version);
+  }
+});

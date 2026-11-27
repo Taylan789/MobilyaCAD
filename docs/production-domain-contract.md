@@ -2006,3 +2006,11 @@ An over-limit or over-depth snapshot is rejected as a whole. `createProjectPartS
 
 
 **DOM-216 exact-SHA verification — 27 Kasım 2026 17:45 TRT:** Implementation [daca116dc295ee843f9d9c452bd20a1d95d2db21](https://github.com/Taylan789/MobilyaCAD/commit/daca116dc295ee843f9d9c452bd20a1d95d2db21); CI [#46018555573](https://github.com/Taylan789/MobilyaCAD/actions/runs/46018555573), QA [#46018555482](https://github.com/Taylan789/MobilyaCAD/actions/runs/46018555482) and Pages [#46018555718](https://github.com/Taylan789/MobilyaCAD/actions/runs/46018555718) all SUCCESS. QA passed 424 frontend + 860 domain tests, including DOM-216 #675; strict shared-domain TypeScript, lint (36 warnings / 0 errors), production build and production-only audit (0 vulnerabilities) passed. Pages deployment log confirms the exact SHA at https://taylan789.github.io/MobilyaCAD/.
+
+
+## DOM-217 — Excluded Part quantity and restored JSON v2/v3 freshness
+
+- The canonical full-project Part snapshot includes every production Part, including Parts excluded from the selected nesting batch; the snapshot records the complete Part JSON, not only its identity.
+- A quantity-only change on an excluded Part therefore changes the canonical snapshot and makes a previously restored JSON v2/v3 cut plan stale, even when the selected Part IDs, selected Part geometry and nesting placements are unchanged.
+- After parse → serialize → restore, freshness returns `stale`, preserves the saved selected Part IDs for diagnostics, and returns no partial result or JSON. The freshness-gated export returns `blocked` with `freshnessStatus="stale"`.
+- This is a domain regression contract only. It does not enable JSON v1/CSV export for `panelGeometry` or `edgeBandingByEdge`, and does not claim CNC, machine-coordinate or physical workshop validation.

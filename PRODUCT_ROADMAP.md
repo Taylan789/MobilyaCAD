@@ -3079,8 +3079,28 @@ The first regression commit (347d89c) correctly reached the shared snapshot budg
 **Durum:** VERIFIED — [commit daca116d](https://github.com/Taylan789/MobilyaCAD/commit/daca116dc295ee843f9d9c452bd20a1d95d2db21); exact-SHA CI [#46018555573](https://github.com/Taylan789/MobilyaCAD/actions/runs/46018555573), QA [#46018555482](https://github.com/Taylan789/MobilyaCAD/actions/runs/46018555482) (424 frontend + 860 domain; DOM-216 #675) and Pages [#46018555718](https://github.com/Taylan789/MobilyaCAD/actions/runs/46018555718) all SUCCESS. Strict shared-domain TypeScript, lint 36 warnings / 0 errors, production build and production-only audit 0 vulnerabilities passed; exact SHA deployed to https://taylan789.github.io/MobilyaCAD/.
 
 **Sıradaki 3–5 küçük görev:**
-1. DOM-217 — excluded Part quantity değişikliğinin restore edilmiş JSON v2/v3 freshness ve export kapısında stale/blocked davranışını doğrula.
+1. DOM-218 — excluded Part ölçü/malzeme/kalınlık/damar metadata değişikliklerinin restore edilmiş JSON v2/v3 freshness ve fail-closed export davranışını doğrula.
 2. UI-owned INT-003 PR #206 — editor startup/new/save/open JSON v2 envelope entegrasyonu; frontend ve PR UI sahibinde kalır.
 3. Specialist-owned INT-002 — JSON/CSV adapter round-trip ve geometry/quantity sadakati; specialist branch/job yokken adapter dosyalarına dokunma.
 4. Specialist-owned PERF-001 — viewport p95, scene update ve bellek baseline; specialist job şu an skipped, ölçüm NOT MEASURED.
 5. QA-003 — INT-001/INT-002 adapter kanıtı geldikten sonra uçtan uca export/data-flow audit.
+
+## 27 Kasım 2026 18:50 TRT — DOM-217 excluded Part quantity freshness
+
+**Kullanıcı akışı:** Kullanıcı seçili parçalarla bir kesim planı oluşturur, JSON v2/v3 olarak kaydeder ve yeniden açar. Nesting seçimine dahil edilmeyen bir parçanın üretim adedi değişirse, eski kesim planı sessizce güncel kabul edilmemelidir.
+
+**Kabul kriterleri:**
+- Değişmemiş proje için parse → serialize → restore edilen JSON v2 ve v3 planları fresh kalır.
+- Yalnızca excluded `custom-worktop-panel` Part'ının quantity değeri 2'den 3'e değiştiğinde tam proje snapshot'ı stale olur; seçili Part ve seçili kimlik listesi değişmez.
+- Freshness `stale`, export `blocked`, seçili Part ID listesi korunmuş ve `result/json=null` olmalıdır.
+- Gerçek `validateProjectSheetCutPlanFreshness` ve `createFreshProjectSheetCutPlanExport` API'leri kullanılır; adapter blocker'ları testte yalnızca freshness gate'i izole etmek için geçici olarak bypass edilir, gerçek adapter desteği iddia edilmez.
+
+**10/10 checklist delta:**
+- Üretim/veri doğruluğu: nesting dışındaki Part adet değişikliği de tam proje snapshot'ında izlenir.
+- Güvenilirlik/geriye uyumluluk: JSON v2/v3 restore sonrası quantity-only değişiklikte stale/fail-closed davranış otomatik regresyonla kapsanır.
+- CAD Core / UX: runtime ve görünür arayüz değişmez; `frontend/**` UI ajanının sahipliğinde.
+- Performans: viewport p95/bellek NOT MEASURED; bu test benchmark değildir.
+- CNC/makine: adapter, postprocessor, koordinat veya fiziksel üretim onayı eklenmez; atölye doğrulaması insan sorumluluğudur.
+
+**Durum:** IMPLEMENTED — exact-SHA CI/QA/Pages pending. Implementation SHA will be recorded after GitHub creates the commit; no test or deployment is claimed before Actions evidence.
+
