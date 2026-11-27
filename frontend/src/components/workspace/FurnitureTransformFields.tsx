@@ -123,7 +123,8 @@ export function FurnitureTransformFields({
                   step="0.1"
                   value={positionDraft[axis.key]}
                   aria-describedby="furniture-position-help"
-                  aria-errormessage={positionError ? "furniture-position-error" : undefined}
+                  aria-invalid={positionError?.startsWith(`${axis.key.toUpperCase()} `) ?? false}
+                  aria-errormessage={positionError?.startsWith(`${axis.key.toUpperCase()} `) ? "furniture-position-error" : undefined}
                   aria-label={`${axis.label} ekseni konumu, milimetre`}
                   className="cad-transform-axis-input min-w-0 font-mono tabular-nums"
                   onChange={(event) => {
@@ -170,6 +171,7 @@ export function FurnitureTransformFields({
             value={rotationDraft}
             aria-label="Dönüş açısı, derece"
             aria-describedby="furniture-rotation-help"
+            aria-invalid={Boolean(rotationError)}
             aria-errormessage={rotationError ? "furniture-rotation-error" : undefined}
             className="cad-transform-rotation__input font-mono tabular-nums"
             onChange={(event) => {

@@ -35,3 +35,9 @@ test("erişilebilirlik düzenlemesi mm dönüşüm hassasiyetini ve commit davra
   assert.match(source, /onRotationCommit\(parsedValue\)/);
   assert.match(source, /if \(event\.key === "Enter"\) event\.currentTarget\.blur\(\);/);
 });
+
+test("validation state is exposed on the rejected axis and the rotation field", () => {
+  assert.ok(source.includes('aria-invalid={positionError?.startsWith(`${axis.key.toUpperCase()} `) ?? false}'));
+  assert.ok(source.includes('aria-errormessage={positionError?.startsWith(`${axis.key.toUpperCase()} `) ? "furniture-position-error" : undefined}'));
+  assert.ok(source.includes('aria-invalid={Boolean(rotationError)}'));
+});
