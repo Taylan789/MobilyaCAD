@@ -110,3 +110,57 @@
     color: CanvasText;
   }
 }
+
+
+/* UI-CATALOG-CONSTRUCTION-REGISTER-002 — show explicit construction facts as a compact, row-wise technical register. */
+.cad-catalog-card.mc-catalog-card .mc-catalog-card__construction-entries {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+}
+
+.cad-catalog-card.mc-catalog-card .mc-catalog-card__construction-entry {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr);
+  align-items: baseline;
+  gap: 6px;
+  padding: 2px 0;
+  border-bottom: 1px solid rgba(125, 153, 169, .16);
+}
+
+.cad-catalog-card.mc-catalog-card .mc-catalog-card__construction-entry:last-child {
+  border-bottom: 0;
+}
+
+.cad-catalog-card.mc-catalog-card .mc-catalog-card__construction-entry-label {
+  font-size: 6.5px;
+  letter-spacing: .07em;
+  line-height: 1.25;
+}
+
+.cad-catalog-card.mc-catalog-card .mc-catalog-card__construction-entry-value {
+  min-width: 0;
+  font-size: 8px;
+  line-height: 1.25;
+  text-align: right;
+}
+
+@media (max-width: 560px) {
+  .cad-catalog-card.mc-catalog-card .mc-catalog-card__construction-entry {
+    grid-template-columns: 42px minmax(0, 1fr);
+    gap: 5px;
+  }
+
+  .cad-catalog-card.mc-catalog-card .mc-catalog-card__construction-entry-label {
+    font-size: 6px;
+  }
+
+  .cad-catalog-card.mc-catalog-card .mc-catalog-card__construction-entry-value {
+    font-size: 7px;
+  }
+}
+
+@media (forced-colors: active) {
+  .cad-catalog-card.mc-catalog-card .mc-catalog-card__construction-entry {
+    border-bottom-color: CanvasText;
+  }
+}
