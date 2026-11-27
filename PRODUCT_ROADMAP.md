@@ -3055,3 +3055,32 @@ The first regression commit (347d89c) correctly reached the shared snapshot budg
 
 
 **DOM-215 final exact-SHA verification — 27 Kasım 2026 17:08 TRT:** Restoration commit [8d4c6c12](https://github.com/Taylan789/MobilyaCAD/commit/8d4c6c12e21e032f70678888d22fa25417561899) passed CI [#46013059236], QA [#46013059182] (424 frontend + 859 domain; DOM-215 passed, strict TS, lint 36 warnings/0 errors, production build, production-only audit 0 vulnerabilities) and Pages [#46013059223]. The deployment log confirms the exact SHA at https://taylan789.github.io/MobilyaCAD/. The intermediate docs commit 11016ed6 was not deployed because its QA gate failed; the restored SHA is the verified state.
+
+
+## DOM-216 — restored project Part identity membership freshness
+
+**Kullanıcı akışı:** Kullanıcı seçili dikdörtgen parçalarla bir levha kesim planı oluşturur, JSON v2/v3 dosyasını kaydeder ve yeniden açar. Nesting seçimine dahil edilmeyen bir mobilya/Part eklendiğinde, silindiğinde veya seçili Part'ın sabit kimliği değiştiğinde kayıtlı planın sessizce güncel kalmaması gerekir.
+
+**Kabul kriterleri:**
+- Baseline proje raporu için restore edilmiş v2 ve v3 planları fresh kalır.
+- Yeni bir excluded Part eklenmesi tam proje snapshot'ını stale yapar.
+- Mevcut excluded Part'ın kaldırılması stale olur; snapshot kapsamı yalnızca nesting seçimi değildir.
+- Seçili Part'ın stable ID'sinin değiştirilmesi bir eklenen + bir kaldırılan kimlik olarak raporlanır.
+- Her senaryoda freshness `stale`, export `blocked`, seçili Part kimlikleri korunur ve `result/json=null` kalır.
+- Test, gerçek `validateProjectSheetCutPlanFreshness` ve `createFreshProjectSheetCutPlanExport` API'lerini kullanır; test-only export override'ı adapter desteği iddia etmez.
+
+**10/10 checklist delta:**
+- Üretim/veri doğruluğu: seçili olmayan Part'lar dahil tam proje kimlik kümesi add/remove/rename senaryolarında otomatik doğrulanır.
+- Güvenilirlik/geriye uyumluluk: JSON v2/v3 parse → serialize → restore sonrasında stale/fail-closed davranış test kapsamına eklenir.
+- CAD Core / UX: runtime veya görünür arayüz değişmez; `frontend/**` UI ajanının sahipliğinde.
+- Performans: viewport p95/bellek NOT MEASURED; bu regresyon benchmark değildir.
+- CNC/makine: adapter, postprocessor, makine koordinatı veya fiziksel üretim onayı eklenmez; atölye doğrulaması insan sorumluluğudur.
+
+**Durum:** IMPLEMENTED — exact-SHA CI/QA/Pages pending. Başarılı Actions kanıtı görülmeden VERIFIED veya test sitesi güncellendi denmez.
+
+**Sıradaki 3–5 küçük görev:**
+1. DOM-217 — excluded Part quantity değişikliğinin restore edilmiş JSON v2/v3 freshness ve export kapısında stale/blocked davranışını doğrula.
+2. UI-owned INT-003 PR #206 — editor startup/new/save/open JSON v2 envelope entegrasyonu; frontend ve PR UI sahibinde kalır.
+3. Specialist-owned INT-002 — JSON/CSV adapter round-trip ve geometry/quantity sadakati; specialist branch/job yokken adapter dosyalarına dokunma.
+4. Specialist-owned PERF-001 — viewport p95, scene update ve bellek baseline; specialist job şu an skipped, ölçüm NOT MEASURED.
+5. QA-003 — INT-001/INT-002 adapter kanıtı geldikten sonra uçtan uca export/data-flow audit.

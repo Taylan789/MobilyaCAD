@@ -1993,3 +1993,13 @@ An over-limit or over-depth snapshot is rejected as a whole. `createProjectPartS
 - Proje Part dizisinin sırası değişirse tam snapshot karşılaştırması stale dönmeli; freshness sonucu result=null ve json=null olmalı, freshness-gated export ise result/json üretmeden blocked kalmalıdır.
 - Kontrol, nesting'e seçilmeyen kesitli Part'ları da içerir; bunların proje sırası ve metadata'sı freshness kapsamındadır. Gerçek panelGeometry / edgeBandingByEdge adapter export blocker'ları kaldırılmaz.
 - Bu dilim yalnızca domain regresyonu ve sözleşme kanıtıdır. JSON v1/CSV adapter round-trip, CNC/postprocessor, makine koordinatı, viewport performansı veya fiziksel atölye uygunluğu iddia etmez.
+
+
+## DOM-216 — restored JSON v2/v3 Part identity membership freshness
+
+- Build a real project production report and save a selected-part cut plan as JSON v2 and v3; parse and serialize each version before checking current-project freshness.
+- A newly added excluded Part must make the full-project snapshot stale even though the selected nesting scope is unchanged.
+- Removing an excluded Part must also be stale; excluded Parts remain part of the saved project snapshot contract.
+- Changing the stable ID of the selected Part is treated as one added identity plus one removed identity, not as the same Part.
+- For all three mutations, freshness returns `stale`, preserves the saved selected Part IDs for diagnostics, and returns `result=null` / `json=null`. The freshness-gated export returns `blocked` with `freshnessStatus="stale"` and no partial result or JSON.
+- The regression uses the existing full-project snapshot and export gate; it does not change runtime calculation behavior or remove the real `panelGeometry` / `edgeBandingByEdge` adapter blockers. JSON v1/CSV adapter round-trip, nesting of cutout geometry, CNC/postprocessor and physical workshop validation are not implied.

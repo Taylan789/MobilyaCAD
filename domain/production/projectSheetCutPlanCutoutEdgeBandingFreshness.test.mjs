@@ -1304,3 +1304,109 @@ test("DOM-214 multiple individually bounded cutout Parts at the exact shared 8 M
     }
   });
 });
+
+
+test("DOM-216 restored JSON v2/v3 plans become stale when project Parts are added, removed or their stable IDs change", () => {
+  const baselineReport = cutoutProjectReport();
+  const jsonV2 = savedPlanV2(baselineReport);
+  const plans = [
+    ["v2", jsonV2],
+    ["v3", savedPlanV3(jsonV2)]
+  ];
+
+  const addedReport = cutoutProjectReport({
+    additionalCutoutPanels: [{
+      furnitureId: "added-worktop",
+      cutouts: [
+        {
+          id: "added-sink-opening",
+          xMm: 100,
+          yMm: 100,
+          widthMm: 400,
+          lengthMm: 300,
+          edgeBanding: { top: true, bottom: false, left: true, right: false }
+        },
+        {
+          id: "added-cooktop-opening",
+          xMm: 800,
+          yMm: 100,
+          widthMm: 300,
+          lengthMm: 200,
+          edgeBanding: { top: true, bottom: false, left: false, right: true }
+        }
+      ]
+    }]
+  });
+  const removedReport = {
+    ...baselineReport,
+    result: {
+      ...baselineReport.result,
+      parts: baselineReport.result.parts.filter((part) => part.id !== cutoutPartId)
+    }
+  };
+  const renamedReport = {
+    ...baselineReport,
+    result: {
+      ...baselineReport.result,
+      parts: baselineReport.result.parts.map((part) =>
+        part.id === selectedPartId
+          ? { ...part, id: selectedPartId + "-renamed" }
+          : part
+      )
+    }
+  };
+  const scenarios = [
+    {
+      name: "added excluded Part",
+      report: addedReport,
+      diagnostics: [/yeni Part eklendi/]
+    },
+    {
+      name: "removed excluded Part",
+      report: removedReport,
+      diagnostics: [/Part silindi/]
+    },
+    {
+      name: "renamed selected Part identity",
+      report: renamedReport,
+      diagnostics: [/yeni Part eklendi/, /Part silindi/]
+    }
+  ];
+
+  for (const [version, sourceJson] of plans) {
+    const parsed = parseProjectSheetCutPlanJson(sourceJson);
+    assert.equal(parsed.status, "ready", version);
+    const restored = serializeProjectSheetCutPlanJson(parsed);
+    assert.equal(restored.status, "ready", version);
+    assert.ok(restored.json, version);
+    const savedPlanJson = restored.json;
+    assert.equal(JSON.parse(savedPlanJson).formatVersion, version === "v2" ? 2 : 3, version);
+    assert.equal(validateFreshness(savedPlanJson, baselineReport).status, "fresh", version);
+
+    for (const scenario of scenarios) {
+      const stale = validateFreshness(savedPlanJson, scenario.report);
+      assert.equal(stale.status, "stale", version + " / " + scenario.name);
+      assert.equal(stale.result, null, version + " / " + scenario.name);
+      assert.equal(stale.json, null, version + " / " + scenario.name);
+      assert.deepEqual(stale.sourcePartIds, [selectedPartId], version + " / " + scenario.name);
+      for (const diagnostic of scenario.diagnostics) {
+        assert.match(stale.diagnostics.join(" "), diagnostic, version + " / " + scenario.name);
+      }
+
+      const staleExport = createFreshProjectSheetCutPlanExport({
+        schemaVersion: 1,
+        freshness: {
+          schemaVersion: 1,
+          savedPlanJson,
+          productionReport: { ...scenario.report, canExport: true, exportBlockers: [] },
+          currentSelectedPartIds: [selectedPartId]
+        }
+      });
+      assert.equal(staleExport.status, "blocked", version + " / " + scenario.name);
+      assert.equal(staleExport.freshnessStatus, "stale", version + " / " + scenario.name);
+      assert.equal(staleExport.result, null, version + " / " + scenario.name);
+      assert.equal(staleExport.json, null, version + " / " + scenario.name);
+      assert.deepEqual(staleExport.sourcePartIds, [selectedPartId], version + " / " + scenario.name);
+    }
+  }
+});
