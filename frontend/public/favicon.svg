@@ -1,11 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
-  <rect class="mc-brand-mark__backplate" x="2" y="2" width="60" height="60" rx="12" fill="#17232B" stroke="#526B78" stroke-width="1.2"/>
-  <path class="mc-brand-mark__carcass" d="M14 20 32 10 50 20V42L32 52 14 42V20Z" fill="none" stroke="#E2EDF2" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"/>
-  <path class="mc-brand-mark__top" d="M14 20 32 30 50 20M32 10V30" fill="none" stroke="#91B4C9" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-  <path class="mc-brand-mark__interior" d="M20 24V38.5L32 45.5L44 38.5V24" fill="none" stroke="#CBD8DF" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
-  <path class="mc-brand-mark__shelf" d="M20 31.5H44M32 30V45.5" fill="none" stroke="#B2D1E2" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
-  <path class="mc-brand-mark__dimension-ticks" d="M10 31H14M50 31H54" fill="none" stroke="#8EB5CE" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round"/>
-  <path class="mc-brand-mark__dimension-vertical" d="M8 20V42M6 20H10M6 42H10" fill="none" stroke="#8EB5CE" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round"/>
-  <path class="mc-brand-mark__dimension-base" d="M14 57H50M14 55V59M50 55V59" fill="none" stroke="#8EB5CE" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round"/>
-  <circle class="mc-brand-mark__joint" cx="32" cy="31.5" r="1.7" fill="#B2D1E2" stroke="#17232B" stroke-width=".8"/>
+  <rect x="2" y="2" width="60" height="60" rx="12" fill="#17232B" stroke="#526B78" stroke-width="1.2"/>
+  <path d="M14 20 32 10 50 20V42L32 52 14 42V20Z" stroke="#E2EDF2" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M14 20 32 30 50 20M32 10V30" stroke="#91B4C9" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M20 24 32 31 44 24V38.5L32 45.5 20 38.5Z M38 27.5V35.5" stroke="#CBD8DF" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M20 31.5 32 38.5 44 31.5M32 31V45.5" stroke="#B2D1E2" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M10 31H14M50 31H54" stroke="#8EB5CE" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M8 20V42M6 20H10M6 42H10" stroke="#8EB5CE" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M14 57H50M14 55V59M50 55V59" stroke="#8EB5CE" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="40" cy="34" r="1.5" fill="#D4A47F" stroke="#17232B" stroke-width=".8"/>
 </svg>
