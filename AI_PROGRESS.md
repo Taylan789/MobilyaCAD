@@ -1979,3 +1979,14 @@
 - **Parallel lanes:** UI-owned PR #271 and INT-003 PR #206 remain separate/draft; no frontend files changed. No Integration/Performance specialist branch/PR was found; specialist job skipped, INT-002/PERF-001 remain specialist-owned, QA-003 blocked.
 - **AI Developer:** run [#45993066297](https://github.com/Taylan789/MobilyaCAD/actions/runs/45993066297) failed with OpenRouter free-model daily HTTP 429 (limit 50, remaining 0; reset 28 November 2026 03:00 TRT). No rerun before reset; no paid fallback or secret/quota changes.
 - **Next:** DOM-216 — verify fail-closed freshness/export after a Part is added, removed or has its stable ID changed in a restored JSON v2/v3 project.
+
+
+## 27 Kasım 2026 17:02 TRT — DOM-215 QA correction (Actions pending)
+
+- **Failed implementation SHA:** [79bee1aa8c1a0629f5e5cc3568c7b754ce0cfec9](https://github.com/Taylan789/MobilyaCAD/commit/79bee1aa8c1a0629f5e5cc3568c7b754ce0cfec9).
+- **Exact-SHA CI:** [#46011893316](https://github.com/Taylan789/MobilyaCAD/actions/runs/46011893316) SUCCESS — frontend build and lint.
+- **Exact-SHA QA:** [#46011893309](https://github.com/Taylan789/MobilyaCAD/actions/runs/46011893309) FAILURE — unit tests passed; domain tests 847/848. The only failure was `SyntaxError: Unexpected reserved word`, caused by placing the nested `await t.test` block in the synchronous DOM-210 test callback rather than the DOM-214 async fixture. Strict type-check, lint, production build and audit were skipped after the domain failure.
+- **Exact-SHA Pages:** [#46011893384](https://github.com/Taylan789/MobilyaCAD/actions/runs/46011893384) build SUCCESS, exact-SHA CI/QA gate FAILURE, deploy skipped. No broken SHA was published; last verified site remains https://taylan789.github.io/MobilyaCAD/ at base SHA `ed0e4ee8b646e2290bf421f3e36a0b33c5fb4590`.
+- **Correction:** move the nested DOM-215 subtest from DOM-210 into the DOM-214 async exact-boundary test, where `plans`, `exactReport` and `exactSnapshot` are defined. No production runtime or frontend source changes.
+- **Correction commit SHA:** pending GitHub commit response.
+- **Next:** exact-SHA CI/QA/Pages verification; do not mark DOM-215 complete until all three succeed.

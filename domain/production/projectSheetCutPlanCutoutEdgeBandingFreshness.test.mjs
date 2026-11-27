@@ -820,79 +820,6 @@ test("DOM-211 exact 8 MiB snapshot remains lossless through real nesting and sav
     assert.ok(actualAdapterBlock.productionDiagnostics?.some((item) => /edgeBandingByEdge/.test(item.message)));
     assert.equal(savedEnvelope.formatVersion, version === "v2" ? 2 : 3);
   }
-
-  await t.test("DOM-215 JSON v2/v3 parse-restore preserves canonical freshness and blocks project Part order changes", () => {
-    function reverseObjectKeys(value) {
-      if (Array.isArray(value)) return value.map(reverseObjectKeys);
-      if (value !== null && typeof value === "object") {
-        return Object.fromEntries(
-          Object.keys(value).reverse().map((key) => [key, reverseObjectKeys(value[key])])
-        );
-      }
-      return value;
-    }
-
-    for (const [version, savedPlanJson] of plans) {
-      const parsed = parseProjectSheetCutPlanJson(savedPlanJson);
-      assert.equal(parsed.status, "ready", version);
-      assert.ok(parsed.result, version);
-
-      const restored = serializeProjectSheetCutPlanJson(parsed);
-      assert.equal(restored.status, "ready", version);
-      assert.ok(restored.json, version);
-      const restoredEnvelope = JSON.parse(restored.json);
-      assert.deepEqual(restoredEnvelope, JSON.parse(savedPlanJson), version);
-      assert.equal(restoredEnvelope.formatVersion, version === "v2" ? 2 : 3, version);
-      assert.equal(
-        new TextEncoder().encode(JSON.stringify(restoredEnvelope.result.projectPartSnapshot)).byteLength,
-        PROJECT_PART_SNAPSHOT_MAX_BYTES,
-        version
-      );
-      assert.deepEqual(restoredEnvelope.result.projectPartSnapshot, exactSnapshot, version);
-
-      const restoredFreshness = validateFreshness(restored.json, exactReport);
-      assert.equal(restoredFreshness.status, "fresh", version);
-      assert.equal(restoredFreshness.json, restored.json, version);
-      assert.deepEqual(restoredFreshness.result?.projectPartSnapshot, exactSnapshot, version);
-
-      const keyReorderedReport = {
-        ...exactReport,
-        result: {
-          ...exactReport.result,
-          parts: exactReport.result.parts.map(reverseObjectKeys)
-        }
-      };
-      const keyOrderFreshness = validateFreshness(restored.json, keyReorderedReport);
-      assert.equal(keyOrderFreshness.status, "fresh", version);
-      assert.deepEqual(keyOrderFreshness.diagnostics, [], version);
-
-      const partReorderedReport = {
-        ...exactReport,
-        result: {
-          ...exactReport.result,
-          parts: [...exactReport.result.parts].reverse()
-        }
-      };
-      const stale = validateFreshness(restored.json, partReorderedReport);
-      assert.equal(stale.status, "stale", version);
-      assert.equal(stale.result, null, version);
-      assert.equal(stale.json, null, version);
-      assert.match(stale.diagnostics.join(" "), /Proje Part sırası değişmiş/, version);
-
-      const staleExport = createFreshProjectSheetCutPlanExport({
-        schemaVersion: 1,
-        freshness: {
-          schemaVersion: 1,
-          savedPlanJson: restored.json,
-          productionReport: { ...partReorderedReport, canExport: true, exportBlockers: [] },
-          currentSelectedPartIds: [selectedPartId]
-        }
-      });
-      assert.equal(staleExport.status, "blocked", version);
-      assert.equal(staleExport.result, null, version);
-      assert.equal(staleExport.json, null, version);
-    }
-  });
 });
 
 
@@ -1303,4 +1230,77 @@ test("DOM-214 multiple individually bounded cutout Parts at the exact shared 8 M
     assert.ok(actualAdapterBlock.productionDiagnostics?.some((item) => /edgeBandingByEdge/.test(item.message)));
     assert.equal(savedEnvelope.formatVersion, version === "v2" ? 2 : 3);
   }
+
+  await t.test("DOM-215 JSON v2/v3 parse-restore preserves canonical freshness and blocks project Part order changes", () => {
+    function reverseObjectKeys(value) {
+      if (Array.isArray(value)) return value.map(reverseObjectKeys);
+      if (value !== null && typeof value === "object") {
+        return Object.fromEntries(
+          Object.keys(value).reverse().map((key) => [key, reverseObjectKeys(value[key])])
+        );
+      }
+      return value;
+    }
+
+    for (const [version, savedPlanJson] of plans) {
+      const parsed = parseProjectSheetCutPlanJson(savedPlanJson);
+      assert.equal(parsed.status, "ready", version);
+      assert.ok(parsed.result, version);
+
+      const restored = serializeProjectSheetCutPlanJson(parsed);
+      assert.equal(restored.status, "ready", version);
+      assert.ok(restored.json, version);
+      const restoredEnvelope = JSON.parse(restored.json);
+      assert.deepEqual(restoredEnvelope, JSON.parse(savedPlanJson), version);
+      assert.equal(restoredEnvelope.formatVersion, version === "v2" ? 2 : 3, version);
+      assert.equal(
+        new TextEncoder().encode(JSON.stringify(restoredEnvelope.result.projectPartSnapshot)).byteLength,
+        PROJECT_PART_SNAPSHOT_MAX_BYTES,
+        version
+      );
+      assert.deepEqual(restoredEnvelope.result.projectPartSnapshot, exactSnapshot, version);
+
+      const restoredFreshness = validateFreshness(restored.json, exactReport);
+      assert.equal(restoredFreshness.status, "fresh", version);
+      assert.equal(restoredFreshness.json, restored.json, version);
+      assert.deepEqual(restoredFreshness.result?.projectPartSnapshot, exactSnapshot, version);
+
+      const keyReorderedReport = {
+        ...exactReport,
+        result: {
+          ...exactReport.result,
+          parts: exactReport.result.parts.map(reverseObjectKeys)
+        }
+      };
+      const keyOrderFreshness = validateFreshness(restored.json, keyReorderedReport);
+      assert.equal(keyOrderFreshness.status, "fresh", version);
+      assert.deepEqual(keyOrderFreshness.diagnostics, [], version);
+
+      const partReorderedReport = {
+        ...exactReport,
+        result: {
+          ...exactReport.result,
+          parts: [...exactReport.result.parts].reverse()
+        }
+      };
+      const stale = validateFreshness(restored.json, partReorderedReport);
+      assert.equal(stale.status, "stale", version);
+      assert.equal(stale.result, null, version);
+      assert.equal(stale.json, null, version);
+      assert.match(stale.diagnostics.join(" "), /Proje Part sırası değişmiş/, version);
+
+      const staleExport = createFreshProjectSheetCutPlanExport({
+        schemaVersion: 1,
+        freshness: {
+          schemaVersion: 1,
+          savedPlanJson: restored.json,
+          productionReport: { ...partReorderedReport, canExport: true, exportBlockers: [] },
+          currentSelectedPartIds: [selectedPartId]
+        }
+      });
+      assert.equal(staleExport.status, "blocked", version);
+      assert.equal(staleExport.result, null, version);
+      assert.equal(staleExport.json, null, version);
+    }
+  });
 });

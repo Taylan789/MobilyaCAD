@@ -3042,4 +3042,7 @@ The first regression commit (347d89c) correctly reached the shared snapshot budg
 - Performans: bu test benchmark değildir; viewport p95/bellek NOT MEASURED.
 - CNC/makine: adapter, postprocessor veya fiziksel üretim onayı eklenmez; atölye doğrulaması gereklidir.
 
-**Durum:** IMPLEMENTED — exact-SHA CI/QA/Pages pending. Test sonucu görülmeden doğrulanmış sayılmaz.
+**Durum:** CORRECTED — first implementation [79bee1aa](https://github.com/Taylan789/MobilyaCAD/commit/79bee1aa8c1a0629f5e5cc3568c7b754ce0cfec9) passed CI but QA failed (847/848 domain) because the nested async subtest was placed in the DOM-210 synchronous callback. The correction moves it into DOM-214; exact-SHA CI/QA/Pages pending.
+
+
+**DOM-215 QA correction:** The first implementation's shared-domain test run found one harness-placement error (`SyntaxError: Unexpected reserved word`); the domain suite otherwise reported 847/848 passing. The nested subtest is now attached to the DOM-214 async exact-boundary fixture, which supplies the saved v2/v3 plans and the exact 8 MiB Part snapshot. The failed SHA was not deployed; the correction must pass exact-SHA CI, QA and Pages before the roadmap marks this slice verified.
