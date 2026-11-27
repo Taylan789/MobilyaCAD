@@ -3234,7 +3234,7 @@ The first regression commit (347d89c) correctly reached the shared snapshot budg
 - Performans: viewport p95/bellek NOT MEASURED; bu regresyon benchmark değildir.
 - CNC/makine: postprocessor, makine koordinatı veya fiziksel üretim onayı eklenmez; atölye doğrulaması insan sorumluluğundadır.
 
-**Durum:** IN_PROGRESS — test ve görev kaydı eklendi; exact-SHA CI/QA/Pages doğrulaması bekleniyor.
+**Durum:** VERIFIED — [test commit 95e889287011d6726dad2aed841aebf71b332587](https://github.com/Taylan789/MobilyaCAD/commit/95e889287011d6726dad2aed841aebf71b332587); exact-SHA CI [#46062590732](https://github.com/Taylan789/MobilyaCAD/actions/runs/46062590732), QA [#46062590713](https://github.com/Taylan789/MobilyaCAD/actions/runs/46062590713) (443 frontend + 866 domain; DOM-222 #681) ve Pages [#46062590768](https://github.com/Taylan789/MobilyaCAD/actions/runs/46062590768) SUCCESS. Pages build version tam olarak test commit SHA'sıyla eşleşir.
 
 **Sıradaki 3–5 küçük görev:**
 1. DOM-223 — tam proje snapshot'ında bozuk Part snapshot'ının hata tanısını ve kaynak kimliği kapsamını farklı JSON v2/v3 restore sıralarında doğrula.
