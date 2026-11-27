@@ -15,8 +15,8 @@ const affordance = styles.slice(
 );
 
 test("thickness preview choices keep their real selected state and callback", () => {
-  assert.match(component, /aria-pressed={sampleThickness === thickness}/);
-  assert.match(component, /onClick={() => onSelectThickness\(thickness\)}/);
+  assert.ok(component.includes("aria-pressed={sampleThickness === thickness}"));
+  assert.ok(component.includes("onClick={() => onSelectThickness(thickness)}"));
 });
 
 test("selected thickness has a persistent technical marker and usable target size", () => {
