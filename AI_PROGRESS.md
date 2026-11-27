@@ -1837,13 +1837,16 @@
 - **Bilinen sınırlar:** cutout `panelGeometry` and `edgeBandingByEdge` adapter blockers remain; no cutout nesting, JSON v1/CSV round-trip or CNC/postprocessor support is claimed. Physical machine/workshop validation remains human responsibility.
 - **Sonraki adım:** DOM-208 — excluded cutout Part `panelGeometry` schema, board dimensions and outer-edge metadata edits must invalidate freshness; malformed/incomplete geometry must remain fail-closed.
 
-## 27 Kasım 2026 09:34 TRT — DOM-208 implementation (Actions pending)
+## 27 Kasım 2026 09:34 TRT — DOM-208 VERIFIED
 
 - **Base HEAD:** `dev/github-work` `4590bccebf85a0489134c206ca4819cc71b5bcc1`.
+- **Implementation commit:** [1b92a3fb5af1e29d0d1bb396947fae29fada88f6](https://github.com/Taylan789/MobilyaCAD/commit/1b92a3fb5af1e29d0d1bb396947fae29fada88f6).
 - **Teslimat:** DOM-208 regression slice extends the real project aggregator fixture. It checks JSON v2/v3 freshness for excluded cutout Part panelGeometry schema metadata, valid board width/length/thickness changes, and matched outer-edge metadata changes. It also checks unsupported schema, missing outer-edge metadata/cutout list, Part dimension mismatch, outer-edge mismatch, and unknown geometry fields fail closed without partial Parts.
 - **Changed files:** `domain/production/projectSheetCutPlanCutoutEdgeBandingFreshness.test.mjs`, `docs/production-domain-contract.md`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`. No production runtime source, `frontend/**`, adapter/benchmark-owned file, CNC/postprocessor, workflow, secret/setting or `main` change.
 - **Acceptance:** unchanged v2/v3 stays fresh; valid geometry/Part changes stale and downstream export returns blocked/null; invalid current geometry is blocked at the production aggregator with no partial result; actual JSON v1/CSV `panelGeometry` and `edgeBandingByEdge` blockers remain.
-- **Exact-SHA CI/QA/Pages:** pending after this commit; no test or deployment is claimed successful for the new DOM-208 SHA yet.
+- **Exact-SHA CI:** [#45953383797](https://github.com/Taylan789/MobilyaCAD/actions/runs/45953383797) SUCCESS — frontend TypeScript production build and lint.
+- **Exact-SHA QA:** [#45953383660](https://github.com/Taylan789/MobilyaCAD/actions/runs/45953383660) SUCCESS — 412/412 frontend + 850/850 domain tests; DOM-208 test #667 passed; strict shared-domain TypeScript passed; lint 36 warnings / 0 errors; production build passed; production-only audit found 0 vulnerabilities.
+- **Exact-SHA Pages:** [#45953383663](https://github.com/Taylan789/MobilyaCAD/actions/runs/45953383663) SUCCESS — deployment log confirms `pages_build_version=1b92a3fb5af1e29d0d1bb396947fae29fada88f6` and URL https://taylan789.github.io/MobilyaCAD/.
 - **Known limits:** this is regression/contract evidence only. It does not add cutout nesting, JSON v1/CSV adapter support, CNC output, machine coordinates or physical workshop validation. Viewport p95/memory remain NOT MEASURED.
 - **Parallel lanes:** UI-owned INT-003 PR [#206](https://github.com/Taylan789/MobilyaCAD/pull/206) remains draft/open and untouched. No `agent/integration-performance-*` branch was found; INT-002/PERF-001 remain specialist-owned, QA-003 remains blocked on adapter evidence. AI Developer [run #45931417737](https://github.com/Taylan789/MobilyaCAD/actions/runs/45931417737) is blocked by OpenRouter free daily 429 until 28 November 2026 03:00 TRT; no early rerun or paid fallback.
 - **Next:** DOM-209 — add bounded byte/depth limits to canonical project Part snapshot serialization; oversized geometry metadata must fail atomically.

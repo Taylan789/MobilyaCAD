@@ -2837,3 +2837,5 @@ Sıradaki küçük görevler:
 3. Specialist-owned INT-002 — JSON/CSV adapter round-trip ve geometri/miktar sadakati exact-SHA kanıtı; kanıt gelene kadar export blocker korunur.
 4. Specialist-owned PERF-001 — viewport p95, scene update ve bellek baseline ölçümü; şu an NOT MEASURED, branch/PR kanıtı bulunmadı.
 5. QA-003 — INT-001/INT-002 exact-SHA adapter kanıtından sonra uçtan uca data-flow/export audit.
+
+**Durum:** VERIFIED — implementation [1b92a3fb5af1e29d0d1bb396947fae29fada88f6](https://github.com/Taylan789/MobilyaCAD/commit/1b92a3fb5af1e29d0d1bb396947fae29fada88f6); exact-SHA CI [#45953383797](https://github.com/Taylan789/MobilyaCAD/actions/runs/45953383797), QA [#45953383660](https://github.com/Taylan789/MobilyaCAD/actions/runs/45953383660) and Pages [#45953383663](https://github.com/Taylan789/MobilyaCAD/actions/runs/45953383663) SUCCESS. Test site deployed exact SHA: https://taylan789.github.io/MobilyaCAD/.
