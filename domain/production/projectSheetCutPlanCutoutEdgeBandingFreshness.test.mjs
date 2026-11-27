@@ -11,12 +11,12 @@ const noBanding = { top: false, bottom: false, left: false, right: false };
 const selectedPartId = "nestable-panel-panel";
 const cutoutPartId = "custom-worktop-panel";
 
-function panelRequest({ id, name, widthMm, lengthMm, thicknessMm, quantity, material, materialId }) {
+function panelRequest({ id, name, widthMm, lengthMm, thicknessMm, quantity, material, materialId, edgeBanding = noBanding }) {
   return {
     schemaVersion: 1,
     family: "panel",
     furniture: { id, name, widthMm, lengthMm, thicknessMm, quantity, material, materialId },
-    profile: { edgeBanding: { ...noBanding }, grainDirection: "length" },
+    profile: { edgeBanding: { ...edgeBanding }, grainDirection: "length" },
     materials: [{ id: materialId, name: material, category: "panel", thicknessesMm: [thicknessMm], unit: "mm" }]
   };
 }
@@ -26,8 +26,15 @@ function cutoutProjectReport({
   topBandingUnit = "m",
   sinkBottomBanded = false,
   sinkOpening = {},
-  cutouts
+  cutouts,
+  panelDimensions = {},
+  outerEdgeBanding = noBanding,
+  geometryOverrides = {},
+  expectBlocked = false
 } = {}) {
+  const widthMm = panelDimensions.widthMm ?? 2000;
+  const lengthMm = panelDimensions.lengthMm ?? 600;
+  const thicknessMm = panelDimensions.thicknessMm ?? 38;
   const defaultCutouts = [
           {
             id: "sink-opening",
@@ -63,23 +70,25 @@ function cutoutProjectReport({
       panelRequest({
         id: "custom-worktop",
         name: "Kesitli özel tezgâh",
-        widthMm: 2000,
-        lengthMm: 600,
-        thicknessMm: 38,
+        widthMm,
+        lengthMm,
+        thicknessMm,
         quantity: 2,
         material: "Kompakt Tezgâh",
-        materialId: "worktop-38-a"
+        materialId: "worktop-38-a",
+        edgeBanding: outerEdgeBanding
       })
     ],
     panelCutouts: [{
       partId: cutoutPartId,
       geometry: {
         schemaVersion: 1,
-        widthMm: 2000,
-        lengthMm: 600,
-        thicknessMm: 38,
-        outerEdgeBanding: { ...noBanding },
-        cutouts: cutouts ?? defaultCutouts
+        widthMm,
+        lengthMm,
+        thicknessMm,
+        outerEdgeBanding: { ...outerEdgeBanding },
+        cutouts: cutouts ?? defaultCutouts,
+        ...geometryOverrides
       }
     }],
     edgeBandingAssignments: [
@@ -88,6 +97,14 @@ function cutoutProjectReport({
       { partId: cutoutPartId, edge: "right", edgeBandingId: "pvc-inner-right", unit: "mm" }
     ]
   });
+
+  if (expectBlocked) {
+    assert.equal(report.status, "blocked", report.firstError ?? "Geçersiz panel geometrisi projeyi bloklamalı.");
+    assert.equal(report.result, null);
+    assert.equal(report.canExport, false);
+    assert.ok(report.blockedFurniture.length > 0);
+    return report;
+  }
 
   assert.equal(report.status, "ready", report.firstError ?? "Kesitli proje üretimi hazır olmalı.");
   assert.ok(report.result);
@@ -162,6 +179,27 @@ function assertStaleWithoutPartialExport(result) {
   assert.deepEqual(result.sourcePartIds, [selectedPartId]);
   assert.ok(result.diagnostics.length > 0);
   assert.match(result.diagnostics.join(" "), /custom-worktop-panel üretim Part snapshot'ı değişmiş/);
+}
+
+function canonicalJsonForTest(value) {
+  if (Array.isArray(value)) return "[" + value.map(canonicalJsonForTest).join(",") + "]";
+  if (value !== null && typeof value === "object") {
+    const source = value;
+    return "{" + Object.keys(source).filter((key) => source[key] !== undefined).sort().map((key) =>
+      JSON.stringify(key) + ":" + canonicalJsonForTest(source[key])
+    ).join(",") + "}";
+  }
+  return JSON.stringify(value);
+}
+
+function editSavedCutoutPartSnapshot(savedPlanJson, edit) {
+  const envelope = JSON.parse(savedPlanJson);
+  const entry = envelope.result.projectPartSnapshot.parts.find((part) => part.id === cutoutPartId);
+  assert.ok(entry, "Hariç kesitli Part snapshot içinde bulunmalı.");
+  const part = JSON.parse(entry.snapshot);
+  edit(part);
+  entry.snapshot = canonicalJsonForTest(part);
+  return JSON.stringify(envelope);
 }
 
 test("DOM-204 JSON v2/v3 freshness rejects cutout edge-band catalog identity and unit edits on an excluded Part", () => {
@@ -469,5 +507,78 @@ test("DOM-207 JSON v2/v3 freshness and downstream export reject excluded cutout 
         { sourceId: "stock-sheet-source-01", revision: "rev-2026-11" }
       );
     }
+  }
+});
+
+
+test("DOM-208 JSON v2/v3 freshness tracks excluded cutout Part geometry schema, board dimensions and outer-edge metadata", () => {
+  const originalReport = cutoutProjectReport();
+  const jsonV2 = savedPlanV2(originalReport);
+  const plans = [["v2", jsonV2], ["v3", savedPlanV3(jsonV2)]];
+  const selectedPartIds = [selectedPartId];
+  const changedReports = [
+    ["board width", cutoutProjectReport({ panelDimensions: { widthMm: 2100 } })],
+    ["board length", cutoutProjectReport({ panelDimensions: { lengthMm: 650 } })],
+    ["board thickness", cutoutProjectReport({ panelDimensions: { thicknessMm: 40 } })],
+    ["outer-edge metadata", cutoutProjectReport({ outerEdgeBanding: { ...noBanding, top: true } })]
+  ];
+  const exportReport = (savedPlanJson, productionReport) =>
+    createFreshProjectSheetCutPlanExport({
+      schemaVersion: 1,
+      freshness: { schemaVersion: 1, savedPlanJson, productionReport, currentSelectedPartIds: selectedPartIds }
+    });
+  const adapterReadyForFreshnessOnly = (report) => ({ ...report, canExport: true, exportBlockers: [] });
+
+  for (const [version, savedPlanJson] of plans) {
+    const unchanged = validateFreshness(savedPlanJson, originalReport);
+    assert.equal(unchanged.status, "fresh", version);
+    assert.equal(unchanged.json, savedPlanJson, version);
+
+    for (const [change, changedReport] of changedReports) {
+      assert.equal(changedReport.status, "ready", version + " " + change);
+      assertStaleWithoutPartialExport(validateFreshness(savedPlanJson, changedReport));
+      const downstream = exportReport(savedPlanJson, adapterReadyForFreshnessOnly(changedReport));
+      assert.equal(downstream.status, "blocked", version + " " + change);
+      assert.equal(downstream.freshnessStatus, "stale", version + " " + change);
+      assert.equal(downstream.result, null, version + " " + change);
+      assert.equal(downstream.json, null, version + " " + change);
+      assert.deepEqual(downstream.sourcePartIds, selectedPartIds, version + " " + change);
+
+      const actualAdapterBlock = exportReport(savedPlanJson, changedReport);
+      assert.equal(actualAdapterBlock.status, "blocked", version + " " + change);
+      assert.equal(actualAdapterBlock.result, null, version + " " + change);
+      assert.equal(actualAdapterBlock.json, null, version + " " + change);
+      assert.ok(actualAdapterBlock.productionDiagnostics?.some((item) => /panelGeometry/.test(item.message)));
+      assert.ok(actualAdapterBlock.productionDiagnostics?.some((item) => /edgeBandingByEdge/.test(item.message)));
+    }
+
+    const editedSavedSchema = editSavedCutoutPartSnapshot(savedPlanJson, (part) => { part.panelGeometry.schemaVersion = 2; });
+    assertStaleWithoutPartialExport(validateFreshness(editedSavedSchema, originalReport));
+    const schemaExport = exportReport(editedSavedSchema, adapterReadyForFreshnessOnly(originalReport));
+    assert.equal(schemaExport.status, "blocked", version + " saved panelGeometry schema");
+    assert.equal(schemaExport.freshnessStatus, "stale", version + " saved panelGeometry schema");
+    assert.equal(schemaExport.result, null, version + " saved panelGeometry schema");
+    assert.equal(schemaExport.json, null, version + " saved panelGeometry schema");
+    assert.equal(JSON.parse(JSON.parse(savedPlanJson).result.projectPartSnapshot.parts.find((part) => part.id === cutoutPartId).snapshot).panelGeometry.schemaVersion, 1);
+
+    if (version === "v3") {
+      assert.deepEqual(JSON.parse(savedPlanJson).result.groups[0].stockSheetSource, { sourceId: "stock-sheet-source-01", revision: "rev-2026-11" });
+    }
+  }
+
+  const invalidGeometryInputs = [
+    ["unsupported schema", { schemaVersion: 2 }],
+    ["missing outer-edge metadata", { outerEdgeBanding: undefined }],
+    ["missing cutout list", { cutouts: undefined }],
+    ["board dimensions do not match the Part", { widthMm: 1999 }],
+    ["outer-edge metadata does not match the Part", { outerEdgeBanding: { ...noBanding, top: true } }],
+    ["unknown geometry metadata", { legacySchema: 1 }]
+  ];
+  for (const [label, geometryOverrides] of invalidGeometryInputs) {
+    const blocked = cutoutProjectReport({ geometryOverrides, expectBlocked: true });
+    assert.equal(blocked.status, "blocked", label);
+    assert.equal(blocked.result, null, label);
+    assert.equal(blocked.canExport, false, label);
+    assert.ok(blocked.blockedFurniture.length > 0, label);
   }
 });

@@ -2811,3 +2811,29 @@ Sıradaki küçük görevler:
 3. Specialist-owned INT-002 — JSON/CSV adapter round-trip ve kesit geometri kayıpsızlığı için exact-SHA kanıt; kanıt gelene kadar export blocker korunur.
 4. Specialist-owned PERF-001 — viewport p95, scene update ve bellek baseline'ını tekrarlanabilir ölç; şu an NOT MEASURED.
 5. QA-003 — INT-001/INT-002 exact-SHA adapter kanıtından sonra uçtan uca üretim/export data-flow audit.
+
+
+## 27 Kasım 2026 09:34 TRT — DOM-208 panelGeometry freshness ve fail-closed sınırı
+
+**Ürün kararı:** Nesting seçiminden hariç bırakılan kesitli özel panel de proje Part snapshot'ının parçasıdır. Bu Part'ın geometri şeması, pano ölçüleri ve dış kenar metadata'sı kayıtlı kesim planının doğruluğunu etkiler; bu alanlar değiştiğinde eski JSON v2/v3 planı fresh kalamaz. Geçersiz güncel geometri ise stale karşılaştırmasına hazır veri gibi sunulmadan üretim kapısında bloklanır.
+
+**Kabul kriterleri:**
+- JSON v2/v3 değişmeyen projede fresh kalır; kaydedilmiş Part snapshot içindeki `panelGeometry.schemaVersion` metadata değişikliği stale olur.
+- Üretim Part'ı ve kesit geometrisinde birlikte değiştirilen pano genişliği, uzunluğu ve kalınlığı ayrı ayrı stale yapar; Part ile geometri arasındaki ölçü uyuşmazlığı blocked olur.
+- Part `edgeBanding` ve geometri `outerEdgeBanding` birlikte değiştiğinde freshness stale olur; yalnızca geometri metadata'sının Part ile uyuşmaması blocked olur.
+- Desteklenmeyen şema, eksik dış kenar metadata'sı/açıklık listesi ve bilinmeyen alanlar blocked, `result=null`, `canExport=false` üretir; kısmi Part listesi yoktur.
+- Downstream export stale veya blocked durumda `result=null` ve `json=null` döndürür. JSON v1/CSV `panelGeometry` ve `edgeBandingByEdge` blocker'ları kaldırılmaz.
+
+**10/10 checklist delta:**
+- Üretim/veri doğruluğu: excluded Part'ın geometri şeması, pano ölçüsü ve dış kenar metadata'sı tam snapshot freshness kapsamına alınır.
+- Güvenilirlik: malformed/incomplete/mismatched geometry fail-closed; kısmi üretim sonucu yoktur.
+- CAD Core / UX: bu domain-only dilimde değişmedi; frontend/** UI ajanının sahipliğinde.
+- Performans: viewport p95 ve bellek NOT MEASURED; bundle >500 kB uyarısı sürüyor.
+- CNC/makine: nesting/CNC/postprocessor veya fiziksel atölye onayı yok; operatör/üretici doğrulaması gerekir.
+
+**Sıradaki 3–5 küçük görev:**
+1. DOM-209 — canonical Part snapshot serialization için bounded byte/depth limitleri; aşırı büyük panelGeometry girdisi atomik blocked olmalı.
+2. UI-owned INT-003 — JSON v2 envelope editor startup/new/save/open akışına bağlanmalı; PR #206 draft/unmerged, bu ajan sahiplenmez.
+3. Specialist-owned INT-002 — JSON/CSV adapter round-trip ve geometri/miktar sadakati exact-SHA kanıtı; kanıt gelene kadar export blocker korunur.
+4. Specialist-owned PERF-001 — viewport p95, scene update ve bellek baseline ölçümü; şu an NOT MEASURED, branch/PR kanıtı bulunmadı.
+5. QA-003 — INT-001/INT-002 exact-SHA adapter kanıtından sonra uçtan uca data-flow/export audit.

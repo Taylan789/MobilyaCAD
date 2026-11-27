@@ -1906,3 +1906,14 @@ Kaynaklar: `domain/production/panelConstruction.ts`, `projectProduction.ts`, `pr
 
 
 **DOM-207 doğrulaması:** Implementation [395fe2f5f41205f3291cc77bcdf5fcd395d67d6e](https://github.com/Taylan789/MobilyaCAD/commit/395fe2f5f41205f3291cc77bcdf5fcd395d67d6e); exact-SHA CI [#45948449800](https://github.com/Taylan789/MobilyaCAD/actions/runs/45948449800), QA [#45948449810](https://github.com/Taylan789/MobilyaCAD/actions/runs/45948449810) ve Pages [#45948449825](https://github.com/Taylan789/MobilyaCAD/actions/runs/45948449825) başarılı. QA 408 frontend + 849 domain testi geçti; DOM-207 #666 başarılı. İlk denemede yalnızca test fixture'ı, kaldırılan açıklığın tek sağ-kenar bandı eşlemesini de kaldırdığı için blocked olmuştu; fixture düzeltildi, runtime domain kodu değişmedi. Pages `pages_build_version` değeri implementation SHA ile eşleşir.
+
+
+## DOM-208 — Hariç kesitli Part geometri şeması, pano ölçüsü ve dış kenar freshness
+
+- `createProjectPartSnapshot` tam üretim Part kaydını kanonik JSON olarak saklar. Hariç tutulan kesitli Part için `panelGeometry.schemaVersion`, `widthMm`, `lengthMm`, `thicknessMm` ve `outerEdgeBanding` alanları da snapshot kapsamındadır.
+- Kaydedilmiş JSON v2/v3 snapshot'ında `panelGeometry.schemaVersion` değişirse mevcut üretim raporuyla karşılaştırma `stale` olmalıdır. Snapshot metadatası değişikliği özgün kayıtlı JSON'u veya JSON v3 `stockSheetSource` bilgisini değiştirmez.
+- Pano genişliği, uzunluğu veya kalınlığı üretim Part'ı ve kesit geometrisinde birlikte, geçerli katalog/ölçü girdisiyle değiştirildiğinde eski v2/v3 planı stale olur. Dış kenar bant metadata'sı da Part'ın `edgeBanding` bayrakları ve `panelGeometry.outerEdgeBanding` birlikte değiştirildiğinde snapshot farkı üretir.
+- Üretim girdisinde desteklenmeyen geometri şeması, eksik `outerEdgeBanding`/açıklık listesi, Part ile uyuşmayan pano ölçüsü, Part kenar bayraklarıyla uyuşmayan dış metadata veya bilinmeyen alan bulunursa üretim raporu `blocked`, `result=null`, `canExport=false` olmalıdır. Kısmi Part listesi döndürülmez.
+- Geçerli değişiklikte `validateProjectSheetCutPlanFreshness` stale; `createFreshProjectSheetCutPlanExport` blocked, `result=null`, `json=null` döndürür. Geçersiz güncel geometri ise freshness/export akışına ready rapor olarak sokulmaz; üretim kapısında fail-closed kalır.
+- DOM-208 regresyonu gerçek iki-panel proje agregatörünü kullanır: dikdörtgen Part nesting'e seçilir, kesitli özel panel hariç bırakılır ama tam snapshot'ta kalır. JSON v2/v3, değişmeyen plan, boyut/kenar metadata mutasyonları, kayıtlı schema metadata değişikliği ve altı geçersiz geometri girdisi denetlenir.
+- Test-only adapter override yalnızca freshness katmanını izole eder. Gerçek `panelGeometry` ve `edgeBandingByEdge` JSON v1/CSV export blocker'ları korunur. Kesitli panel nesting/adapter desteği, CNC/postprocessor, makine standardı veya fiziksel atölye uygunluğu iddia edilmez.
