@@ -6,6 +6,10 @@ const css = readFileSync(
   new URL("../src/components/viewport/ViewportCameraWorkbench.css", import.meta.url),
   "utf8",
 );
+const controls = readFileSync(
+  new URL("../src/components/viewport/ViewportCameraControls.css", import.meta.url),
+  "utf8",
+);
 const scene = readFileSync(
   new URL("../src/components/viewport/Scene3D.tsx", import.meta.url),
   "utf8",
@@ -29,7 +33,7 @@ test("narrow canvas keeps every camera action present and scrollable", () => {
   assert.match(tier, /top:\s*48px/);
   assert.match(tier, /max-width:\s*calc\(100% - 12px\)/);
   assert.match(tier, /min-width:\s*30px/);
-  assert.match(css, /\.cad-viewport-camera-tools\s*\{[^}]*overflow-x:\s*auto/s);
+  assert.match(controls, /\.cad-viewport-camera-tools\s*\{[^}]*overflow-x:\s*auto/s);
   assert.doesNotMatch(change, /\.cad-viewport-camera-tools button\s*\{[^}]*display:\s*none/s);
   assert.match(scene, /aria-label="Odayı görünüme sığdır"/);
   assert.match(scene, /aria-label="Perspektif görünüş"/);
@@ -43,5 +47,5 @@ test("narrow canvas keeps every camera action present and scrollable", () => {
 test("camera dock keeps motion and high-contrast fallbacks", () => {
   assert.match(css, /@media \(prefers-reduced-motion: reduce\)/);
   assert.match(css, /@media \(forced-colors: active\)/);
-  assert.match(css, /button:focus-visible/);
+  assert.match(controls, /button:focus-visible/);
 });
