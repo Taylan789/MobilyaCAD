@@ -98,3 +98,69 @@
     border-color: CanvasText;
   }
 }
+
+/* UI-MATERIAL-ACTION-TARGETS-001 — scale real edit/delete targets to the material panel's available width. */
+@container material-catalog (min-width: 721px) {
+  .mc-material-card__actions {
+    gap: 3px;
+    margin: -6px -6px 0 0;
+  }
+
+  .mc-material-card__actions button {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    min-height: 36px;
+  }
+
+  .mc-material-card__actions button svg {
+    width: 14px;
+    height: 14px;
+  }
+}
+
+@container material-catalog (max-width: 720px) {
+  .mc-material-card__actions {
+    gap: 4px;
+    margin: -6px -6px 0 0;
+  }
+
+  .mc-material-card__actions button {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    min-height: 40px;
+  }
+
+  .mc-material-card__actions button svg {
+    width: 15px;
+    height: 15px;
+  }
+}
+
+@container material-catalog (max-width: 520px) {
+  .mc-material-card__actions button {
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .mc-material-card__actions button svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+@media (forced-colors: active) {
+  .mc-material-card__actions button {
+    border: 1px solid ButtonText;
+    background: ButtonFace;
+    color: ButtonText;
+  }
+
+  .mc-material-card__actions button:focus-visible {
+    outline: 2px solid Highlight;
+    outline-offset: 2px;
+  }
+}
