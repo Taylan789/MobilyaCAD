@@ -3242,3 +3242,24 @@ The first regression commit (347d89c) correctly reached the shared snapshot budg
 3. Specialist-owned INT-002 — JSON/CSV adapter round-trip ve geometri/miktar sadakati; uzman branch/job yokken adapter dosyalarına dokunma.
 4. Specialist-owned PERF-001 — viewport p95, scene update ve bellek baseline; ölçüm yapılana kadar NOT MEASURED.
 5. QA-003 — INT-001/INT-002 adapter kanıtı ve exact-SHA entegrasyon testleri geldikten sonra uçtan uca export/data-flow denetimi.
+
+
+## DOM-223 — JSON v2/v3 restore sırasında Part kimliği ve tanı sırası
+
+**Kullanıcı akışı:** Kullanıcı birden fazla kesitli özel tezgâh Part'ı bulunan bir projede kesim planını kaydeder. Dosya yeniden açılırken tam proje Part snapshot listesi farklı sırada taşınmış ve birden fazla excluded Part'ın türetilmiş geometri kaydı bozulmuş olabilir. Sistem hata kaynağını liste konumuna göre değil, kalıcı Part ID'sine göre bulmalı; seçili nesting kaynağını ve bozulmamış Part verisini korurken kısmi export üretmemelidir.
+
+**Kabul kriterleri:**
+- JSON v2 ve v3 planları gerçek parser → serializer → restore akışından geçer.
+- İki excluded Part'ın panelGeometry snapshot'ı bağımsız olarak bozulur ve kayıtlı projectPartSnapshot.parts listesi ters çevrilir.
+- Restore sonrasında her snapshot kaydının entry.id değeri iç JSON Part ID'siyle eşleşir; seçili Part snapshot'ı byte-for-byte korunur.
+- Freshness tanıları liste konumundan bağımsız olarak canonical üretim Part sırasına göre aynı exact Part ID'lerini raporlar; kaynak seçimi [nestable-panel-panel] olarak korunur.
+- Freshness ve gerçek freshness-gated export stale / blocked, result=null, json=null döndürür; v3 stock-sheet provenance korunur.
+
+**10/10 checklist delta:**
+- Üretim/veri doğruluğu: birden fazla excluded Part'ın bozuk snapshot'ı ters sıralı restore'da da doğru Part ID'sine bağlanır.
+- Güvenilirlik/geriye uyumluluk: JSON v2/v3 parse/serialize ve fail-closed freshness/export davranışı aynı kabul matrisiyle doğrulanır.
+- CAD Core / UX: runtime veya görünür UI değişikliği yok; frontend/** UI ajanının sahipliğindedir.
+- Performans: viewport p95/bellek NOT MEASURED; bu test benchmark değildir.
+- CNC/makine: postprocessor, makine koordinatı ve fiziksel üretim onayı eklenmez; atölye doğrulaması insan sorumluluğundadır.
+
+**Durum:** IMPLEMENTED — exact-SHA CI/QA/Pages sonuçları bekleniyor. DOM-224 sonraki domain dilimi: JSON v2/v3 plan restore sırasında duplicate/mismatched Part snapshot kimliğinin freshness/export sınırına kısmi sonuç bırakmadan taşınmasını doğrula; doğrudan snapshot validator testleriyle zaten kapsanan temel kontrolleri tekrar etme.

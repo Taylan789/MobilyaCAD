@@ -1950,3 +1950,135 @@ test("DOM-222 one malformed saved panelGeometry snapshot among multiple excluded
     }
   }
 });
+
+
+test("DOM-223 JSON v2/v3 restore keeps Part identity and deterministic diagnostics when snapshots are reordered", () => {
+  const secondPanelId = "custom-worktop-second-panel";
+  const additionalCutoutPanels = [{
+    furnitureId: "custom-worktop-second",
+    material: "Kompakt Tezgâh B",
+    materialId: "worktop-38-b",
+    cutouts: [
+      {
+        id: "second-sink-opening",
+        xMm: 100,
+        yMm: 100,
+        widthMm: 400,
+        lengthMm: 300,
+        edgeBanding: { top: true, bottom: false, left: true, right: false }
+      },
+      {
+        id: "second-cooktop-opening",
+        xMm: 800,
+        yMm: 100,
+        widthMm: 300,
+        lengthMm: 200,
+        edgeBanding: { top: true, bottom: false, left: false, right: true }
+      }
+    ]
+  }];
+  const baselineReport = cutoutProjectReport({ additionalCutoutPanels });
+  assert.equal(baselineReport.status, "ready", baselineReport.firstError ?? "İki excluded kesitli Part da geçerli olmalı.");
+
+  const jsonV2 = savedPlanV2(baselineReport);
+  const plans = [["v2", jsonV2], ["v3", savedPlanV3(jsonV2)]];
+  const damagedPartIds = [cutoutPartId, secondPanelId];
+  const adapterReadyForFreshnessOnly = {
+    ...baselineReport,
+    canExport: true,
+    exportBlockers: []
+  };
+
+  for (const [version, sourceJson] of plans) {
+    const parsed = parseProjectSheetCutPlanJson(sourceJson);
+    assert.equal(parsed.status, "ready", version);
+    const restored = serializeProjectSheetCutPlanJson(parsed);
+    assert.equal(restored.status, "ready", version);
+    assert.ok(restored.json, version);
+    const savedPlanJson = restored.json;
+    const baselineSnapshot = JSON.parse(savedPlanJson).result.projectPartSnapshot;
+    const baselineIds = baselineSnapshot.parts.map((part) => part.id);
+    const baselineSnapshotsById = new Map(baselineSnapshot.parts.map((part) => [part.id, part.snapshot]));
+
+    for (const partId of damagedPartIds) {
+      assert.ok(baselineIds.includes(partId), version + " / " + partId);
+    }
+    assert.equal(validateFreshness(savedPlanJson, baselineReport).status, "fresh", version);
+
+    let damagedJson = savedPlanJson;
+    for (const partId of damagedPartIds) {
+      damagedJson = editSavedCutoutPartSnapshot(
+        damagedJson,
+        (part) => {
+          part.panelGeometry = { schemaVersion: 1, cutouts: [] };
+        },
+        partId
+      );
+    }
+
+    const reorderedEnvelope = JSON.parse(damagedJson);
+    reorderedEnvelope.result.projectPartSnapshot.parts.reverse();
+    const reorderedJson = JSON.stringify(reorderedEnvelope);
+    const reorderedParsed = parseProjectSheetCutPlanJson(reorderedJson);
+    assert.equal(reorderedParsed.status, "ready", version);
+    const reorderedRestored = serializeProjectSheetCutPlanJson(reorderedParsed);
+    assert.equal(reorderedRestored.status, "ready", version);
+    assert.ok(reorderedRestored.json, version);
+
+    const reorderedSnapshot = JSON.parse(reorderedRestored.json).result.projectPartSnapshot;
+    assert.deepEqual(reorderedSnapshot.parts.map((part) => part.id), [...baselineIds].reverse(), version);
+    for (const entry of reorderedSnapshot.parts) {
+      assert.equal(JSON.parse(entry.snapshot).id, entry.id, version + " / " + entry.id);
+    }
+    for (const partId of damagedPartIds) {
+      const entry = reorderedSnapshot.parts.find((part) => part.id === partId);
+      assert.ok(entry, version + " / " + partId);
+      assert.deepEqual(
+        JSON.parse(entry.snapshot).panelGeometry,
+        { schemaVersion: 1, cutouts: [] },
+        version + " / " + partId
+      );
+    }
+    const selectedEntry = reorderedSnapshot.parts.find((part) => part.id === selectedPartId);
+    assert.ok(selectedEntry, version);
+    assert.equal(selectedEntry.snapshot, baselineSnapshotsById.get(selectedPartId), version);
+
+    const expectedDiagnostics = [
+      "Proje Part sırası değişmiş.",
+      ...baselineIds
+        .filter((id) => damagedPartIds.includes(id))
+        .map((id) => id + " üretim Part snapshot'ı değişmiş.")
+    ];
+    const stale = validateFreshness(reorderedRestored.json, baselineReport);
+    assert.equal(stale.status, "stale", version);
+    assert.equal(stale.result, null, version);
+    assert.equal(stale.json, null, version);
+    assert.deepEqual(stale.sourcePartIds, [selectedPartId], version);
+    assert.deepEqual(stale.diagnostics, expectedDiagnostics, version);
+
+    const staleExport = createFreshProjectSheetCutPlanExport({
+      schemaVersion: 1,
+      freshness: {
+        schemaVersion: 1,
+        savedPlanJson: reorderedRestored.json,
+        productionReport: adapterReadyForFreshnessOnly,
+        currentSelectedPartIds: [selectedPartId]
+      }
+    });
+    assert.equal(staleExport.status, "blocked", version);
+    assert.equal(staleExport.freshnessStatus, "stale", version);
+    assert.equal(staleExport.result, null, version);
+    assert.equal(staleExport.json, null, version);
+    assert.deepEqual(staleExport.sourcePartIds, [selectedPartId], version);
+    for (const partId of damagedPartIds) {
+      assert.ok(staleExport.diagnostics.some((message) => message.includes(partId)), version + " / " + partId);
+    }
+
+    if (version === "v3") {
+      assert.deepEqual(
+        JSON.parse(reorderedRestored.json).result.groups[0].stockSheetSource,
+        { sourceId: "stock-sheet-source-01", revision: "rev-2026-11" }
+      );
+    }
+  }
+});
