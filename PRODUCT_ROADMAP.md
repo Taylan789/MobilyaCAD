@@ -2660,7 +2660,7 @@ Sıradaki küçük görevler:
 - Bloklu fiyat snapshot'ı JSON v2 proje teklif revizyonuna eklenemez; mevcut proje değişmez.
 - Geçerli DOM-201 kesit fiyatlaması ve kesit geometri adapter'ı desteklemediği sürece export blocker korunur.
 
-**Durum:** Test ve sözleşme dilimi uygulandı; exact-SHA CI/QA/Pages pending. Gerçek Actions sonucu görülmeden VERIFIED sayılmayacak.
+**Durum:** İlk implementation [59cb664710177f160dea87f89f2c2ce6e43181fd](https://github.com/Taylan789/MobilyaCAD/commit/59cb664710177f160dea87f89f2c2ce6e43181fd): CI SUCCESS; QA 842/843 domain test ile FAILED (yeni testin local helper tanımları eksikti); Pages build SUCCESS ancak deploy exact-SHA QA gate nedeniyle SKIPPED. Hata test fixture kapsamındadır; düzeltme hazırlanıyor, failed SHA yayımlanmadı.
 
 **10/10 checklist delta:**
 - Üretim/maliyet: invalid cutout, overlap, Part ID ve Part ölçüsü uyuşmazlıkları için fail-closed teklif kapısı; kısmi Part/para toplamı yok.

@@ -330,6 +330,23 @@ test("DOM-201 kesitli özel panel teklifi açıklık alanını düşer, quantity
 });
 
 test("DOM-202 bozuk, çakışan veya Part ile uyuşmayan açıklık geometrisi teklif ve revizyonu kısmi toplam olmadan engeller", () => {
+  const opening = {
+    id: "sink-opening",
+    xMm: 100,
+    yMm: 100,
+    widthMm: 400,
+    lengthMm: 300,
+    edgeBanding: { ...noBanding }
+  };
+  const validGeometry = (overrides = {}) => ({
+    schemaVersion: 1,
+    widthMm: 2000,
+    lengthMm: 600,
+    thicknessMm: 38,
+    outerEdgeBanding: { ...noBanding },
+    cutouts: [{ ...opening }],
+    ...overrides
+  });
   const panelRequest = (partId, geometry) => [{ partId, geometry }];
   const cases = [
     {
