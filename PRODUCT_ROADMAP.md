@@ -2839,3 +2839,31 @@ Sıradaki küçük görevler:
 5. QA-003 — INT-001/INT-002 exact-SHA adapter kanıtından sonra uçtan uca data-flow/export audit.
 
 **Durum:** VERIFIED — implementation [1b92a3fb5af1e29d0d1bb396947fae29fada88f6](https://github.com/Taylan789/MobilyaCAD/commit/1b92a3fb5af1e29d0d1bb396947fae29fada88f6); exact-SHA CI [#45953383797](https://github.com/Taylan789/MobilyaCAD/actions/runs/45953383797), QA [#45953383660](https://github.com/Taylan789/MobilyaCAD/actions/runs/45953383660) and Pages [#45953383663](https://github.com/Taylan789/MobilyaCAD/actions/runs/45953383663) SUCCESS. Test site deployed exact SHA: https://taylan789.github.io/MobilyaCAD/.
+
+
+## 27 Kasım 2026 10:40 TRT — DOM-209 bounded Part snapshot resource contract
+
+**Ürün kararı:** Tam Part snapshot'ı, nesting'e seçilmeyen özel panellerin geometri metadata'sını da içerdiği için güvenli ve deterministik bir kaynak bütçesine sahip olmalıdır. JSON string escaping hesaba katılmadan yalnızca ham Part JSON uzunluğunu sınırlamak yeterli değildir; bu nedenle sınır, snapshot zarfının gerçek UTF-8 JSON temsilinde uygulanır.
+
+**Kabul kriterleri ve uygulama:**
+- Snapshot zarfı 8 MiB UTF-8 sınırını (ID, kaçış karakterleri ve zarf overhead'i dahil) aşamaz; sayaç canonical JSON üretilirken artımlı çalışır.
+- Part kökü dahil en fazla 64 iç içe nesne/dizi seviyesi kabul edilir.
+- Tam sınır kabul edilir; bir byte ve bir seviye fazlası reddedilir.
+- Aşırı büyük `panelGeometry` snapshot doğrulamasını keser; serializer `blocked` ve `json: null` döndürür, kısmi JSON üretmez.
+- Mevcut JSON v2/v3 round-trip testleri korunur; CNC veya makine standardı eklenmez.
+
+**10/10 checklist delta:**
+- Güvenilirlik/veri bütünlüğü: Part snapshot boyutu ve derinliği ölçülebilir, deterministik sınırlarla kontrol edilir; fail-closed çıktı.
+- Üretim doğruluğu: excluded panel metadata'sı snapshot'tan sessizce atılmaz; sınırı aşarsa tüm export engellenir.
+- Performans: kaynak tüketimi için üst sınır eklendi; gerçek runtime/viewport p95 ve bellek benchmark'ı NOT MEASURED.
+- CAD Core / UX: bu domain-only dilimde değişmedi; frontend/** UI ajanının sahipliğinde.
+- CNC/makine: nesting/postprocessor veya fiziksel üretim uygunluğu iddiası yok.
+
+**Durum:** implementation commit ve exact-SHA CI/QA/Pages doğrulaması bekleniyor.
+
+**Sıradaki 3–5 küçük görev:**
+1. DOM-210 — aynı aşırı büyük panelGeometry vakasını gerçek proje agregatörü ve kayıtlı kesim planı freshness/export yolundan geçir; blocked/null ve kısmi sonuç olmadığını kanıtla.
+2. UI-owned INT-003 — JSON v2 envelope editor startup/new/save/open akışına bağlanmalı; PR #206 ayrı/draft kalır, frontend/** bu domain ajanının kapsamı değildir.
+3. Specialist-owned INT-002 — JSON/CSV adapter round-trip ve geometri/miktar sadakati için exact-SHA kanıt; kanıt gelene kadar desteklenmeyen geometri export blocker'ı korunur.
+4. Specialist-owned PERF-001 — viewport p95, scene update ve bellek baseline ölçümü; integration/performance workflow job şu anda `if: false`, specialist branch/PR kanıtı yok.
+5. QA-003 — INT-001/INT-002 adapter kanıtı geldikten sonra uçtan uca üretim/export data-flow audit.

@@ -1850,3 +1850,17 @@
 - **Known limits:** this is regression/contract evidence only. It does not add cutout nesting, JSON v1/CSV adapter support, CNC output, machine coordinates or physical workshop validation. Viewport p95/memory remain NOT MEASURED.
 - **Parallel lanes:** UI-owned INT-003 PR [#206](https://github.com/Taylan789/MobilyaCAD/pull/206) remains draft/open and untouched. No `agent/integration-performance-*` branch was found; INT-002/PERF-001 remain specialist-owned, QA-003 remains blocked on adapter evidence. AI Developer [run #45931417737](https://github.com/Taylan789/MobilyaCAD/actions/runs/45931417737) is blocked by OpenRouter free daily 429 until 28 November 2026 03:00 TRT; no early rerun or paid fallback.
 - **Next:** DOM-209 — add bounded byte/depth limits to canonical project Part snapshot serialization; oversized geometry metadata must fail atomically.
+
+
+## 27 Kasım 2026 10:40 TRT — DOM-209 implementation (Actions pending)
+
+- **Base HEAD:** `dev/github-work` `73508afff590153c60bfbb284e9e1014d2f9c687`.
+- **Product slice:** canonical project Part snapshot v1 now has an 8 MiB UTF-8 serialized-envelope limit (including JSON escaping, IDs and envelope framing) and a maximum nesting depth of 64 object/array containers. Byte accounting is incremental during canonicalization; validation checks the serialized entry budget before parsing embedded Part JSON.
+- **Atomic failure:** an oversized or over-depth Part throws before a snapshot is returned. The existing cut-plan serializer validates the snapshot before JSON.stringify and returns `status: "blocked"`, `json: null`; no partial Part snapshot or cut-plan JSON is emitted.
+- **Regression coverage added:** exact 8 MiB boundary accepted; one byte over rejected by creation and validation; 64 nested containers accepted and 65 rejected; oversized `panelGeometry` blocks cut-plan JSON with null output. Existing v2/v3 round-trip fixtures remain in the suite.
+- **Changed files:** `domain/production/projectPartSnapshot.ts`, `domain/production/projectPartSnapshot.test.mjs`, `domain/production/projectSheetCutPlanFile.test.mjs`, `docs/production-domain-contract.md`, `AI_COORDINATION.md`, `AI_PROGRESS.md`, `PRODUCT_ROADMAP.md`.
+- **Implementation commit:** pending exact SHA from GitHub commit creation.
+- **Exact-SHA CI / QA / Pages:** pending; no success claim until Actions report the result.
+- **Known limits:** this is a resource-boundary and fail-closed slice, not cutout nesting, JSON v1/CSV support, CNC/postprocessor output, machine coordinates or physical workshop validation. Viewport p95 and memory remain NOT MEASURED.
+- **Parallel ownership:** no frontend files changed. UI-owned INT-003 PR #206 remains separate; specialist INT-002/PERF-001 remain specialist-owned (the integration/performance workflow job is disabled with `if: false`); QA-003 still awaits adapter evidence. The latest AI Developer run #45931417737 failed due OpenRouter free daily HTTP 429; rerun remains unsafe before the documented reset on 28 November 2026 at 03:00 TRT.
+- **Next:** DOM-210 — exercise oversized panelGeometry through the real project aggregator and downstream saved cut-plan freshness/export path.

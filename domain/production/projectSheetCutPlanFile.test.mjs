@@ -329,3 +329,24 @@ test("blocked rapor JSON üretmez ve serializer bilinmeyen rapor alanlarını re
     groups: []
   }, { extra: true }), /desteklenmeyen alan/);
 });
+
+
+test("DOM-209 oversized panelGeometry snapshot blocks cut-plan JSON atomically", () => {
+  const cutPlan = makeCutPlan({ id: "part-oversized" });
+  const oversizedPartSnapshot = JSON.stringify({
+    id: "part-oversized",
+    panelGeometry: { schemaVersion: 1, metadata: "x".repeat(8 * 1024 * 1024) }
+  });
+  const serialized = serializeProjectSheetCutPlanJson(report({
+    schemaVersion: 1,
+    sourcePartIds: ["part-oversized"],
+    groups: [group(cutPlan)],
+    projectPartSnapshot: {
+      schemaVersion: 1,
+      parts: [{ id: "part-oversized", snapshot: oversizedPartSnapshot }]
+    }
+  }));
+  assert.equal(serialized.status, "blocked");
+  assert.equal(serialized.json, null);
+  assert.match(serialized.diagnostics.join(" "), /8 MiB UTF-8/);
+});

@@ -17,6 +17,61 @@ export interface ProjectPartSnapshotComparison {
 
 type RecordValue = Record<string, unknown>;
 
+export const PROJECT_PART_SNAPSHOT_MAX_BYTES = 8 * 1024 * 1024;
+export const PROJECT_PART_SNAPSHOT_MAX_DEPTH = 64;
+
+const snapshotSizeLimitMessage = "Proje Part snapshot JSON 8 MiB UTF-8 boyut sınırını aşamaz.";
+const snapshotDepthLimitMessage = "Proje Part snapshot en fazla 64 iç içe nesne/dizi seviyesi içerebilir.";
+const snapshotEnvelopePrefix = '{"schemaVersion":1,"parts":[';
+const snapshotEnvelopeSuffix = "]}";
+
+interface JsonByteBudget {
+  bytes: number;
+}
+
+function addSnapshotBytes(budget: JsonByteBudget, bytes: number): void {
+  if (bytes > PROJECT_PART_SNAPSHOT_MAX_BYTES - budget.bytes) throw new Error(snapshotSizeLimitMessage);
+  budget.bytes += bytes;
+}
+
+/** UTF-8 byte length of JSON.stringify(value), including its surrounding quotes. */
+function jsonStringByteLength(value: string): number {
+  if (value.length > PROJECT_PART_SNAPSHOT_MAX_BYTES) return PROJECT_PART_SNAPSHOT_MAX_BYTES + 1;
+  let bytes = 2;
+  for (let index = 0; index < value.length; index += 1) {
+    const code = value.charCodeAt(index);
+    if (code === 0x22 || code === 0x5c) bytes += 2;
+    else if (code <= 0x1f) bytes += code === 0x08 || code === 0x09 || code === 0x0a || code === 0x0c || code === 0x0d ? 2 : 6;
+    else if (code >= 0xd800 && code <= 0xdbff) {
+      const next = value.charCodeAt(index + 1);
+      if (next >= 0xdc00 && next <= 0xdfff) { bytes += 4; index += 1; }
+      else bytes += 6;
+    } else if (code >= 0xdc00 && code <= 0xdfff) bytes += 6;
+    else if (code <= 0x7f) bytes += 1;
+    else if (code <= 0x7ff) bytes += 2;
+    else bytes += 3;
+    if (bytes > PROJECT_PART_SNAPSHOT_MAX_BYTES) return PROJECT_PART_SNAPSHOT_MAX_BYTES + 1;
+  }
+  return bytes;
+}
+
+function createSnapshotEnvelopeBudget(): JsonByteBudget {
+  return { bytes: snapshotEnvelopePrefix.length };
+}
+
+function addSnapshotEntryBytes(budget: JsonByteBudget, id: string, snapshot: string, index: number): void {
+  if (index > 0) addSnapshotBytes(budget, 1);
+  addSnapshotBytes(budget, 6); // {"id":
+  addSnapshotBytes(budget, jsonStringByteLength(id));
+  addSnapshotBytes(budget, 12); // ,"snapshot":
+  addSnapshotBytes(budget, jsonStringByteLength(snapshot));
+  addSnapshotBytes(budget, 1); // }
+}
+
+function finishSnapshotEnvelopeBudget(budget: JsonByteBudget): void {
+  addSnapshotBytes(budget, snapshotEnvelopeSuffix.length);
+}
+
 function record(value: unknown, label: string): RecordValue {
   if (typeof value !== "object" || value === null || Array.isArray(value)) {
     throw new Error(label + " geçerli bir nesne olmalıdır.");
@@ -36,40 +91,59 @@ function identifier(value: unknown, label: string): string {
   return value;
 }
 
-/** Stable JSON without object-key-order noise; rejects values JSON cannot preserve safely. */
-function canonicalJson(value: unknown, label: string, ancestors = new Set<object>()): string {
-  if (value === null) return "null";
-  if (typeof value === "string" || typeof value === "boolean" || typeof value === "number") {
-    if (typeof value === "number" && !Number.isFinite(value)) {
-      throw new Error(label + " sonlu bir sayı taşımalıdır.");
-    }
+/** Stable JSON with bounded depth and incremental byte accounting. */
+function canonicalJson(value: unknown, label: string, budget: JsonByteBudget, ancestors = new Set<object>(), depth = 1): string {
+  if (value === null) { addSnapshotBytes(budget, 4); return "null"; }
+  if (typeof value === "string") {
     const serialized = JSON.stringify(value);
     if (serialized === undefined) throw new Error(label + " JSON olarak serileştirilemiyor.");
+    addSnapshotBytes(budget, jsonStringByteLength(value));
+    return serialized;
+  }
+  if (typeof value === "boolean") {
+    const serialized = value ? "true" : "false";
+    addSnapshotBytes(budget, serialized.length);
+    return serialized;
+  }
+  if (typeof value === "number") {
+    if (!Number.isFinite(value)) throw new Error(label + " sonlu bir sayı taşımalıdır.");
+    const serialized = JSON.stringify(value);
+    if (serialized === undefined) throw new Error(label + " JSON olarak serileştirilemiyor.");
+    addSnapshotBytes(budget, serialized.length);
     return serialized;
   }
   if (Array.isArray(value)) {
+    if (depth > PROJECT_PART_SNAPSHOT_MAX_DEPTH) throw new Error(snapshotDepthLimitMessage);
     if (ancestors.has(value)) throw new Error(label + " döngüsel veri içeriyor.");
     ancestors.add(value);
-    const serialized = "[" + value.map((item, index) =>
-      canonicalJson(item, label + "[" + index + "]", ancestors)
-    ).join(",") + "]";
+    addSnapshotBytes(budget, 2);
+    const items: string[] = [];
+    for (let index = 0; index < value.length; index += 1) {
+      if (index > 0) addSnapshotBytes(budget, 1);
+      items.push(canonicalJson(value[index], label + "[" + index + "]", budget, ancestors, depth + 1));
+    }
     ancestors.delete(value);
-    return serialized;
+    return "[" + items.join(",") + "]";
   }
   if (typeof value === "object") {
+    if (depth > PROJECT_PART_SNAPSHOT_MAX_DEPTH) throw new Error(snapshotDepthLimitMessage);
     const prototype = Object.getPrototypeOf(value);
-    if (prototype !== Object.prototype && prototype !== null) {
-      throw new Error(label + " yalnızca düz JSON nesneleri içerebilir.");
-    }
+    if (prototype !== Object.prototype && prototype !== null) throw new Error(label + " yalnızca düz JSON nesneleri içerebilir.");
     if (ancestors.has(value)) throw new Error(label + " döngüsel veri içeriyor.");
     ancestors.add(value);
     const source = value as RecordValue;
     const keys = Object.keys(source).filter((key) => source[key] !== undefined).sort();
-    const serialized = "{" + keys.map((key) =>
-      JSON.stringify(key) + ":" + canonicalJson(source[key], label + "." + key, ancestors)
-    ).join(",") + "}";
+    addSnapshotBytes(budget, 2);
+    const fields: string[] = [];
+    for (let index = 0; index < keys.length; index += 1) {
+      const key = keys[index];
+      if (index > 0) addSnapshotBytes(budget, 1);
+      addSnapshotBytes(budget, jsonStringByteLength(key));
+      addSnapshotBytes(budget, 1);
+      fields.push(JSON.stringify(key) + ":" + canonicalJson(source[key], label + "." + key, budget, ancestors, depth + 1));
+    }
     ancestors.delete(value);
-    return serialized;
+    return "{" + fields.join(",") + "}";
   }
   throw new Error(label + " JSON tarafından korunamayan bir değer içeriyor.");
 }
@@ -78,13 +152,18 @@ function canonicalJson(value: unknown, label: string, ancestors = new Set<object
 export function createProjectPartSnapshot(parts: readonly unknown[]): ProjectPartSnapshot {
   if (!Array.isArray(parts)) throw new Error("Proje Part snapshot kaynağı bir liste olmalıdır.");
   const seen = new Set<string>();
-  const entries = parts.map((rawPart, index) => {
-    const part = record(rawPart, "Proje Part snapshot kaydının " + (index + 1) + ". öğesi");
+  const budget = createSnapshotEnvelopeBudget();
+  const entries: ProjectPartSnapshotEntry[] = [];
+  for (let index = 0; index < parts.length; index += 1) {
+    const part = record(parts[index], "Proje Part snapshot kaydının " + (index + 1) + ". öğesi");
     const id = identifier(part.id, "Proje Part snapshot kimliği");
     if (seen.has(id)) throw new Error("Proje Part snapshot içinde yinelenen kimlik var: " + id + ".");
     seen.add(id);
-    return { id, snapshot: canonicalJson(part, id + " Part snapshot") };
-  });
+    const snapshot = canonicalJson(part, id + " Part snapshot", { bytes: 0 });
+    addSnapshotEntryBytes(budget, id, snapshot, index);
+    entries.push({ id, snapshot });
+  }
+  finishSnapshotEnvelopeBudget(budget);
   return { schemaVersion: 1, parts: entries };
 }
 
@@ -96,8 +175,10 @@ export function validateProjectPartSnapshot(value: unknown): ProjectPartSnapshot
     throw new Error("Proje Part snapshot geçerli bir v1 kayıt listesi taşımalıdır.");
   }
   const seen = new Set<string>();
-  const parts = source.parts.map((rawEntry, index) => {
-    const entry = record(rawEntry, "Proje Part snapshot kaydının " + (index + 1) + ". öğesi");
+  const budget = createSnapshotEnvelopeBudget();
+  const parts: ProjectPartSnapshotEntry[] = [];
+  for (let index = 0; index < source.parts.length; index += 1) {
+    const entry = record(source.parts[index], "Proje Part snapshot kaydının " + (index + 1) + ". öğesi");
     closed(entry, ["id", "snapshot"], "Proje Part snapshot kaydı");
     const id = identifier(entry.id, "Proje Part snapshot kimliği");
     if (seen.has(id)) throw new Error("Proje Part snapshot içinde yinelenen kimlik var: " + id + ".");
@@ -105,13 +186,15 @@ export function validateProjectPartSnapshot(value: unknown): ProjectPartSnapshot
     if (typeof entry.snapshot !== "string" || entry.snapshot.trim() === "") {
       throw new Error(id + " Part snapshot içeriği boş olmayan JSON metni olmalıdır.");
     }
+    addSnapshotEntryBytes(budget, id, entry.snapshot, index);
     const parsed = record(JSON.parse(entry.snapshot) as unknown, id + " Part snapshot JSON");
     if (parsed.id !== id) throw new Error(id + " Part snapshot içindeki kimlikle eşleşmiyor.");
-    if (canonicalJson(parsed, id + " Part snapshot") !== entry.snapshot) {
+    if (canonicalJson(parsed, id + " Part snapshot", { bytes: 0 }) !== entry.snapshot) {
       throw new Error(id + " Part snapshot kanonik JSON biçiminde değil.");
     }
-    return { id, snapshot: entry.snapshot };
-  });
+    parts.push({ id, snapshot: entry.snapshot });
+  }
+  finishSnapshotEnvelopeBudget(budget);
   return { schemaVersion: 1, parts };
 }
 

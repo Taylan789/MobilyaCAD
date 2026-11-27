@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  PROJECT_PART_SNAPSHOT_MAX_BYTES,
+  PROJECT_PART_SNAPSHOT_MAX_DEPTH,
   compareProjectPartSnapshots,
   createProjectPartSnapshot,
   validateProjectPartSnapshot
@@ -48,4 +50,48 @@ test("bozuk, yinelenen veya kanonik olmayan Part snapshot kayıtları reddedilir
   assert.throws(() => validateProjectPartSnapshot({
     schemaVersion: 1, parts: [{ id: "part-1", snapshot: '{"id":"other"}' }]
   }), /kimlikle eşleşmiyor/);
+});
+
+
+test("DOM-209 Part snapshot UTF-8 envelope limit accepts the exact boundary and rejects one byte over", () => {
+  const baseline = createProjectPartSnapshot([{ id: "part-size", payload: "" }]);
+  const baselineBytes = new TextEncoder().encode(JSON.stringify(baseline)).byteLength;
+  const exactPayloadLength = PROJECT_PART_SNAPSHOT_MAX_BYTES - baselineBytes;
+  const exact = createProjectPartSnapshot([{ id: "part-size", payload: "x".repeat(exactPayloadLength) }]);
+
+  assert.equal(new TextEncoder().encode(JSON.stringify(exact)).byteLength, PROJECT_PART_SNAPSHOT_MAX_BYTES);
+  assert.deepEqual(validateProjectPartSnapshot(exact), exact);
+  assert.throws(() => createProjectPartSnapshot([{ id: "part-size", payload: "x".repeat(exactPayloadLength + 1) }]), /8 MiB UTF-8/);
+
+  const oversizedPartJson = JSON.stringify({ id: "part-size", payload: "x".repeat(exactPayloadLength + 1) });
+  assert.throws(() => validateProjectPartSnapshot({
+    schemaVersion: 1,
+    parts: [{ id: "part-size", snapshot: oversizedPartJson }]
+  }), /8 MiB UTF-8/);
+});
+
+test("DOM-209 Part snapshot accepts 64 nested containers and rejects the 65th", () => {
+  function nestedObject(levels) {
+    let value = "leaf";
+    for (let index = 0; index < levels; index += 1) value = { next: value };
+    return value;
+  }
+  const exact = createProjectPartSnapshot([{
+    id: "part-depth",
+    nested: nestedObject(PROJECT_PART_SNAPSHOT_MAX_DEPTH - 1)
+  }]);
+  assert.deepEqual(validateProjectPartSnapshot(exact), exact);
+  assert.throws(() => createProjectPartSnapshot([{
+    id: "part-depth",
+    nested: nestedObject(PROJECT_PART_SNAPSHOT_MAX_DEPTH)
+  }]), /64 iç içe/);
+
+  const tooDeepJson = JSON.stringify({
+    id: "part-depth",
+    nested: nestedObject(PROJECT_PART_SNAPSHOT_MAX_DEPTH)
+  });
+  assert.throws(() => validateProjectPartSnapshot({
+    schemaVersion: 1,
+    parts: [{ id: "part-depth", snapshot: tooDeepJson }]
+  }), /64 iç içe/);
 });

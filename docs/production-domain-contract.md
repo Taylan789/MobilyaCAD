@@ -1920,3 +1920,10 @@ Kaynaklar: `domain/production/panelConstruction.ts`, `projectProduction.ts`, `pr
 
 
 **DOM-208 doğrulaması:** Implementation [1b92a3fb5af1e29d0d1bb396947fae29fada88f6](https://github.com/Taylan789/MobilyaCAD/commit/1b92a3fb5af1e29d0d1bb396947fae29fada88f6); exact-SHA CI [#45953383797](https://github.com/Taylan789/MobilyaCAD/actions/runs/45953383797), QA [#45953383660](https://github.com/Taylan789/MobilyaCAD/actions/runs/45953383660) and Pages [#45953383663](https://github.com/Taylan789/MobilyaCAD/actions/runs/45953383663) SUCCESS. QA: 412 frontend + 850 domain tests, DOM-208 #667; 36 lint warnings / 0 errors; production build and production-only audit (0 vulnerabilities) passed. Pages deployment log confirms exact SHA at https://taylan789.github.io/MobilyaCAD/.
+
+
+## DOM-209 — bounded canonical Part snapshot
+
+The version-1 `projectPartSnapshot` envelope is bounded to **8 MiB UTF-8** after JSON string escaping, including entry IDs and array/object framing. Canonical Part records are also bounded during traversal, and nested object/array depth is limited to **64 containers** (the Part root counts as level 1). The byte budget is checked incrementally while canonical JSON is built; validation checks the escaped snapshot-entry budget before parsing its embedded JSON string.
+
+An over-limit or over-depth snapshot is rejected as a whole. `createProjectPartSnapshot` does not return a partial list, and `serializeProjectSheetCutPlanJson` returns `status: "blocked"` with `json: null` before producing cut-plan JSON. Existing valid JSON v2/v3 snapshot fixtures remain supported under these limits. This guard does not add cutout nesting, JSON v1/CSV adapter support, CNC output, machine coordinates, or physical-production approval.
