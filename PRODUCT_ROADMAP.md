@@ -3178,7 +3178,7 @@ The first regression commit (347d89c) correctly reached the shared snapshot budg
 - Performans: viewport p95/bellek NOT MEASURED; bu regresyon benchmark değildir.
 - CNC/makine: postprocessor, koordinat veya fiziksel üretim onayı eklenmedi; atölye doğrulaması insan sorumluluğundadır.
 
-**Durum:** Test ve dokümantasyon dilimi dev/github-work üzerine commit ediliyor; exact-SHA CI/QA/Pages sonuçları henüz bekleniyor.
+**Durum:** VERIFIED — [commit 321fbd853d407786374eaff6fb67f8b29a116529](https://github.com/Taylan789/MobilyaCAD/commit/321fbd853d407786374eaff6fb67f8b29a116529); exact-SHA CI [#46049201608](https://github.com/Taylan789/MobilyaCAD/actions/runs/46049201608) SUCCESS; QA [#46049201578](https://github.com/Taylan789/MobilyaCAD/actions/runs/46049201578) SUCCESS — 425 frontend + 864 domain tests, DOM-220 #679 passed; strict shared-domain TypeScript, lint (36 warnings / 0 errors), production build and production-only audit (0 vulnerabilities) passed. Pages [#46049201593](https://github.com/Taylan789/MobilyaCAD/actions/runs/46049201593) SUCCESS; deployment log confirms exact pages_build_version and https://taylan789.github.io/MobilyaCAD/.
 
 **Sıradaki 3–5 küçük görev:**
 1. DOM-221 — birden fazla excluded cutout Part'tan biri geçersiz olduğunda proje snapshot/nesting batch/freshness/export zincirinin atomik bloklandığını doğrula.
