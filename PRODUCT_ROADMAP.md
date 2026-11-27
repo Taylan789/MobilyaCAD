@@ -2687,7 +2687,7 @@ Sıradaki küçük görevler:
 - Eksik iç kenar fiyatı tüm snapshot'ı incomplete yapar; partial cost summary veya lineSources dönmez.
 - `panelGeometry` ve `edgeBandingByEdge` export blocker'ları korunur; JSON v1/CSV adapter desteği veya CNC/atölye uygunluğu varmış gibi davranılmaz.
 
-**Durum:** Uygulama ve otomatik regresyon eklendi; exact-SHA CI, QA ve Pages sonuçları bekleniyor. Runtime domain davranışı mevcut per-edge/cutout tüketim API'siyle doğrulanıyor; frontend, adapter, benchmark ve CNC dosyaları değiştirilmedi.
+**Durum:** VERIFIED — implementation [2bffc90ba97d975c139777032c5387cb567c871c](https://github.com/Taylan789/MobilyaCAD/commit/2bffc90ba97d975c139777032c5387cb567c871c); exact-SHA CI [#45923732361](https://github.com/Taylan789/MobilyaCAD/actions/runs/45923732361) SUCCESS, QA [#45923732431](https://github.com/Taylan789/MobilyaCAD/actions/runs/45923732431) SUCCESS (395 frontend + 844 domain tests, strict TS, lint, build, production audit 0 vulnerabilities), Pages [#45923732356](https://github.com/Taylan789/MobilyaCAD/actions/runs/45923732356) SUCCESS and exact SHA deployed to https://taylan789.github.io/MobilyaCAD/. Runtime domain API was already present; this slice adds integration-level proof and updates its contract. No frontend, adapter, benchmark or CNC source changed.
 
 **10/10 checklist delta:**
 - Üretim/maliyet: iç kenar bantlama uzunluğu/adedi, Part quantity, exact kullanıcı fiyatı, unit, sourceReference ve Part provenance uçtan uca kapsanıyor.
