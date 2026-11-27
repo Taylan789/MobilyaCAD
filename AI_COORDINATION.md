@@ -948,10 +948,10 @@ Bu dosya dört geliştirme/denetim rolünün ortak görev panosu ve entegrasyon 
 
 - UI-owned INT-003 PR [#206](https://github.com/Taylan789/MobilyaCAD/pull/206) remains draft and explicitly defers editor startup/new/save/open wiring; it is not owned or modified by the product agent.
 - No agent/integration-performance-* branch or specialist PR is present. The Integration/Performance workflow job remains disabled (if: false); INT-002/PERF-001 remain specialist-owned and unverified. QA-003 remains blocked until the required adapter evidence exists.
-- Latest AI Developer run [#45890606689](https://github.com/Taylan789/MobilyaCAD/actions/runs/45890606689) failed with OpenRouter free-model daily HTTP 429; reset passed at 03:00 TRT. No rerun during the current branch write/verification window because it would introduce a concurrent writer on `dev/github-work`; no paid fallback, secret, quota or workflow setting was changed.
-- Next domain slice after DOM-199: DOM-200 — reconcile custom-panel edits with user-priced material consumption and immutable quote snapshot/revision source totals; use only explicit catalogue prices and currencies.
+- Latest AI Developer run [#45920651690](https://github.com/Taylan789/MobilyaCAD/actions/runs/45920651690) failed in the OpenCode product job with OpenRouter free-models-per-day HTTP 429 (limit 50, remaining 0; reset 28 November 2026 00:00 UTC / 03:00 TRT). Its integration/performance job was skipped. No rerun before quota reset; no paid fallback, secret, quota or workflow setting changed.
+- Next domain slice: DOM-205 — verify cutout edge-band edits cannot leave downstream saved cut-plan consumers exportable/fresh; preserve the existing JSON v1/CSV fail-closed boundary.
 
-## 27 Kasım 2026 05:26 TRT — DOM-204 implementation (exact-SHA validation pending)
+## 27 Kasım 2026 05:26 TRT — DOM-204 VERIFIED
 
 | ID | Görev | Sahip | Durum | Kabul / teslim kanıtı | Sonraki |
 |---|---|---|---|---|---|
