@@ -2114,3 +2114,15 @@
 - **Parallel ownership:** no `frontend/**`, adapter/benchmark-owned, workflow, secret/settings or `main` files changed. UI-owned PR #206 remains draft/unmerged; no Integration/Performance specialist branch was found, so INT-002/PERF-001 remain specialist-owned and QA-003 remains blocked on adapter evidence.
 - **AI Developer:** run [#45993066297](https://github.com/Taylan789/MobilyaCAD/actions/runs/45993066297) failed on OpenRouter free-model daily HTTP 429 (limit 50, remaining 0; reset 28 November 2026 03:00 TRT). Logs were inspected; no rerun before reset, paid fallback, secret or quota change.
 - **Next:** DOM-222 — verify one malformed saved `panelGeometry` snapshot among multiple excluded cutout Parts invalidates restored v2/v3 freshness and blocks export; keep UI-owned INT-003 and specialist-owned INT-002/PERF-001 isolated.
+
+
+## 27 Kasım 2026 22:27 TRT — DOM-221 test-fixture correction (verification pending)
+
+- **Failed implementation SHA:** [b6711e7995a204847bb4d15304df7761b530df5a](https://github.com/Taylan789/MobilyaCAD/commit/b6711e7995a204847bb4d15304df7761b530df5a).
+- **Exact-SHA CI:** [#46056614485](https://github.com/Taylan789/MobilyaCAD/actions/runs/46056614485) SUCCESS.
+- **Exact-SHA QA:** [#46056614497](https://github.com/Taylan789/MobilyaCAD/actions/runs/46056614497) FAILURE — frontend unit tests passed; shared-domain suite failed at DOM-221 with `ReferenceError: additionalCutoutPanels is not defined`. Type-check, lint, production build and audit were skipped after the failing domain test.
+- **Root cause and correction:** the new test fixture was declared in the authoring context but omitted from the test body. Correction commit [b52800dee2f34d0d02177f6d6bf332426421ee8c](https://github.com/Taylan789/MobilyaCAD/commit/b52800dee2f34d0d02177f6d6bf332426421ee8c) declares the two-opening second worktop fixture locally before building the baseline report.
+- **Files:** `domain/production/projectSheetCutPlanCutoutEdgeBandingFreshness.test.mjs`, `AI_COORDINATION.md`, `AI_PROGRESS.md`, `PRODUCT_ROADMAP.md`.
+- **Pages:** first deployment run [#46056614479](https://github.com/Taylan789/MobilyaCAD/actions/runs/46056614479) remained gated on failed QA; no deployment of the failed SHA is claimed.
+- **Known limits:** no runtime/production algorithm or UI change; JSON v1/CSV adapters, CNC/postprocessor and physical workshop validation remain unsupported/unverified; viewport p95/memory NOT MEASURED.
+- **Next:** exact-SHA CI, QA and Pages for the corrected branch head; if successful, update this record with the real run links.
