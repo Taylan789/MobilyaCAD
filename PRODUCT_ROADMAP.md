@@ -3104,3 +3104,31 @@ The first regression commit (347d89c) correctly reached the shared snapshot budg
 
 **Durum:** VERIFIED — [commit 2cf8a922](https://github.com/Taylan789/MobilyaCAD/commit/2cf8a922cf5498eb990b640a9c33aca8aa74fdc8); CI [#46028894378](https://github.com/Taylan789/MobilyaCAD/actions/runs/46028894378) SUCCESS; QA [#46028894306](https://github.com/Taylan789/MobilyaCAD/actions/runs/46028894306) SUCCESS — 425/425 frontend + 861/861 domain tests, DOM-217 subtest #676 passed; strict shared-domain TypeScript, production build and production-only audit (0 vulnerabilities) passed; lint 36 warnings / 0 errors. Pages [#46028894369](https://github.com/Taylan789/MobilyaCAD/actions/runs/46028894369) SUCCESS; deployment log confirms pages_build_version=2cf8a922cf5498eb990b640a9c33aca8aa74fdc8 and https://taylan789.github.io/MobilyaCAD/.
 
+
+
+## DOM-218 — excluded Part üretim metadata freshness
+
+**Kullanıcı akışı:** Kullanıcı seçili Part'larla levha kesim planı oluşturup JSON v2/v3 olarak kaydeder. Nesting seçimine dahil olmayan kesitli özel tezgâh Part'ının ölçüsü, malzemesi, kalınlığı veya damar yönü değiştiğinde eski plan güncel kabul edilmemeli; seçili Part listesi değişmeden freshness ve export kapısı fail-closed kalmalıdır.
+
+**Kabul kriterleri:**
+- Aynı üretim raporundan üretilen JSON v2 ve v3 planları parse → serialize → restore sonrasında fresh kalır.
+- Yalnızca excluded `custom-worktop-panel` Part'ının genişlik, uzunluk, malzeme adı/kimliği, kalınlık veya damar yönü tek tek değiştirildiğinde her iki formatta da freshness `stale` olur.
+- Seçili Part verisi ve seçili ID listesi değişmez; freshness/export `result=null`, `json=null` döndürür ve export `freshnessStatus="stale"` ile bloklanır.
+- Test gerçek üretim agregatörünü, JSON parser/serializer'ını, `validateProjectSheetCutPlanFreshness` ve `createFreshProjectSheetCutPlanExport` API'lerini kullanır.
+- Test, yalnızca mevcut `panelGeometry` / `edgeBandingByEdge` adapter blocker'larını freshness gate'ini izole etmek için geçici olarak bypass eder; JSON v1/CSV adapter desteği iddia edilmez.
+
+**10/10 checklist delta:**
+- Üretim/veri doğruluğu: nesting dışındaki Part ölçü/malzeme/kalınlık/damar metadata değişiklikleri tam proje snapshot'ında otomatik doğrulanır.
+- Güvenilirlik/geriye uyumluluk: JSON v2/v3 parse → serialize → restore sonrasında metadata-only değişiklikler fail-closed kapsanır.
+- CAD Core / UX: görünür arayüz ve frontend API değişmez; `frontend/**` UI ajanının sahipliğindedir.
+- Performans: viewport p95/bellek NOT MEASURED; bu regresyon benchmark değildir.
+- CNC/makine: makine formatı, koordinat, postprocessor veya fiziksel üretim onayı eklenmez; atölye doğrulaması insan sorumluluğundadır.
+
+**Durum:** IN_PROGRESS — test ve yol haritası eklendi; exact-SHA CI/QA/Pages doğrulaması bekleniyor.
+
+**Sıradaki 3–5 küçük görev:**
+1. DOM-219 — excluded Part içindeki kesitli panel açıklık geometrisi değişikliklerinin v2/v3 freshness ve export davranışını doğrula.
+2. UI-owned INT-003 PR #206 — editor startup/new/save/open JSON v2 envelope entegrasyonu; frontend ve PR UI sahibinde kalır.
+3. Specialist-owned INT-002 — JSON/CSV adapter round-trip ve geometry/quantity sadakati; uzman branch/job yokken adapter dosyalarına dokunma.
+4. Specialist-owned PERF-001 — viewport p95, scene update ve bellek baseline; ölçüm NOT MEASURED.
+5. QA-003 — INT-001/INT-002 adapter kanıtı geldikten sonra uçtan uca export/data-flow audit.

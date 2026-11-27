@@ -13,12 +13,12 @@ const noBanding = { top: false, bottom: false, left: false, right: false };
 const selectedPartId = "nestable-panel-panel";
 const cutoutPartId = "custom-worktop-panel";
 
-function panelRequest({ id, name, widthMm, lengthMm, thicknessMm, quantity, material, materialId, edgeBanding = noBanding }) {
+function panelRequest({ id, name, widthMm, lengthMm, thicknessMm, quantity, material, materialId, edgeBanding = noBanding, grainDirection = "length" }) {
   return {
     schemaVersion: 1,
     family: "panel",
     furniture: { id, name, widthMm, lengthMm, thicknessMm, quantity, material, materialId },
-    profile: { edgeBanding: { ...edgeBanding }, grainDirection: "length" },
+    profile: { edgeBanding: { ...edgeBanding }, grainDirection },
     materials: [{ id: materialId, name: material, category: "panel", thicknessesMm: [thicknessMm], unit: "mm" }]
   };
 }
@@ -26,6 +26,9 @@ function panelRequest({ id, name, widthMm, lengthMm, thicknessMm, quantity, mate
 function cutoutProjectReport({
   topBandingId = "pvc-inner-top",
   topBandingUnit = "m",
+  cutoutMaterial = "Kompakt Tezgâh",
+  cutoutMaterialId = "worktop-38-a",
+  grainDirection = "length",
   sinkBottomBanded = false,
   sinkOpening = {},
   cutouts,
@@ -114,9 +117,10 @@ function cutoutProjectReport({
         lengthMm,
         thicknessMm,
         quantity: 2,
-        material: "Kompakt Tezgâh",
-        materialId: "worktop-38-a",
-        edgeBanding: outerEdgeBanding
+        material: cutoutMaterial,
+        materialId: cutoutMaterialId,
+        edgeBanding: outerEdgeBanding,
+        grainDirection
       }),
       ...additionalFurniture
     ],
@@ -1478,5 +1482,73 @@ test("DOM-217 restored JSON v2/v3 cut plans become stale when an excluded Part q
     assert.equal(staleExport.result, null, version);
     assert.equal(staleExport.json, null, version);
     assert.deepEqual(staleExport.sourcePartIds, [selectedPartId], version);
+  }
+});
+
+
+test("DOM-218 excluded Part dimensions, material, thickness and grain invalidate restored JSON v2/v3 freshness and export", () => {
+  const baselineReport = cutoutProjectReport();
+  const jsonV2 = savedPlanV2(baselineReport);
+  const plans = [
+    ["v2", jsonV2],
+    ["v3", savedPlanV3(jsonV2)]
+  ];
+  const scenarios = [
+    ["width", cutoutProjectReport({ panelDimensions: { widthMm: 2010 } })],
+    ["length", cutoutProjectReport({ panelDimensions: { lengthMm: 620 } })],
+    ["material", cutoutProjectReport({
+      cutoutMaterial: "Kompakt Tezgâh Revize",
+      cutoutMaterialId: "worktop-38-b"
+    })],
+    ["thickness", cutoutProjectReport({
+      panelDimensions: { thicknessMm: 36 },
+      cutoutMaterial: "Kompakt 36",
+      cutoutMaterialId: "worktop-36"
+    })],
+    ["grain direction", cutoutProjectReport({ grainDirection: "width" })]
+  ];
+
+  for (const [version, sourceJson] of plans) {
+    const parsed = parseProjectSheetCutPlanJson(sourceJson);
+    assert.equal(parsed.status, "ready", version);
+    const restored = serializeProjectSheetCutPlanJson(parsed);
+    assert.equal(restored.status, "ready", version);
+    assert.ok(restored.json, version);
+    const savedPlanJson = restored.json;
+    assert.equal(JSON.parse(savedPlanJson).formatVersion, version === "v2" ? 2 : 3, version);
+    assert.equal(validateFreshness(savedPlanJson, baselineReport).status, "fresh", version);
+
+    for (const [label, changedReport] of scenarios) {
+      assert.deepEqual(
+        changedReport.result.parts.find((part) => part.id === selectedPartId),
+        baselineReport.result.parts.find((part) => part.id === selectedPartId),
+        version + " / " + label + " must not change the selected Part"
+      );
+      assert.notDeepEqual(
+        changedReport.result.parts.find((part) => part.id === cutoutPartId),
+        baselineReport.result.parts.find((part) => part.id === cutoutPartId),
+        version + " / " + label + " must change only the excluded Part metadata"
+      );
+
+      const stale = validateFreshness(savedPlanJson, changedReport);
+      assertStaleWithoutPartialExport(stale);
+
+      // Bypass only the known panelGeometry/edgeBandingByEdge adapter blockers
+      // to verify the real freshness gate. This does not claim adapter support.
+      const staleExport = createFreshProjectSheetCutPlanExport({
+        schemaVersion: 1,
+        freshness: {
+          schemaVersion: 1,
+          savedPlanJson,
+          productionReport: { ...changedReport, canExport: true, exportBlockers: [] },
+          currentSelectedPartIds: [selectedPartId]
+        }
+      });
+      assert.equal(staleExport.status, "blocked", version + " / " + label);
+      assert.equal(staleExport.freshnessStatus, "stale", version + " / " + label);
+      assert.equal(staleExport.result, null, version + " / " + label);
+      assert.equal(staleExport.json, null, version + " / " + label);
+      assert.deepEqual(staleExport.sourcePartIds, [selectedPartId], version + " / " + label);
+    }
   }
 });
