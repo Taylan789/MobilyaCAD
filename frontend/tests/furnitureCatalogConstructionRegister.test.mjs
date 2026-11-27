@@ -37,6 +37,13 @@ test("construction register stays compact, readable, and accessible", () => {
   assert.ok(styles.includes("@media (forced-colors: active)"));
 });
 
+test("construction metadata uses legible technical type with tabular dimension values", () => {
+  assert.match(styles, /\.mc-catalog-card__construction-label\s*\{[^}]*font-size:\s*7px/s);
+  assert.match(styles, /\.mc-catalog-card__construction-entry-label\s*\{[^}]*font-size:\s*7px/s);
+  assert.match(styles, /\.mc-catalog-card__construction-entry-value\s*\{[^}]*font-size:\s*8px[^}]*font-variant-numeric:\s*tabular-nums/s);
+  assert.match(styles, /@media \(max-width: 560px\)[\s\S]*?\.mc-catalog-card__construction-entry-value[\s\S]*?font-size:\s*7px/);
+});
+
 test("catalog add and drag placement behavior remains connected", () => {
   assert.ok(component.includes("onClick={onAdd}"));
   assert.ok(component.includes('application/x-mobilyacad-catalog-id'));
