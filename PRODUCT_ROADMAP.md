@@ -2702,7 +2702,7 @@ Sıradaki küçük görevler:
 4. Specialist-owned PERF-001 — viewport p95, scene update ve bellek baseline; henüz NOT MEASURED.
 5. QA-003 — INT-001/INT-002 exact-SHA kanıtından sonra uçtan uca üretim/export data-flow audit.
 
-## 27 Kasım 2026 05:26 TRT — DOM-204 kesit iç kenar bandı değişikliklerinde JSON v2/v3 freshness (Actions pending)
+## 27 Kasım 2026 05:26 TRT — DOM-204 kesit iç kenar bandı değişikliklerinde JSON v2/v3 freshness (VERIFIED)
 
 **Kullanıcı akışı:** Kullanıcı bir dikdörtgen panel için levha kesim planı kaydederken aynı projedeki kesitli özel paneli nesting seçiminden hariç bırakabilir. Hariç panelin açıklık iç kenar bandı katalog kimliği/birimi veya hangi açıklık kenarlarının bantlı olduğu değişirse eski proje kesim planı artık güncel sayılmamalıdır.
 
@@ -2714,7 +2714,7 @@ Sıradaki küçük görevler:
 - Stale sonuçta result=null ve json=null; kaynak Part listesi ve tanılar korunur. Önceki JSON v3 stock-sheet source metadata'sı değiştirilmez.
 - panelGeometry ve edgeBandingByEdge mevcut JSON v1/CSV adapter'ında desteklenmediği için export blocker kaldırılmaz.
 
-**Durum:** IMPLEMENTED — yeni domain regresyonu domain/production/projectSheetCutPlanCutoutEdgeBandingFreshness.test.mjs; exact-SHA CI/QA/Pages sonuçları bekleniyor.
+**Durum:** VERIFIED — implementation/test/docs commit [81696ac96e91d2f0e35b9f72d5a3a8b430d64132](https://github.com/Taylan789/MobilyaCAD/commit/81696ac96e91d2f0e35b9f72d5a3a8b430d64132); CI [#45928886533](https://github.com/Taylan789/MobilyaCAD/actions/runs/45928886533) SUCCESS; QA [#45928886601](https://github.com/Taylan789/MobilyaCAD/actions/runs/45928886601) SUCCESS (401/401 frontend + 846/846 domain; DOM-204 tests #662–663; strict domain TypeScript, lint 36 warnings / 0 errors, production build, production audit 0 vulnerabilities); Pages [#45928886574](https://github.com/Taylan789/MobilyaCAD/actions/runs/45928886574) SUCCESS and deployment log confirms the exact SHA at https://taylan789.github.io/MobilyaCAD/.
 
 **Sınırlar:** Bu dilim kesitli paneli nesting'e dahil etmez, JSON v1/CSV adapter'ını değiştirmez ve CNC/postprocessor veya fiziksel atölye uygunluğu iddiası taşımaz. Makine/atölye doğrulaması insan sorumluluğudur.
 
@@ -2727,7 +2727,7 @@ Sıradaki küçük görevler:
 
 **10/10 checklist delta:**
 - Üretim/veri doğruluğu: hariç tutulan kesitli panelin iç kenar bayrağı, exact katalog kimliği ve birimi tam proje snapshot'ında freshness girdisi olarak korunur; v2/v3 stale kapısı otomatik testlenir.
-- Güvenilirlik: unchanged baseline fresh; assignment ID/unit veya cutout edge flag değişikliği stale ve null result/json; v3 metadata korunur.
+- Güvenilirlik: unchanged baseline fresh; assignment ID/unit veya cutout edge flag değişikliği stale ve null result/json; v3 metadata korunur. Exact-SHA QA: 401 frontend + 846 domain tests, 0 failures; strict type-check/build passed; production audit 0 vulnerabilities.
 - CAD Core / UX: bu domain diliminde değişmedi; UI agent sahipliği korunuyor.
 - Performans: bu dilimde ölçülmedi; viewport p95 ve bellek NOT MEASURED.
 - CNC/makine: üretim çıktısı veya fiziksel onay yok; operatör/üretici doğrulaması gerekir.
