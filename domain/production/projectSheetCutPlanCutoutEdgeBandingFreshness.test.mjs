@@ -378,24 +378,33 @@ test("DOM-207 JSON v2/v3 freshness and downstream export reject excluded cutout 
       widthMm: 300,
       lengthMm: 200,
       edgeBanding: { top: true, bottom: false, left: false, right: true }
+    },
+    {
+      id: "third-opening",
+      xMm: 1300,
+      yMm: 100,
+      widthMm: 200,
+      lengthMm: 200,
+      edgeBanding: { top: true, bottom: false, left: true, right: true }
     }
   ];
   const openingChanges = [
     ["opening added", [
       ...originalCutouts,
       {
-        id: "third-opening",
-        xMm: 1300,
+        id: "fourth-opening",
+        xMm: 1600,
         yMm: 100,
         widthMm: 200,
         lengthMm: 200,
         edgeBanding: { ...noBanding }
       }
     ]],
-    ["opening removed", [originalCutouts[0]]],
+    ["opening removed", originalCutouts.slice(0, 2)],
     ["opening ID", [
-      { ...originalCutouts[0], id: "sink-opening-revised" },
-      originalCutouts[1]
+      originalCutouts[0],
+      originalCutouts[1],
+      { ...originalCutouts[2], id: "third-opening-revised" }
     ]],
     ["opening order", [...originalCutouts].reverse()]
   ];
