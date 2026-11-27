@@ -8,14 +8,14 @@ const styles = readFileSync(
 );
 
 test("catalog add target stays compact on medium desktop widths", () => {
-  assert.match(styles, /@media\s*\(min-width:\s*821px\)\s*and\s*\(max-width:\s*1360px\)/);
+  assert.match(styles, /@media\s*\(min-width:\s*821px\)\s*and\s*\(max-width:\s*1180px\)/);
   const mediumDesktop = styles.match(
-    /@media \(min-width: 821px\) and \(max-width: 1360px\)\s*\{([\s\S]*?)\n\}/
+    /@media \(min-width: 821px\) and \(max-width: 1180px\)[\s\S]*?\.cad-catalog-card\.mc-catalog-card \.mc-catalog-card__add\s*\{([^}]*)\}/
   )?.[1];
   assert.ok(mediumDesktop, "the medium-desktop catalog breakpoint exists");
-  assert.match(mediumDesktop, /width:\s*32px\s*;/);
-  assert.match(mediumDesktop, /height:\s*32px\s*;/);
-  assert.match(mediumDesktop, /\.mc-catalog-card__add-label\s*\{\s*display:\s*none\s*;/);
+  assert.match(mediumDesktop, /width:\s*34px\s*;/);
+  assert.match(mediumDesktop, /height:\s*34px\s*;/);
+  assert.match(styles, /@media \(min-width: 821px\) and \(max-width: 1180px\)[\s\S]*?\.mc-catalog-card__add-label\s*\{\s*display:\s*none\s*;/);
 });
 
 test("catalog add target has visible hover, keyboard focus, and pressed feedback", () => {
