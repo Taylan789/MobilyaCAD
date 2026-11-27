@@ -1695,6 +1695,29 @@ test("DOM-220 invalid or missing excluded cutout geometry records fail closed th
 
 test("DOM-221 one invalid geometry among multiple excluded cutout Parts atomically blocks snapshot, nesting, restored freshness and export", () => {
   const secondPanelId = "custom-worktop-second-panel";
+  const additionalCutoutPanels = [{
+    furnitureId: "custom-worktop-second",
+    material: "Kompakt Tezgâh B",
+    materialId: "worktop-38-b",
+    cutouts: [
+      {
+        id: "second-sink-opening",
+        xMm: 100,
+        yMm: 100,
+        widthMm: 400,
+        lengthMm: 300,
+        edgeBanding: { top: true, bottom: false, left: true, right: false }
+      },
+      {
+        id: "second-cooktop-opening",
+        xMm: 800,
+        yMm: 100,
+        widthMm: 300,
+        lengthMm: 200,
+        edgeBanding: { top: true, bottom: false, left: false, right: true }
+      }
+    ]
+  }];
   const baselineReport = cutoutProjectReport({ additionalCutoutPanels });
   assert.equal(baselineReport.status, "ready", baselineReport.firstError ?? "İki kesitli tezgâh Part'ı da geçerli olmalı.");
   assert.ok(baselineReport.result.parts.some((part) => part.id === cutoutPartId && part.panelGeometry));
