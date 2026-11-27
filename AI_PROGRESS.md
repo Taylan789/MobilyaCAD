@@ -1913,3 +1913,14 @@
 - **Bilinen kısıtlar:** gerçek `panelGeometry` / `edgeBandingByEdge` adapter export blocker'ları sürer; JSON v1/CSV round-trip, cutout nesting, CNC/postprocessor ve fiziksel atölye uygunluğu iddia edilmez. Viewport p95/bellek NOT MEASURED.
 - **Paralel işler:** UI-owned INT-003 PR [#206](https://github.com/Taylan789/MobilyaCAD/pull/206) ayrı/draft. Integration/Performance workflow job `if: false` ve specialist branch/PR yok; INT-002/PERF-001 unverified, QA-003 gated. AI Developer [#45931417737](https://github.com/Taylan789/MobilyaCAD/actions/runs/45931417737) free-model daily 429 nedeniyle başarısız; reset 28 Kasım 2026 03:00 TRT, erken rerun yok.
 - **Sonraki görev:** DOM-213 — çoklu Part toplam snapshot bütçesi: her Part tek başına limit altında olsa bile proje zarfı limit+1 olduğunda atomik fail-closed.
+
+
+## 27 Kasım 2026 14:23 TRT — DOM-213 implementation (Actions pending)
+
+- Base HEAD: dev/github-work 363f3b56e5be31ad52fb3a07a60a8068c764f46e.
+- Commit SHA: GitHub-assigned SHA will be recorded with exact-SHA verification in the next progress entry; this implementation record is part of the commit being created.
+- Teslimat: Her biri tek başına 8 MiB altında kalan iki geçerli kesitli Part'ın toplam proje snapshot zarfını tam 8 MiB + 1 byte yapan regression eklendi. Gerçek batch aggregator, cut-plan, saved JSON v2/v3 freshness ve freshness-export kapıları için atomik fail-closed kabul kriterleri eklendi.
+- Değişen dosyalar: domain/production/projectSheetCutPlanCutoutEdgeBandingFreshness.test.mjs, docs/production-domain-contract.md, AI_COORDINATION.md, PRODUCT_ROADMAP.md, AI_PROGRESS.md.
+- Otomatik kontroller: Bu yeni commit için CI/QA/Pages henüz çalışmadı veya sonuçlanmadı; başarı iddiası yok. Base UI SHA 363f3b56e5be31ad52fb3a07a60a8068c764f46e için CI #45990593938, QA #45990594049 ve Pages #45990593942 SUCCESS idi; QA 424 frontend + 856 domain test, strict TS, lint 36 warnings / 0 errors, production build ve audit 0 vulnerabilities.
+- Bilinen kısıtlar: gerçek panelGeometry / edgeBandingByEdge adapter export blocker'ları sürer; JSON v1/CSV round-trip, kesit nesting, CNC/postprocessor, makine koordinatı ve fiziksel atölye uygunluğu iddia edilmez. Viewport p95/bellek NOT MEASURED.
+- Sonraki görev: DOM-214 — çoklu Part toplam snapshot zarfının tam 8 MiB sınırını gerçek agregatör ve JSON v2/v3 freshness akışında kabul et.

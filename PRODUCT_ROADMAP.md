@@ -2954,3 +2954,31 @@ Sıradaki küçük görevler:
 3. Specialist-owned INT-002 — kesitli geometri, JSON/CSV adapter round-trip ve quantity sadakati için exact-SHA kanıt; kanıt gelene kadar gerçek export blocker'ları korunur.
 4. Specialist-owned PERF-001 — viewport p95, scene update ve bellek baseline ölçümü; integration/performance workflow job `if: false`, specialist branch/PR yok.
 5. QA-003 — INT-001/INT-002 adapter kanıtından sonra uçtan uca üretim/export data-flow audit.
+
+
+## 27 Kasım 2026 14:23 TRT — DOM-213 çoklu Part snapshot bütçesi
+
+**Ürün kararı:** Proje snapshot sınırı tüm Part'ların toplamına uygulanır. Tek tek geçerli ve küçük görünen Part kayıtlarının birlikte oluşturduğu zarf da atomik olarak sınırlandırılmalıdır; seçili nesting Parts dışındaki kayıtlar da proje bütünlüğünün parçasıdır.
+
+**Kabul kriterleri:**
+- İki kesitli Part'ın her biri ayrı snapshot olarak 8 MiB altında kalır; toplam kanonik UTF-8 proje zarfı tam 8 MiB + 1 byte olur.
+- Her iki kesit geometrisi domain doğrulamasından geçer ve üretim raporu ready kalır; bu test hatalı geometriye dayanmaz.
+- Gerçek nesting batch blocked, result=null, projectPartSnapshot olmadan döner; seçili/hariç Part kimlikleri korunur. Cut-plan JSON üretilmez.
+- Baseline JSON v2/v3 kayıtları fresh kalır; oversized güncel projede freshness ve freshness-export blocked / null döner.
+- Gerçek adapter export, panelGeometry / edgeBandingByEdge desteği doğrulanana kadar blocked kalır.
+
+**10/10 checklist delta:**
+- Üretim/veri doğruluğu: ortak proje bütçesi çoklu Part senaryosunda doğrulanır; kısmi snapshot veya cut-plan sızmaz.
+- Güvenilirlik/geriye uyumluluk: baseline v2/v3 kayıtları fresh; aşım her iki sürümde fail-closed.
+- CAD Core / UX: domain regression dilimi; frontend/** UI ajanının sahipliğinde.
+- Performans: bu test bir benchmark değildir; viewport p95/bellek NOT MEASURED.
+- CNC/makine: adapter, nesting algoritması, postprocessor veya fiziksel üretim onayı eklenmez; atölye doğrulaması gereklidir.
+
+**Durum:** IMPLEMENTED — exact-SHA CI/QA/Pages pending. GitHub Actions sonucu görülmeden test başarısı veya test-site güncellemesi iddia edilmez.
+
+**Sıradaki 3–5 küçük görev:**
+1. DOM-214 — çoklu Part toplam snapshot zarfının tam 8 MiB sınırını gerçek agregatör ve JSON v2/v3 freshness akışında kabul et.
+2. UI-owned INT-003 — JSON v2 envelope editor startup/new/save/open entegrasyonu; PR #206 draft kalır ve UI ajanının sahipliğindedir.
+3. Specialist-owned INT-002 — kesitli geometri, JSON/CSV adapter round-trip ve quantity sadakati için exact-SHA kanıt; gerçek export blocker'ları korunur.
+4. Specialist-owned PERF-001 — viewport p95, scene update ve bellek baseline ölçümü; workflow job if: false, specialist branch/PR yok.
+5. QA-003 — INT-001/INT-002 adapter kanıtından sonra uçtan uca üretim/export data-flow audit.

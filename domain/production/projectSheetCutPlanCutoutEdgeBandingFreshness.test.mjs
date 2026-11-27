@@ -31,6 +31,7 @@ function cutoutProjectReport({
   panelDimensions = {},
   outerEdgeBanding = noBanding,
   geometryOverrides = {},
+  additionalCutoutPanels = [],
   expectBlocked = false
 } = {}) {
   const widthMm = panelDimensions.widthMm ?? 2000;
@@ -55,6 +56,43 @@ function cutoutProjectReport({
           }
         ];
 
+  const additionalFurniture = additionalCutoutPanels.map((panel) => panelRequest({
+    id: panel.furnitureId,
+    name: panel.name ?? "Ek kesitli tezgâh",
+    widthMm: panel.widthMm ?? widthMm,
+    lengthMm: panel.lengthMm ?? lengthMm,
+    thicknessMm: panel.thicknessMm ?? thicknessMm,
+    quantity: panel.quantity ?? 2,
+    material: panel.material ?? "Kompakt Tezgâh",
+    materialId: panel.materialId ?? "worktop-38-b",
+    edgeBanding: panel.outerEdgeBanding ?? noBanding
+  }));
+  const additionalPanelCutouts = additionalCutoutPanels.map((panel) => {
+    const panelWidthMm = panel.widthMm ?? widthMm;
+    const panelLengthMm = panel.lengthMm ?? lengthMm;
+    const panelThicknessMm = panel.thicknessMm ?? thicknessMm;
+    return {
+      partId: panel.furnitureId + "-panel",
+      geometry: {
+        schemaVersion: 1,
+        widthMm: panelWidthMm,
+        lengthMm: panelLengthMm,
+        thicknessMm: panelThicknessMm,
+        outerEdgeBanding: { ...(panel.outerEdgeBanding ?? noBanding) },
+        cutouts: panel.cutouts ?? defaultCutouts,
+        ...(panel.geometryOverrides ?? {})
+      }
+    };
+  });
+  const additionalEdgeBandingAssignments = additionalCutoutPanels.flatMap((panel) => {
+    const partId = panel.furnitureId + "-panel";
+    return [
+      { partId, edge: "top", edgeBandingId: panel.topBandingId ?? topBandingId, unit: panel.topBandingUnit ?? topBandingUnit },
+      { partId, edge: "left", edgeBandingId: "pvc-inner-left", unit: "mm" },
+      { partId, edge: "right", edgeBandingId: "pvc-inner-right", unit: "mm" }
+    ];
+  });
+
   const report = calculateCabinetProjectProductionWithDiagnostics({
     schemaVersion: 1,
     furniture: [
@@ -78,7 +116,8 @@ function cutoutProjectReport({
         material: "Kompakt Tezgâh",
         materialId: "worktop-38-a",
         edgeBanding: outerEdgeBanding
-      })
+      }),
+      ...additionalFurniture
     ],
     panelCutouts: [{
       partId: cutoutPartId,
@@ -91,11 +130,12 @@ function cutoutProjectReport({
         cutouts: cutouts ?? defaultCutouts,
         ...geometryOverrides
       }
-    }],
+    }, ...additionalPanelCutouts],
     edgeBandingAssignments: [
       { partId: cutoutPartId, edge: "top", edgeBandingId: topBandingId, unit: topBandingUnit },
       { partId: cutoutPartId, edge: "left", edgeBandingId: "pvc-inner-left", unit: "mm" },
-      { partId: cutoutPartId, edge: "right", edgeBandingId: "pvc-inner-right", unit: "mm" }
+      { partId: cutoutPartId, edge: "right", edgeBandingId: "pvc-inner-right", unit: "mm" },
+      ...additionalEdgeBandingAssignments
     ]
   });
 
@@ -140,8 +180,13 @@ function savedPlanV2(productionReport) {
   assert.equal(batches.status, "ready", batches.diagnostics.join(" "));
   assert.ok(batches.result);
   assert.deepEqual(batches.sourcePartIds, [selectedPartId]);
-  assert.deepEqual(batches.excludedPartIds, [cutoutPartId]);
-  assert.ok(batches.projectPartSnapshot?.parts.some((entry) => entry.id === cutoutPartId));
+  const expectedExcludedPartIds = productionReport.result.parts
+    .map((part) => part.id)
+    .filter((id) => id !== selectedPartId);
+  assert.deepEqual(batches.excludedPartIds, expectedExcludedPartIds);
+  for (const excludedPartId of expectedExcludedPartIds) {
+    assert.ok(batches.projectPartSnapshot?.parts.some((entry) => entry.id === excludedPartId));
+  }
 
   const layoutReports = batches.result.batches.map((group) => ({
     groupId: JSON.stringify([group.materialId, Math.round(group.thicknessMm * 10)]),
@@ -877,6 +922,155 @@ test("DOM-212 valid cutout metadata one UTF-8 byte over 8 MiB blocks aggregation
     assert.equal(freshnessExport.result, null, version);
     assert.equal(freshnessExport.json, null, version);
     assert.deepEqual(freshnessExport.sourcePartIds, [selectedPartId], version);
+    assert.match(freshnessExport.diagnostics.join(" "), /8 MiB UTF-8/, version);
+
+    const actualAdapterBlock = createFreshProjectSheetCutPlanExport({
+      schemaVersion: 1,
+      freshness: {
+        schemaVersion: 1,
+        savedPlanJson,
+        productionReport: oversizedReport,
+        currentSelectedPartIds: [selectedPartId]
+      }
+    });
+    assert.equal(actualAdapterBlock.status, "blocked", version);
+    assert.equal(actualAdapterBlock.result, null, version);
+    assert.equal(actualAdapterBlock.json, null, version);
+    assert.ok(actualAdapterBlock.productionDiagnostics?.some((item) => /panelGeometry/.test(item.message)));
+    assert.ok(actualAdapterBlock.productionDiagnostics?.some((item) => /edgeBandingByEdge/.test(item.message)));
+    assert.equal(JSON.parse(savedPlanJson).formatVersion, version === "v2" ? 2 : 3);
+  }
+});
+
+
+test("DOM-213 multiple individually bounded cutout Parts over the shared 8 MiB snapshot budget block aggregation and saved v2/v3 freshness/export atomically", () => {
+  const baseCutouts = [
+    {
+      id: "sink-opening",
+      xMm: 100,
+      yMm: 100,
+      widthMm: 400,
+      lengthMm: 300,
+      edgeBanding: { top: true, bottom: false, left: true, right: false }
+    },
+    {
+      id: "cooktop-opening",
+      xMm: 800,
+      yMm: 100,
+      widthMm: 300,
+      lengthMm: 200,
+      edgeBanding: { top: true, bottom: false, left: false, right: true }
+    }
+  ];
+  const secondPanelId = "custom-worktop-second-panel";
+  const additionalCutoutPanels = [{
+    furnitureId: "custom-worktop-second",
+    material: "Kompakt Tezgâh B",
+    materialId: "worktop-38-b",
+    cutouts: baseCutouts.map((cutout) => ({ ...cutout, edgeBanding: { ...cutout.edgeBanding } }))
+  }];
+  const baselineReport = cutoutProjectReport({
+    cutouts: baseCutouts,
+    additionalCutoutPanels
+  });
+  const baselineSnapshot = createProjectPartSnapshot(baselineReport.result.parts);
+  const baselineBytes = new TextEncoder().encode(JSON.stringify(baselineSnapshot)).byteLength;
+  const totalExtraBytes = PROJECT_PART_SNAPSHOT_MAX_BYTES - baselineBytes + 1;
+  assert.ok(totalExtraBytes > 2);
+
+  const firstExtraBytes = Math.floor(totalExtraBytes / 2);
+  const secondExtraBytes = totalExtraBytes - firstExtraBytes;
+  const oversizedReport = cutoutProjectReport({
+    cutouts: [
+      { ...baseCutouts[0], id: "sink-opening" + "x".repeat(firstExtraBytes) },
+      baseCutouts[1]
+    ],
+    additionalCutoutPanels: [{
+      furnitureId: "custom-worktop-second",
+      material: "Kompakt Tezgâh B",
+      materialId: "worktop-38-b",
+      cutouts: [
+        { ...baseCutouts[0], id: "sink-opening" + "y".repeat(secondExtraBytes) },
+        baseCutouts[1]
+      ]
+    }]
+  });
+
+  assert.equal(oversizedReport.status, "ready");
+  const firstCutoutPart = oversizedReport.result.parts.find((part) => part.id === cutoutPartId);
+  const secondCutoutPart = oversizedReport.result.parts.find((part) => part.id === secondPanelId);
+  assert.ok(firstCutoutPart?.panelGeometry);
+  assert.ok(secondCutoutPart?.panelGeometry);
+  for (const part of [firstCutoutPart, secondCutoutPart]) {
+    const singlePartSnapshot = createProjectPartSnapshot([part]);
+    const singlePartBytes = new TextEncoder().encode(JSON.stringify(singlePartSnapshot)).byteLength;
+    assert.ok(singlePartBytes < PROJECT_PART_SNAPSHOT_MAX_BYTES);
+  }
+  assert.equal(
+    baselineBytes + firstExtraBytes + secondExtraBytes,
+    PROJECT_PART_SNAPSHOT_MAX_BYTES + 1
+  );
+  assert.throws(
+    () => createProjectPartSnapshot(oversizedReport.result.parts),
+    /8 MiB UTF-8/
+  );
+
+  const jsonV2 = savedPlanV2(baselineReport);
+  const plans = [["v2", jsonV2], ["v3", savedPlanV3(jsonV2)]];
+  const batches = createProjectSheetNestingBatches({
+    schemaVersion: 1,
+    productionReport: oversizedReport,
+    partIds: [selectedPartId],
+    stockSheets: [{
+      sheet: {
+        materialId: "mdf-18",
+        widthMm: 1200,
+        lengthMm: 1000,
+        thicknessMm: 18,
+        grainDirection: "length"
+      },
+      kerfMm: 3
+    }]
+  });
+  assert.equal(batches.status, "blocked");
+  assert.equal(batches.result, null);
+  assert.equal(batches.projectPartSnapshot, undefined);
+  assert.deepEqual(batches.sourcePartIds, [selectedPartId]);
+  assert.deepEqual(batches.excludedPartIds, [cutoutPartId, secondPanelId]);
+  assert.match(batches.diagnostics.join(" "), /8 MiB UTF-8/);
+
+  const cutPlan = createProjectSheetCutPlan({
+    schemaVersion: 1,
+    batchReport: batches,
+    layoutReports: []
+  });
+  assert.equal(cutPlan.status, "blocked");
+  assert.equal(cutPlan.result, null);
+  assert.equal(cutPlan.json, null);
+
+  for (const [version, savedPlanJson] of plans) {
+    assert.equal(validateFreshness(savedPlanJson, baselineReport).status, "fresh", version);
+
+    const freshness = validateFreshness(savedPlanJson, oversizedReport);
+    assert.equal(freshness.status, "blocked", version);
+    assert.equal(freshness.result, null, version);
+    assert.equal(freshness.json, null, version);
+    assert.deepEqual(freshness.sourcePartIds, [selectedPartId], version);
+    assert.match(freshness.diagnostics.join(" "), /8 MiB UTF-8/, version);
+
+    const freshnessExport = createFreshProjectSheetCutPlanExport({
+      schemaVersion: 1,
+      freshness: {
+        schemaVersion: 1,
+        savedPlanJson,
+        productionReport: { ...oversizedReport, canExport: true, exportBlockers: [] },
+        currentSelectedPartIds: [selectedPartId]
+      }
+    });
+    assert.equal(freshnessExport.status, "blocked", version);
+    assert.equal(freshnessExport.freshnessStatus, "blocked", version);
+    assert.equal(freshnessExport.result, null, version);
+    assert.equal(freshnessExport.json, null, version);
     assert.match(freshnessExport.diagnostics.join(" "), /8 MiB UTF-8/, version);
 
     const actualAdapterBlock = createFreshProjectSheetCutPlanExport({

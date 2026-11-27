@@ -1961,3 +1961,12 @@ An over-limit or over-depth snapshot is rejected as a whole. `createProjectPartS
 - Mevcut JSON v2/v3 kayıtları, aynı oversized güncel proje ile freshness ve kontrollü freshness-export kapısından `blocked` / `null` döner; eski kayıt değişmeden kalır.
 - Gerçek production export, `panelGeometry` ve `edgeBandingByEdge` adapter alanları desteklenmediği için bloklu kalır. Test override'ı yalnızca snapshot/freshness kapısını izole eder; üretime hazır adapter veya CNC desteği iddiası değildir.
 - Bu dilim test/dokümantasyon kapsamındadır; CNC makine standardı, fiziksel üretim veya viewport performans ölçümü sağlamaz.
+
+
+## DOM-213 — çoklu Part için ortak 8 MiB proje snapshot bütçesi
+
+- Snapshot boyut sınırı her Part'a ayrı ayrı uygulanmış bir kota değildir; tüm Part kayıtlarının ID'leri, kanonik JSON metinleri, ayraçları ve zarf yapısı tek bir 8 MiB UTF-8 bütçesini paylaşır.
+- Regresyon, her biri tek başına 8 MiB altında kalan iki ayrı, domain tarafından kabul edilmiş kesitli panel Part'ı üretir. Açıklık kimlikleri ASCII byte'larıyla büyütülür ve tam proje zarfı 8 MiB + 1 byte olacak şekilde hesaplanır.
+- Gerçek nesting batch agregatörü blocked, result=null ve projectPartSnapshot olmadan dönmelidir; seçilen dikdörtgen Part kimliği korunur, iki hariç kesitli Part da excludedPartIds içinde kalır. Cut-plan oluşturucu result=null, json=null döndürür.
+- Daha önce kaydedilmiş JSON v2/v3 planları baseline projede fresh kalır. İki Part'ın toplamı sınırı aştığında her iki sürüm için freshness ve kontrollü freshness-export blocked, result=null, json=null olmalıdır.
+- Gerçek production export, panelGeometry ve edgeBandingByEdge adapter alanları desteklenmediği için bloklu kalır. Bu regresyon JSON v1/CSV round-trip, kesit nesting, CNC/postprocessor veya fiziksel üretim uygunluğu iddia etmez.
