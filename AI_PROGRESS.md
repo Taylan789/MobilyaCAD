@@ -1918,9 +1918,21 @@
 ## 27 Kasım 2026 14:23 TRT — DOM-213 implementation (Actions pending)
 
 - Base HEAD: dev/github-work 363f3b56e5be31ad52fb3a07a60a8068c764f46e.
-- Commit SHA: GitHub-assigned SHA will be recorded with exact-SHA verification in the next progress entry; this implementation record is part of the commit being created.
+- Implementation commit: [347d89c314cb1a8d60b93422b3ac2b6affd7ec87](https://github.com/Taylan789/MobilyaCAD/commit/347d89c314cb1a8d60b93422b3ac2b6affd7ec87).
 - Teslimat: Her biri tek başına 8 MiB altında kalan iki geçerli kesitli Part'ın toplam proje snapshot zarfını tam 8 MiB + 1 byte yapan regression eklendi. Gerçek batch aggregator, cut-plan, saved JSON v2/v3 freshness ve freshness-export kapıları için atomik fail-closed kabul kriterleri eklendi.
 - Değişen dosyalar: domain/production/projectSheetCutPlanCutoutEdgeBandingFreshness.test.mjs, docs/production-domain-contract.md, AI_COORDINATION.md, PRODUCT_ROADMAP.md, AI_PROGRESS.md.
-- Otomatik kontroller: Bu yeni commit için CI/QA/Pages henüz çalışmadı veya sonuçlanmadı; başarı iddiası yok. Base UI SHA 363f3b56e5be31ad52fb3a07a60a8068c764f46e için CI #45990593938, QA #45990594049 ve Pages #45990593942 SUCCESS idi; QA 424 frontend + 856 domain test, strict TS, lint 36 warnings / 0 errors, production build ve audit 0 vulnerabilities.
+- Otomatik kontroller: CI #45991040511 SUCCESS. QA #45991040528 FAILURE — 424/424 frontend tests passed; 856/857 domain tests passed; DOM-213 subtest #673 failed because blocked snapshot overflow returned empty sourcePartIds before selection resolution. Strict TS/lint/build/audit were skipped after the domain failure. Pages #45991040543 build SUCCESS, exact-SHA QA gate FAILURE, deploy SKIPPED. Base UI SHA 363f3b56e5be31ad52fb3a07a60a8068c764f46e için CI #45990593938, QA #45990594049 ve Pages #45990593942 SUCCESS idi; QA 424 frontend + 856 domain test, strict TS, lint 36 warnings / 0 errors, production build ve audit 0 vulnerabilities.
 - Bilinen kısıtlar: gerçek panelGeometry / edgeBandingByEdge adapter export blocker'ları sürer; JSON v1/CSV round-trip, kesit nesting, CNC/postprocessor, makine koordinatı ve fiziksel atölye uygunluğu iddia edilmez. Viewport p95/bellek NOT MEASURED.
 - Sonraki görev: DOM-214 — çoklu Part toplam snapshot zarfının tam 8 MiB sınırını gerçek agregatör ve JSON v2/v3 freshness akışında kabul et.
+
+
+## 27 Kasım 2026 14:23 TRT — DOM-213 QA düzeltmesi (Actions pending)
+
+- **Base HEAD:** dev/github-work 347d89c314cb1a8d60b93422b3ac2b6affd7ec87.
+- **Kök neden:** QA #45991040528 içinde DOM-213 #673, createProjectPartSnapshot çağrısının seçili/hariç Part listeleri hesaplanmadan önce çalışması nedeniyle sourcePartIds=[] döndüğünü kanıtladı. 856 domain testi geçti; yalnızca yeni regresyonun provenance beklentisi başarısız oldu.
+- **Düzeltme:** nesting agregatörü artık geçerli seçim ve excluded Part kimliklerini önce çözümler, sonra tam proje snapshot'ını serileştirir. Snapshot limiti aşılırsa blocked response ID'leri korur ancak projectPartSnapshot/result/json üretmez.
+- **Değişen dosyalar:** domain/production/projectSheetNestingBatches.ts, docs/production-domain-contract.md, AI_COORDINATION.md, PRODUCT_ROADMAP.md, AI_PROGRESS.md.
+- **Önceki commit doğrulaması:** CI #45991040511 SUCCESS; QA #45991040528 FAILURE (856/857 domain); Pages #45991040543 FAILURE at exact-SHA QA gate, deploy skipped. Test site remains at verified SHA 363f3b56: https://taylan789.github.io/MobilyaCAD/.
+- **Bu düzeltme commit'i:** SHA and exact-SHA Actions are pending; no success claim.
+- **Bilinen sınırlar:** panelGeometry / edgeBandingByEdge adapter export blockers remain; no JSON v1/CSV round-trip, cutout nesting, CNC/postprocessor or physical workshop validation claim. Viewport p95/memory NOT MEASURED.
+- **Next:** DOM-214 — prove exact 8 MiB aggregate acceptance across multiple Parts through the real aggregator and JSON v2/v3 freshness.

@@ -215,8 +215,6 @@ export function createProjectSheetNestingBatches(
       sourceIdSet.add(sourcePart.id);
     }
 
-    const projectPartSnapshot = createProjectPartSnapshot(sourceParts.map((sourcePart) => sourcePart.part));
-
     if (request.partIds === undefined) {
       selectedPartIds = sourceParts.map((sourcePart) => sourcePart.id);
     } else {
@@ -260,6 +258,9 @@ export function createProjectSheetNestingBatches(
     if (!Array.isArray(request.stockSheets) || request.stockSheets.length === 0) {
       throw new Error("Her malzeme/kalınlık grubu için açık levha ve kerf tanımı gereklidir.");
     }
+
+    // Resolve selection provenance before the bounded full-project snapshot can fail.
+    const projectPartSnapshot = createProjectPartSnapshot(sourceParts.map((sourcePart) => sourcePart.part));
 
     const groups = new Map<string, PartGroup>();
     for (const sourcePart of selectedParts) {

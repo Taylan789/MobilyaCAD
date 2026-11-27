@@ -2974,7 +2974,7 @@ Sıradaki küçük görevler:
 - Performans: bu test bir benchmark değildir; viewport p95/bellek NOT MEASURED.
 - CNC/makine: adapter, nesting algoritması, postprocessor veya fiziksel üretim onayı eklenmez; atölye doğrulaması gereklidir.
 
-**Durum:** IMPLEMENTED — exact-SHA CI/QA/Pages pending. GitHub Actions sonucu görülmeden test başarısı veya test-site güncellemesi iddia edilmez.
+**Durum:** QA FAILED — DOM-213 exposed empty selected/excluded ID metadata when snapshot serialization failed before selection resolution; corrective runtime ordering is now in progress, exact-SHA Actions pending. GitHub Actions sonucu görülmeden test başarısı veya test-site güncellemesi iddia edilmez.
 
 **Sıradaki 3–5 küçük görev:**
 1. DOM-214 — çoklu Part toplam snapshot zarfının tam 8 MiB sınırını gerçek agregatör ve JSON v2/v3 freshness akışında kabul et.
@@ -2982,3 +2982,8 @@ Sıradaki küçük görevler:
 3. Specialist-owned INT-002 — kesitli geometri, JSON/CSV adapter round-trip ve quantity sadakati için exact-SHA kanıt; gerçek export blocker'ları korunur.
 4. Specialist-owned PERF-001 — viewport p95, scene update ve bellek baseline ölçümü; workflow job if: false, specialist branch/PR yok.
 5. QA-003 — INT-001/INT-002 adapter kanıtından sonra uçtan uca üretim/export data-flow audit.
+
+
+### DOM-213 corrective implementation
+
+The first regression commit (347d89c) correctly reached the shared snapshot budget guard, but QA showed that the aggregator attempted snapshot serialization before resolving the selected/excluded Part ID lists. The blocked response therefore omitted useful selection provenance. Move snapshot serialization after selection validation and stock-sheet input validation. Acceptance remains fail-closed: preserve IDs for diagnostics, but never return a partial projectPartSnapshot, nesting result or JSON. Exact-SHA CI/QA/Pages for the correction are pending.

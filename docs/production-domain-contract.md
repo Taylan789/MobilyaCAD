@@ -1970,3 +1970,5 @@ An over-limit or over-depth snapshot is rejected as a whole. `createProjectPartS
 - Gerçek nesting batch agregatörü blocked, result=null ve projectPartSnapshot olmadan dönmelidir; seçilen dikdörtgen Part kimliği korunur, iki hariç kesitli Part da excludedPartIds içinde kalır. Cut-plan oluşturucu result=null, json=null döndürür.
 - Daha önce kaydedilmiş JSON v2/v3 planları baseline projede fresh kalır. İki Part'ın toplamı sınırı aştığında her iki sürüm için freshness ve kontrollü freshness-export blocked, result=null, json=null olmalıdır.
 - Gerçek production export, panelGeometry ve edgeBandingByEdge adapter alanları desteklenmediği için bloklu kalır. Bu regresyon JSON v1/CSV round-trip, kesit nesting, CNC/postprocessor veya fiziksel üretim uygunluğu iddia etmez.
+
+- Before serializing the bounded full-project snapshot, the aggregator validates the requested selection and resolves selected/excluded Part IDs. If the shared 8 MiB budget is exceeded, the blocked report retains those IDs for actionable diagnostics but returns no partial snapshot, nesting result or cut-plan JSON.
