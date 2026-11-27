@@ -2056,3 +2056,18 @@
 - **Tree correction history:** docs commit 11016ed6 accidentally used the failed attempt's tree and reverted the test file. The current commit restores the exact passing test blob from 4cff6f4 and passes all exact-SHA checks; 11016ed6 was never deployed.
 - **Known limits:** real panelGeometry / edgeBandingByEdge export blockers remain; JSON v1/CSV adapter round-trip, CNC/postprocessor, machine coordinates and physical workshop validation are not claimed. Viewport p95/memory NOT MEASURED.
 - **Next:** DOM-216 — verify fail-closed freshness/export after a Part is added, removed or its stable ID changes in restored JSON v2/v3.
+
+
+## 27 Kasım 2026 19:22 TRT — DOM-218 VERIFIED
+
+- **Base HEAD:** `c819af1d5ff1cbc78b52d5470b2e8f283d1cab14`.
+- **Implementation/test commit:** [`9fdac62e8e535d6b65c7a8a971ef8e8c7bd312b1`](https://github.com/Taylan789/MobilyaCAD/commit/9fdac62e8e535d6b65c7a8a971ef8e8c7bd312b1).
+- **Changed files:** `domain/production/projectSheetCutPlanCutoutEdgeBandingFreshness.test.mjs`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`. No production runtime code or `frontend/**` changed.
+- **Delivery:** added a real-aggregator regression for JSON v2/v3 parse → serialize → restore. Five excluded `custom-worktop-panel` metadata changes (width, length, material name/ID, thickness, grain direction) independently make the plan stale; selected Part and IDs remain unchanged; the real freshness-gated export returns blocked/stale with null result and JSON. Known adapter blockers are bypassed only to isolate the freshness gate.
+- **Exact-SHA CI:** [#46032693075](https://github.com/Taylan789/MobilyaCAD/actions/runs/46032693075) SUCCESS.
+- **Exact-SHA QA:** [#46032693250](https://github.com/Taylan789/MobilyaCAD/actions/runs/46032693250) SUCCESS — 425 frontend + 862 domain tests; DOM-218 subtest #677 passed; strict shared-domain TypeScript, production build and production-only audit (0 vulnerabilities) passed; lint 36 warnings / 0 errors.
+- **Exact-SHA Pages:** [#46032693063](https://github.com/Taylan789/MobilyaCAD/actions/runs/46032693063) SUCCESS; deployment log confirms `pages_build_version=9fdac62e8e535d6b65c7a8a971ef8e8c7bd312b1`; https://taylan789.github.io/MobilyaCAD/.
+- **Known limits:** no JSON v1/CSV adapter support for `panelGeometry` / `edgeBandingByEdge`; no CNC/postprocessor or physical workshop validation. Viewport p95/memory NOT MEASURED. Production bundle remains >500 kB warning (JS 1,717.81 kB / 478.06 kB gzip; CSS 501.35 kB / 82.74 kB gzip).
+- **Parallel ownership:** UI-owned PR #271 and INT-003 PR #206 remain open/draft and untouched. Specialist job is disabled and no integration/performance specialist branch/PR was verified; INT-002/PERF-001 remain specialist-owned.
+- **AI Developer:** [#45993066297](https://github.com/Taylan789/MobilyaCAD/actions/runs/45993066297) failed with OpenRouter free-model daily HTTP 429 (limit 50, remaining 0; reset 28 Nov 2026 03:00 TRT). Logs inspected; no rerun before reset, no paid fallback or credential/quota change.
+- **Next:** DOM-219 — test excluded Part cutout-geometry metadata freshness and fail-closed export across restored JSON v2/v3.

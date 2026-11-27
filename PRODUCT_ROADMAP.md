@@ -3124,7 +3124,7 @@ The first regression commit (347d89c) correctly reached the shared snapshot budg
 - Performans: viewport p95/bellek NOT MEASURED; bu regresyon benchmark değildir.
 - CNC/makine: makine formatı, koordinat, postprocessor veya fiziksel üretim onayı eklenmez; atölye doğrulaması insan sorumluluğundadır.
 
-**Durum:** IN_PROGRESS — test ve yol haritası eklendi; exact-SHA CI/QA/Pages doğrulaması bekleniyor.
+**Durum:** VERIFIED — [commit 9fdac62](https://github.com/Taylan789/MobilyaCAD/commit/9fdac62e8e535d6b65c7a8a971ef8e8c7bd312b1); CI [#46032693075](https://github.com/Taylan789/MobilyaCAD/actions/runs/46032693075) SUCCESS; QA [#46032693250](https://github.com/Taylan789/MobilyaCAD/actions/runs/46032693250) SUCCESS — 425 frontend + 862 domain tests, DOM-218 #677 passed; strict shared-domain TypeScript, production build and production-only audit 0 vulnerabilities, lint 36 warnings / 0 errors. Pages [#46032693063](https://github.com/Taylan789/MobilyaCAD/actions/runs/46032693063) SUCCESS; exact pages_build_version is 9fdac62e8e535d6b65c7a8a971ef8e8c7bd312b1 and site https://taylan789.github.io/MobilyaCAD/.
 
 **Sıradaki 3–5 küçük görev:**
 1. DOM-219 — excluded Part içindeki kesitli panel açıklık geometrisi değişikliklerinin v2/v3 freshness ve export davranışını doğrula.
