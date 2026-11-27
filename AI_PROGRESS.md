@@ -1,10 +1,10 @@
-## 27 Kasım 2026 18:50 TRT — DOM-217 implementation (Actions pending)
+## 27 Kasım 2026 18:55 TRT — DOM-217 VERIFIED
 
 - Base `dev/github-work` HEAD: `dfd52d00af4b4c39ed74131aea1fc05ea52ff61a`; target blob SHAs were re-read immediately before the write.
 - Delivery: add a domain regression proving that changing only the quantity of an excluded Part from 2 to 3 makes a restored JSON v2/v3 cut plan stale. The selected Part and selected IDs remain unchanged; the freshness-gated export blocks with no partial result/JSON.
 - Changed files: `domain/production/projectSheetCutPlanCutoutEdgeBandingFreshness.test.mjs`, `docs/production-domain-contract.md`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`.
-- Implementation commit SHA: pending GitHub commit creation in this run; exact SHA will be recorded with the Actions verification entry.
-- Automated checks: GitHub CI, QA and Pages for the new SHA are pending. No local full-suite result or deployment is claimed.
+- Implementation/test commit: [2cf8a922cf5498eb990b640a9c33aca8aa74fdc8](https://github.com/Taylan789/MobilyaCAD/commit/2cf8a922cf5498eb990b640a9c33aca8aa74fdc8).
+- Automated checks: CI [#46028894378](https://github.com/Taylan789/MobilyaCAD/actions/runs/46028894378) SUCCESS; QA [#46028894306](https://github.com/Taylan789/MobilyaCAD/actions/runs/46028894306) SUCCESS — 425/425 frontend + 861/861 domain tests, DOM-217 subtest #676 passed; strict shared-domain TypeScript, production build and production-only audit (0 vulnerabilities) passed; lint 36 warnings / 0 errors. Pages [#46028894369](https://github.com/Taylan789/MobilyaCAD/actions/runs/46028894369) SUCCESS; deployment log confirms pages_build_version=2cf8a922cf5498eb990b640a9c33aca8aa74fdc8 and https://taylan789.github.io/MobilyaCAD/.
 - Known limits: no production runtime change; `panelGeometry` / `edgeBandingByEdge` JSON v1/CSV adapter blockers remain; CNC/postprocessor, machine coordinates, physical workshop validation and viewport p95/memory are not covered.
 - Parallel ownership: no `frontend/**`, adapter/benchmark-owned, secrets/settings or `main` changes. UI-owned PR #271 and INT-003 PR #206 remain untouched. No specialist branch was found; INT-002/PERF-001 remain specialist-owned.
 - AI Developer run [#45993066297](https://github.com/Taylan789/MobilyaCAD/actions/runs/45993066297) failed because OpenRouter free-model daily quota was exhausted (HTTP 429, remaining 0; reset 28 Nov 2026 03:00 TRT). Logs were inspected; rerun is deferred until after reset, with no paid fallback or credential change.
