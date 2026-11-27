@@ -565,3 +565,146 @@
     padding-inline: 8px;
   }
 }
+
+
+/* UI-PRODUCTION-SHORT-HEIGHT-001 — preserve the production workspace hierarchy while reclaiming vertical room on short desktop displays. */
+@media (min-width: 821px) and (max-height: 820px) {
+  .mc-production-studio__topbar {
+    min-height: 50px;
+    padding-inline: 16px;
+  }
+
+  .mc-production-studio__brand-mark {
+    width: 30px;
+    height: 30px;
+  }
+
+  .mc-production-studio__rail {
+    gap: 14px;
+    padding: 14px 12px 10px;
+  }
+
+  .mc-production-studio__navigation {
+    gap: 4px;
+  }
+
+  .mc-production-studio__navigation button {
+    min-height: 34px;
+    gap: 8px;
+  }
+
+  .mc-production-studio__project {
+    gap: 8px;
+    padding: 10px;
+  }
+
+  .mc-production-studio__project-total strong {
+    font-size: 24px;
+  }
+
+  .mc-production-studio__project-row {
+    padding-top: 6px;
+  }
+
+  .mc-production-studio__scope {
+    gap: 7px;
+    padding: 8px;
+  }
+
+  .mc-production-studio__scope strong {
+    margin-bottom: 3px;
+  }
+
+  .mc-production-studio__scope p {
+    line-height: 1.45;
+  }
+
+  .mc-production-studio__rail-footer {
+    padding-top: 8px;
+  }
+
+  .mc-production-studio__main {
+    padding-top: 16px;
+    padding-bottom: 18px;
+  }
+
+  .mc-production-studio__heading {
+    gap: 14px;
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+  }
+
+  .mc-production-studio__heading h1 {
+    margin-top: 4px;
+    margin-bottom: 3px;
+    font-size: 23px;
+  }
+
+  .mc-production-studio .mc-production {
+    gap: 13px;
+    padding-bottom: 16px;
+  }
+
+  .mc-production-studio .mc-production__section {
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .mc-production-studio .cad-property-section {
+    padding: 12px;
+  }
+}
+
+@media (min-width: 821px) and (max-height: 700px) {
+  .mc-production-studio__topbar {
+    min-height: 46px;
+  }
+
+  .mc-production-studio__rail {
+    gap: 10px;
+    padding: 10px 10px 8px;
+  }
+
+  .mc-production-studio__navigation button {
+    min-height: 31px;
+  }
+
+  .mc-production-studio__project {
+    gap: 6px;
+    padding: 8px;
+  }
+
+  .mc-production-studio__project-total strong {
+    font-size: 22px;
+  }
+
+  .mc-production-studio__scope {
+    padding: 7px;
+  }
+
+  .mc-production-studio__main {
+    padding-top: 12px;
+    padding-bottom: 14px;
+  }
+
+  .mc-production-studio__heading {
+    gap: 10px;
+    margin-bottom: 8px;
+    padding-bottom: 9px;
+  }
+
+  .mc-production-studio__heading h1 {
+    font-size: 21px;
+  }
+
+  .mc-production-studio .mc-production {
+    gap: 10px;
+    padding-bottom: 12px;
+  }
+
+  .mc-production-studio .mc-production__section,
+  .mc-production-studio .cad-property-section {
+    gap: 8px;
+    padding: 10px;
+  }
+}
