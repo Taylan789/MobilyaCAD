@@ -2732,7 +2732,7 @@ Sıradaki küçük görevler:
 - Performans: bu dilimde ölçülmedi; viewport p95 ve bellek NOT MEASURED.
 - CNC/makine: üretim çıktısı veya fiziksel onay yok; operatör/üretici doğrulaması gerekir.
 
-## 27 Kasım 2026 06:11 TRT — DOM-205 downstream kesim planı export freshness (Actions pending)
+## 27 Kasım 2026 06:17 TRT — DOM-205 downstream kesim planı export freshness (VERIFIED)
 
 **Kullanıcı akışı:** Kullanıcı bir levha kesim planı kaydeder; aynı projede nesting dışında bırakılmış kesitli özel panelin iç kenar bandı sonradan değişir. Eski kayıt, dışa aktarım ekranında güncel/üretilebilir gibi görünmemelidir.
 
@@ -2742,7 +2742,7 @@ Sıradaki küçük görevler:
 - Test, freshness kapısını adapter blocker'ından bağımsız izole eder; ayrıca gerçek üretim raporunda panelGeometry ve edgeBandingByEdge blocker'larının hâlâ export'u durdurduğunu kanıtlar.
 - JSON v1 okunabilirliği korunur; JSON v1/CSV adapter desteği, CNC/postprocessor veya fiziksel üretim uygunluğu iddia edilmez.
 
-**Durum:** Kod/test ve sözleşme commit'i bu turda oluşturuldu; exact-SHA CI, QA ve Pages doğrulaması tetiklenmeyi bekliyor. Test dosyası domain/production/projectSheetCutPlanCutoutEdgeBandingFreshness.test.mjs; domain runtime API değişmedi. Frontend, adapter/benchmark ve CNC dosyalarına dokunulmadı.
+**Durum:** VERIFIED — implementation/test/docs [commit bff283f6f3d8d5a11ea64f4ef238819b8b29f4bd](https://github.com/Taylan789/MobilyaCAD/commit/bff283f6f3d8d5a11ea64f4ef238819b8b29f4bd); exact-SHA CI [#45933127495](https://github.com/Taylan789/MobilyaCAD/actions/runs/45933127495) SUCCESS; QA [#45933127510](https://github.com/Taylan789/MobilyaCAD/actions/runs/45933127510) SUCCESS (404 frontend + 847 domain, 0 failures; DOM-205 #664; strict TypeScript, lint 36 warnings / 0 errors, production build, production audit 0 vulnerabilities); Pages [#45933127485](https://github.com/Taylan789/MobilyaCAD/actions/runs/45933127485) SUCCESS and exact SHA deployed to https://taylan789.github.io/MobilyaCAD/.
 
 **10/10 checklist delta:**
 - Üretim/veri doğruluğu: kesitli hariç Part'taki inner-edge ID/unit/flag değişiklikleri downstream v2/v3 export freshness kapısına kadar taşınır.

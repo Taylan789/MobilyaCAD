@@ -1,3 +1,16 @@
+## 27 Kasım 2026 06:17 TRT — DOM-205 VERIFIED
+
+- Base dev/github-work HEAD: 171b11a01c1f58670b31f294927f9c53a4951621.
+- Implementation/test/docs commit: [bff283f6f3d8d5a11ea64f4ef238819b8b29f4bd](https://github.com/Taylan789/MobilyaCAD/commit/bff283f6f3d8d5a11ea64f4ef238819b8b29f4bd).
+- Delivery: added a cross-consumer regression to the real excluded-cutout project fixture. JSON v2/v3 unchanged plans pass the freshness/export gate; changing the excluded Part's inner-edge catalog ID, explicit mm/m unit or cutout edge flag returns blocked/stale with result=null and json=null. The test also proves the real production report remains blocked by panelGeometry and edgeBandingByEdge adapter blockers.
+- Changed files: domain/production/projectSheetCutPlanCutoutEdgeBandingFreshness.test.mjs, docs/production-domain-contract.md, AI_COORDINATION.md, PRODUCT_ROADMAP.md. No runtime domain API, frontend/**, adapter/benchmark-owned, CNC/postprocessor, workflow, secret/setting or main change.
+- Exact-SHA CI [#45933127495](https://github.com/Taylan789/MobilyaCAD/actions/runs/45933127495) SUCCESS. Exact-SHA QA [#45933127510](https://github.com/Taylan789/MobilyaCAD/actions/runs/45933127510) SUCCESS: 404/404 frontend + 847/847 domain tests, 0 failures; DOM-205 subtest #664 passed; strict shared-domain TypeScript, lint (36 warnings / 0 errors), production build and production-only audit (0 vulnerabilities) passed.
+- Exact-SHA Pages [#45933127485](https://github.com/Taylan789/MobilyaCAD/actions/runs/45933127485) SUCCESS. Deployment log confirms pages_build_version=bff283f6f3d8d5a11ea64f4ef238819b8b29f4bd and environment URL https://taylan789.github.io/MobilyaCAD/.
+- Known limits: JSON v1/CSV adapters still cannot preserve panelGeometry and edgeBandingByEdge, so the real export blockers remain. No CNC/postprocessor or physical workshop validation; machine/fitment safety remains human responsibility. Viewport p95/memory baseline remains NOT MEASURED.
+- Parallel lanes: UI-owned INT-003 PR [#206](https://github.com/Taylan789/MobilyaCAD/pull/206) remains draft and untouched. Integration/Performance workflow job is disabled (if: false); no specialist branch/PR was found, so INT-002/PERF-001 remain specialist-owned and QA-003 remains gated on adapter evidence.
+- Latest AI Developer run [#45931417737](https://github.com/Taylan789/MobilyaCAD/actions/runs/45931417737) failed on OpenRouter free-models-per-day HTTP 429; reset is 28 November 2026 00:00 UTC / 03:00 TRT. No rerun before reset, paid fallback, credential or settings change.
+- Next: DOM-206 — prove that cutout x/y/width/length edits on an excluded custom panel invalidate saved JSON v2/v3 cut-plan freshness and keep downstream export null; continue UI-owned INT-003 and specialist-owned INT-002/PERF-001 boundaries.
+
 ## 27 Kasım 2026 05:26 TRT — DOM-204 VERIFIED
 
 - Base dev/github-work HEAD: 031df3415768ffb6fce332c9164ad6864e3713b9. This base already included UI PR #262 and had successful CI #45924916792, QA #45924916795 and Pages #45924916931; the Pages log confirmed exact-SHA deployment.
