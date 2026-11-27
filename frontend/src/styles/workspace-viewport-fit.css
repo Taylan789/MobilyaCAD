@@ -1,20 +1,20 @@
 /* UI-WORKSPACE-VIEWPORT-FIT-003 — prioritize the center canvas at compact desktop widths.
-   The interpolation keeps the 1440px dock widths unchanged while reclaiming width at 1280px.
-   Dock contents, selection behavior and measurement precision remain untouched. */
+   The left library/scene dock yields width at 1280px; the inspector keeps its tested
+   container-responsive width contract. Both return to the existing allocation by 1440px. */
 @media (min-width: 1101px) and (max-width: 2559px) {
   .cad-app .cad-sidebar {
-    flex: 0 0 clamp(216px, calc(17.125vw - 3px), 300px) !important;
-    flex-basis: clamp(216px, calc(17.125vw - 3px), 300px) !important;
-    width: clamp(216px, calc(17.125vw - 3px), 300px) !important;
-    min-width: clamp(216px, calc(17.125vw - 3px), 300px) !important;
-    max-width: clamp(216px, calc(17.125vw - 3px), 300px) !important;
+    flex: 0 0 clamp(216px, calc(17vw - 1.4px), 300px) !important;
+    flex-basis: clamp(216px, calc(17vw - 1.4px), 300px) !important;
+    width: clamp(216px, calc(17vw - 1.4px), 300px) !important;
+    min-width: clamp(216px, calc(17vw - 1.4px), 300px) !important;
+    max-width: clamp(216px, calc(17vw - 1.4px), 300px) !important;
   }
   .cad-app .cad-inspector {
-    flex: 0 0 clamp(264px, calc(12.3125vw + 110.4px), 360px) !important;
-    flex-basis: clamp(264px, calc(12.3125vw + 110.4px), 360px) !important;
-    width: clamp(264px, calc(12.3125vw + 110.4px), 360px) !important;
-    min-width: clamp(264px, calc(12.3125vw + 110.4px), 360px) !important;
-    max-width: clamp(264px, calc(12.3125vw + 110.4px), 360px) !important;
+    flex: 0 0 clamp(264px, calc(7vw + 186.9px), 360px) !important;
+    flex-basis: clamp(264px, calc(7vw + 186.9px), 360px) !important;
+    width: clamp(264px, calc(7vw + 186.9px), 360px) !important;
+    min-width: clamp(264px, calc(7vw + 186.9px), 360px) !important;
+    max-width: clamp(264px, calc(7vw + 186.9px), 360px) !important;
   }
   .cad-app .cad-workspace-content {
     gap: clamp(7px, 0.52vw, 10px) !important;
