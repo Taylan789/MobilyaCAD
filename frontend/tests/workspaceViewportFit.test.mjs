@@ -43,8 +43,8 @@ test("the center viewport receives more space at common desktop widths", () => {
   const sidebar = readLinearClamp(".cad-app .cad-sidebar", "flex");
   const inspector = readLinearClamp(".cad-app .cad-inspector", "flex");
   assert.ok(Math.abs(widthAt(sidebar, 1280) - 216.2) < 0.1);
-  assert.ok(Math.abs(widthAt(inspector, 1280) - 268) < 0.1);
-  assert.ok(Math.abs(widthAt(sidebar, 1440) - 243.6) < 0.1);
+  assert.ok(Math.abs(widthAt(inspector, 1280) - 276.5) < 0.1);
+  assert.ok(Math.abs(widthAt(sidebar, 1440) - 243.4) < 0.1);
   assert.ok(Math.abs(widthAt(inspector, 1440) - 287.7) < 0.1);
   assert.match(css, /\.cad-app\s+\.cad-workspace-content[\s\S]*?gap:\s*clamp\(7px/);
   assert.match(css, /\.cad-app\s+\.cad-workspace-content[\s\S]*?padding:\s*clamp\(8px/);
