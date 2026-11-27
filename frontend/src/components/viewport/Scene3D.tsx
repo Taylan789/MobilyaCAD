@@ -16,6 +16,8 @@ import {
 import PlacedFurniture3D from "../furniture/PlacedFurniture3D";
 import type { PlacedFurniture } from "../../types/placedFurniture";
 import { calculatePlacementIssues } from "../../engine/placementValidation";
+import { ViewportSceneReadout } from "./ViewportSceneReadout";
+import { createViewportSceneReadout } from "./sceneReadout";
 import "./ViewportCameraControls.css";
 import "./ViewportCameraWorkbench.css";
 
@@ -411,6 +413,12 @@ export default function Scene3D({
     !hiddenFurnitureIds.includes(item.id) &&
     (isolatedFurnitureId === null || isolatedFurnitureId === item.id)
   );
+  const sceneReadout = createViewportSceneReadout({
+    furniture,
+    visibleFurniture,
+    selectedFurnitureId,
+    selectedPartId
+  });
   const maxDimension = Math.max(
     width / 1000,
     length / 1000,
@@ -627,6 +635,7 @@ export default function Scene3D({
         />
       </GizmoHelper>
     </Canvas>
+      <ViewportSceneReadout readout={sceneReadout} />
       <div className="cad-viewport-camera-tools" role="toolbar" aria-label="Kamera görünüşleri">
         <span className="cad-viewport-camera-tools__label">GÖRÜNÜŞ</span>
         <button
