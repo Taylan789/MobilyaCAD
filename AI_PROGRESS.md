@@ -1933,6 +1933,18 @@
 - **Düzeltme:** nesting agregatörü artık geçerli seçim ve excluded Part kimliklerini önce çözümler, sonra tam proje snapshot'ını serileştirir. Snapshot limiti aşılırsa blocked response ID'leri korur ancak projectPartSnapshot/result/json üretmez.
 - **Değişen dosyalar:** domain/production/projectSheetNestingBatches.ts, docs/production-domain-contract.md, AI_COORDINATION.md, PRODUCT_ROADMAP.md, AI_PROGRESS.md.
 - **Önceki commit doğrulaması:** CI #45991040511 SUCCESS; QA #45991040528 FAILURE (856/857 domain); Pages #45991040543 FAILURE at exact-SHA QA gate, deploy skipped. Test site remains at verified SHA 363f3b56: https://taylan789.github.io/MobilyaCAD/.
-- **Bu düzeltme commit'i:** SHA and exact-SHA Actions are pending; no success claim.
+- **Düzeltme implementation commit:** [89565ca0d20f1d9f0410ee40b5746302b9f26146](https://github.com/Taylan789/MobilyaCAD/commit/89565ca0d20f1d9f0410ee40b5746302b9f26146).
 - **Bilinen sınırlar:** panelGeometry / edgeBandingByEdge adapter export blockers remain; no JSON v1/CSV round-trip, cutout nesting, CNC/postprocessor or physical workshop validation claim. Viewport p95/memory NOT MEASURED.
 - **Next:** DOM-214 — prove exact 8 MiB aggregate acceptance across multiple Parts through the real aggregator and JSON v2/v3 freshness.
+
+
+## 27 Kasım 2026 14:34 TRT — DOM-213 VERIFIED
+
+- **Implementation SHA:** 89565ca0d20f1d9f0410ee40b5746302b9f26146.
+- **Changed files:** domain/production/projectSheetNestingBatches.ts, domain/production/projectSheetCutPlanCutoutEdgeBandingFreshness.test.mjs, docs/production-domain-contract.md, AI_COORDINATION.md, PRODUCT_ROADMAP.md, AI_PROGRESS.md.
+- **Exact-SHA CI:** [#45991397180](https://github.com/Taylan789/MobilyaCAD/actions/runs/45991397180) SUCCESS.
+- **Exact-SHA QA:** [#45991397198](https://github.com/Taylan789/MobilyaCAD/actions/runs/45991397198) SUCCESS — 424/424 frontend + 857/857 domain; DOM-213 test #673 passed; strict shared-domain TypeScript passed; lint 36 warnings / 0 errors; production build passed; production-only audit 0 vulnerabilities.
+- **Exact-SHA Pages:** [#45991397197](https://github.com/Taylan789/MobilyaCAD/actions/runs/45991397197) SUCCESS — deployment log confirms pages_build_version=89565ca0d20f1d9f0410ee40b5746302b9f26146; test site https://taylan789.github.io/MobilyaCAD/.
+- **QA correction:** initial test-only commit 347d89c failed because snapshot serialization ran before selection resolution. Corrective runtime commit 89565ca moved the bounded snapshot after selection and stock-sheet validation, preserving source/excluded IDs on blocked responses without exposing partial snapshot/result/json.
+- **Known limits:** panelGeometry / edgeBandingByEdge adapter export blockers remain; JSON v1/CSV round-trip, cutout nesting, CNC/postprocessor, machine coordinates and physical workshop validation are not claimed. Viewport p95/memory NOT MEASURED.
+- **Next:** DOM-214 — validate the exact 8 MiB aggregate boundary across multiple Parts through the real aggregator and JSON v2/v3 freshness path.

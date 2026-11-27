@@ -2974,7 +2974,7 @@ Sıradaki küçük görevler:
 - Performans: bu test bir benchmark değildir; viewport p95/bellek NOT MEASURED.
 - CNC/makine: adapter, nesting algoritması, postprocessor veya fiziksel üretim onayı eklenmez; atölye doğrulaması gereklidir.
 
-**Durum:** QA FAILED — DOM-213 exposed empty selected/excluded ID metadata when snapshot serialization failed before selection resolution; corrective runtime ordering is now in progress, exact-SHA Actions pending. GitHub Actions sonucu görülmeden test başarısı veya test-site güncellemesi iddia edilmez.
+**Durum:** VERIFIED — [implementation 89565ca](https://github.com/Taylan789/MobilyaCAD/commit/89565ca0d20f1d9f0410ee40b5746302b9f26146); exact-SHA CI #45991397180, QA #45991397198 (424 frontend + 857 domain; DOM-213 #673) and Pages #45991397197 all SUCCESS; exact SHA deployed. GitHub Actions sonucu görülmeden test başarısı veya test-site güncellemesi iddia edilmez.
 
 **Sıradaki 3–5 küçük görev:**
 1. DOM-214 — çoklu Part toplam snapshot zarfının tam 8 MiB sınırını gerçek agregatör ve JSON v2/v3 freshness akışında kabul et.
@@ -2987,3 +2987,10 @@ Sıradaki küçük görevler:
 ### DOM-213 corrective implementation
 
 The first regression commit (347d89c) correctly reached the shared snapshot budget guard, but QA showed that the aggregator attempted snapshot serialization before resolving the selected/excluded Part ID lists. The blocked response therefore omitted useful selection provenance. Move snapshot serialization after selection validation and stock-sheet input validation. Acceptance remains fail-closed: preserve IDs for diagnostics, but never return a partial projectPartSnapshot, nesting result or JSON. Exact-SHA CI/QA/Pages for the correction are pending.
+
+
+### DOM-213 exact-SHA verification — 27 Kasım 2026 14:34 TRT
+
+- Implementation [89565ca0](https://github.com/Taylan789/MobilyaCAD/commit/89565ca0d20f1d9f0410ee40b5746302b9f26146); CI [#45991397180](https://github.com/Taylan789/MobilyaCAD/actions/runs/45991397180) SUCCESS; QA [#45991397198](https://github.com/Taylan789/MobilyaCAD/actions/runs/45991397198) SUCCESS (424 frontend + 857 domain; DOM-213 #673); Pages [#45991397197](https://github.com/Taylan789/MobilyaCAD/actions/runs/45991397197) SUCCESS and deployed exact SHA to https://taylan789.github.io/MobilyaCAD/.
+- QA also passed strict shared-domain TypeScript, lint (36 existing warnings / 0 errors), production build and production-only dependency audit (0 vulnerabilities).
+- The first implementation attempt 347d89c failed QA because the blocked aggregator response omitted selected/excluded Part IDs. The verified correction resolves selection provenance before snapshot serialization; no partial snapshot/result/json escapes.
