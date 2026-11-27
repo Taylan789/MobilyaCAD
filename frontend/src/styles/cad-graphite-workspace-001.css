@@ -408,3 +408,33 @@
     scroll-behavior: auto !important;
   }
 }
+
+
+/* UI-SCENE-TREE-SELECTION-CONTEXT-001 — keep a selected Part's parent furniture legible without marking it selected. */
+.cad-app .studio-tree-object:has(> .studio-tree-object-parts > .studio-tree-part.selected) > .studio-tree-object-row > .studio-tree-object-select {
+  color: #d7e3e9 !important;
+  background: #243842 !important;
+  border-color: #5b7889 !important;
+  box-shadow: inset 2px 0 0 rgba(142, 181, 206, .58) !important;
+}
+
+.cad-app .studio-tree-object:has(> .studio-tree-object-parts > .studio-tree-part.selected) > .studio-tree-object-row > .studio-tree-object-select > span > strong {
+  color: #e0eaf0 !important;
+}
+
+.cad-app .studio-tree-object:has(> .studio-tree-object-parts > .studio-tree-part.selected) > .studio-tree-object-parts {
+  border-left-color: #7e9fb2 !important;
+}
+
+@media (forced-colors: active) {
+  .cad-app .studio-tree-object:has(> .studio-tree-object-parts > .studio-tree-part.selected) > .studio-tree-object-row > .studio-tree-object-select {
+    color: ButtonText !important;
+    background: Canvas !important;
+    border-color: Highlight !important;
+    box-shadow: none !important;
+  }
+
+  .cad-app .studio-tree-object:has(> .studio-tree-object-parts > .studio-tree-part.selected) > .studio-tree-object-parts {
+    border-left-color: Highlight !important;
+  }
+}
