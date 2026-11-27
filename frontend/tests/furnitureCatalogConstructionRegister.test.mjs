@@ -41,6 +41,7 @@ test("construction metadata uses legible technical type with tabular dimension v
   assert.match(styles, /\.mc-catalog-card__construction-label\s*\{[^}]*font-size:\s*7px/s);
   assert.match(styles, /\.mc-catalog-card__construction-entry-label\s*\{[^}]*font-size:\s*7px/s);
   assert.match(styles, /\.mc-catalog-card__construction-entry-value\s*\{[^}]*font-size:\s*8px[^}]*font-variant-numeric:\s*tabular-nums/s);
+  assert.match(styles, /\.mc-catalog-card__construction-entry-value\s*\{[^}]*line-height:\s*1\.3/s);
   assert.match(styles, /@media \(max-width: 560px\)[\s\S]*?\.mc-catalog-card__construction-entry-value[\s\S]*?font-size:\s*7px/);
 });
 
