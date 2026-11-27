@@ -1846,3 +1846,13 @@ Kaynaklar: `domain/production/panelConstruction.ts`, `projectProduction.ts`, `pr
 - Teklif fiyatı yalnızca kullanıcı tarafından sağlanan exact `materialId` + gerçek panel kalınlığı + `m2` birim fiyatından gelir. Teklif `lineSources` kaydı maliyet satırını aynı kararlı Part ID'sine bağlar; fiyat, para birimi veya kesit boşluğu varsayılmaz.
 - Kabul regresyonu: 2000 × 600 × 38 mm, açık 400 × 300 mm açıklık, Part quantity 2 ve açık 1,250 minor TRY/m² fiyatı için net tüketim 2.16 m², toplam 2,700 minor TRY olmalıdır. Kaynak `custom-worktop-panel` olarak kalır.
 - Kesitli panel `panelGeometry` taşıdığı sürece `canExport` false ve JSON v1/CSV export blocker korunur. Bu test nesting/CSV/JSON adapter desteği, CNC işlemi veya fiziksel üretim onayı sağlamaz.
+
+## DOM-202 — Kesit geometrisi fail-closed teklif ve revizyon kapısı
+
+- Her `panelCutouts` kaydı tam olarak mevcut bir üretim Part kimliğine bağlanmalı; aynı Part için yinelenen geometri, bulunmayan Part, desteklenmeyen alan veya geçersiz şema reddedilir.
+- Açıklık ölçüleri ve konumları sonlu, pozitif mm değerleri olmalı; açıklık panel sınırının içinde kalmalı ve diğer açıklıklarla kesişmemeli veya kenar/köşe teması yapmamalıdır.
+- Geometri dış genişlik, uzunluk ve kalınlığı normalize edilmiş üretim Part ölçüleriyle; dış kenar bantlama bayrakları da Part kenar bayraklarıyla birebir eşleşmelidir.
+- Herhangi bir hata `invalid-panel-geometry` tanısı üretir, proje raporunu `blocked` yapar ve tüm `result` parça listesini null bırakır. Başka geçerli Part veya fiyat satırı olsa bile kısmi üretim/teklif sonucu döndürülmez.
+- Bloklu rapor `createProjectQuotePricingSnapshot` için `blocked` döndürür; snapshot null, para birimi null, `lineSources` boş ve `costSummary` null kalır. Bu girdiden proje teklif revizyonu eklenemez.
+- Bu kapı, DOM-201'deki geçerli kesit fiyatlamasını değiştirmez. Geçerli `panelGeometry` için JSON v1/CSV adapter kayıpsızlık kanıtı gelene kadar `canExport=false` korunur.
+- Bu domain regresyonu nesting optimizer, CNC/postprocessor, makine koordinatı veya fiziksel atölye uygunluğu iddiası değildir.

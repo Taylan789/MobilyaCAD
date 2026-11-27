@@ -2634,7 +2634,7 @@ Sıradaki küçük görevler:
 - Exact 38 mm materialId fiyatı 1,250 minor TRY/m² ise toplam 2,700 minor TRY olmalı; source Part ID `custom-worktop-panel` kalmalıdır.
 - `panelGeometry` taşıyan rapor `canExport=false` kalmalı; JSON v1/CSV export blocker kaldırılmamalıdır.
 
-**Durum:** Test ve sözleşme değişikliği oluşturuldu; implementation SHA ve exact-SHA CI/QA/Pages sonucu henüz pending. Başarılı doğrulama iddiası yok.
+**Durum:** VERIFIED — [implementation 0bf61e6ec3fe68186642eed21c61525d8477085d](https://github.com/Taylan789/MobilyaCAD/commit/0bf61e6ec3fe68186642eed21c61525d8477085d); exact-SHA CI [#45913317715](https://github.com/Taylan789/MobilyaCAD/actions/runs/45913317715), QA [#45913317625](https://github.com/Taylan789/MobilyaCAD/actions/runs/45913317625) (392/392 frontend + 842/842 domain; strict TS, lint 36 warnings / 0 errors, production build, audit 0 vulnerabilities) and Pages [#45913317691](https://github.com/Taylan789/MobilyaCAD/actions/runs/45913317691) SUCCESS; exact SHA deployed to https://taylan789.github.io/MobilyaCAD/.
 
 **Sıradaki küçük görevler:**
 1. DOM-202 — bozuk, çakışan veya Part ölçüleriyle uyuşmayan cutout geometrisinin teklif snapshot/revision üretimini kısmi toplam olmadan engellediğini doğrula.
@@ -2648,3 +2648,29 @@ Sıradaki küçük görevler:
 - Güvenilirlik: geometri export'u desteklenmediğinde fail-closed kilit korunuyor.
 - CAD Core / UX / performans: bu dilimde değişmedi; viewport p95 ve bellek NOT MEASURED.
 - CNC/makine: CNC çıktısı veya fiziksel üretim onayı yok; operatör/üretici doğrulaması gerekir.
+
+## 27 Kasım 2026 03:53 TRT — DOM-202: Kesit geometrisi fail-closed teklif kapısı
+
+**Kullanıcı akışı:** Kullanıcı özel panelin açıklık geometrisini, ölçüsünü ve Part bağlantısını tanımlar. Geometri panel ölçüsü veya kaynak Part ile uyuşmuyorsa üretim raporu, fiyat snapshot'ı ve teklif revizyonu hiçbir kısmi sonuç üretmeden engellenir.
+
+**Kabul kriterleri:**
+- Panel sınırının dışına taşan, birbiriyle çakışan/temas eden veya Part dış ölçüleriyle uyuşmayan açıklık geometrisi reddedilir.
+- Proje üretim listesinde bulunmayan Part kimliği reddedilir; her hata `invalid-panel-geometry` tanısı verir.
+- Bloklu üretim raporu `result=null` döndürür; fiyat snapshot'ı `blocked`, snapshot/currency/costSummary null ve lineSources boş kalır.
+- Bloklu fiyat snapshot'ı JSON v2 proje teklif revizyonuna eklenemez; mevcut proje değişmez.
+- Geçerli DOM-201 kesit fiyatlaması ve kesit geometri adapter'ı desteklemediği sürece export blocker korunur.
+
+**Durum:** Test ve sözleşme dilimi uygulandı; exact-SHA CI/QA/Pages pending. Gerçek Actions sonucu görülmeden VERIFIED sayılmayacak.
+
+**10/10 checklist delta:**
+- Üretim/maliyet: invalid cutout, overlap, Part ID ve Part ölçüsü uyuşmazlıkları için fail-closed teklif kapısı; kısmi Part/para toplamı yok.
+- Güvenilirlik: invalid geometry → blocked report → blocked pricing snapshot → rejected revision append zinciri otomatik testle kapsanıyor.
+- CAD Core / UX / performans: bu dilimde değişmedi; viewport p95 ve bellek NOT MEASURED.
+- CNC/makine: CNC/postprocessor veya fiziksel üretim onayı yok; operatör/üretici doğrulaması gerekir.
+
+**Sıradaki 3–5 küçük görev:**
+1. DOM-203 — cutout iç kenar bandı uzunluğu/adedi ve kullanıcı fiyatlı edge-band quote source Part reconciliation.
+2. UI-owned INT-003 — JSON v2 envelope'ı editor startup/new/save/open akışına bağla; `frontend/**` ve PR #206 UI ajanının sahipliğinde.
+3. Specialist-owned INT-002 — JSON/CSV adapter round-trip ve kesit geometri kayıpsızlığı için exact-SHA kanıt; kanıt gelene kadar export blocker korunur.
+4. Specialist-owned PERF-001 — viewport p95, scene update ve bellek baseline'ını tekrarlanabilir ölç; şu an NOT MEASURED.
+5. QA-003 — INT-001/INT-002 exact-SHA adapter kanıtı geldikten sonra uçtan uca üretim/export data-flow audit.

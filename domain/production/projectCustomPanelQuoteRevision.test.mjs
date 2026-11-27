@@ -328,3 +328,66 @@ test("DOM-201 kesitli özel panel teklifi açıklık alanını düşer, quantity
   assert.equal(priced.snapshot.quoteSummary.costSummary.grandTotalMinor, 2700);
   assert.equal(report.canExport, false);
 });
+
+test("DOM-202 bozuk, çakışan veya Part ile uyuşmayan açıklık geometrisi teklif ve revizyonu kısmi toplam olmadan engeller", () => {
+  const panelRequest = (partId, geometry) => [{ partId, geometry }];
+  const cases = [
+    {
+      id: "outside",
+      label: "panel dışına taşan açıklık",
+      panelCutouts: panelRequest("custom-worktop-panel", validGeometry({
+        cutouts: [{ ...opening, xMm: 1700 }]
+      })),
+      diagnostic: /dış sınıra temas etmeden tamamen panel içinde olmalıdır/
+    },
+    {
+      id: "overlap",
+      label: "birbiriyle çakışan açıklıklar",
+      panelCutouts: panelRequest("custom-worktop-panel", validGeometry({
+        cutouts: [
+          { ...opening },
+          { ...opening, id: "second-opening", xMm: 450, yMm: 150, widthMm: 300, lengthMm: 200 }
+        ]
+      })),
+      diagnostic: /çakışamaz veya birbirine temas edemez/
+    },
+    {
+      id: "dimension-mismatch",
+      label: "Part ölçüleriyle uyuşmayan panel geometrisi",
+      panelCutouts: panelRequest("custom-worktop-panel", validGeometry({ widthMm: 1999 })),
+      diagnostic: /ölçüleri üretim parçasıyla eşleşmelidir/
+    },
+    {
+      id: "missing-part",
+      label: "üretim listesinde bulunmayan Part kimliği",
+      panelCutouts: panelRequest("missing-panel", validGeometry()),
+      diagnostic: /proje üretim listesinde bulunamadı/
+    }
+  ];
+
+  for (const scenario of cases) {
+    const report = createPanelReport({ panelCutouts: scenario.panelCutouts });
+    assert.equal(report.status, "blocked", scenario.label);
+    assert.equal(report.result, null, scenario.label);
+    assert.equal(report.canExport, false, scenario.label);
+    assert.ok(report.blockedFurniture.some(item => item.code === "invalid-panel-geometry"), scenario.label);
+    assert.match(report.firstError ?? "", scenario.diagnostic, scenario.label);
+
+    const priced = createPricingSnapshot(report, "workshop-invalid-cutout-v1", "worktop-38-a", 1250);
+    assert.equal(priced.status, "blocked", scenario.label);
+    assert.equal(priced.snapshot, null, scenario.label);
+    assert.equal(priced.quoteSummary?.status, "blocked", scenario.label);
+    assert.equal(priced.quoteSummary?.currencyCode, null, scenario.label);
+    assert.deepEqual(priced.quoteSummary?.lineSources, [], scenario.label);
+    assert.equal(priced.quoteSummary?.costSummary, null, scenario.label);
+
+    const append = appendProjectQuoteRevisionToProjectFile(createV2Project(), {
+      revisionId: "invalid-cutout-" + scenario.id,
+      createdAt: "2026-11-27T03:50:00+03:00",
+      pricingSnapshot: priced.snapshot
+    });
+    assert.equal(append.status, "blocked", scenario.label);
+    assert.equal(append.project, null, scenario.label);
+    assert.equal(append.history, null, scenario.label);
+  }
+});
