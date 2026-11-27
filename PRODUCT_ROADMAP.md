@@ -2859,7 +2859,7 @@ Sıradaki küçük görevler:
 - CAD Core / UX: bu domain-only dilimde değişmedi; frontend/** UI ajanının sahipliğinde.
 - CNC/makine: nesting/postprocessor veya fiziksel üretim uygunluğu iddiası yok.
 
-**Durum:** implementation commit ve exact-SHA CI/QA/Pages doğrulaması bekleniyor.
+**Durum:** VERIFIED — [7b4a1517](https://github.com/Taylan789/MobilyaCAD/commit/7b4a1517eb95788ade26c944fc53736715f6c0d0); [CI #45961079534](https://github.com/Taylan789/MobilyaCAD/actions/runs/45961079534) SUCCESS, [QA #45961079509](https://github.com/Taylan789/MobilyaCAD/actions/runs/45961079509) SUCCESS (415/415 frontend + 853/853 domain, DOM-209 #270/#271/#696), [Pages #45961079519](https://github.com/Taylan789/MobilyaCAD/actions/runs/45961079519) SUCCESS. Strict shared-domain TypeScript, production build and production-only audit (0 vulnerabilities) passed; lint 36 warnings / 0 errors. Pages deployment log confirms exact SHA and https://taylan789.github.io/MobilyaCAD/.
 
 **Sıradaki 3–5 küçük görev:**
 1. DOM-210 — aynı aşırı büyük panelGeometry vakasını gerçek proje agregatörü ve kayıtlı kesim planı freshness/export yolundan geçir; blocked/null ve kısmi sonuç olmadığını kanıtla.
