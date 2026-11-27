@@ -3288,7 +3288,7 @@ The first regression commit (347d89c) correctly reached the shared snapshot budg
 **Durum:** VERIFIED — test commit [74bf4d2b](https://github.com/Taylan789/MobilyaCAD/commit/74bf4d2b3c81fbbae888500885ff2f8a6915b3c8); exact-SHA CI [#46078981789](https://github.com/Taylan789/MobilyaCAD/actions/runs/46078981789), QA [#46078981618](https://github.com/Taylan789/MobilyaCAD/actions/runs/46078981618) (447 frontend + 869 domain, DOM-224 #684), Pages [#46078981609](https://github.com/Taylan789/MobilyaCAD/actions/runs/46078981609) SUCCESS; deployment build version matches the exact test SHA.
 
 **Sıradaki 3–5 küçük görev:**
-1. DOM-225 IMPLEMENTED — cross-family duplicate Part ID production blocker ve restored JSON v2/v3 freshness/export defensive guard eklendi; exact-SHA CI/QA/Pages doğrulaması bekleniyor.
+1. DOM-225 IMPLEMENTED — duplicate Part ID guard testleri eklendi; ilk CI başarılı, aggregator fixture düzeltmesi sonrası exact-SHA QA/Pages doğrulaması bekleniyor.
 2. DOM-226 — restored full-project snapshot'taki eksik/fazla excluded Part kayıtlarının current production Part coverage ile karşılaştırmasını v2/v3 freshness/export üzerinden doğrula.
 3. DOM-227 — currentSelectedPartIds duplicate/order/missing senaryolarında freshness/export durum ve kaynak kimliği sözleşmesini gerçek API sınırında doğrula.
 4. UI-owned INT-003 — JSON v2 project envelope editor startup/new/save/open entegrasyonu; yalnızca UI ajanı frontend/** dosyalarında çalışır.
@@ -3312,10 +3312,12 @@ The first regression commit (347d89c) correctly reached the shared snapshot budg
 - Performans: viewport p95/bellek NOT MEASURED; bu dilim benchmark değildir.
 - CNC/makine: CNC/postprocessor veya fiziksel üretim onayı eklenmez; atölye doğrulaması insan sorumluluğundadır.
 
-**Durum:** IMPLEMENTED — exact-SHA CI/QA/Pages pending; failed veya pending Actions başarılı sayılmaz.
+**Durum:** IMPLEMENTED — ilk exact-SHA CI başarılı; QA, bookshelf fixture shelfCount=0 eksikliği nedeniyle bir testte başarısız oldu. Fixture düzeltmesi commitlendi; yeni exact-SHA CI/QA/Pages doğrulaması bekleniyor.
 
 **Sıradaki 3–5 küçük görev:**
 1. DOM-226 — restored full-project snapshot'taki eksik/fazla excluded Part kayıtlarını current production Part coverage ile v2/v3 freshness/export üzerinden doğrula.
 2. DOM-227 — currentSelectedPartIds duplicate/order/missing senaryolarında freshness/export durum ve kaynak kimliği sözleşmesini gerçek API sınırında doğrula.
 3. UI-owned INT-003 — JSON v2 project envelope editor startup/new/save/open entegrasyonu; yalnızca UI ajanı frontend/** dosyalarında çalışır.
 4. Specialist-owned INT-002/PERF-001 ve QA-003 — adapter round-trip ve viewport p95/bellek ölçümü için gerçek specialist branch/PR kanıtı beklenir; sahiplik devri olmadan adapter/benchmark dosyalarına dokunulmaz.
+
+**DOM-225 doğrulama düzeltmesi (28 Kasım 2026 02:47 TRT):** İlk CI [#46084633976](https://github.com/Taylan789/MobilyaCAD/actions/runs/46084633976) başarılıydı. QA [#46084634035](https://github.com/Taylan789/MobilyaCAD/actions/runs/46084634035) 870/871 testle başarısız oldu: test fixture açık ölçülü kitaplık rafı eklerken zorunlu shelfCount=0 değerini ayarlamamıştı; bu nedenle kitaplık beklenen ID collision noktasına ulaşmadan blocked oldu. JSON v2/v3 freshness/export testi #686 başarılıydı. Fixture düzeltildi; Pages [#46084633944](https://github.com/Taylan789/MobilyaCAD/actions/runs/46084633944) QA gate başarısız olduğu için deploy aşamasını atladı. Yeni SHA doğrulanmadan DOM-225 VERIFIED sayılmayacak.

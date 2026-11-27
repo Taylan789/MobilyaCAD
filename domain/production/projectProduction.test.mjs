@@ -2026,6 +2026,7 @@ test("özel panel ailesi proje Part, net tüketim ve açık kesit geometrisi ak�
 
 test("proje üretimi farklı mobilya aileleri arasında yinelenen stable Part ID oluşmasını engeller", () => {
   const bookshelf = createBookshelfRequest("collision-unit");
+  bookshelf.profile.shelfCount = 0;
   bookshelf.shelves = [{
     id: "top",
     leftOffsetMm: 0,

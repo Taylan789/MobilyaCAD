@@ -2229,14 +2229,22 @@
 - **AI Developer:** [#46062919972](https://github.com/Taylan789/MobilyaCAD/actions/runs/46062919972) failed on OpenRouter free-model daily HTTP 429 (limit 50, remaining 0; reset 28 November 2026 03:00 TRT). No rerun before reset, paid fallback, secret or quota change.
 - **Next:** DOM-225 — duplicate stable IDs in the current production Part list must block restored JSON v2/v3 freshness/export atomically.
 
-## 28 Kasım 2026 02:45 TRT — DOM-225 IMPLEMENTED (Actions pending)
+## 28 Kasım 2026 02:45 TRT — DOM-225 IMPLEMENTED (initial QA fixture correction required)
 
 - **Base HEAD:** bb0c0ba27e84c9578de9b7d044e0fd73b34584a4 on dev/github-work; branch HEAD and all five target file blob SHAs were re-read before writing.
-- **Commit:** implementation/test and pending-verification record are included in the new branch commit; exact SHA and run links will be recorded after GitHub creates the commit and exact-SHA Actions complete.
+- **Initial implementation commit:** [4acdee58deed1160a0262042be166abc3b6d0c66](https://github.com/Taylan789/MobilyaCAD/commit/4acdee58deed1160a0262042be166abc3b6d0c66).
 - **Changed files:** domain/production/projectProduction.test.mjs, domain/production/projectSheetCutPlanCutoutEdgeBandingFreshness.test.mjs, AI_COORDINATION.md, PRODUCT_ROADMAP.md, AI_PROGRESS.md.
 - **Delivery:** cross-family bookshelf-shelf/tabletop collision uses distinct furniture IDs but the same generated Part ID; production aggregation must return blocked with null result. JSON v2/v3 parse→serialize/restore then exercises duplicate selected and excluded Part IDs in a cloned current ready report; freshness and export must return blocked/null with the saved selected source ID and duplicate identity diagnostic preserved.
 - **Acceptance:** no partial Part list or JSON; both v2 and v3 covered; duplicate selected and excluded records covered independently.
-- **Exact-SHA CI/QA/Pages:** pending. No local test result or successful Actions result is claimed.
+- **Initial exact-SHA CI:** [#46084633976](https://github.com/Taylan789/MobilyaCAD/actions/runs/46084633976) SUCCESS. **QA:** [#46084634035](https://github.com/Taylan789/MobilyaCAD/actions/runs/46084634035) FAILED, 870 passed / 1 failed of 871 shared-domain tests. DOM-225 freshness/export subtest #686 passed; the cross-family aggregator fixture failed because the helper's bookshelf shelfCount remained 3 while explicit shelves require 0. **Pages:** [#46084633944](https://github.com/Taylan789/MobilyaCAD/actions/runs/46084633944) FAILED its QA gate; build succeeded but deploy was skipped. No deployment is claimed.
 - **Known limits:** test-only defensive report mutation simulates corrupted in-memory state after the production aggregator; no runtime calculation, frontend, adapter, benchmark, CNC/postprocessor, workflow, secret/settings or main changes. Viewport p95/memory NOT MEASURED; physical workshop validation remains human-only.
 - **Parallel status:** UI-owned INT-003 PR #206 remains draft/unmerged with App integration explicitly deferred; no Integration/Performance specialist branch found; INT-002/PERF-001 remain specialist-owned and QA-003 waits for adapter evidence. AI Developer #46062919972 remains rate-limited until 03:00 TRT; no premature rerun.
 - **Next:** DOM-226 — validate missing/extra excluded Part coverage against the restored v2/v3 full-project snapshot.
+
+## 28 Kasım 2026 02:47 TRT — DOM-225 test fixture correction
+
+- **Base HEAD:** 4acdee58deed1160a0262042be166abc3b6d0c66; branch HEAD and target file blob SHAs re-read immediately before this correction.
+- **Correction:** set bookshelf.profile.shelfCount=0 in the cross-family Part-ID collision fixture, satisfying the existing bookshelf construction contract for explicitly positioned shelves. Production runtime code remains unchanged.
+- **Failure diagnosis:** the first QA run had 870/871 domain tests passing; only the new aggregator collision fixture failed before reaching the collision because the bookshelf fixture itself was invalid. The separate JSON v2/v3 freshness/export test #686 passed.
+- **Verification:** correction commit and exact-SHA CI/QA/Pages runs are pending; no success or deployment is claimed.
+- **Next:** inspect exact-SHA run results; if the cross-family fixture passes, record DOM-225 VERIFIED and proceed to DOM-226.
