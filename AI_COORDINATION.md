@@ -1004,7 +1004,7 @@ Bu dosya dört geliştirme/denetim rolünün ortak görev panosu ve entegrasyon 
 
 - Base HEAD: `f5e68464ce24d9da967c6e1c0e450bcddc9c3c1e`. Bu dilim yalnızca `domain/production/**` test dosyası ile frontend dışı üretim sözleşmesi/yol haritası/ilerleme belgelerini kapsar; `frontend/**`, adapter/benchmark sahipliği, CNC/postprocessor, workflow, secrets, ayarlar ve `main` değiştirilmez.
 - UI-owned INT-003 PR [#206](https://github.com/Taylan789/MobilyaCAD/pull/206) ayrı/draft kalır. Integration/Performance job `if: false`; `agent/integration-performance-*` branch/PR bulunmadı. INT-002/PERF-001 uzman sahipliğinde ve doğrulanmamış; QA-003 adapter kanıtını bekler.
-- Son görülen AI Developer run [#45931417737](https://github.com/Taylan789/MobilyaCAD/actions/runs/45931417737), OpenRouter ücretsiz günlük kota 429 nedeniyle başarısızdır (remaining 0; reset 28 Kasım 2026 03:00 TRT). Kota resetlenmeden rerun yapılmaz; ücretli fallback, secret veya workflow ayarı değiştirilmez.
+- Latest AI Developer run [#45993066297](https://github.com/Taylan789/MobilyaCAD/actions/runs/45993066297) failed in the OpenCode product job with OpenRouter free-models-per-day HTTP 429 (limit 50, remaining 0; reset 28 November 2026 00:00 UTC / 03:00 TRT). The integration/performance job was skipped. No rerun before reset, paid fallback, secret or quota setting change.
 - Sonraki domain işi DOM-213: birden fazla Part'ın her biri tek başına limitin altında kalırken toplam proje snapshot zarfının 8 MiB + 1 byte olması durumunu gerçek agregatör ve saved-plan freshness/export üzerinden atomik doğrula.
 
 

@@ -1962,3 +1962,6 @@
 - **Exact-SHA Pages:** [#46003090263](https://github.com/Taylan789/MobilyaCAD/actions/runs/46003090263) SUCCESS — deployment log confirms pages_build_version=6234eb27f1fdd4379f39139891dab4ddb29d57f8; test site https://taylan789.github.io/MobilyaCAD/.
 - **Bilinen kısıtlar:** panelGeometry / edgeBandingByEdge gerçek export blocker'ları sürer; JSON v1/CSV adapter round-trip, CNC/postprocessor ve fiziksel atölye uygunluğu iddia edilmez. Viewport p95/bellek NOT MEASURED.
 - **Sonraki görev:** DOM-215 — tam-sınır çoklu Part snapshot'ının JSON v2/v3 stringify/parse/restore ve Part sırası değişikliği sonrasında canonical freshness davranışını doğrula.
+
+
+- **AI Developer workflow:** [#45993066297](https://github.com/Taylan789/MobilyaCAD/actions/runs/45993066297) failed in the OpenCode product job with OpenRouter free-models-per-day HTTP 429 (limit 50, remaining 0; reset 28 November 2026 00:00 UTC / 03:00 TRT). The specialist job was skipped. No rerun before reset; no paid fallback, secret or quota setting change.
