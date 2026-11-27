@@ -42,6 +42,32 @@ test("tam proje snapshot karşılaştırması ekleme, silme, sıra ve seçilmemi
   assert.match(changedExcluded.diagnostics.join(" "), /excluded üretim Part snapshot'ı değişmiş/);
 });
 
+
+
+test("Part snapshot content diagnostics follow current production order after saved order changes", () => {
+  const saved = createProjectPartSnapshot([
+    { id: "selected", width: 500 },
+    { id: "first-excluded", width: 300 },
+    { id: "second-excluded", width: 200 }
+  ]);
+  const current = createProjectPartSnapshot([
+    { id: "selected", width: 500 },
+    { id: "first-excluded", width: 301 },
+    { id: "second-excluded", width: 201 }
+  ]);
+  const reorderedSaved = {
+    ...saved,
+    parts: [...saved.parts].reverse()
+  };
+
+  const comparison = compareProjectPartSnapshots(reorderedSaved, current);
+  assert.deepEqual(comparison.diagnostics, [
+    "Proje Part sırası değişmiş.",
+    "first-excluded üretim Part snapshot'ı değişmiş.",
+    "second-excluded üretim Part snapshot'ı değişmiş."
+  ]);
+});
+
 test("bozuk, yinelenen veya kanonik olmayan Part snapshot kayıtları reddedilir", () => {
   assert.throws(() => createProjectPartSnapshot([{ id: "same" }, { id: "same" }]), /yinelenen kimlik/);
   assert.throws(() => validateProjectPartSnapshot({

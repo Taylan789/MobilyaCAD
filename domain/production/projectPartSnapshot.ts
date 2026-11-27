@@ -198,7 +198,7 @@ export function validateProjectPartSnapshot(value: unknown): ProjectPartSnapshot
   return { schemaVersion: 1, parts };
 }
 
-/** Compares all Part IDs, project order, and every serialized production field. */
+/** Compares all Part IDs, project order, and serialized fields; changed-Part diagnostics follow current production order. */
 export function compareProjectPartSnapshots(expectedValue: unknown, actualValue: unknown): ProjectPartSnapshotComparison {
   const expected = validateProjectPartSnapshot(expectedValue);
   const actual = validateProjectPartSnapshot(actualValue);
@@ -214,11 +214,11 @@ export function compareProjectPartSnapshots(expectedValue: unknown, actualValue:
   if (expectedIds.length === actualIds.length && expectedIds.some((id, index) => id !== actualIds[index])) {
     diagnostics.push("Proje Part sırası değişmiş.");
   }
-  const actualById = new Map(actual.parts.map((part) => [part.id, part.snapshot]));
-  for (const expectedPart of expected.parts) {
-    const actualSnapshot = actualById.get(expectedPart.id);
-    if (actualSnapshot !== undefined && actualSnapshot !== expectedPart.snapshot) {
-      diagnostics.push(expectedPart.id + " üretim Part snapshot'ı değişmiş.");
+  const expectedById = new Map(expected.parts.map((part) => [part.id, part.snapshot]));
+  for (const actualPart of actual.parts) {
+    const expectedSnapshot = expectedById.get(actualPart.id);
+    if (expectedSnapshot !== undefined && expectedSnapshot !== actualPart.snapshot) {
+      diagnostics.push(actualPart.id + " üretim Part snapshot'ı değişmiş.");
     }
   }
   return { changed: diagnostics.length > 0, diagnostics };
