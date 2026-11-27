@@ -2894,8 +2894,29 @@ Sıradaki küçük görevler:
 - Exact-SHA Pages [#45968038343](https://github.com/Taylan789/MobilyaCAD/actions/runs/45968038343) SUCCESS — deployment log confirms pages_build_version 1d43eb6a13fae21b79bc728256a3d08d1a2f1465 and https://taylan789.github.io/MobilyaCAD/.
 
 **Sıradaki 3–5 küçük görev:**
-1. DOM-211 — 8 MiB sınırının tam kabul edilen kenarını gerçek agregatör ve JSON v2/v3 kayıtlı plan/freshness akışında doğrula; geometri metadata'sı kayıpsız kalmalı.
+1. DOM-212 — geçerli geometri metadata'sıyla 8 MiB + 1 byte sınırını gerçek agregatör ve kayıtlı JSON v2/v3 freshness/export akışında fail-closed doğrula; kısmi snapshot üretme.
 2. UI-owned INT-003 — JSON v2 envelope editor startup/new/save/open akışına bağlanmalı; PR #206 ayrı/draft kalır, bu domain ajanı sahiplenmez.
 3. Specialist-owned INT-002 — JSON/CSV adapter round-trip ve geometri/miktar sadakati için exact-SHA kanıt; kanıt gelene kadar desteklenmeyen geometri export blocker'ı korunur.
 4. Specialist-owned PERF-001 — viewport p95, scene update ve bellek baseline ölçümü; integration/performance workflow job if: false ve specialist branch/PR kanıtı yok.
 5. QA-003 — INT-001/INT-002 adapter kanıtından sonra uçtan uca üretim/export data-flow audit.
+
+## 27 Kasım 2026 12:48 TRT — DOM-211 tam 8 MiB kabul sınırı
+
+**Ürün kararı:** 8 MiB snapshot sınırı yalnızca yardımcı serializer testinde değil, gerçek ve geçerli kesitli geometri metadata'sı üzerinden proje nesting agregatöründe ve kayıtlı JSON v2/v3 planlarında da kabul edilmelidir. Sınırın altında/üstünde davranış kadar tam eşik davranışı da veri kaybı olmadan kanıtlanmalıdır.
+
+**Kabul kriterleri:**
+- Domain tarafından doğrulanan açıklık kimliği, tam proje snapshot zarfının UTF-8 JSON temsilini tam 8 MiB yapar; gerçek geometrinin kabulü korunur.
+- Nesting'e seçilmeyen kesitli Part, tam snapshot'ta bulunur; agregatör `ready` döner ve saklanan Part JSON'u tam olarak korunur.
+- JSON v2 ve v3 planları bu tam sınır snapshot'ını taşır; değişmeyen proje için freshness `fresh` olur ve kayıtlı snapshot içeriği byte-for-byte eşleşir.
+- Freshness export'u yalnızca testte kullanılan adapter bypass ile `ready` olabilir. Gerçek üretim raporu, desteklenmeyen `panelGeometry` / `edgeBandingByEdge` alanları nedeniyle export'u engellemeye devam eder.
+- Test, gerçek CNC/makine veya JSON v1/CSV desteği iddia etmez.
+
+**10/10 checklist delta:**
+- Üretim/veri doğruluğu: tam 8 MiB'de seçili ve hariç Part snapshot'ları kayıpsız; geçerli kesit geometrisi ve açıklık kimliği korunur.
+- Güvenilirlik/geriye uyumluluk: JSON v2/v3 aynı snapshot ile fresh kalır; gerçek adapter blocker'ları korunur.
+- CAD Core / UX: domain-only test dilimi; frontend/** UI ajanının sahipliğinde.
+- Performans: bu regresyon bir benchmark değildir; viewport p95 ve bellek NOT MEASURED.
+- CNC/makine: nesting adapter veya fiziksel üretim uygunluğu eklenmez; atölye/üretici doğrulaması gereklidir.
+
+**Durum:** implementation commit oluşturulduktan sonra exact-SHA CI/QA/Pages sonuçlarıyla güncellenecek. Sonraki domain dilimi DOM-212: geçerli geometri metadata'sıyla 8 MiB + 1 byte sınırının gerçek agregatör ve kayıtlı v2/v3 tüketicilerinde atomik biçimde bloklandığını kanıtla.
+

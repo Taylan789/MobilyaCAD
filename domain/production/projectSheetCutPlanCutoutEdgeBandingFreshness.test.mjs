@@ -6,6 +6,7 @@ import { createProjectSheetCutPlan } from "./projectSheetCutPlan.ts";
 import { createFreshProjectSheetCutPlanExport } from "./projectSheetCutPlanExport.ts";
 import { validateProjectSheetCutPlanFreshness } from "./projectSheetCutPlanFreshness.ts";
 import { calculateSheetNestingLayout } from "./sheetNestingLayout.ts";
+import { PROJECT_PART_SNAPSHOT_MAX_BYTES, createProjectPartSnapshot } from "./projectPartSnapshot.ts";
 
 const noBanding = { top: false, bottom: false, left: false, right: false };
 const selectedPartId = "nestable-panel-panel";
@@ -655,3 +656,123 @@ test("DOM-210 oversized excluded Part snapshot blocks the real batch aggregator 
     assert.equal(JSON.parse(savedPlanJson).formatVersion, version === "v2" ? 2 : 3);
   }
 });
+
+test("DOM-211 exact 8 MiB snapshot remains lossless through real nesting and saved JSON v2/v3 freshness", () => {
+  const baseCutouts = [
+    {
+      id: "opening-",
+      xMm: 100,
+      yMm: 100,
+      widthMm: 400,
+      lengthMm: 300,
+      edgeBanding: { top: true, bottom: false, left: true, right: false }
+    },
+    {
+      id: "cooktop-opening",
+      xMm: 800,
+      yMm: 100,
+      widthMm: 300,
+      lengthMm: 200,
+      edgeBanding: { top: true, bottom: false, left: false, right: true }
+    }
+  ];
+  const baselineReport = cutoutProjectReport({ cutouts: baseCutouts });
+  const baselineSnapshot = createProjectPartSnapshot(baselineReport.result.parts);
+  const baselineBytes = new TextEncoder().encode(JSON.stringify(baselineSnapshot)).byteLength;
+  const openingIdPayloadLength = PROJECT_PART_SNAPSHOT_MAX_BYTES - baselineBytes;
+  assert.ok(openingIdPayloadLength > 0);
+
+  // The long ID is valid geometry metadata: the geometry validator requires a
+  // stable non-empty ID but deliberately does not invent an arbitrary length cap.
+  const largeOpeningId = "opening-" + "x".repeat(openingIdPayloadLength);
+  const exactReport = cutoutProjectReport({
+    cutouts: [{ ...baseCutouts[0], id: largeOpeningId }, baseCutouts[1]]
+  });
+  const expectedSnapshot = createProjectPartSnapshot(exactReport.result.parts);
+  assert.equal(
+    new TextEncoder().encode(JSON.stringify(expectedSnapshot)).byteLength,
+    PROJECT_PART_SNAPSHOT_MAX_BYTES
+  );
+
+  const expectedExcludedEntry = expectedSnapshot.parts.find((entry) => entry.id === cutoutPartId);
+  assert.ok(expectedExcludedEntry);
+  const expectedGeometry = JSON.parse(expectedExcludedEntry.snapshot).panelGeometry;
+  assert.equal(expectedGeometry.cutouts[0].id, largeOpeningId);
+
+  const batches = createProjectSheetNestingBatches({
+    schemaVersion: 1,
+    productionReport: exactReport,
+    partIds: [selectedPartId],
+    stockSheets: [{
+      sheet: {
+        materialId: "mdf-18",
+        widthMm: 1200,
+        lengthMm: 1000,
+        thicknessMm: 18,
+        grainDirection: "length"
+      },
+      kerfMm: 3
+    }]
+  });
+  assert.equal(batches.status, "ready", batches.diagnostics.join(" "));
+  assert.ok(batches.result);
+  assert.deepEqual(batches.sourcePartIds, [selectedPartId]);
+  assert.deepEqual(batches.excludedPartIds, [cutoutPartId]);
+  assert.ok(batches.projectPartSnapshot);
+  assert.equal(
+    new TextEncoder().encode(JSON.stringify(batches.projectPartSnapshot)).byteLength,
+    PROJECT_PART_SNAPSHOT_MAX_BYTES
+  );
+  const aggregatedExcludedEntry = batches.projectPartSnapshot.parts.find((entry) => entry.id === cutoutPartId);
+  assert.equal(aggregatedExcludedEntry?.snapshot, expectedExcludedEntry.snapshot);
+
+  const jsonV2 = savedPlanV2(exactReport);
+  const plans = [["v2", jsonV2], ["v3", savedPlanV3(jsonV2)]];
+  for (const [version, savedPlanJson] of plans) {
+    const savedEnvelope = JSON.parse(savedPlanJson);
+    const savedExcludedEntry = savedEnvelope.result.projectPartSnapshot.parts.find((entry) => entry.id === cutoutPartId);
+    assert.equal(savedExcludedEntry?.snapshot, expectedExcludedEntry.snapshot, version);
+
+    const freshness = validateFreshness(savedPlanJson, exactReport);
+    assert.equal(freshness.status, "fresh", version);
+    assert.equal(freshness.json, savedPlanJson, version);
+
+    // Isolate the snapshot/freshness gate without claiming the unsupported
+    // panelGeometry and edgeBandingByEdge adapters are production-ready.
+    const adapterReadyForFreshnessOnly = {
+      ...exactReport,
+      canExport: true,
+      exportBlockers: []
+    };
+    const freshnessExport = createFreshProjectSheetCutPlanExport({
+      schemaVersion: 1,
+      freshness: {
+        schemaVersion: 1,
+        savedPlanJson,
+        productionReport: adapterReadyForFreshnessOnly,
+        currentSelectedPartIds: [selectedPartId]
+      }
+    });
+    assert.equal(freshnessExport.status, "ready", version);
+    assert.equal(freshnessExport.freshnessStatus, "fresh", version);
+    assert.equal(freshnessExport.json, savedPlanJson, version);
+
+    const actualAdapterBlock = createFreshProjectSheetCutPlanExport({
+      schemaVersion: 1,
+      freshness: {
+        schemaVersion: 1,
+        savedPlanJson,
+        productionReport: exactReport,
+        currentSelectedPartIds: [selectedPartId]
+      }
+    });
+    assert.equal(actualAdapterBlock.status, "blocked", version);
+    assert.equal(actualAdapterBlock.freshnessStatus, "blocked", version);
+    assert.equal(actualAdapterBlock.result, null, version);
+    assert.equal(actualAdapterBlock.json, null, version);
+    assert.ok(actualAdapterBlock.productionDiagnostics?.some((item) => /panelGeometry/.test(item.message)));
+    assert.ok(actualAdapterBlock.productionDiagnostics?.some((item) => /edgeBandingByEdge/.test(item.message)));
+    assert.equal(savedEnvelope.formatVersion, version === "v2" ? 2 : 3);
+  }
+});
+

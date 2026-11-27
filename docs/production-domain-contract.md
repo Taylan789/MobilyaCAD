@@ -1940,3 +1940,12 @@ An over-limit or over-depth snapshot is rejected as a whole. `createProjectPartS
 
 
 **DOM-210 exact-SHA verification:** Implementation [1d43eb6a13fae21b79bc728256a3d08d1a2f1465](https://github.com/Taylan789/MobilyaCAD/commit/1d43eb6a13fae21b79bc728256a3d08d1a2f1465); CI [#45968038463](https://github.com/Taylan789/MobilyaCAD/actions/runs/45968038463), QA [#45968038468](https://github.com/Taylan789/MobilyaCAD/actions/runs/45968038468), and Pages [#45968038343](https://github.com/Taylan789/MobilyaCAD/actions/runs/45968038343) all SUCCESS. QA passed 418 frontend + 854 domain tests (DOM-210 #670); strict shared-domain TypeScript, production build, and production-only audit (0 vulnerabilities) passed; lint reported 36 warnings and 0 errors. Pages deployed the exact implementation SHA to https://taylan789.github.io/MobilyaCAD/.
+
+## DOM-211 — tam 8 MiB Part snapshot sınırının gerçek geometri ve kayıtlı plan akışı
+
+- Regresyon, iki geçerli açıklıklı gerçek kesitli panel üretim raporundan başlar. İlk açıklığın opak kimliği, tam proje Part snapshot zarfının UTF-8 JSON temsilini **tam 8 MiB** yapacak şekilde hesaplanır; açıklık geometrisi yine domain doğrulamasından geçer.
+- Nesting'e yalnızca dikdörtgen Part seçilir. Hariç kesitli Part'ın uzun açıklık kimliği ve tüm `panelGeometry` metadata'sı proje snapshot'ında korunur; agregatör `ready` döner, kaynak ve hariç Part kimlikleri değişmez.
+- Aynı tam sınır snapshot'ı JSON v2 ve v3 kayıtlı kesim planlarına kaydedilir. Her iki sürüm, aynı güncel üretim raporuna karşı `fresh` kalır; snapshot içindeki açıklık kimliği byte-for-byte aynı kanonik Part JSON'u olarak korunur.
+- Test-only adapter-ready override yalnızca freshness/export kapısını izole etmek için kullanılır. Gerçek raporla yapılan export hâlâ `panelGeometry` ve `edgeBandingByEdge` blocker'ları nedeniyle `blocked`, `result=null`, `json=null` döner; bu test JSON v1/CSV adapter desteği iddia etmez.
+- Bu dilim runtime hesaplama davranışını değiştirmez; DOM-209 sınırının tam kabul edilen ucunu gerçek üretim agregatörü ve saved-plan tüketicileri üzerinden kanıtlar. CNC, postprocessor, makine koordinatı veya fiziksel üretim onayı sağlamaz.
+
