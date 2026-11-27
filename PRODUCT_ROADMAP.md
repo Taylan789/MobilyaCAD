@@ -2946,7 +2946,7 @@ Sıradaki küçük görevler:
 - Performans: bu regresyon benchmark değildir; viewport p95/bellek NOT MEASURED.
 - CNC/makine: adapter, nesting yerleşimi, postprocessor veya fiziksel üretim onayı eklenmez.
 
-**Durum:** IMPLEMENTED — commit oluşturuldu; exact-SHA CI/QA/Pages sonuçları bekleniyor.
+**Durum:** VERIFIED — implementation [bd1b18c1](https://github.com/Taylan789/MobilyaCAD/commit/bd1b18c1e6a29de14b8b30a59dc77f575812cf30); exact-SHA CI [#45984924097](https://github.com/Taylan789/MobilyaCAD/actions/runs/45984924097), QA [#45984923933](https://github.com/Taylan789/MobilyaCAD/actions/runs/45984923933) (421/421 frontend + 856/856 domain; DOM-212 #672), and Pages [#45984923998](https://github.com/Taylan789/MobilyaCAD/actions/runs/45984923998) SUCCESS; deployment SHA matches.
 
 **Sıradaki 3–5 küçük görev:**
 1. DOM-213 — ayrı ayrı 8 MiB altında kalan birden fazla Part'ın toplam proje snapshot zarfı 8 MiB + 1 byte olduğunda gerçek agregatör ve JSON v2/v3 freshness/export atomik bloklanmalı.
