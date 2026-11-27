@@ -2182,14 +2182,14 @@
 - **Initial implementation/test commit:** [c894647f19eb3e0057ae52007113492d861181ac](https://github.com/Taylan789/MobilyaCAD/commit/c894647f19eb3e0057ae52007113492d861181ac); CI [#46073157607](https://github.com/Taylan789/MobilyaCAD/actions/runs/46073157607) SUCCESS, QA [#46073157608](https://github.com/Taylan789/MobilyaCAD/actions/runs/46073157608) FAILED at DOM-223 diagnostic-order assertion; Pages [#46073157582](https://github.com/Taylan789/MobilyaCAD/actions/runs/46073157582) failed its exact-SHA QA gate.
 - **Changed files:** `domain/production/projectSheetCutPlanCutoutEdgeBandingFreshness.test.mjs`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`. No `frontend/**`, adapter/benchmark-owned files, workflow definitions, secrets/settings or `main` changes.
 - **Delivery:** DOM-223 reverses the complete saved Part snapshot order after corrupting both excluded custom-worktop Parts, then exercises JSON v2/v3 parse → serialize → restore, stable nested Part identity, unchanged selected-Part snapshot, deterministic canonical-production-order diagnostics with both exact damaged Part IDs, and freshness-gated export with null result/JSON. JSON v3 stock-sheet provenance is retained.
-- **Exact-SHA CI / QA / Pages:** pending; no success or deployment is claimed yet.
+- **Exact-SHA CI / QA / Pages:** correction commit 8a02f186 and exact run evidence are recorded in the verified entry below.
 - **Known limits:** no geometry or CNC algorithm change and no visible UI change. The correction changes only diagnostic ordering in the Part snapshot comparator; JSON v1/CSV adapter support for cutout `panelGeometry` and `edgeBandingByEdge` remains unsupported. No CNC/postprocessor, machine coordinates or physical workshop validation is claimed. Viewport p95/memory remains NOT MEASURED.
 - **Parallel ownership:** UI-owned INT-003 PR #206 and all UI redesign PRs remain outside this change. Integration/Performance workflow job is disabled and no specialist branch/PR was verified; INT-002/PERF-001 remain specialist-owned, QA-003 waits on adapter evidence.
 - **AI Developer:** run [#46062919972](https://github.com/Taylan789/MobilyaCAD/actions/runs/46062919972) failed because OpenRouter free-model daily quota was exhausted (HTTP 429; limit 50, remaining 0; reset 28 November 2026 03:00 TRT). Logs were inspected; no premature rerun, paid fallback or secret/quota change.
 - **Next:** DOM-224 — verify that duplicate/mismatched nested Part snapshot identity cannot produce a partial JSON v2/v3 freshness/export result; do not repeat direct validator coverage already present in `projectPartSnapshot.test.mjs`.
 
 
-## 28 Kasım 2026 00:54 TRT — DOM-223 QA correction (exact-SHA verification pending)
+## 28 Kasım 2026 00:54 TRT — DOM-223 QA correction (verified below)
 
 - **Failed implementation SHA:** [c894647f19eb3e0057ae52007113492d861181ac](https://github.com/Taylan789/MobilyaCAD/commit/c894647f19eb3e0057ae52007113492d861181ac).
 - **Exact-SHA CI:** [#46073157607](https://github.com/Taylan789/MobilyaCAD/actions/runs/46073157607) SUCCESS — frontend build and lint passed.
@@ -2197,4 +2197,19 @@
 - **Pages:** [#46073157582](https://github.com/Taylan789/MobilyaCAD/actions/runs/46073157582) FAILED the exact-SHA QA gate; the failing SHA was not deployed.
 - **Correction:** compare changed Part snapshots by ID but iterate the current production Part list for diagnostics. Add a focused unit regression for reversed saved order and keep the JSON v2/v3 end-to-end assertion intact.
 - **Files:** domain/production/projectPartSnapshot.ts, domain/production/projectPartSnapshot.test.mjs, AI_COORDINATION.md, PRODUCT_ROADMAP.md, AI_PROGRESS.md. No frontend/**, adapter/benchmark-owned files, workflow/secrets/settings or main changes.
-- **Next:** re-run exact-SHA CI, QA and Pages; only after successful verification mark DOM-223 VERIFIED. DOM-224 remains the next domain slice.
+- **Next:** DOM-223 is VERIFIED on correction SHA 8a02f186; DOM-224 remains the next domain slice.
+
+
+## 28 Kasım 2026 00:57 TRT — DOM-223 VERIFIED
+
+- **Base HEAD:** c894647f19eb3e0057ae52007113492d861181ac.
+- **Correction commit:** [8a02f186edfbc3dcf3df8c45532597116d258272](https://github.com/Taylan789/MobilyaCAD/commit/8a02f186edfbc3dcf3df8c45532597116d258272).
+- **Changed files:** domain/production/projectPartSnapshot.ts, domain/production/projectPartSnapshot.test.mjs, AI_COORDINATION.md, PRODUCT_ROADMAP.md, AI_PROGRESS.md. The initial DOM-223 integration regression remains in domain/production/projectSheetCutPlanCutoutEdgeBandingFreshness.test.mjs.
+- **Delivery:** Part snapshot comparison now reports changed Part records in current production order while matching snapshots by stable Part ID. The focused unit test and full JSON v2/v3 restore test prove reversed saved order does not misattribute damaged excluded Parts; selected source IDs and unaffected selected-Part snapshot remain intact; freshness/export fail closed with null result/JSON.
+- **Exact-SHA CI:** [#46073348896](https://github.com/Taylan789/MobilyaCAD/actions/runs/46073348896) SUCCESS — frontend build and lint passed.
+- **Exact-SHA QA:** [#46073348909](https://github.com/Taylan789/MobilyaCAD/actions/runs/46073348909) SUCCESS — 446/446 frontend + 868/868 domain tests; DOM-223 subtest #683 passed; strict shared-domain TypeScript, lint (36 warnings / 0 errors), production build and production-only audit (0 vulnerabilities) passed.
+- **Exact-SHA Pages:** [#46073348926](https://github.com/Taylan789/MobilyaCAD/actions/runs/46073348926) SUCCESS — deployment log confirms pages_build_version=8a02f186edfbc3dcf3df8c45532597116d258272 at https://taylan789.github.io/MobilyaCAD/.
+- **Known limits:** no CNC/postprocessor, machine coordinate or physical workshop validation is claimed. JSON v1/CSV cutout panelGeometry and edgeBandingByEdge adapter support remains unsupported. Viewport p95/memory remains NOT MEASURED. No frontend/** files changed.
+- **Parallel ownership:** UI-owned INT-003 PR #206 remains draft/unmerged; no Integration/Performance specialist branch was found and its workflow job remains disabled, so INT-002/PERF-001 remain specialist-owned and QA-003 waits for adapter evidence.
+- **AI Developer:** run [#46062919972](https://github.com/Taylan789/MobilyaCAD/actions/runs/46062919972) failed on OpenRouter free-model daily HTTP 429; reset is 28 November 2026 03:00 TRT. No rerun before reset, paid fallback, or secret/quota change.
+- **Next:** DOM-224 — verify duplicate/mismatched nested Part snapshot identity through the real JSON v2/v3 restore/freshness/export boundary without duplicating direct validator tests.
