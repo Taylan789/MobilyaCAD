@@ -20,12 +20,19 @@ test("catalog add cue shows its explicit EKLE label at standard desktop widths",
   assert.doesNotMatch(styles, /max-width: 1360px/);
 });
 
-test("compact widths keep the icon cue visible without hiding the card action", () => {
-  const compact = styles.match(/@media \(max-width: 820px\) \{([\s\S]*?)\n\}/);
+test("compact widths keep a visible icon cue while the card remains the real action target", () => {
+  const compact = styles.match(/@media \(max-width: 820px\)([\s\S]*?)(?=@media \(|$)/);
   assert.ok(compact);
   assert.match(compact[1], /width:\s*36px/);
   assert.match(compact[1], /height:\s*36px/);
   assert.match(compact[1], /\.mc-catalog-card__add-label\s*\{\s*display:\s*none;/);
+});
+
+test("medium desktop retains a compact cue and desktop widths show the EKLE label", () => {
+  const medium = styles.match(/@media \(min-width: 821px\) and \(max-width: 1180px\)([\s\S]*?)(?=@media \(|$)/);
+  assert.ok(medium);
+  assert.match(medium[1], /width:\s*34px/);
+  assert.match(medium[1], /\.mc-catalog-card__add-label\s*\{\s*display:\s*none;/);
 });
 
 test("catalog add cue preserves reduced-motion and forced-colors accessibility", () => {
