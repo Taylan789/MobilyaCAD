@@ -2082,3 +2082,90 @@ test("DOM-223 JSON v2/v3 restore keeps Part identity and deterministic diagnosti
     }
   }
 });
+
+
+test("DOM-224 JSON v2/v3 restore rejects duplicate and mismatched nested Part identities before freshness/export", () => {
+  const baselineReport = cutoutProjectReport();
+  const jsonV2 = savedPlanV2(baselineReport);
+  const plans = [["v2", jsonV2], ["v3", savedPlanV3(jsonV2)]];
+  const adapterReadyForFreshnessOnly = {
+    ...baselineReport,
+    canExport: true,
+    exportBlockers: []
+  };
+
+  for (const [version, sourceJson] of plans) {
+    const parsedBaseline = parseProjectSheetCutPlanJson(sourceJson);
+    assert.equal(parsedBaseline.status, "ready", version);
+    const restoredBaseline = serializeProjectSheetCutPlanJson(parsedBaseline);
+    assert.equal(restoredBaseline.status, "ready", version);
+    assert.ok(restoredBaseline.json, version);
+    assert.equal(validateFreshness(restoredBaseline.json, baselineReport).status, "fresh", version);
+
+    const baselineParts = JSON.parse(restoredBaseline.json).result.projectPartSnapshot.parts;
+    assert.ok(baselineParts.some((entry) => entry.id === selectedPartId), version);
+    assert.ok(baselineParts.some((entry) => entry.id === cutoutPartId), version);
+
+    const scenarios = [
+      {
+        label: "duplicate nested Part snapshot identity",
+        diagnostic: /yinelenen kimlik/,
+        edit(envelope) {
+          const parts = envelope.result.projectPartSnapshot.parts;
+          assert.ok(parts.length > 1, version);
+          parts[1].id = parts[0].id;
+        }
+      },
+      {
+        label: "mismatched nested Part JSON identity",
+        diagnostic: /kimlikle eşleşmiyor/,
+        edit(envelope) {
+          const entry = envelope.result.projectPartSnapshot.parts.find((part) => part.id === cutoutPartId);
+          assert.ok(entry, version);
+          const nestedPart = JSON.parse(entry.snapshot);
+          nestedPart.id = "identity-mismatch";
+          entry.snapshot = canonicalJsonForTest(nestedPart);
+        }
+      }
+    ];
+
+    for (const scenario of scenarios) {
+      const tamperedEnvelope = JSON.parse(restoredBaseline.json);
+      scenario.edit(tamperedEnvelope);
+      const tamperedJson = JSON.stringify(tamperedEnvelope);
+
+      const parsed = parseProjectSheetCutPlanJson(tamperedJson);
+      assert.equal(parsed.status, "blocked", version + " / " + scenario.label);
+      assert.equal(parsed.result, null, version + " / " + scenario.label);
+      assert.match(parsed.diagnostics.join(" "), scenario.diagnostic);
+
+      const serialized = serializeProjectSheetCutPlanJson(parsed);
+      assert.equal(serialized.status, "blocked", version + " / " + scenario.label);
+      assert.equal(serialized.json, null, version + " / " + scenario.label);
+      assert.match(serialized.diagnostics.join(" "), scenario.diagnostic);
+
+      const freshness = validateFreshness(tamperedJson, baselineReport);
+      assert.equal(freshness.status, "blocked", version + " / " + scenario.label);
+      assert.equal(freshness.result, null, version + " / " + scenario.label);
+      assert.equal(freshness.json, null, version + " / " + scenario.label);
+      assert.deepEqual(freshness.sourcePartIds, [], version + " / " + scenario.label);
+      assert.match(freshness.diagnostics.join(" "), scenario.diagnostic);
+
+      const exported = createFreshProjectSheetCutPlanExport({
+        schemaVersion: 1,
+        freshness: {
+          schemaVersion: 1,
+          savedPlanJson: tamperedJson,
+          productionReport: adapterReadyForFreshnessOnly,
+          currentSelectedPartIds: [selectedPartId]
+        }
+      });
+      assert.equal(exported.status, "blocked", version + " / " + scenario.label);
+      assert.equal(exported.freshnessStatus, "blocked", version + " / " + scenario.label);
+      assert.equal(exported.result, null, version + " / " + scenario.label);
+      assert.equal(exported.json, null, version + " / " + scenario.label);
+      assert.deepEqual(exported.sourcePartIds, [], version + " / " + scenario.label);
+      assert.match(exported.diagnostics.join(" "), scenario.diagnostic);
+    }
+  }
+});
