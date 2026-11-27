@@ -1871,13 +1871,16 @@
 - **Verification-record update:** the implementation commit above is exact-SHA verified and deployed. This follow-up documentation commit records its evidence; no domain or frontend source is changed in this evidence-only update.
 
 
-## 27 Kasım 2026 11:41 TRT — DOM-210 implementation (exact-SHA verification pending)
+## 27 Kasım 2026 11:41 TRT — DOM-210 VERIFIED
 
 - **Base HEAD:** dev/github-work 879a39945ef3576c0796924414f079fd8a48075a.
-- **Delivery:** Added a real two-panel project regression. The excluded cutout Part receives oversized metadata; the real nesting-batch aggregator must block with no result or partial Part snapshot, and the downstream cut-plan builder must emit no JSON.
-- **Saved-plan coverage:** Existing unchanged JSON v2/v3 fixtures remain fresh. The same oversized current Part makes v2/v3 freshness and saved-plan export return blocked/null. The export test uses a test-only adapter-ready override only to exercise freshness; unsupported real adapter fields remain blocked.
+- **Implementation commit:** [1d43eb6a13fae21b79bc728256a3d08d1a2f1465](https://github.com/Taylan789/MobilyaCAD/commit/1d43eb6a13fae21b79bc728256a3d08d1a2f1465).
+- **Delivery:** Added a real two-panel project regression. The excluded cutout Part receives oversized metadata; the real nesting-batch aggregator blocks with no result or partial Part snapshot, and the downstream cut-plan builder emits no JSON.
+- **Saved-plan coverage:** Existing unchanged JSON v2/v3 fixtures remain fresh. The same oversized current Part makes v2/v3 freshness and saved-plan export return blocked/null. The test-only adapter-ready override reaches freshness without removing the real unsupported adapter blockers.
 - **Changed files:** domain/production/projectSheetCutPlanCutoutEdgeBandingFreshness.test.mjs, docs/production-domain-contract.md, AI_COORDINATION.md, PRODUCT_ROADMAP.md, AI_PROGRESS.md.
-- **Implementation commit:** this change set; SHA and exact-SHA CI/QA/Pages URLs will be recorded after GitHub creates the commit and Actions finish.
-- **Automated verification:** not yet observed for this new SHA. No test success is claimed before Actions results.
+- **Exact-SHA CI:** [#45968038463](https://github.com/Taylan789/MobilyaCAD/actions/runs/45968038463) SUCCESS — frontend production build and lint.
+- **Exact-SHA QA:** [#45968038468](https://github.com/Taylan789/MobilyaCAD/actions/runs/45968038468) SUCCESS — 418/418 frontend + 854/854 domain tests; DOM-210 test #670 passed; strict shared-domain TypeScript passed; lint 36 warnings / 0 errors; production build passed; production-only audit 0 vulnerabilities.
+- **Exact-SHA Pages:** [#45968038343](https://github.com/Taylan789/MobilyaCAD/actions/runs/45968038343) SUCCESS — deployment log confirms pages_build_version 1d43eb6a13fae21b79bc728256a3d08d1a2f1465 and test site https://taylan789.github.io/MobilyaCAD/.
 - **Known limits:** no runtime production algorithm change, JSON v1/CSV adapter support, CNC/postprocessor, machine coordinates, physical workshop validation, frontend/** change or performance baseline.
-- **Next:** DOM-211 — exercise the exact accepted 8 MiB boundary through the real aggregator and saved JSON v2/v3 freshness flow; then retain UI-owned INT-003 and specialist-owned INT-002/PERF-001 boundaries.
+- **Parallel ownership:** no frontend files changed. UI-owned INT-003 PR #206 remains separate/draft; specialist-owned INT-002/PERF-001 remain unverified because the integration/performance workflow job is disabled with if: false and no specialist branch/PR is present; QA-003 remains blocked on adapter evidence.
+- **Next:** DOM-211 — exercise the exact accepted 8 MiB boundary through the real aggregator and saved JSON v2/v3 freshness flow.

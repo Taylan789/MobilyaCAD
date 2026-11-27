@@ -1936,3 +1936,7 @@ An over-limit or over-depth snapshot is rejected as a whole. `createProjectPartS
 - Previously saved JSON v2 and v3 plans remain fresh against the unchanged production report. When the current excluded Part exceeds the 8 MiB UTF-8 snapshot envelope budget, both v2 and v3 freshness checks return blocked, result=null, and json=null.
 - The saved-plan export test uses a test-only adapter-ready override solely to reach the full-project freshness gate. The real production report's unsupported panelGeometry / edgeBandingByEdge adapter blockers remain in force; this does not add JSON v1/CSV support.
 - This is an automated domain regression contract, not a nesting algorithm, CNC/postprocessor, machine-coordinate or physical workshop approval.
+
+
+
+**DOM-210 exact-SHA verification:** Implementation [1d43eb6a13fae21b79bc728256a3d08d1a2f1465](https://github.com/Taylan789/MobilyaCAD/commit/1d43eb6a13fae21b79bc728256a3d08d1a2f1465); CI [#45968038463](https://github.com/Taylan789/MobilyaCAD/actions/runs/45968038463), QA [#45968038468](https://github.com/Taylan789/MobilyaCAD/actions/runs/45968038468), and Pages [#45968038343](https://github.com/Taylan789/MobilyaCAD/actions/runs/45968038343) all SUCCESS. QA passed 418 frontend + 854 domain tests (DOM-210 #670); strict shared-domain TypeScript, production build, and production-only audit (0 vulnerabilities) passed; lint reported 36 warnings and 0 errors. Pages deployed the exact implementation SHA to https://taylan789.github.io/MobilyaCAD/.
