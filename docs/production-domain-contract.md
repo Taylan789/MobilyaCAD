@@ -1984,3 +1984,12 @@ An over-limit or over-depth snapshot is rejected as a whole. `createProjectPartS
 
 
 **DOM-214 exact-SHA verification:** Implementation [6234eb27](https://github.com/Taylan789/MobilyaCAD/commit/6234eb27f1fdd4379f39139891dab4ddb29d57f8); CI [#46003090185](https://github.com/Taylan789/MobilyaCAD/actions/runs/46003090185), QA [#46003090291](https://github.com/Taylan789/MobilyaCAD/actions/runs/46003090291) and Pages [#46003090263](https://github.com/Taylan789/MobilyaCAD/actions/runs/46003090263) all SUCCESS. QA passed 424 frontend + 858 domain tests; DOM-214 subtest #674 passed; strict shared-domain TypeScript, production build and production-only audit (0 vulnerabilities) passed; lint 36 warnings / 0 errors. Pages deployment log confirms the exact SHA and https://taylan789.github.io/MobilyaCAD/.
+
+
+## DOM-215 — tam-sınır Part snapshot'ının JSON v2/v3 restore ve sıralama freshness sözleşmesi
+
+- DOM-214'ün iki kesitli Part ile oluşturduğu tam 8 MiB UTF-8 snapshot'ı JSON v2 ve v3 planlarında parse → validate → serialize → restore döngüsünden geçirilir; snapshot'ın boyutu, Part kayıtları ve v3 kullanıcı girdili levha kaynağı provenance'ı korunur.
+- Güncel üretim Part nesnelerinin yalnızca JSON nesne anahtar sırası değişirse kanonik snapshot aynı kalmalı ve kayıtlı v2/v3 planı fresh kalmalıdır. Bu, nesne alan sırasının proje verisi değişikliği sayılmamasını güvence altına alır.
+- Proje Part dizisinin sırası değişirse tam snapshot karşılaştırması stale dönmeli; freshness sonucu result=null ve json=null olmalı, freshness-gated export ise result/json üretmeden blocked kalmalıdır.
+- Kontrol, nesting'e seçilmeyen kesitli Part'ları da içerir; bunların proje sırası ve metadata'sı freshness kapsamındadır. Gerçek panelGeometry / edgeBandingByEdge adapter export blocker'ları kaldırılmaz.
+- Bu dilim yalnızca domain regresyonu ve sözleşme kanıtıdır. JSON v1/CSV adapter round-trip, CNC/postprocessor, makine koordinatı, viewport performansı veya fiziksel atölye uygunluğu iddia etmez.

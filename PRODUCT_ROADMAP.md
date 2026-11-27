@@ -2977,7 +2977,7 @@ Sıradaki küçük görevler:
 **Durum:** VERIFIED — [implementation 89565ca](https://github.com/Taylan789/MobilyaCAD/commit/89565ca0d20f1d9f0410ee40b5746302b9f26146); exact-SHA CI #45991397180, QA #45991397198 (424 frontend + 857 domain; DOM-213 #673) and Pages #45991397197 all SUCCESS; exact SHA deployed. GitHub Actions sonucu görülmeden test başarısı veya test-site güncellemesi iddia edilmez.
 
 **Sıradaki 3–5 küçük görev:**
-1. DOM-215 — çoklu Part tam-sınır snapshot'ının JSON v2/v3 stringify/parse/restore ve Part sırası değişikliği sonrasında canonical freshness davranışını doğrula.
+1. DOM-216 — restore sonrasında Part ekleme/silme/kimlik değişiminin JSON v2/v3 freshness ve freshness-export kapısında fail-closed davranışını doğrula.
 2. UI-owned INT-003 — JSON v2 envelope editor startup/new/save/open entegrasyonu; PR #206 draft kalır ve UI ajanının sahipliğindedir.
 3. Specialist-owned INT-002 — kesitli geometri, JSON/CSV adapter round-trip ve quantity sadakati için exact-SHA kanıt; gerçek export blocker'ları korunur.
 4. Specialist-owned PERF-001 — viewport p95, scene update ve bellek baseline ölçümü; workflow job if: false, specialist branch/PR yok.
@@ -3022,3 +3022,24 @@ The first regression commit (347d89c) correctly reached the shared snapshot budg
 - Implementation [6234eb27](https://github.com/Taylan789/MobilyaCAD/commit/6234eb27f1fdd4379f39139891dab4ddb29d57f8); CI [#46003090185](https://github.com/Taylan789/MobilyaCAD/actions/runs/46003090185) SUCCESS; QA [#46003090291](https://github.com/Taylan789/MobilyaCAD/actions/runs/46003090291) SUCCESS (424/424 frontend + 858/858 domain; DOM-214 #674); Pages [#46003090263](https://github.com/Taylan789/MobilyaCAD/actions/runs/46003090263) SUCCESS.
 - Strict shared-domain TypeScript, lint (36 warnings / 0 errors), production build ve production-only dependency audit (0 vulnerabilities) geçti.
 - Pages deployment log, pages_build_version değerinin tam olarak 6234eb27f1fdd4379f39139891dab4ddb29d57f8 olduğunu ve test sitesinin https://taylan789.github.io/MobilyaCAD/ adresini doğruluyor.
+
+
+### DOM-215 — tam-sınır snapshot restore ve canonical freshness
+
+**Kullanıcı akışı:** Kullanıcı çoklu Part içeren bir kesim planını JSON v2 veya v3 olarak kaydeder, dosyayı yeniden açar ve üretim verisi değişmeden planın güncel kalmasını bekler. Nesne alanlarının serileştirme sırası önemsizdir; proje Part listesinin sırası ise kayıtlı snapshot sözleşmesinin parçasıdır.
+
+**Kabul kriterleri:**
+- DOM-214'ün iki ayrı kesitli Part ile oluşturduğu tam 8 MiB UTF-8 snapshot, JSON v2 ve v3 parse → serialize → restore döngüsünde aynı Part kayıtlarını ve byte boyutunu korur.
+- v3 `stockSheetSource` kimliği ve revizyonu round-trip sırasında korunur.
+- Güncel Part nesnelerinin tüm JSON nesne anahtarları ters sıraya çevrilse bile kanonik snapshot ve freshness değişmez.
+- Proje Part dizisi yeniden sıralanırsa v2 ve v3 freshness stale, result/json null olur; freshness-gated export blocked ve result/json null döner.
+- Nesting'e seçilmemiş kesitli Part'lar da tam proje snapshot'ı ve sıralama kontrolü kapsamındadır.
+
+**10/10 checklist delta:**
+- Üretim/veri doğruluğu: exact 8 MiB sınırı restore sonrası da korunur; nesne anahtar sırası ile proje Part sırası birbirinden ayrılır.
+- Güvenilirlik/geriye uyumluluk: JSON v2/v3 round-trip ve v3 kullanıcı girdili provenance korunur; stale plan kısmi export üretmez.
+- CAD Core / UX: domain sözleşmesi değişmez; frontend entegrasyonu UI ajanının sahipliğindedir.
+- Performans: bu test benchmark değildir; viewport p95/bellek NOT MEASURED.
+- CNC/makine: adapter, postprocessor veya fiziksel üretim onayı eklenmez; atölye doğrulaması gereklidir.
+
+**Durum:** IMPLEMENTED — exact-SHA CI/QA/Pages pending. Test sonucu görülmeden doğrulanmış sayılmaz.

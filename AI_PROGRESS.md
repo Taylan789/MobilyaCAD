@@ -1965,3 +1965,17 @@
 
 
 - **AI Developer workflow:** [#45993066297](https://github.com/Taylan789/MobilyaCAD/actions/runs/45993066297) failed in the OpenCode product job with OpenRouter free-models-per-day HTTP 429 (limit 50, remaining 0; reset 28 November 2026 00:00 UTC / 03:00 TRT). The specialist job was skipped. No rerun before reset; no paid fallback, secret or quota setting change.
+
+
+## 27 Kasım 2026 16:54 TRT — DOM-215 implementation (Actions pending)
+
+- **Base HEAD:** `ed0e4ee8b646e2290bf421f3e36a0b33c5fb4590` on `dev/github-work`.
+- **Implementation commit SHA:** pending GitHub commit response; exact SHA and Actions evidence will be recorded after the run completes.
+- **Delivery:** DOM-214 exact 8 MiB multi-Part fixture now covers JSON v2/v3 parse → serialize → restore, stable snapshot bytes, v3 stock-sheet source provenance, canonical object-key-order invariance, and stale/null freshness plus blocked/null export after project Part array reordering.
+- **Changed files:** `domain/production/projectSheetCutPlanCutoutEdgeBandingFreshness.test.mjs`, `docs/production-domain-contract.md`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`.
+- **Checks before this commit:** base HEAD CI [#46010022234](https://github.com/Taylan789/MobilyaCAD/actions/runs/46010022234), QA [#46010022151](https://github.com/Taylan789/MobilyaCAD/actions/runs/46010022151) and Pages [#46010022295](https://github.com/Taylan789/MobilyaCAD/actions/runs/46010022295) were SUCCESS; Pages log confirmed the exact base SHA deployment. These do not verify this new commit.
+- **Post-commit checks:** CI/QA/Pages pending; no success claim.
+- **Known limits:** real `panelGeometry` / `edgeBandingByEdge` adapter export blockers remain; JSON v1/CSV adapter round-trip, CNC/postprocessor, machine coordinates and physical workshop validation are not claimed. Viewport p95/memory NOT MEASURED.
+- **Parallel lanes:** UI-owned PR #271 and INT-003 PR #206 remain separate/draft; no frontend files changed. No Integration/Performance specialist branch/PR was found; specialist job skipped, INT-002/PERF-001 remain specialist-owned, QA-003 blocked.
+- **AI Developer:** run [#45993066297](https://github.com/Taylan789/MobilyaCAD/actions/runs/45993066297) failed with OpenRouter free-model daily HTTP 429 (limit 50, remaining 0; reset 28 November 2026 03:00 TRT). No rerun before reset; no paid fallback or secret/quota changes.
+- **Next:** DOM-216 — verify fail-closed freshness/export after a Part is added, removed or has its stable ID changed in a restored JSON v2/v3 project.
