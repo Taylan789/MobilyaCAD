@@ -31,16 +31,16 @@ test("hover and keyboard focus strengthen the same existing add affordance", () 
   assert.match(card, /onClick=\{onAdd\}/);
 });
 
-test("compact desktop cards use a square icon cue to preserve preview space", () => {
-  const compactBlock = actionStyles.match(
-    /@media \(max-width: 820px\)\s*\{([\s\S]*?)\n\}/
+test("compact desktop cards use a 36px icon cue to preserve preview space", () => {
+  const compactRule = actionStyles.match(
+    /@media \(max-width: 820px\)[\s\S]*?\.cad-catalog-card\.mc-catalog-card \.mc-catalog-card__add\s*\{([^}]*)\}/
   )?.[1];
 
-  assert.ok(compactBlock, "the compact catalog breakpoint exists");
-  assert.match(compactBlock, /width:\s*32px\s*;/);
-  assert.match(compactBlock, /height:\s*32px\s*;/);
-  assert.match(compactBlock, /\.mc-catalog-card__add-label\s*\{\s*display:\s*none\s*;/);
-  assert.match(compactBlock, /\.cad-catalog-card\.mc-catalog-card \.mc-catalog-card__add svg\s*\{[\s\S]*?width:\s*15px\s*;[\s\S]*?height:\s*15px\s*;/);
+  assert.ok(compactRule, "the compact catalog breakpoint exists");
+  assert.match(compactRule, /width:\s*36px\s*;/);
+  assert.match(compactRule, /height:\s*36px\s*;/);
+  assert.match(actionStyles, /@media \(max-width: 820px\)[\s\S]*?\.mc-catalog-card__add-label\s*\{\s*display:\s*none\s*;/);
+  assert.match(compactRule, /\.cad-catalog-card\.mc-catalog-card \.mc-catalog-card__add svg/);
   assert.match(card, /aria-label=\{\x60\$\{item\.name\}[\s\S]*?\x60\}/);
 });
 

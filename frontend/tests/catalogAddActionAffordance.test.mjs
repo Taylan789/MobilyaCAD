@@ -17,19 +17,32 @@ test("catalog add affordance is visible and more legible on wide desktop", () =>
   );
   assert.ok(baseRule, "base add-action rule exists");
   assert.match(baseRule[1], /min-width:\s*48px/);
-  assert.match(baseRule[1], /min-height:\s*30px/);
+  assert.match(baseRule[1], /min-height:\s*34px/);
   assert.match(baseRule[1], /opacity:\s*1/);
   assert.match(actionStyles, /\.mc-catalog-card:focus-visible \.mc-catalog-card__add/);
 });
 
-test("compact and medium layouts preserve the established 32px icon-only action", () => {
-  assert.match(
-    actionStyles,
-    /@media \(max-width: 820px\)[\s\S]*?width:\s*32px;[\s\S]*?height:\s*32px;[\s\S]*?\.mc-catalog-card__add-label\s*\{\s*display:\s*none;/,
+test("compact and medium layouts keep distinct icon-only targets", () => {
+  const compact = actionStyles.match(
+    /@media \(max-width: 820px\)[\s\S]*?\.cad-catalog-card\.mc-catalog-card \.mc-catalog-card__add\s*\{([^}]*)\}/,
   );
+  assert.ok(compact, "compact catalog breakpoint exists");
+  assert.match(compact[1], /width:\s*36px/);
+  assert.match(compact[1], /height:\s*36px/);
   assert.match(
     actionStyles,
-    /@media \(min-width: 821px\) and \(max-width: 1360px\)[\s\S]*?width:\s*32px;[\s\S]*?height:\s*32px;/,
+    /@media \(max-width: 820px\)[\s\S]*?\.mc-catalog-card__add-label\s*\{\s*display:\s*none;/,
+  );
+
+  const medium = actionStyles.match(
+    /@media \(min-width: 821px\) and \(max-width: 1180px\)[\s\S]*?\.cad-catalog-card\.mc-catalog-card \.mc-catalog-card__add\s*\{([^}]*)\}/,
+  );
+  assert.ok(medium, "medium-desktop catalog breakpoint exists");
+  assert.match(medium[1], /width:\s*34px/);
+  assert.match(medium[1], /height:\s*34px/);
+  assert.match(
+    actionStyles,
+    /@media \(min-width: 821px\) and \(max-width: 1180px\)[\s\S]*?\.mc-catalog-card__add-label\s*\{\s*display:\s*none;/,
   );
 });
 
