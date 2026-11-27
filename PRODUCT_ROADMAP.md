@@ -2785,7 +2785,7 @@ Sıradaki küçük görevler:
 5. QA-003 — INT-001/INT-002 exact-SHA adapter kanıtından sonra uçtan uca üretim/export data-flow audit.
 
 
-## 27 Kasım 2026 08:48 TRT — DOM-207 açıklık listesi bütünlüğü ve freshness (Actions pending)
+## 27 Kasım 2026 08:54 TRT — DOM-207 açıklık listesi bütünlüğü ve freshness (VERIFIED)
 
 **Ürün kararı:** Kesitli bir Part nesting seçiminden hariç olsa bile proje kesim planının tam snapshot'ında kalır. Açıklık listesinin üyeliği, her açıklığın kimliği ve sırası üretim verisidir; yalnızca mevcut açıklık ölçülerini karşılaştırmak yeterli değildir.
 
@@ -2796,7 +2796,7 @@ Sıradaki küçük görevler:
 - Her değişiklik downstream export'u `blocked`, `result=null`, `json=null` durumuna getirir; test-only adapter override freshness kapısını izole eder.
 - Gerçek üretim raporundaki `panelGeometry` ve `edgeBandingByEdge` adapter blocker'ları korunur; v3 stock-sheet source metadata ve kaydedilmiş JSON değişmez.
 
-**Durum:** Test ve sözleşme commit ediliyor; exact-SHA CI, QA ve Pages sonucu bekleniyor. Runtime domain kaynağı değişmedi: `createProjectPartSnapshot` zaten tam Part kaydını kanonik JSON olarak alıyor ve array sırasını koruyor. Bu dilim, eksik kalan dört liste mutasyonunun regresyon kanıtını ekler; kesitli panel nesting/export desteği iddia etmez.
+**Durum:** VERIFIED — implementation/test commit [395fe2f5f41205f3291cc77bcdf5fcd395d67d6e](https://github.com/Taylan789/MobilyaCAD/commit/395fe2f5f41205f3291cc77bcdf5fcd395d67d6e); exact-SHA CI [#45948449800](https://github.com/Taylan789/MobilyaCAD/actions/runs/45948449800), QA [#45948449810](https://github.com/Taylan789/MobilyaCAD/actions/runs/45948449810) ve Pages [#45948449825](https://github.com/Taylan789/MobilyaCAD/actions/runs/45948449825) SUCCESS. QA 408/408 frontend + 849/849 domain testi; DOM-207 #666 geçti; strict TypeScript, lint 36 warnings / 0 errors, production build ve production-only audit (0 vulnerabilities) geçti. Pages logu exact SHA'yı https://taylan789.github.io/MobilyaCAD/ adresine dağıttığını doğruluyor. Runtime domain kaynağı değişmedi: `createProjectPartSnapshot` tam Part kaydını kanonik JSON olarak alıyor ve array sırasını koruyor. Bu dilim, eksik kalan dört liste mutasyonunun regresyon kanıtını ekler; kesitli panel nesting/export desteği iddia etmez.
 
 **10/10 checklist delta:**
 - Üretim/veri doğruluğu: hariç Part'taki açıklık ekleme/silme/ID/sıra değişiklikleri v2/v3 freshness testlerine eklenir.
