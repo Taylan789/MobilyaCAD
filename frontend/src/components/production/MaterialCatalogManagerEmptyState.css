@@ -406,3 +406,131 @@
     outline-offset: 2px;
   }
 }
+
+
+/* UI-MATERIAL-EMPTY-FORM-JUMP-001 — connect the first-use inventory state to the real material form. */
+.mc-material-library__empty:not(.mc-material-library__empty--search) {
+  grid-template-columns: 42px minmax(0, 1fr) auto;
+  grid-template-rows: auto auto;
+  gap: 4px 12px;
+}
+
+.mc-material-library__empty:not(.mc-material-library__empty--search) > svg {
+  grid-column: 1;
+  grid-row: 1 / 3;
+}
+
+.mc-material-library__empty:not(.mc-material-library__empty--search) > strong {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.mc-material-library__empty:not(.mc-material-library__empty--search) > p {
+  grid-column: 2;
+  grid-row: 2;
+}
+
+.mc-material-library__empty-action {
+  display: inline-flex;
+  min-width: 0;
+  min-height: 34px;
+  grid-column: 3;
+  grid-row: 1 / 3;
+  align-items: center;
+  justify-content: center;
+  justify-self: end;
+  gap: 7px;
+  padding: 0 10px;
+  border: 1px solid rgba(145, 180, 202, .34);
+  border-radius: 4px;
+  background: rgba(9, 18, 24, .28);
+  color: #c4d8e3;
+  font-size: 9px;
+  font-weight: 720;
+  letter-spacing: .035em;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: border-color .16s ease, background .16s ease, color .16s ease;
+}
+
+.mc-material-library__empty-action > svg {
+  width: 13px;
+  height: 13px;
+  flex: 0 0 auto;
+}
+
+.mc-material-library__empty-action:hover {
+  border-color: #9abbd0;
+  background: rgba(105, 142, 164, .18);
+  color: #edf5f8;
+}
+
+.mc-material-library__empty-action:focus-visible {
+  outline: 2px solid #b4d3e4;
+  outline-offset: 3px;
+}
+
+#material-catalog-form {
+  scroll-margin-block: 16px;
+}
+
+#material-catalog-form:focus {
+  outline: 2px solid rgba(145, 180, 202, .58);
+  outline-offset: 4px;
+}
+
+@container material-catalog (max-width: 720px) {
+  .mc-material-library__empty:not(.mc-material-library__empty--search) {
+    grid-template-columns: 34px minmax(0, 1fr);
+    grid-template-rows: auto auto auto;
+    gap: 4px 9px;
+  }
+
+  .mc-material-library__empty:not(.mc-material-library__empty--search) > svg {
+    grid-column: 1;
+    grid-row: 1 / 3;
+    width: 34px;
+    height: 34px;
+    padding: 7px;
+  }
+
+  .mc-material-library__empty:not(.mc-material-library__empty--search) > strong,
+  .mc-material-library__empty:not(.mc-material-library__empty--search) > p {
+    grid-column: 2;
+  }
+
+  .mc-material-library__empty:not(.mc-material-library__empty--search) > strong {
+    grid-row: 1;
+  }
+
+  .mc-material-library__empty:not(.mc-material-library__empty--search) > p {
+    grid-row: 2;
+  }
+
+  .mc-material-library__empty-action {
+    grid-column: 2;
+    grid-row: 3;
+    justify-self: start;
+    margin-top: 5px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mc-material-library__empty-action {
+    transition: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .mc-material-library__empty-action {
+    border-color: ButtonText;
+    background: ButtonFace;
+    color: ButtonText;
+  }
+
+  .mc-material-library__empty-action:focus-visible,
+  #material-catalog-form:focus {
+    outline: 2px solid Highlight;
+    outline-offset: 3px;
+  }
+}
