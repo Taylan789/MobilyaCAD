@@ -1038,11 +1038,13 @@ Bu dosya dört geliştirme/denetim rolünün ortak görev panosu ve entegrasyon 
 - First test-only implementation [347d89c](https://github.com/Taylan789/MobilyaCAD/commit/347d89c314cb1a8d60b93422b3ac2b6affd7ec87) was intentionally corrected after QA exposed lost selection metadata; its QA failed and its Pages deployment was skipped. The correction above is the verified head.
 
 
-## 27 Kasım 2026 15:51 TRT — DOM-214 implementation (Actions pending)
+## 27 Kasım 2026 16:00 TRT — DOM-214 VERIFIED
 
 - Base HEAD: dev/github-work c4b7f77183bc5e476203927313a50a16b7537176; branch ve hedef dosya blob SHA'ları yazma öncesi yeniden doğrulandı.
 - Teslimat: İki ayrı, domain tarafından kabul edilmiş kesitli Part'ın her biri tek başına 8 MiB altında kalırken ortak kanonik UTF-8 snapshot zarfının tam 8 MiB olmasını doğrulayan DOM-214 regresyonu eklendi. Gerçek nesting agregatörü, seçili/hariç Part kimlikleri, JSON v2/v3 snapshot round-trip, freshness ve kontrollü freshness-export kapıları kapsanır.
 - Değişen dosyalar: domain/production/projectSheetCutPlanCutoutEdgeBandingFreshness.test.mjs, docs/production-domain-contract.md, AI_COORDINATION.md, PRODUCT_ROADMAP.md, AI_PROGRESS.md.
-- Exact-SHA CI/QA/Pages sonuçları bu commit için bekleniyor; henüz başarı iddiası yok.
+- Implementation commit: [6234eb27f1fdd4379f39139891dab4ddb29d57f8](https://github.com/Taylan789/MobilyaCAD/commit/6234eb27f1fdd4379f39139891dab4ddb29d57f8).
+- Exact-SHA CI [#46003090185](https://github.com/Taylan789/MobilyaCAD/actions/runs/46003090185) SUCCESS; QA [#46003090291](https://github.com/Taylan789/MobilyaCAD/actions/runs/46003090291) SUCCESS — 424/424 frontend + 858/858 domain test, DOM-214 subtest #674 passed, strict shared-domain TypeScript and production build passed, lint 36 warnings / 0 errors, production-only audit 0 vulnerabilities.
+- Exact-SHA Pages [#46003090263](https://github.com/Taylan789/MobilyaCAD/actions/runs/46003090263) SUCCESS; deployment log confirms pages_build_version=6234eb27f1fdd4379f39139891dab4ddb29d57f8 and https://taylan789.github.io/MobilyaCAD/.
 - Bilinen sınırlar: gerçek panelGeometry / edgeBandingByEdge export blocker'ları korunur; JSON v1/CSV adapter round-trip, kesit nesting, CNC/postprocessor, makine koordinatı ve fiziksel atölye doğrulaması bu testle sağlanmış sayılmaz. Viewport p95/bellek NOT MEASURED.
 - Sonraki görev: DOM-215 — çoklu Part tam-sınır snapshot'ının JSON v2/v3 stringify/parse/restore ve Part sırası değişikliği sonrasında canonical freshness davranışını doğrula.

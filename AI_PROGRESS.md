@@ -1950,13 +1950,15 @@
 - **Next:** DOM-214 — validate the exact 8 MiB aggregate boundary across multiple Parts through the real aggregator and JSON v2/v3 freshness path.
 
 
-## 27 Kasım 2026 15:51 TRT — DOM-214 implementation (Actions pending)
+## 27 Kasım 2026 16:00 TRT — DOM-214 VERIFIED
 
 - **Base HEAD:** dev/github-work c4b7f77183bc5e476203927313a50a16b7537176.
 - **Teslimat:** İki ayrı, geçerli kesitli Part'ın her biri ayrı ayrı 8 MiB altında kalırken ortak kanonik UTF-8 snapshot zarfının tam 8 MiB olarak kabul edilmesini doğrulayan otomatik regresyon eklendi.
 - **Kapsam:** gerçek nesting batch agregatörü, selected/excluded Part kimlikleri, JSON v2/v3 tam-snapshot saklama, freshness ve kontrollü freshness-export. Gerçek adapter blocker'ları ayrıca korunur.
 - **Değişen dosyalar:** domain/production/projectSheetCutPlanCutoutEdgeBandingFreshness.test.mjs, docs/production-domain-contract.md, AI_COORDINATION.md, PRODUCT_ROADMAP.md, AI_PROGRESS.md.
-- **Implementation SHA:** GitHub commit oluşturulduktan sonra exact-SHA doğrulama kaydına eklenecek.
-- **Otomatik kontroller:** exact-SHA CI/QA/Pages pending; sonuç görülmeden başarılı sayılmaz.
+- **Implementation SHA:** [6234eb27f1fdd4379f39139891dab4ddb29d57f8](https://github.com/Taylan789/MobilyaCAD/commit/6234eb27f1fdd4379f39139891dab4ddb29d57f8).
+- **Exact-SHA CI:** [#46003090185](https://github.com/Taylan789/MobilyaCAD/actions/runs/46003090185) SUCCESS.
+- **Exact-SHA QA:** [#46003090291](https://github.com/Taylan789/MobilyaCAD/actions/runs/46003090291) SUCCESS — 424/424 frontend + 858/858 domain test; DOM-214 subtest #674 passed; strict shared-domain TypeScript and production build passed; lint 36 warnings / 0 errors; production-only dependency audit 0 vulnerabilities.
+- **Exact-SHA Pages:** [#46003090263](https://github.com/Taylan789/MobilyaCAD/actions/runs/46003090263) SUCCESS — deployment log confirms pages_build_version=6234eb27f1fdd4379f39139891dab4ddb29d57f8; test site https://taylan789.github.io/MobilyaCAD/.
 - **Bilinen kısıtlar:** panelGeometry / edgeBandingByEdge gerçek export blocker'ları sürer; JSON v1/CSV adapter round-trip, CNC/postprocessor ve fiziksel atölye uygunluğu iddia edilmez. Viewport p95/bellek NOT MEASURED.
 - **Sonraki görev:** DOM-215 — tam-sınır çoklu Part snapshot'ının JSON v2/v3 stringify/parse/restore ve Part sırası değişikliği sonrasında canonical freshness davranışını doğrula.

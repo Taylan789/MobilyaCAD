@@ -3014,4 +3014,11 @@ The first regression commit (347d89c) correctly reached the shared snapshot budg
 - Performans: bu regresyon benchmark değildir; viewport p95/bellek NOT MEASURED.
 - CNC/makine: adapter, postprocessor veya fiziksel üretim onayı eklenmez; atölye doğrulaması gereklidir.
 
-**Durum:** IMPLEMENTED — exact-SHA CI/QA/Pages pending. Actions sonucu görülmeden test başarısı veya test-site deployment iddia edilmez.
+**Durum:** VERIFIED — [commit 6234eb27](https://github.com/Taylan789/MobilyaCAD/commit/6234eb27f1fdd4379f39139891dab4ddb29d57f8); exact-SHA CI [#46003090185](https://github.com/Taylan789/MobilyaCAD/actions/runs/46003090185), QA [#46003090291](https://github.com/Taylan789/MobilyaCAD/actions/runs/46003090291) (424 frontend + 858 domain; DOM-214 #674) ve Pages [#46003090263](https://github.com/Taylan789/MobilyaCAD/actions/runs/46003090263) SUCCESS; exact SHA https://taylan789.github.io/MobilyaCAD/ adresine dağıtıldı.
+
+
+### DOM-214 exact-SHA doğrulaması — 27 Kasım 2026 16:00 TRT
+
+- Implementation [6234eb27](https://github.com/Taylan789/MobilyaCAD/commit/6234eb27f1fdd4379f39139891dab4ddb29d57f8); CI [#46003090185](https://github.com/Taylan789/MobilyaCAD/actions/runs/46003090185) SUCCESS; QA [#46003090291](https://github.com/Taylan789/MobilyaCAD/actions/runs/46003090291) SUCCESS (424/424 frontend + 858/858 domain; DOM-214 #674); Pages [#46003090263](https://github.com/Taylan789/MobilyaCAD/actions/runs/46003090263) SUCCESS.
+- Strict shared-domain TypeScript, lint (36 warnings / 0 errors), production build ve production-only dependency audit (0 vulnerabilities) geçti.
+- Pages deployment log, pages_build_version değerinin tam olarak 6234eb27f1fdd4379f39139891dab4ddb29d57f8 olduğunu ve test sitesinin https://taylan789.github.io/MobilyaCAD/ adresini doğruluyor.
