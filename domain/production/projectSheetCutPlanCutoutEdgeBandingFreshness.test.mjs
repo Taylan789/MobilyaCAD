@@ -24,7 +24,8 @@ function panelRequest({ id, name, widthMm, lengthMm, thicknessMm, quantity, mate
 function cutoutProjectReport({
   topBandingId = "pvc-inner-top",
   topBandingUnit = "m",
-  sinkBottomBanded = false
+  sinkBottomBanded = false,
+  sinkOpening = {}
 } = {}) {
   const report = calculateCabinetProjectProductionWithDiagnostics({
     schemaVersion: 1,
@@ -61,10 +62,10 @@ function cutoutProjectReport({
         cutouts: [
           {
             id: "sink-opening",
-            xMm: 100,
-            yMm: 100,
-            widthMm: 400,
-            lengthMm: 300,
+            xMm: sinkOpening.xMm ?? 100,
+            yMm: sinkOpening.yMm ?? 100,
+            widthMm: sinkOpening.widthMm ?? 400,
+            lengthMm: sinkOpening.lengthMm ?? 300,
             edgeBanding: { top: true, bottom: sinkBottomBanded, left: true, right: false }
           },
           {
@@ -284,5 +285,74 @@ test("DOM-205 downstream v2/v3 export gate rejects stale cutout edge-band edits"
       actualAdapterBlock.productionDiagnostics?.some((item) => /edgeBandingByEdge/.test(item.message)),
       version + " edgeBandingByEdge export blocker must remain visible"
     );
+  }
+});
+
+
+test("DOM-206 JSON v2/v3 freshness and downstream export reject excluded cutout geometry edits", () => {
+  const originalReport = cutoutProjectReport();
+  const jsonV2 = savedPlanV2(originalReport);
+  const plans = [["v2", jsonV2], ["v3", savedPlanV3(jsonV2)]];
+  const geometryChanges = [
+    ["x", { xMm: 120 }],
+    ["y", { yMm: 120 }],
+    ["width", { widthMm: 420 }],
+    ["length", { lengthMm: 320 }]
+  ];
+  const selectedPartIds = [selectedPartId];
+  const exportReport = (savedPlanJson, productionReport) =>
+    createFreshProjectSheetCutPlanExport({
+      schemaVersion: 1,
+      freshness: {
+        schemaVersion: 1,
+        savedPlanJson,
+        productionReport,
+        currentSelectedPartIds: selectedPartIds
+      }
+    });
+  // Test-only override isolates freshness from the still-unsupported adapter fields.
+  const adapterReadyForFreshnessOnly = (report) => ({
+    ...report,
+    canExport: true,
+    exportBlockers: []
+  });
+
+  for (const [version, savedPlanJson] of plans) {
+    const unchanged = validateFreshness(savedPlanJson, originalReport);
+    assert.equal(unchanged.status, "fresh", version);
+    assert.equal(unchanged.json, savedPlanJson, version);
+
+    for (const [change, opening] of geometryChanges) {
+      const editedReport = cutoutProjectReport({ sinkOpening: opening });
+      const stale = validateFreshness(savedPlanJson, editedReport);
+      assertStaleWithoutPartialExport(stale);
+
+      const downstream = exportReport(savedPlanJson, adapterReadyForFreshnessOnly(editedReport));
+      assert.equal(downstream.status, "blocked", version + " " + change);
+      assert.equal(downstream.freshnessStatus, "stale", version + " " + change);
+      assert.equal(downstream.result, null, version + " " + change);
+      assert.equal(downstream.json, null, version + " " + change);
+      assert.deepEqual(downstream.sourcePartIds, selectedPartIds, version + " " + change);
+      assert.match(
+        downstream.diagnostics.join(" "),
+        /custom-worktop-panel üretim Part snapshot'ı değişmiş/,
+        version + " " + change
+      );
+
+      // The real production report must keep both unsupported-field blockers.
+      const adapterBlocked = exportReport(savedPlanJson, editedReport);
+      assert.equal(adapterBlocked.status, "blocked", version + " " + change);
+      assert.equal(adapterBlocked.result, null, version + " " + change);
+      assert.equal(adapterBlocked.json, null, version + " " + change);
+      assert.ok(adapterBlocked.productionDiagnostics?.some((item) => /panelGeometry/.test(item.message)));
+      assert.ok(adapterBlocked.productionDiagnostics?.some((item) => /edgeBandingByEdge/.test(item.message)));
+    }
+
+    if (version === "v3") {
+      assert.deepEqual(
+        JSON.parse(savedPlanJson).result.groups[0].stockSheetSource,
+        { sourceId: "stock-sheet-source-01", revision: "rev-2026-11" }
+      );
+    }
   }
 });

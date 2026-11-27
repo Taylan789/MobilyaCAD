@@ -2756,3 +2756,30 @@ Sıradaki küçük görevler:
 3. Specialist-owned INT-002 — JSON/CSV adapter round-trip ve kesit geometri kayıpsızlığı için exact-SHA kanıt; kanıt gelene kadar export blocker korunur.
 4. Specialist-owned PERF-001 — viewport p95, scene update ve bellek baseline'ını tekrarlanabilir ölç; şu an NOT MEASURED.
 5. QA-003 — INT-001/INT-002 exact-SHA adapter kanıtı geldikten sonra uçtan uca üretim/export data-flow audit.
+
+## 27 Kasım 2026 07:54 TRT — DOM-206 hariç kesit geometrisi ve kalite kapısı (Actions pending)
+
+**Ürün kararı:** Nesting seçiminden hariç tutulan bir Part, proje kesim planının tam snapshot'ında kalır. Bu Part'ın açıklık geometrisi de üretim verisidir; açıklığın x/y konumu ve width/length ölçüsü değiştiğinde kaydedilmiş plan stale olmalıdır.
+
+**Kabul kriterleri:**
+- Gerçek iki-panel proje agregatörü, dikdörtgen Part'ı nesting'e seçer ve kesitli özel paneli snapshot'ta hariç kaynak olarak tutar.
+- JSON v2/v3 değişmeyen projede fresh kalır.
+- Hariç kesitli Part'ın açıklık x, y, width veya length alanlarının her biri ayrı değiştirildiğinde freshness stale olur; downstream export `blocked`, `result=null`, `json=null` döner.
+- Test-only adapter override freshness kapısını izole eder; gerçek üretim raporunda `panelGeometry` ve `edgeBandingByEdge` blocker'ları korunur.
+- v3 stock-sheet source metadata ve kaydedilmiş JSON immutable kalır.
+
+**Durum:** Kod/test/dokümantasyon commit edildi; exact-SHA CI, QA ve Pages sonucu bekleniyor. Runtime API zaten tam Part kaydını canonical JSON olarak snapshot'lıyor; bu dilim yeni hesap davranışı uydurmaz, eksik regresyon kanıtını tamamlar.
+
+**10/10 checklist delta:**
+- Üretim/veri doğruluğu: hariç Part açıklık koordinatları ve ölçüleri v2/v3 freshness kapsamına otomatik testle bağlanır.
+- Güvenilirlik: unchanged fresh; x/y/width/length değişikliği stale ve null export; gerçek adapter blocker'ları korunur.
+- CAD Core / UX: bu domain test diliminde değişmedi; UI ajanının frontend sahipliği korunur.
+- Performans: ölçülmedi; viewport p95 ve bellek NOT MEASURED.
+- CNC/makine: üretim çıktısı veya fiziksel atölye doğrulaması yok; operatör/üretici doğrulaması gerekir.
+
+**Sıradaki 3–5 küçük görev:**
+1. DOM-207 — excluded cutout Part'ta açıklık ekleme/silme/ID ve sıralama değişikliklerinin v2/v3 freshness/export kapısını doğrula.
+2. UI-owned INT-003 — JSON v2 project envelope'ı editor startup/new/save/open akışına bağla; PR #206 ve frontend/** UI ajanının sahipliğindedir.
+3. Specialist-owned INT-002 — JSON/CSV adapter round-trip ve kesit geometri kayıpsızlığı için exact-SHA kanıt; kanıt gelene kadar export blocker korunur.
+4. Specialist-owned PERF-001 — viewport p95, scene update ve bellek baseline'ını tekrarlanabilir ölç; şu an NOT MEASURED.
+5. QA-003 — INT-001/INT-002 exact-SHA adapter kanıtından sonra uçtan uca üretim/export data-flow audit.

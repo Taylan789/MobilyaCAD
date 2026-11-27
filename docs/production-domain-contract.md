@@ -1883,3 +1883,11 @@ Kaynaklar: `domain/production/panelConstruction.ts`, `projectProduction.ts`, `pr
 - Aynı test gerçek üretim raporunu da kullanarak mevcut panelGeometry ve edgeBandingByEdge export blocker'larının korunduğunu doğrular. Test-only override yalnızca freshness katmanını izole eder; ürünün canExport değerini değiştirmez.
 - JSON v1 legacy planları okunabilir kalır ancak ready-export kapısından geçmez. Mevcut JSON v1/CSV adapter'ının kesit geometri ve yönsel kenar bandı alanlarını kayıpsız taşıdığı iddia edilmez; adapter desteği kanıtlanana kadar fail-closed davranış korunur.
 - Otomatik kabul testi: domain/production/projectSheetCutPlanCutoutEdgeBandingFreshness.test.mjs. CNC/postprocessor, makine standardı veya fiziksel atölye uygunluğu doğrulaması değildir.
+
+## DOM-206 — Hariç kesitli Part açıklık geometrisi ve JSON v2/v3 freshness
+
+- `createProjectPartSnapshot` her üretim Part kaydını kanonik JSON olarak saklar; `panelGeometry.cutouts[]` içindeki açıklık kimliği, x/y konumu, width/length ölçüleri ve kenar bayrakları tam Part snapshot'ının parçasıdır.
+- Nesting seçiminden hariç tutulan kesitli Part'ta yalnızca x, y, width veya length alanlarından biri değişse bile `compareProjectPartSnapshots` farkı görür ve `validateProjectSheetCutPlanFreshness` JSON v2/v3 planını stale yapar. Downstream `createFreshProjectSheetCutPlanExport` kapısı `blocked`, `result=null`, `json=null` döndürmelidir.
+- DOM-206 testi gerçek iki-panel proje agregatörünü kullanır; değişmeyen v2/v3 fresh kalır, dört geometri alanının her biri ayrı değiştirildiğinde freshness ve downstream export stale/null davranışını doğrular.
+- Test-only adapter override yalnızca freshness davranışını izole eder. Gerçek raporun `panelGeometry` ve `edgeBandingByEdge` blocker'ları korunur; kesitli geometri JSON v1/CSV adapter'ında destekleniyor sayılmaz.
+- Bu sözleşme makine-bağımsız freshness kontrolüdür; nesting'e kesitli panel eklemez, CNC koordinatı/postprocessor veya fiziksel atölye güvenliği doğrulaması değildir.
