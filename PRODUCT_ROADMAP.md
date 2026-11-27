@@ -3186,3 +3186,31 @@ The first regression commit (347d89c) correctly reached the shared snapshot budg
 3. Specialist-owned INT-002 — JSON/CSV adapter round-trip ve geometry/quantity sadakati; uzman branch/job yokken adapter dosyalarına dokunma.
 4. Specialist-owned PERF-001 — viewport p95, scene update ve bellek baseline; ölçüm NOT MEASURED.
 5. QA-003 — INT-001/INT-002 adapter kanıtı geldikten sonra uçtan uca export/data-flow audit.
+
+
+## DOM-221 — Multiple excluded cutout Parts fail closed atomically
+
+**Kullanıcı akışı:** Kullanıcı projede birden fazla özel kesitli tezgâh Part'ı tutar, yalnızca başka bir paneli levha nesting için seçer ve kesim planını JSON v2/v3 olarak kaydeder. Hariç tutulan tezgâhlardan herhangi birinin kesit geometrisi geçersiz hale gelirse proje genelinde üretim ve dışa aktarma güvenli biçimde durmalıdır.
+
+**Kabul kriterleri:**
+- İki ayrı kesitli custom-worktop Part'ı geçerli üretim raporunda ve tam proje snapshot'ında bulunur; JSON v2/v3 parse → serialize → restore sonrasında freshness fresh kalır.
+- İlk veya ikinci excluded Part'ın cutout listesi tek başına bozulduğunda üretim raporu blocked olur; diğer Part geçerli kalır ve kısmi `result.parts` döndürülmez.
+- Her iki bozukluk senaryosunda nesting batch `result=null` ve `projectPartSnapshot` olmadan blocked olur; cut plan `result/json=null` döndürür.
+- Aynı kayıtlı v2/v3 planının freshness sonucu blocked olur; seçili kaynak Part kimliği korunur, downstream export `result/json=null` döndürür ve tanı bozuk Part kimliğini taşır.
+- Test gerçek üretim agregatörünü, nesting batch, cut-plan, parser/serializer, freshness ve export API'lerini kullanır; adapter desteği varsaymaz.
+
+**10/10 checklist delta:**
+- Üretim/veri doğruluğu: birden fazla excluded cutout Part'tan herhangi birindeki tekil geometri bozukluğu tüm proje snapshot/nesting/export zincirini atomik olarak bloklar.
+- Güvenilirlik/geriye uyumluluk: JSON v2/v3 restore baseline ve fail-closed bozukluk senaryoları otomatik kapsanır.
+- CAD Core / UX: görünür arayüz ve runtime değişmez; frontend/** UI ajanının sahipliğindedir.
+- Performans: viewport p95/bellek NOT MEASURED; bu test performans benchmark'ı değildir.
+- CNC/makine: postprocessor, makine koordinatı veya fiziksel üretim onayı eklenmez; atölye doğrulaması insan sorumluluğundadır.
+
+**Durum:** IMPLEMENTED — test commit [b6711e7995a204847bb4d15304df7761b530df5a](https://github.com/Taylan789/MobilyaCAD/commit/b6711e7995a204847bb4d15304df7761b530df5a); exact-SHA CI/QA/Pages pending.
+
+**Sıradaki 3–5 küçük görev:**
+1. DOM-222 — birden fazla excluded cutout Part'tan birinin kaydedilmiş `panelGeometry` snapshot'ı bozulduğunda v2/v3 restore freshness ve export'un stale/fail-closed kalmasını doğrula.
+2. UI-owned INT-003 PR #206 — editor startup/new/save/open JSON v2 envelope entegrasyonu; UI dosya sahipliği ve PR kontrolü UI ajanında kalır.
+3. Specialist-owned INT-002 — JSON/CSV adapter round-trip ve geometri/miktar sadakati; gerçek uzman branch/PR yokken adapter dosyalarına dokunma.
+4. Specialist-owned PERF-001 — viewport p95, scene update ve bellek baseline; ölçüm yapılana kadar NOT MEASURED.
+5. QA-003 — INT-001/INT-002 adapter kanıtı ve exact-SHA entegrasyon testleri geldikten sonra uçtan uca export/data-flow denetimi.

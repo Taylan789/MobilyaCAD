@@ -2100,3 +2100,17 @@
 - **Parallel ownership:** UI-owned PR #206 (INT-003), #271, #278 and #279 remain open and untouched; no frontend files changed. Integration/Performance specialist job remains disabled and no specialist branch/PR was verified; INT-002/PERF-001 remain specialist-owned.
 - **AI Developer:** [#45993066297](https://github.com/Taylan789/MobilyaCAD/actions/runs/45993066297) remains failed by OpenRouter free-model daily HTTP 429 (limit 50, remaining 0; reset 28 November 2026 03:00 TRT). No rerun was attempted before reset; no paid fallback or credential/quota change.
 - **Next:** DOM-221 — verify that one invalid geometry among multiple excluded cutout Parts atomically blocks the project snapshot, nesting batch, restored freshness and export; continue to leave UI-owned INT-003 and specialist-owned INT-002/PERF-001 files untouched.
+
+
+## 27 Kasım 2026 22:22 TRT — DOM-221 IMPLEMENTED (exact-SHA verification pending)
+
+- **Base HEAD:** `5ca69666607d981ac1aa275e6cdd9b2aafcc8ab6`.
+- **Implementation/test commit:** [b6711e7995a204847bb4d15304df7761b530df5a](https://github.com/Taylan789/MobilyaCAD/commit/b6711e7995a204847bb4d15304df7761b530df5a) on `dev/github-work`.
+- **Changed files:** `domain/production/projectSheetCutPlanCutoutEdgeBandingFreshness.test.mjs`, `AI_COORDINATION.md`, `AI_PROGRESS.md`, `PRODUCT_ROADMAP.md`.
+- **Delivery:** DOM-221 adds a two-excluded-Part regression. With two valid cutout custom-worktops saved in JSON v2/v3, corrupting either Part's cutout list independently blocks production aggregation, emits no partial Part result, prevents nesting from returning a project snapshot, blocks the cut plan, marks restored freshness blocked, and returns no export result/JSON. Structured diagnostics retain the invalid furniture identity.
+- **Acceptance:** both v2 and v3 parse → serialize → restore baselines remain fresh; invalid-first and invalid-second scenarios both fail closed at production, batch, cut-plan, freshness and export boundaries.
+- **Exact-SHA CI / QA / Pages:** pending after this branch update; no success or deployment is claimed yet.
+- **Known limits:** this is regression coverage, not a new visible UI or runtime behavior change. JSON v1/CSV adapter support for `panelGeometry` / `edgeBandingByEdge` remains unsupported; CNC/postprocessor, machine coordinates and physical workshop validation are not claimed. Viewport p95/memory remains NOT MEASURED; production bundle warning remains.
+- **Parallel ownership:** no `frontend/**`, adapter/benchmark-owned, workflow, secret/settings or `main` files changed. UI-owned PR #206 remains draft/unmerged; no Integration/Performance specialist branch was found, so INT-002/PERF-001 remain specialist-owned and QA-003 remains blocked on adapter evidence.
+- **AI Developer:** run [#45993066297](https://github.com/Taylan789/MobilyaCAD/actions/runs/45993066297) failed on OpenRouter free-model daily HTTP 429 (limit 50, remaining 0; reset 28 November 2026 03:00 TRT). Logs were inspected; no rerun before reset, paid fallback, secret or quota change.
+- **Next:** DOM-222 — verify one malformed saved `panelGeometry` snapshot among multiple excluded cutout Parts invalidates restored v2/v3 freshness and blocks export; keep UI-owned INT-003 and specialist-owned INT-002/PERF-001 isolated.
