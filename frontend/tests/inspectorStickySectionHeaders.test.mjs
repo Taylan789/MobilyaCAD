@@ -33,3 +33,10 @@ test("sticky inspector headings remain legible in forced-colors mode", () => {
   );
   assert.match(delivery, /\.cad-inspector-scroll \.cad-section-heading::before\s*\{[^}]*background:\s*Highlight;/);
 });
+
+test("keyboard-focused inspector fields keep clearance below sticky headings", () => {
+  assert.match(
+    delivery,
+    /\.cad-inspector-scroll \[data-slot="scroll-area-viewport"\]\s*\{[^}]*scroll-padding-block:\s*10px 14px;/
+  );
+});
