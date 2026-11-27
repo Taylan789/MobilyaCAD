@@ -3288,8 +3288,34 @@ The first regression commit (347d89c) correctly reached the shared snapshot budg
 **Durum:** VERIFIED — test commit [74bf4d2b](https://github.com/Taylan789/MobilyaCAD/commit/74bf4d2b3c81fbbae888500885ff2f8a6915b3c8); exact-SHA CI [#46078981789](https://github.com/Taylan789/MobilyaCAD/actions/runs/46078981789), QA [#46078981618](https://github.com/Taylan789/MobilyaCAD/actions/runs/46078981618) (447 frontend + 869 domain, DOM-224 #684), Pages [#46078981609](https://github.com/Taylan789/MobilyaCAD/actions/runs/46078981609) SUCCESS; deployment build version matches the exact test SHA.
 
 **Sıradaki 3–5 küçük görev:**
-1. DOM-225 — güncel production Part listesinde duplicate stable ID oluştuğunda restored JSON v2/v3 freshness ve export atomik blocked kalmalı; selected source ID ve null sonuç sözleşmesi test edilmeli.
+1. DOM-225 IMPLEMENTED — cross-family duplicate Part ID production blocker ve restored JSON v2/v3 freshness/export defensive guard eklendi; exact-SHA CI/QA/Pages doğrulaması bekleniyor.
 2. DOM-226 — restored full-project snapshot'taki eksik/fazla excluded Part kayıtlarının current production Part coverage ile karşılaştırmasını v2/v3 freshness/export üzerinden doğrula.
 3. DOM-227 — currentSelectedPartIds duplicate/order/missing senaryolarında freshness/export durum ve kaynak kimliği sözleşmesini gerçek API sınırında doğrula.
 4. UI-owned INT-003 — JSON v2 project envelope editor startup/new/save/open entegrasyonu; yalnızca UI ajanı frontend/** dosyalarında çalışır.
 5. Specialist-owned INT-002/PERF-001 ve QA-003 — adapter round-trip ve viewport p95/bellek ölçümü için gerçek specialist branch/PR kanıtı beklenir; sahiplik devri olmadan adapter/benchmark dosyalarına dokunulmaz.
+
+## 28 Kasım 2026 02:45 TRT — DOM-225 duplicate stable Part identity (IMPLEMENTED, verification pending)
+
+**Kullanıcı akışı:** Kaydedilmiş JSON v2/v3 kesim planı yeniden açıldığında güncel üretim Part listesi, mobilya aileleri arasında stable ID çakışması veya bozulmuş bir in-memory production report taşıyorsa sistem kısmi kesim/JSON çıktısı üretmemelidir.
+
+**Kabul kriterleri:**
+- Farklı mobilya ailelerinin (kitaplık özel rafı ve masa tablası) aynı stable Part ID'yi üretmesi gerçek production aggregator tarafından blocked edilir; proje sonucu null kalır.
+- Geçerli v2/v3 plan parse → serialize/restore sonrasında fresh kalır.
+- Güncel ready report içindeki duplicate selected Part ID ve duplicate excluded Part ID ayrı ayrı freshness/export'u blocked yapar.
+- Blocked freshness/export result=null, json=null döndürür; kaydedilmiş seçili sourcePartIds korunur ve tanı duplicate ID'yi içerir.
+- Test, doğrudan validator yerine gerçek production aggregator, JSON parser/serializer, freshness ve export API'lerini kullanır.
+
+**10/10 checklist delta:**
+- Üretim/veri doğruluğu: farklı ailelerden kaynaklanan stable Part ID çakışması kısmi proje sonucu üretmeden engellenir.
+- Güvenilirlik/geriye uyumluluk: JSON v2 ve v3 restore/freshness/export için duplicate selected/excluded ID sınırları otomatik testlidir.
+- CAD Core / UX: görünür UI ve runtime geometri değişmez; frontend sahipliği UI ajanında kalır.
+- Performans: viewport p95/bellek NOT MEASURED; bu dilim benchmark değildir.
+- CNC/makine: CNC/postprocessor veya fiziksel üretim onayı eklenmez; atölye doğrulaması insan sorumluluğundadır.
+
+**Durum:** IMPLEMENTED — exact-SHA CI/QA/Pages pending; failed veya pending Actions başarılı sayılmaz.
+
+**Sıradaki 3–5 küçük görev:**
+1. DOM-226 — restored full-project snapshot'taki eksik/fazla excluded Part kayıtlarını current production Part coverage ile v2/v3 freshness/export üzerinden doğrula.
+2. DOM-227 — currentSelectedPartIds duplicate/order/missing senaryolarında freshness/export durum ve kaynak kimliği sözleşmesini gerçek API sınırında doğrula.
+3. UI-owned INT-003 — JSON v2 project envelope editor startup/new/save/open entegrasyonu; yalnızca UI ajanı frontend/** dosyalarında çalışır.
+4. Specialist-owned INT-002/PERF-001 ve QA-003 — adapter round-trip ve viewport p95/bellek ölçümü için gerçek specialist branch/PR kanıtı beklenir; sahiplik devri olmadan adapter/benchmark dosyalarına dokunulmaz.

@@ -2228,3 +2228,15 @@
 - **Parallel ownership:** no `frontend/**`, adapter/benchmark-owned, workflow, secrets/settings or `main` files changed. No Integration/Performance specialist branch was found; INT-002/PERF-001 remain specialist-owned and QA-003 waits for adapter evidence. UI-owned PRs remain untouched.
 - **AI Developer:** [#46062919972](https://github.com/Taylan789/MobilyaCAD/actions/runs/46062919972) failed on OpenRouter free-model daily HTTP 429 (limit 50, remaining 0; reset 28 November 2026 03:00 TRT). No rerun before reset, paid fallback, secret or quota change.
 - **Next:** DOM-225 — duplicate stable IDs in the current production Part list must block restored JSON v2/v3 freshness/export atomically.
+
+## 28 Kasım 2026 02:45 TRT — DOM-225 IMPLEMENTED (Actions pending)
+
+- **Base HEAD:** bb0c0ba27e84c9578de9b7d044e0fd73b34584a4 on dev/github-work; branch HEAD and all five target file blob SHAs were re-read before writing.
+- **Commit:** implementation/test and pending-verification record are included in the new branch commit; exact SHA and run links will be recorded after GitHub creates the commit and exact-SHA Actions complete.
+- **Changed files:** domain/production/projectProduction.test.mjs, domain/production/projectSheetCutPlanCutoutEdgeBandingFreshness.test.mjs, AI_COORDINATION.md, PRODUCT_ROADMAP.md, AI_PROGRESS.md.
+- **Delivery:** cross-family bookshelf-shelf/tabletop collision uses distinct furniture IDs but the same generated Part ID; production aggregation must return blocked with null result. JSON v2/v3 parse→serialize/restore then exercises duplicate selected and excluded Part IDs in a cloned current ready report; freshness and export must return blocked/null with the saved selected source ID and duplicate identity diagnostic preserved.
+- **Acceptance:** no partial Part list or JSON; both v2 and v3 covered; duplicate selected and excluded records covered independently.
+- **Exact-SHA CI/QA/Pages:** pending. No local test result or successful Actions result is claimed.
+- **Known limits:** test-only defensive report mutation simulates corrupted in-memory state after the production aggregator; no runtime calculation, frontend, adapter, benchmark, CNC/postprocessor, workflow, secret/settings or main changes. Viewport p95/memory NOT MEASURED; physical workshop validation remains human-only.
+- **Parallel status:** UI-owned INT-003 PR #206 remains draft/unmerged with App integration explicitly deferred; no Integration/Performance specialist branch found; INT-002/PERF-001 remain specialist-owned and QA-003 waits for adapter evidence. AI Developer #46062919972 remains rate-limited until 03:00 TRT; no premature rerun.
+- **Next:** DOM-226 — validate missing/extra excluded Part coverage against the restored v2/v3 full-project snapshot.

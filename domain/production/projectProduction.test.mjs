@@ -2022,3 +2022,37 @@ test("özel panel ailesi proje Part, net tüketim ve açık kesit geometrisi ak�
   assert.equal(summary[0].volumeM3, 0.08664);
   assert.equal(summary[0].edgeBanding.totalLengthMm, 7000);
 });
+
+
+test("proje üretimi farklı mobilya aileleri arasında yinelenen stable Part ID oluşmasını engeller", () => {
+  const bookshelf = createBookshelfRequest("collision-unit");
+  bookshelf.shelves = [{
+    id: "top",
+    leftOffsetMm: 0,
+    rightOffsetMm: 764,
+    heightFromInnerBottomMm: 500,
+    frontOffsetMm: 0,
+    depthMm: 282,
+    thicknessMm: 18,
+    materialId: "mdf-18",
+    edgeBanding: { ...noBanding },
+    grainDirection: "length"
+  }];
+  const table = createTableRequest("collision-unit-shelf");
+
+  const report = calculateCabinetProjectProductionWithDiagnostics({
+    schemaVersion: 1,
+    furniture: [bookshelf, table]
+  });
+
+  assert.equal(report.status, "blocked");
+  assert.equal(report.canExport, false);
+  assert.equal(report.result, null);
+  const collision = report.blockedFurniture.find((item) => item.furnitureId === table.furniture.id);
+  assert.ok(collision, "Çakışan masa mobilyası blocked tanısı taşımalı.");
+  assert.equal(collision.code, "invalid-construction");
+  assert.match(
+    collision.message,
+    /yinelenen üretim parçası kimliği: collision-unit-shelf-top/
+  );
+});

@@ -2169,3 +2169,58 @@ test("DOM-224 JSON v2/v3 restore rejects duplicate and mismatched nested Part id
     }
   }
 });
+
+
+test("DOM-225 JSON v2/v3 restored freshness/export blocks duplicate stable IDs in the current production Part list", () => {
+  const baselineReport = cutoutProjectReport();
+  const jsonV2 = savedPlanV2(baselineReport);
+  const plans = [["v2", jsonV2], ["v3", savedPlanV3(jsonV2)]];
+  const adapterReadyForFreshnessOnly = {
+    ...baselineReport,
+    canExport: true,
+    exportBlockers: []
+  };
+
+  for (const [version, sourceJson] of plans) {
+    const parsed = parseProjectSheetCutPlanJson(sourceJson);
+    assert.equal(parsed.status, "ready", version);
+    const restored = serializeProjectSheetCutPlanJson(parsed);
+    assert.equal(restored.status, "ready", version);
+    assert.ok(restored.json, version);
+    assert.equal(validateFreshness(restored.json, baselineReport).status, "fresh", version);
+
+    for (const duplicatePartId of [selectedPartId, cutoutPartId]) {
+      const duplicateCurrentReport = structuredClone(adapterReadyForFreshnessOnly);
+      const originalPart = duplicateCurrentReport.result.parts.find((part) => part.id === duplicatePartId);
+      assert.ok(originalPart, version + " / " + duplicatePartId);
+      duplicateCurrentReport.result.parts.push(structuredClone(originalPart));
+      assert.equal(duplicateCurrentReport.status, "ready", version + " / " + duplicatePartId);
+      assert.equal(duplicateCurrentReport.canExport, true, version + " / " + duplicatePartId);
+
+      const freshness = validateFreshness(restored.json, duplicateCurrentReport);
+      assert.equal(freshness.status, "blocked", version + " / " + duplicatePartId);
+      assert.equal(freshness.result, null, version + " / " + duplicatePartId);
+      assert.equal(freshness.json, null, version + " / " + duplicatePartId);
+      assert.deepEqual(freshness.sourcePartIds, [selectedPartId], version + " / " + duplicatePartId);
+      assert.match(freshness.diagnostics.join(" "), /yinelenen kimlik/, version + " / " + duplicatePartId);
+      assert.ok(freshness.diagnostics.join(" ").includes(duplicatePartId), version + " / " + duplicatePartId);
+
+      const exported = createFreshProjectSheetCutPlanExport({
+        schemaVersion: 1,
+        freshness: {
+          schemaVersion: 1,
+          savedPlanJson: restored.json,
+          productionReport: duplicateCurrentReport,
+          currentSelectedPartIds: [selectedPartId]
+        }
+      });
+      assert.equal(exported.status, "blocked", version + " / " + duplicatePartId);
+      assert.equal(exported.freshnessStatus, "blocked", version + " / " + duplicatePartId);
+      assert.equal(exported.result, null, version + " / " + duplicatePartId);
+      assert.equal(exported.json, null, version + " / " + duplicatePartId);
+      assert.deepEqual(exported.sourcePartIds, [selectedPartId], version + " / " + duplicatePartId);
+      assert.match(exported.diagnostics.join(" "), /yinelenen kimlik/, version + " / " + duplicatePartId);
+      assert.ok(exported.diagnostics.join(" ").includes(duplicatePartId), version + " / " + duplicatePartId);
+    }
+  }
+});
