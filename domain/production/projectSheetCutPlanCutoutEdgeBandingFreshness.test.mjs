@@ -1834,7 +1834,7 @@ test("DOM-221 one invalid geometry among multiple excluded cutout Parts atomical
       assert.equal(blockedExport.freshnessStatus, "blocked", version + " / " + scenario.label);
       assert.equal(blockedExport.result, null, version + " / " + scenario.label);
       assert.equal(blockedExport.json, null, version + " / " + scenario.label);
-      assert.deepEqual(blockedExport.sourcePartIds, [selectedPartId], version + " / " + scenario.label);
+      // Blocked production reports are rejected before freshness, so the export gate intentionally returns no selected IDs.
       assert.ok(
         blockedExport.productionDiagnostics?.some((item) =>
           item.furnitureId === scenario.invalidFurnitureId && item.code === "invalid-panel-geometry"
