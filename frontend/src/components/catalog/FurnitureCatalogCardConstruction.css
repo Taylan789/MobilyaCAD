@@ -1,4 +1,4 @@
-/* UI-CATALOG-CONSTRUCTION-FIELDS-001 — expose explicit construction fields as a compact, scannable register. */
+/* UI-CATALOG-CONSTRUCTION-READABILITY-001 — improve real construction metadata legibility without increasing card density. */
 .cad-catalog-card.mc-catalog-card.has-construction {
   min-height: 122px !important;
 }
@@ -65,7 +65,7 @@
   font-size: 8px;
   font-weight: 680;
   font-variant-numeric: tabular-nums;
-  line-height: 1.25;
+  line-height: 1.3;
   letter-spacing: -.01em;
   text-overflow: ellipsis;
   white-space: nowrap;
