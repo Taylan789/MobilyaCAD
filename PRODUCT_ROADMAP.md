@@ -3150,7 +3150,7 @@ The first regression commit (347d89c) correctly reached the shared snapshot budg
 - Performans: viewport p95/bellek NOT MEASURED; bu regresyon benchmark değildir.
 - CNC/makine: CNC/postprocessor, makine koordinatı veya fiziksel üretim onayı eklenmez; atölye doğrulaması insan sorumluluğundadır.
 
-**Durum:** IN_PROGRESS — test eklendi; exact-SHA CI/QA/Pages sonuçları bekleniyor.
+**Durum:** VERIFIED — implementation [7a7b6ad20738507f9434616718af9b40ed468f61](https://github.com/Taylan789/MobilyaCAD/commit/7a7b6ad20738507f9434616718af9b40ed468f61); exact-SHA CI [#46040714882](https://github.com/Taylan789/MobilyaCAD/actions/runs/46040714882), QA [#46040714112](https://github.com/Taylan789/MobilyaCAD/actions/runs/46040714112) (425 frontend + 863 domain; DOM-219 #678) ve Pages [#46040714405](https://github.com/Taylan789/MobilyaCAD/actions/runs/46040714405) SUCCESS. Strict shared-domain TypeScript, lint (36 warnings / 0 errors), production build ve production-only audit (0 vulnerabilities) geçti; exact SHA test sitesine dağıtıldı.
 
 **Sıradaki 3–5 küçük görev:**
 1. DOM-220 — geçersiz veya eksik excluded cutout geometry kaydının mevcut freshness/export akışını kısmi snapshot üretmeden blokladığını doğrula.
