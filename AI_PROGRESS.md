@@ -1898,3 +1898,16 @@
 - **Paralel işler:** UI-owned INT-003 PR [#206](https://github.com/Taylan789/MobilyaCAD/pull/206) ayrı/draft ve bu ajan tarafından değiştirilmedi. `agent/integration-performance-*` branch/PR bulunmadı; workflow specialist job `if: false` olduğu için INT-002/PERF-001 doğrulanmadı, QA-003 adapter kanıtını bekliyor. AI Developer [run #45931417737](https://github.com/Taylan789/MobilyaCAD/actions/runs/45931417737) OpenRouter free-model daily HTTP 429 (limit 50, remaining 0) ile başarısız; reset 28 Kasım 2026 03:00 TRT. Erken rerun, ücretli fallback, secret veya workflow ayarı değişikliği yapılmadı.
 - **Sonraki görev:** DOM-212 — geçerli geometri metadata'sıyla 8 MiB + 1 byte sınırını gerçek agregatör ve kayıtlı JSON v2/v3 freshness/export akışında fail-closed doğrula; kısmi snapshot üretme.
 
+
+
+## 27 Kasım 2026 13:43 TRT — DOM-212 implementation (Actions pending)
+
+- **Base HEAD:** `dev/github-work` `f5e68464ce24d9da967c6e1c0e450bcddc9c3c1e`.
+- **Teslimat:** DOM-211 exact 8 MiB sınır testini tamamlayacak şekilde, geçerli kesit geometri metadata'sı içindeki açıklık kimliği tam olarak 1 UTF-8 byte daha büyütülerek 8 MiB + 1 byte regresyonu eklendi.
+- **Kabul:** Domain production raporu `ready` kalır; gerçek nesting aggregator blocked/null ve snapshot'sız döner; cut-plan JSON üretmez; saved JSON v2/v3 freshness ve kontrollü export gate blocked/null döner. Gerçek adapter blocker'ları korunur.
+- **Değişen dosyalar:** `domain/production/projectSheetCutPlanCutoutEdgeBandingFreshness.test.mjs`, `docs/production-domain-contract.md`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`.
+- **Implementation commit:** bu kayıtla birlikte oluşturulan tek tutarlı commit; exact SHA ve CI/QA/Pages run bağlantıları doğrulama tamamlandıktan sonra eklenecek.
+- **Otomatik kontroller:** bu commit için henüz Actions sonucu görülmedi; CI, QA ve Pages doğrulaması pending. Önceki base SHA CI [#45977552146](https://github.com/Taylan789/MobilyaCAD/actions/runs/45977552146), QA [#45977551991](https://github.com/Taylan789/MobilyaCAD/actions/runs/45977551991), Pages [#45977551987](https://github.com/Taylan789/MobilyaCAD/actions/runs/45977551987) SUCCESS idi.
+- **Bilinen kısıtlar:** gerçek `panelGeometry` / `edgeBandingByEdge` adapter export blocker'ları sürer; JSON v1/CSV round-trip, cutout nesting, CNC/postprocessor ve fiziksel atölye uygunluğu iddia edilmez. Viewport p95/bellek NOT MEASURED.
+- **Paralel işler:** UI-owned INT-003 PR [#206](https://github.com/Taylan789/MobilyaCAD/pull/206) ayrı/draft. Integration/Performance workflow job `if: false` ve specialist branch/PR yok; INT-002/PERF-001 unverified, QA-003 gated. AI Developer [#45931417737](https://github.com/Taylan789/MobilyaCAD/actions/runs/45931417737) free-model daily 429 nedeniyle başarısız; reset 28 Kasım 2026 03:00 TRT, erken rerun yok.
+- **Sonraki görev:** DOM-213 — çoklu Part toplam snapshot bütçesi: her Part tek başına limit altında olsa bile proje zarfı limit+1 olduğunda atomik fail-closed.

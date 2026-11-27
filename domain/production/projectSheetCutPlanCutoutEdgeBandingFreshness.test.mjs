@@ -776,3 +776,123 @@ test("DOM-211 exact 8 MiB snapshot remains lossless through real nesting and sav
   }
 });
 
+
+
+test("DOM-212 valid cutout metadata one UTF-8 byte over 8 MiB blocks aggregation and saved v2/v3 freshness/export atomically", () => {
+  const baseCutouts = [
+    {
+      id: "opening-",
+      xMm: 100,
+      yMm: 100,
+      widthMm: 400,
+      lengthMm: 300,
+      edgeBanding: { top: true, bottom: false, left: true, right: false }
+    },
+    {
+      id: "cooktop-opening",
+      xMm: 800,
+      yMm: 100,
+      widthMm: 300,
+      lengthMm: 200,
+      edgeBanding: { top: true, bottom: false, left: false, right: true }
+    }
+  ];
+  const baselineReport = cutoutProjectReport({ cutouts: baseCutouts });
+  const baselineSnapshot = createProjectPartSnapshot(baselineReport.result.parts);
+  const baselineBytes = new TextEncoder().encode(JSON.stringify(baselineSnapshot)).byteLength;
+  const openingIdPayloadLength = PROJECT_PART_SNAPSHOT_MAX_BYTES - baselineBytes;
+  assert.ok(openingIdPayloadLength > 0);
+  assert.equal(
+    baselineBytes + openingIdPayloadLength + 1,
+    PROJECT_PART_SNAPSHOT_MAX_BYTES + 1
+  );
+
+  // The extra byte is carried by a valid, domain-accepted cutout ID, not malformed metadata.
+  const oversizedOpeningId = "opening-" + "x".repeat(openingIdPayloadLength + 1);
+  const oversizedReport = cutoutProjectReport({
+    cutouts: [{ ...baseCutouts[0], id: oversizedOpeningId }, baseCutouts[1]]
+  });
+  assert.equal(oversizedReport.status, "ready");
+  assert.ok(oversizedReport.result);
+  const oversizedPart = oversizedReport.result.parts.find((part) => part.id === cutoutPartId);
+  assert.equal(oversizedPart?.panelGeometry?.cutouts[0]?.id, oversizedOpeningId);
+  assert.throws(
+    () => createProjectPartSnapshot(oversizedReport.result.parts),
+    /8 MiB UTF-8/
+  );
+
+  const jsonV2 = savedPlanV2(baselineReport);
+  const plans = [["v2", jsonV2], ["v3", savedPlanV3(jsonV2)]];
+  const batches = createProjectSheetNestingBatches({
+    schemaVersion: 1,
+    productionReport: oversizedReport,
+    partIds: [selectedPartId],
+    stockSheets: [{
+      sheet: {
+        materialId: "mdf-18",
+        widthMm: 1200,
+        lengthMm: 1000,
+        thicknessMm: 18,
+        grainDirection: "length"
+      },
+      kerfMm: 3
+    }]
+  });
+  assert.equal(batches.status, "blocked");
+  assert.equal(batches.result, null);
+  assert.equal(batches.projectPartSnapshot, undefined);
+  assert.match(batches.diagnostics.join(" "), /8 MiB UTF-8/);
+
+  const cutPlan = createProjectSheetCutPlan({
+    schemaVersion: 1,
+    batchReport: batches,
+    layoutReports: []
+  });
+  assert.equal(cutPlan.status, "blocked");
+  assert.equal(cutPlan.result, null);
+  assert.equal(cutPlan.json, null);
+
+  for (const [version, savedPlanJson] of plans) {
+    assert.equal(validateFreshness(savedPlanJson, baselineReport).status, "fresh", version);
+
+    const freshness = validateFreshness(savedPlanJson, oversizedReport);
+    assert.equal(freshness.status, "blocked", version);
+    assert.equal(freshness.result, null, version);
+    assert.equal(freshness.json, null, version);
+    assert.deepEqual(freshness.sourcePartIds, [selectedPartId], version);
+    assert.match(freshness.diagnostics.join(" "), /8 MiB UTF-8/, version);
+
+    // Isolate the snapshot/freshness gate; this does not remove real adapter blockers.
+    const freshnessExport = createFreshProjectSheetCutPlanExport({
+      schemaVersion: 1,
+      freshness: {
+        schemaVersion: 1,
+        savedPlanJson,
+        productionReport: { ...oversizedReport, canExport: true, exportBlockers: [] },
+        currentSelectedPartIds: [selectedPartId]
+      }
+    });
+    assert.equal(freshnessExport.status, "blocked", version);
+    assert.equal(freshnessExport.freshnessStatus, "blocked", version);
+    assert.equal(freshnessExport.result, null, version);
+    assert.equal(freshnessExport.json, null, version);
+    assert.deepEqual(freshnessExport.sourcePartIds, [selectedPartId], version);
+    assert.match(freshnessExport.diagnostics.join(" "), /8 MiB UTF-8/, version);
+
+    const actualAdapterBlock = createFreshProjectSheetCutPlanExport({
+      schemaVersion: 1,
+      freshness: {
+        schemaVersion: 1,
+        savedPlanJson,
+        productionReport: oversizedReport,
+        currentSelectedPartIds: [selectedPartId]
+      }
+    });
+    assert.equal(actualAdapterBlock.status, "blocked", version);
+    assert.equal(actualAdapterBlock.result, null, version);
+    assert.equal(actualAdapterBlock.json, null, version);
+    assert.ok(actualAdapterBlock.productionDiagnostics?.some((item) => /panelGeometry/.test(item.message)));
+    assert.ok(actualAdapterBlock.productionDiagnostics?.some((item) => /edgeBandingByEdge/.test(item.message)));
+    assert.equal(JSON.parse(savedPlanJson).formatVersion, version === "v2" ? 2 : 3);
+  }
+});

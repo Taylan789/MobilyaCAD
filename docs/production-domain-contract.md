@@ -1951,3 +1951,13 @@ An over-limit or over-depth snapshot is rejected as a whole. `createProjectPartS
 
 **DOM-211 exact-SHA verification:** Implementation [7af3969](https://github.com/Taylan789/MobilyaCAD/commit/7af39694e8fce58edde3f03425b09c5f2c567741); CI [#45977252307](https://github.com/Taylan789/MobilyaCAD/actions/runs/45977252307), QA [#45977252261](https://github.com/Taylan789/MobilyaCAD/actions/runs/45977252261) and Pages [#45977252247](https://github.com/Taylan789/MobilyaCAD/actions/runs/45977252247) all SUCCESS. QA passed 421 frontend + 855 domain tests; DOM-211 #671 passed; strict shared-domain TypeScript, production build and production-only audit (0 vulnerabilities) passed; lint 36 warnings / 0 errors. Pages deployment log confirms the exact SHA and https://taylan789.github.io/MobilyaCAD/.
 
+
+
+## DOM-212 — geçerli kesit metadata'sında 8 MiB + 1 byte sınırı
+
+- `projectPartSnapshot` tam proje Part snapshot zarfını gerçek UTF-8 JSON boyutuyla sınırlar; sınır tek bir Part'a değil bütün proje zarfına uygulanır.
+- Regresyon, üretim domain'i tarafından kabul edilen kesitli panel açıklık kimliğini yalnızca 1 ASCII byte büyüterek toplam snapshot'ı tam 8 MiB + 1 byte yapar. Üretim raporu yine `ready` kalır; bu, bozuk geometri girdisi testi değildir.
+- Gerçek nesting batch agregatörü `blocked`, `result: null` ve `projectPartSnapshot` olmadan döner. Cut-plan oluşturucu kısmi plan veya JSON üretmez.
+- Mevcut JSON v2/v3 kayıtları, aynı oversized güncel proje ile freshness ve kontrollü freshness-export kapısından `blocked` / `null` döner; eski kayıt değişmeden kalır.
+- Gerçek production export, `panelGeometry` ve `edgeBandingByEdge` adapter alanları desteklenmediği için bloklu kalır. Test override'ı yalnızca snapshot/freshness kapısını izole eder; üretime hazır adapter veya CNC desteği iddiası değildir.
+- Bu dilim test/dokümantasyon kapsamındadır; CNC makine standardı, fiziksel üretim veya viewport performans ölçümü sağlamaz.

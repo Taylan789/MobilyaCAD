@@ -993,3 +993,15 @@ Bu dosya dört geliştirme/denetim rolünün ortak görev panosu ve entegrasyon 
 - Exact-SHA QA: [QA #45961079509](https://github.com/Taylan789/MobilyaCAD/actions/runs/45961079509) SUCCESS — 415/415 frontend + 853/853 domain tests; DOM-209 subtests #270, #271 and #696 passed; strict shared-domain TypeScript passed; lint 36 warnings / 0 errors; production build passed; production-only audit 0 vulnerabilities.
 - Exact-SHA Pages: [Pages #45961079519](https://github.com/Taylan789/MobilyaCAD/actions/runs/45961079519) SUCCESS — deployment log confirms `pages_build_version=7b4a1517eb95788ade26c944fc53736715f6c0d0` and URL https://taylan789.github.io/MobilyaCAD/.
 - Next: DOM-210 — prove the same fail-closed behavior through the real project aggregator and downstream saved cut-plan consumer.
+
+
+## 27 Kasım 2026 13:43 TRT — DOM-212 implementation
+
+| ID | Görev | Sahip | Durum | Kabul / teslim kanıtı | Sonraki |
+|---|---|---|---|---|---|
+| DOM-212 | Geçerli kesit açıklık metadata'sıyla tam proje snapshot sınırını 8 MiB + 1 byte aş; gerçek agregatör ve kayıtlı JSON v2/v3 freshness/export hiçbir kısmi sonuç döndürmemeli | Ürün Geliştirme | IMPLEMENTED — exact-SHA Actions pending | Domain tarafından kabul edilen açıklık ID'si yalnızca 1 byte büyütülür; nesting batch, cut-plan, v2/v3 freshness ve freshness-export fail-closed doğrulanır; gerçek adapter blocker'ları korunur | DOM-213 |
+
+- Base HEAD: `f5e68464ce24d9da967c6e1c0e450bcddc9c3c1e`. Bu dilim yalnızca `domain/production/**` test dosyası ile frontend dışı üretim sözleşmesi/yol haritası/ilerleme belgelerini kapsar; `frontend/**`, adapter/benchmark sahipliği, CNC/postprocessor, workflow, secrets, ayarlar ve `main` değiştirilmez.
+- UI-owned INT-003 PR [#206](https://github.com/Taylan789/MobilyaCAD/pull/206) ayrı/draft kalır. Integration/Performance job `if: false`; `agent/integration-performance-*` branch/PR bulunmadı. INT-002/PERF-001 uzman sahipliğinde ve doğrulanmamış; QA-003 adapter kanıtını bekler.
+- Son görülen AI Developer run [#45931417737](https://github.com/Taylan789/MobilyaCAD/actions/runs/45931417737), OpenRouter ücretsiz günlük kota 429 nedeniyle başarısızdır (remaining 0; reset 28 Kasım 2026 03:00 TRT). Kota resetlenmeden rerun yapılmaz; ücretli fallback, secret veya workflow ayarı değiştirilmez.
+- Sonraki domain işi DOM-213: birden fazla Part'ın her biri tek başına limitin altında kalırken toplam proje snapshot zarfının 8 MiB + 1 byte olması durumunu gerçek agregatör ve saved-plan freshness/export üzerinden atomik doğrula.

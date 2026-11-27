@@ -2927,3 +2927,30 @@ Sıradaki küçük görevler:
 4. Specialist-owned PERF-001 — viewport p95, scene update ve bellek baseline'ı; integration/performance workflow job `if: false`, specialist branch/PR yok.
 5. QA-003 — INT-001/INT-002 adapter kanıtı geldikten sonra uçtan uca üretim/export data-flow audit.
 
+
+
+## 27 Kasım 2026 13:43 TRT — DOM-212 8 MiB + 1 byte fail-closed regresyonu
+
+**Ürün kararı:** DOM-211 tam 8 MiB sınırının geçerli kesit geometrisiyle kabul edildiğini kanıtladı. Bir byte üzerindeki sınır davranışı da aynı gerçek proje akışında doğrulanmalı; hatalı geometriyle karıştırılmamalı ve kısmi üretim/saved-plan çıktısı bırakmamalıdır.
+
+**Kabul kriterleri:**
+- Açıklık kimliği domain geometri doğrulamasından geçer; tam proje snapshot'ı beklenen biçimde 8 MiB + 1 UTF-8 byte olur.
+- Gerçek nesting batch agregatörü blocked/null döner ve kısmi `projectPartSnapshot` taşımaz; cut-plan oluşturucu JSON üretmez.
+- Değişmemiş JSON v2/v3 saved planları baseline projede fresh kalır; oversized güncel proje ile freshness ve kontrollü freshness-export blocked/null olur.
+- Gerçek adapter export, `panelGeometry` / `edgeBandingByEdge` desteklenmediği için blocked kalır.
+
+**10/10 checklist delta:**
+- Üretim/veri bütünlüğü: geçerli geometri metadata'sı ile 8 MiB + 1 byte sınırı; aggregator, cut-plan ve saved-plan tüketicileri atomik fail-closed.
+- Geriye uyumluluk: eski v2/v3 kayıtları baseline projede fresh; başarısız güncel snapshot kısmi sonuç döndürmez.
+- CAD Core / UX: domain test-only dilimi; frontend/** UI ajanının sahipliğinde.
+- Performans: bu regresyon benchmark değildir; viewport p95/bellek NOT MEASURED.
+- CNC/makine: adapter, nesting yerleşimi, postprocessor veya fiziksel üretim onayı eklenmez.
+
+**Durum:** IMPLEMENTED — commit oluşturuldu; exact-SHA CI/QA/Pages sonuçları bekleniyor.
+
+**Sıradaki 3–5 küçük görev:**
+1. DOM-213 — ayrı ayrı 8 MiB altında kalan birden fazla Part'ın toplam proje snapshot zarfı 8 MiB + 1 byte olduğunda gerçek agregatör ve JSON v2/v3 freshness/export atomik bloklanmalı.
+2. UI-owned INT-003 — JSON v2 project envelope editor startup/new/save/open entegrasyonu; PR [#206](https://github.com/Taylan789/MobilyaCAD/pull/206) draft/unmerged ve UI ajanının sahipliğinde.
+3. Specialist-owned INT-002 — kesitli geometri, JSON/CSV adapter round-trip ve quantity sadakati için exact-SHA kanıt; kanıt gelene kadar gerçek export blocker'ları korunur.
+4. Specialist-owned PERF-001 — viewport p95, scene update ve bellek baseline ölçümü; integration/performance workflow job `if: false`, specialist branch/PR yok.
+5. QA-003 — INT-001/INT-002 adapter kanıtından sonra uçtan uca üretim/export data-flow audit.
