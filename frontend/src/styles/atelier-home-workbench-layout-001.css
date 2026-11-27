@@ -730,3 +730,145 @@
     color: CanvasText !important;
   }
 }
+
+
+/* UI-LAUNCH-EMPTY-PROJECT-CTA-001 — make the existing first-project action read as a deliberate CAD entry point. */
+.atelier-home .atelier-empty-project {
+  position: relative;
+  min-height: 72px;
+  gap: 13px;
+  padding: 12px 14px;
+  color: #e2eaf0 !important;
+  background: linear-gradient(135deg, rgba(39, 58, 69, .94), rgba(22, 35, 44, .98)) !important;
+  border: 1px solid #435b69 !important;
+  border-left: 2px solid #86abc2 !important;
+  border-radius: 7px;
+  box-shadow: inset 0 1px rgba(238, 247, 251, .05), 0 5px 14px rgba(0, 0, 0, .12);
+}
+
+.atelier-home .atelier-empty-project:hover {
+  color: #f5f8fa !important;
+  background: linear-gradient(135deg, #304b5b, #1e3441) !important;
+  border-color: #7598ad !important;
+  border-left-color: #c49a79 !important;
+  box-shadow: inset 0 1px rgba(238, 247, 251, .08), 0 7px 17px rgba(0, 0, 0, .18);
+}
+
+.atelier-home .atelier-empty-project:focus-visible {
+  outline: 2px solid #a9c7d8 !important;
+  outline-offset: 3px !important;
+}
+
+.atelier-home .atelier-empty-plus {
+  display: grid;
+  flex: 0 0 36px;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  color: #d2a27e !important;
+  background: linear-gradient(145deg, #344b58, #263944) !important;
+  border: 1px solid #607d8f !important;
+  border-radius: 5px;
+  box-shadow: inset 0 1px rgba(241, 247, 250, .07);
+  font-size: 19px;
+  line-height: 1;
+}
+
+.atelier-home .atelier-empty-project > span:nth-child(2) {
+  min-width: 0;
+  gap: 3px;
+}
+
+.atelier-home .atelier-empty-project b {
+  color: #e6eef3 !important;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.atelier-home .atelier-empty-project small {
+  max-width: 52ch;
+  color: #a1b2bd !important;
+  font-size: 9px;
+  line-height: 1.45;
+}
+
+.atelier-home .atelier-empty-arrow {
+  display: grid;
+  flex: 0 0 28px;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  margin-left: auto;
+  color: #b8d0df !important;
+  background: rgba(8, 17, 23, .22);
+  border: 1px solid #415968;
+  border-radius: 5px;
+  font-size: 16px;
+  transition: color 140ms ease, background 140ms ease, border-color 140ms ease;
+}
+
+.atelier-home .atelier-empty-project:hover .atelier-empty-arrow {
+  color: #f2f7fa !important;
+  background: #355366;
+  border-color: #7195ab;
+}
+
+@media (max-width: 560px) {
+  .atelier-home .atelier-empty-project {
+    min-height: 64px;
+    gap: 9px;
+    padding: 9px;
+  }
+
+  .atelier-home .atelier-empty-plus {
+    flex-basis: 32px;
+    width: 32px;
+    height: 32px;
+  }
+
+  .atelier-home .atelier-empty-project small {
+    font-size: 8px;
+  }
+
+  .atelier-home .atelier-empty-arrow {
+    flex-basis: 24px;
+    width: 24px;
+    height: 24px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .atelier-home .atelier-empty-project,
+  .atelier-home .atelier-empty-arrow {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+@media (forced-colors: active) {
+  .atelier-home .atelier-empty-project {
+    color: ButtonText !important;
+    background: ButtonFace !important;
+    border: 1px solid ButtonText !important;
+    box-shadow: none !important;
+  }
+
+  .atelier-home .atelier-empty-plus,
+  .atelier-home .atelier-empty-arrow {
+    color: ButtonText !important;
+    background: ButtonFace !important;
+    border-color: ButtonText !important;
+    box-shadow: none !important;
+  }
+
+  .atelier-home .atelier-empty-project b,
+  .atelier-home .atelier-empty-project small {
+    color: ButtonText !important;
+  }
+
+  .atelier-home .atelier-empty-project:focus-visible {
+    outline: 2px solid Highlight !important;
+    outline-offset: 3px !important;
+  }
+}
