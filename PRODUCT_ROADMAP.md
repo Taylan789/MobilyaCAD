@@ -2660,7 +2660,7 @@ Sıradaki küçük görevler:
 - Bloklu fiyat snapshot'ı JSON v2 proje teklif revizyonuna eklenemez; mevcut proje değişmez.
 - Geçerli DOM-201 kesit fiyatlaması ve kesit geometri adapter'ı desteklemediği sürece export blocker korunur.
 
-**Durum:** İlk implementation [59cb664710177f160dea87f89f2c2ce6e43181fd](https://github.com/Taylan789/MobilyaCAD/commit/59cb664710177f160dea87f89f2c2ce6e43181fd): CI SUCCESS; QA 842/843 domain test ile FAILED (yeni testin local helper tanımları eksikti); Pages build SUCCESS ancak deploy exact-SHA QA gate nedeniyle SKIPPED. Hata test fixture kapsamındadır; düzeltme hazırlanıyor, failed SHA yayımlanmadı.
+**Durum:** VERIFIED — correction [d65ff698c2262ee51e62e985252634db189eca8f](https://github.com/Taylan789/MobilyaCAD/commit/d65ff698c2262ee51e62e985252634db189eca8f); exact-SHA CI [#45919933383](https://github.com/Taylan789/MobilyaCAD/actions/runs/45919933383), QA [#45919933315](https://github.com/Taylan789/MobilyaCAD/actions/runs/45919933315) (395/395 frontend + 843/843 domain, strict TS, lint 36 warnings / 0 errors, production build, audit 0 vulnerabilities) and Pages [#45919933307](https://github.com/Taylan789/MobilyaCAD/actions/runs/45919933307) SUCCESS; exact SHA deployed to https://taylan789.github.io/MobilyaCAD/. First attempt [59cb664](https://github.com/Taylan789/MobilyaCAD/commit/59cb664710177f160dea87f89f2c2ce6e43181fd) failed only because the new test fixture omitted local helper declarations; it was not deployed.
 
 **10/10 checklist delta:**
 - Üretim/maliyet: invalid cutout, overlap, Part ID ve Part ölçüsü uyuşmazlıkları için fail-closed teklif kapısı; kısmi Part/para toplamı yok.

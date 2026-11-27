@@ -1740,10 +1740,11 @@
 - **Paralel roller:** UI-owned INT-003 PR #206 draft/untouched; Integration/Performance job `if: false`, no specialist branch/PR; INT-002/PERF-001 specialist-owned and QA-003 blocked. AI Developer #45890606689 hit OpenRouter free daily HTTP 429; reset passed at 03:00 TRT, but no rerun was started during this branch write/verification window to avoid a second concurrent writer.
 - **Next:** DOM-202 — invalid, overlapping or Part-dimension-mismatched cutout geometry must block quote snapshot/revision creation with no partial monetary total; then preserve UI-owned INT-003 and specialist-owned INT-002/PERF-001 boundaries.
 
-## 27 Kasım 2026 03:53 TRT — DOM-202 kesit geometrisi fail-closed teklif kapısı (Actions pending)
+## 27 Kasım 2026 03:53 TRT — DOM-202 kesit geometrisi fail-closed teklif kapısı (VERIFIED)
 
 - **Base HEAD:** `dev/github-work` `841da3240cebd732ddb725496edd06af3192f40b`.
-- **Implementation commit:** [59cb664710177f160dea87f89f2c2ce6e43181fd](https://github.com/Taylan789/MobilyaCAD/commit/59cb664710177f160dea87f89f2c2ce6e43181fd).
+- **First attempt:** [59cb664710177f160dea87f89f2c2ce6e43181fd](https://github.com/Taylan789/MobilyaCAD/commit/59cb664710177f160dea87f89f2c2ce6e43181fd); CI passed, QA caught one missing test-local helper, and Pages correctly skipped deployment.
+- **Correction implementation commit:** [d65ff698c2262ee51e62e985252634db189eca8f](https://github.com/Taylan789/MobilyaCAD/commit/d65ff698c2262ee51e62e985252634db189eca8f).
 - **Delivery:** Added four quote-path regressions for an out-of-bounds opening, overlapping openings, outer geometry width that differs from the production Part, and a missing Part ID. Each case must block the production report with `invalid-panel-geometry`, return no Part result, block the pricing snapshot with null snapshot/currency/cost summary and empty line-source mapping, and reject project revision append.
 - **Acceptance:** No partial production list or monetary total can escape from invalid cutout geometry; DOM-201 valid cutout pricing and the existing `panelGeometry` JSON v1/CSV export blocker remain unchanged.
 - **Changed files:** `domain/production/projectCustomPanelQuoteRevision.test.mjs`, `docs/production-domain-contract.md`, `AI_COORDINATION.md`, `AI_PROGRESS.md`, `PRODUCT_ROADMAP.md`. No production runtime source, `frontend/**`, adapter/benchmark-owned file, workflow, secret/setting or `main` change.
@@ -1752,9 +1753,12 @@
 - **Parallel lanes:** UI-owned INT-003 PR [#206](https://github.com/Taylan789/MobilyaCAD/pull/206) remains draft and untouched. Integration/Performance job remains disabled (`if: false`); no specialist branch/PR was verified, so INT-002/PERF-001 remain specialist-owned and QA-003 remains blocked. The prior AI Developer run [#45890606689](https://github.com/Taylan789/MobilyaCAD/actions/runs/45890606689) failed on OpenRouter free daily HTTP 429; no rerun was started because it would introduce another writer on this same branch during the current commit/verification.
 - **Next:** DOM-203 — verify cutout inner-edge banding length/quantity and user-priced edge-band quote source reconciliation, without removing unsupported geometry export blockers.
 
-### DOM-202 QA correction — 27 Kasım 2026 03:55 TRT (verification pending)
+### DOM-202 QA correction — 27 Kasım 2026 03:55 TRT (VERIFIED)
 
 - **Root cause:** The first QA run executed the new domain test and caught a test-harness scoping error: the `opening` and `validGeometry` helpers were constructed in the automation edit script but omitted from the emitted test function. This is a regression-test fixture error, not a production behavior failure.
 - **Correction:** Declare both helpers inside the DOM-202 test before constructing its four invalid geometry cases. Keep all production assertions intact; no test is removed or weakened.
 - **Changed files in correction:** `domain/production/projectCustomPanelQuoteRevision.test.mjs`, `AI_COORDINATION.md`, `AI_PROGRESS.md`, `PRODUCT_ROADMAP.md`. No runtime source, frontend, adapter, benchmark, CNC, workflow, secret or `main` changes.
-- **Next verification:** New exact-SHA CI, QA and Pages must pass; the failed implementation SHA remains unpublished.
+- **Correction exact-SHA CI:** [#45919933383](https://github.com/Taylan789/MobilyaCAD/actions/runs/45919933383) SUCCESS — frontend production build and lint.
+- **Correction exact-SHA QA:** [#45919933315](https://github.com/Taylan789/MobilyaCAD/actions/runs/45919933315) SUCCESS — 395/395 frontend + 843/843 domain tests; DOM-202 passed; strict shared-domain TypeScript, lint 36 warnings / 0 errors, production build and production-only audit 0 vulnerabilities.
+- **Correction exact-SHA Pages:** [#45919933307](https://github.com/Taylan789/MobilyaCAD/actions/runs/45919933307) SUCCESS — deployment log confirms `pages_build_version=d65ff698c2262ee51e62e985252634db189eca8f` at https://taylan789.github.io/MobilyaCAD/.
+- **Result:** The corrected test fixture is verified; the first failed SHA was never published. DOM-203 is the next domain slice.
