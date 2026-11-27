@@ -2248,3 +2248,15 @@
 - **Failure diagnosis:** the first QA run had 870/871 domain tests passing; only the new aggregator collision fixture failed before reaching the collision because the bookshelf fixture itself was invalid. The separate JSON v2/v3 freshness/export test #686 passed.
 - **Verification:** correction commit and exact-SHA CI/QA/Pages runs are pending; no success or deployment is claimed.
 - **Next:** inspect exact-SHA run results; if the cross-family fixture passes, record DOM-225 VERIFIED and proceed to DOM-226.
+## 28 Kasım 2026 02:53 TRT — DOM-225 VERIFIED
+
+- **Verified branch HEAD:** [2e9091e1d72ed49beef2e0ed85a5ac587e31ccea](https://github.com/Taylan789/MobilyaCAD/commit/2e9091e1d72ed49beef2e0ed85a5ac587e31ccea) on dev/github-work.
+- **Implementation/test commit:** [4acdee58deed1160a0262042be166abc3b6d0c66](https://github.com/Taylan789/MobilyaCAD/commit/4acdee58deed1160a0262042be166abc3b6d0c66). **Fixture correction:** [2e9091e1d72ed49beef2e0ed85a5ac587e31ccea](https://github.com/Taylan789/MobilyaCAD/commit/2e9091e1d72ed49beef2e0ed85a5ac587e31ccea).
+- **Changed files across the slice:** domain/production/projectProduction.test.mjs, domain/production/projectSheetCutPlanCutoutEdgeBandingFreshness.test.mjs, AI_COORDINATION.md, PRODUCT_ROADMAP.md, AI_PROGRESS.md.
+- **Exact-SHA CI:** [#46084786018](https://github.com/Taylan789/MobilyaCAD/actions/runs/46084786018) SUCCESS — frontend production build and lint passed.
+- **Exact-SHA QA:** [#46084785972](https://github.com/Taylan789/MobilyaCAD/actions/runs/46084785972) SUCCESS — 451/451 frontend + 871/871 domain tests; DOM-225 subtest #686 passed; strict shared-domain TypeScript, lint 36 warnings / 0 errors, production build and production-only audit (0 vulnerabilities) passed.
+- **Exact-SHA Pages:** [#46084786069](https://github.com/Taylan789/MobilyaCAD/actions/runs/46084786069) SUCCESS — deployment log confirms pages_build_version=2e9091e1d72ed49beef2e0ed85a5ac587e31ccea at https://taylan789.github.io/MobilyaCAD/.
+- **Delivery:** real cross-family Part ID collision is blocked by the production aggregator with no partial result; JSON v2/v3 freshness/export rejects duplicate selected and excluded current Part IDs atomically, preserves the saved selected source ID and duplicate diagnostic, and returns null result/JSON.
+- **Correction history:** initial QA on 4acdee58 had 870/871 domain tests passing; the sole failure was a fixture omission (explicit bookshelf shelves require shelfCount=0). The correction commit fixes the fixture; exact-SHA QA now passes 871/871 domain tests.
+- **Known limits:** no production runtime geometry or visible UI change; JSON v1/CSV adapter limitations remain; no CNC/postprocessor or physical workshop validation; viewport p95/memory NOT MEASURED. No frontend, adapter/benchmark, workflow, secrets/settings or main changes.
+- **Next:** DOM-226 — validate missing/extra excluded Part coverage against the restored v2/v3 full-project snapshot.

@@ -1231,7 +1231,7 @@ Bu dosya dört geliştirme/denetim rolünün ortak görev panosu ve entegrasyon 
 
 ## 28 Kasım 2026 02:45 TRT — DOM-225 IMPLEMENTED (exact-SHA verification pending)
 
-| DOM-225 | Farklı mobilya ailelerinin üretiminde çakışan stable Part ID'lerini engelle; hazır v2/v3 planların freshness/export sınırında seçili veya hariç güncel Part listesindeki duplicate ID'yi atomik olarak blocked tut | Ürün Geliştirme | IMPLEMENTED — initial CI passed; QA fixture correction required | Üretim agregatörü cross-family ID collision için blocked/null; restored v2/v3 freshness/export duplicate selected/excluded Part ID için blocked, null result/JSON, selected source ID preserved | DOM-226 |
+| DOM-225 | Farklı mobilya ailelerinin üretiminde çakışan stable Part ID'lerini engelle; hazır v2/v3 planların freshness/export sınırında seçili veya hariç güncel Part listesindeki duplicate ID'yi atomik olarak blocked tut | Ürün Geliştirme | VERIFIED — correction commit 2e9091e; exact-SHA CI/QA/Pages all SUCCESS | Üretim agregatörü cross-family ID collision için blocked/null; restored v2/v3 freshness/export duplicate selected/excluded Part ID için blocked, null result/JSON, selected source ID preserved | DOM-226 |
 
 - **Base HEAD:** bb0c0ba27e84c9578de9b7d044e0fd73b34584a4 on dev/github-work; target blob SHAs were re-read immediately before the write.
 - **Files:** domain/production/projectProduction.test.mjs, domain/production/projectSheetCutPlanCutoutEdgeBandingFreshness.test.mjs, AI_COORDINATION.md, PRODUCT_ROADMAP.md, AI_PROGRESS.md.
@@ -1248,3 +1248,17 @@ Bu dosya dört geliştirme/denetim rolünün ortak görev panosu ve entegrasyon 
 - **Correction:** set the bookshelf fixture's shelfCount to 0; no production runtime source is changed.
 - **Pages:** [#46084633944](https://github.com/Taylan789/MobilyaCAD/actions/runs/46084633944) failed its exact-SHA CI/QA gate; the site build succeeded but the deploy job was skipped. SHA 4acdee58 was not deployed.
 - **Next:** verify the correction on its exact SHA with CI, QA, production build and Pages before marking DOM-225 VERIFIED.
+## 28 Kasım 2026 02:53 TRT — DOM-225 VERIFIED
+
+| DOM-225 | Cross-family stable Part ID collision and duplicate selected/excluded current Part IDs across restored JSON v2/v3 freshness/export | Ürün Geliştirme | VERIFIED — correction commit [2e9091e](https://github.com/Taylan789/MobilyaCAD/commit/2e9091e1d72ed49beef2e0ed85a5ac587e31ccea); exact-SHA CI/QA/Pages SUCCESS | 451 frontend + 871 domain tests; DOM-225 #686; strict TypeScript, lint 36 warnings / 0 errors, production build, production-only audit 0 vulnerabilities; Pages build version matches correction SHA | DOM-226 |
+
+- **Implementation/test commit:** [4acdee58](https://github.com/Taylan789/MobilyaCAD/commit/4acdee58deed1160a0262042be166abc3b6d0c66); first QA exposed a fixture-only omission (explicit bookshelf shelves require shelfCount=0).
+- **Correction commit:** [2e9091e1d72ed49beef2e0ed85a5ac587e31ccea](https://github.com/Taylan789/MobilyaCAD/commit/2e9091e1d72ed49beef2e0ed85a5ac587e31ccea); fixture now sets shelfCount=0 and reaches the intended cross-family ID collision.
+- **Exact-SHA CI:** [#46084786018](https://github.com/Taylan789/MobilyaCAD/actions/runs/46084786018) SUCCESS.
+- **Exact-SHA QA:** [#46084785972](https://github.com/Taylan789/MobilyaCAD/actions/runs/46084785972) SUCCESS — 451/451 frontend + 871/871 domain tests; DOM-225 freshness/export subtest #686 passed; strict shared-domain TypeScript, lint 36 warnings / 0 errors, production build, production-only audit 0 vulnerabilities.
+- **Exact-SHA Pages:** [#46084786069](https://github.com/Taylan789/MobilyaCAD/actions/runs/46084786069) SUCCESS; deployment log confirms pages_build_version=2e9091e1d72ed49beef2e0ed85a5ac587e31ccea and https://taylan789.github.io/MobilyaCAD/.
+- **Delivery:** distinct bookshelf/table furniture IDs generated the same Part ID and the production aggregator returned blocked/null. For both JSON v2 and v3, duplicate selected and excluded current Part IDs blocked freshness/export; the saved selected source ID remained available, duplicate ID diagnostics were preserved, and result/JSON stayed null.
+- **Scope/limits:** only domain tests and documentation changed; no frontend, production runtime, adapter/benchmark-owned, CNC/postprocessor, workflow, secrets/settings or main files changed. JSON v1/CSV adapter support remains limited; viewport p95/memory NOT MEASURED; physical workshop/CNC validation remains human-only.
+- **Parallel ownership:** UI-owned INT-003 PR #206 remains draft/unmerged with App integration explicitly deferred. No Integration/Performance specialist branch was found; INT-002/PERF-001 remain specialist-owned and QA-003 awaits adapter evidence.
+- **AI Developer:** [#46062919972](https://github.com/Taylan789/MobilyaCAD/actions/runs/46062919972) remains rate-limited by OpenRouter HTTP 429 until 03:00 TRT; no premature rerun, paid fallback or secret/quota change.
+- **Next:** DOM-226 — verify missing/extra excluded Part snapshot coverage against the current production Part list through v2/v3 freshness and export.

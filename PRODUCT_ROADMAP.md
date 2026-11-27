@@ -3312,7 +3312,7 @@ The first regression commit (347d89c) correctly reached the shared snapshot budg
 - Performans: viewport p95/bellek NOT MEASURED; bu dilim benchmark değildir.
 - CNC/makine: CNC/postprocessor veya fiziksel üretim onayı eklenmez; atölye doğrulaması insan sorumluluğundadır.
 
-**Durum:** IMPLEMENTED — ilk exact-SHA CI başarılı; QA, bookshelf fixture shelfCount=0 eksikliği nedeniyle bir testte başarısız oldu. Fixture düzeltmesi commitlendi; yeni exact-SHA CI/QA/Pages doğrulaması bekleniyor.
+**Durum:** VERIFIED — correction commit 2e9091e; exact-SHA CI [#46084786018](https://github.com/Taylan789/MobilyaCAD/actions/runs/46084786018), QA [#46084785972](https://github.com/Taylan789/MobilyaCAD/actions/runs/46084785972) ve Pages [#46084786069](https://github.com/Taylan789/MobilyaCAD/actions/runs/46084786069) SUCCESS.
 
 **Sıradaki 3–5 küçük görev:**
 1. DOM-226 — restored full-project snapshot'taki eksik/fazla excluded Part kayıtlarını current production Part coverage ile v2/v3 freshness/export üzerinden doğrula.
@@ -3321,3 +3321,4 @@ The first regression commit (347d89c) correctly reached the shared snapshot budg
 4. Specialist-owned INT-002/PERF-001 ve QA-003 — adapter round-trip ve viewport p95/bellek ölçümü için gerçek specialist branch/PR kanıtı beklenir; sahiplik devri olmadan adapter/benchmark dosyalarına dokunulmaz.
 
 **DOM-225 doğrulama düzeltmesi (28 Kasım 2026 02:47 TRT):** İlk CI [#46084633976](https://github.com/Taylan789/MobilyaCAD/actions/runs/46084633976) başarılıydı. QA [#46084634035](https://github.com/Taylan789/MobilyaCAD/actions/runs/46084634035) 870/871 testle başarısız oldu: test fixture açık ölçülü kitaplık rafı eklerken zorunlu shelfCount=0 değerini ayarlamamıştı; bu nedenle kitaplık beklenen ID collision noktasına ulaşmadan blocked oldu. JSON v2/v3 freshness/export testi #686 başarılıydı. Fixture düzeltildi; Pages [#46084633944](https://github.com/Taylan789/MobilyaCAD/actions/runs/46084633944) QA gate başarısız olduğu için deploy aşamasını atladı. Yeni SHA doğrulanmadan DOM-225 VERIFIED sayılmayacak.
+**DOM-225 VERIFIED — 28 Kasım 2026 02:53 TRT:** Implementation/test [4acdee58](https://github.com/Taylan789/MobilyaCAD/commit/4acdee58deed1160a0262042be166abc3b6d0c66); fixture correction [2e9091e](https://github.com/Taylan789/MobilyaCAD/commit/2e9091e1d72ed49beef2e0ed85a5ac587e31ccea). Exact-SHA QA passed 451 frontend + 871 domain tests; DOM-225 #686 passed; strict TypeScript, lint (36 warnings / 0 errors), production build and production-only audit (0 vulnerabilities) passed. Exact-SHA Pages deployment #46084786069 confirms pages_build_version=2e9091e1d72ed49beef2e0ed85a5ac587e31ccea at https://taylan789.github.io/MobilyaCAD/.
