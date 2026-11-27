@@ -2918,5 +2918,12 @@ Sıradaki küçük görevler:
 - Performans: bu regresyon bir benchmark değildir; viewport p95 ve bellek NOT MEASURED.
 - CNC/makine: nesting adapter veya fiziksel üretim uygunluğu eklenmez; atölye/üretici doğrulaması gereklidir.
 
-**Durum:** implementation commit oluşturulduktan sonra exact-SHA CI/QA/Pages sonuçlarıyla güncellenecek. Sonraki domain dilimi DOM-212: geçerli geometri metadata'sıyla 8 MiB + 1 byte sınırının gerçek agregatör ve kayıtlı v2/v3 tüketicilerinde atomik biçimde bloklandığını kanıtla.
+**Durum:** VERIFIED — implementation [7af3969](https://github.com/Taylan789/MobilyaCAD/commit/7af39694e8fce58edde3f03425b09c5f2c567741); exact-SHA CI [#45977252307](https://github.com/Taylan789/MobilyaCAD/actions/runs/45977252307) SUCCESS; QA [#45977252261](https://github.com/Taylan789/MobilyaCAD/actions/runs/45977252261) SUCCESS (421/421 frontend + 855/855 domain tests; DOM-211 #671); strict shared-domain TypeScript, production build and production-only audit (0 vulnerabilities) passed; lint 36 warnings / 0 errors; Pages [#45977252247](https://github.com/Taylan789/MobilyaCAD/actions/runs/45977252247) SUCCESS. Deployment log confirms `pages_build_version=7af39694e8fce58edde3f03425b09c5f2c567741` and https://taylan789.github.io/MobilyaCAD/.
+
+**Sıradaki 3–5 küçük görev:**
+1. DOM-212 — geçerli geometri metadata'sıyla 8 MiB + 1 byte sınırını gerçek agregatör ve kayıtlı JSON v2/v3 freshness/export akışında fail-closed doğrula; kısmi snapshot üretme.
+2. UI-owned INT-003 — JSON v2 envelope editor startup/new/save/open entegrasyonu; PR #206 ayrı/draft kalır ve UI ajanının sahipliğindedir.
+3. Specialist-owned INT-002 — kesitli geometri, JSON/CSV adapter round-trip ve quantity sadakati için exact-SHA kanıt; kanıt gelene kadar gerçek export blocker'ları korunur.
+4. Specialist-owned PERF-001 — viewport p95, scene update ve bellek baseline'ı; integration/performance workflow job `if: false`, specialist branch/PR yok.
+5. QA-003 — INT-001/INT-002 adapter kanıtı geldikten sonra uçtan uca üretim/export data-flow audit.
 

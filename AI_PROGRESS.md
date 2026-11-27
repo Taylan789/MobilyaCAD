@@ -1884,3 +1884,17 @@
 - **Known limits:** no runtime production algorithm change, JSON v1/CSV adapter support, CNC/postprocessor, machine coordinates, physical workshop validation, frontend/** change or performance baseline.
 - **Parallel ownership:** no frontend files changed. UI-owned INT-003 PR #206 remains separate/draft; specialist-owned INT-002/PERF-001 remain unverified because the integration/performance workflow job is disabled with if: false and no specialist branch/PR is present; QA-003 remains blocked on adapter evidence.
 - **Next:** DOM-211 — exercise the exact accepted 8 MiB boundary through the real aggregator and saved JSON v2/v3 freshness flow.
+
+## 27 Kasım 2026 12:48 TRT — DOM-211 VERIFIED
+
+- **Base HEAD:** `dev/github-work` `aa1eccf91debc0608be20abf3993106fd4775252`.
+- **Implementation commit:** [`7af39694e8fce58edde3f03425b09c5f2c567741`](https://github.com/Taylan789/MobilyaCAD/commit/7af39694e8fce58edde3f03425b09c5f2c567741).
+- **Teslimat:** Gerçek ve domain tarafından doğrulanan kesitli panel açıklık kimliği, tam proje Part snapshot zarfını tam **8 MiB UTF-8** boyutuna getiriyor. Nesting'e seçilmeyen kesitli Part snapshot içinde kalıyor; agregatör `ready` dönüyor ve açıklık/geometri metadata'sı kayıpsız korunuyor. JSON v2/v3 kayıtlı planları aynı snapshot ile `fresh` kalıyor.
+- **Değişen dosyalar:** `domain/production/projectSheetCutPlanCutoutEdgeBandingFreshness.test.mjs`, `docs/production-domain-contract.md`, `PRODUCT_ROADMAP.md`, `AI_COORDINATION.md`. Runtime production source ve `frontend/**` değişmedi.
+- **Exact-SHA CI:** [#45977252307](https://github.com/Taylan789/MobilyaCAD/actions/runs/45977252307) **SUCCESS** — frontend production build ve lint.
+- **Exact-SHA QA:** [#45977252261](https://github.com/Taylan789/MobilyaCAD/actions/runs/45977252261) **SUCCESS** — 421/421 frontend + 855/855 domain test; DOM-211 subtest #671 passed; strict shared-domain TypeScript passed; lint 36 warnings / 0 errors; production build passed; production-only dependency audit 0 vulnerabilities.
+- **Exact-SHA Pages:** [#45977252247](https://github.com/Taylan789/MobilyaCAD/actions/runs/45977252247) **SUCCESS** — deployment log confirms `pages_build_version=7af39694e8fce58edde3f03425b09c5f2c567741`; test site: https://taylan789.github.io/MobilyaCAD/.
+- **Bilinen sınırlar:** Gerçek adapter export hâlâ `panelGeometry` ve `edgeBandingByEdge` alanları nedeniyle blocked; JSON v1/CSV round-trip, cutout nesting, CNC/postprocessor, makine koordinatı ve fiziksel atölye uygunluğu iddia edilmez. Viewport p95/bellek NOT MEASURED.
+- **Paralel işler:** UI-owned INT-003 PR [#206](https://github.com/Taylan789/MobilyaCAD/pull/206) ayrı/draft ve bu ajan tarafından değiştirilmedi. `agent/integration-performance-*` branch/PR bulunmadı; workflow specialist job `if: false` olduğu için INT-002/PERF-001 doğrulanmadı, QA-003 adapter kanıtını bekliyor. AI Developer [run #45931417737](https://github.com/Taylan789/MobilyaCAD/actions/runs/45931417737) OpenRouter free-model daily HTTP 429 (limit 50, remaining 0) ile başarısız; reset 28 Kasım 2026 03:00 TRT. Erken rerun, ücretli fallback, secret veya workflow ayarı değişikliği yapılmadı.
+- **Sonraki görev:** DOM-212 — geçerli geometri metadata'sıyla 8 MiB + 1 byte sınırını gerçek agregatör ve kayıtlı JSON v2/v3 freshness/export akışında fail-closed doğrula; kısmi snapshot üretme.
+
