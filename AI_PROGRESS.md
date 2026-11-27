@@ -2071,3 +2071,14 @@
 - **Parallel ownership:** UI-owned PR #271 and INT-003 PR #206 remain open/draft and untouched. Specialist job is disabled and no integration/performance specialist branch/PR was verified; INT-002/PERF-001 remain specialist-owned.
 - **AI Developer:** [#45993066297](https://github.com/Taylan789/MobilyaCAD/actions/runs/45993066297) failed with OpenRouter free-model daily HTTP 429 (limit 50, remaining 0; reset 28 Nov 2026 03:00 TRT). Logs inspected; no rerun before reset, no paid fallback or credential/quota change.
 - **Next:** DOM-219 — test excluded Part cutout-geometry metadata freshness and fail-closed export across restored JSON v2/v3.
+
+## 27 Kasım 2026 20:14 TRT — DOM-219 implementation (exact-SHA verification pending)
+
+- **Base HEAD:** c9e9f40cb9d5c97be58e60e01635f6f5f2e6bbd4; branch: dev/github-work.
+- **Implementation commit:** pending in this initial record; exact SHA and Actions evidence will be filled after GitHub creates and validates the commit.
+- **Changed files:** domain/production/projectSheetCutPlanCutoutEdgeBandingFreshness.test.mjs, AI_COORDINATION.md, PRODUCT_ROADMAP.md, AI_PROGRESS.md.
+- **Delivery:** new DOM-219 regression asserts the real excluded cutout Part's calculated geometry summary (180,000 mm² cutout area; 1,020,000 mm² net face area; 38,760,000 mm³ net volume; 2,400 mm cutout perimeter; 1,200 mm inner edge-band length; 4 inner edges) survives JSON v2/v3 restore. Six independent saved-snapshot derived-field mutations must become stale and block the actual freshness-gated export with null result/JSON and preserved selected IDs.
+- **Automatic checks:** implementation SHA CI, QA (frontend/domain tests, strict shared-domain TypeScript, lint, production build, production-only audit) and Pages are pending; do not treat the base SHA's previous successes as proof for this change.
+- **Known limits:** JSON v1/CSV panelGeometry and edgeBandingByEdge adapters remain unsupported; no CNC/postprocessor or physical workshop validation is claimed. Viewport p95/memory remains NOT MEASURED; current production bundle still exceeds the 500 kB chunk warning.
+- **Ownership:** no frontend/**, adapter/benchmark-owned files, secrets/settings, workflow definitions or main changes. UI-owned PR #206 and redesign PRs remain separate; specialist job is disabled and no specialist branch/PR is verified.
+- **Next:** DOM-220 — fail-closed handling of invalid/missing excluded cutout geometry records; then continue the UI-owned INT-003 and specialist-owned INT-002/PERF-001 handoffs without taking their files.

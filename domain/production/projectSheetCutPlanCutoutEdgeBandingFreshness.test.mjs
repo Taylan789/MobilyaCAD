@@ -1552,3 +1552,59 @@ test("DOM-218 excluded Part dimensions, material, thickness and grain invalidate
     }
   }
 });
+
+test("DOM-219 JSON v2/v3 freshness rejects edits to excluded Part derived cutout geometry and blocks export", () => {
+  const baselineReport = cutoutProjectReport();
+  const excludedPart = baselineReport.result.parts.find((part) => part.id === cutoutPartId);
+  assert.ok(excludedPart?.panelGeometry);
+  assert.equal(excludedPart.panelGeometry.cutoutAreaMm2, 180000);
+  assert.equal(excludedPart.panelGeometry.netFaceAreaMm2, 1020000);
+  assert.equal(excludedPart.panelGeometry.netVolumeMm3, 38760000);
+  assert.equal(excludedPart.panelGeometry.cutoutPerimeterMm, 2400);
+  assert.equal(excludedPart.panelGeometry.edgeBanding.cutoutLengthMm, 1200);
+  assert.equal(excludedPart.panelGeometry.edgeBanding.cutoutEdgeCount, 4);
+
+  const jsonV2 = savedPlanV2(baselineReport);
+  const plans = [["v2", jsonV2], ["v3", savedPlanV3(jsonV2)]];
+  const derivedGeometryEdits = [
+    ["cutout area", (part) => { part.panelGeometry.cutoutAreaMm2 += 1; }],
+    ["net face area", (part) => { part.panelGeometry.netFaceAreaMm2 -= 1; }],
+    ["net volume", (part) => { part.panelGeometry.netVolumeMm3 -= 1; }],
+    ["cutout perimeter", (part) => { part.panelGeometry.cutoutPerimeterMm += 1; }],
+    ["inner edge-band length", (part) => { part.panelGeometry.edgeBanding.cutoutLengthMm += 1; }],
+    ["inner edge count", (part) => { part.panelGeometry.edgeBanding.cutoutEdgeCount += 1; }]
+  ];
+  const exportReport = (savedPlanJson) => createFreshProjectSheetCutPlanExport({
+    schemaVersion: 1,
+    freshness: {
+      schemaVersion: 1,
+      savedPlanJson,
+      productionReport: { ...baselineReport, canExport: true, exportBlockers: [] },
+      currentSelectedPartIds: [selectedPartId]
+    }
+  });
+
+  for (const [version, sourceJson] of plans) {
+    const parsed = parseProjectSheetCutPlanJson(sourceJson);
+    assert.equal(parsed.status, "ready", version);
+    const restored = serializeProjectSheetCutPlanJson(parsed);
+    assert.equal(restored.status, "ready", version);
+    assert.ok(restored.json, version);
+    const savedPlanJson = restored.json;
+    assert.equal(JSON.parse(savedPlanJson).formatVersion, version === "v2" ? 2 : 3, version);
+    assert.equal(validateFreshness(savedPlanJson, baselineReport).status, "fresh", version);
+
+    for (const [change, edit] of derivedGeometryEdits) {
+      const editedSnapshot = editSavedCutoutPartSnapshot(savedPlanJson, edit);
+      const stale = validateFreshness(editedSnapshot, baselineReport);
+      assertStaleWithoutPartialExport(stale);
+
+      const staleExport = exportReport(editedSnapshot);
+      assert.equal(staleExport.status, "blocked", version + " / " + change);
+      assert.equal(staleExport.freshnessStatus, "stale", version + " / " + change);
+      assert.equal(staleExport.result, null, version + " / " + change);
+      assert.equal(staleExport.json, null, version + " / " + change);
+      assert.deepEqual(staleExport.sourcePartIds, [selectedPartId], version + " / " + change);
+    }
+  }
+});
