@@ -790,3 +790,53 @@
     grid-row: 1;
   }
 }
+
+
+/* UI-VIEWPORT-CAMERA-DOCK-CONTAINER-FIT-001 — adapt camera controls to the actual canvas left after side docks. */
+@container cad-viewport (max-width: 760px) {
+  .cad-viewport-camera-tools {
+    top: 52px;
+    right: 8px;
+    max-width: calc(100% - 16px);
+    gap: 1px;
+    padding: 2px;
+  }
+
+  .cad-viewport-camera-tools__label {
+    display: none;
+  }
+
+  .cad-viewport-camera-tools button {
+    min-width: 32px;
+    min-height: 27px;
+    gap: 4px;
+    padding-inline: 5px;
+    font-size: 8px;
+  }
+
+  .cad-viewport-camera-tools button svg {
+    width: 12px;
+    height: 12px;
+  }
+}
+
+@container cad-viewport (max-width: 560px) {
+  .cad-viewport-camera-tools {
+    top: 48px;
+    right: 6px;
+    max-width: calc(100% - 12px);
+  }
+
+  .cad-viewport-camera-tools button {
+    min-width: 30px;
+    min-height: 26px;
+    gap: 3px;
+    padding-inline: 4px;
+    font-size: 7px;
+  }
+
+  .cad-viewport-camera-tools button svg {
+    width: 11px;
+    height: 11px;
+  }
+}
