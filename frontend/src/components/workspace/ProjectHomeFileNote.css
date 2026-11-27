@@ -1,0 +1,61 @@
+.atelier-bottom-row {
+  grid-template-columns: minmax(0, 1fr) !important;
+}
+
+.atelier-file-history-note {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  color: #dce7ed;
+  background: linear-gradient(115deg, rgba(29, 47, 59, .92), rgba(19, 32, 41, .86));
+  border: 1px solid #354f5e;
+  border-radius: 7px;
+}
+
+.atelier-file-history-note__badge {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 auto;
+  place-items: center;
+  color: #c1d9e6;
+  background: #263f4e;
+  border: 1px solid #496a7d;
+  border-radius: 6px;
+  font-size: 9px;
+  font-weight: 750;
+  letter-spacing: .1em;
+}
+
+.atelier-file-history-note__copy {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+}
+
+.atelier-file-history-note__copy strong {
+  color: #e4edf2;
+  font-size: 11px;
+  font-weight: 680;
+}
+
+.atelier-file-history-note__copy span {
+  color: #91a7b3;
+  font-size: 10px;
+  line-height: 1.55;
+}
+
+@media (max-width: 520px) {
+  .atelier-file-history-note {
+    align-items: flex-start;
+    gap: 10px;
+    padding: 11px;
+  }
+
+  .atelier-file-history-note__badge {
+    width: 36px;
+    height: 36px;
+  }
+}
