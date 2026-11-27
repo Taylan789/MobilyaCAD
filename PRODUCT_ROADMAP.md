@@ -2977,7 +2977,7 @@ Sıradaki küçük görevler:
 **Durum:** VERIFIED — [implementation 89565ca](https://github.com/Taylan789/MobilyaCAD/commit/89565ca0d20f1d9f0410ee40b5746302b9f26146); exact-SHA CI #45991397180, QA #45991397198 (424 frontend + 857 domain; DOM-213 #673) and Pages #45991397197 all SUCCESS; exact SHA deployed. GitHub Actions sonucu görülmeden test başarısı veya test-site güncellemesi iddia edilmez.
 
 **Sıradaki 3–5 küçük görev:**
-1. DOM-214 — çoklu Part toplam snapshot zarfının tam 8 MiB sınırını gerçek agregatör ve JSON v2/v3 freshness akışında kabul et.
+1. DOM-215 — çoklu Part tam-sınır snapshot'ının JSON v2/v3 stringify/parse/restore ve Part sırası değişikliği sonrasında canonical freshness davranışını doğrula.
 2. UI-owned INT-003 — JSON v2 envelope editor startup/new/save/open entegrasyonu; PR #206 draft kalır ve UI ajanının sahipliğindedir.
 3. Specialist-owned INT-002 — kesitli geometri, JSON/CSV adapter round-trip ve quantity sadakati için exact-SHA kanıt; gerçek export blocker'ları korunur.
 4. Specialist-owned PERF-001 — viewport p95, scene update ve bellek baseline ölçümü; workflow job if: false, specialist branch/PR yok.
@@ -2994,3 +2994,24 @@ The first regression commit (347d89c) correctly reached the shared snapshot budg
 - Implementation [89565ca0](https://github.com/Taylan789/MobilyaCAD/commit/89565ca0d20f1d9f0410ee40b5746302b9f26146); CI [#45991397180](https://github.com/Taylan789/MobilyaCAD/actions/runs/45991397180) SUCCESS; QA [#45991397198](https://github.com/Taylan789/MobilyaCAD/actions/runs/45991397198) SUCCESS (424 frontend + 857 domain; DOM-213 #673); Pages [#45991397197](https://github.com/Taylan789/MobilyaCAD/actions/runs/45991397197) SUCCESS and deployed exact SHA to https://taylan789.github.io/MobilyaCAD/.
 - QA also passed strict shared-domain TypeScript, lint (36 existing warnings / 0 errors), production build and production-only dependency audit (0 vulnerabilities).
 - The first implementation attempt 347d89c failed QA because the blocked aggregator response omitted selected/excluded Part IDs. The verified correction resolves selection provenance before snapshot serialization; no partial snapshot/result/json escapes.
+
+
+### DOM-214 — çoklu Part için tam 8 MiB sınırının kabulü
+
+**Kullanıcı ihtiyacı:** Kaydedilmiş bir projenin toplam Part snapshot'ı tam izin verilen boyuttaysa, tek tek küçük Part'ların birleşimi hatalı biçimde reddedilmemeli; aynı zamanda seçili ve hariç Part izleri korunmalıdır.
+
+**Kabul kriterleri:**
+- İki kesitli Part'ın her biri ayrı snapshot olarak 8 MiB altında kalır; iki Part'ın birlikte oluşturduğu kanonik UTF-8 proje zarfı tam 8 MiB olur.
+- Her iki kesit geometrisi geçerli ve üretim raporu ready kalır.
+- Gerçek nesting batch tam snapshot'ı kabul eder; seçili dikdörtgen Part ve hariç iki kesitli Part kimlikleri doğru kalır.
+- JSON v2/v3 planları aynı tam-sınır snapshot'ı kayıpsız taşır; freshness ve kontrollü freshness-export kapıları başarılıdır.
+- Gerçek export, desteklenmeyen panelGeometry / edgeBandingByEdge alanları nedeniyle bloklu kalır; test-only override üretim adapter desteği sayılmaz.
+
+**10/10 checklist delta:**
+- Üretim/veri doğruluğu: çoklu Part toplamında exact 8 MiB sınırı doğrulanır; tekil ve toplam bayt hesabı ayrılır.
+- Güvenilirlik/geriye uyumluluk: JSON v2/v3 snapshot'ı ve freshness davranışı korunur.
+- CAD Core / UX: domain sözleşmesi değişmez; frontend dosyaları UI ajanının sahipliğindedir.
+- Performans: bu regresyon benchmark değildir; viewport p95/bellek NOT MEASURED.
+- CNC/makine: adapter, postprocessor veya fiziksel üretim onayı eklenmez; atölye doğrulaması gereklidir.
+
+**Durum:** IMPLEMENTED — exact-SHA CI/QA/Pages pending. Actions sonucu görülmeden test başarısı veya test-site deployment iddia edilmez.

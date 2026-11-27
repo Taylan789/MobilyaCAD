@@ -1948,3 +1948,15 @@
 - **QA correction:** initial test-only commit 347d89c failed because snapshot serialization ran before selection resolution. Corrective runtime commit 89565ca moved the bounded snapshot after selection and stock-sheet validation, preserving source/excluded IDs on blocked responses without exposing partial snapshot/result/json.
 - **Known limits:** panelGeometry / edgeBandingByEdge adapter export blockers remain; JSON v1/CSV round-trip, cutout nesting, CNC/postprocessor, machine coordinates and physical workshop validation are not claimed. Viewport p95/memory NOT MEASURED.
 - **Next:** DOM-214 — validate the exact 8 MiB aggregate boundary across multiple Parts through the real aggregator and JSON v2/v3 freshness path.
+
+
+## 27 Kasım 2026 15:51 TRT — DOM-214 implementation (Actions pending)
+
+- **Base HEAD:** dev/github-work c4b7f77183bc5e476203927313a50a16b7537176.
+- **Teslimat:** İki ayrı, geçerli kesitli Part'ın her biri ayrı ayrı 8 MiB altında kalırken ortak kanonik UTF-8 snapshot zarfının tam 8 MiB olarak kabul edilmesini doğrulayan otomatik regresyon eklendi.
+- **Kapsam:** gerçek nesting batch agregatörü, selected/excluded Part kimlikleri, JSON v2/v3 tam-snapshot saklama, freshness ve kontrollü freshness-export. Gerçek adapter blocker'ları ayrıca korunur.
+- **Değişen dosyalar:** domain/production/projectSheetCutPlanCutoutEdgeBandingFreshness.test.mjs, docs/production-domain-contract.md, AI_COORDINATION.md, PRODUCT_ROADMAP.md, AI_PROGRESS.md.
+- **Implementation SHA:** GitHub commit oluşturulduktan sonra exact-SHA doğrulama kaydına eklenecek.
+- **Otomatik kontroller:** exact-SHA CI/QA/Pages pending; sonuç görülmeden başarılı sayılmaz.
+- **Bilinen kısıtlar:** panelGeometry / edgeBandingByEdge gerçek export blocker'ları sürer; JSON v1/CSV adapter round-trip, CNC/postprocessor ve fiziksel atölye uygunluğu iddia edilmez. Viewport p95/bellek NOT MEASURED.
+- **Sonraki görev:** DOM-215 — tam-sınır çoklu Part snapshot'ının JSON v2/v3 stringify/parse/restore ve Part sırası değişikliği sonrasında canonical freshness davranışını doğrula.

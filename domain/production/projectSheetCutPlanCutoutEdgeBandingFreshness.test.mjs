@@ -1090,3 +1090,143 @@ test("DOM-213 multiple individually bounded cutout Parts over the shared 8 MiB s
     assert.equal(JSON.parse(savedPlanJson).formatVersion, version === "v2" ? 2 : 3);
   }
 });
+
+
+test("DOM-214 multiple individually bounded cutout Parts at the exact shared 8 MiB snapshot boundary remain valid through nesting and saved v2/v3 freshness", () => {
+  const baseCutouts = [
+    {
+      id: "sink-opening",
+      xMm: 100,
+      yMm: 100,
+      widthMm: 400,
+      lengthMm: 300,
+      edgeBanding: { top: true, bottom: false, left: true, right: false }
+    },
+    {
+      id: "cooktop-opening",
+      xMm: 800,
+      yMm: 100,
+      widthMm: 300,
+      lengthMm: 200,
+      edgeBanding: { top: true, bottom: false, left: false, right: true }
+    }
+  ];
+  const secondPanelId = "custom-worktop-second-panel";
+  const additionalCutoutPanels = [{
+    furnitureId: "custom-worktop-second",
+    material: "Kompakt Tezgâh B",
+    materialId: "worktop-38-b",
+    cutouts: baseCutouts.map((cutout) => ({ ...cutout, edgeBanding: { ...cutout.edgeBanding } }))
+  }];
+  const baselineReport = cutoutProjectReport({
+    cutouts: baseCutouts,
+    additionalCutoutPanels
+  });
+  const baselineSnapshot = createProjectPartSnapshot(baselineReport.result.parts);
+  const baselineBytes = new TextEncoder().encode(JSON.stringify(baselineSnapshot)).byteLength;
+  const totalExtraBytes = PROJECT_PART_SNAPSHOT_MAX_BYTES - baselineBytes;
+  assert.ok(totalExtraBytes > 2);
+
+  const firstExtraBytes = Math.floor(totalExtraBytes / 2);
+  const secondExtraBytes = totalExtraBytes - firstExtraBytes;
+  const exactReport = cutoutProjectReport({
+    cutouts: [
+      { ...baseCutouts[0], id: "sink-opening" + "x".repeat(firstExtraBytes) },
+      baseCutouts[1]
+    ],
+    additionalCutoutPanels: [{
+      furnitureId: "custom-worktop-second",
+      material: "Kompakt Tezgâh B",
+      materialId: "worktop-38-b",
+      cutouts: [
+        { ...baseCutouts[0], id: "sink-opening" + "y".repeat(secondExtraBytes) },
+        baseCutouts[1]
+      ]
+    }]
+  });
+
+  assert.equal(exactReport.status, "ready");
+  const firstCutoutPart = exactReport.result.parts.find((part) => part.id === cutoutPartId);
+  const secondCutoutPart = exactReport.result.parts.find((part) => part.id === secondPanelId);
+  assert.ok(firstCutoutPart?.panelGeometry);
+  assert.ok(secondCutoutPart?.panelGeometry);
+  for (const part of [firstCutoutPart, secondCutoutPart]) {
+    const singlePartSnapshot = createProjectPartSnapshot([part]);
+    const singlePartBytes = new TextEncoder().encode(JSON.stringify(singlePartSnapshot)).byteLength;
+    assert.ok(singlePartBytes < PROJECT_PART_SNAPSHOT_MAX_BYTES, part.id);
+  }
+
+  const exactSnapshot = createProjectPartSnapshot(exactReport.result.parts);
+  assert.equal(
+    new TextEncoder().encode(JSON.stringify(exactSnapshot)).byteLength,
+    PROJECT_PART_SNAPSHOT_MAX_BYTES
+  );
+
+  const batches = createProjectSheetNestingBatches({
+    schemaVersion: 1,
+    productionReport: exactReport,
+    partIds: [selectedPartId],
+    stockSheets: [{
+      sheet: {
+        materialId: "mdf-18",
+        widthMm: 1200,
+        lengthMm: 1000,
+        thicknessMm: 18,
+        grainDirection: "length"
+      },
+      kerfMm: 3
+    }]
+  });
+  assert.equal(batches.status, "ready", batches.diagnostics.join(" "));
+  assert.ok(batches.result);
+  assert.deepEqual(batches.sourcePartIds, [selectedPartId]);
+  assert.deepEqual(batches.excludedPartIds, [cutoutPartId, secondPanelId]);
+  assert.deepEqual(batches.projectPartSnapshot, exactSnapshot);
+
+  const jsonV2 = savedPlanV2(exactReport);
+  const plans = [["v2", jsonV2], ["v3", savedPlanV3(jsonV2)]];
+  for (const [version, savedPlanJson] of plans) {
+    const savedEnvelope = JSON.parse(savedPlanJson);
+    assert.equal(
+      new TextEncoder().encode(JSON.stringify(savedEnvelope.result.projectPartSnapshot)).byteLength,
+      PROJECT_PART_SNAPSHOT_MAX_BYTES,
+      version
+    );
+    assert.deepEqual(savedEnvelope.result.projectPartSnapshot, exactSnapshot, version);
+
+    const freshness = validateFreshness(savedPlanJson, exactReport);
+    assert.equal(freshness.status, "fresh", version);
+    assert.equal(freshness.json, savedPlanJson, version);
+
+    // This override isolates the verified snapshot/freshness gate. It does not
+    // claim that the current panelGeometry/edgeBandingByEdge adapters can export.
+    const freshnessExport = createFreshProjectSheetCutPlanExport({
+      schemaVersion: 1,
+      freshness: {
+        schemaVersion: 1,
+        savedPlanJson,
+        productionReport: { ...exactReport, canExport: true, exportBlockers: [] },
+        currentSelectedPartIds: [selectedPartId]
+      }
+    });
+    assert.equal(freshnessExport.status, "ready", version);
+    assert.equal(freshnessExport.freshnessStatus, "fresh", version);
+    assert.equal(freshnessExport.json, savedPlanJson, version);
+
+    const actualAdapterBlock = createFreshProjectSheetCutPlanExport({
+      schemaVersion: 1,
+      freshness: {
+        schemaVersion: 1,
+        savedPlanJson,
+        productionReport: exactReport,
+        currentSelectedPartIds: [selectedPartId]
+      }
+    });
+    assert.equal(actualAdapterBlock.status, "blocked", version);
+    assert.equal(actualAdapterBlock.result, null, version);
+    assert.equal(actualAdapterBlock.json, null, version);
+    assert.ok(actualAdapterBlock.productionDiagnostics?.some((item) => /panelGeometry/.test(item.message)));
+    assert.ok(actualAdapterBlock.productionDiagnostics?.some((item) => /edgeBandingByEdge/.test(item.message)));
+    assert.equal(savedEnvelope.formatVersion, version === "v2" ? 2 : 3);
+  }
+});

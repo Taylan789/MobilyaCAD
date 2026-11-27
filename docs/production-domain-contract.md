@@ -1972,3 +1972,12 @@ An over-limit or over-depth snapshot is rejected as a whole. `createProjectPartS
 - Gerçek production export, panelGeometry ve edgeBandingByEdge adapter alanları desteklenmediği için bloklu kalır. Bu regresyon JSON v1/CSV round-trip, kesit nesting, CNC/postprocessor veya fiziksel üretim uygunluğu iddia etmez.
 
 - Before serializing the bounded full-project snapshot, the aggregator validates the requested selection and resolves selected/excluded Part IDs. If the shared 8 MiB budget is exceeded, the blocked report retains those IDs for actionable diagnostics but returns no partial snapshot, nesting result or cut-plan JSON.
+
+
+## DOM-214 — çoklu Part için tam 8 MiB snapshot sınırının kabulü
+
+- Regresyon, iki ayrı kesitli panel Part'ının her birini tek başına 8 MiB altında tutarken tam proje snapshot zarfını tam 8 MiB UTF-8 boyutuna getirir. Eklenen baytlar iki farklı Part'ın açıklık kimliklerine dağıtılır; her iki geometri de domain doğrulamasından geçer.
+- Gerçek nesting batch agregatörü ready kalmalı, seçili dikdörtgen Part'ı ve iki hariç kesitli Part'ı doğru kimliklerle taşımalı ve tam sınırdaki eksiksiz snapshot'ı döndürmelidir.
+- Aynı snapshot JSON v2 ve v3 kesim planlarında kayıpsız korunmalı; iki sürüm de aynı üretim raporuyla fresh kalmalı. Kontrollü freshness-export kapısı ready döner.
+- Gerçek production export yine panelGeometry ve edgeBandingByEdge adapter desteği bulunmadığından blocked kalır. Test-only override yalnızca snapshot/freshness doğrulamasını izole eder; adapter veya CNC desteği iddia etmez.
+- Bu dilim mevcut runtime limitini değiştirmez; kabul edilen tam sınırın çoklu Part senaryosunda uçtan uca regresyon kanıtını ekler. Viewport performansı benchmark edilmez; CNC/atölye uygunluğu insan doğrulaması gerektirir.
