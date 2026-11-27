@@ -1691,3 +1691,133 @@ test("DOM-220 invalid or missing excluded cutout geometry records fail closed th
     }
   }
 });
+
+
+test("DOM-221 one invalid geometry among multiple excluded cutout Parts atomically blocks snapshot, nesting, restored freshness and export", () => {
+  const secondPanelId = "custom-worktop-second-panel";
+  const baselineReport = cutoutProjectReport({ additionalCutoutPanels });
+  assert.equal(baselineReport.status, "ready", baselineReport.firstError ?? "İki kesitli tezgâh Part'ı da geçerli olmalı.");
+  assert.ok(baselineReport.result.parts.some((part) => part.id === cutoutPartId && part.panelGeometry));
+  assert.ok(baselineReport.result.parts.some((part) => part.id === secondPanelId && part.panelGeometry));
+
+  const jsonV2 = savedPlanV2(baselineReport);
+  const plans = [["v2", jsonV2], ["v3", savedPlanV3(jsonV2)]];
+  const invalidReports = [
+    {
+      label: "ilk hariç kesitli Part",
+      invalidFurnitureId: "custom-worktop",
+      report: cutoutProjectReport({
+        geometryOverrides: { cutouts: undefined },
+        additionalCutoutPanels,
+        expectBlocked: true
+      })
+    },
+    {
+      label: "ikinci hariç kesitli Part",
+      invalidFurnitureId: "custom-worktop-second",
+      report: cutoutProjectReport({
+        additionalCutoutPanels: [{
+          ...additionalCutoutPanels[0],
+          geometryOverrides: { cutouts: undefined }
+        }],
+        expectBlocked: true
+      })
+    }
+  ];
+  const stockSheets = [{
+    sheet: {
+      materialId: "mdf-18",
+      widthMm: 1200,
+      lengthMm: 1000,
+      thicknessMm: 18,
+      grainDirection: "length"
+    },
+    kerfMm: 3
+  }];
+
+  for (const [version, sourceJson] of plans) {
+    const parsed = parseProjectSheetCutPlanJson(sourceJson);
+    assert.equal(parsed.status, "ready", version);
+    const restored = serializeProjectSheetCutPlanJson(parsed);
+    assert.equal(restored.status, "ready", version);
+    assert.ok(restored.json, version);
+    const savedPlanJson = restored.json;
+    const savedSnapshot = JSON.parse(savedPlanJson).result.projectPartSnapshot;
+    assert.ok(savedSnapshot.parts.some((part) => part.id === cutoutPartId), version);
+    assert.ok(savedSnapshot.parts.some((part) => part.id === secondPanelId), version);
+    assert.equal(validateFreshness(savedPlanJson, baselineReport).status, "fresh", version);
+
+    for (const scenario of invalidReports) {
+      const blockedReport = scenario.report;
+      assert.equal(blockedReport.status, "blocked", version + " / " + scenario.label);
+      assert.equal(blockedReport.result, null, version + " / " + scenario.label);
+      assert.equal(blockedReport.canExport, false, version + " / " + scenario.label);
+      assert.ok(
+        blockedReport.blockedFurniture.some((item) =>
+          item.furnitureId === scenario.invalidFurnitureId && item.code === "invalid-panel-geometry"
+        ),
+        version + " / " + scenario.label
+      );
+      const otherFurnitureId = scenario.invalidFurnitureId === "custom-worktop"
+        ? "custom-worktop-second"
+        : "custom-worktop";
+      assert.equal(
+        blockedReport.blockedFurniture.some((item) => item.furnitureId === otherFurnitureId),
+        false,
+        version + " / " + scenario.label + " — diğer kesitli Part geçerli kalmalı"
+      );
+
+      const batches = createProjectSheetNestingBatches({
+        schemaVersion: 1,
+        productionReport: blockedReport,
+        partIds: [selectedPartId],
+        stockSheets
+      });
+      assert.equal(batches.status, "blocked", version + " / " + scenario.label);
+      assert.equal(batches.result, null, version + " / " + scenario.label);
+      assert.equal(batches.projectPartSnapshot, undefined, version + " / " + scenario.label);
+      assert.ok(
+        batches.productionDiagnostics?.some((item) =>
+          item.furnitureId === scenario.invalidFurnitureId && item.code === "invalid-panel-geometry"
+        ),
+        version + " / " + scenario.label
+      );
+
+      const cutPlan = createProjectSheetCutPlan({
+        schemaVersion: 1,
+        batchReport: batches,
+        layoutReports: []
+      });
+      assert.equal(cutPlan.status, "blocked", version + " / " + scenario.label);
+      assert.equal(cutPlan.result, null, version + " / " + scenario.label);
+      assert.equal(cutPlan.json, null, version + " / " + scenario.label);
+
+      const freshness = validateFreshness(savedPlanJson, blockedReport);
+      assert.equal(freshness.status, "blocked", version + " / " + scenario.label);
+      assert.equal(freshness.result, null, version + " / " + scenario.label);
+      assert.equal(freshness.json, null, version + " / " + scenario.label);
+      assert.deepEqual(freshness.sourcePartIds, [selectedPartId], version + " / " + scenario.label);
+
+      const blockedExport = createFreshProjectSheetCutPlanExport({
+        schemaVersion: 1,
+        freshness: {
+          schemaVersion: 1,
+          savedPlanJson,
+          productionReport: blockedReport,
+          currentSelectedPartIds: [selectedPartId]
+        }
+      });
+      assert.equal(blockedExport.status, "blocked", version + " / " + scenario.label);
+      assert.equal(blockedExport.freshnessStatus, "blocked", version + " / " + scenario.label);
+      assert.equal(blockedExport.result, null, version + " / " + scenario.label);
+      assert.equal(blockedExport.json, null, version + " / " + scenario.label);
+      assert.deepEqual(blockedExport.sourcePartIds, [selectedPartId], version + " / " + scenario.label);
+      assert.ok(
+        blockedExport.productionDiagnostics?.some((item) =>
+          item.furnitureId === scenario.invalidFurnitureId && item.code === "invalid-panel-geometry"
+        ),
+        version + " / " + scenario.label
+      );
+    }
+  }
+});
