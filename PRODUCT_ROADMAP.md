@@ -3076,7 +3076,7 @@ The first regression commit (347d89c) correctly reached the shared snapshot budg
 - Performans: viewport p95/bellek NOT MEASURED; bu regresyon benchmark değildir.
 - CNC/makine: adapter, postprocessor, makine koordinatı veya fiziksel üretim onayı eklenmez; atölye doğrulaması insan sorumluluğudur.
 
-**Durum:** IMPLEMENTED — exact-SHA CI/QA/Pages pending. Başarılı Actions kanıtı görülmeden VERIFIED veya test sitesi güncellendi denmez.
+**Durum:** VERIFIED — [commit daca116d](https://github.com/Taylan789/MobilyaCAD/commit/daca116dc295ee843f9d9c452bd20a1d95d2db21); exact-SHA CI [#46018555573](https://github.com/Taylan789/MobilyaCAD/actions/runs/46018555573), QA [#46018555482](https://github.com/Taylan789/MobilyaCAD/actions/runs/46018555482) (424 frontend + 860 domain; DOM-216 #675) and Pages [#46018555718](https://github.com/Taylan789/MobilyaCAD/actions/runs/46018555718) all SUCCESS. Strict shared-domain TypeScript, lint 36 warnings / 0 errors, production build and production-only audit 0 vulnerabilities passed; exact SHA deployed to https://taylan789.github.io/MobilyaCAD/.
 
 **Sıradaki 3–5 küçük görev:**
 1. DOM-217 — excluded Part quantity değişikliğinin restore edilmiş JSON v2/v3 freshness ve export kapısında stale/blocked davranışını doğrula.

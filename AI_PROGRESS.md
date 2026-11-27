@@ -1,10 +1,11 @@
-## 27 Kasım 2026 17:40 TRT — DOM-216 implementation (exact-SHA Actions pending)
+## 27 Kasım 2026 17:45 TRT — DOM-216 VERIFIED
 
 - Base `dev/github-work` HEAD: `e1949b057a44596716e061593782f1a3c8085901`. Branch HEAD and target blob SHAs were re-read immediately before the write; no active CI/QA/AI Developer/Pages run was found.
 - Delivery: added a regression to `domain/production/projectSheetCutPlanCutoutEdgeBandingFreshness.test.mjs` for restored JSON v2/v3 plans. Added excluded Part, removed excluded Part and renamed selected Part stable ID all produce stale full-project freshness; export is blocked, selected IDs remain available, and partial result/JSON stay null.
 - Changed files: `domain/production/projectSheetCutPlanCutoutEdgeBandingFreshness.test.mjs`, `docs/production-domain-contract.md`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`.
-- Implementation commit SHA: pending GitHub commit creation; exact-SHA CI/QA/Pages evidence will be recorded after the Actions results are observed.
-- Verified base Actions: CI [#46013455690](https://github.com/Taylan789/MobilyaCAD/actions/runs/46013455690), QA [#46013455657](https://github.com/Taylan789/MobilyaCAD/actions/runs/46013455657), Pages [#46013455713](https://github.com/Taylan789/MobilyaCAD/actions/runs/46013455713) succeeded for `e1949b057a44596716e061593782f1a3c8085901`; base test site: https://taylan789.github.io/MobilyaCAD/.
+- Implementation/test commit: [daca116dc295ee843f9d9c452bd20a1d95d2db21](https://github.com/Taylan789/MobilyaCAD/commit/daca116dc295ee843f9d9c452bd20a1d95d2db21).
+- Exact-SHA CI [#46018555573](https://github.com/Taylan789/MobilyaCAD/actions/runs/46018555573) SUCCESS; QA [#46018555482](https://github.com/Taylan789/MobilyaCAD/actions/runs/46018555482) SUCCESS — 424 frontend + 860 domain tests, 0 failures; DOM-216 subtest #675 passed; strict shared-domain TypeScript, lint 36 warnings / 0 errors, production build and production-only audit 0 vulnerabilities passed.
+- Exact-SHA Pages [#46018555718](https://github.com/Taylan789/MobilyaCAD/actions/runs/46018555718) SUCCESS; deployment log confirms pages_build_version=daca116dc295ee843f9d9c452bd20a1d95d2db21 and https://taylan789.github.io/MobilyaCAD/.
 - Known limits: no runtime calculation change; JSON v1/CSV adapter support for `panelGeometry` and `edgeBandingByEdge` remains blocked; no CNC/postprocessor or physical workshop validation; viewport p95/memory NOT MEASURED.
 - Parallel ownership: UI-owned PR #271 remains frontend-only and unmerged; UI-owned INT-003 PR #206 remains separate. No integration/performance specialist branch was found; specialist job skipped, INT-002/PERF-001 remain specialist-owned.
 - AI Developer run [#45993066297](https://github.com/Taylan789/MobilyaCAD/actions/runs/45993066297) was inspected: OpenRouter free-model daily limit returned HTTP 429 (50/50; reset 28 Nov 2026 03:00 TRT). No rerun before reset, paid fallback, secret or quota change.
