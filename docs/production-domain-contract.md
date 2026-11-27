@@ -399,7 +399,7 @@ Proje isteği, opsiyonel `edgeBandingAssignments` listesinde her üretim Part'ı
 }
 ```
 
-- Bir Part için en fazla bir atama bulunabilir. Atama, Part üzerindeki bütün bantlı dış kenarları ve varsa bantlanmış dikdörtgen açıklık iç kenarlarını aynı katalog kaynağına bağlar. Farklı kenarlarda farklı bant türleri v1 kapsamı dışındadır.
+- `edge` alanı olmayan legacy atama, Part üzerindeki tüm bantlı dış ve açıklık iç kenarları için Part-level fallback olur. `edge` alanlı yönsel atama ise aynı Part üzerindeki ilgili yöndeki bütün bantlı dış ve iç kenarlara uygulanır; aynı yöndeki ayrı açıklıklara farklı malzeme atamak bu sözleşmede desteklenmez.
 - `edgeBandingId`, boş olmayan ve küçük harf/rakam/nokta/alt çizgi/tire biçimindeki kararlı kullanıcı/katalog kimliğidir. Domain harici katalogda kimliğin gerçekten var olduğunu iddia etmez; ad, renk, kalınlık, yapışkan ve tedarikçi bilgisi uydurulmaz.
 - `unit` açıkça `mm` veya `m` seçilir. Geometri mm olarak hesaplanır; yalnızca atama `m` seçtiğinde tam metrik dönüşümle 1000'e bölünür. Fiyat tablosu `resourceType: "edge-banding"`, aynı `edgeBandingId` ve aynı birimle eşleşmelidir. Birim otomatik tahmin edilmez.
 - Atama bilinmeyen Part'a, bantlanmamış Part'a, yinelenen Part'a veya geçersiz kimlik/birime bağlanırsa proje `blocked`, `result: null` olur. Kısmi parça listesi döndürülmez.
@@ -941,8 +941,8 @@ Kaynak test: domain/production/projectBathroomVanityPanelPricing.test.mjs.
 - edgeBandingAssignments kayıtlarında edge alanı opsiyoneldir. Alan yoksa mevcut v1 Part-level atama davranışı aynen korunur (edgeBandingMaterialId + edgeBandingUnit); bu değer, aynı Part'taki per-edge override'ların bulunmadığı kenarlar için fallback'tir.
 - edge yalnızca top, bottom, left veya right olabilir. Her yön, Part'ın dış kenarında veya açık panelGeometry cutout kenarında gerçekten bantlı olmalıdır; bantlanmayan yön atanamaz.
 - Bir Part bir legacy Part-level atama ve birden çok yönsel atama taşıyabilir. Part-level atama tekil kalır; aynı Part+edge yönüne ikinci atama bloklanır. Farklı yönler için ayrı katalog kimliği ve birim geçerlidir.
-- Yönsel atamalar parts[].edgeBandingByEdge üzerinde { edgeBandingId, unit } olarak korunur. Map yalnızca açık override yönlerini içerir; legacy fallback edgeBandingMaterialId/edgeBandingUnit alanlarında korunur. Per-edge tüketim/fiyat gruplaması DOM-054'te eklenecektir.
-- Legacy edgeBandingAssignments v1 ve mevcut JSON/CSV export alanları yönsel atamaları kayıpsız taşımadığı için bütün kenar bandı atamalarında export blocker sürer. Per-edge alanı tüketim özeti ve export tarafından desteklenene kadar üretim raporu atama verisini gösterir, fakat export onaylamaz.
+- Yönsel atamalar `parts[].edgeBandingByEdge` üzerinde `{ edgeBandingId, unit }` olarak korunur. Map yalnızca açık override yönlerini içerir; legacy fallback `edgeBandingMaterialId/edgeBandingUnit` alanlarında korunur. DOM-054 ile tüketim ve fiyat gruplaması dış kenarlarla birlikte aynı yön bayrağına sahip tüm açıklık iç kenarlarını da quantity ağırlıklı toplar; exact katalog kimliği ve `mm`/`m` birimi korunur.
+- Legacy edgeBandingAssignments v1 ve mevcut JSON/CSV export adapter yönsel atamaları, `panelGeometry` ile birlikte kayıpsız taşımadığı için export blocker sürer. Domain tüketim/teklif hesabı destekleniyor olsa da adapter kanıtı gelmeden dışa aktarım onaylanmaz.
 - Test kapsamı: dört yön ayrı ID/unit, legacy fallback + override, duplicate edge, unknown edge, banded olmayan yön ve mevcut legacy Part-level regresyonları.
 
 
@@ -1856,3 +1856,13 @@ Kaynaklar: `domain/production/panelConstruction.ts`, `projectProduction.ts`, `pr
 - Bloklu rapor `createProjectQuotePricingSnapshot` için `blocked` döndürür; snapshot null, para birimi null, `lineSources` boş ve `costSummary` null kalır. Bu girdiden proje teklif revizyonu eklenemez.
 - Bu kapı, DOM-201'deki geçerli kesit fiyatlamasını değiştirmez. Geçerli `panelGeometry` için JSON v1/CSV adapter kayıpsızlık kanıtı gelene kadar `canExport=false` korunur.
 - Bu domain regresyonu nesting optimizer, CNC/postprocessor, makine koordinatı veya fiziksel atölye uygunluğu iddiası değildir.
+
+## DOM-203 — Kesit iç kenar bandı tüketimi ve teklif kaynak uzlaştırması
+
+- Açık `panelCutouts` geometrisindeki her açıklık kenarı, yalnızca kendi `edgeBanding` boolean değeri `true` ise tüketim üretir. Dış panel kenarları bantlı değilken de açıklık iç kenarları için yönsel `edgeBandingAssignments` verilebilir.
+- `edgeBandingByEdge` yön override'ı aynı Part üzerindeki aynı yönlü bütün bantlı dış ve iç kenarlara uygulanır. Birden çok açıklığın aynı yöndeki kenar uzunlukları toplanır; Part `quantity` hem toplam uzunluğa hem kenar adedine bir kez uygulanır. Açıklık kimliği bazlı farklı malzeme ataması bu sözleşmede desteklenmez.
+- `calculateProjectEdgeBandingConsumptionSummary` sonuçları exact `edgeBandingId`, yön ve açık `mm`/`m` birimiyle gruplar. `m` seçimi yalnızca açık 1000'e bölme dönüşümüdür; mm ve m fiyatları birbirinin yerine kullanılamaz.
+- Fiyat tablosu her kaynak kimliği/birimi için açık kullanıcı `unitPriceMinor`, `currencyCode` ve `sourceReference` sağlamalıdır. Fiyatlı satır `edgeDirection` ve kararlı `sourcePartIds` taşır; quote snapshot ve immutable revision-history JSON round-trip aynı fiyat kaynağını ve Part izini korur.
+- Bir iç kenar bandı fiyatı eksik veya yanlış birimdeyse tüm fiyatlı tüketim `incomplete` olur; `snapshot`, `costSummary` ve `lineSources` kısmi sonuç vermez. Varsayılan fiyat veya birim dönüşümü uydurulmaz.
+- Kabul regresyonu `domain/production/projectEdgeBandingQuoteRevision.test.mjs` içinde gerçek özel panel proje agregatörünü kullanır: iki açıklıkta 700 mm üst, 300 mm sol ve 200 mm sağ iç kenar / panel; quantity 2 ile sırasıyla 1.4 m, 600 mm ve 400 mm fiyat miktarı. Her satırın kullanıcı fiyatı, kaynak referansı, edgeDirection ve aynı `custom-worktop-panel` Part ID'si teklif revizyon JSON round-trip'inde doğrulanır.
+- `panelGeometry` ve `edgeBandingByEdge` mevcut JSON v1/CSV adapter'ında kayıpsız taşınmadığından `canExport=false` kalır. Bu domain testi CNC/postprocessor, kesim yolu, nesting veya fiziksel atölye güvenliği doğrulaması değildir.

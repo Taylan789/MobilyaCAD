@@ -2674,3 +2674,30 @@ Sıradaki küçük görevler:
 3. Specialist-owned INT-002 — JSON/CSV adapter round-trip ve kesit geometri kayıpsızlığı için exact-SHA kanıt; kanıt gelene kadar export blocker korunur.
 4. Specialist-owned PERF-001 — viewport p95, scene update ve bellek baseline'ını tekrarlanabilir ölç; şu an NOT MEASURED.
 5. QA-003 — INT-001/INT-002 exact-SHA adapter kanıtı geldikten sonra uçtan uca üretim/export data-flow audit.
+
+## 27 Kasım 2026 04:35 TRT — DOM-203 kesit iç kenar bandı ve teklif provenance (Actions pending)
+
+**Kullanıcı akışı:** Kullanıcı özel ölçülü kesitli bir panelde birden fazla dikdörtgen açıklık tanımlar; yalnızca seçtiği iç kenarları bantlar ve her yön için açık katalog kimliği/birim/fiyat kaynağı sağlar. Üretim özeti, teklif ve revizyon aynı Part kimliğini ve quantity ağırlıklı tüketimi korur.
+
+**Kabul kriterleri:**
+- İki açıklığın aynı yöndeki bantlı iç kenarları tek yönsel grupta toplanır; Part quantity uzunluk ve edgeCount üzerinde tam bir kez uygulanır.
+- 2000 × 600 × 38 mm panelde 400 × 300 ve 300 × 200 mm açıklıklar için her panelde 700 mm üst, 300 mm sol ve 200 mm sağ iç kenar hesaplanır.
+- Quantity 2 ile üst 1.4 m, sol 600 mm, sağ 400 mm; exact birim/katalog fiyatı ve sourceReference ayrı kalır.
+- Teklif satırları aynı kaynak `custom-worktop-panel` Part ID'sini, `edgeDirection` ve kullanıcı fiyat kaynağını taşır; immutable revision-history JSON round-trip kayıpsızdır.
+- Eksik iç kenar fiyatı tüm snapshot'ı incomplete yapar; partial cost summary veya lineSources dönmez.
+- `panelGeometry` ve `edgeBandingByEdge` export blocker'ları korunur; JSON v1/CSV adapter desteği veya CNC/atölye uygunluğu varmış gibi davranılmaz.
+
+**Durum:** Uygulama ve otomatik regresyon eklendi; exact-SHA CI, QA ve Pages sonuçları bekleniyor. Runtime domain davranışı mevcut per-edge/cutout tüketim API'siyle doğrulanıyor; frontend, adapter, benchmark ve CNC dosyaları değiştirilmedi.
+
+**10/10 checklist delta:**
+- Üretim/maliyet: iç kenar bantlama uzunluğu/adedi, Part quantity, exact kullanıcı fiyatı, unit, sourceReference ve Part provenance uçtan uca kapsanıyor.
+- Güvenilirlik: eksik fiyat fail-closed; immutable quote revision round-trip korunuyor; kesitli export blocker değişmiyor.
+- CAD Core / UX / performans: bu dilimde değişmedi; viewport p95/bellek NOT MEASURED.
+- CNC/makine: makineye özel çıktı veya fiziksel üretim onayı yok; operatör/üretici doğrulaması gerekir.
+
+**Sıradaki küçük görevler:**
+1. DOM-204 — cutout iç kenar bandı kimliği/birimi değiştiğinde kaydedilmiş JSON v2/v3 kesim planının stale olmasını ve export blocker'ın sürmesini doğrula.
+2. UI-owned INT-003 — JSON v2 editor startup/new/save/open entegrasyonu; PR #206 UI ajanının sahipliğinde.
+3. Specialist-owned INT-002 — adapter JSON/CSV round-trip ve kesit geometri kayıpsızlığı için exact-SHA kanıt; kanıt gelene kadar export blocker korunur.
+4. Specialist-owned PERF-001 — viewport p95, scene update ve bellek baseline; henüz NOT MEASURED.
+5. QA-003 — INT-001/INT-002 exact-SHA kanıtından sonra uçtan uca üretim/export data-flow audit.
