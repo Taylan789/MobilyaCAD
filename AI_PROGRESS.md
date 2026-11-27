@@ -2126,3 +2126,13 @@
 - **Pages:** first deployment run [#46056614479](https://github.com/Taylan789/MobilyaCAD/actions/runs/46056614479) remained gated on failed QA; no deployment of the failed SHA is claimed.
 - **Known limits:** no runtime/production algorithm or UI change; JSON v1/CSV adapters, CNC/postprocessor and physical workshop validation remain unsupported/unverified; viewport p95/memory NOT MEASURED.
 - **Next:** exact-SHA CI, QA and Pages for the corrected branch head; if successful, update this record with the real run links.
+
+
+## 27 Kasım 2026 22:31 TRT — DOM-221 export-contract correction (verification pending)
+
+- **Prior corrected SHA:** [bac9404bd0316d339c85d0ceeda7cf6696b58f6e](https://github.com/Taylan789/MobilyaCAD/commit/bac9404bd0316d339c85d0ceeda7cf6696b58f6e).
+- **Exact-SHA CI:** [#46056785856](https://github.com/Taylan789/MobilyaCAD/actions/runs/46056785856) SUCCESS.
+- **Exact-SHA QA:** [#46056785813](https://github.com/Taylan789/MobilyaCAD/actions/runs/46056785813) FAILURE at DOM-221: the freshness report correctly retained `sourcePartIds=[nestable-panel-panel]`, but the export gate checks a blocked production report before invoking freshness and therefore correctly returned `sourcePartIds=[]`. The test's export-ID expectation was invalid; no production defect was indicated by this failure.
+- **Correction commit:** [0992a37179832889292e8515d61ae5b9352031ae](https://github.com/Taylan789/MobilyaCAD/commit/0992a37179832889292e8515d61ae5b9352031ae) removes only that unsupported assertion while retaining the assertions for blocked export status, null result/JSON and structured invalid-furniture diagnostics.
+- **Pages:** [#46056785896](https://github.com/Taylan789/MobilyaCAD/actions/runs/46056785896) is still gated on the failed QA run; no failed SHA deployment is claimed.
+- **Next:** exact-SHA CI, QA and Pages for the corrected test; do not change the production export API solely to satisfy an incorrect test expectation.

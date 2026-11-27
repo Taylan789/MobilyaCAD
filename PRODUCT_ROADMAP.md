@@ -3206,7 +3206,7 @@ The first regression commit (347d89c) correctly reached the shared snapshot budg
 - Performans: viewport p95/bellek NOT MEASURED; bu test performans benchmark'ı değildir.
 - CNC/makine: postprocessor, makine koordinatı veya fiziksel üretim onayı eklenmez; atölye doğrulaması insan sorumluluğundadır.
 
-**Durum:** CORRECTION IN PROGRESS — first QA run [#46056614497](https://github.com/Taylan789/MobilyaCAD/actions/runs/46056614497) found a missing local test-fixture declaration; corrected in [b52800dee2f34d0d02177f6d6bf332426421ee8c](https://github.com/Taylan789/MobilyaCAD/commit/b52800dee2f34d0d02177f6d6bf332426421ee8c); exact-SHA CI/QA/Pages pending.
+**Durum:** CORRECTION IN PROGRESS — first QA exposed a missing fixture declaration; second QA [#46056785813](https://github.com/Taylan789/MobilyaCAD/actions/runs/46056785813) exposed an unsupported expectation for blocked-export source IDs; corrected in [0992a37179832889292e8515d61ae5b9352031ae](https://github.com/Taylan789/MobilyaCAD/commit/0992a37179832889292e8515d61ae5b9352031ae); exact-SHA CI/QA/Pages pending.
 
 **Sıradaki 3–5 küçük görev:**
 1. DOM-222 — birden fazla excluded cutout Part'tan birinin kaydedilmiş `panelGeometry` snapshot'ı bozulduğunda v2/v3 restore freshness ve export'un stale/fail-closed kalmasını doğrula.
