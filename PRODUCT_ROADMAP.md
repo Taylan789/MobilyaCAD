@@ -3042,7 +3042,7 @@ The first regression commit (347d89c) correctly reached the shared snapshot budg
 - Performans: bu test benchmark değildir; viewport p95/bellek NOT MEASURED.
 - CNC/makine: adapter, postprocessor veya fiziksel üretim onayı eklenmez; atölye doğrulaması gereklidir.
 
-**Durum:** REVERIFICATION — feature commit 4cff6f4e passed exact-SHA CI/QA/Pages, but documentation commit 11016ed6 accidentally used the earlier failed tree and restored the misplaced test. The current correction restores the verified test blob; exact-SHA CI/QA/Pages pending.
+**Durum:** VERIFIED — restored test [8d4c6c1](https://github.com/Taylan789/MobilyaCAD/commit/8d4c6c12e21e032f70678888d22fa25417561899); exact-SHA CI [#46013059236](https://github.com/Taylan789/MobilyaCAD/actions/runs/46013059236), QA [#46013059182](https://github.com/Taylan789/MobilyaCAD/actions/runs/46013059182) (424 frontend + 859 domain; DOM-215 passed) and Pages [#46013059223](https://github.com/Taylan789/MobilyaCAD/actions/runs/46013059223) all SUCCESS; exact SHA deployed to https://taylan789.github.io/MobilyaCAD/.
 
 
 **DOM-215 QA correction:** The first implementation's shared-domain test run found one harness-placement error (`SyntaxError: Unexpected reserved word`); the domain suite otherwise reported 847/848 passing. The nested subtest is now attached to the DOM-214 async exact-boundary fixture, which supplies the saved v2/v3 plans and the exact 8 MiB Part snapshot. The failed SHA was not deployed; the correction must pass exact-SHA CI, QA and Pages before the roadmap marks this slice verified.
@@ -3052,3 +3052,6 @@ The first regression commit (347d89c) correctly reached the shared snapshot budg
 
 
 **DOM-215 verification-record correction — 27 Kasım 2026 17:06 TRT:** Documentation commit [11016ed6](https://github.com/Taylan789/MobilyaCAD/commit/11016ed6a69ee2bbaf129abd2130e4b3bfb46438) was accidentally based on the first failed test tree and restored the old misplaced async test. Its QA [#46012693286](https://github.com/Taylan789/MobilyaCAD/actions/runs/46012693286) failed 847/848; Pages [#46012693023](https://github.com/Taylan789/MobilyaCAD/actions/runs/46012693023) skipped deployment after the exact-SHA gate failed. The verified feature SHA 4cff6f4e remains the last deployed version; current correction restores its exact passing test blob and must be reverified before the roadmap returns to VERIFIED.
+
+
+**DOM-215 final exact-SHA verification — 27 Kasım 2026 17:08 TRT:** Restoration commit [8d4c6c12](https://github.com/Taylan789/MobilyaCAD/commit/8d4c6c12e21e032f70678888d22fa25417561899) passed CI [#46013059236], QA [#46013059182] (424 frontend + 859 domain; DOM-215 passed, strict TS, lint 36 warnings/0 errors, production build, production-only audit 0 vulnerabilities) and Pages [#46013059223]. The deployment log confirms the exact SHA at https://taylan789.github.io/MobilyaCAD/. The intermediate docs commit 11016ed6 was not deployed because its QA gate failed; the restored SHA is the verified state.

@@ -2014,5 +2014,20 @@
 - **Exact-SHA CI:** [#46012692948](https://github.com/Taylan789/MobilyaCAD/actions/runs/46012692948) SUCCESS.
 - **Exact-SHA QA:** [#46012693286](https://github.com/Taylan789/MobilyaCAD/actions/runs/46012693286) FAILURE — 424 frontend + 847/848 domain; the same `SyntaxError: Unexpected reserved word` returned because the test file reverted to the first attempt.
 - **Exact-SHA Pages:** [#46012693023](https://github.com/Taylan789/MobilyaCAD/actions/runs/46012693023) build SUCCESS, exact-SHA CI/QA gate FAILURE, deploy skipped. The failed docs SHA was not published; the last verified deployment remains feature SHA 4cff6f4e.
-- **Correction:** restore the verified test blob `54fabb43b0811de6fc81f40cced29ec7617e6a90` from 4cff6f4 while retaining current roadmap, coordination and progress files. This correction commit SHA is pending.
-- **Next:** exact-SHA CI/QA/Pages for the restored tree; only then record the final verification state.
+- **Correction:** restore the verified test blob `54fabb43b0811de6fc81f40cced29ec7617e6a90` from 4cff6f4 while retaining current roadmap, coordination and progress files. Restoration commit: [8d4c6c12e21e032f70678888d22fa25417561899](https://github.com/Taylan789/MobilyaCAD/commit/8d4c6c12e21e032f70678888d22fa25417561899).
+- **Exact-SHA CI:** [#46013059236](https://github.com/Taylan789/MobilyaCAD/actions/runs/46013059236) SUCCESS.
+- **Exact-SHA QA:** [#46013059182](https://github.com/Taylan789/MobilyaCAD/actions/runs/46013059182) SUCCESS — 424/424 frontend + 859/859 domain; DOM-215 nested test passed; strict shared-domain TypeScript, lint (36 warnings / 0 errors), production build and production-only audit (0 vulnerabilities) passed. Full install reported 4 moderate dependency advisories.
+- **Exact-SHA Pages:** [#46013059223](https://github.com/Taylan789/MobilyaCAD/actions/runs/46013059223) SUCCESS; deployment log confirms pages_build_version=8d4c6c12e21e032f70678888d22fa25417561899 and https://taylan789.github.io/MobilyaCAD/.
+- **Status:** DOM-215 VERIFIED on restoration SHA 8d4c6c12. The intermediate docs commit 11016ed6 used the wrong base tree, restored the earlier failed test, failed QA and was not deployed; this is recorded above.
+- **Next:** DOM-216 — restored v2/v3 freshness must fail closed when a Part is added, removed or its stable ID changes.
+
+
+## 27 Kasım 2026 17:08 TRT — DOM-215 VERIFIED after tree restoration
+
+- **Verified restoration SHA:** [8d4c6c12e21e032f70678888d22fa25417561899](https://github.com/Taylan789/MobilyaCAD/commit/8d4c6c12e21e032f70678888d22fa25417561899).
+- **CI:** [#46013059236](https://github.com/Taylan789/MobilyaCAD/actions/runs/46013059236) SUCCESS.
+- **QA:** [#46013059182](https://github.com/Taylan789/MobilyaCAD/actions/runs/46013059182) SUCCESS — 424 frontend + 859 domain tests, 0 failures; DOM-215 nested subtest passed. Strict shared-domain TypeScript and production build passed; lint 36 warnings / 0 errors; production-only dependency audit 0 vulnerabilities. Full install reported 4 moderate dependency advisories.
+- **Pages:** [#46013059223](https://github.com/Taylan789/MobilyaCAD/actions/runs/46013059223) SUCCESS; pages_build_version exactly matches 8d4c6c12e21e032f70678888d22fa25417561899; live test site https://taylan789.github.io/MobilyaCAD/.
+- **Tree correction history:** docs commit 11016ed6 accidentally used the failed attempt's tree and reverted the test file. The current commit restores the exact passing test blob from 4cff6f4 and passes all exact-SHA checks; 11016ed6 was never deployed.
+- **Known limits:** real panelGeometry / edgeBandingByEdge export blockers remain; JSON v1/CSV adapter round-trip, CNC/postprocessor, machine coordinates and physical workshop validation are not claimed. Viewport p95/memory NOT MEASURED.
+- **Next:** DOM-216 — verify fail-closed freshness/export after a Part is added, removed or its stable ID changes in restored JSON v2/v3.
