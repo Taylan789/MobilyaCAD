@@ -44,12 +44,12 @@ export function MobilyaCadLogo({
           />
           <path
             className="mc-brand-mark__interior"
-            d="M20 24V38.5L32 45.5L44 38.5V24"
+            d="M20 24 32 31 44 24V38.5L32 45.5 20 38.5Z M38 27.5V35.5"
             fill="none"
           />
           <path
             className="mc-brand-mark__shelf"
-            d="M20 31.5H44M32 30V45.5"
+            d="M20 31.5 32 38.5 44 31.5M32 31V45.5"
             fill="none"
           />
           <path
@@ -67,7 +67,7 @@ export function MobilyaCadLogo({
             d="M14 57H50M14 55V59M50 55V59"
             fill="none"
           />
-          <circle className="mc-brand-mark__joint" cx="32" cy="31.5" r="1.7" />
+          <circle className="mc-brand-mark__joint" cx="40" cy="34" r="1.5" />
         </svg>
       </span>
       <span className="mc-brand__copy">
