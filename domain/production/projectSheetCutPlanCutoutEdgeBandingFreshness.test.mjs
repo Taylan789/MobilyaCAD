@@ -35,6 +35,7 @@ function cutoutProjectReport({
   panelDimensions = {},
   outerEdgeBanding = noBanding,
   geometryOverrides = {},
+  missingGeometryRecord = false,
   additionalCutoutPanels = [],
   expectBlocked = false
 } = {}) {
@@ -126,15 +127,17 @@ function cutoutProjectReport({
     ],
     panelCutouts: [{
       partId: cutoutPartId,
-      geometry: {
-        schemaVersion: 1,
-        widthMm,
-        lengthMm,
-        thicknessMm,
-        outerEdgeBanding: { ...outerEdgeBanding },
-        cutouts: cutouts ?? defaultCutouts,
-        ...geometryOverrides
-      }
+      ...(missingGeometryRecord ? {} : {
+        geometry: {
+          schemaVersion: 1,
+          widthMm,
+          lengthMm,
+          thicknessMm,
+          outerEdgeBanding: { ...outerEdgeBanding },
+          cutouts: cutouts ?? defaultCutouts,
+          ...geometryOverrides
+        }
+      })
     }, ...additionalPanelCutouts],
     edgeBandingAssignments: [
       { partId: cutoutPartId, edge: "top", edgeBandingId: topBandingId, unit: topBandingUnit },
@@ -1605,6 +1608,86 @@ test("DOM-219 JSON v2/v3 freshness rejects edits to excluded Part derived cutout
       assert.equal(staleExport.result, null, version + " / " + change);
       assert.equal(staleExport.json, null, version + " / " + change);
       assert.deepEqual(staleExport.sourcePartIds, [selectedPartId], version + " / " + change);
+    }
+  }
+});
+
+
+test("DOM-220 invalid or missing excluded cutout geometry records fail closed through restored JSON v2/v3 freshness and export", () => {
+  const baselineReport = cutoutProjectReport();
+  const jsonV2 = savedPlanV2(baselineReport);
+  const plans = [["v2", jsonV2], ["v3", savedPlanV3(jsonV2)]];
+  const savedSnapshotEdits = [
+    ["missing panelGeometry", (part) => { delete part.panelGeometry; }],
+    ["incomplete panelGeometry", (part) => { part.panelGeometry = { schemaVersion: 1, cutouts: [] }; }]
+  ];
+  const blockedReports = [
+    ["missing geometry object", cutoutProjectReport({ missingGeometryRecord: true, expectBlocked: true })],
+    ["missing cutout list", cutoutProjectReport({ geometryOverrides: { cutouts: undefined }, expectBlocked: true })],
+    ["malformed opening record", cutoutProjectReport({ cutouts: [null], expectBlocked: true })]
+  ];
+
+  for (const [version, sourceJson] of plans) {
+    const parsed = parseProjectSheetCutPlanJson(sourceJson);
+    assert.equal(parsed.status, "ready", version);
+    const restored = serializeProjectSheetCutPlanJson(parsed);
+    assert.equal(restored.status, "ready", version);
+    assert.ok(restored.json, version);
+    const savedPlanJson = restored.json;
+    assert.equal(JSON.parse(savedPlanJson).formatVersion, version === "v2" ? 2 : 3, version);
+    assert.equal(validateFreshness(savedPlanJson, baselineReport).status, "fresh", version);
+
+    for (const [label, edit] of savedSnapshotEdits) {
+      const damagedSnapshotJson = editSavedCutoutPartSnapshot(savedPlanJson, edit);
+      const stale = validateFreshness(damagedSnapshotJson, baselineReport);
+      assertStaleWithoutPartialExport(stale);
+      const staleExport = createFreshProjectSheetCutPlanExport({
+        schemaVersion: 1,
+        freshness: {
+          schemaVersion: 1,
+          savedPlanJson: damagedSnapshotJson,
+          productionReport: { ...baselineReport, canExport: true, exportBlockers: [] },
+          currentSelectedPartIds: [selectedPartId]
+        }
+      });
+      assert.equal(staleExport.status, "blocked", version + " / " + label);
+      assert.equal(staleExport.freshnessStatus, "stale", version + " / " + label);
+      assert.equal(staleExport.result, null, version + " / " + label);
+      assert.equal(staleExport.json, null, version + " / " + label);
+      assert.deepEqual(staleExport.sourcePartIds, [selectedPartId], version + " / " + label);
+    }
+
+    for (const [label, blockedReport] of blockedReports) {
+      assert.equal(blockedReport.status, "blocked", version + " / " + label);
+      assert.equal(blockedReport.canExport, false, version + " / " + label);
+      assert.equal(blockedReport.result, null, version + " / " + label);
+      assert.ok(blockedReport.blockedFurniture.some((item) =>
+        item.furnitureId === "custom-worktop" && item.code === "invalid-panel-geometry"
+      ), version + " / " + label);
+
+      const blockedFreshness = validateFreshness(savedPlanJson, blockedReport);
+      assert.equal(blockedFreshness.status, "blocked", version + " / " + label);
+      assert.equal(blockedFreshness.result, null, version + " / " + label);
+      assert.equal(blockedFreshness.json, null, version + " / " + label);
+      assert.deepEqual(blockedFreshness.sourcePartIds, [selectedPartId], version + " / " + label);
+      assert.ok(blockedFreshness.diagnostics.length > 0, version + " / " + label);
+
+      const blockedExport = createFreshProjectSheetCutPlanExport({
+        schemaVersion: 1,
+        freshness: {
+          schemaVersion: 1,
+          savedPlanJson,
+          productionReport: blockedReport,
+          currentSelectedPartIds: [selectedPartId]
+        }
+      });
+      assert.equal(blockedExport.status, "blocked", version + " / " + label);
+      assert.equal(blockedExport.freshnessStatus, "blocked", version + " / " + label);
+      assert.equal(blockedExport.result, null, version + " / " + label);
+      assert.equal(blockedExport.json, null, version + " / " + label);
+      assert.ok(blockedExport.productionDiagnostics?.some((item) =>
+        item.furnitureId === "custom-worktop" && item.code === "invalid-panel-geometry"
+      ), version + " / " + label);
     }
   }
 });

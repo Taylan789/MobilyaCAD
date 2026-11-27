@@ -3158,3 +3158,31 @@ The first regression commit (347d89c) correctly reached the shared snapshot budg
 3. Specialist-owned INT-002 — JSON/CSV adapter round-trip ve geometry/quantity sadakati; uzman branch/job yokken adapter dosyalarına dokunma.
 4. Specialist-owned PERF-001 — viewport p95, scene update ve bellek baseline; ölçüm NOT MEASURED.
 5. QA-003 — INT-001/INT-002 adapter kanıtı geldikten sonra uçtan uca export/data-flow audit.
+
+
+## DOM-220 — excluded cutout geometry completeness and fail-closed export
+
+**Kullanıcı akışı:** Kullanıcı bir kesitli özel tezgâh Part'ını üretim projesinde tutarken başka bir Part'ı nesting için seçer ve kesim planını JSON v2/v3 olarak kaydeder. Geometri kaydı eksik/geçersiz hale gelirse veya kayıtlı excluded Part snapshot'ından kesit geometrisi silinir/bozulursa eski plan üretime hazır kabul edilmemelidir.
+
+**Kabul kriterleri:**
+- Geçerli baseline JSON v2/v3 planı parse → serialize → restore sonrasında fresh kalır.
+- Excluded custom-worktop-panel için geometry nesnesinin, cutout listesinin eksik olması veya opening kaydının bozuk olması proje üretimini blocked yapar; canExport=false ve result=null kalır.
+- Blocked güncel rapor, freshness sonucunu blocked yapar; seçili Part kimlikleri korunur ve kısmi result/JSON üretilmez.
+- Kayıtlı excluded Part snapshot'ında panelGeometry alanının silinmesi veya eksik şemayla değiştirilmesi freshness sonucunu stale yapar; gerçek freshness export kapısı blocked, result=null, json=null döndürür.
+- Test gerçek üretim agregatörünü, JSON v2/v3 parser/serializer'ını, freshness API'sini ve downstream export API'sini kullanır; adapter desteği varsaymaz.
+
+**10/10 checklist delta:**
+- Üretim/veri doğruluğu: excluded cutout geometry kaydı eksik/geçersiz olduğunda hiçbir kısmi Part sonucu veya export üretilemediği otomatik test kapsamına alındı.
+- Güvenilirlik/geriye uyumluluk: JSON v2/v3 restore sonrası eksik/bozuk saved panelGeometry stale/fail-closed davranışıyla kapsandı.
+- CAD Core / UX: runtime ve görünür arayüz değişmedi; frontend/** UI ajanının sahipliğinde.
+- Performans: viewport p95/bellek NOT MEASURED; bu regresyon benchmark değildir.
+- CNC/makine: postprocessor, koordinat veya fiziksel üretim onayı eklenmedi; atölye doğrulaması insan sorumluluğundadır.
+
+**Durum:** Test ve dokümantasyon dilimi dev/github-work üzerine commit ediliyor; exact-SHA CI/QA/Pages sonuçları henüz bekleniyor.
+
+**Sıradaki 3–5 küçük görev:**
+1. DOM-221 — birden fazla excluded cutout Part'tan biri geçersiz olduğunda proje snapshot/nesting batch/freshness/export zincirinin atomik bloklandığını doğrula.
+2. UI-owned INT-003 PR #206 — editor startup/new/save/open JSON v2 envelope entegrasyonu; frontend ve PR UI sahibinde kalır.
+3. Specialist-owned INT-002 — JSON/CSV adapter round-trip ve geometry/quantity sadakati; uzman branch/job yokken adapter dosyalarına dokunma.
+4. Specialist-owned PERF-001 — viewport p95, scene update ve bellek baseline; ölçüm NOT MEASURED.
+5. QA-003 — INT-001/INT-002 adapter kanıtı geldikten sonra uçtan uca export/data-flow audit.
