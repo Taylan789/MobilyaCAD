@@ -778,6 +778,12 @@
   }
 }
 
+
+/* Keep keyboard-focused inspector fields clear of the sticky group heading. */
+.cad-inspector-scroll [data-slot="scroll-area-viewport"] {
+  scroll-padding-block: 10px 14px;
+}
+
 @media (forced-colors: active) {
   .cad-inspector-scroll .cad-section-heading {
     color: CanvasText;
