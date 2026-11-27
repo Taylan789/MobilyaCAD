@@ -3214,3 +3214,31 @@ The first regression commit (347d89c) correctly reached the shared snapshot budg
 3. Specialist-owned INT-002 — JSON/CSV adapter round-trip ve geometri/miktar sadakati; gerçek uzman branch/PR yokken adapter dosyalarına dokunma.
 4. Specialist-owned PERF-001 — viewport p95, scene update ve bellek baseline; ölçüm yapılana kadar NOT MEASURED.
 5. QA-003 — INT-001/INT-002 adapter kanıtı ve exact-SHA entegrasyon testleri geldikten sonra uçtan uca export/data-flow denetimi.
+
+
+## DOM-222 — Multi-Part bozuk panelGeometry snapshot'ı için freshness güvenliği
+
+**Kullanıcı akışı:** Kullanıcı birden fazla kesitli özel tezgâh Part'ını aynı projede tutar, yalnızca başka bir paneli nesting için seçer ve JSON v2/v3 kesim planını kaydeder. Dosya yeniden açıldığında excluded Part'lardan birinin kaydedilmiş `panelGeometry` kaydı eksik/bozuksa eski plan güncel kabul edilmemeli ve dışa aktarma durmalıdır.
+
+**Kabul kriterleri:**
+- İki excluded kesitli Part'ın bulunduğu gerçek üretim raporu JSON v2 ve v3 olarak parse → serialize → restore edildiğinde başlangıçta fresh kalır; her iki Part kimliği tam proje snapshot'ında bulunur.
+- İlk veya ikinci excluded Part'ın `panelGeometry` alanı tek başına eksik şemaya dönüştürüldüğünde v2/v3 zarfı parse/serialize edilebilir kalsa bile freshness `stale` olur.
+- Freshness `result=null`, `json=null` ve seçili kaynak kimliklerini korur; tanı bozuk Part ID'sini belirtir.
+- Gerçek freshness export API'si `blocked` / `freshnessStatus="stale"` döndürür; `result/json=null` kalır. Diğer excluded Part'ın snapshot string'i değişmeden korunur.
+- Test gerçek üretim agregatörünü, proje snapshot'ını, JSON v2/v3 parser/serializer'ını, freshness ve export API'lerini kullanır; yalnızca bilinen adapter blocker'ları freshness kapısını izole etmek için testte kaldırılır.
+
+**10/10 checklist delta:**
+- Üretim/veri doğruluğu: çoklu excluded Part snapshot'ında tek bir bozuk türetilmiş geometri kaydı bütün kayıtlı planı stale yapar; sağlam Part'ın snapshot kimliği/içeriği korunur.
+- Güvenilirlik/geriye uyumluluk: JSON v2/v3 restore ve freshness/export fail-closed davranışı iki bozulma konumu için otomatik kapsanır.
+- CAD Core / UX: runtime veya görünür arayüz değişmez; `frontend/**` UI ajanının sahipliğindedir.
+- Performans: viewport p95/bellek NOT MEASURED; bu regresyon benchmark değildir.
+- CNC/makine: postprocessor, makine koordinatı veya fiziksel üretim onayı eklenmez; atölye doğrulaması insan sorumluluğundadır.
+
+**Durum:** IN_PROGRESS — test ve görev kaydı eklendi; exact-SHA CI/QA/Pages doğrulaması bekleniyor.
+
+**Sıradaki 3–5 küçük görev:**
+1. DOM-223 — tam proje snapshot'ında bozuk Part snapshot'ının hata tanısını ve kaynak kimliği kapsamını farklı JSON v2/v3 restore sıralarında doğrula.
+2. UI-owned INT-003 PR #206 — editor startup/new/save/open JSON v2 envelope entegrasyonu; frontend dosya sahipliği ve PR kontrolü UI ajanında kalır.
+3. Specialist-owned INT-002 — JSON/CSV adapter round-trip ve geometri/miktar sadakati; uzman branch/job yokken adapter dosyalarına dokunma.
+4. Specialist-owned PERF-001 — viewport p95, scene update ve bellek baseline; ölçüm yapılana kadar NOT MEASURED.
+5. QA-003 — INT-001/INT-002 adapter kanıtı ve exact-SHA entegrasyon testleri geldikten sonra uçtan uca export/data-flow denetimi.

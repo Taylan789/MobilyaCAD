@@ -2158,3 +2158,17 @@
 
 - Re-read exact-SHA QA logs [#46057022500](https://github.com/Taylan789/MobilyaCAD/actions/runs/46057022500) and [#46057280738](https://github.com/Taylan789/MobilyaCAD/actions/runs/46057280738): frontend test suite `# tests 439 / # pass 439 / # fail 0`; shared domain suite `# tests 865 / # pass 865 / # fail 0`.
 - Corrected the earlier 425 frontend count to 439 in the DOM-221 verified record. DOM-221 remains subtest #680 and both exact-SHA runs passed.
+
+
+## 27 Kasım 2026 23:14 TRT — DOM-222 implementation (exact-SHA verification pending)
+
+- **Base HEAD:** `be80456a480a5a7d777e4745b6f9dd0e0c877723` on `dev/github-work`.
+- **Implementation commit:** pending Git object creation; the final SHA and exact-SHA Actions evidence will be recorded after branch update.
+- **Changed files:** `domain/production/projectSheetCutPlanCutoutEdgeBandingFreshness.test.mjs`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`.
+- **Delivery:** the saved-Part snapshot test helper can now target a stable Part ID. DOM-222 creates a real project with two excluded cutout custom-worktop Parts, restores JSON v2/v3, then corrupts either Part's saved `panelGeometry` to an incomplete record. The test verifies the envelope remains parseable, the complete Part ID order and the unaffected Part snapshot are preserved, freshness becomes stale with the affected Part ID in diagnostics, and the real freshness export returns blocked with null result/JSON.
+- **Acceptance:** both v2/v3 baselines remain fresh; first-Part and second-Part snapshot corruption each fail closed independently; selected Part IDs remain unchanged; no partial export is returned.
+- **Exact-SHA CI / QA / Pages:** pending; no success or deployment is claimed yet.
+- **Known limits:** this is domain regression coverage and documentation, not a runtime algorithm or visible UI change. JSON v1/CSV adapter support for `panelGeometry` / `edgeBandingByEdge` remains unsupported; no CNC/postprocessor, machine coordinates or physical workshop validation is claimed. Viewport p95/memory remains NOT MEASURED.
+- **Parallel ownership:** no `frontend/**`, adapter/benchmark-owned, workflow, secrets/settings or `main` files are changed. UI-owned INT-003 and specialist-owned INT-002/PERF-001 remain isolated.
+- **AI Developer:** [#45993066297](https://github.com/Taylan789/MobilyaCAD/actions/runs/45993066297) remains failed by OpenRouter free-model daily HTTP 429 (limit 50, remaining 0; reset 28 November 2026 03:00 TRT); specialist job was skipped. No rerun before reset, paid fallback or credential/quota change.
+- **Next:** verify DOM-222 on exact-SHA CI/QA/Pages, then DOM-223 snapshot error-provenance regression; keep INT-003 and specialist adapter/performance ownership isolated.

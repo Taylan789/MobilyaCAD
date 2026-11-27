@@ -246,10 +246,10 @@ function canonicalJsonForTest(value) {
   return JSON.stringify(value);
 }
 
-function editSavedCutoutPartSnapshot(savedPlanJson, edit) {
+function editSavedCutoutPartSnapshot(savedPlanJson, edit, partId = cutoutPartId) {
   const envelope = JSON.parse(savedPlanJson);
-  const entry = envelope.result.projectPartSnapshot.parts.find((part) => part.id === cutoutPartId);
-  assert.ok(entry, "Hariç kesitli Part snapshot içinde bulunmalı.");
+  const entry = envelope.result.projectPartSnapshot.parts.find((part) => part.id === partId);
+  assert.ok(entry, partId + " hariç kesitli Part snapshot içinde bulunmalı.");
   const part = JSON.parse(entry.snapshot);
   edit(part);
   entry.snapshot = canonicalJsonForTest(part);
@@ -1841,6 +1841,112 @@ test("DOM-221 one invalid geometry among multiple excluded cutout Parts atomical
         ),
         version + " / " + scenario.label
       );
+    }
+  }
+});
+
+
+test("DOM-222 one malformed saved panelGeometry snapshot among multiple excluded cutout Parts makes JSON v2/v3 freshness and export fail closed", () => {
+  const secondPanelId = "custom-worktop-second-panel";
+  const additionalCutoutPanels = [{
+    furnitureId: "custom-worktop-second",
+    material: "Kompakt Tezgâh B",
+    materialId: "worktop-38-b",
+    cutouts: [
+      {
+        id: "second-sink-opening",
+        xMm: 100,
+        yMm: 100,
+        widthMm: 400,
+        lengthMm: 300,
+        edgeBanding: { top: true, bottom: false, left: true, right: false }
+      },
+      {
+        id: "second-cooktop-opening",
+        xMm: 800,
+        yMm: 100,
+        widthMm: 300,
+        lengthMm: 200,
+        edgeBanding: { top: true, bottom: false, left: false, right: true }
+      }
+    ]
+  }];
+  const baselineReport = cutoutProjectReport({ additionalCutoutPanels });
+  assert.equal(baselineReport.status, "ready", baselineReport.firstError ?? "İki excluded kesitli Part da geçerli olmalı.");
+
+  const jsonV2 = savedPlanV2(baselineReport);
+  const plans = [["v2", jsonV2], ["v3", savedPlanV3(jsonV2)]];
+  const damagedParts = [
+    { label: "ilk excluded Part", partId: cutoutPartId, otherPartId: secondPanelId },
+    { label: "ikinci excluded Part", partId: secondPanelId, otherPartId: cutoutPartId }
+  ];
+  const adapterReadyForFreshnessOnly = {
+    ...baselineReport,
+    canExport: true,
+    exportBlockers: []
+  };
+
+  for (const [version, sourceJson] of plans) {
+    const parsed = parseProjectSheetCutPlanJson(sourceJson);
+    assert.equal(parsed.status, "ready", version);
+    const restored = serializeProjectSheetCutPlanJson(parsed);
+    assert.equal(restored.status, "ready", version);
+    assert.ok(restored.json, version);
+    const savedPlanJson = restored.json;
+    const baselineSnapshot = JSON.parse(savedPlanJson).result.projectPartSnapshot;
+    const baselineIds = baselineSnapshot.parts.map((part) => part.id);
+    const baselineSnapshotsById = new Map(baselineSnapshot.parts.map((part) => [part.id, part.snapshot]));
+
+    assert.ok(baselineIds.includes(cutoutPartId), version);
+    assert.ok(baselineIds.includes(secondPanelId), version);
+    assert.equal(validateFreshness(savedPlanJson, baselineReport).status, "fresh", version);
+
+    for (const scenario of damagedParts) {
+      const damagedSnapshotJson = editSavedCutoutPartSnapshot(
+        savedPlanJson,
+        (part) => {
+          part.panelGeometry = { schemaVersion: 1, cutouts: [] };
+        },
+        scenario.partId
+      );
+      const damagedParsed = parseProjectSheetCutPlanJson(damagedSnapshotJson);
+      assert.equal(damagedParsed.status, "ready", version + " / " + scenario.label);
+      const damagedRestored = serializeProjectSheetCutPlanJson(damagedParsed);
+      assert.equal(damagedRestored.status, "ready", version + " / " + scenario.label);
+      assert.ok(damagedRestored.json, version + " / " + scenario.label);
+
+      const damagedPlanJson = damagedRestored.json;
+      const damagedSnapshot = JSON.parse(damagedPlanJson).result.projectPartSnapshot;
+      assert.deepEqual(damagedSnapshot.parts.map((part) => part.id), baselineIds, version + " / " + scenario.label);
+      const damagedPart = damagedSnapshot.parts.find((part) => part.id === scenario.partId);
+      const unaffectedPart = damagedSnapshot.parts.find((part) => part.id === scenario.otherPartId);
+      assert.ok(damagedPart, version + " / " + scenario.label);
+      assert.ok(unaffectedPart, version + " / " + scenario.label);
+      assert.deepEqual(JSON.parse(damagedPart.snapshot).panelGeometry, { schemaVersion: 1, cutouts: [] }, version + " / " + scenario.label);
+      assert.equal(unaffectedPart.snapshot, baselineSnapshotsById.get(scenario.otherPartId), version + " / " + scenario.label);
+
+      const stale = validateFreshness(damagedPlanJson, baselineReport);
+      assert.equal(stale.status, "stale", version + " / " + scenario.label);
+      assert.equal(stale.result, null, version + " / " + scenario.label);
+      assert.equal(stale.json, null, version + " / " + scenario.label);
+      assert.deepEqual(stale.sourcePartIds, [selectedPartId], version + " / " + scenario.label);
+      assert.ok(stale.diagnostics.some((message) => message.includes(scenario.partId)), version + " / " + scenario.label);
+
+      const staleExport = createFreshProjectSheetCutPlanExport({
+        schemaVersion: 1,
+        freshness: {
+          schemaVersion: 1,
+          savedPlanJson: damagedPlanJson,
+          productionReport: adapterReadyForFreshnessOnly,
+          currentSelectedPartIds: [selectedPartId]
+        }
+      });
+      assert.equal(staleExport.status, "blocked", version + " / " + scenario.label);
+      assert.equal(staleExport.freshnessStatus, "stale", version + " / " + scenario.label);
+      assert.equal(staleExport.result, null, version + " / " + scenario.label);
+      assert.equal(staleExport.json, null, version + " / " + scenario.label);
+      assert.deepEqual(staleExport.sourcePartIds, [selectedPartId], version + " / " + scenario.label);
+      assert.ok(staleExport.diagnostics.some((message) => message.includes(scenario.partId)), version + " / " + scenario.label);
     }
   }
 });
