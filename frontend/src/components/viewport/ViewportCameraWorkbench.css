@@ -873,3 +873,26 @@
     font-size: 11px;
   }
 }
+
+/* UI-SCENE-TREE-FOCUS-CONTEXT-001 — keep the owning furniture visible while keyboard focus moves through its nested parts. */
+.studio-tree-object:has(.studio-tree-part:focus-visible) {
+  outline: 1px dashed rgba(195, 148, 112, .66) !important;
+  outline-offset: 2px !important;
+  background: rgba(195, 148, 112, .045) !important;
+}
+
+.studio-tree-object:has(.studio-tree-part:focus-visible) .studio-tree-part-line {
+  background: #c39470 !important;
+}
+
+@media (forced-colors: active) {
+  .studio-tree-object:has(.studio-tree-part:focus-visible) {
+    outline: 1px dashed Highlight !important;
+    outline-offset: 2px !important;
+    background: Canvas !important;
+  }
+
+  .studio-tree-object:has(.studio-tree-part:focus-visible) .studio-tree-part-line {
+    background: Highlight !important;
+  }
+}
