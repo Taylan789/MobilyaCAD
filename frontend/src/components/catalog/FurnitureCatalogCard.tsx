@@ -106,22 +106,21 @@ export function FurnitureCatalogCard({ item, index, onAdd, onDragStart, onDragEn
     item.shelfCount ? `${item.shelfCount} raf` : "",
   ].filter(Boolean).join(" · ");
 
+  const material = item.material?.trim();
   const construction = [
     item.hasBackPanel === true
-      ? item.backThickness === undefined
-        ? "Arkalık"
-        : `Arkalık ${item.backThickness.toLocaleString("tr-TR")} mm`
+      ? { label: "ARKALIK", value: item.backThickness === undefined ? "VAR" : `${item.backThickness.toLocaleString("tr-TR")} mm` }
       : item.hasBackPanel === false
-        ? "Arkalıksız"
-        : "",
+        ? { label: "ARKALIK", value: "YOK" }
+        : null,
     item.edgeBanding === true
-      ? "Kenar bantlama"
+      ? { label: "KENAR", value: "VAR" }
       : item.edgeBanding === false
-        ? "Kenar bantlama yok"
-        : "",
-    item.material?.trim() ?? "",
-  ].filter(Boolean);
-  const constructionLabel = construction.join(" · ");
+        ? { label: "KENAR", value: "YOK" }
+        : null,
+    material ? { label: "MALZEME", value: material } : null,
+  ].filter((entry): entry is { label: string; value: string } => entry !== null);
+  const constructionLabel = construction.map(({ label, value }) => `${label} ${value}`).join(" · ");
 
   const dimensions = [item.width, item.height, item.depth]
     .map((value) => value.toLocaleString("tr-TR"))
@@ -130,7 +129,7 @@ export function FurnitureCatalogCard({ item, index, onAdd, onDragStart, onDragEn
   return (
     <button
       type="button"
-      className="cad-catalog-card mc-catalog-card"
+      className={`cad-catalog-card mc-catalog-card${construction.length ? " has-construction" : ""}`}
       data-dragging={isDragging ? "true" : undefined}
       draggable
       onDragStart={(event) => {
@@ -154,10 +153,17 @@ export function FurnitureCatalogCard({ item, index, onAdd, onDragStart, onDragEn
         <strong>{item.name}</strong>
         <span className="mc-catalog-card__dimensions"><Ruler /><span className="mc-catalog-card__axis-label">G × Y × D</span>{dimensions} mm</span>
         <span className="mc-catalog-card__details">{details || "Tıkla: ekle · Sürükle: yerleştir"}</span>
-        {constructionLabel && (
-          <span className="mc-catalog-card__construction" title={constructionLabel}>
+        {construction.length > 0 && (
+          <span className="mc-catalog-card__construction" title={constructionLabel} aria-hidden="true">
             <small className="mc-catalog-card__construction-label">KONSTRÜKSİYON</small>
-            <span>{constructionLabel}</span>
+            <span className="mc-catalog-card__construction-entries">
+              {construction.map((entry) => (
+                <span className="mc-catalog-card__construction-entry" key={entry.label}>
+                  <small className="mc-catalog-card__construction-entry-label">{entry.label}</small>
+                  <span className="mc-catalog-card__construction-entry-value">{entry.value}</span>
+                </span>
+              ))}
+            </span>
           </span>
         )}
       </span>
