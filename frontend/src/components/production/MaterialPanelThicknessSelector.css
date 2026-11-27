@@ -103,3 +103,58 @@
     outline-color: Highlight;
   }
 }
+
+
+/* UI-MATERIAL-THICKNESS-STATE-READABILITY-001 — make the active preview thickness explicit and easier to target. */
+.mc-panel-preview__options {
+  grid-template-columns: repeat(auto-fit, minmax(84px, 1fr));
+  gap: 7px;
+}
+
+.mc-panel-preview__options > button {
+  min-height: 42px;
+  padding-inline: 10px;
+  border-radius: 5px;
+  font-size: 10px;
+  font-weight: 720;
+}
+
+.mc-panel-preview__options > button[aria-pressed="true"] {
+  padding-left: 8px;
+  border-left: 2px solid #c39470;
+}
+
+.mc-panel-preview__options > button[aria-pressed="true"]::after {
+  display: inline-grid;
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+  place-items: center;
+  content: "✓";
+  color: #f3d9c5;
+  border: 1px solid #c39470;
+  border-radius: 3px;
+  background: rgba(195, 148, 112, .14);
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+@media (max-width: 560px) {
+  .mc-panel-preview__options > button {
+    min-height: 44px;
+    padding-inline: 8px;
+  }
+}
+
+@media (forced-colors: active) {
+  .mc-panel-preview__options > button[aria-pressed="true"] {
+    border-left-color: Highlight;
+  }
+
+  .mc-panel-preview__options > button[aria-pressed="true"]::after {
+    color: HighlightText;
+    border-color: HighlightText;
+    background: Highlight;
+  }
+}
