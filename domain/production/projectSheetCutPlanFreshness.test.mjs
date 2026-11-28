@@ -681,14 +681,14 @@ test("DOM-230 restored JSON v2/v3 freshness and export block on Part Proxy refle
       const freshness = validateProjectSheetCutPlanFreshness(freshnessRequest);
       assertNotFresh(freshness, "blocked");
       assert.deepEqual(freshness.sourcePartIds, ["part-1"], version + " / " + scenario.name);
-      assert.ok(freshness.diagnostics.join(" ").includes(scenario.message), version + " / " + scenario.name);
+      assert.deepEqual(freshness.diagnostics, ["Kesim planı güncellik doğrulaması güvenli biçimde tamamlanamadı."], version + " / " + scenario.name);
       const exported = createFreshProjectSheetCutPlanExport({ schemaVersion: 1, freshness: freshnessRequest });
       assert.equal(exported.status, "blocked", version + " / " + scenario.name);
       assert.equal(exported.freshnessStatus, "blocked", version + " / " + scenario.name);
       assert.equal(exported.result, null, version + " / " + scenario.name);
       assert.equal(exported.json, null, version + " / " + scenario.name);
       assert.deepEqual(exported.sourcePartIds, ["part-1"], version + " / " + scenario.name);
-      assert.ok(exported.diagnostics.join(" ").includes(scenario.message), version + " / " + scenario.name);
+      assert.deepEqual(exported.diagnostics, ["Kesim planı güncellik doğrulaması güvenli biçimde tamamlanamadı."], version + " / " + scenario.name);
       assert.equal(getterCalls, 0, version + " / " + scenario.name);
     }
   }
@@ -731,13 +731,13 @@ test("DOM-231 freshness request and production-report envelopes reject Proxy tra
     const freshness = validateProjectSheetCutPlanFreshness(request);
     assertNotFresh(freshness, "blocked");
     assert.deepEqual(freshness.sourcePartIds, []);
-    assert.match(freshness.diagnostics.join(" "), new RegExp(scenario.message));
+    assert.deepEqual(freshness.diagnostics, ["Kesim planı güncellik doğrulaması güvenli biçimde tamamlanamadı."]);
 
     const exported = createFreshProjectSheetCutPlanExport({ schemaVersion: 1, freshness: request });
     assert.equal(exported.status, "blocked", scenario.name);
     assert.equal(exported.result, null, scenario.name);
     assert.equal(exported.json, null, scenario.name);
-    assert.match(exported.diagnostics.join(" "), new RegExp(scenario.message));
+    assert.deepEqual(exported.diagnostics, ["Proje kesim planı dışa aktarımı güvenli biçimde tamamlanamadı."]);
   }
 
   const reportProxyCases = [
@@ -773,13 +773,13 @@ test("DOM-231 freshness request and production-report envelopes reject Proxy tra
     const freshness = validateProjectSheetCutPlanFreshness(request);
     assertNotFresh(freshness, "blocked");
     assert.deepEqual(freshness.sourcePartIds, ["part-1"], scenario.name);
-    assert.match(freshness.diagnostics.join(" "), new RegExp(scenario.message));
+    assert.deepEqual(freshness.diagnostics, ["Kesim planı güncellik doğrulaması güvenli biçimde tamamlanamadı."]);
 
     const exported = createFreshProjectSheetCutPlanExport({ schemaVersion: 1, freshness: request });
     assert.equal(exported.status, "blocked", scenario.name);
     assert.equal(exported.result, null, scenario.name);
     assert.equal(exported.json, null, scenario.name);
-    assert.match(exported.diagnostics.join(" "), new RegExp(scenario.message));
+    assert.deepEqual(exported.diagnostics, ["Proje kesim planı dışa aktarımı güvenli biçimde tamamlanamadı."]);
   }
 
   let getterCalls = 0;

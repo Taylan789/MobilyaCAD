@@ -3495,3 +3495,27 @@ The first regression commit (347d89c) correctly reached the shared snapshot budg
 2. UI-owned INT-003 — JSON v2 startup/new/save/open entegrasyonu; `frontend/**` yalnızca UI sahibinde.
 3. Specialist-owned INT-002/PERF-001 — adapter round-trip ve viewport p95/bellek ölçümü; gerçek specialist branch/PR kanıtı olmadan bu dosyalara dokunma.
 4. QA-003 — INT-001/INT-002 exact-SHA adapter kanıtı tamamlandıktan sonra export reconciliation.
+
+
+## 28 Kasım 2026 12:46 TRT — DOM-233 QA düzeltmesi
+
+**Kullanıcı akışı:** JSON v2/v3 kesim planı güncellik kontrolü ve dışa aktarım, bağımlı üretim snapshot doğrulamasından gelen dahili hataları güvenli biçimde gösterebilmeli; dışarıdan atılan Proxy/accessor hatalarının iç mesajını okumamalıdır. Her durumda blocked/null sonuç ve sıfır getter çalıştırma korunur.
+
+**Actions bulgusu:** Güncel branch HEAD `60e2920a8a777638009b15747ef246eeac62b7d0` için CI [#46129294396](https://github.com/Taylan789/MobilyaCAD/actions/runs/46129294396) SUCCESS; QA [#46129294361](https://github.com/Taylan789/MobilyaCAD/actions/runs/46129294361) FAILED (883 domain testin 877'si geçti). Altı regresyon DOM-210/212/213/225'te `projectPartSnapshot.ts` tarafından üretilen fakat güvenli hata kayıt defterine eklenmemiş dahili doğrulama hatalarının fallback'e dönüşmesi ve DOM-230/231 Proxy trap testlerinin artık gizlenmesi gereken dış hata mesajını beklemesiydi. Pages [#46129294387](https://github.com/Taylan789/MobilyaCAD/actions/runs/46129294387) site artifact'ını oluşturdu ancak exact-SHA CI/QA kapısı başarısız olduğu için deploy adımı atlandı.
+
+**Düzeltme ve kabul kriterleri:**
+- `projectPartSnapshot.ts` içindeki bütün dahili doğrulama hataları ortak `createSafeValidationError` kaydıyla oluşturulur; 8 MiB/64 seviye, canonical JSON ve duplicate-ID tanıları freshness/export katmanına güvenli biçimde taşınır.
+- Proxy trap'inden dışarı atılan, kayıtlı olmayan Error mesajları okunmaz veya sızdırılmaz; freshness ve export sabit, bağlama özgü güvenli fallback verir.
+- DOM-230/231 testleri artık trap mesajını değil, sabit fallback'i doğrular; blocked/null, sourcePartIds ve getter-sayacı regresyonları korunur.
+- Geçerli JSON v2/v3, mm/adet hesapları, 8 MiB sınırı ve üretim geometrisi değişmez.
+
+**10/10 checklist delta:** Güvenilirlik/veri güvenliği: dahili hata tanıları güvenli kayıttan geri alınır; dış thrown values opaque kalır. Üretim: başarısız freshness/export kısmi plan veya JSON üretmez. CAD Core/UX değişmedi; viewport p95/bellek NOT MEASURED. CNC/postprocessor ve fiziksel atölye doğrulaması bu dilimin kapsamı değildir.
+
+**Durum:** DÜZELTME HAZIR — bu committeki exact-SHA CI/QA/production build/audit/Pages sonuçları henüz bekleniyor. `frontend/**`, adapter/benchmark sahipliğindeki dosyalar, workflow/secrets/settings ve `main` değiştirilmedi.
+
+**Sıradaki küçük görevler:**
+1. DOM-233 düzeltmesinin exact-SHA QA ve Pages doğrulamasını tamamla; başarısız kalan testleri gerçek kök nedene göre düzelt.
+2. DOM-234 — freshness/export çağrı zincirindeki diğer bağımlı domain fonksiyonlarının güvenli hata kaydı kapsamını denetle.
+3. UI-owned INT-003 — JSON v2 startup/new/save/open entegrasyonu yalnızca UI ajanının `frontend/**` sahipliğinde.
+4. Specialist-owned INT-002/PERF-001 — adapter round-trip ve viewport p95/bellek için gerçek specialist branch/PR kanıtını bekle; sahiplik devri olmadan adapter/benchmark dosyalarına dokunma.
+5. QA-003 — adapter kanıtından sonra uçtan uca export reconciliation.

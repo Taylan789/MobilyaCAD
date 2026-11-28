@@ -1,3 +1,5 @@
+import { createSafeValidationError } from "./safeThrownMessage.ts";
+
 export interface ProjectPartSnapshotEntry {
   id: string;
   /** Canonical JSON for the complete production Part record. */
@@ -30,7 +32,7 @@ interface JsonByteBudget {
 }
 
 function addSnapshotBytes(budget: JsonByteBudget, bytes: number): void {
-  if (bytes > PROJECT_PART_SNAPSHOT_MAX_BYTES - budget.bytes) throw new Error(snapshotSizeLimitMessage);
+  if (bytes > PROJECT_PART_SNAPSHOT_MAX_BYTES - budget.bytes) throw createSafeValidationError(snapshotSizeLimitMessage);
   budget.bytes += bytes;
 }
 
@@ -74,27 +76,27 @@ function finishSnapshotEnvelopeBudget(budget: JsonByteBudget): void {
 
 function record(value: unknown, label: string): RecordValue {
   if (typeof value !== "object" || value === null || Array.isArray(value)) {
-    throw new Error(label + " geçerli bir nesne olmalıdır.");
+    throw createSafeValidationError(label + " geçerli bir nesne olmalıdır.");
   }
   return value as RecordValue;
 }
 
 function closed(value: RecordValue, allowed: readonly string[], label: string): void {
   const extra = Object.keys(value).find((key) => !allowed.includes(key));
-  if (extra !== undefined) throw new Error(label + " için desteklenmeyen alan: " + extra + ".");
+  if (extra !== undefined) throw createSafeValidationError(label + " için desteklenmeyen alan: " + extra + ".");
 }
 
 function ownDataProperty(value: object, key: string, label: string): unknown {
   const descriptor = Object.getOwnPropertyDescriptor(value, key);
   if (descriptor === undefined || !("value" in descriptor)) {
-    throw new Error(label + " own data property olmalıdır; getter/setter kabul edilmez.");
+    throw createSafeValidationError(label + " own data property olmalıdır; getter/setter kabul edilmez.");
   }
   return descriptor.value;
 }
 
 function identifier(value: unknown, label: string): string {
   if (typeof value !== "string" || value.trim() === "" || value.trim() !== value) {
-    throw new Error(label + " boş olmayan ve kenar boşluğu içermeyen bir metin olmalıdır.");
+    throw createSafeValidationError(label + " boş olmayan ve kenar boşluğu içermeyen bir metin olmalıdır.");
   }
   return value;
 }
@@ -104,7 +106,7 @@ function canonicalJson(value: unknown, label: string, budget: JsonByteBudget, an
   if (value === null) { addSnapshotBytes(budget, 4); return "null"; }
   if (typeof value === "string") {
     const serialized = JSON.stringify(value);
-    if (serialized === undefined) throw new Error(label + " JSON olarak serileştirilemiyor.");
+    if (serialized === undefined) throw createSafeValidationError(label + " JSON olarak serileştirilemiyor.");
     addSnapshotBytes(budget, jsonStringByteLength(value));
     return serialized;
   }
@@ -114,15 +116,15 @@ function canonicalJson(value: unknown, label: string, budget: JsonByteBudget, an
     return serialized;
   }
   if (typeof value === "number") {
-    if (!Number.isFinite(value)) throw new Error(label + " sonlu bir sayı taşımalıdır.");
+    if (!Number.isFinite(value)) throw createSafeValidationError(label + " sonlu bir sayı taşımalıdır.");
     const serialized = JSON.stringify(value);
-    if (serialized === undefined) throw new Error(label + " JSON olarak serileştirilemiyor.");
+    if (serialized === undefined) throw createSafeValidationError(label + " JSON olarak serileştirilemiyor.");
     addSnapshotBytes(budget, serialized.length);
     return serialized;
   }
   if (Array.isArray(value)) {
-    if (depth > PROJECT_PART_SNAPSHOT_MAX_DEPTH) throw new Error(snapshotDepthLimitMessage);
-    if (ancestors.has(value)) throw new Error(label + " döngüsel veri içeriyor.");
+    if (depth > PROJECT_PART_SNAPSHOT_MAX_DEPTH) throw createSafeValidationError(snapshotDepthLimitMessage);
+    if (ancestors.has(value)) throw createSafeValidationError(label + " döngüsel veri içeriyor.");
     ancestors.add(value);
     addSnapshotBytes(budget, 2);
     const items: string[] = [];
@@ -135,10 +137,10 @@ function canonicalJson(value: unknown, label: string, budget: JsonByteBudget, an
     return "[" + items.join(",") + "]";
   }
   if (typeof value === "object") {
-    if (depth > PROJECT_PART_SNAPSHOT_MAX_DEPTH) throw new Error(snapshotDepthLimitMessage);
+    if (depth > PROJECT_PART_SNAPSHOT_MAX_DEPTH) throw createSafeValidationError(snapshotDepthLimitMessage);
     const prototype = Object.getPrototypeOf(value);
-    if (prototype !== Object.prototype && prototype !== null) throw new Error(label + " yalnızca düz JSON nesneleri içerebilir.");
-    if (ancestors.has(value)) throw new Error(label + " döngüsel veri içeriyor.");
+    if (prototype !== Object.prototype && prototype !== null) throw createSafeValidationError(label + " yalnızca düz JSON nesneleri içerebilir.");
+    if (ancestors.has(value)) throw createSafeValidationError(label + " döngüsel veri içeriyor.");
     ancestors.add(value);
     const source = value as RecordValue;
     const keys = Object.keys(source).sort();
@@ -155,12 +157,12 @@ function canonicalJson(value: unknown, label: string, budget: JsonByteBudget, an
     ancestors.delete(value);
     return "{" + fields.join(",") + "}";
   }
-  throw new Error(label + " JSON tarafından korunamayan bir değer içeriyor.");
+  throw createSafeValidationError(label + " JSON tarafından korunamayan bir değer içeriyor.");
 }
 
 /** Captures all Part fields, not only the selected rectangular parts used by nesting. */
 export function createProjectPartSnapshot(parts: readonly unknown[]): ProjectPartSnapshot {
-  if (!Array.isArray(parts)) throw new Error("Proje Part snapshot kaynağı bir liste olmalıdır.");
+  if (!Array.isArray(parts)) throw createSafeValidationError("Proje Part snapshot kaynağı bir liste olmalıdır.");
   const seen = new Set<string>();
   const budget = createSnapshotEnvelopeBudget();
   const entries: ProjectPartSnapshotEntry[] = [];
@@ -168,7 +170,7 @@ export function createProjectPartSnapshot(parts: readonly unknown[]): ProjectPar
     const entryLabel = "Proje Part snapshot kaydının " + (index + 1) + ". öğesi";
     const part = record(ownDataProperty(parts, String(index), entryLabel), entryLabel);
     const id = identifier(ownDataProperty(part, "id", "Proje Part snapshot kimliği"), "Proje Part snapshot kimliği");
-    if (seen.has(id)) throw new Error("Proje Part snapshot içinde yinelenen kimlik var: " + id + ".");
+    if (seen.has(id)) throw createSafeValidationError("Proje Part snapshot içinde yinelenen kimlik var: " + id + ".");
     seen.add(id);
     const snapshot = canonicalJson(part, id + " Part snapshot", { bytes: 0 });
     addSnapshotEntryBytes(budget, id, snapshot, index);
@@ -183,7 +185,7 @@ export function validateProjectPartSnapshot(value: unknown): ProjectPartSnapshot
   const source = record(value, "Proje Part snapshot");
   closed(source, ["schemaVersion", "parts"], "Proje Part snapshot");
   if (source.schemaVersion !== 1 || !Array.isArray(source.parts)) {
-    throw new Error("Proje Part snapshot geçerli bir v1 kayıt listesi taşımalıdır.");
+    throw createSafeValidationError("Proje Part snapshot geçerli bir v1 kayıt listesi taşımalıdır.");
   }
   const seen = new Set<string>();
   const budget = createSnapshotEnvelopeBudget();
@@ -192,16 +194,16 @@ export function validateProjectPartSnapshot(value: unknown): ProjectPartSnapshot
     const entry = record(source.parts[index], "Proje Part snapshot kaydının " + (index + 1) + ". öğesi");
     closed(entry, ["id", "snapshot"], "Proje Part snapshot kaydı");
     const id = identifier(entry.id, "Proje Part snapshot kimliği");
-    if (seen.has(id)) throw new Error("Proje Part snapshot içinde yinelenen kimlik var: " + id + ".");
+    if (seen.has(id)) throw createSafeValidationError("Proje Part snapshot içinde yinelenen kimlik var: " + id + ".");
     seen.add(id);
     if (typeof entry.snapshot !== "string" || entry.snapshot.trim() === "") {
-      throw new Error(id + " Part snapshot içeriği boş olmayan JSON metni olmalıdır.");
+      throw createSafeValidationError(id + " Part snapshot içeriği boş olmayan JSON metni olmalıdır.");
     }
     addSnapshotEntryBytes(budget, id, entry.snapshot, index);
     const parsed = record(JSON.parse(entry.snapshot) as unknown, id + " Part snapshot JSON");
-    if (parsed.id !== id) throw new Error(id + " Part snapshot içindeki kimlikle eşleşmiyor.");
+    if (parsed.id !== id) throw createSafeValidationError(id + " Part snapshot içindeki kimlikle eşleşmiyor.");
     if (canonicalJson(parsed, id + " Part snapshot", { bytes: 0 }) !== entry.snapshot) {
-      throw new Error(id + " Part snapshot kanonik JSON biçiminde değil.");
+      throw createSafeValidationError(id + " Part snapshot kanonik JSON biçiminde değil.");
     }
     parts.push({ id, snapshot: entry.snapshot });
   }

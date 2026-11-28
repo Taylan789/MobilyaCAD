@@ -2381,3 +2381,16 @@
 - **Limits/ownership:** no `frontend/**`, adapter/benchmark-owned files, workflows, secrets/settings or `main` changes. Viewport p95/memory remain NOT MEASURED; CNC/postprocessor and physical workshop validation are not claimed.
 - **Parallel lanes:** UI-owned INT-003 and specialist-owned INT-002/PERF-001 remain separate; no specialist branch was found. Historical AI Developer run [#46099799704](https://github.com/Taylan789/MobilyaCAD/actions/runs/46099799704) failed on stale SHA `5ba766e5` due OpenRouter free daily HTTP 429; it is not safe to rerun against obsolete code and no quota/secret/settings change is authorized.
 - **Next:** after exact-SHA Actions pass, record final commit/run evidence; then DOM-234 will audit safe diagnostic normalization for errors propagated from dependent domain functions.
+
+
+## 28 Kasım 2026 12:46 TRT — DOM-233 QA düzeltmesi (exact-SHA doğrulaması bekleniyor)
+
+- **Base HEAD:** `60e2920a8a777638009b15747ef246eeac62b7d0` (`dev/github-work`). Aktif AI Developer/QA/CI run bulunmadı; son UI commitinin dosyalarına dokunulmadı.
+- **İncelenen kanıt:** CI [#46129294396](https://github.com/Taylan789/MobilyaCAD/actions/runs/46129294396) SUCCESS; QA [#46129294361](https://github.com/Taylan789/MobilyaCAD/actions/runs/46129294361) FAILED — 883 domain testin 877'si geçti; DOM-210, DOM-212, DOM-213, DOM-225, DOM-230 ve DOM-231 etkilendi. Pages [#46129294387](https://github.com/Taylan789/MobilyaCAD/actions/runs/46129294387) build/artifact başarılı olsa da exact-SHA gate başarısız olduğu için deploy atlandı.
+- **Kök neden:** DOM-233 WeakMap registry yalnızca freshness/export modüllerinin kendi validation Error'larını tanıyordu. `projectPartSnapshot.ts` içindeki dahili size/depth/duplicate/snapshot doğrulama hataları kayıtlı değildi; bu yüzden güvenli fallback geçerli tanıyı gizliyordu. DOM-230/231 testleri dış Proxy trap Error mesajlarının açığa çıkmasını bekliyordu; bu beklenti yeni güvenlik sözleşmesiyle çelişiyordu.
+- **Değişen dosyalar:** `domain/production/projectPartSnapshot.ts` (tüm dahili validation errors ortak güvenli factory ile), `domain/production/projectSheetCutPlanFreshness.test.mjs` (opaque trap mesajı yerine freshness/export sabit fallback'i doğrular), `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`.
+- **Commit:** Bu kayıt ve düzeltme aynı `dev/github-work` commitinde; GitHub commit SHA'sı oluşturulduktan sonra exact-SHA Actions sonuçlarıyla doğrulama kaydı tamamlanacak.
+- **Kabul kriterleri:** Dahili snapshot validation mesajları (8 MiB UTF-8, duplicate ID vb.) korunur; dış Proxy trap mesajları okunmaz/sızdırılmaz; DOM-230/231 blocked/null ve sıfır getter beklentileri sürer; JSON v2/v3, mm/adet ve snapshot limitleri değişmez.
+- **Bilinen sınırlar:** CI/QA/strict TS/lint/production build/audit/Pages bu yeni SHA için henüz doğrulanmadı. 36 mevcut lint uyarısı ve bundle split uyarısı; viewport p95/bellek NOT MEASURED. CNC/makine ve fiziksel atölye doğrulaması iddia edilmez.
+- **Sahiplik:** `frontend/**`, adapter/benchmark-owned files, workflows, secrets/settings ve `main` değiştirilmedi. UI-owned INT-003 ve specialist-owned INT-002/PERF-001 ayrı tutuldu.
+- **Sonraki görev:** DOM-233 exact-SHA doğrulamasını tamamla; ardından DOM-234 ile freshness/export çağrı zincirindeki diğer bağımlı domain hata kayıtlarını incele.
