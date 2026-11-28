@@ -3364,12 +3364,12 @@ The first regression commit (347d89c) correctly reached the shared snapshot budg
 
 **10/10 checklist delta:**
 - Üretim/veri doğruluğu: kesim planının seçili kaynak Part kapsamı ve sırası, yeniden açılan proje durumuna karşı uçtan uca doğrulanır.
-- Güvenilirlik/geriye uyumluluk: JSON v2/v3 parse/restore ve fail-closed export için duplicate/order/missing senaryoları otomatik regresyon kapsamına alınır.
+- Güvenilirlik/geriye uyumluluk: JSON v2/v3 parse/restore ve fail-closed export için duplicate/order/missing senaryoları otomatik regresyon kapsamına alındı.
 - CAD Core / UX: görünür UI ve geometri davranışı değişmez; frontend sahipliği UI ajanında kalır.
 - Performans: viewport p95/bellek NOT MEASURED; bu test performans benchmark’ı değildir.
 - CNC/makine: makine standardı, CNC/postprocessor veya fiziksel atölye onayı eklenmez; operatör doğrulaması insan sorumluluğundadır.
 
-**Durum:** IMPLEMENTED — exact-SHA CI/QA/production build ve Pages sonucu henüz alınmadı. Bu yeni SHA için test sitesi deployment’ı doğrulanmış sayılmaz.
+**Durum:** VERIFIED — test commit [dd68268e5b6c01ba3fae966a44a40346147c845d](https://github.com/Taylan789/MobilyaCAD/commit/dd68268e5b6c01ba3fae966a44a40346147c845d); exact-SHA CI [#46093242758](https://github.com/Taylan789/MobilyaCAD/actions/runs/46093242758), QA [#46093242728](https://github.com/Taylan789/MobilyaCAD/actions/runs/46093242728) ve Pages [#46093242732](https://github.com/Taylan789/MobilyaCAD/actions/runs/46093242732) SUCCESS. QA: 454/454 frontend + 873/873 domain; DOM-227 test #725 passed; strict TypeScript, lint 36 warnings/0 errors, production build ve production-only audit 0 vulnerabilities. Pages deployment `pages_build_version` değeri test SHA ile eşleşti: https://taylan789.github.io/MobilyaCAD/.
 
 **Sıradaki 3–5 küçük görev:**
 1. DOM-228 — restored v2/v3 currentSelectedPartIds içindeki boş/whitespace ve geçersiz tipte kimliklerin freshness/export sınırında fail-closed davranışı.
