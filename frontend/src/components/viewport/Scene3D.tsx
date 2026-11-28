@@ -16,6 +16,7 @@ import {
 import PlacedFurniture3D from "../furniture/PlacedFurniture3D";
 import type { PlacedFurniture } from "../../types/placedFurniture";
 import { calculatePlacementIssues } from "../../engine/placementValidation";
+import { calculatePerspectiveFitDistance } from "./cameraFraming";
 import "./ViewportCameraControls.css";
 import "./ViewportCameraWorkbench.css";
 
@@ -51,6 +52,7 @@ interface CameraCommand {
   orientation: CameraOrientation;
   target: [number, number, number];
   distance: number;
+  fitBounds?: [number, number, number];
 }
 
 interface OrbitControlsApi {
@@ -76,7 +78,7 @@ function CameraRig({
   command: CameraCommand | null;
   reducedMotion: boolean;
 }) {
-  const { camera, controls } = useThree();
+  const { camera, controls, size } = useThree();
   const transition = useRef<CameraTransition | null>(null);
 
   useEffect(() => {
@@ -104,8 +106,15 @@ function CameraRig({
       direction.set(0.72, 0.58, 0.82);
     }
 
+    const fitDistance = command.fitBounds
+      ? calculatePerspectiveFitDistance(
+          command.fitBounds,
+          (camera as { fov?: number }).fov ?? 42,
+          size.width / Math.max(size.height, 1)
+        )
+      : command.distance;
     const toPosition = target.clone().add(
-      direction.normalize().multiplyScalar(command.distance)
+      direction.normalize().multiplyScalar(fitDistance)
     );
 
     camera.up.copy(up);
@@ -127,7 +136,7 @@ function CameraRig({
       elapsed: 0,
       duration: 0.24,
     };
-  }, [camera, command, controls, reducedMotion]);
+  }, [camera, command, controls, reducedMotion, size.width, size.height]);
 
   useEffect(() => {
     const orbit = controls as unknown as OrbitControlsApi | null;
@@ -437,7 +446,8 @@ export default function Scene3D({
   const requestCamera = useCallback((
     orientation: CameraOrientation,
     target: [number, number, number],
-    distance: number
+    distance: number,
+    fitBounds?: [number, number, number]
   ) => {
     cameraRequestId.current += 1;
     setCameraCommand({
@@ -445,6 +455,7 @@ export default function Scene3D({
       orientation,
       target,
       distance,
+      fitBounds,
     });
   }, []);
 
@@ -462,7 +473,8 @@ export default function Scene3D({
     requestCamera(
       "perspective",
       [0, height / 2000, 0],
-      Math.max(1, maxDimension * 2.8)
+      Math.max(1, maxDimension * 2.8),
+      [width / 1000, height / 1000, length / 1000]
     );
   }
 
@@ -475,6 +487,11 @@ export default function Scene3D({
       : undefined;
     const target = new Vector3(...selected.position);
     let extent = Math.max(selected.width, selected.height, selected.depth) / 1000;
+    let bounds: [number, number, number] = [
+      selected.width / 1000,
+      selected.height / 1000,
+      selected.depth / 1000,
+    ];
 
     if (part) {
       const localOffset = new Vector3(...part.position);
@@ -484,13 +501,15 @@ export default function Scene3D({
       );
       target.add(localOffset);
       extent = Math.max(part.width, part.height, part.depth) / 1000;
+      bounds = [part.width / 1000, part.height / 1000, part.depth / 1000];
     }
 
     setActiveView("perspective");
     requestCamera(
       "perspective",
       [target.x, target.y, target.z],
-      Math.max(1, extent * 3.6)
+      Math.max(1, extent * 3.6),
+      bounds
     );
   }, [furniture, selectedFurnitureId, selectedPartId, requestCamera]);
 
