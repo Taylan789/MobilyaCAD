@@ -1,0 +1,141 @@
+/* UI-START-CARD-RAIL-001 — compact technical hierarchy for the real launch actions */
+.atelier-home .atelier-start-section {
+  padding-top: 27px !important;
+}
+.atelier-home .atelier-start-section .atelier-section-heading {
+  align-items: center !important;
+  margin-bottom: 13px !important;
+  padding-bottom: 11px !important;
+  border-bottom: 1px solid rgba(107, 143, 164, .24) !important;
+}
+.atelier-home .atelier-start-grid {
+  gap: 11px !important;
+}
+.atelier-home .atelier-start-card {
+  position: relative !important;
+  isolation: isolate;
+  overflow: hidden !important;
+  min-height: 158px !important;
+  grid-template-rows: 18px 68px auto !important;
+  gap: 8px !important;
+  padding: 13px 14px 14px !important;
+  border: 1px solid #354b58 !important;
+  border-radius: 7px !important;
+  background: linear-gradient(155deg, #1b2b35, #14232c 72%) !important;
+  box-shadow: inset 0 1px rgba(231, 243, 249, .035) !important;
+  transition: border-color .16s ease, background .16s ease, transform .16s ease, box-shadow .16s ease !important;
+}
+.atelier-home .atelier-start-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 2px;
+  background: #87abc2;
+  opacity: 0;
+  transition: opacity .16s ease;
+  pointer-events: none;
+}
+.atelier-home .atelier-start-card:hover,
+.atelier-home .atelier-start-card:focus-visible {
+  border-color: #68899d !important;
+  background: linear-gradient(155deg, #213541, #172832 72%) !important;
+  box-shadow: inset 0 1px rgba(231, 243, 249, .06), 0 7px 18px rgba(0, 0, 0, .12) !important;
+}
+.atelier-home .atelier-start-card:hover::before,
+.atelier-home .atelier-start-card:focus-visible::before {
+  opacity: 1;
+}
+.atelier-home .atelier-start-card:focus-visible {
+  outline: 2px solid #a6c6dc !important;
+  outline-offset: 2px !important;
+}
+.atelier-home .atelier-card-number {
+  color: #88a8bd !important;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace !important;
+  font-variant-numeric: tabular-nums !important;
+  letter-spacing: .12em !important;
+}
+.atelier-home .atelier-card-visual {
+  min-height: 68px !important;
+  position: relative;
+  border: 1px solid rgba(107, 143, 164, .19) !important;
+  background-image:
+    linear-gradient(rgba(122, 156, 176, .055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(122, 156, 176, .055) 1px, transparent 1px) !important;
+  background-size: 16px 16px !important;
+}
+.atelier-home .atelier-visual-furniture {
+  background-color: #223641 !important;
+}
+.atelier-home .atelier-visual-parts {
+  background-color: #202f39 !important;
+}
+.atelier-home .atelier-visual-production {
+  background-color: #26333c !important;
+}
+.atelier-home .atelier-card-copy {
+  align-self: end;
+  padding-right: 22px;
+  gap: 4px !important;
+}
+.atelier-home .atelier-card-copy b {
+  color: #e1edf3 !important;
+  font-size: 11px !important;
+  letter-spacing: .015em;
+}
+.atelier-home .atelier-card-copy span {
+  color: #8ea4b2 !important;
+  line-height: 1.45 !important;
+}
+.atelier-home .atelier-card-arrow {
+  right: 13px !important;
+  bottom: 13px !important;
+  color: #9dbbce !important;
+  transition: transform .16s ease;
+}
+.atelier-home .atelier-start-card:hover .atelier-card-arrow {
+  transform: translateX(2px);
+}
+@media (max-width: 920px) {
+  .atelier-home .atelier-start-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+  .atelier-home .atelier-start-card-wide {
+    grid-column: span 2 !important;
+  }
+}
+@media (max-width: 600px) {
+  .atelier-home .atelier-start-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+  .atelier-home .atelier-start-card-wide {
+    grid-column: auto !important;
+  }
+  .atelier-home .atelier-start-card {
+    min-height: 142px !important;
+    grid-template-rows: 18px 60px auto !important;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .atelier-home .atelier-start-card,
+  .atelier-home .atelier-start-card::before,
+  .atelier-home .atelier-card-arrow {
+    transition: none !important;
+    animation: none !important;
+  }
+  .atelier-home .atelier-start-card:hover {
+    transform: none !important;
+  }
+}
+@media (forced-colors: active) {
+  .atelier-home .atelier-start-card,
+  .atelier-home .atelier-card-visual {
+    border-color: CanvasText !important;
+  }
+  .atelier-home .atelier-start-card:focus-visible {
+    outline-color: Highlight !important;
+  }
+  .atelier-home .atelier-start-card::before {
+    background: Highlight !important;
+  }
+}
