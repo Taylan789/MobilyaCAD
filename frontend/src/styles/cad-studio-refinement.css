@@ -830,3 +830,54 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 .atelier-welcome { grid-template-columns: minmax(0, 1fr) !important; }
 .atelier-welcome-copy { max-width: 760px !important; }
 .atelier-bottom-row { grid-template-columns: minmax(0, 1fr) !important; }
+
+
+/* Inspector: keep dimension controls and the selected-object register legible in Windows high-contrast mode. */
+@media (forced-colors: active) {
+  .cad-inspector .cad-field input,
+  .cad-inspector .cad-dimension-field input,
+  .cad-inspector .cad-native-select {
+    forced-color-adjust: auto !important;
+    color: CanvasText !important;
+    background: Canvas !important;
+    border: 1px solid ButtonText !important;
+    box-shadow: none !important;
+  }
+
+  .cad-inspector .cad-field input:focus,
+  .cad-inspector .cad-dimension-field input:focus,
+  .cad-inspector .cad-native-select:focus {
+    outline: 2px solid Highlight !important;
+    outline-offset: 2px !important;
+    border-color: Highlight !important;
+  }
+
+  .cad-inspector .cad-field label,
+  .cad-inspector .cad-dimension-field label,
+  .cad-inspector .cad-input-with-unit > span,
+  .cad-inspector .cad-field-note,
+  .cad-inspector .cad-section-heading,
+  .cad-inspector .cad-summary-row,
+  .cad-inspector .cad-summary-row span {
+    color: CanvasText !important;
+  }
+
+  .cad-inspector .cad-selected-object {
+    color: HighlightText !important;
+    background: Highlight !important;
+    border: 1px solid Highlight !important;
+    box-shadow: none !important;
+  }
+
+  .cad-inspector .cad-selected-object * {
+    color: HighlightText !important;
+  }
+
+
+  .cad-inspector .cad-delete-button {
+    color: ButtonText !important;
+    background: ButtonFace !important;
+    border: 1px solid ButtonText !important;
+    box-shadow: none !important;
+  }
+}
