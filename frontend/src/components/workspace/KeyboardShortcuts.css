@@ -157,3 +157,58 @@
     transition: none;
   }
 }
+
+/* Keep the non-modal shortcut help readable when the OS replaces authored colors. */
+.cad-shortcuts-panel__header button:focus-visible {
+  outline: 2px solid #a9c7d8;
+  outline-offset: 2px;
+}
+
+@media (forced-colors: active) {
+  .cad-shortcuts-panel {
+    color: CanvasText;
+    background: Canvas;
+    border-color: CanvasText;
+    box-shadow: none;
+    backdrop-filter: none;
+  }
+
+  .cad-shortcuts-panel__header {
+    border-bottom-color: CanvasText;
+  }
+
+  .cad-shortcuts-panel__header strong,
+  .cad-shortcuts-panel__header span,
+  .cad-shortcuts-list > div > span,
+  .cad-shortcuts-note {
+    color: CanvasText;
+  }
+
+  .cad-shortcuts-panel__header button {
+    color: ButtonText;
+    border: 1px solid ButtonText;
+  }
+
+  .cad-shortcuts-panel__header button:focus-visible {
+    outline: 2px solid Highlight;
+    outline-offset: 2px;
+  }
+
+  .cad-shortcuts-list > div:hover {
+    background: Highlight;
+  }
+
+  .cad-shortcuts-list > div:hover > span {
+    color: HighlightText;
+  }
+
+  .cad-shortcuts-list kbd {
+    color: ButtonText;
+    background: ButtonFace;
+    border-color: ButtonText;
+  }
+
+  .cad-shortcuts-note {
+    border-top-color: CanvasText;
+  }
+}
