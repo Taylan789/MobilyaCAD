@@ -830,3 +830,28 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 .atelier-welcome { grid-template-columns: minmax(0, 1fr) !important; }
 .atelier-welcome-copy { max-width: 760px !important; }
 .atelier-bottom-row { grid-template-columns: minmax(0, 1fr) !important; }
+
+
+/* 1280px desktop: keep primary actions labeled and compact secondary commands. */
+@media (min-width: 761px) and (max-width: 1280px) {
+  .cad-top-right .cad-home-button,
+  .cad-top-right .cad-new-project-button,
+  .cad-top-right .cad-open-project-button {
+    width: 34px !important;
+    min-width: 34px !important;
+    flex: 0 0 34px !important;
+    justify-content: center !important;
+    padding-inline: 0 !important;
+  }
+
+  .cad-top-right .cad-home-button span,
+  .cad-top-right .cad-new-project-button span,
+  .cad-top-right .cad-open-project-button span {
+    display: none !important;
+  }
+
+  .cad-top-right .cad-production-mode-button,
+  .cad-top-right .cad-save-button {
+    padding-inline: 8px !important;
+  }
+}
