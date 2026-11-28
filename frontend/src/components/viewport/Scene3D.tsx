@@ -1,6 +1,6 @@
 
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Vector3 } from "three";
 import { Box, Focus, Maximize2, PanelTop, Square } from "lucide-react";
 import {
@@ -350,22 +350,29 @@ function Room({
   );
 }
 
-function PlacementWarnings({ furniture, roomWidth, roomLength }: {
+const PlacementWarnings = memo(function PlacementWarnings({ furniture, roomWidth, roomLength }: {
   furniture: PlacedFurniture[];
   roomWidth: number;
   roomLength: number;
 }) {
-  const issues = calculatePlacementIssues(furniture, roomWidth, roomLength);
-  const issueById = new Map<string, "collision" | "outside-room">();
+  const issues = useMemo(
+    () => calculatePlacementIssues(furniture, roomWidth, roomLength),
+    [furniture, roomWidth, roomLength]
+  );
+  const issueById = useMemo(() => {
+    const map = new Map<string, "collision" | "outside-room">();
 
-  for (const issue of issues) {
-    for (const id of issue.furnitureIds) {
-      const current = issueById.get(id);
-      if (issue.type === "collision" || current === undefined) {
-        issueById.set(id, issue.type);
+    for (const issue of issues) {
+      for (const id of issue.furnitureIds) {
+        const current = map.get(id);
+        if (issue.type === "collision" || current === undefined) {
+          map.set(id, issue.type);
+        }
       }
     }
-  }
+
+    return map;
+  }, [issues]);
 
   return (
     <>
@@ -398,7 +405,7 @@ function PlacementWarnings({ furniture, roomWidth, roomLength }: {
       })}
     </>
   );
-}
+});
 
 export default function Scene3D({
   width,
@@ -417,9 +424,13 @@ export default function Scene3D({
   onResize,
   onRotate
 }: Scene3DProps) {
-  const visibleFurniture = furniture.filter((item) =>
-    !hiddenFurnitureIds.includes(item.id) &&
-    (isolatedFurnitureId === null || isolatedFurnitureId === item.id)
+  const visibleFurniture = useMemo(
+    () =>
+      furniture.filter((item) =>
+        !hiddenFurnitureIds.includes(item.id) &&
+        (isolatedFurnitureId === null || isolatedFurnitureId === item.id)
+      ),
+    [furniture, hiddenFurnitureIds, isolatedFurnitureId]
   );
   const selectedFurniture = furniture.find((item) => item.id === selectedFurnitureId);
   const selectedPart = selectedFurniture?.parts.find((item) => item.id === selectedPartId);
