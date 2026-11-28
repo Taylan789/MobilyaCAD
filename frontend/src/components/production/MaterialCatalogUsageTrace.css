@@ -203,3 +203,41 @@
     border-color: Highlight;
   }
 }
+
+
+/* UI-MATERIAL-USAGE-TRACE-CONTAINER-FIT-001 — stack real material-to-part trace rows when the catalog rail itself is narrow. */
+@container material-catalog (max-width: 560px) {
+  .mc-material-card__locations ul {
+    max-height: 176px;
+  }
+
+  .mc-material-card__locations li button {
+    min-height: 48px;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+    gap: 3px;
+    padding: 7px 8px;
+  }
+
+  .mc-material-card__locations li button > span,
+  .mc-material-card__locations li button > strong,
+  .mc-material-card__locations li button > small {
+    grid-column: 1;
+    min-width: 0;
+    text-align: left;
+  }
+
+  .mc-material-card__locations li button > strong {
+    font-size: 9px;
+  }
+
+  .mc-material-card__locations li button > small {
+    overflow-wrap: anywhere;
+    line-height: 1.35;
+  }
+
+  .mc-material-card__locations-more {
+    min-height: 36px;
+    max-width: 100%;
+  }
+}
