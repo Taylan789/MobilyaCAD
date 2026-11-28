@@ -29,13 +29,14 @@
   top: calc(100% + 12px);
   right: 0;
   z-index: 40;
-  width: min(344px, calc(100vw - 28px));
-  padding: 15px;
+  width: min(408px, calc(100vw - 28px));
+  padding: 16px;
   color: #e8edf2;
   background: linear-gradient(155deg, #26333c 0%, #1b242c 100%);
   border: 1px solid #43515c;
-  border-radius: 12px;
-  box-shadow: 0 18px 48px rgba(5, 10, 14, .38);
+  border-top: 2px solid #719bb8;
+  border-radius: 10px;
+  box-shadow: 0 18px 48px rgba(5, 10, 14, .42);
   animation: cad-shortcuts-enter 150ms ease-out both;
 }
 
@@ -44,21 +45,21 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid rgba(166, 184, 195, .16);
+  padding-bottom: 13px;
+  border-bottom: 1px solid rgba(166, 184, 195, .18);
 }
 
 .cad-shortcuts-panel__header > div {
   display: flex;
   min-width: 0;
   flex-direction: column;
-  gap: 4px;
+  gap: 5px;
 }
 
 .cad-shortcuts-panel__header strong {
   color: #f1f5f7;
-  font-size: 13px;
-  font-weight: 700;
+  font-size: 14px;
+  font-weight: 720;
   letter-spacing: -.1px;
 }
 
@@ -68,10 +69,18 @@
 }
 
 .cad-shortcuts-panel__header button {
-  width: 27px;
-  height: 27px;
+  width: 28px;
+  height: 28px;
   flex: 0 0 auto;
   color: #aab8c2;
+  border: 1px solid rgba(166, 184, 195, .15);
+  border-radius: 6px;
+}
+
+.cad-shortcuts-panel__header button:hover {
+  color: #edf4f8;
+  background: #33434f;
+  border-color: #607788;
 }
 
 .cad-shortcuts-panel__header button svg {
@@ -81,26 +90,31 @@
 
 .cad-shortcuts-list {
   display: grid;
-  gap: 2px;
-  padding-top: 10px;
+  gap: 4px;
+  padding-top: 11px;
 }
 
 .cad-shortcuts-list > div {
-  display: flex;
+  display: grid;
   min-width: 0;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 7px 5px;
+  gap: 8px;
+  padding: 8px;
+  color: #c4d0d7;
+  background: rgba(11, 19, 25, .2);
+  border: 1px solid transparent;
   border-radius: 6px;
-  transition: background-color 120ms ease;
+  transition: background-color 120ms ease, border-color 120ms ease;
 }
 
 .cad-shortcuts-list > div:hover {
   background: rgba(176, 198, 211, .07);
+  border-color: rgba(145, 180, 202, .13);
 }
 
 .cad-shortcuts-list > div > span {
+  min-width: 0;
   overflow: hidden;
   color: #c4d0d7;
   font-size: 11px;
@@ -108,23 +122,56 @@
   white-space: nowrap;
 }
 
+.cad-shortcuts-list > div:nth-child(1)::before,
+.cad-shortcuts-list > div:nth-child(5)::before,
+.cad-shortcuts-list > div:nth-child(8)::before {
+  grid-column: 1 / -1;
+  color: #8199a8;
+  font-size: 8px;
+  font-weight: 780;
+  letter-spacing: .15em;
+}
+
+.cad-shortcuts-list > div:nth-child(1)::before {
+  content: "PROJE";
+}
+
+.cad-shortcuts-list > div:nth-child(5)::before {
+  content: "MODELLEME";
+}
+
+.cad-shortcuts-list > div:nth-child(8)::before {
+  content: "YARDIM";
+}
+
+.cad-shortcuts-list > div:nth-child(4) {
+  margin-bottom: 3px;
+  border-bottom-color: rgba(145, 180, 202, .2);
+}
+
+.cad-shortcuts-list > div:nth-child(5) {
+  margin-top: 3px;
+}
+
 .cad-shortcuts-list kbd {
   flex: 0 0 auto;
-  padding: 3px 6px;
-  color: #e5edf1;
-  background: #35434d;
-  border: 1px solid #52616c;
+  padding: 4px 7px;
+  color: #e8f1f6;
+  background: linear-gradient(180deg, #3a4c58, #2b3943);
+  border: 1px solid #596d7a;
+  border-bottom-color: #6e8493;
   border-radius: 5px;
   font-family: inherit;
   font-size: 9px;
-  font-weight: 650;
+  font-weight: 680;
   letter-spacing: .1px;
   white-space: nowrap;
+  box-shadow: inset 0 1px rgba(255, 255, 255, .045);
 }
 
 .cad-shortcuts-note {
-  margin: 10px 0 0;
-  padding-top: 10px;
+  margin: 11px 0 0;
+  padding-top: 11px;
   color: #8fa0aa;
   border-top: 1px solid rgba(166, 184, 195, .16);
   font-size: 9px;
@@ -147,6 +194,27 @@
     position: fixed;
     top: 72px;
     right: 12px;
+    width: min(408px, calc(100vw - 24px));
+  }
+}
+
+@media (max-width: 420px) {
+  .cad-shortcuts-panel {
+    padding: 12px;
+  }
+
+  .cad-shortcuts-list > div {
+    gap: 6px;
+    padding: 7px;
+  }
+
+  .cad-shortcuts-list > div > span {
+    font-size: 10px;
+  }
+
+  .cad-shortcuts-list kbd {
+    padding: 3px 5px;
+    font-size: 8px;
   }
 }
 
