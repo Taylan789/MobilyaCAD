@@ -1,3 +1,16 @@
+## 28 Kasım 2026 06:31 TRT — DOM-229 VERIFIED
+
+- Base `dev/github-work` HEAD: `e0fbf8234c78ac83043966b921abf0927dc21a14`; target file blobs and branch HEAD were re-read immediately before the implementation commit.
+- Delivery: `projectPartSnapshot.ts` now reads Part-list indexes, Part IDs and nested enumerable values through own data descriptors. Accessor-backed fields/indexes, inherited IDs and sparse arrays fail closed without executing getters. Canonical JSON ordering, schema and existing 8 MiB / 64-level limits are unchanged.
+- Changed files in the implementation/test commit: `domain/production/projectPartSnapshot.ts`, `domain/production/projectPartSnapshot.test.mjs`, `docs/production-domain-contract.md`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`.
+- Implementation/test commit: [e0fbf8234c78ac83043966b921abf0927dc21a14](https://github.com/Taylan789/MobilyaCAD/commit/e0fbf8234c78ac83043966b921abf0927dc21a14).
+- Exact-SHA CI [#46103144562](https://github.com/Taylan789/MobilyaCAD/actions/runs/46103144562) SUCCESS. Exact-SHA QA [#46103144543](https://github.com/Taylan789/MobilyaCAD/actions/runs/46103144543) SUCCESS: 454/454 frontend + 875/875 domain tests; DOM-229 regression #273 passed; strict domain TypeScript, lint, production build and production-only audit (0 vulnerabilities) passed.
+- Exact-SHA Pages [#46103144540](https://github.com/Taylan789/MobilyaCAD/actions/runs/46103144540) SUCCESS; deployment log confirms `pages_build_version=e0fbf8234c78ac83043966b921abf0927dc21a14` at https://taylan789.github.io/MobilyaCAD/.
+- Known limits: no production geometry algorithm, frontend or adapter changed; JSON v1/CSV `panelGeometry` / `edgeBandingByEdge` adapter blockers remain; viewport p95/memory NOT MEASURED; CNC/postprocessor and physical workshop validation remain human-only.
+- Parallel ownership: UI-owned PRs #206, #289 and #290 were not modified or merged. No `agent/integration-performance-*` branch exists and the specialist workflow job remains disabled; INT-002/PERF-001 remain specialist-owned and QA-003 remains blocked on adapter evidence.
+- AI Developer run [#46099799704](https://github.com/Taylan789/MobilyaCAD/actions/runs/46099799704) failed with OpenRouter free-model HTTP 429 (daily remaining 0; reset 29 November 2026 00:00 UTC / 03:00 TRT). No rerun before reset, paid fallback, secret or quota change.
+- Next: DOM-230 — verify Proxy reflection traps fail closed through snapshot creation and restored freshness/export without getter invocation or partial output.
+
 ## 27 Kasım 2026 18:55 TRT — DOM-217 VERIFIED
 
 - Base `dev/github-work` HEAD: `dfd52d00af4b4c39ed74131aea1fc05ea52ff61a`; target blob SHAs were re-read immediately before the write.

@@ -3391,7 +3391,7 @@ The first regression commit (347d89c) correctly reached the shared snapshot budg
 
 **10/10 checklist delta:** Güvenilirlik/veri güvenliği: Part snapshot sınırı accessor ve sparse-array girdilerine karşı testlenir. Üretim geometri/ölçü algoritması ve UI değişmez; frontend sahipliği UI ajanındadır. Viewport p95/bellek NOT MEASURED. CNC/makine veya fiziksel atölye doğrulaması eklenmez.
 
-**Durum:** IMPLEMENTED — exact-SHA CI/QA/Pages doğrulaması bekleniyor; bu commit doğrulanmadan tamamlandı sayılmayacak.
+**Durum:** VERIFIED — implementation/test commit [e0fbf823](https://github.com/Taylan789/MobilyaCAD/commit/e0fbf8234c78ac83043966b921abf0927dc21a14); CI [#46103144562](https://github.com/Taylan789/MobilyaCAD/actions/runs/46103144562), QA [#46103144543](https://github.com/Taylan789/MobilyaCAD/actions/runs/46103144543) SUCCESS (454 frontend + 875 domain; DOM-229 #273); Pages [#46103144540](https://github.com/Taylan789/MobilyaCAD/actions/runs/46103144540) SUCCESS exact SHA.
 
 **Sıradaki 3–5 küçük görev:**
 1. DOM-230 — snapshot/freshness public sınırlarında Proxy reflection hatalarının blocked/null sonuç ve getter çağrısı olmadan fail-closed kaldığını uçtan uca doğrula.
