@@ -55,3 +55,10 @@ test("multiple transform errors use a compact, readable technical warning stack"
   assert.match(styles, /@media\s*\(forced-colors:\s*active\)/);
   assert.match(styles, /color:\s*CanvasText\s*!important/);
 });
+
+test("changing the selected furniture resets drafts and stale validation messages", () => {
+  assert.match(component, /setPositionDraft\(createPositionDraft\(furniture\.position\)\)/);
+  assert.match(component, /setRotationDraft\(String\(furniture\.rotation\)\)/);
+  assert.match(component, /setPositionErrors\(\{\}\)/);
+  assert.match(component, /setRotationError\(null\)/);
+});
