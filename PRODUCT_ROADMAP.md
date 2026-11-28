@@ -3376,3 +3376,25 @@ The first regression commit (347d89c) correctly reached the shared snapshot budg
 2. UI-owned INT-003 — JSON v2 project envelope editor startup/new/save/open entegrasyonu; yalnızca UI ajanı `frontend/**` dosyalarında çalışır.
 3. Specialist-owned INT-002/PERF-001 — adapter round-trip ve viewport p95/bellek ölçümü için gerçek specialist branch/PR kanıtı; sahiplik devri olmadan adapter/benchmark dosyalarına dokunulmaz.
 4. QA-003 — INT-001/INT-002 exact-SHA adapter kanıtı tamamlandıktan sonra uçtan uca export reconciliation.
+
+
+## 28 Kasım 2026 06:26 TRT — DOM-229 Part snapshot descriptor güvenliği
+
+**Kullanıcı akışı:** Proje üretim Part kayıtları tam proje snapshot'ına dönüştürülürken beklenmeyen accessor/getter kodu çalıştırılmamalı; güvenilmeyen veya bozuk kayıtlar kısmi snapshot oluşturmadan reddedilmelidir.
+
+**Kabul kriterleri:**
+- Part listesi öğesi ve `id` alanı own data property olmalıdır; inherited ID veya getter/setter kabul edilmez.
+- Kanonik JSON üretimi enumerable nesne alanlarını ve dizi indekslerini descriptor üzerinden okur; getter/setter çalıştırılmaz.
+- Accessor-backed dizi indeksi ve sparse array fail-closed reddedilir.
+- Normal JSON uyumlu kayıtların kanonik anahtar sırası, mevcut JSON formatı, 8 MiB UTF-8 bütçesi ve 64 seviye sınırı değişmez.
+- Başarısız snapshot üretiminde kısmi kayıt listesi döndürülmez.
+
+**10/10 checklist delta:** Güvenilirlik/veri güvenliği: Part snapshot sınırı accessor ve sparse-array girdilerine karşı testlenir. Üretim geometri/ölçü algoritması ve UI değişmez; frontend sahipliği UI ajanındadır. Viewport p95/bellek NOT MEASURED. CNC/makine veya fiziksel atölye doğrulaması eklenmez.
+
+**Durum:** IMPLEMENTED — exact-SHA CI/QA/Pages doğrulaması bekleniyor; bu commit doğrulanmadan tamamlandı sayılmayacak.
+
+**Sıradaki 3–5 küçük görev:**
+1. DOM-230 — snapshot/freshness public sınırlarında Proxy reflection hatalarının blocked/null sonuç ve getter çağrısı olmadan fail-closed kaldığını uçtan uca doğrula.
+2. UI-owned INT-003 — JSON v2 project envelope editor startup/new/save/open entegrasyonu; yalnızca UI ajanı `frontend/**` dosyalarında çalışır.
+3. Specialist-owned INT-002/PERF-001 — adapter round-trip ve viewport p95/bellek ölçümü için gerçek specialist branch/PR kanıtı beklenir; bu otomasyon adapter/benchmark dosyalarına dokunmaz.
+4. QA-003 — INT-001/INT-002 exact-SHA adapter kanıtı tamamlandıktan sonra uçtan uca export reconciliation.

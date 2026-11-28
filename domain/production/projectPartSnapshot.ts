@@ -84,6 +84,14 @@ function closed(value: RecordValue, allowed: readonly string[], label: string): 
   if (extra !== undefined) throw new Error(label + " için desteklenmeyen alan: " + extra + ".");
 }
 
+function ownDataProperty(value: object, key: string, label: string): unknown {
+  const descriptor = Object.getOwnPropertyDescriptor(value, key);
+  if (descriptor === undefined || !("value" in descriptor)) {
+    throw new Error(label + " own data property olmalıdır; getter/setter kabul edilmez.");
+  }
+  return descriptor.value;
+}
+
 function identifier(value: unknown, label: string): string {
   if (typeof value !== "string" || value.trim() === "" || value.trim() !== value) {
     throw new Error(label + " boş olmayan ve kenar boşluğu içermeyen bir metin olmalıdır.");
@@ -120,7 +128,8 @@ function canonicalJson(value: unknown, label: string, budget: JsonByteBudget, an
     const items: string[] = [];
     for (let index = 0; index < value.length; index += 1) {
       if (index > 0) addSnapshotBytes(budget, 1);
-      items.push(canonicalJson(value[index], label + "[" + index + "]", budget, ancestors, depth + 1));
+      const item = ownDataProperty(value, String(index), label + "[" + index + "]");
+      items.push(canonicalJson(item, label + "[" + index + "]", budget, ancestors, depth + 1));
     }
     ancestors.delete(value);
     return "[" + items.join(",") + "]";
@@ -132,15 +141,16 @@ function canonicalJson(value: unknown, label: string, budget: JsonByteBudget, an
     if (ancestors.has(value)) throw new Error(label + " döngüsel veri içeriyor.");
     ancestors.add(value);
     const source = value as RecordValue;
-    const keys = Object.keys(source).filter((key) => source[key] !== undefined).sort();
+    const keys = Object.keys(source).sort();
     addSnapshotBytes(budget, 2);
     const fields: string[] = [];
-    for (let index = 0; index < keys.length; index += 1) {
-      const key = keys[index];
-      if (index > 0) addSnapshotBytes(budget, 1);
+    for (const key of keys) {
+      const fieldValue = ownDataProperty(source, key, label + "." + key);
+      if (fieldValue === undefined) continue;
+      if (fields.length > 0) addSnapshotBytes(budget, 1);
       addSnapshotBytes(budget, jsonStringByteLength(key));
       addSnapshotBytes(budget, 1);
-      fields.push(JSON.stringify(key) + ":" + canonicalJson(source[key], label + "." + key, budget, ancestors, depth + 1));
+      fields.push(JSON.stringify(key) + ":" + canonicalJson(fieldValue, label + "." + key, budget, ancestors, depth + 1));
     }
     ancestors.delete(value);
     return "{" + fields.join(",") + "}";
@@ -155,8 +165,9 @@ export function createProjectPartSnapshot(parts: readonly unknown[]): ProjectPar
   const budget = createSnapshotEnvelopeBudget();
   const entries: ProjectPartSnapshotEntry[] = [];
   for (let index = 0; index < parts.length; index += 1) {
-    const part = record(parts[index], "Proje Part snapshot kaydının " + (index + 1) + ". öğesi");
-    const id = identifier(part.id, "Proje Part snapshot kimliği");
+    const entryLabel = "Proje Part snapshot kaydının " + (index + 1) + ". öğesi";
+    const part = record(ownDataProperty(parts, String(index), entryLabel), entryLabel);
+    const id = identifier(ownDataProperty(part, "id", "Proje Part snapshot kimliği"), "Proje Part snapshot kimliği");
     if (seen.has(id)) throw new Error("Proje Part snapshot içinde yinelenen kimlik var: " + id + ".");
     seen.add(id);
     const snapshot = canonicalJson(part, id + " Part snapshot", { bytes: 0 });

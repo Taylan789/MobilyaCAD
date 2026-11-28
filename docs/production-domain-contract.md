@@ -2017,3 +2017,10 @@ An over-limit or over-depth snapshot is rejected as a whole. `createProjectPartS
 
 
 **DOM-217 exact-SHA verification — 27 Kasım 2026 18:55 TRT:** Implementation [2cf8a922cf5498eb990b640a9c33aca8aa74fdc8](https://github.com/Taylan789/MobilyaCAD/commit/2cf8a922cf5498eb990b640a9c33aca8aa74fdc8); CI [#46028894378](https://github.com/Taylan789/MobilyaCAD/actions/runs/46028894378) SUCCESS; QA [#46028894306](https://github.com/Taylan789/MobilyaCAD/actions/runs/46028894306) SUCCESS — 425/425 frontend + 861/861 domain tests, DOM-217 subtest #676 passed; strict shared-domain TypeScript, production build and production-only audit (0 vulnerabilities) passed; lint 36 warnings / 0 errors. Pages [#46028894369](https://github.com/Taylan789/MobilyaCAD/actions/runs/46028894369) SUCCESS; deployment log confirms pages_build_version=2cf8a922cf5498eb990b640a9c33aca8aa74fdc8 and https://taylan789.github.io/MobilyaCAD/.
+
+
+## DOM-229 — Descriptor-safe project Part snapshot input
+
+`createProjectPartSnapshot` is an `unknown`-input boundary used by the full-project freshness contract. It now reads Part-list entries and Part IDs only through own data descriptors. Canonical JSON traversal also reads enumerable object fields and array elements through their descriptors; getter/setter-backed fields, accessor-backed array indexes, and sparse arrays are rejected without evaluating getters. Inherited IDs are not accepted.
+
+This hardening does not change the canonical JSON format, field ordering, UTF-8 byte budget (8 MiB), or maximum nesting depth (64). Ordinary JSON-compatible Part data remains unchanged. It does not add adapter, CNC, machine-coordinate, or physical-production support.

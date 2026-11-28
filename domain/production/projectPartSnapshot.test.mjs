@@ -121,3 +121,55 @@ test("DOM-209 Part snapshot accepts 64 nested containers and rejects the 65th", 
     parts: [{ id: "part-depth", snapshot: tooDeepJson }]
   }), /64 iç içe/);
 });
+
+
+test("DOM-229 Part snapshot accessors and sparse arrays fail closed without executing getters", () => {
+  let getterCalls = 0;
+
+  const idAccessorPart = {};
+  Object.defineProperty(idAccessorPart, "id", {
+    enumerable: true,
+    get() {
+      getterCalls += 1;
+      return "part-id-accessor";
+    }
+  });
+  assert.throws(() => createProjectPartSnapshot([idAccessorPart]), /own data property/);
+  assert.equal(getterCalls, 0);
+
+  const nested = {};
+  Object.defineProperty(nested, "width", {
+    enumerable: true,
+    get() {
+      getterCalls += 1;
+      return 500;
+    }
+  });
+  assert.throws(() => createProjectPartSnapshot([{ id: "part-nested-accessor", geometry: nested }]), /own data property/);
+  assert.equal(getterCalls, 0);
+
+  const inheritedPrototype = Object.create({
+    get id() {
+      getterCalls += 1;
+      return "inherited-id";
+    }
+  });
+  Object.defineProperty(inheritedPrototype, "width", { value: 500, enumerable: true });
+  assert.throws(() => createProjectPartSnapshot([inheritedPrototype]), /own data property/);
+  assert.equal(getterCalls, 0);
+
+  const accessorRows = [];
+  Object.defineProperty(accessorRows, "0", {
+    enumerable: true,
+    configurable: true,
+    get() {
+      getterCalls += 1;
+      return { id: "part-array-accessor" };
+    }
+  });
+  assert.throws(() => createProjectPartSnapshot(accessorRows), /own data property/);
+  assert.equal(getterCalls, 0);
+
+  assert.throws(() => createProjectPartSnapshot(new Array(1)), /own data property/);
+  assert.equal(getterCalls, 0);
+});
