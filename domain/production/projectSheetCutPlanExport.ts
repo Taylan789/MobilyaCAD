@@ -2,6 +2,7 @@ import {
   validateProjectSheetCutPlanFreshness,
   type ProjectSheetCutPlanFreshnessRequest
 } from "./projectSheetCutPlanFreshness.ts";
+import { createSafeValidationError, safeThrownMessage } from "./safeThrownMessage.ts";
 import type { ProjectSheetCutPlanFileResult } from "./projectSheetCutPlanFile.ts";
 import { normalizeMaterialCatalogLabel } from "./materialIdentity.ts";
 
@@ -56,7 +57,7 @@ type RecordValue = Record<string, unknown>;
 
 function record(value: unknown, label: string): RecordValue {
   if (typeof value !== "object" || value === null || Array.isArray(value)) {
-    throw new Error(label + " geçerli bir nesne olmalıdır.");
+    throw createSafeValidationError(label + " geçerli bir nesne olmalıdır.");
   }
   return value as RecordValue;
 }
@@ -66,16 +67,16 @@ function safeRecord(value: unknown, label: string): RecordValue {
   const source = record(value, label);
   const prototype = Object.getPrototypeOf(source);
   if (prototype !== Object.prototype && prototype !== null) {
-    throw new Error(label + " yalnızca düz nesne olmalıdır.");
+    throw createSafeValidationError(label + " yalnızca düz nesne olmalıdır.");
   }
   const target = Object.create(null) as RecordValue;
   for (const key of Reflect.ownKeys(source)) {
     if (typeof key !== "string") {
-      throw new Error(label + " sembol anahtarı içeremez.");
+      throw createSafeValidationError(label + " sembol anahtarı içeremez.");
     }
     const descriptor = Object.getOwnPropertyDescriptor(source, key);
     if (descriptor === undefined || !("value" in descriptor) || !descriptor.enumerable) {
-      throw new Error(label + "." + key + " enumerable own data property olmalıdır; getter/setter kabul edilmez.");
+      throw createSafeValidationError(label + "." + key + " enumerable own data property olmalıdır; getter/setter kabul edilmez.");
     }
     Object.defineProperty(target, key, {
       value: descriptor.value,
@@ -90,10 +91,10 @@ function safeRecord(value: unknown, label: string): RecordValue {
 /** Copies a dense plain array through own data descriptors without invoking accessors. */
 function safeArray(value: unknown, label: string): unknown[] {
   if (!Array.isArray(value)) {
-    throw new Error(label + " geçerli bir dizi olmalıdır.");
+    throw createSafeValidationError(label + " geçerli bir dizi olmalıdır.");
   }
   if (Object.getPrototypeOf(value) !== Array.prototype) {
-    throw new Error(label + " yalnızca standart dizi olmalıdır.");
+    throw createSafeValidationError(label + " yalnızca standart dizi olmalıdır.");
   }
 
   const lengthDescriptor = Object.getOwnPropertyDescriptor(value, "length");
@@ -103,21 +104,21 @@ function safeArray(value: unknown, label: string): unknown[] {
     !Number.isSafeInteger(lengthDescriptor.value) ||
     lengthDescriptor.value < 0
   ) {
-    throw new Error(label + " geçerli bir own data length alanı taşımalıdır.");
+    throw createSafeValidationError(label + " geçerli bir own data length alanı taşımalıdır.");
   }
   const length = lengthDescriptor.value as number;
   const keys = Reflect.ownKeys(value);
   if (keys.length !== length + 1) {
-    throw new Error(label + " seyrek veya ek alan içeren dizi olamaz.");
+    throw createSafeValidationError(label + " seyrek veya ek alan içeren dizi olamaz.");
   }
   for (const key of keys) {
     if (key === "length") continue;
     if (typeof key !== "string") {
-      throw new Error(label + " sembol anahtarı içeremez.");
+      throw createSafeValidationError(label + " sembol anahtarı içeremez.");
     }
     const index = Number(key);
     if (!Number.isInteger(index) || index < 0 || index >= length || String(index) !== key) {
-      throw new Error(label + " yalnızca sıralı dizi indeksleri içerebilir.");
+      throw createSafeValidationError(label + " yalnızca sıralı dizi indeksleri içerebilir.");
     }
   }
 
@@ -125,7 +126,7 @@ function safeArray(value: unknown, label: string): unknown[] {
   for (let index = 0; index < length; index += 1) {
     const descriptor = Object.getOwnPropertyDescriptor(value, String(index));
     if (descriptor === undefined || !("value" in descriptor) || !descriptor.enumerable) {
-      throw new Error(label + "[" + index + "] enumerable own data property olmalıdır; getter/setter kabul edilmez.");
+      throw createSafeValidationError(label + "[" + index + "] enumerable own data property olmalıdır; getter/setter kabul edilmez.");
     }
     result.push(descriptor.value);
   }
@@ -135,7 +136,7 @@ function safeArray(value: unknown, label: string): unknown[] {
 function closed(value: RecordValue, allowed: readonly string[], label: string): void {
   const extra = Object.keys(value).find((key) => !allowed.includes(key));
   if (extra !== undefined) {
-    throw new Error(label + " için desteklenmeyen alan: " + extra + ".");
+    throw createSafeValidationError(label + " için desteklenmeyen alan: " + extra + ".");
   }
 }
 
@@ -163,14 +164,14 @@ function blocked(
 function nullableDiagnosticText(value: unknown, label: string): string | null {
   if (value === null) return null;
   if (typeof value !== "string" || value.trim() === "") {
-    throw new Error(label + " boş olmayan metin veya null olmalıdır.");
+    throw createSafeValidationError(label + " boş olmayan metin veya null olmalıdır.");
   }
   return value;
 }
 
 function requiredDiagnosticText(value: unknown, label: string): string {
   if (typeof value !== "string" || value.trim() === "") {
-    throw new Error(label + " boş olmayan metin olmalıdır.");
+    throw createSafeValidationError(label + " boş olmayan metin olmalıdır.");
   }
   return value;
 }
@@ -188,14 +189,14 @@ function readMaterialIdentityConflict(
   if (value === undefined) return undefined;
   const label = field + " material identity conflict provenance";
   if (field !== "blockedFurniture" || code !== "invalid-material" || furnitureId === null) {
-    throw new Error(label + " yalnızca furniture kimliği olan invalid-material blok tanısında bulunabilir.");
+    throw createSafeValidationError(label + " yalnızca furniture kimliği olan invalid-material blok tanısında bulunabilir.");
   }
   const conflict = safeRecord(value, label);
   closed(conflict, ["materialId", "sources"], label);
   const materialId = requiredDiagnosticText(conflict.materialId, label + " materialId");
   const sourceEntries = safeArray(conflict.sources, label + " sources");
   if (sourceEntries.length < 2) {
-    throw new Error(label + " en az iki kaynak Part taşımalıdır.");
+    throw createSafeValidationError(label + " en az iki kaynak Part taşımalıdır.");
   }
   const sources = sourceEntries.map((source, index) => {
     const item = safeRecord(source, label + " sources[" + index + "]");
@@ -212,15 +213,15 @@ function readMaterialIdentityConflict(
     const order = compareDiagnosticText(previous.furnitureId, current.furnitureId) ||
       compareDiagnosticText(previous.partId, current.partId);
     if (order >= 0) {
-      throw new Error(label + " kaynakları sıralı ve benzersiz olmalıdır.");
+      throw createSafeValidationError(label + " kaynakları sıralı ve benzersiz olmalıdır.");
     }
   }
   const distinctLabels = new Set(sources.map((source) => normalizeMaterialCatalogLabel(source.materialLabel)));
   if (distinctLabels.size < 2) {
-    throw new Error(label + " en az iki farklı normalize katalog adı içermelidir.");
+    throw createSafeValidationError(label + " en az iki farklı normalize katalog adı içermelidir.");
   }
   if (!sources.some((source) => source.furnitureId === furnitureId)) {
-    throw new Error(label + " bloklanan furniture kimliği kaynak listesinde bulunmalıdır.");
+    throw createSafeValidationError(label + " bloklanan furniture kimliği kaynak listesinde bulunmalıdır.");
   }
   return { materialId, sources };
 }
@@ -245,10 +246,10 @@ export function readProductionDiagnostics(
     for (let index = 0; index < entries.length; index += 1) {
       const entry = safeRecord(entries[index], field + " tanısının " + (index + 1) + ". kaydı");
       if (typeof entry.message !== "string" || entry.message.trim() === "") {
-        throw new Error(field + " tanısı geçerli bir mesaj taşımalıdır.");
+        throw createSafeValidationError(field + " tanısı geçerli bir mesaj taşımalıdır.");
       }
       if (typeof entry.code !== "string" || entry.code.trim() === "") {
-        throw new Error(field + " tanısı geçerli bir kod taşımalıdır.");
+        throw createSafeValidationError(field + " tanısı geçerli bir kod taşımalıdır.");
       }
       const furnitureId = nullableDiagnosticText(entry.furnitureId, field + " furnitureId");
       const family = nullableDiagnosticText(entry.family, field + " family");
@@ -269,13 +270,13 @@ export function readProductionDiagnostics(
       });
       if (materialIdentityConflict !== undefined) {
         if (furnitureId === null) {
-          throw new Error("material identity conflict provenance furniture kimliği zorunludur.");
+          throw createSafeValidationError("material identity conflict provenance furniture kimliği zorunludur.");
         }
         const canonical = JSON.stringify(materialIdentityConflict);
         const sourceFurnitureIds = new Set(materialIdentityConflict.sources.map((item) => item.furnitureId));
         const existing = conflictCoverage.get(materialIdentityConflict.materialId);
         if (existing !== undefined && existing.canonical !== canonical) {
-          throw new Error("material identity conflict provenance aynı katalog kimliği için tutarlı olmalıdır.");
+          throw createSafeValidationError("material identity conflict provenance aynı katalog kimliği için tutarlı olmalıdır.");
         }
         const coverage = existing ?? {
           canonical,
@@ -296,7 +297,7 @@ export function readProductionDiagnostics(
     const entries = safeArray(safeReport[field], "Güncel proje üretim raporu " + field);
     for (const message of entries) {
       if (typeof message !== "string" || message.trim() === "") {
-        throw new Error(field + " yalnızca boş olmayan metin kayıtları taşımalıdır.");
+        throw createSafeValidationError(field + " yalnızca boş olmayan metin kayıtları taşımalıdır.");
       }
       diagnostics.push({
         source,
@@ -316,7 +317,7 @@ export function readProductionDiagnostics(
 
   if (safeReport.firstError !== null) {
     if (typeof safeReport.firstError !== "string" || safeReport.firstError.trim() === "") {
-      throw new Error("Güncel proje üretim raporu firstError alanı metin veya null olmalıdır.");
+      throw createSafeValidationError("Güncel proje üretim raporu firstError alanı metin veya null olmalıdır.");
     }
     if (!representedMessages.has(safeReport.firstError)) {
       diagnostics.push({
@@ -334,7 +335,7 @@ export function readProductionDiagnostics(
       coverage.sourceFurnitureIds.size !== coverage.diagnosticFurnitureIds.size ||
       [...coverage.sourceFurnitureIds].some((id) => !coverage.diagnosticFurnitureIds.has(id))
     ) {
-      throw new Error("material identity conflict provenance tüm kaynak furniture tanılarını kapsamalıdır (" + materialId + ").");
+      throw createSafeValidationError("material identity conflict provenance tüm kaynak furniture tanılarını kapsamalıdır (" + materialId + ").");
     }
   }
 
@@ -372,10 +373,10 @@ export function createFreshProjectSheetCutPlanExport(value: unknown): ProjectShe
     const request = safeRecord(value, "Proje kesim planı dışa aktarma isteği");
     closed(request, ["schemaVersion", "freshness"], "Proje kesim planı dışa aktarma isteği");
     if (request.schemaVersion !== 1) {
-      throw new Error("Desteklenmeyen proje kesim planı dışa aktarma şema sürümü.");
+      throw createSafeValidationError("Desteklenmeyen proje kesim planı dışa aktarma şema sürümü.");
     }
     if (!Object.prototype.hasOwnProperty.call(request, "freshness")) {
-      throw new Error("Dışa aktarma için güncellik doğrulaması girdisi zorunludur.");
+      throw createSafeValidationError("Dışa aktarma için güncellik doğrulaması girdisi zorunludur.");
     }
 
     const freshnessRequest = safeRecord(request.freshness, "Kesim planı güncellik girdisi");
@@ -384,7 +385,7 @@ export function createFreshProjectSheetCutPlanExport(value: unknown): ProjectShe
     const productionMessages = formatProductionDiagnostics(productionDiagnostics);
     if (productionReport.status !== "ready" || productionDiagnostics.length > 0) {
       if (productionReport.status === "blocked" && productionReport.result !== null) {
-        throw new Error("Blocked proje üretim raporu kısmi Part sonucu taşıyamaz.");
+        throw createSafeValidationError("Blocked proje üretim raporu kısmi Part sonucu taşıyamaz.");
       }
       const fallback = productionReport.status === "empty"
         ? "Boş proje üretim raporu kesim planı dışa aktarımı sağlayamaz."
@@ -397,10 +398,10 @@ export function createFreshProjectSheetCutPlanExport(value: unknown): ProjectShe
       );
     }
     if (productionReport.canExport !== true) {
-      throw new Error("Güncel proje üretim raporu canExport=true olmalıdır.");
+      throw createSafeValidationError("Güncel proje üretim raporu canExport=true olmalıdır.");
     }
     if (productionReport.result === null || productionReport.result === undefined) {
-      throw new Error("Dışa aktarılabilir proje üretim raporu tam bir Part sonucu taşımalıdır.");
+      throw createSafeValidationError("Dışa aktarılabilir proje üretim raporu tam bir Part sonucu taşımalıdır.");
     }
 
     const freshness = validateProjectSheetCutPlanFreshness(freshnessRequest);
@@ -414,10 +415,10 @@ export function createFreshProjectSheetCutPlanExport(value: unknown): ProjectShe
       envelope.format !== "MobilyaCADProjectSheetCutPlan" ||
       (envelope.formatVersion !== 2 && envelope.formatVersion !== 3)
     ) {
-      throw new Error("Dışa aktarım yalnızca tam proje Part snapshot'ı içeren JSON formatVersion 2 veya 3 planlarını kabul eder.");
+      throw createSafeValidationError("Dışa aktarım yalnızca tam proje Part snapshot'ı içeren JSON formatVersion 2 veya 3 planlarını kabul eder.");
     }
     if (freshness.result.projectPartSnapshot === undefined) {
-      throw new Error("Güncel kesim planı tam proje Part snapshot'ı taşımıyor.");
+      throw createSafeValidationError("Güncel kesim planı tam proje Part snapshot'ı taşımıyor.");
     }
 
     return {
@@ -433,7 +434,7 @@ export function createFreshProjectSheetCutPlanExport(value: unknown): ProjectShe
   } catch (error) {
     return blocked(
       "blocked",
-      [error instanceof Error ? error.message : String(error)],
+      [safeThrownMessage(error, "Proje kesim planı dışa aktarımı güvenli biçimde tamamlanamadı.")],
       sourcePartIds
     );
   }

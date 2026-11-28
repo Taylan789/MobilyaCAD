@@ -3473,3 +3473,25 @@ The first regression commit (347d89c) correctly reached the shared snapshot budg
 2. UI-owned INT-003 — JSON v2 startup/new/save/open entegrasyonu; `frontend/**` yalnızca UI sahibinde.
 3. Specialist-owned INT-002/PERF-001 — adapter round-trip ve viewport p95/bellek ölçümü; gerçek specialist branch/PR kanıtı bekleniyor, bu otomasyon sahiplik alanına girmez.
 4. QA-003 — adapter kanıtı tamamlandıktan sonra uçtan uca export reconciliation.
+
+
+## 28 Kasım 2026 11:24 TRT — DOM-233: güvenli thrown-error normalizasyonu
+
+**Kullanıcı akışı:** Kesim planı freshness veya export doğrulaması beklenmeyen bir nesne, accessor ya da Proxy trap tarafından kesildiğinde uygulama hata mesajını üretirken aynı nesnenin getter'ını, prototype/descriptor trap'ini veya kullanıcı tanımlı string coercion kodunu çalıştırmaz. Sonuç fail-closed `blocked` olur; kısmi plan/JSON üretilmez.
+
+**Kabul kriterleri:**
+- Freshness ve export catch sınırları `instanceof Error`, `.message` erişimi ve `String(error)` kullanmaz.
+- Yalnızca primitive string ve bu modüllerin kendi oluşturduğu WeakMap-kayıtlı validation Error mesajları gösterilir; bilinmeyen object/function/Proxy sabit güvenli fallback alır.
+- Thrown Proxy'nin `getPrototypeOf`, `get`, `ownKeys` ve descriptor trap'leri normalizasyon sırasında hiç çağrılmaz; getter sayacı sıfır kalır.
+- İç doğrulama hatalarının mevcut Türkçe tanıları korunur.
+- Freshness/export başarısızlığında `result=null`, `json=null`; geçerli JSON v2/v3 ve mm/adet hesapları değişmez.
+
+**Durum:** IMPLEMENTED — exact-SHA CI, QA, production build ve Pages doğrulaması bekleniyor. Yeni helper ve iki public sınır aynı güvenli hata kaydını kullanır.
+
+**10/10 checklist delta:** Güvenilirlik/veri güvenliği: hata yakalama katmanı da güvenilmeyen thrown value'lara karşı getter/coercion çalıştırmadan fail-closed. CAD Core/UX ve geometri değişmedi. Viewport p95/bellek NOT MEASURED. CNC/postprocessor ve fiziksel atölye doğrulaması bu dilimin kapsamı değil.
+
+**Sıradaki küçük görevler:**
+1. DOM-234 — freshness/export içindeki bağımlı domain fonksiyonlarından gelen tanıların güvenli kayıt kapsamını ve fallback davranışını uçtan uca gözden geçir.
+2. UI-owned INT-003 — JSON v2 startup/new/save/open entegrasyonu; `frontend/**` yalnızca UI sahibinde.
+3. Specialist-owned INT-002/PERF-001 — adapter round-trip ve viewport p95/bellek ölçümü; gerçek specialist branch/PR kanıtı olmadan bu dosyalara dokunma.
+4. QA-003 — INT-001/INT-002 exact-SHA adapter kanıtı tamamlandıktan sonra export reconciliation.

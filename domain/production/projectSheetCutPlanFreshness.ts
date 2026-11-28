@@ -1,3 +1,4 @@
+import { createSafeValidationError, safeThrownMessage } from "./safeThrownMessage.ts";
 import type { CabinetProjectProductionReport } from "./projectProduction.ts";
 import { createProjectSheetNestingInput } from "./projectSheetNestingInput.ts";
 import {
@@ -45,7 +46,7 @@ type RecordValue = Record<string, unknown>;
 
 function record(value: unknown, label: string): RecordValue {
   if (typeof value !== "object" || value === null || Array.isArray(value)) {
-    throw new Error(label + " geçerli bir nesne olmalıdır.");
+    throw createSafeValidationError(label + " geçerli bir nesne olmalıdır.");
   }
   return value as RecordValue;
 }
@@ -55,16 +56,16 @@ function safeRecord(value: unknown, label: string): RecordValue {
   const source = record(value, label);
   const prototype = Object.getPrototypeOf(source);
   if (prototype !== Object.prototype && prototype !== null) {
-    throw new Error(label + " yalnızca düz nesne olmalıdır.");
+    throw createSafeValidationError(label + " yalnızca düz nesne olmalıdır.");
   }
   const target = Object.create(null) as RecordValue;
   for (const key of Reflect.ownKeys(source)) {
     if (typeof key !== "string") {
-      throw new Error(label + " sembol anahtarı içeremez.");
+      throw createSafeValidationError(label + " sembol anahtarı içeremez.");
     }
     const descriptor = Object.getOwnPropertyDescriptor(source, key);
     if (descriptor === undefined || !("value" in descriptor) || !descriptor.enumerable) {
-      throw new Error(label + "." + key + " enumerable own data property olmalıdır; getter/setter kabul edilmez.");
+      throw createSafeValidationError(label + "." + key + " enumerable own data property olmalıdır; getter/setter kabul edilmez.");
     }
     Object.defineProperty(target, key, {
       value: descriptor.value,
@@ -79,13 +80,13 @@ function safeRecord(value: unknown, label: string): RecordValue {
 function closed(value: RecordValue, allowed: readonly string[], label: string): void {
   const unknownKey = Object.keys(value).find((key) => !allowed.includes(key));
   if (unknownKey !== undefined) {
-    throw new Error(label + " için desteklenmeyen alan: " + unknownKey + ".");
+    throw createSafeValidationError(label + " için desteklenmeyen alan: " + unknownKey + ".");
   }
 }
 
 function identifier(value: unknown, label: string): string {
   if (typeof value !== "string" || value.trim() === "" || value.trim() !== value) {
-    throw new Error(label + " boş olmayan ve kenar boşluğu içermeyen bir metin olmalıdır.");
+    throw createSafeValidationError(label + " boş olmayan ve kenar boşluğu içermeyen bir metin olmalıdır.");
   }
   return value;
 }
@@ -155,7 +156,7 @@ export function validateProjectSheetCutPlanFreshness(
       "Proje kesim planı güncellik isteği"
     );
     if (request.schemaVersion !== 1) {
-      throw new Error("Desteklenmeyen proje kesim planı güncellik şema sürümü.");
+      throw createSafeValidationError("Desteklenmeyen proje kesim planı güncellik şema sürümü.");
     }
 
     const parsedPlan = parseProjectSheetCutPlanJson(request.savedPlanJson);
@@ -170,16 +171,16 @@ export function validateProjectSheetCutPlanFreshness(
       : record(request.grainDirectionsByPartId, "Parça damar yönü eşlemesi");
     for (const [partId, direction] of Object.entries(grainOverrides)) {
       if (!selectedIds.has(partId)) {
-        throw new Error("Damar yönü eşlemesi kayıtlı kesim planında bulunmayan Part ID içeriyor: " + partId + ".");
+        throw createSafeValidationError("Damar yönü eşlemesi kayıtlı kesim planında bulunmayan Part ID içeriyor: " + partId + ".");
       }
       if (!isGrainDirection(direction)) {
-        throw new Error(partId + " için damar yönü length, width veya none olmalıdır.");
+        throw createSafeValidationError(partId + " için damar yönü length, width veya none olmalıdır.");
       }
     }
 
     const productionReport = safeRecord(request.productionReport, "Güncel proje üretim raporu");
     if (productionReport.schemaVersion !== 1) {
-      throw new Error("Desteklenmeyen güncel proje üretim raporu şema sürümü.");
+      throw createSafeValidationError("Desteklenmeyen güncel proje üretim raporu şema sürümü.");
     }
     if (productionReport.status === "blocked") {
       const detail = typeof productionReport.firstError === "string" &&
@@ -189,12 +190,12 @@ export function validateProjectSheetCutPlanFreshness(
       return notFresh("blocked", [detail], sourcePartIds);
     }
     if (productionReport.status !== "ready" && productionReport.status !== "empty") {
-      throw new Error("Güncel proje üretim raporu ready, empty veya blocked durumunda olmalıdır.");
+      throw createSafeValidationError("Güncel proje üretim raporu ready, empty veya blocked durumunda olmalıdır.");
     }
 
     const productionResult = safeRecord(productionReport.result, "Güncel proje üretim sonucu");
     if (productionResult.schemaVersion !== 1 || !Array.isArray(productionResult.parts)) {
-      throw new Error("Güncel proje üretim sonucu geçerli bir v1 Part listesi taşımalıdır.");
+      throw createSafeValidationError("Güncel proje üretim sonucu geçerli bir v1 Part listesi taşımalıdır.");
     }
 
     if (parsedPlan.result.projectPartSnapshot !== undefined) {
@@ -209,7 +210,7 @@ export function validateProjectSheetCutPlanFreshness(
         identifier(rawId, "Güncel seçili Part ID " + (index + 1))
       );
       if (new Set(currentSelectedPartIds).size !== currentSelectedPartIds.length) {
-        throw new Error("Güncel seçili Part ID listesinde yinelenen kimlik var.");
+        throw createSafeValidationError("Güncel seçili Part ID listesinde yinelenen kimlik var.");
       }
       if (
         currentSelectedPartIds.length !== sourcePartIds.length ||
@@ -228,7 +229,7 @@ export function validateProjectSheetCutPlanFreshness(
 
     if (productionReport.status === "empty") {
       if (productionResult.parts.length !== 0) {
-        throw new Error("Empty proje üretim raporu boş olmayan Part listesi taşıyamaz.");
+        throw createSafeValidationError("Empty proje üretim raporu boş olmayan Part listesi taşıyamaz.");
       }
       if (parsedPlan.status === "empty") {
         return {
@@ -248,7 +249,7 @@ export function validateProjectSheetCutPlanFreshness(
     }
 
     if (productionResult.parts.length === 0) {
-      throw new Error("Ready proje üretim raporu boş Part listesi taşıyamaz.");
+      throw createSafeValidationError("Ready proje üretim raporu boş Part listesi taşıyamaz.");
     }
     if (parsedPlan.status === "empty") {
       return notFresh(
@@ -264,7 +265,7 @@ export function validateProjectSheetCutPlanFreshness(
       const part = record(productionResult.parts[index], "Güncel üretim Part kaydının " + (index + 1) + ". öğesi");
       const id = identifier(part.id, "Güncel üretim Part kimliği");
       if (currentPartsById.has(id)) {
-        throw new Error("Güncel üretim snapshot'ında yinelenen Part ID var: " + id + ".");
+        throw createSafeValidationError("Güncel üretim snapshot'ında yinelenen Part ID var: " + id + ".");
       }
       currentPartsById.set(id, part);
       currentPartOrder.push(id);
@@ -375,7 +376,7 @@ export function validateProjectSheetCutPlanFreshness(
   } catch (error) {
     return notFresh(
       "blocked",
-      [error instanceof Error ? error.message : String(error)],
+      [safeThrownMessage(error, "Kesim planı güncellik doğrulaması güvenli biçimde tamamlanamadı.")],
       sourcePartIds
     );
   }

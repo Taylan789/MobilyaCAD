@@ -2369,3 +2369,15 @@
 - **Known limits:** 36 existing lint warnings and a chunk-splitting advisory remain; viewport p95/memory NOT MEASURED; CNC/postprocessor and physical workshop validation not claimed. No `frontend/**`, adapter/benchmark-owned, workflow, secrets/settings or `main` files changed.
 - **Parallel status:** UI-owned INT-003 PR #206 was not changed or merged. Specialist-owned INT-002/PERF-001 remain separate; no active specialist job/branch evidence and the workflow job remains disabled. Historical AI Developer run [#46099799704](https://github.com/Taylan789/MobilyaCAD/actions/runs/46099799704) failed on stale SHA `5ba766e5` with OpenRouter HTTP 429; no rerun against stale code, paid fallback or secrets/settings change.
 - **Next:** DOM-233 — harden error-message normalization for thrown accessor/Proxy values so a failure cannot invoke user-controlled getters or coercion.
+
+
+## 28 Kasım 2026 11:24 TRT — DOM-233 IMPLEMENTED (exact-SHA validation pending)
+
+- **Base HEAD:** `c15432ffb4910f9b496924c4d6ccc2127b10b7b1` on `dev/github-work`.
+- **Implementation:** added `domain/production/safeThrownMessage.ts`; both `projectSheetCutPlanFreshness.ts` and `projectSheetCutPlanExport.ts` now register their own validation errors in a private WeakMap and normalize catch values without `instanceof`, property reads, reflection or string coercion. All local validation throws use the registered error factory, preserving existing Turkish diagnostics.
+- **Regression:** `projectSheetCutPlanExport.test.mjs` sends opaque thrown Proxy values through both public boundaries; `getPrototypeOf`, `get`, `ownKeys`, descriptor and message getter counters must remain zero. A paired test verifies internally-created validation messages remain unchanged.
+- **Changed files:** `domain/production/safeThrownMessage.ts`, `domain/production/projectSheetCutPlanFreshness.ts`, `domain/production/projectSheetCutPlanExport.ts`, `domain/production/projectSheetCutPlanExport.test.mjs`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`.
+- **Validation:** pending exact implementation SHA CI, QA (unit/domain tests, strict shared-domain TypeScript, lint, production build, production-only audit) and Pages. No success is inferred from the base SHA.
+- **Limits/ownership:** no `frontend/**`, adapter/benchmark-owned files, workflows, secrets/settings or `main` changes. Viewport p95/memory remain NOT MEASURED; CNC/postprocessor and physical workshop validation are not claimed.
+- **Parallel lanes:** UI-owned INT-003 and specialist-owned INT-002/PERF-001 remain separate; no specialist branch was found. Historical AI Developer run [#46099799704](https://github.com/Taylan789/MobilyaCAD/actions/runs/46099799704) failed on stale SHA `5ba766e5` due OpenRouter free daily HTTP 429; it is not safe to rerun against obsolete code and no quota/secret/settings change is authorized.
+- **Next:** after exact-SHA Actions pass, record final commit/run evidence; then DOM-234 will audit safe diagnostic normalization for errors propagated from dependent domain functions.

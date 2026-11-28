@@ -5,6 +5,7 @@ import { calculateCabinetProjectProductionWithDiagnostics } from "./projectProdu
 import { createProjectSheetNestingBatches } from "./projectSheetNestingBatches.ts";
 import { createProjectSheetCutPlan } from "./projectSheetCutPlan.ts";
 import { createFreshProjectSheetCutPlanExport } from "./projectSheetCutPlanExport.ts";
+import { validateProjectSheetCutPlanFreshness } from "./projectSheetCutPlanFreshness.ts";
 import { calculateSheetNestingLayout } from "./sheetNestingLayout.ts";
 
 function part(id, overrides = {}) {
@@ -648,4 +649,72 @@ test("DOM-232 nested material conflict and source arrays reject accessors and sp
     assert.equal(getterCalls, 0, scenario.name);
     assert.deepEqual(result.productionDiagnostics, [], scenario.name);
   }
+});
+
+
+function opaqueThrownValue(onInspection) {
+  const target = {};
+  Object.defineProperty(target, "message", {
+    enumerable: true,
+    configurable: true,
+    get() {
+      onInspection();
+      throw new Error("Thrown error message getter must not execute.");
+    }
+  });
+  return new Proxy(target, {
+    getPrototypeOf() {
+      onInspection();
+      throw new Error("Thrown error prototype must not be inspected.");
+    },
+    get() {
+      onInspection();
+      throw new Error("Thrown error must not be coerced.");
+    },
+    ownKeys() {
+      onInspection();
+      throw new Error("Thrown error keys must not be inspected.");
+    },
+    getOwnPropertyDescriptor() {
+      onInspection();
+      throw new Error("Thrown error descriptors must not be inspected.");
+    }
+  });
+}
+
+test("DOM-233 thrown Proxy values are normalized without reflection, getters or coercion", () => {
+  let exportInspections = 0;
+  const exportThrownValue = opaqueThrownValue(() => { exportInspections += 1; });
+  const exportInput = new Proxy({}, {
+    getPrototypeOf() {
+      throw exportThrownValue;
+    }
+  });
+  const exportResult = createFreshProjectSheetCutPlanExport(exportInput);
+  assertBlocked(exportResult, "blocked", /güvenli biçimde tamamlanamadı/);
+  assert.deepEqual(exportResult.productionDiagnostics, []);
+  assert.equal(exportInspections, 0);
+
+  let freshnessInspections = 0;
+  const freshnessThrownValue = opaqueThrownValue(() => { freshnessInspections += 1; });
+  const freshnessInput = new Proxy({}, {
+    getPrototypeOf() {
+      throw freshnessThrownValue;
+    }
+  });
+  const freshnessResult = validateProjectSheetCutPlanFreshness(freshnessInput);
+  assert.equal(freshnessResult.status, "blocked");
+  assert.equal(freshnessResult.result, null);
+  assert.equal(freshnessResult.json, null);
+  assert.match(freshnessResult.diagnostics.join(" "), /güvenli biçimde tamamlanamadı/);
+  assert.equal(freshnessInspections, 0);
+});
+
+test("DOM-233 internally-created validation errors retain their safe diagnostics", () => {
+  const exportResult = createFreshProjectSheetCutPlanExport({ schemaVersion: 2 });
+  assertBlocked(exportResult, "blocked", /Desteklenmeyen proje kesim planı dışa aktarma şema sürümü/);
+
+  const freshnessResult = validateProjectSheetCutPlanFreshness({ schemaVersion: 2 });
+  assert.equal(freshnessResult.status, "blocked");
+  assert.match(freshnessResult.diagnostics.join(" "), /Desteklenmeyen proje kesim planı güncellik şema sürümü/);
 });
