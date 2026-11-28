@@ -393,82 +393,93 @@ export function DrawerBoxConfigurator({
           {formOpen && (
             <form className="cad-drawer-config-form" onSubmit={saveConfig}>
               <div className="cad-drawer-config-grid">
-                {dimensionFields.map(({ key, label }) => (
-                  <div className="cad-field" key={key}>
-                    <Label htmlFor={"drawer-" + key}>{label} (mm)</Label>
-                    <Input
-                      id={"drawer-" + key}
-                      type="number"
-                      min="0.1"
-                      step="0.1"
-                      value={draft[key]}
-                      onChange={(event) =>
-                        setDraft((previous) => ({
-                          ...previous,
-                          [key]: event.target.value
-                        }))
-                      }
-                    />
-                  </div>
-                ))}
-
-                <div className="cad-field">
-                  <Label htmlFor="drawer-quantity">Çekmece adedi</Label>
-                  <Input
-                    id="drawer-quantity"
-                    type="number"
-                    min="1"
-                    step="1"
-                    value={draft.quantity}
-                    onChange={(event) =>
-                      setDraft((previous) => ({
-                        ...previous,
-                        quantity: event.target.value
-                      }))
-                    }
-                  />
-                </div>
-
-                <div className="cad-field">
-                  <Label htmlFor="drawer-material-catalog">Varsayılan katalog malzemesi (isteğe bağlı)</Label>
-                  <select
-                    id="drawer-material-catalog"
-                    className="cad-native-select"
-                    value={draft.materialId}
-                    onChange={(event) => {
-                      const materialId = event.target.value;
-                      const selected = materials.find((material) => material.id === materialId);
-                      setDraft((previous) => ({
-                        ...previous,
-                        materialId,
-                        ...(selected ? { material: selected.name } : {})
-                      }));
-                    }}
-                  >
-                    <option value="">Serbest metin malzeme kullan</option>
-                    {materials.map((material) => (
-                      <option key={material.id} value={material.id}>
-                        {material.name}{material.decor ? ` · ${material.decor}` : ""}
-                      </option>
+                <fieldset className="cad-drawer-config-fieldset cad-drawer-config-fieldset--dimensions">
+                  <legend>ANA ÖLÇÜLER · mm</legend>
+                  <div className="cad-drawer-config-field-grid">
+                    {dimensionFields.map(({ key, label }) => (
+                      <div className="cad-field" key={key}>
+                        <Label htmlFor={"drawer-" + key}>{label}</Label>
+                        <Input
+                          id={"drawer-" + key}
+                          type="number"
+                          min="0.1"
+                          step="0.1"
+                          value={draft[key]}
+                          onChange={(event) =>
+                            setDraft((previous) => ({
+                              ...previous,
+                              [key]: event.target.value
+                            }))
+                          }
+                        />
+                      </div>
                     ))}
-                  </select>
-                </div>
-                <div className="cad-field">
-                  <Label htmlFor="drawer-material">Malzeme adı (serbest metin)</Label>
-                  <Input
-                    id="drawer-material"
-                    type="text"
-                    value={draft.material}
-                    disabled={draft.materialId !== ""}
-                    placeholder="Atölye malzeme adını gir"
-                    onChange={(event) =>
-                      setDraft((previous) => ({
-                        ...previous,
-                        material: event.target.value
-                      }))
-                    }
-                  />
-                </div>
+                  </div>
+                </fieldset>
+
+                <fieldset className="cad-drawer-config-fieldset cad-drawer-config-fieldset--material">
+                  <legend>ADET & MALZEME</legend>
+                  <div className="cad-drawer-config-field-grid">
+                    <div className="cad-field">
+                      <Label htmlFor="drawer-quantity">Çekmece adedi</Label>
+                      <Input
+                        id="drawer-quantity"
+                        type="number"
+                        min="1"
+                        step="1"
+                        value={draft.quantity}
+                        onChange={(event) =>
+                          setDraft((previous) => ({
+                            ...previous,
+                            quantity: event.target.value
+                          }))
+                        }
+                      />
+                    </div>
+
+                    <div className="cad-field">
+                      <Label htmlFor="drawer-material-catalog">Varsayılan katalog malzemesi (isteğe bağlı)</Label>
+                      <select
+                        id="drawer-material-catalog"
+                        className="cad-native-select"
+                        value={draft.materialId}
+                        onChange={(event) => {
+                          const materialId = event.target.value;
+                          const selected = materials.find((material) => material.id === materialId);
+                          setDraft((previous) => ({
+                            ...previous,
+                            materialId,
+                            ...(selected ? { material: selected.name } : {})
+                          }));
+                        }}
+                      >
+                        <option value="">Serbest metin malzeme kullan</option>
+                        {materials.map((material) => (
+                          <option key={material.id} value={material.id}>
+                            {material.name}{material.decor ? ` · ${material.decor}` : ""}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="cad-field">
+                      <Label htmlFor="drawer-material">Malzeme adı (serbest metin)</Label>
+                      <Input
+                        id="drawer-material"
+                        type="text"
+                        value={draft.material}
+                        disabled={draft.materialId !== ""}
+                        placeholder="Atölye malzeme adını gir"
+                        onChange={(event) =>
+                          setDraft((previous) => ({
+                            ...previous,
+                            material: event.target.value
+                          }))
+                        }
+                      />
+                    </div>
+                  </div>
+                </fieldset>
               </div>
 
               <details className="cad-drawer-config-disclosure cad-drawer-config-disclosure--materials">
