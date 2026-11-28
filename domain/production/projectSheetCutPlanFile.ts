@@ -1,4 +1,5 @@
 import { calculateProjectSheetCutPlanAreaSummary } from "./projectSheetCutPlanAreaSummary.ts";
+import { createSafeValidationError, safeThrownMessage } from "./safeThrownMessage.ts";
 import { validateProjectPartSnapshot, type ProjectPartSnapshot } from "./projectPartSnapshot.ts";
 import {
   parseSheetCutPlanJson,
@@ -46,7 +47,7 @@ type RecordValue = Record<string, unknown>;
 
 function record(value: unknown, label: string): RecordValue {
   if (typeof value !== "object" || value === null || Array.isArray(value)) {
-    throw new Error(label + " geçerli bir nesne olmalıdır.");
+    throw createSafeValidationError(label + " geçerli bir nesne olmalıdır.");
   }
   return value as RecordValue;
 }
@@ -54,13 +55,13 @@ function record(value: unknown, label: string): RecordValue {
 function closed(value: RecordValue, allowed: readonly string[], label: string): void {
   const extra = Object.keys(value).find((key) => !allowed.includes(key));
   if (extra !== undefined) {
-    throw new Error(label + " için desteklenmeyen alan: " + extra + ".");
+    throw createSafeValidationError(label + " için desteklenmeyen alan: " + extra + ".");
   }
 }
 
 function identifier(value: unknown, label: string): string {
   if (typeof value !== "string" || value.trim() === "" || value.trim() !== value) {
-    throw new Error(label + " boş olmayan ve kenar boşluğu içermeyen bir metin olmalıdır.");
+    throw createSafeValidationError(label + " boş olmayan ve kenar boşluğu içermeyen bir metin olmalıdır.");
   }
   return value;
 }
@@ -69,9 +70,8 @@ function blocked(message: string): ProjectSheetCutPlanFileReport {
   return { schemaVersion: 1, status: "blocked", result: null, diagnostics: [message] };
 }
 
-function errorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : String(error);
-}
+const validationFallback = "Proje kesim planı JSON içeriği güvenli biçimde doğrulanamadı.";
+const serializationFallback = "Proje kesim planı JSON serileştirmesi güvenli biçimde tamamlanamadı.";
 
 /**
  * Validates every nested single-group plan with the existing v1 serializer/parser,
@@ -83,13 +83,13 @@ function validateProjectSheetCutPlanFileResult(value: unknown): ProjectSheetCutP
     const result = record(value, "Proje kesim planı JSON sonucu");
     closed(result, ["schemaVersion", "sourcePartIds", "groups", "projectPartSnapshot"], "Proje kesim planı JSON sonucu");
     if (result.schemaVersion !== 1) {
-      throw new Error("Desteklenmeyen proje kesim planı sonuç şema sürümü.");
+      throw createSafeValidationError("Desteklenmeyen proje kesim planı sonuç şema sürümü.");
     }
     if (!Array.isArray(result.sourcePartIds)) {
-      throw new Error("Proje kesim planı kaynak Part ID listesi bir liste olmalıdır.");
+      throw createSafeValidationError("Proje kesim planı kaynak Part ID listesi bir liste olmalıdır.");
     }
     if (!Array.isArray(result.groups)) {
-      throw new Error("Proje kesim planı grupları bir liste olmalıdır.");
+      throw createSafeValidationError("Proje kesim planı grupları bir liste olmalıdır.");
     }
 
     const sourcePartIds = result.sourcePartIds.map((rawId, index) =>
@@ -109,7 +109,7 @@ function validateProjectSheetCutPlanFileResult(value: unknown): ProjectSheetCutP
       const groupId = identifier(rawGroup.groupId, "Kesim planı grup kimliği");
       const materialId = identifier(rawGroup.materialId, "Kesim planı grup malzeme kimliği");
       if (!Array.isArray(rawGroup.sourcePartIds) || rawGroup.sourcePartIds.length === 0) {
-        throw new Error(groupId + " grubu boş olmayan kaynak Part ID listesi taşımalıdır.");
+        throw createSafeValidationError(groupId + " grubu boş olmayan kaynak Part ID listesi taşımalıdır.");
       }
       const groupPartIds = rawGroup.sourcePartIds.map((rawId, partIndex) =>
         identifier(rawId, groupId + " grubunun " + (partIndex + 1) + ". kaynak Part ID'si")
@@ -132,7 +132,7 @@ function validateProjectSheetCutPlanFileResult(value: unknown): ProjectSheetCutP
         plan: rawPlan
       }));
       if (parsedPlan.status !== "ready" || parsedPlan.result === null) {
-        throw new Error(groupId + " grubu ready bir kesim planı taşımıyor: " + parsedPlan.diagnostics.join(" "));
+        throw createSafeValidationError(groupId + " grubu ready bir kesim planı taşımıyor: " + parsedPlan.diagnostics.join(" "));
       }
 
       groups.push({
@@ -158,7 +158,7 @@ function validateProjectSheetCutPlanFileResult(value: unknown): ProjectSheetCutP
       const snapshotIds = new Set(projectPartSnapshot.parts.map((part) => part.id));
       const missingPartIds = sourcePartIds.filter((id) => !snapshotIds.has(id));
       if (missingPartIds.length > 0) {
-        throw new Error("Proje Part snapshot seçili kaynak Part ID'lerini içermiyor: " + missingPartIds.join(", ") + ".");
+        throw createSafeValidationError("Proje Part snapshot seçili kaynak Part ID'lerini içermiyor: " + missingPartIds.join(", ") + ".");
       }
     }
 
@@ -168,12 +168,12 @@ function validateProjectSheetCutPlanFileResult(value: unknown): ProjectSheetCutP
       groups: summaryGroups
     });
     if (summary.status === "blocked" || summary.result === null) {
-      throw new Error(summary.diagnostics.join(" "));
+      throw createSafeValidationError(summary.diagnostics.join(" "));
     }
 
     if (summary.status === "empty") {
       if (projectPartSnapshot && projectPartSnapshot.parts.length > 0) {
-        throw new Error("Empty proje kesim planı boş olmayan proje Part snapshot'ı taşıyamaz.");
+        throw createSafeValidationError("Empty proje kesim planı boş olmayan proje Part snapshot'ı taşıyamaz.");
       }
       return {
         schemaVersion: 1,
@@ -189,13 +189,13 @@ function validateProjectSheetCutPlanFileResult(value: unknown): ProjectSheetCutP
     }
 
     if (summary.result.groups.length !== groups.length) {
-      throw new Error("Proje kesim planı grup sayısı doğrulanmış özetle eşleşmiyor.");
+      throw createSafeValidationError("Proje kesim planı grup sayısı doğrulanmış özetle eşleşmiyor.");
     }
 
     const normalizedGroups = groups.map((group, index) => {
       const verified = summary.result.groups[index];
       if (!verified || group.groupId !== verified.groupId) {
-        throw new Error(group.groupId + " grup kimliği malzeme/kalınlık anahtarıyla eşleşmiyor.");
+        throw createSafeValidationError(group.groupId + " grup kimliği malzeme/kalınlık anahtarıyla eşleşmiyor.");
       }
       return {
         groupId: verified.groupId,
@@ -219,7 +219,7 @@ function validateProjectSheetCutPlanFileResult(value: unknown): ProjectSheetCutP
       diagnostics: []
     };
   } catch (error) {
-    return blocked(errorMessage(error));
+    return blocked(safeThrownMessage(error, validationFallback));
   }
 }
 
@@ -227,7 +227,7 @@ function validateProjectSheetCutPlanFileResult(value: unknown): ProjectSheetCutP
 export function parseProjectSheetCutPlanJson(value: unknown): ProjectSheetCutPlanFileReport {
   try {
     if (typeof value !== "string") {
-      throw new Error("Proje kesim planı JSON içeriği metin olmalıdır.");
+      throw createSafeValidationError("Proje kesim planı JSON içeriği metin olmalıdır.");
     }
     const envelope = record(JSON.parse(value) as unknown, "Proje kesim planı JSON zarfı");
     closed(envelope, ["format", "formatVersion", "result"], "Proje kesim planı JSON zarfı");
@@ -235,7 +235,7 @@ export function parseProjectSheetCutPlanJson(value: unknown): ProjectSheetCutPla
       envelope.format !== "MobilyaCADProjectSheetCutPlan" ||
       (envelope.formatVersion !== 1 && envelope.formatVersion !== 2 && envelope.formatVersion !== 3)
     ) {
-      throw new Error("Desteklenmeyen proje kesim planı JSON formatı veya sürümü.");
+      throw createSafeValidationError("Desteklenmeyen proje kesim planı JSON formatı veya sürümü.");
     }
     const validated = validateProjectSheetCutPlanFileResult(envelope.result);
     if (validated.status === "blocked" || validated.result === null) return validated;
@@ -244,23 +244,23 @@ export function parseProjectSheetCutPlanJson(value: unknown): ProjectSheetCutPla
       (envelope.formatVersion === 2 || envelope.formatVersion === 3) &&
       validated.result.projectPartSnapshot === undefined
     ) {
-      throw new Error("Proje kesim planı JSON v2/v3 tam proje Part snapshot'ı taşımalıdır.");
+      throw createSafeValidationError("Proje kesim planı JSON v2/v3 tam proje Part snapshot'ı taşımalıdır.");
     }
     if (
       envelope.formatVersion === 1 &&
       (validated.result.projectPartSnapshot !== undefined || hasStockSheetSource)
     ) {
-      throw new Error("Proje kesim planı JSON v1 snapshot veya levha kaynağı provenance alanı taşıyamaz.");
+      throw createSafeValidationError("Proje kesim planı JSON v1 snapshot veya levha kaynağı provenance alanı taşıyamaz.");
     }
     if (envelope.formatVersion === 2 && hasStockSheetSource) {
-      throw new Error("Proje kesim planı JSON v2 levha kaynağı provenance alanı taşıyamaz.");
+      throw createSafeValidationError("Proje kesim planı JSON v2 levha kaynağı provenance alanı taşıyamaz.");
     }
     if (envelope.formatVersion === 3 && !hasStockSheetSource) {
-      throw new Error("Proje kesim planı JSON v3 en az bir levha kaynağı provenance kaydı taşımalıdır.");
+      throw createSafeValidationError("Proje kesim planı JSON v3 en az bir levha kaynağı provenance kaydı taşımalıdır.");
     }
     return validated;
   } catch (error) {
-    return blocked(errorMessage(error));
+    return blocked(safeThrownMessage(error, validationFallback));
   }
 }
 
@@ -270,38 +270,38 @@ export function serializeProjectSheetCutPlanJson(value: unknown): ProjectSheetCu
     const report = record(value, "Proje kesim planı raporu");
     closed(report, ["schemaVersion", "status", "result", "diagnostics"], "Proje kesim planı raporu");
     if (report.schemaVersion !== 1) {
-      throw new Error("Desteklenmeyen proje kesim planı rapor şema sürümü.");
+      throw createSafeValidationError("Desteklenmeyen proje kesim planı rapor şema sürümü.");
     }
     if (report.status === "blocked") {
       if (report.result !== null || !Array.isArray(report.diagnostics)) {
-        throw new Error("Blocked proje kesim planı raporu null sonuç ve tanı listesi taşımalıdır.");
+        throw createSafeValidationError("Blocked proje kesim planı raporu null sonuç ve tanı listesi taşımalıdır.");
       }
       const diagnostics = report.diagnostics.filter(
         (item): item is string => typeof item === "string" && item.trim() !== ""
       );
       if (diagnostics.length !== report.diagnostics.length || diagnostics.length === 0) {
-        throw new Error("Blocked proje kesim planı raporu boş olmayan metin tanıları taşımalıdır.");
+        throw createSafeValidationError("Blocked proje kesim planı raporu boş olmayan metin tanıları taşımalıdır.");
       }
       return { schemaVersion: 1, status: "blocked", json: null, diagnostics };
     }
     if (report.status !== "ready" && report.status !== "empty") {
-      throw new Error("Proje kesim planı raporu ready, empty veya blocked durumunda olmalıdır.");
+      throw createSafeValidationError("Proje kesim planı raporu ready, empty veya blocked durumunda olmalıdır.");
     }
     if (!Array.isArray(report.diagnostics) || report.diagnostics.length !== 0) {
-      throw new Error("Ready/empty proje kesim planı raporu tanı içermemelidir.");
+      throw createSafeValidationError("Ready/empty proje kesim planı raporu tanı içermemelidir.");
     }
 
     const validated = validateProjectSheetCutPlanFileResult(report.result);
     if (validated.status === "blocked" || validated.result === null) {
-      throw new Error(validated.diagnostics.join(" "));
+      throw createSafeValidationError(validated.diagnostics.join(" "));
     }
     if (validated.status !== report.status) {
-      throw new Error("Proje kesim planı rapor durumu içerikle eşleşmiyor.");
+      throw createSafeValidationError("Proje kesim planı rapor durumu içerikle eşleşmiyor.");
     }
 
     const hasStockSheetSource = validated.result.groups.some((group) => group.stockSheetSource !== undefined);
     if (hasStockSheetSource && validated.result.projectPartSnapshot === undefined) {
-      throw new Error("Levha kaynağı provenance metadata'sı tam proje Part snapshot'ı gerektirir.");
+      throw createSafeValidationError("Levha kaynağı provenance metadata'sı tam proje Part snapshot'ı gerektirir.");
     }
     const formatVersion = hasStockSheetSource
       ? 3
@@ -317,7 +317,7 @@ export function serializeProjectSheetCutPlanJson(value: unknown): ProjectSheetCu
       roundTrip.result === null ||
       JSON.stringify(roundTrip.result) !== JSON.stringify(validated.result)
     ) {
-      throw new Error("Proje kesim planı JSON round-trip doğrulaması başarısız.");
+      throw createSafeValidationError("Proje kesim planı JSON round-trip doğrulaması başarısız.");
     }
 
     return { schemaVersion: 1, status: validated.status, json, diagnostics: [] };
@@ -326,7 +326,7 @@ export function serializeProjectSheetCutPlanJson(value: unknown): ProjectSheetCu
       schemaVersion: 1,
       status: "blocked",
       json: null,
-      diagnostics: [errorMessage(error)]
+      diagnostics: [safeThrownMessage(error, serializationFallback)]
     };
   }
 }

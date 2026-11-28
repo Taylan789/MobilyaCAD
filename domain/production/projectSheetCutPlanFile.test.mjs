@@ -350,3 +350,55 @@ test("DOM-209 oversized panelGeometry snapshot blocks cut-plan JSON atomically",
   assert.equal(serialized.json, null);
   assert.match(serialized.diagnostics.join(" "), /8 MiB UTF-8/);
 });
+
+
+test("DOM-235 parser uses stable fallback for native JSON errors and preserves registered validation diagnostics", () => {
+  const malformed = parseProjectSheetCutPlanJson("{");
+  assert.equal(malformed.status, "blocked");
+  assert.equal(malformed.result, null);
+  assert.deepEqual(malformed.diagnostics, [
+    "Proje kesim planı JSON içeriği güvenli biçimde doğrulanamadı."
+  ]);
+
+  const invalidFormat = parseProjectSheetCutPlanJson(JSON.stringify({
+    format: "UnknownProjectCutPlan",
+    formatVersion: 1,
+    result: { schemaVersion: 1, sourcePartIds: [], groups: [] }
+  }));
+  assert.equal(invalidFormat.status, "blocked");
+  assert.deepEqual(invalidFormat.diagnostics, [
+    "Desteklenmeyen proje kesim planı JSON formatı veya sürümü."
+  ]);
+});
+
+test("DOM-235 serializer never inspects opaque thrown Proxy values", () => {
+  const trapCalls = { getPrototypeOf: 0, get: 0, ownKeys: 0, getOwnPropertyDescriptor: 0 };
+  const opaqueThrown = new Proxy({}, {
+    getPrototypeOf() { trapCalls.getPrototypeOf += 1; return Object.prototype; },
+    get() { trapCalls.get += 1; return undefined; },
+    ownKeys() { trapCalls.ownKeys += 1; return []; },
+    getOwnPropertyDescriptor() { trapCalls.getOwnPropertyDescriptor += 1; return undefined; }
+  });
+  const reportProxy = new Proxy({
+    schemaVersion: 1,
+    status: "ready",
+    result: { schemaVersion: 1, sourcePartIds: [], groups: [] },
+    diagnostics: []
+  }, {
+    ownKeys() { throw opaqueThrown; }
+  });
+
+  const serialized = serializeProjectSheetCutPlanJson(reportProxy);
+
+  assert.equal(serialized.status, "blocked");
+  assert.equal(serialized.json, null);
+  assert.deepEqual(serialized.diagnostics, [
+    "Proje kesim planı JSON serileştirmesi güvenli biçimde tamamlanamadı."
+  ]);
+  assert.deepEqual(trapCalls, {
+    getPrototypeOf: 0,
+    get: 0,
+    ownKeys: 0,
+    getOwnPropertyDescriptor: 0
+  });
+});
