@@ -1,0 +1,90 @@
+/* MobilyaCAD CAD sidebar finish — scoped to the left CAD dock. */
+.cad-sidebar [data-slot="sidebar-inner"] {
+  position: relative;
+  isolation: isolate;
+  background-image:
+    linear-gradient(180deg, rgba(145, 180, 202, .035), transparent 26%, rgba(7, 13, 18, .12)),
+    repeating-linear-gradient(90deg, transparent 0 23px, rgba(145, 180, 202, .022) 24px),
+    repeating-linear-gradient(0deg, transparent 0 23px, rgba(145, 180, 202, .022) 24px);
+  border-right: 1px solid rgba(120, 155, 177, .28);
+}
+
+.cad-sidebar [data-slot="sidebar-header"] {
+  background-image: linear-gradient(180deg, rgba(117, 150, 170, .055), transparent);
+  border-bottom: 1px solid rgba(119, 150, 171, .2);
+}
+
+.cad-sidebar [data-slot="sidebar-menu-button"] {
+  position: relative;
+  border: 1px solid transparent !important;
+  transition: border-color 140ms ease, color 140ms ease, background-color 140ms ease;
+}
+
+.cad-sidebar [data-slot="sidebar-menu-button"]::before {
+  content: "";
+  position: absolute;
+  left: 3px;
+  top: 7px;
+  bottom: 7px;
+  width: 2px;
+  border-radius: 2px;
+  background: var(--mc-steel, #91b4ca);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.cad-sidebar [data-slot="sidebar-menu-button"][data-active="true"] {
+  border-color: rgba(145, 180, 202, .22) !important;
+}
+
+.cad-sidebar [data-slot="sidebar-menu-button"][data-active="true"]::before {
+  opacity: 1;
+  box-shadow: 0 0 8px rgba(145, 180, 202, .24);
+}
+
+.cad-sidebar .studio-sidebar-switch button {
+  border: 1px solid transparent;
+  transition: border-color 140ms ease, color 140ms ease, background-color 140ms ease;
+}
+
+.cad-sidebar .studio-sidebar-switch button.active {
+  border-color: rgba(145, 180, 202, .28);
+  box-shadow: inset 0 1px rgba(255, 255, 255, .025), 0 0 0 1px rgba(8, 14, 18, .18);
+}
+
+.cad-sidebar [data-slot="sidebar-menu-button"]:focus-visible,
+.cad-sidebar .studio-sidebar-switch button:focus-visible {
+  outline: 2px solid var(--mc-steel, #91b4ca);
+  outline-offset: 2px;
+  z-index: 2;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cad-sidebar [data-slot="sidebar-menu-button"],
+  .cad-sidebar [data-slot="sidebar-menu-button"]::before,
+  .cad-sidebar .studio-sidebar-switch button {
+    transition: none !important;
+  }
+}
+
+@media (forced-colors: active) {
+  .cad-sidebar [data-slot="sidebar-inner"],
+  .cad-sidebar [data-slot="sidebar-header"] {
+    background-image: none;
+    border-color: CanvasText;
+  }
+
+  .cad-sidebar [data-slot="sidebar-menu-button"][data-active="true"] {
+    border-color: Highlight !important;
+  }
+
+  .cad-sidebar [data-slot="sidebar-menu-button"][data-active="true"]::before {
+    background: Highlight;
+    box-shadow: none;
+  }
+
+  .cad-sidebar [data-slot="sidebar-menu-button"]:focus-visible,
+  .cad-sidebar .studio-sidebar-switch button:focus-visible {
+    outline-color: Highlight;
+  }
+}
