@@ -8,6 +8,8 @@ import {
   Package,
 } from "lucide-react";
 
+import { QuoteRevisionComparisonPanel } from "./QuoteRevisionComparisonPanel";
+
 import "./ProductionWorkspace.css";
 
 type ProductionSection = "report" | "materials";
@@ -167,6 +169,7 @@ export function ProductionWorkspace({
 
           <div className="mc-production-studio__content">
             {children}
+            {section === "report" && <QuoteRevisionComparisonPanel />}
           </div>
         </main>
       </div>
