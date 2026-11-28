@@ -1299,7 +1299,7 @@ Bu dosya dört geliştirme/denetim rolünün ortak görev panosu ve entegrasyon 
 - **Limits:** nested diagnostic-list element accessors and hostile array-index access are outside this envelope slice; existing Part snapshot array descriptor checks remain in force. No geometry, CNC, postprocessor or physical workshop validation is claimed.
 - **Next:** DOM-232 — verify that nested production-report diagnostic arrays and entries cannot execute accessor-backed elements while export diagnostics are collected.
 
-| DOM-232 | Fail closed on accessor-backed or sparse production-report diagnostic arrays/entries during export diagnostics collection; never invoke getters | Ürün Geliştirme | IN PROGRESS — implementation/test commit created; exact-SHA CI/QA/Pages pending | Dense arrays and nested entries are copied via own data descriptors; accessor/sparse input returns blocked/null and no partial diagnostics | Keep UI-owned INT-003 and specialist-owned INT-002/PERF-001 separate |
+| DOM-232 | Fail closed on accessor-backed or sparse production-report diagnostic arrays/entries during export diagnostics collection; never invoke getters | Ürün Geliştirme | VERIFIED — [implementation/test commit b3d45b1e](https://github.com/Taylan789/MobilyaCAD/commit/b3d45b1e7920aa8de5bbd384b6acd2cc049fd93c); CI [#46120659492](https://github.com/Taylan789/MobilyaCAD/actions/runs/46120659492), QA [#46120659491](https://github.com/Taylan789/MobilyaCAD/actions/runs/46120659491), Pages [#46120659490](https://github.com/Taylan789/MobilyaCAD/actions/runs/46120659490) SUCCESS | 468/468 frontend + 881/881 domain; DOM-232 #706-708; strict shared-domain TypeScript, lint 36 warnings/0 errors, production build and production-only audit 0 vulnerabilities; Pages build version exactly matches commit | Keep UI-owned INT-003 and specialist-owned INT-002/PERF-001 separate |
 
 
 ## 28 Kasım 2026 08:31 TRT — DOM-231 VERIFIED
@@ -1325,3 +1325,16 @@ Bu dosya dört geliştirme/denetim rolünün ortak görev panosu ve entegrasyon 
 - **Validation:** pending exact implementation SHA CI, QA, production build and Pages. Base SHA `d4160b45b674572fb3a99957f19e87591f6cdcb1` already has CI [#46117915062](https://github.com/Taylan789/MobilyaCAD/actions/runs/46117915062), QA [#46117915058](https://github.com/Taylan789/MobilyaCAD/actions/runs/46117915058) and Pages [#46117915049](https://github.com/Taylan789/MobilyaCAD/actions/runs/46117915049) SUCCESS; those checks do not validate this new code.
 - **Limits/ownership:** no `frontend/**`, adapter/benchmark-owned files, workflows, secrets/settings or `main` changes. No CNC/machine or physical workshop validation is claimed.
 - **Next:** after exact-SHA Actions pass, record the implementation SHA and evidence; then DOM-233 will inspect remaining nested production diagnostic provenance boundaries.
+
+
+## 28 Kasım 2026 10:15 TRT — DOM-232 VERIFIED
+
+- **Implementation/test commit:** [b3d45b1e7920aa8de5bbd384b6acd2cc049fd93c](https://github.com/Taylan789/MobilyaCAD/commit/b3d45b1e7920aa8de5bbd384b6acd2cc049fd93c).
+- **Changed files:** `domain/production/projectSheetCutPlanExport.ts`, `domain/production/projectSheetCutPlanExport.test.mjs`, `AI_COORDINATION.md`.
+- **Exact-SHA CI:** [#46120659492](https://github.com/Taylan789/MobilyaCAD/actions/runs/46120659492) SUCCESS — frontend production build and lint passed.
+- **Exact-SHA QA:** [#46120659491](https://github.com/Taylan789/MobilyaCAD/actions/runs/46120659491) SUCCESS — 468/468 frontend + 881/881 domain tests; DOM-232 tests #706–708 passed; strict shared-domain TypeScript, lint 36 warnings / 0 errors, production build and production-only audit (0 vulnerabilities) passed.
+- **Exact-SHA Pages:** [#46120659490](https://github.com/Taylan789/MobilyaCAD/actions/runs/46120659490) SUCCESS — deployment log confirms `pages_build_version=b3d45b1e7920aa8de5bbd384b6acd2cc049fd93c` at https://taylan789.github.io/MobilyaCAD/.
+- **Delivery:** all four production diagnostic collections and nested material conflict/source data are descriptor-read. Accessor/sparse arrays and entry fields fail closed without getter execution; no partial `productionDiagnostics`, result or JSON is returned.
+- **Known limits:** lint retains 36 existing warnings; build reports existing chunk-splitting advisory; no CNC/postprocessor or physical workshop validation. Viewport p95/memory NOT MEASURED.
+- **Parallel lanes:** UI-owned INT-003 PR #206 remains separate; specialist-owned INT-002/PERF-001 remain separate, with the specialist workflow disabled. Historical AI Developer run [#46099799704](https://github.com/Taylan789/MobilyaCAD/actions/runs/46099799704) remains failed on stale SHA `5ba766e5` (HTTP 429); it was not rerun against an obsolete commit. No paid fallback or secrets/settings changes.
+- **Next:** DOM-233 — make export failure-message normalization safe for thrown accessor/Proxy values; preserve blocked/null output without executing user-controlled coercion.

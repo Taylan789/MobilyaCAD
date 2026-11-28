@@ -2356,3 +2356,16 @@
 - **Actions visibility limitation:** the available workflow-run reader returns PR-triggered runs only; exact push CI/QA and Pages run state for merged SHA `8b5a0206` could not be confirmed. No active run was assumed successful and no deployment was claimed.
 - **This run:** no product-code commit; no frontend, adapter/benchmark-owned files, workflow, secrets/settings or `main` changes. This entry records the concrete prerequisite rather than creating a no-op product commit.
 - **Next:** once a multi-file commit/tree-read operation and exact-SHA push-run listing are available, implement DOM-232 as one tested domain slice, then verify CI, QA and Pages before marking it VERIFIED.
+
+
+## 28 Kasım 2026 10:15 TRT — DOM-232 VERIFIED
+
+- **Base HEAD:** `d4160b45b674572fb3a99957f19e87591f6cdcb1`; implementation/test commit: [b3d45b1e7920aa8de5bbd384b6acd2cc049fd93c](https://github.com/Taylan789/MobilyaCAD/commit/b3d45b1e7920aa8de5bbd384b6acd2cc049fd93c) on `dev/github-work`.
+- **Changed files:** `domain/production/projectSheetCutPlanExport.ts`, `domain/production/projectSheetCutPlanExport.test.mjs`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md` (verification follow-up).
+- **Delivery:** all four production report diagnostic collections, each diagnostic entry, material-conflict envelope and nested source entry are read via own data descriptors. Accessor/sparse arrays and accessor-backed fields fail closed; getter call count remains zero; export returns blocked/null and no partial production diagnostics.
+- **Regression evidence:** [QA #46120659491](https://github.com/Taylan789/MobilyaCAD/actions/runs/46120659491) SUCCESS — 468/468 frontend + 881/881 domain tests; DOM-232 #706, #707, #708 passed. Strict shared-domain TypeScript passed. Lint: 36 warnings, 0 errors. Production build passed. Production-only audit: 0 vulnerabilities.
+- **Exact-SHA CI:** [#46120659492](https://github.com/Taylan789/MobilyaCAD/actions/runs/46120659492) SUCCESS.
+- **Exact-SHA Pages:** [#46120659490](https://github.com/Taylan789/MobilyaCAD/actions/runs/46120659490) SUCCESS — deployment log confirms `pages_build_version=b3d45b1e7920aa8de5bbd384b6acd2cc049fd93c` at https://taylan789.github.io/MobilyaCAD/.
+- **Known limits:** 36 existing lint warnings and a chunk-splitting advisory remain; viewport p95/memory NOT MEASURED; CNC/postprocessor and physical workshop validation not claimed. No `frontend/**`, adapter/benchmark-owned, workflow, secrets/settings or `main` files changed.
+- **Parallel status:** UI-owned INT-003 PR #206 was not changed or merged. Specialist-owned INT-002/PERF-001 remain separate; no active specialist job/branch evidence and the workflow job remains disabled. Historical AI Developer run [#46099799704](https://github.com/Taylan789/MobilyaCAD/actions/runs/46099799704) failed on stale SHA `5ba766e5` with OpenRouter HTTP 429; no rerun against stale code, paid fallback or secrets/settings change.
+- **Next:** DOM-233 — harden error-message normalization for thrown accessor/Proxy values so a failure cannot invoke user-controlled getters or coercion.

@@ -3452,3 +3452,24 @@ The first regression commit (347d89c) correctly reached the shared snapshot budg
 2. UI-owned INT-003 — JSON v2 proje zarfı startup/new/save/open entegrasyonu; yalnızca UI ajanı frontend/** dosyalarında çalışır.
 3. Specialist-owned INT-002/PERF-001 — adapter round-trip ve viewport p95/bellek ölçümü için gerçek specialist branch/PR kanıtı; sahiplik devri olmadan adapter/benchmark dosyalarına dokunma.
 4. QA-003 — INT-001/INT-002 exact-SHA adapter kanıtı tamamlandıktan sonra uçtan uca export reconciliation.
+
+
+## 28 Kasım 2026 10:15 TRT — DOM-232: üretim tanı sınırı doğrulandı
+
+**Kullanıcı akışı:** Kesim planı dışa aktarılırken üretim raporundaki hata ve blok tanıları güvenli biçimde okunur. Dizi indeksleri, tanı kayıtları, malzeme çakışması ve kaynak kayıtları getter çalıştırmadan kopyalanır; bozuk veri kısmi kesim listesi/JSON üretmez.
+
+**Kabul kriterleri ve sonuç:**
+- `unsupportedFurniture`, `blockedFurniture`, `projectErrors`, `exportBlockers` standart yoğun diziler olarak own data descriptor üzerinden okunur — VERIFIED.
+- Tanı kaydı, material conflict ve nested `sources` alanları düz nesne/enumerable own data property olarak doğrulanır — VERIFIED.
+- Accessor ve sparse regresyonlarında getter çağrısı sıfırdır; blocked/null export ve boş structured diagnostics doğrulanır — VERIFIED, DOM-232 #706–708.
+- Geçerli JSON v2/v3, mevcut mm/adet hesapları ve tanı sırası korunur — mevcut suite ile doğrulandı.
+
+**Exact-SHA kanıtı:** commit [b3d45b1e](https://github.com/Taylan789/MobilyaCAD/commit/b3d45b1e7920aa8de5bbd384b6acd2cc049fd93c); CI [#46120659492](https://github.com/Taylan789/MobilyaCAD/actions/runs/46120659492), QA [#46120659491](https://github.com/Taylan789/MobilyaCAD/actions/runs/46120659491), Pages [#46120659490](https://github.com/Taylan789/MobilyaCAD/actions/runs/46120659490) SUCCESS. QA: 468 frontend + 881 domain tests; strict shared-domain TypeScript; lint 36 warnings/0 errors; production build; production-only audit 0 vulnerabilities. Pages deployment log exact `pages_build_version` eşleşmesini doğrular: https://taylan789.github.io/MobilyaCAD/.
+
+**10/10 checklist delta:** Güvenilirlik/veri güvenliği: nested export diagnostics fail-closed ve getter-free. Üretim: hatalı tanıda partial output yok. CAD Core/UX değişmedi; viewport p95/bellek NOT MEASURED. CNC/makine ve fiziksel atölye onayı insan doğrulamasına bağlı.
+
+**Sıradaki küçük görevler:**
+1. DOM-233 — thrown accessor/Proxy error values için güvenli hata mesajı normalizasyonu; getter veya kullanıcı tanımlı coercion çalıştırmadan blocked/null.
+2. UI-owned INT-003 — JSON v2 startup/new/save/open entegrasyonu; `frontend/**` yalnızca UI sahibinde.
+3. Specialist-owned INT-002/PERF-001 — adapter round-trip ve viewport p95/bellek ölçümü; gerçek specialist branch/PR kanıtı bekleniyor, bu otomasyon sahiplik alanına girmez.
+4. QA-003 — adapter kanıtı tamamlandıktan sonra uçtan uca export reconciliation.
