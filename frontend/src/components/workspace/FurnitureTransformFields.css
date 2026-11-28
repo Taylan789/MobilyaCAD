@@ -216,3 +216,17 @@
     outline-color: Highlight !important;
   }
 }
+
+
+/* UI-TRANSFORM-DRAFT-RETENTION-001 — keep independent axis errors readable while invalid drafts remain editable. */
+.cad-transform-validation-list {
+  display: grid;
+  min-width: 0;
+  gap: 5px;
+}
+.cad-transform-validation-list .cad-transform-validation {
+  margin: 0 !important;
+}
+.cad-transform-validation-list .cad-transform-validation span {
+  overflow-wrap: anywhere;
+}
