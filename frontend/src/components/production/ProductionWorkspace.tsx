@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 
 import "./ProductionWorkspace.css";
+import "./ProductionWorkspaceRailDensity.css";
 
 type ProductionSection = "report" | "materials";
 
