@@ -22,6 +22,18 @@
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--ring) 24%, transparent);
 }
 
+.cad-select-trigger[aria-expanded="true"] {
+  border-color: color-mix(in srgb, var(--ring) 78%, var(--input) 22%);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--accent) 18%, var(--card) 82%),
+    color-mix(in srgb, var(--accent) 12%, var(--background) 88%)
+  );
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, currentColor 6%, transparent),
+    0 0 0 2px color-mix(in srgb, var(--ring) 20%, transparent);
+}
+
 .cad-select-popup {
   border: 1px solid color-mix(in srgb, var(--border) 72%, var(--ring) 28%);
   background: linear-gradient(
@@ -49,6 +61,17 @@
 
 .cad-select-item[data-selected] {
   border-inline-start-color: var(--ring);
+}
+
+.cad-select-item[data-selected]:not([data-highlighted]) {
+  background: color-mix(in srgb, var(--accent) 22%, var(--background) 78%);
+  color: var(--foreground);
+  font-weight: 600;
+}
+
+.cad-select-item[data-selected][data-highlighted] {
+  background: color-mix(in srgb, var(--accent) 74%, var(--background) 26%);
+  color: var(--accent-foreground);
 }
 
 .cad-select-item[data-disabled] {
