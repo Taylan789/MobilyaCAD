@@ -1,3 +1,4 @@
+import { createSafeValidationError, safeThrownMessage } from "./safeThrownMessage.ts";
 export const SHEET_GRAIN_DIRECTIONS = ["length", "width", "none"] as const;
 
 export type SheetGrainDirection = (typeof SHEET_GRAIN_DIRECTIONS)[number];
@@ -59,7 +60,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function requireRecord(value: unknown, label: string): Record<string, unknown> {
   if (!isRecord(value)) {
-    throw new Error(label + " geçerli bir nesne olmalıdır.");
+    throw createSafeValidationError(label + " geçerli bir nesne olmalıdır.");
   }
   return value;
 }
@@ -71,7 +72,7 @@ function rejectUnknownKeys(
 ): void {
   const unknownKey = Object.keys(value).find((key) => !allowed.includes(key));
   if (unknownKey !== undefined) {
-    throw new Error(label + " için desteklenmeyen alan: " + unknownKey + ".");
+    throw createSafeValidationError(label + " için desteklenmeyen alan: " + unknownKey + ".");
   }
 }
 
@@ -81,14 +82,14 @@ function requireIdentifier(value: unknown, label: string): string {
     value.trim() === "" ||
     value.trim() !== value
   ) {
-    throw new Error(label + " boş olmayan ve kenar boşluğu içermeyen bir metin olmalıdır.");
+    throw createSafeValidationError(label + " boş olmayan ve kenar boşluğu içermeyen bir metin olmalıdır.");
   }
   return value;
 }
 
 function requireMaterialId(value: unknown, label: string): string {
   if (typeof value !== "string" || !MATERIAL_ID_PATTERN.test(value)) {
-    throw new Error(label + " geçerli bir katalog malzeme kimliği olmalıdır.");
+    throw createSafeValidationError(label + " geçerli bir katalog malzeme kimliği olmalıdır.");
   }
   return value;
 }
@@ -99,19 +100,19 @@ function normalizeMm(value: unknown, label: string, allowZero: boolean): number 
     !Number.isFinite(value) ||
     (allowZero ? value < 0 : value <= 0)
   ) {
-    throw new Error(label + (allowZero
+    throw createSafeValidationError(label + (allowZero
       ? " sıfır veya pozitif ve sonlu bir mm değeri olmalıdır."
       : " sıfırdan büyük ve sonlu bir mm değeri olmalıdır."));
   }
 
   const scaled = value * 10;
   if (!Number.isFinite(scaled)) {
-    throw new Error(label + " 0.1 mm normalizasyon aralığını aşıyor.");
+    throw createSafeValidationError(label + " 0.1 mm normalizasyon aralığını aşıyor.");
   }
 
   const normalized = Math.round(scaled + Number.EPSILON * 10) / 10;
   if (!Number.isFinite(normalized) || (!allowZero && normalized <= 0)) {
-    throw new Error(label + " 0.1 mm normalizasyonundan sonra geçerli kalmalıdır.");
+    throw createSafeValidationError(label + " 0.1 mm normalizasyonundan sonra geçerli kalmalıdır.");
   }
   return normalized === 0 ? 0 : normalized;
 }
@@ -122,7 +123,7 @@ function readGrainDirection(value: unknown, label: string): SheetGrainDirection 
     value !== "width" &&
     value !== "none"
   ) {
-    throw new Error(label + " length, width veya none olmalıdır.");
+    throw createSafeValidationError(label + " length, width veya none olmalıdır.");
   }
   return value;
 }
@@ -148,9 +149,6 @@ function fitsSheetEnvelope(
     : lengthMm <= sheet.widthMm && widthMm <= sheet.lengthMm;
 }
 
-function errorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : String(error);
-}
 
 /**
  * Validates one user-defined stock-sheet batch before any nesting algorithm runs.
@@ -168,7 +166,7 @@ export function validateSheetNestingInput(value: unknown): SheetNestingInputRepo
     );
 
     if (request.schemaVersion !== 1) {
-      throw new Error("Desteklenmeyen levha yerleşim girdisi şema sürümü.");
+      throw createSafeValidationError("Desteklenmeyen levha yerleşim girdisi şema sürümü.");
     }
 
     const rawSheet = requireRecord(request.sheet, "Levha");
@@ -188,7 +186,7 @@ export function validateSheetNestingInput(value: unknown): SheetNestingInputRepo
     const kerfMm = normalizeMm(request.kerfMm, "Testere kesim payı (kerf)", true);
 
     if (!Array.isArray(request.parts)) {
-      throw new Error("Levha yerleşim parçaları bir liste olmalıdır.");
+      throw createSafeValidationError("Levha yerleşim parçaları bir liste olmalıdır.");
     }
 
     const seenIds = new Set<string>();
@@ -208,24 +206,24 @@ export function validateSheetNestingInput(value: unknown): SheetNestingInputRepo
 
       const id = requireIdentifier(part.id, "Levha yerleşim parçası kimliği");
       if (seenIds.has(id)) {
-        throw new Error("Yinelenen levha yerleşim parçası kimliği: " + id + ".");
+        throw createSafeValidationError("Yinelenen levha yerleşim parçası kimliği: " + id + ".");
       }
       seenIds.add(id);
 
       if (part.geometry !== "rectangular") {
-        throw new Error(id + " parçasının geometrisi desteklenmiyor; yalnızca rectangular kabul edilir.");
+        throw createSafeValidationError(id + " parçasının geometrisi desteklenmiyor; yalnızca rectangular kabul edilir.");
       }
 
       const materialId = requireMaterialId(part.materialId, id + " malzeme kimliği");
       if (materialId !== sheet.materialId) {
-        throw new Error(id + " parçasının malzeme kimliği levha malzemesiyle eşleşmiyor.");
+        throw createSafeValidationError(id + " parçasının malzeme kimliği levha malzemesiyle eşleşmiyor.");
       }
 
       const widthMm = normalizeMm(part.widthMm, id + " genişliği", false);
       const lengthMm = normalizeMm(part.lengthMm, id + " uzunluğu", false);
       const thicknessMm = normalizeMm(part.thicknessMm, id + " kalınlığı", false);
       if (thicknessMm !== sheet.thicknessMm) {
-        throw new Error(id + " parçasının kalınlığı levha kalınlığıyla eşleşmiyor.");
+        throw createSafeValidationError(id + " parçasının kalınlığı levha kalınlığıyla eşleşmiyor.");
       }
 
       if (
@@ -233,11 +231,11 @@ export function validateSheetNestingInput(value: unknown): SheetNestingInputRepo
         !Number.isSafeInteger(part.quantity) ||
         part.quantity <= 0
       ) {
-        throw new Error(id + " parça adedi pozitif güvenli bir tam sayı olmalıdır.");
+        throw createSafeValidationError(id + " parça adedi pozitif güvenli bir tam sayı olmalıdır.");
       }
       totalPieceCount += part.quantity;
       if (!Number.isSafeInteger(totalPieceCount)) {
-        throw new Error("Toplam parça adedi güvenli tam sayı aralığını aşıyor.");
+        throw createSafeValidationError("Toplam parça adedi güvenli tam sayı aralığını aşıyor.");
       }
 
       const grainDirection = readGrainDirection(part.grainDirection, id + " damar yönü");
@@ -247,7 +245,7 @@ export function validateSheetNestingInput(value: unknown): SheetNestingInputRepo
       );
 
       if (allowedRotationsDeg.length === 0) {
-        throw new Error(id + " parçası damar yönünü koruyan 0/90 derece yönlerde levha sınırlarına sığmıyor.");
+        throw createSafeValidationError(id + " parçası damar yönünü koruyan 0/90 derece yönlerde levha sınırlarına sığmıyor.");
       }
 
       return {
@@ -282,7 +280,7 @@ export function validateSheetNestingInput(value: unknown): SheetNestingInputRepo
       schemaVersion: 1,
       status: "blocked",
       result: null,
-      diagnostics: [errorMessage(error)]
+      diagnostics: [safeThrownMessage(error, "Levha yerleşim girdisi güvenli biçimde doğrulanamadı.")]
     };
   }
 }

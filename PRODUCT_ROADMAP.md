@@ -3519,3 +3519,18 @@ The first regression commit (347d89c) correctly reached the shared snapshot budg
 3. UI-owned INT-003 — JSON v2 startup/new/save/open entegrasyonu yalnızca UI ajanının `frontend/**` sahipliğinde.
 4. Specialist-owned INT-002/PERF-001 — adapter round-trip ve viewport p95/bellek için gerçek specialist branch/PR kanıtını bekle; sahiplik devri olmadan adapter/benchmark dosyalarına dokunma.
 5. QA-003 — adapter kanıtından sonra uçtan uca export reconciliation.
+
+
+## 28 Kasım 2026 13:24 TRT — DOM-234: üretim nesting hata zinciri
+
+İlerleme: Freshness'in kullandığı proje levha batch dönüştürücüsü ve doğrudan sheet nesting doğrulayıcısı, DOM-233'te kurulan güvenli hata sözleşmesine dahil edildi. Dahili doğrulama mesajları WeakMap kaydı üzerinden korunur; tanınmayan thrown Proxy değerleri sabit fallback ile fail-closed kalır.
+
+Ölçülebilir kabul kriterleri:
+- İki yeni regresyon testi thrown Proxy'nin dört reflection/coercion trap'inin sıfır kez çalıştığını doğrular.
+- Hatalı batch hiçbir zaman kısmi nesting sonucu üretmez; status=blocked, result=null.
+- Var olan mm, adet, malzeme, kalınlık, damar yönü ve kerf kuralları değişmez.
+- Exact-SHA QA, strict shared-domain TypeScript, lint, production build ve production-only audit bekleniyor; henüz sonuç iddiası yok.
+
+10/10 checklist delta: Güvenilirlik/veri güvenliği — nesting dependency catch sınırları güvenli thrown-value normalizasyonuna taşınıyor. Üretim doğruluğu — batch all-or-nothing ve mevcut ölçü/adet kuralları korunuyor. CAD Core/UX — değişiklik yok. Performans — viewport p95/bellek NOT MEASURED. CNC/makine standardı ve fiziksel atölye doğrulaması — insan doğrulaması gerektirir.
+
+Sonraki görev: DOM-235 — cut-plan file parser/serializer public boundaries için güvenli hata kaydı/normalizasyonu gereksinimini incele. UI-owned INT-003 ve specialist-owned INT-002/PERF-001 kapsamları korunur.

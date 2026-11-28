@@ -196,3 +196,23 @@ test("grain ve sheet envelope kısıtları mevcut nesting validator tarafından 
     /levha sınırlarına sığmıyor/
   );
 });
+
+test("opaque thrown Proxy values are not inspected by project nesting diagnostics", () => {
+  const trapCalls = { getPrototypeOf: 0, get: 0, ownKeys: 0, getOwnPropertyDescriptor: 0 };
+  const opaqueThrown = new Proxy({}, {
+    getPrototypeOf() { trapCalls.getPrototypeOf += 1; return Object.prototype; },
+    get() { trapCalls.get += 1; return undefined; },
+    ownKeys() { trapCalls.ownKeys += 1; return []; },
+    getOwnPropertyDescriptor() { trapCalls.getOwnPropertyDescriptor += 1; return undefined; }
+  });
+  const input = new Proxy(request(report([part()])), {
+    ownKeys() { throw opaqueThrown; }
+  });
+
+  const result = createProjectSheetNestingInput(input);
+
+  assert.equal(result.status, "blocked");
+  assert.equal(result.result, null);
+  assert.deepEqual(result.diagnostics, ["Proje levha yerleşim girdisi güvenli biçimde doğrulanamadı."]);
+  assert.deepEqual(trapCalls, { getPrototypeOf: 0, get: 0, ownKeys: 0, getOwnPropertyDescriptor: 0 });
+});

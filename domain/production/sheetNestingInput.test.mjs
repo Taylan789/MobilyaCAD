@@ -165,3 +165,23 @@ test("quantity toplamı güvenli tam sayı sınırını aşarsa batch bloklanır
     ]
   }), /güvenli tam sayı aralığını/);
 });
+
+test("opaque thrown Proxy values are not inspected by sheet nesting diagnostics", () => {
+  const trapCalls = { getPrototypeOf: 0, get: 0, ownKeys: 0, getOwnPropertyDescriptor: 0 };
+  const opaqueThrown = new Proxy({}, {
+    getPrototypeOf() { trapCalls.getPrototypeOf += 1; return Object.prototype; },
+    get() { trapCalls.get += 1; return undefined; },
+    ownKeys() { trapCalls.ownKeys += 1; return []; },
+    getOwnPropertyDescriptor() { trapCalls.getOwnPropertyDescriptor += 1; return undefined; }
+  });
+  const input = new Proxy(createInput(), {
+    ownKeys() { throw opaqueThrown; }
+  });
+
+  const report = validateSheetNestingInput(input);
+
+  assert.equal(report.status, "blocked");
+  assert.equal(report.result, null);
+  assert.deepEqual(report.diagnostics, ["Levha yerleşim girdisi güvenli biçimde doğrulanamadı."]);
+  assert.deepEqual(trapCalls, { getPrototypeOf: 0, get: 0, ownKeys: 0, getOwnPropertyDescriptor: 0 });
+});

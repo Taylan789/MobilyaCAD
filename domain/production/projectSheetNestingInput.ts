@@ -1,3 +1,4 @@
+import { createSafeValidationError, safeThrownMessage } from "./safeThrownMessage.ts";
 import type {
   CabinetProjectProductionReport
 } from "./projectProduction.ts";
@@ -39,7 +40,7 @@ function isRecord(value: unknown): value is RecordValue {
 
 function requireRecord(value: unknown, label: string): RecordValue {
   if (!isRecord(value)) {
-    throw new Error(label + " geçerli bir nesne olmalıdır.");
+    throw createSafeValidationError(label + " geçerli bir nesne olmalıdır.");
   }
   return value;
 }
@@ -50,7 +51,7 @@ function requireIdentifier(value: unknown, label: string): string {
     value.trim() === "" ||
     value.trim() !== value
   ) {
-    throw new Error(label + " boş olmayan ve kenar boşluğu içermeyen bir metin olmalıdır.");
+    throw createSafeValidationError(label + " boş olmayan ve kenar boşluğu içermeyen bir metin olmalıdır.");
   }
   return value;
 }
@@ -62,7 +63,7 @@ function rejectUnknownKeys(
 ): void {
   const unknownKey = Object.keys(value).find((key) => !allowed.includes(key));
   if (unknownKey !== undefined) {
-    throw new Error(label + " için desteklenmeyen alan: " + unknownKey + ".");
+    throw createSafeValidationError(label + " için desteklenmeyen alan: " + unknownKey + ".");
   }
 }
 
@@ -111,7 +112,7 @@ export function createProjectSheetNestingInput(
     );
 
     if (request.schemaVersion !== 1) {
-      throw new Error("Desteklenmeyen proje levha yerleşim şema sürümü.");
+      throw createSafeValidationError("Desteklenmeyen proje levha yerleşim şema sürümü.");
     }
 
     const productionReport = requireRecord(
@@ -119,13 +120,13 @@ export function createProjectSheetNestingInput(
       "Proje üretim raporu"
     );
     if (productionReport.schemaVersion !== 1) {
-      throw new Error("Desteklenmeyen proje üretim raporu şema sürümü.");
+      throw createSafeValidationError("Desteklenmeyen proje üretim raporu şema sürümü.");
     }
     if (productionReport.status !== "ready") {
       const detail = typeof productionReport.firstError === "string"
         ? productionReport.firstError
         : "Proje üretim raporu ready durumunda değil.";
-      throw new Error(detail);
+      throw createSafeValidationError(detail);
     }
 
     const productionResult = requireRecord(
@@ -133,10 +134,10 @@ export function createProjectSheetNestingInput(
       "Proje üretim sonucu"
     );
     if (productionResult.schemaVersion !== 1 || !Array.isArray(productionResult.parts)) {
-      throw new Error("Proje üretim sonucu geçerli bir v1 Part listesi içermelidir.");
+      throw createSafeValidationError("Proje üretim sonucu geçerli bir v1 Part listesi içermelidir.");
     }
     if (productionResult.parts.length === 0) {
-      throw new Error("Levha yerleşimi için projede üretim parçası bulunmuyor.");
+      throw createSafeValidationError("Levha yerleşimi için projede üretim parçası bulunmuyor.");
     }
 
     const sourceParts = productionResult.parts.map((rawPart, index) => {
@@ -151,7 +152,7 @@ export function createProjectSheetNestingInput(
     const sourceIdSet = new Set<string>();
     for (const sourcePart of sourceParts) {
       if (sourceIdSet.has(sourcePart.id)) {
-        throw new Error("Proje üretim listesinde yinelenen parça kimliği: " + sourcePart.id + ".");
+        throw createSafeValidationError("Proje üretim listesinde yinelenen parça kimliği: " + sourcePart.id + ".");
       }
       sourceIdSet.add(sourcePart.id);
     }
@@ -160,17 +161,17 @@ export function createProjectSheetNestingInput(
       selectedPartIds = sourceParts.map((sourcePart) => sourcePart.id);
     } else {
       if (!Array.isArray(request.partIds) || request.partIds.length === 0) {
-        throw new Error("Levha batch parça seçimi boş olmayan bir kimlik listesi olmalıdır.");
+        throw createSafeValidationError("Levha batch parça seçimi boş olmayan bir kimlik listesi olmalıdır.");
       }
 
       const selectedSet = new Set<string>();
       selectedPartIds = request.partIds.map((rawId, index) => {
         const id = requireIdentifier(rawId, "Seçilen " + (index + 1) + ". parça kimliği");
         if (selectedSet.has(id)) {
-          throw new Error("Levha batch seçiminde yinelenen parça kimliği: " + id + ".");
+          throw createSafeValidationError("Levha batch seçiminde yinelenen parça kimliği: " + id + ".");
         }
         if (!sourceIdSet.has(id)) {
-          throw new Error("Levha batch seçimi projede bulunmayan parça kimliğini içeriyor: " + id + ".");
+          throw createSafeValidationError("Levha batch seçimi projede bulunmayan parça kimliğini içeriyor: " + id + ".");
         }
         selectedSet.add(id);
         return id;
@@ -196,7 +197,7 @@ export function createProjectSheetNestingInput(
       (id) => !selectedSet.has(id)
     );
     if (unknownGrainPartId !== undefined) {
-      throw new Error(
+      throw createSafeValidationError(
         "Damar yönü eşlemesi seçili batch içinde olmayan parça kimliğini içeriyor: " +
         unknownGrainPartId + "."
       );
@@ -204,12 +205,12 @@ export function createProjectSheetNestingInput(
 
     const nestingParts = selectedParts.map(({ id, part }) => {
       if (part.panelGeometry !== undefined) {
-        throw new Error(
+        throw createSafeValidationError(
           id + " parçası panel kesit geometrisi içeriyor; bu aşamada yalnızca rectangular parça kabul edilir."
         );
       }
       if (part.geometry !== undefined && part.geometry !== "rectangular") {
-        throw new Error(id + " parçasının geometrisi rectangular değil.");
+        throw createSafeValidationError(id + " parçasının geometrisi rectangular değil.");
       }
 
       const grainDirection = Object.prototype.hasOwnProperty.call(grainOverrides, id)
@@ -217,7 +218,7 @@ export function createProjectSheetNestingInput(
         : part.grainDirection;
 
       if (grainDirection === undefined) {
-        throw new Error(
+        throw createSafeValidationError(
           id + " parçası için damar yönü açıkça belirtilmelidir; varsayılan yön üretilmez."
         );
       }
@@ -266,7 +267,7 @@ export function createProjectSheetNestingInput(
     };
   } catch (error) {
     return blocked(
-      error instanceof Error ? error.message : String(error),
+      safeThrownMessage(error, "Proje levha yerleşim girdisi güvenli biçimde doğrulanamadı."),
       selectedPartIds,
       excludedPartIds
     );
