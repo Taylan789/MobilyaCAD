@@ -2314,3 +2314,34 @@
 - **Known limits:** regression-test/documentation slice only; no runtime calculation, frontend, adapter, benchmark, CNC/postprocessor, workflow, secret/setting or `main` changes. JSON v1/CSV adapter limitations remain; viewport p95/memory NOT MEASURED; physical CNC/workshop validation remains human-only.
 - **Parallel status:** no active CI/QA/AI Developer run at inspection time; no `agent/integration-performance-*` branch was found. UI-owned INT-003 PR #206 remains separate and unmerged; UI PR #289 was not modified. AI Developer [#46062919972](https://github.com/Taylan789/MobilyaCAD/actions/runs/46062919972) remains failed on OpenRouter HTTP 429; its `X-RateLimit-Reset` is 29 November 2026 03:00 TRT, so no premature rerun, paid fallback, secret or quota change was made.
 - **Next:** DOM-228 — verify empty/whitespace and invalid-type currentSelectedPartIds fail closed after JSON v2/v3 restore; keep UI-owned INT-003 and specialist-owned INT-002/PERF-001 isolated.
+
+
+## 28 Kasım 2026 06:26 TRT — DOM-229 VERIFIED
+
+- **Implementation/test commit:** [e0fbf8234c78ac83043966b921abf0927dc21a14](https://github.com/Taylan789/MobilyaCAD/commit/e0fbf8234c78ac83043966b921abf0927dc21a14).
+- **Changed files:** `domain/production/projectPartSnapshot.ts`, `domain/production/projectPartSnapshot.test.mjs`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`.
+- **Delivery:** Part snapshot serialization rejects accessor-backed IDs/fields, inherited IDs, accessor array entries and sparse arrays without invoking getters; canonical JSON format and 8 MiB / 64-level bounds remain unchanged.
+- **Exact-SHA CI:** [#46103144562](https://github.com/Taylan789/MobilyaCAD/actions/runs/46103144562) SUCCESS. **QA:** [#46103144543](https://github.com/Taylan789/MobilyaCAD/actions/runs/46103144543) SUCCESS — 454 frontend + 875 domain tests; DOM-229 #273 passed; strict TypeScript, lint 36 warnings/0 errors, production build, production-only audit 0 vulnerabilities. **Pages:** [#46103144540](https://github.com/Taylan789/MobilyaCAD/actions/runs/46103144540) SUCCESS.
+- **Limits:** no UI, geometry, CNC or physical workshop validation; viewport p95/memory NOT MEASURED.
+
+## 28 Kasım 2026 07:47 TRT — DOM-230 VERIFIED
+
+- **Implementation/test commit:** [17b024e93c33725f3b2d3fb7018b27aad57c1742](https://github.com/Taylan789/MobilyaCAD/commit/17b024e93c33725f3b2d3fb7018b27aad57c1742).
+- **Changed files:** `domain/production/projectPartSnapshot.ts`, `domain/production/projectPartSnapshot.test.mjs`, `domain/production/projectSheetCutPlanFreshness.test.mjs`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`.
+- **Delivery:** Proxy ownKeys/getOwnPropertyDescriptor/getPrototypeOf traps fail closed at direct snapshot creation and restored JSON v2/v3 freshness/export; no getter executes and no partial result/JSON leaks.
+- **Exact-SHA CI:** [#46109449237](https://github.com/Taylan789/MobilyaCAD/actions/runs/46109449237) SUCCESS. **QA:** [#46109449259](https://github.com/Taylan789/MobilyaCAD/actions/runs/46109449259) SUCCESS — 458 frontend + 877 domain tests; DOM-230 #274/#729 passed; strict TypeScript, lint 36 warnings/0 errors, production build, production-only audit 0 vulnerabilities. **Pages:** [#46109449267](https://github.com/Taylan789/MobilyaCAD/actions/runs/46109449267) SUCCESS.
+- **Limits:** viewport p95/memory NOT MEASURED; JSON v1/CSV adapter, CNC/postprocessor and physical workshop validation remain outside this slice.
+
+## 28 Kasım 2026 08:31 TRT — DOM-231 VERIFIED
+
+- **Base HEAD:** `32905073141fcad436ae6206b343bdbec1c976de` on `dev/github-work`.
+- **Implementation/test commit:** [97fdf95862f5c807a297ac54db9e3b66ec5ac0bf](https://github.com/Taylan789/MobilyaCAD/commit/97fdf95862f5c807a297ac54db9e3b66ec5ac0bf).
+- **Changed files:** `domain/production/projectSheetCutPlanFreshness.ts`, `domain/production/projectSheetCutPlanFreshness.test.mjs`, `domain/production/projectSheetCutPlanExport.ts`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`.
+- **Delivery:** plain freshness/export envelope roots are copied using own data descriptors. Accessor-backed savedPlanJson/report.status, symbol/non-enumerable keys, custom prototypes and throwing Proxy reflection traps are rejected before getter execution. Direct freshness and freshness-gated export return blocked/null with no partial JSON; saved sourcePartIds survive failures after the production-report boundary is reached.
+- **Exact-SHA CI:** [#46112183540](https://github.com/Taylan789/MobilyaCAD/actions/runs/46112183540) SUCCESS.
+- **Exact-SHA QA:** [#46112183560](https://github.com/Taylan789/MobilyaCAD/actions/runs/46112183560) SUCCESS — 464/464 frontend + 878/878 domain tests; DOM-231 test #730 passed; strict shared-domain TypeScript, lint (36 warnings / 0 errors), production build and production-only audit (0 vulnerabilities) passed. Full-install audit reported 4 moderate findings.
+- **Exact-SHA Pages:** [#46112183534](https://github.com/Taylan789/MobilyaCAD/actions/runs/46112183534) SUCCESS — deployment log confirms `pages_build_version=97fdf95862f5c807a297ac54db9e3b66ec5ac0bf` at https://taylan789.github.io/MobilyaCAD/.
+- **Known limits:** DOM-232 still needs nested diagnostic-array accessor/sparse-index coverage; JSON v1/CSV adapter limitations remain; viewport p95/memory NOT MEASURED; no CNC/postprocessor or physical workshop validation is claimed. No frontend/** or adapter/benchmark-owned files changed.
+- **Parallel status:** UI-owned INT-003 PR [#206](https://github.com/Taylan789/MobilyaCAD/pull/206) remains draft/unmergeable with App startup/new/save/open wiring deferred. No Integration/Performance specialist branch exists and its workflow job remains disabled (`if: false`); INT-002/PERF-001 remain specialist-owned and QA-003 awaits adapter evidence.
+- **AI Developer:** run [#46099799704](https://github.com/Taylan789/MobilyaCAD/actions/runs/46099799704) failed on OpenRouter free daily HTTP 429 at historical head `5ba766e5`. It was not rerun because its workflow-dispatch SHA is stale relative to the current branch; no dispatch action is available. No paid fallback, secret, quota or settings change.
+- **Next:** DOM-232 — make export diagnostic array/entry traversal descriptor-safe and prove zero getter execution with blocked/null output.

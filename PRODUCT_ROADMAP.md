@@ -3445,7 +3445,7 @@ The first regression commit (347d89c) correctly reached the shared snapshot budg
 - Performans: bu güvenlik testi benchmark değildir; viewport p95/bellek NOT MEASURED.
 - CNC/makine: CNC/postprocessor veya fiziksel atölye onayı eklenmez; makine doğrulaması insan sorumluluğundadır.
 
-**Durum:** IMPLEMENTED — exact-SHA CI/QA/Pages doğrulaması bekleniyor.
+**Durum:** VERIFIED — implementation/test commit [97fdf958](https://github.com/Taylan789/MobilyaCAD/commit/97fdf95862f5c807a297ac54db9e3b66ec5ac0bf); exact-SHA CI [#46112183540](https://github.com/Taylan789/MobilyaCAD/actions/runs/46112183540), QA [#46112183560](https://github.com/Taylan789/MobilyaCAD/actions/runs/46112183560) and Pages [#46112183534](https://github.com/Taylan789/MobilyaCAD/actions/runs/46112183534) SUCCESS. QA 464/464 frontend + 878/878 domain; DOM-231 #730; strict TS, lint 36 warnings/0 errors, production build, production-only audit 0 vulnerabilities; exact-SHA Pages deployment confirmed.
 
 **Sıradaki küçük görevler:**
 1. DOM-232 — production report diagnostics array ve entry öğelerindeki accessor/sparse-array girdilerinin export tanı toplama sırasında getter çalıştırmadan fail-closed reddedilmesi.
