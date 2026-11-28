@@ -8,6 +8,7 @@ import type {
   FurniturePart,
   PlacedFurniture
 } from "../../types/placedFurniture";
+import "./PlacedFurniture3DSelectionCallout.css";
 
 interface Props {
   furniture: PlacedFurniture;
