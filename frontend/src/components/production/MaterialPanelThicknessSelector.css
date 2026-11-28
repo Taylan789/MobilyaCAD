@@ -158,3 +158,38 @@
     background: Highlight;
   }
 }
+
+
+/* UI-MATERIAL-PREVIEW-CONTAINER-FIT-001 — let the editable preview respond to its actual panel width. */
+.mc-panel-preview:not(.mc-panel-preview--compact) {
+  container-name: material-preview;
+  container-type: inline-size;
+}
+
+@container material-preview (max-width: 280px) {
+  .mc-panel-preview > svg {
+    grid-column: 1 / -1;
+    width: min(100%, 164px);
+    justify-self: center;
+  }
+
+  .mc-panel-preview__caption {
+    grid-column: 1 / -1;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: baseline;
+    gap: 3px 10px;
+  }
+
+  .mc-panel-preview__caption > span,
+  .mc-panel-preview__caption > small {
+    grid-column: 1 / -1;
+  }
+
+  .mc-panel-preview__caption > small {
+    overflow-wrap: anywhere;
+  }
+
+  .mc-panel-preview__options {
+    grid-column: 1 / -1;
+  }
+}
