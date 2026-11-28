@@ -534,3 +534,28 @@
     outline-offset: 3px;
   }
 }
+
+
+/* UI-MATERIAL-EMPTY-FORM-ANCHOR-RAIL-001 — make the existing first-use jump land visibly on the real editor form. */
+#material-catalog-form {
+  scroll-margin-block: 18px;
+}
+
+#material-catalog-form:target {
+  outline: 2px solid rgba(145, 184, 209, .68);
+  outline-offset: 4px;
+  border-radius: 5px;
+}
+
+#material-catalog-form:focus-visible {
+  outline: 2px solid #b4d3e4;
+  outline-offset: 4px;
+}
+
+@media (forced-colors: active) {
+  #material-catalog-form:target,
+  #material-catalog-form:focus-visible {
+    outline: 2px solid Highlight;
+    outline-offset: 4px;
+  }
+}
