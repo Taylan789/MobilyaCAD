@@ -549,3 +549,78 @@ test("DOM-227 JSON v2/v3 restore validates currentSelectedPartIds identity and o
     }
   }
 });
+
+
+test("DOM-228 JSON v2/v3 restore blocks empty, whitespace and non-string currentSelectedPartIds", () => {
+  const parts = [
+    part({ quantity: 1 }),
+    part({ id: "part-2", furnitureId: "furniture-2", name: "İkinci panel", quantity: 1 })
+  ];
+  const report = productionReport(parts);
+  const jsonV2 = savedPlanV2(parts, undefined, ["part-1", "part-2"]);
+  const stockSheetSource = { sourceId: "stock-sheet-source-01", revision: "rev-2026-11" };
+  const v3Envelope = JSON.parse(jsonV2);
+  v3Envelope.formatVersion = 3;
+  v3Envelope.result.groups[0].stockSheetSource = stockSheetSource;
+  const plans = [["v2", jsonV2], ["v3", JSON.stringify(v3Envelope)]];
+  const savedSourcePartIds = ["part-1", "part-2"];
+  const invalidIdDiagnostic = /Güncel seçili Part ID 1 boş olmayan ve kenar boşluğu içermeyen bir metin olmalıdır/;
+  const scenarios = [
+    { name: "empty ID", currentSelectedPartIds: ["", "part-2"] },
+    { name: "whitespace-only ID", currentSelectedPartIds: ["   ", "part-2"] },
+    { name: "leading whitespace", currentSelectedPartIds: [" part-1", "part-2"] },
+    { name: "trailing whitespace", currentSelectedPartIds: ["part-1 ", "part-2"] },
+    { name: "numeric ID", currentSelectedPartIds: [1, "part-2"] },
+    { name: "null ID", currentSelectedPartIds: [null, "part-2"] },
+    { name: "object ID", currentSelectedPartIds: [{ id: "part-1" }, "part-2"] }
+  ];
+
+  for (const [version, sourceJson] of plans) {
+    const parsed = parseProjectSheetCutPlanJson(sourceJson);
+    assert.equal(parsed.status, "ready", version);
+    const restored = serializeProjectSheetCutPlanJson(parsed);
+    assert.equal(restored.status, "ready", version);
+    assert.ok(restored.json, version);
+    const savedPlanJson = restored.json;
+    const restoredEnvelope = JSON.parse(savedPlanJson);
+    assert.equal(restoredEnvelope.formatVersion, version === "v2" ? 2 : 3, version);
+    assert.deepEqual(restoredEnvelope.result.sourcePartIds, savedSourcePartIds, version);
+    if (version === "v3") {
+      assert.deepEqual(restoredEnvelope.result.groups[0].stockSheetSource, stockSheetSource);
+    }
+
+    const baseline = validateProjectSheetCutPlanFreshness({
+      schemaVersion: 1,
+      savedPlanJson,
+      productionReport: report,
+      currentSelectedPartIds: savedSourcePartIds
+    });
+    assert.equal(baseline.status, "fresh", version);
+
+    for (const scenario of scenarios) {
+      const freshnessRequest = {
+        schemaVersion: 1,
+        savedPlanJson,
+        productionReport: report,
+        currentSelectedPartIds: scenario.currentSelectedPartIds
+      };
+      const freshness = validateProjectSheetCutPlanFreshness(freshnessRequest);
+      assert.equal(freshness.status, "blocked", version + " / " + scenario.name);
+      assert.equal(freshness.result, null, version + " / " + scenario.name);
+      assert.equal(freshness.json, null, version + " / " + scenario.name);
+      assert.deepEqual(freshness.sourcePartIds, savedSourcePartIds, version + " / " + scenario.name);
+      assert.match(freshness.diagnostics.join(" "), invalidIdDiagnostic, version + " / " + scenario.name);
+
+      const exported = createFreshProjectSheetCutPlanExport({
+        schemaVersion: 1,
+        freshness: freshnessRequest
+      });
+      assert.equal(exported.status, "blocked", version + " / " + scenario.name);
+      assert.equal(exported.freshnessStatus, "blocked", version + " / " + scenario.name);
+      assert.equal(exported.result, null, version + " / " + scenario.name);
+      assert.equal(exported.json, null, version + " / " + scenario.name);
+      assert.deepEqual(exported.sourcePartIds, savedSourcePartIds, version + " / " + scenario.name);
+      assert.match(exported.diagnostics.join(" "), invalidIdDiagnostic, version + " / " + scenario.name);
+    }
+  }
+});
