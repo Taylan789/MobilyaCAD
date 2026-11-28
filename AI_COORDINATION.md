@@ -1277,3 +1277,11 @@ Bu dosya dört geliştirme/denetim rolünün ortak görev panosu ve entegrasyon 
 - **Next:** DOM-227 — verify duplicate/order/missing `currentSelectedPartIds` at the restored v2/v3 freshness/export boundary.
 
 - **DOM-226 verified result:** the saved v2/v3 snapshot missing an excluded Part is stale because the current production Part is newly added; a stale extra excluded snapshot entry is stale because that Part has been removed from the current production list. Both freshness-gated exports are blocked/null and preserve the selected source Part ID.
+
+## 28 Kasım 2026 04:23 TRT — DOM-227 IMPLEMENTED (exact-SHA verification pending)
+
+| DOM-227 | Restored JSON v2/v3 freshness/export sınırında currentSelectedPartIds duplicate, sıra değişimi, eksik üye ve eksik liste davranışını doğrula | Ürün Geliştirme | IMPLEMENTED — commit SHA ve exact-SHA CI/QA/Pages kanıtı bekleniyor | Duplicate/missing-list blocked; reordered/missing-member stale; tüm durumlarda sourcePartIds korunur, result/json null; v3 stock-sheet provenance round-trip | DOM-228 |
+
+- **Kapsam:** `domain/production/projectSheetCutPlanFreshness.test.mjs` içinde gerçek JSON v2/v3 parse → serialize/restore → freshness → freshness-gated export regresyonu. Runtime hesaplama/API davranışı değiştirilmedi.
+- **Sahiplik:** frontend, adapter/benchmark, workflow, secrets/settings ve `main` dosyalarına dokunulmadı. Integration/Performance specialist branch bulunmadı; INT-002/PERF-001 uzman sahipliğinde kaldı.
+- **Sonraki adım:** DOM-228 — restored v2/v3 seçim listesinde boş/whitespace veya geçersiz tipteki Part kimliklerinin freshness/export sınırında fail-closed davranışını doğrula; ardından UI-owned INT-003 ve specialist-owned INT-002/PERF-001 entegrasyon kanıtını bekle.

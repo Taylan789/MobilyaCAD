@@ -2274,3 +2274,16 @@
 - **Known limits:** no runtime geometry or visible UI change; JSON v1/CSV adapter limits, CNC/postprocessor, machine validation and viewport p95/memory remain outside this slice.
 - **Next:** DOM-227 — currentSelectedPartIds duplicate/order/missing freshness/export boundary coverage.
 - **Result:** missing excluded snapshot entry is reported as a newly added current Part; extra stale excluded snapshot entry is reported as a removed Part. Both v2/v3 freshness/export paths fail closed with null result/JSON and preserved selected source IDs.
+
+## 28 Kasım 2026 04:23 TRT — DOM-227 IMPLEMENTED (exact-SHA verification pending)
+
+- **Base HEAD:** 0cb26e9dea0cdc8a6e6959e85e65b13cd0f94cbf on `dev/github-work`; branch HEAD and all four target blob SHAs were re-read immediately before preparing this write.
+- **Changed files:** `domain/production/projectSheetCutPlanFreshness.test.mjs`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`.
+- **Delivery:** JSON v2/v3 parse → serialize/restore now has end-to-end regression coverage for duplicate selected IDs, reordered selected IDs, a missing selected ID, and a missing `currentSelectedPartIds` list. The tests call the real freshness and freshness-gated export APIs; v3 stock-sheet provenance and saved source ID order are asserted.
+- **Expected contract:** duplicate and missing-list inputs are blocked; reordered and missing-member selections are stale. Every case must preserve saved `sourcePartIds` while returning `result=null` and `json=null` from freshness/export.
+- **Commit SHA:** pending GitHub commit creation; the exact SHA and CI/QA/Pages run links will be recorded in the verification follow-up. No SHA is guessed.
+- **Automatic verification:** exact-SHA CI, QA, production build and Pages for this new commit are pending. No test success or new deployment is claimed yet.
+- **Prior baseline:** current base SHA CI [#46088495759](https://github.com/Taylan789/MobilyaCAD/actions/runs/46088495759) and QA [#46088495762](https://github.com/Taylan789/MobilyaCAD/actions/runs/46088495762) succeeded; QA reported 872/872 domain tests, 0 failures and production audit 0 vulnerabilities. Pages [#46088495770](https://github.com/Taylan789/MobilyaCAD/actions/runs/46088495770) deployed exactly `0cb26e9dea0cdc8a6e6959e85e65b13cd0f94cbf` to https://taylan789.github.io/MobilyaCAD/.
+- **Known limits:** regression-test/documentation slice only; no runtime calculation, frontend, adapter, benchmark, CNC/postprocessor, workflow, secret/setting or `main` changes. JSON v1/CSV adapter limitations remain; viewport p95/memory NOT MEASURED; physical CNC/workshop validation remains human-only.
+- **Parallel status:** no active CI/QA/AI Developer run at inspection time; no `agent/integration-performance-*` branch was found. UI-owned INT-003 PR #206 remains separate and unmerged; UI PR #289 was not modified. AI Developer [#46062919972](https://github.com/Taylan789/MobilyaCAD/actions/runs/46062919972) remains failed on OpenRouter HTTP 429; its `X-RateLimit-Reset` is 29 November 2026 03:00 TRT, so no premature rerun, paid fallback, secret or quota change was made.
+- **Next:** DOM-228 — verify empty/whitespace and invalid-type currentSelectedPartIds fail closed after JSON v2/v3 restore; keep UI-owned INT-003 and specialist-owned INT-002/PERF-001 isolated.

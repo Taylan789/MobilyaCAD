@@ -3,9 +3,10 @@ import test from "node:test";
 import { createProjectSheetNestingBatches } from "./projectSheetNestingBatches.ts";
 import { calculateCabinetProjectProductionWithDiagnostics } from "./projectProduction.ts";
 import { createProjectSheetCutPlan } from "./projectSheetCutPlan.ts";
-import { serializeProjectSheetCutPlanJson } from "./projectSheetCutPlanFile.ts";
+import { parseProjectSheetCutPlanJson, serializeProjectSheetCutPlanJson } from "./projectSheetCutPlanFile.ts";
 import { validateProjectSheetCutPlanFreshness } from "./projectSheetCutPlanFreshness.ts";
 import { calculateSheetNestingLayout } from "./sheetNestingLayout.ts";
+import { createFreshProjectSheetCutPlanExport } from "./projectSheetCutPlanExport.ts";
 
 function part(overrides = {}) {
   return {
@@ -491,4 +492,60 @@ test("özel panel ölçü, adet, malzeme, kalınlık, damar ve kenar düzenlemel
   assertNotFresh(excludedStale, "stale");
   assert.match(excludedStale.diagnostics.join(" "), /custom-shelf-panel üretim Part snapshot'ı değişmiş/);
   assert.equal(savedPlanJson, savedPlanBefore);
+});
+
+test("DOM-227 JSON v2/v3 restore validates currentSelectedPartIds identity and order at freshness/export", () => {
+  const parts = [
+    part({ quantity: 1 }),
+    part({ id: "part-2", furnitureId: "furniture-2", name: "İkinci panel", quantity: 1 })
+  ];
+  const report = productionReport(parts);
+  const jsonV2 = savedPlanV2(parts, undefined, ["part-1", "part-2"]);
+  const stockSheetSource = { sourceId: "stock-sheet-source-01", revision: "rev-2026-11" };
+  const v3Envelope = JSON.parse(jsonV2);
+  v3Envelope.formatVersion = 3;
+  v3Envelope.result.groups[0].stockSheetSource = stockSheetSource;
+  const plans = [["v2", jsonV2], ["v3", JSON.stringify(v3Envelope)]];
+  const savedSourcePartIds = ["part-1", "part-2"];
+  const scenarios = [
+    { name: "duplicate selected IDs", currentSelectedPartIds: ["part-1", "part-1"], expectedStatus: "blocked", diagnostic: /yinelenen kimlik/ },
+    { name: "reordered selected IDs", currentSelectedPartIds: ["part-2", "part-1"], expectedStatus: "stale", diagnostic: /seçim kapsamı/ },
+    { name: "missing selected ID", currentSelectedPartIds: ["part-1"], expectedStatus: "stale", diagnostic: /seçim kapsamı/ },
+    { name: "missing current selection list", expectedStatus: "blocked", diagnostic: /currentSelectedPartIds/ }
+  ];
+
+  for (const [version, sourceJson] of plans) {
+    const parsed = parseProjectSheetCutPlanJson(sourceJson);
+    assert.equal(parsed.status, "ready", version);
+    const restored = serializeProjectSheetCutPlanJson(parsed);
+    assert.equal(restored.status, "ready", version);
+    assert.ok(restored.json, version);
+    const savedPlanJson = restored.json;
+    const restoredEnvelope = JSON.parse(savedPlanJson);
+    assert.equal(restoredEnvelope.formatVersion, version === "v2" ? 2 : 3, version);
+    assert.deepEqual(restoredEnvelope.result.sourcePartIds, savedSourcePartIds, version);
+    if (version === "v3") assert.deepEqual(restoredEnvelope.result.groups[0].stockSheetSource, stockSheetSource);
+
+    const baseline = validateProjectSheetCutPlanFreshness({ schemaVersion: 1, savedPlanJson, productionReport: report, currentSelectedPartIds: savedSourcePartIds });
+    assert.equal(baseline.status, "fresh", version);
+    assert.deepEqual(baseline.sourcePartIds, savedSourcePartIds, version);
+
+    for (const scenario of scenarios) {
+      const freshnessRequest = { schemaVersion: 1, savedPlanJson, productionReport: report, ...(scenario.currentSelectedPartIds === undefined ? {} : { currentSelectedPartIds: scenario.currentSelectedPartIds }) };
+      const freshness = validateProjectSheetCutPlanFreshness(freshnessRequest);
+      assert.equal(freshness.status, scenario.expectedStatus, version + " / " + scenario.name);
+      assert.equal(freshness.result, null, version + " / " + scenario.name);
+      assert.equal(freshness.json, null, version + " / " + scenario.name);
+      assert.deepEqual(freshness.sourcePartIds, savedSourcePartIds, version + " / " + scenario.name);
+      assert.match(freshness.diagnostics.join(" "), scenario.diagnostic, version + " / " + scenario.name);
+
+      const exported = createFreshProjectSheetCutPlanExport({ schemaVersion: 1, freshness: freshnessRequest });
+      assert.equal(exported.status, "blocked", version + " / " + scenario.name);
+      assert.equal(exported.freshnessStatus, scenario.expectedStatus, version + " / " + scenario.name);
+      assert.equal(exported.result, null, version + " / " + scenario.name);
+      assert.equal(exported.json, null, version + " / " + scenario.name);
+      assert.deepEqual(exported.sourcePartIds, savedSourcePartIds, version + " / " + scenario.name);
+      assert.match(exported.diagnostics.join(" "), scenario.diagnostic, version + " / " + scenario.name);
+    }
+  }
 });

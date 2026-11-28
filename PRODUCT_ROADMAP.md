@@ -3350,3 +3350,29 @@ The first regression commit (347d89c) correctly reached the shared snapshot budg
 4. QA-003 — INT-001/INT-002 exact-SHA adapter kanıtı tamamlandıktan sonra uçtan uca export reconciliation.
 
 **DOM-226 doğrulama ayrıntısı:** Kaydedilmiş snapshot'tan çıkarılmış excluded Part güncel üretimde bulunduğu için "yeni Part eklendi" tanısıyla stale; snapshot'a eklenmiş fakat güncel üretimde olmayan excluded Part "Part silindi" tanısıyla stale olur. Her iki senaryoda freshness result/json null, export blocked/null ve selected sourcePartIds korunur. Görünür UI, runtime geometri, CNC/makine standardı veya fiziksel üretim doğrulaması değişmedi.
+
+## 28 Kasım 2026 04:23 TRT — DOM-227: restored currentSelectedPartIds freshness/export sözleşmesi
+
+**Kullanıcı akışı:** Kullanıcı bir JSON v2/v3 kesim planını açtığında güncel seçili Part kimlikleri kaydedilmiş kaynak kimlikleriyle aynı üyelikte ve aynı proje sırasındaysa plan fresh kalır. Tekrar eden, sırası değişmiş, eksik üye içeren veya hiç sağlanmayan seçim listesi kısmi üretim çıktısına dönüşmemelidir.
+
+**Kabul kriterleri:**
+- Gerçek JSON v2 ve v3 planları parser → serializer → restore akışından geçer; kaynak Part ID sırası korunur.
+- Duplicate `currentSelectedPartIds` freshness için `blocked`; yeniden sıralanmış veya eksik üye içeren liste `stale`; listenin hiç verilmemesi `blocked` olur.
+- Tüm olumsuz durumlarda freshness ve export `result=null`, `json=null` döndürür; kaydedilmiş `sourcePartIds` korunur ve tanı nedeni açıkça raporlanır.
+- JSON v3 `stockSheetSource` provenance metadata round-trip boyunca değişmez.
+- Aynı test gerçek freshness ve freshness-gated export API katmanını kullanır; alt seviye validator davranışını tek başına tekrar etmez.
+
+**10/10 checklist delta:**
+- Üretim/veri doğruluğu: kesim planının seçili kaynak Part kapsamı ve sırası, yeniden açılan proje durumuna karşı uçtan uca doğrulanır.
+- Güvenilirlik/geriye uyumluluk: JSON v2/v3 parse/restore ve fail-closed export için duplicate/order/missing senaryoları otomatik regresyon kapsamına alınır.
+- CAD Core / UX: görünür UI ve geometri davranışı değişmez; frontend sahipliği UI ajanında kalır.
+- Performans: viewport p95/bellek NOT MEASURED; bu test performans benchmark’ı değildir.
+- CNC/makine: makine standardı, CNC/postprocessor veya fiziksel atölye onayı eklenmez; operatör doğrulaması insan sorumluluğundadır.
+
+**Durum:** IMPLEMENTED — exact-SHA CI/QA/production build ve Pages sonucu henüz alınmadı. Bu yeni SHA için test sitesi deployment’ı doğrulanmış sayılmaz.
+
+**Sıradaki 3–5 küçük görev:**
+1. DOM-228 — restored v2/v3 currentSelectedPartIds içindeki boş/whitespace ve geçersiz tipte kimliklerin freshness/export sınırında fail-closed davranışı.
+2. UI-owned INT-003 — JSON v2 project envelope editor startup/new/save/open entegrasyonu; yalnızca UI ajanı `frontend/**` dosyalarında çalışır.
+3. Specialist-owned INT-002/PERF-001 — adapter round-trip ve viewport p95/bellek ölçümü için gerçek specialist branch/PR kanıtı; sahiplik devri olmadan adapter/benchmark dosyalarına dokunulmaz.
+4. QA-003 — INT-001/INT-002 exact-SHA adapter kanıtı tamamlandıktan sonra uçtan uca export reconciliation.
