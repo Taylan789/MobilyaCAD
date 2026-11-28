@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import type { ChangeEvent, CSSProperties } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import type { ChangeEvent, CSSProperties, KeyboardEvent as ReactKeyboardEvent } from "react";
 import {
   Box,
   ArrowLeft,
@@ -195,6 +195,26 @@ function App() {
   const [inspectorCollapsed, setInspectorCollapsed] = useState(false);
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [leftPanelMode, setLeftPanelMode] = useState<"catalog" | "scene">("catalog");
+  const leftPanelTabRefs = useRef<{
+    catalog: HTMLButtonElement | null;
+    scene: HTMLButtonElement | null;
+  }>({ catalog: null, scene: null });
+  function handleLeftPanelTabKeyDown(event: ReactKeyboardEvent<HTMLDivElement>) {
+    let nextMode: "catalog" | "scene" | null = null;
+
+    if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+      nextMode = leftPanelMode === "catalog" ? "scene" : "catalog";
+    } else if (event.key === "Home") {
+      nextMode = "catalog";
+    } else if (event.key === "End") {
+      nextMode = "scene";
+    }
+
+    if (!nextMode) return;
+    event.preventDefault();
+    setLeftPanelMode(nextMode);
+    leftPanelTabRefs.current[nextMode]?.focus();
+  }
   const [sceneSearch, setSceneSearch] = useState("");
   const [collapsedSceneFurnitureIds, setCollapsedSceneFurnitureIds] = useState<string[]>([]);
   const [hiddenFurnitureIds, setHiddenFurnitureIds] = useState<string[]>([]);
@@ -1491,11 +1511,46 @@ function App() {
 
             <SidebarSeparator />
 
-            <div className="studio-sidebar-switch" role="tablist" aria-label="Sol panel görünümü">
-            <button type="button" role="tab" aria-selected={leftPanelMode === "catalog"} className={leftPanelMode === "catalog" ? "active" : ""} onClick={() => setLeftPanelMode("catalog")}><Package /> Kütüphane</button>
-            <button type="button" role="tab" aria-selected={leftPanelMode === "scene"} className={leftPanelMode === "scene" ? "active" : ""} onClick={() => setLeftPanelMode("scene")}><Layers3 /> Sahne ağacı <span>{furniture.length}</span></button>
-          </div>
-          <SidebarContent className="cad-sidebar-content">
+            <div
+              className="studio-sidebar-switch"
+              role="tablist"
+              aria-label="Sol panel görünümü"
+              onKeyDown={handleLeftPanelTabKeyDown}
+            >
+              <button
+                id="cad-left-panel-catalog-tab"
+                type="button"
+                role="tab"
+                aria-selected={leftPanelMode === "catalog"}
+                aria-controls="cad-left-panel-content"
+                tabIndex={leftPanelMode === "catalog" ? 0 : -1}
+                ref={(element) => { leftPanelTabRefs.current.catalog = element; }}
+                className={leftPanelMode === "catalog" ? "active" : ""}
+                onClick={() => setLeftPanelMode("catalog")}
+              >
+                <Package /> Kütüphane
+              </button>
+              <button
+                id="cad-left-panel-scene-tab"
+                type="button"
+                role="tab"
+                aria-selected={leftPanelMode === "scene"}
+                aria-controls="cad-left-panel-content"
+                tabIndex={leftPanelMode === "scene" ? 0 : -1}
+                ref={(element) => { leftPanelTabRefs.current.scene = element; }}
+                className={leftPanelMode === "scene" ? "active" : ""}
+                onClick={() => setLeftPanelMode("scene")}
+              >
+                <Layers3 /> Sahne ağacı <span>{furniture.length}</span>
+              </button>
+            </div>
+            <SidebarContent
+              id="cad-left-panel-content"
+              role="tabpanel"
+              tabIndex={0}
+              aria-labelledby={leftPanelMode === "catalog" ? "cad-left-panel-catalog-tab" : "cad-left-panel-scene-tab"}
+              className="cad-sidebar-content"
+            >
             {leftPanelMode === "catalog" ? (
               <>
 
