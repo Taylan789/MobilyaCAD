@@ -721,3 +721,33 @@
     outline-offset: 1px !important;
   }
 }
+
+
+/* UI-SCENE-TREE-DENSITY-001 — compact scene parts on desktop */
+@media (min-width: 1101px) {
+  .studio-tree-object-parts {
+    gap: 1px !important;
+    margin: 2px 2px 4px 12px !important;
+    padding: 2px 0 2px 7px !important;
+  }
+  .studio-tree-part {
+    min-height: 34px !important;
+    padding: 3px 6px !important;
+    gap: 5px !important;
+  }
+  .studio-tree-part-type-icon {
+    width: 14px !important;
+    height: 14px !important;
+    flex: 0 0 14px !important;
+  }
+  .studio-tree-part-type-icon svg {
+    width: 13px !important;
+    height: 13px !important;
+  }
+  .studio-tree-part-copy {
+    gap: 2px !important;
+  }
+  .studio-tree-part-material {
+    gap: 3px !important;
+  }
+}
