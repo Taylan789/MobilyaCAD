@@ -3511,7 +3511,7 @@ The first regression commit (347d89c) correctly reached the shared snapshot budg
 
 **10/10 checklist delta:** Güvenilirlik/veri güvenliği: dahili hata tanıları güvenli kayıttan geri alınır; dış thrown values opaque kalır. Üretim: başarısız freshness/export kısmi plan veya JSON üretmez. CAD Core/UX değişmedi; viewport p95/bellek NOT MEASURED. CNC/postprocessor ve fiziksel atölye doğrulaması bu dilimin kapsamı değildir.
 
-**Durum:** DÜZELTME HAZIR — bu committeki exact-SHA CI/QA/production build/audit/Pages sonuçları henüz bekleniyor. `frontend/**`, adapter/benchmark sahipliğindeki dosyalar, workflow/secrets/settings ve `main` değiştirilmedi.
+**Durum:** VERIFIED — implementation commit [4b1e9ddb](https://github.com/Taylan789/MobilyaCAD/commit/4b1e9ddb4524b715937d22f023d339ef1594cc2e); CI [#46132273744](https://github.com/Taylan789/MobilyaCAD/actions/runs/46132273744), QA [#46132273762](https://github.com/Taylan789/MobilyaCAD/actions/runs/46132273762) and Pages [#46132273779](https://github.com/Taylan789/MobilyaCAD/actions/runs/46132273779) SUCCESS. QA: 473/473 unit + 883/883 domain tests; strict shared-domain TypeScript; lint 36 warnings / 0 errors; production build; production-only audit 0 vulnerabilities. Pages deployment log confirms exact pages_build_version=4b1e9ddb4524b715937d22f023d339ef1594cc2e at https://taylan789.github.io/MobilyaCAD/. frontend/**, adapter/benchmark-owned files, workflows, secrets/settings and main were not changed.
 
 **Sıradaki küçük görevler:**
 1. DOM-233 düzeltmesinin exact-SHA QA ve Pages doğrulamasını tamamla; başarısız kalan testleri gerçek kök nedene göre düzelt.
