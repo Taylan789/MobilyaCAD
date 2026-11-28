@@ -3322,3 +3322,29 @@ The first regression commit (347d89c) correctly reached the shared snapshot budg
 
 **DOM-225 doğrulama düzeltmesi (28 Kasım 2026 02:47 TRT):** İlk CI [#46084633976](https://github.com/Taylan789/MobilyaCAD/actions/runs/46084633976) başarılıydı. QA [#46084634035](https://github.com/Taylan789/MobilyaCAD/actions/runs/46084634035) 870/871 testle başarısız oldu: test fixture açık ölçülü kitaplık rafı eklerken zorunlu shelfCount=0 değerini ayarlamamıştı; bu nedenle kitaplık beklenen ID collision noktasına ulaşmadan blocked oldu. JSON v2/v3 freshness/export testi #686 başarılıydı. Fixture düzeltildi; Pages [#46084633944](https://github.com/Taylan789/MobilyaCAD/actions/runs/46084633944) QA gate başarısız olduğu için deploy aşamasını atladı. Yeni SHA doğrulanmadan DOM-225 VERIFIED sayılmayacak.
 **DOM-225 VERIFIED — 28 Kasım 2026 02:53 TRT:** Implementation/test [4acdee58](https://github.com/Taylan789/MobilyaCAD/commit/4acdee58deed1160a0262042be166abc3b6d0c66); fixture correction [2e9091e](https://github.com/Taylan789/MobilyaCAD/commit/2e9091e1d72ed49beef2e0ed85a5ac587e31ccea). Exact-SHA QA passed 451 frontend + 871 domain tests; DOM-225 #686 passed; strict TypeScript, lint (36 warnings / 0 errors), production build and production-only audit (0 vulnerabilities) passed. Exact-SHA Pages deployment #46084786069 confirms pages_build_version=2e9091e1d72ed49beef2e0ed85a5ac587e31ccea at https://taylan789.github.io/MobilyaCAD/.
+
+## 28 Kasım 2026 03:07 TRT — DOM-226 (implemented; exact-SHA verification pending)
+
+**Kullanıcı akışı:** Bir JSON v2/v3 kesim planı açıldığında tam proje Part snapshot'ı, seçili kesim parçalarının yanında üretime dahil edilmeyen Part kayıtlarını da kapsar. Kaydedilmiş snapshot'tan bir excluded Part silinmiş veya güncel projede bulunmayan eski bir excluded Part eklenmişse plan fresh kabul edilmemeli ve dışa aktarım durmalıdır.
+
+**Kabul kriterleri:**
+- Geçerli v2/v3 planı gerçek parser → serializer → restore akışından geçer.
+- Kaydedilmiş snapshot'tan excluded Part silinmesi, güncel production snapshot'ında yeni Part bulunduğunu belirten stale tanısı üretir.
+- Kaydedilmiş snapshot'a artık mevcut olmayan ekstra excluded Part eklenmesi, removed Part tanısı üretir.
+- Her iki durumda freshness `stale`, export `blocked`; result ve JSON null, seçili sourcePartIds korunur.
+- Test hem v2 hem v3 için gerçek freshness-gated export API'sini kullanır; alt seviye comparator testini tekrar etmez.
+
+**10/10 checklist delta:**
+- Üretim/veri doğruluğu: seçilmeyen Part kayıtlarının snapshot kapsamı da güncel üretim Part listesiyle karşılaştırılır.
+- Güvenilirlik/geriye uyumluluk: v2/v3 restore, stale tanısı ve atomik export engeli otomatik regresyon kapsamındadır.
+- CAD Core / UX: görünür UI ve geometri davranışı değişmez; frontend/** UI ajanının sahipliğindedir.
+- Performans: viewport p95/bellek NOT MEASURED; bu dilim benchmark değildir.
+- CNC/makine: makine çıktısı veya fiziksel üretim onayı eklenmez; atölye doğrulaması insan sorumluluğundadır.
+
+**Durum:** IMPLEMENTED — exact-SHA CI/QA/production build/Pages doğrulaması bekleniyor. Runtime davranışı değişmedi; mevcut snapshot karşılaştırmasının tam proje kapsamı için eksik regresyon kanıtı eklendi.
+
+**Sıradaki 3–5 küçük görev:**
+1. DOM-227 — currentSelectedPartIds duplicate/order/missing senaryolarında freshness/export durum ve source kimliği sözleşmesini doğrula.
+2. UI-owned INT-003 — JSON v2 project envelope editor startup/new/save/open entegrasyonu; yalnızca UI ajanı frontend/** dosyalarında çalışır.
+3. Specialist-owned INT-002/PERF-001 — adapter round-trip ve viewport p95/bellek ölçümü için gerçek specialist branch/PR kanıtı; sahiplik devri olmadan adapter/benchmark dosyalarına dokunma.
+4. QA-003 — INT-001/INT-002 exact-SHA adapter kanıtı tamamlandıktan sonra uçtan uca export reconciliation.

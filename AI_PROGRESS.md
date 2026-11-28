@@ -2260,3 +2260,14 @@
 - **Correction history:** initial QA on 4acdee58 had 870/871 domain tests passing; the sole failure was a fixture omission (explicit bookshelf shelves require shelfCount=0). The correction commit fixes the fixture; exact-SHA QA now passes 871/871 domain tests.
 - **Known limits:** no production runtime geometry or visible UI change; JSON v1/CSV adapter limitations remain; no CNC/postprocessor or physical workshop validation; viewport p95/memory NOT MEASURED. No frontend, adapter/benchmark, workflow, secrets/settings or main changes.
 - **Next:** DOM-226 — validate missing/extra excluded Part coverage against the restored v2/v3 full-project snapshot.
+
+## 28 Kasım 2026 03:07 TRT — DOM-226 IMPLEMENTED (verification pending)
+
+- **Base HEAD:** `6f60c2a4a2ce706705aebc56db8ff84247e8166b` on `dev/github-work`.
+- **Test file:** `domain/production/projectSheetCutPlanCutoutEdgeBandingFreshness.test.mjs` (blob `e91f283154930bc77e54ac64c59d5abb84c848b3` before this change).
+- **Documentation:** `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`.
+- **Regression:** JSON v2/v3 saved full-project snapshot with a missing excluded Part entry and with an extra stale excluded Part entry. Both cases exercise parser, serializer, restored freshness and freshness-gated export.
+- **Expected safety:** missing/extra coverage returns stale/blocked, null result/JSON, preserves selected sourcePartIds, and includes the offending excluded Part ID in deterministic added/removed diagnostics.
+- **Actions:** exact-SHA CI/QA/Pages pending; no local full-repository test result claimed.
+- **Known limits:** no runtime geometry or visible UI change; JSON v1/CSV adapter limits, CNC/postprocessor, machine validation and viewport p95/memory remain outside this slice.
+- **Next:** DOM-227 — currentSelectedPartIds duplicate/order/missing freshness/export boundary coverage.

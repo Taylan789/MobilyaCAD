@@ -1251,6 +1251,7 @@ Bu dosya dört geliştirme/denetim rolünün ortak görev panosu ve entegrasyon 
 ## 28 Kasım 2026 02:53 TRT — DOM-225 VERIFIED
 
 | DOM-225 | Cross-family stable Part ID collision and duplicate selected/excluded current Part IDs across restored JSON v2/v3 freshness/export | Ürün Geliştirme | VERIFIED — correction commit [2e9091e](https://github.com/Taylan789/MobilyaCAD/commit/2e9091e1d72ed49beef2e0ed85a5ac587e31ccea); exact-SHA CI/QA/Pages SUCCESS | 451 frontend + 871 domain tests; DOM-225 #686; strict TypeScript, lint 36 warnings / 0 errors, production build, production-only audit 0 vulnerabilities; Pages build version matches correction SHA | DOM-226 |
+| DOM-226 | Restored JSON v2/v3 full-project snapshot'taki eksik/fazla excluded Part kayıtlarını güncel production Part kapsamıyla freshness/export sınırında karşılaştır | Ürün Geliştirme | IMPLEMENTED — exact-SHA CI/QA/Pages pending | Missing excluded snapshot entry must be diagnosed as a newly added current Part; extra stale excluded entry as a removed current Part; both v2/v3 parse→serialize→freshness→export block atomically with selected source IDs preserved | DOM-227 |
 
 - **Implementation/test commit:** [4acdee58](https://github.com/Taylan789/MobilyaCAD/commit/4acdee58deed1160a0262042be166abc3b6d0c66); first QA exposed a fixture-only omission (explicit bookshelf shelves require shelfCount=0).
 - **Correction commit:** [2e9091e1d72ed49beef2e0ed85a5ac587e31ccea](https://github.com/Taylan789/MobilyaCAD/commit/2e9091e1d72ed49beef2e0ed85a5ac587e31ccea); fixture now sets shelfCount=0 and reaches the intended cross-family ID collision.
@@ -1262,3 +1263,13 @@ Bu dosya dört geliştirme/denetim rolünün ortak görev panosu ve entegrasyon 
 - **Parallel ownership:** UI-owned INT-003 PR #206 remains draft/unmerged with App integration explicitly deferred. No Integration/Performance specialist branch was found; INT-002/PERF-001 remain specialist-owned and QA-003 awaits adapter evidence.
 - **AI Developer:** [#46062919972](https://github.com/Taylan789/MobilyaCAD/actions/runs/46062919972) remains rate-limited by OpenRouter HTTP 429 until 03:00 TRT; no premature rerun, paid fallback or secret/quota change.
 - **Next:** DOM-226 — verify missing/extra excluded Part snapshot coverage against the current production Part list through v2/v3 freshness and export.
+
+## 28 Kasım 2026 03:07 TRT — DOM-226 IMPLEMENTED (exact-SHA verification pending)
+
+- **Base HEAD:** `6f60c2a4a2ce706705aebc56db8ff84247e8166b` on `dev/github-work`; target test and documentation blob SHAs were re-read before creating the commit.
+- **Changed files:** `domain/production/projectSheetCutPlanCutoutEdgeBandingFreshness.test.mjs`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`.
+- **Delivery:** the existing complete Part snapshot comparison already detects missing and extra records; this slice adds end-to-end regression evidence for tampered saved snapshots rather than duplicating the lower-level comparator test. For both JSON v2 and v3, a missing excluded Part entry and an extra stale excluded Part entry are parsed and restored, then freshness must report stale and the freshness-gated export must block with null result/JSON while preserving the selected source Part ID.
+- **Acceptance:** exact excluded Part ID appears in the added/removed diagnostic; selected Part coverage remains intact; no partial plan/export is returned.
+- **Verification:** exact-SHA CI, QA and Pages are pending; no local full-repository run is claimed.
+- **Scope/limits:** regression-test and documentation slice only; no production calculation, geometry, UI, adapter, benchmark, CNC/postprocessor, workflow, secrets/settings or `main` changes. Viewport p95/memory remains NOT MEASURED; physical CNC/workshop validation remains human-only.
+- **Next:** DOM-227 — verify duplicate/order/missing `currentSelectedPartIds` at the restored v2/v3 freshness/export boundary.

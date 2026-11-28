@@ -2224,3 +2224,110 @@ test("DOM-225 JSON v2/v3 restored freshness/export blocks duplicate stable IDs i
     }
   }
 });
+
+test("DOM-226 JSON v2/v3 restore rejects missing or extra excluded Part snapshot coverage at freshness/export", () => {
+  const baselineReport = cutoutProjectReport();
+  const jsonV2 = savedPlanV2(baselineReport);
+  const plans = [["v2", jsonV2], ["v3", savedPlanV3(jsonV2)]];
+  const adapterReadyForFreshnessOnly = {
+    ...baselineReport,
+    canExport: true,
+    exportBlockers: []
+  };
+  const extraExcludedPartId = "stale-excluded-snapshot-part";
+  const scenarios = [
+    {
+      name: "missing excluded Part snapshot entry",
+      partId: cutoutPartId,
+      diagnostic: /yeni Part eklendi/,
+      edit(envelope) {
+        const parts = envelope.result.projectPartSnapshot.parts;
+        const index = parts.findIndex((entry) => entry.id === cutoutPartId);
+        assert.notEqual(index, -1, "Excluded Part snapshot kaydı başlangıçta bulunmalı.");
+        parts.splice(index, 1);
+      }
+    },
+    {
+      name: "extra excluded Part snapshot entry",
+      partId: extraExcludedPartId,
+      diagnostic: /Part silindi/,
+      edit(envelope) {
+        const parts = envelope.result.projectPartSnapshot.parts;
+        assert.ok(!parts.some((entry) => entry.id === extraExcludedPartId));
+        parts.push({
+          id: extraExcludedPartId,
+          snapshot: canonicalJsonForTest({
+            id: extraExcludedPartId,
+            materialId: "archived-material",
+            width: 100,
+            length: 100,
+            thickness: 18,
+            quantity: 1
+          })
+        });
+      }
+    }
+  ];
+
+  for (const [version, sourceJson] of plans) {
+    const baselineParsed = parseProjectSheetCutPlanJson(sourceJson);
+    assert.equal(baselineParsed.status, "ready", version);
+    const baselineRestored = serializeProjectSheetCutPlanJson(baselineParsed);
+    assert.equal(baselineRestored.status, "ready", version);
+    assert.ok(baselineRestored.json, version);
+    assert.equal(validateFreshness(baselineRestored.json, baselineReport).status, "fresh", version);
+
+    for (const scenario of scenarios) {
+      const envelope = JSON.parse(baselineRestored.json);
+      scenario.edit(envelope);
+
+      const parsed = parseProjectSheetCutPlanJson(JSON.stringify(envelope));
+      assert.equal(parsed.status, "ready", version + " / " + scenario.name);
+      const restored = serializeProjectSheetCutPlanJson(parsed);
+      assert.equal(restored.status, "ready", version + " / " + scenario.name);
+      assert.ok(restored.json, version + " / " + scenario.name);
+
+      const restoredPartIds = JSON.parse(restored.json).result.projectPartSnapshot.parts.map((entry) => entry.id);
+      assert.ok(restoredPartIds.includes(selectedPartId), version + " / selected Part must remain covered");
+      if (scenario.name === "missing excluded Part snapshot entry") {
+        assert.ok(!restoredPartIds.includes(cutoutPartId), version);
+      } else {
+        assert.ok(restoredPartIds.includes(extraExcludedPartId), version);
+      }
+
+      const freshness = validateFreshness(restored.json, baselineReport);
+      assert.equal(freshness.status, "stale", version + " / " + scenario.name);
+      assert.equal(freshness.result, null, version + " / " + scenario.name);
+      assert.equal(freshness.json, null, version + " / " + scenario.name);
+      assert.deepEqual(freshness.sourcePartIds, [selectedPartId], version + " / " + scenario.name);
+      assert.ok(
+        freshness.diagnostics.some((message) =>
+          scenario.diagnostic.test(message) && message.includes(scenario.partId)
+        ),
+        version + " / " + scenario.name + " / " + freshness.diagnostics.join(" ")
+      );
+
+      const exported = createFreshProjectSheetCutPlanExport({
+        schemaVersion: 1,
+        freshness: {
+          schemaVersion: 1,
+          savedPlanJson: restored.json,
+          productionReport: adapterReadyForFreshnessOnly,
+          currentSelectedPartIds: [selectedPartId]
+        }
+      });
+      assert.equal(exported.status, "blocked", version + " / " + scenario.name);
+      assert.equal(exported.freshnessStatus, "stale", version + " / " + scenario.name);
+      assert.equal(exported.result, null, version + " / " + scenario.name);
+      assert.equal(exported.json, null, version + " / " + scenario.name);
+      assert.deepEqual(exported.sourcePartIds, [selectedPartId], version + " / " + scenario.name);
+      assert.ok(
+        exported.diagnostics.some((message) =>
+          scenario.diagnostic.test(message) && message.includes(scenario.partId)
+        ),
+        version + " / " + scenario.name + " / " + exported.diagnostics.join(" ")
+      );
+    }
+  }
+});
+
