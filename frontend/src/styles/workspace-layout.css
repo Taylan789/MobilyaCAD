@@ -9,6 +9,7 @@
 :root {
   --cad-dock-left: clamp(220px, 18vw, 292px);
   --cad-dock-right: clamp(282px, 23vw, 368px);
+  --cad-production-dock-height: clamp(148px, 24vh, 224px);
 }
 
 @media (min-width: 761px) {
@@ -82,6 +83,20 @@
   .cad-inspector-scroll {
     flex: 1 1 0%;
     min-height: 0;
+  }
+
+  /* Keep the production register compact so the 3D viewport owns the height. */
+  .cad-main-area > .cad-bottom-dock {
+    flex: 0 1 var(--cad-production-dock-height) !important;
+    min-height: 148px !important;
+    max-height: min(30vh, 252px) !important;
+  }
+
+  .cad-main-area > .cad-bottom-dock > .cad-bottom-dock-body {
+    flex: 1 1 0% !important;
+    min-height: 0 !important;
+    overflow: auto !important;
+    overscroll-behavior: contain;
   }
 
   /* The left dock becomes a compact icon rail instead of remaining full size. */
