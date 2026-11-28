@@ -12,6 +12,7 @@ import {
 import type { DrawerBoxProjectConfig } from "../../engine/drawerBoxProject";
 import type { MaterialCatalogEntry } from "../../engine/materialCatalog";
 import "./DrawerBoxConfigurator.css";
+import "./DrawerBoxConfiguratorSections.css";
 
 const panelGroups = [
   { key: "sidePanels", label: "Yan paneller" },
@@ -37,6 +38,21 @@ const dimensionFields = [
   { key: "visibleFrontWidth", label: "Görünür ön panel genişliği" },
   { key: "visibleFrontHeight", label: "Görünür ön panel yüksekliği" },
   { key: "visibleFrontThickness", label: "Görünür ön panel kalınlığı" }
+] as const;
+
+const dimensionGroups = [
+  {
+    key: "box",
+    title: "Kutu ölçüleri",
+    detail: "Dış ölçüler ve panel kalınlıkları",
+    fields: dimensionFields.slice(0, 6)
+  },
+  {
+    key: "front",
+    title: "Görünür ön panel",
+    detail: "Ön panelin gerçek ölçülerini ayrı tanımla",
+    fields: dimensionFields.slice(6)
+  }
 ] as const;
 
 type PanelGroupKey = typeof panelGroups[number]["key"];
@@ -392,26 +408,51 @@ export function DrawerBoxConfigurator({
 
           {formOpen && (
             <form className="cad-drawer-config-form" onSubmit={saveConfig}>
-              <div className="cad-drawer-config-grid">
-                {dimensionFields.map(({ key, label }) => (
-                  <div className="cad-field" key={key}>
-                    <Label htmlFor={"drawer-" + key}>{label} (mm)</Label>
-                    <Input
-                      id={"drawer-" + key}
-                      type="number"
-                      min="0.1"
-                      step="0.1"
-                      value={draft[key]}
-                      onChange={(event) =>
-                        setDraft((previous) => ({
-                          ...previous,
-                          [key]: event.target.value
-                        }))
-                      }
-                    />
+              {dimensionGroups.map((group) => (
+                <section
+                className="cad-drawer-config-section"
+                key={group.key}
+                aria-labelledby={"drawer-config-section-" + group.key}
+              >
+                <div className="cad-drawer-config-section-heading">
+                  <div className="cad-drawer-config-section-title">
+                    <h3 id={"drawer-config-section-" + group.key}>{group.title}</h3>
+                    <p className="cad-drawer-config-section-detail">{group.detail}</p>
                   </div>
-                ))}
+                  <span>{group.fields.length} ölçü</span>
+                </div>
+                <div className="cad-drawer-config-grid">
+                  {group.fields.map(({ key, label }) => (
+                    <div className="cad-field" key={key}>
+                      <Label htmlFor={"drawer-" + key}>{label} (mm)</Label>
+                      <Input
+                        id={"drawer-" + key}
+                        type="number"
+                        min="0.1"
+                        step="0.1"
+                        value={draft[key]}
+                        onChange={(event) =>
+                          setDraft((previous) => ({
+                            ...previous,
+                            [key]: event.target.value
+                          }))
+                        }
+                      />
+                    </div>
+                  ))}
+                </div>
+              </section>
+            ))}
 
+            <section
+              className="cad-drawer-config-section"
+              aria-labelledby="drawer-config-section-material"
+            >
+              <div className="cad-drawer-config-section-heading">
+                <h3 id="drawer-config-section-material">Adet ve malzeme</h3>
+                <span>Grup / katalog</span>
+              </div>
+              <div className="cad-drawer-config-grid">
                 <div className="cad-field">
                   <Label htmlFor="drawer-quantity">Çekmece adedi</Label>
                   <Input
@@ -470,8 +511,9 @@ export function DrawerBoxConfigurator({
                   />
                 </div>
               </div>
+            </section>
 
-              <details className="cad-drawer-config-disclosure cad-drawer-config-disclosure--materials">
+            <details className="cad-drawer-config-disclosure cad-drawer-config-disclosure--materials">
                 <summary>Panel grubu malzeme atamaları</summary>
                 <p className="cad-drawer-config-note">
                   Her panel grubu için ayrı katalog malzemesi seçebilirsin.

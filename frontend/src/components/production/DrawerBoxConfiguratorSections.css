@@ -1,0 +1,68 @@
+/* UI-DRAWER-FORM-HIERARCHY-001 — separate primary dimensions from material and quantity controls */
+.cad-drawer-config-section {
+  display: grid;
+  min-width: 0;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(151, 177, 193, .16);
+}
+.cad-drawer-config-section:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+.cad-drawer-config-section-heading {
+  display: flex;
+  min-width: 0;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+.cad-drawer-config-section-heading h3 {
+  margin: 0;
+  color: #b8c9d3;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+.cad-drawer-config-section-heading span {
+  flex: 0 0 auto;
+  color: #758b99;
+  font-size: 9px;
+  font-variant-numeric: tabular-nums;
+}
+@media (max-width: 600px) {
+  .cad-drawer-config-section-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 3px;
+  }
+}
+@media (forced-colors: active) {
+  .cad-drawer-config-section {
+    border-color: CanvasText;
+  }
+  .cad-drawer-config-section-heading h3,
+  .cad-drawer-config-section-heading span {
+    color: CanvasText;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cad-drawer-config-section * {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+.cad-drawer-config-section-title {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+.cad-drawer-config-section-detail {
+  margin: 0;
+  color: #8095a4;
+  font-size: 9px;
+  line-height: 1.45;
+}
