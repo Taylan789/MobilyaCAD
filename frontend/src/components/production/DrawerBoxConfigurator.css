@@ -356,3 +356,73 @@
     transition: none;
   }
 }
+
+
+/* UI-DRAWER-PRIMARY-FIELD-GROUPS-001 — separate measured geometry from quantity/material inputs. */
+.cad-drawer-configurator .cad-drawer-config-fieldset {
+  display: grid;
+  min-width: 0;
+  grid-column: 1 / -1;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+  margin: 0;
+  padding: 9px;
+  border: 1px solid #354a56;
+  border-radius: 6px;
+  background: rgba(18, 29, 37, .58);
+}
+
+.cad-drawer-configurator .cad-drawer-config-fieldset > legend {
+  padding: 0 6px;
+  color: #91adbd;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .1em;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+
+.cad-drawer-configurator .cad-drawer-config-field-grid {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.cad-drawer-configurator .cad-drawer-config-field-grid > .cad-field {
+  min-width: 0;
+  gap: 5px;
+  margin: 0;
+  padding: 8px;
+  background: #1b2831;
+  border: 1px solid #2f414d;
+  border-radius: 6px;
+}
+
+.cad-drawer-configurator .cad-drawer-config-field-grid > .cad-field label {
+  color: #a8bbc8;
+  font-size: 9px;
+  font-weight: 650;
+  line-height: 1.45;
+}
+
+@media (max-width: 560px) {
+  .cad-drawer-configurator .cad-drawer-config-field-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (forced-colors: active) {
+  .cad-drawer-configurator .cad-drawer-config-fieldset,
+  .cad-drawer-configurator .cad-drawer-config-field-grid > .cad-field {
+    forced-color-adjust: auto;
+    color: CanvasText;
+    background: Canvas;
+    border-color: CanvasText;
+  }
+
+  .cad-drawer-configurator .cad-drawer-config-fieldset > legend,
+  .cad-drawer-configurator .cad-drawer-config-field-grid > .cad-field label {
+    color: CanvasText;
+  }
+}
