@@ -1,60 +1,90 @@
+/* MobilyaCAD viewport — compact, technical camera console */
+:root {
+  --cad-camera-surface: rgba(15, 24, 31, .96);
+  --cad-camera-border: rgba(113, 145, 162, .48);
+  --cad-camera-text: #d8e3e9;
+  --cad-camera-muted: #8ea2ae;
+  --cad-camera-accent: #a8c8dc;
+  --cad-camera-accent-soft: rgba(112, 157, 184, .2);
+}
+
 .cad-viewport-camera-tools {
   position: absolute;
-  top: 15px;
-  right: 15px;
+  top: 14px;
+  right: 14px;
   z-index: 4;
   display: inline-flex;
-  min-height: 38px;
+  max-width: calc(100% - 28px);
+  min-height: 42px;
   align-items: center;
-  gap: 3px;
-  padding: 4px;
-  color: #aebdc6;
-  background: rgba(18, 29, 37, 0.94);
-  border: 1px solid rgba(103, 133, 150, 0.52);
+  gap: 2px;
+  padding: 5px;
+  overflow-x: auto;
+  color: var(--cad-camera-text);
+  background: linear-gradient(180deg, rgba(24, 37, 46, .98), var(--cad-camera-surface));
+  border: 1px solid var(--cad-camera-border);
   border-radius: 9px;
-  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.24), inset 0 1px rgba(255, 255, 255, 0.035);
-  backdrop-filter: blur(14px);
+  box-shadow:
+    0 12px 28px rgba(0, 0, 0, .3),
+    inset 0 1px rgba(255, 255, 255, .055);
+  backdrop-filter: blur(16px);
+  scrollbar-width: none;
+}
+
+.cad-viewport-camera-tools::-webkit-scrollbar {
+  display: none;
 }
 
 .cad-viewport-camera-tools__label {
-  padding: 0 8px;
-  color: #8196a2;
+  display: inline-flex;
+  min-height: 28px;
+  align-items: center;
+  padding: 0 9px 0 7px;
+  color: var(--cad-camera-muted);
+  border-right: 1px solid rgba(126, 154, 169, .24);
   font-size: 8px;
-  font-weight: 760;
-  letter-spacing: 0.14em;
+  font-weight: 780;
+  letter-spacing: .15em;
   white-space: nowrap;
 }
 
 .cad-viewport-camera-tools button {
   display: inline-flex;
-  min-width: 43px;
-  min-height: 29px;
+  flex: 0 0 auto;
+  min-width: 42px;
+  min-height: 32px;
   align-items: center;
   justify-content: center;
   gap: 6px;
-  padding: 0 8px;
-  color: #aabac3;
+  padding: 0 9px;
+  color: #aebfc8;
   background: transparent;
   border: 1px solid transparent;
   border-radius: 6px;
   font-size: 9px;
-  font-weight: 650;
+  font-weight: 680;
+  font-variant-numeric: tabular-nums;
   white-space: nowrap;
   cursor: pointer;
-  transition: color 140ms ease, background 140ms ease, border-color 140ms ease, transform 140ms ease;
+  transition:
+    color 140ms ease,
+    background-color 140ms ease,
+    border-color 140ms ease,
+    box-shadow 140ms ease,
+    transform 140ms ease;
 }
 
 .cad-viewport-camera-tools button svg {
-  width: 13px;
-  height: 13px;
+  width: 14px;
+  height: 14px;
   flex: 0 0 auto;
   stroke-width: 1.8;
 }
 
 .cad-viewport-camera-tools button:hover:not(:disabled) {
-  color: #eef4f7;
-  background: rgba(145, 180, 202, 0.11);
-  border-color: rgba(145, 180, 202, 0.2);
+  color: #f0f5f7;
+  background: rgba(145, 180, 202, .12);
+  border-color: rgba(145, 180, 202, .24);
 }
 
 .cad-viewport-camera-tools button:active:not(:disabled) {
@@ -62,27 +92,30 @@
 }
 
 .cad-viewport-camera-tools button.is-active {
-  color: #edf4f7;
-  background: linear-gradient(180deg, rgba(104, 145, 169, 0.34), rgba(75, 111, 132, 0.25));
-  border-color: rgba(145, 180, 202, 0.48);
-  box-shadow: inset 0 0 0 1px rgba(145, 180, 202, 0.08);
+  color: #f2f7fa;
+  background: linear-gradient(180deg, rgba(112, 157, 184, .28), rgba(65, 101, 121, .22));
+  border-color: rgba(168, 200, 220, .52);
+  box-shadow:
+    inset 0 1px rgba(255, 255, 255, .08),
+    inset 0 -2px 0 rgba(168, 200, 220, .56);
 }
 
 .cad-viewport-camera-tools button:disabled {
-  color: #64747e;
-  opacity: 0.58;
+  color: #71828b;
+  opacity: .58;
   cursor: not-allowed;
 }
 
 .cad-viewport-camera-tools__divider {
   width: 1px;
-  height: 19px;
-  margin: 0 3px;
-  background: rgba(123, 151, 166, 0.3);
+  height: 22px;
+  flex: 0 0 auto;
+  margin: 0 4px;
+  background: rgba(123, 151, 166, .32);
 }
 
 .cad-viewport-camera-tools button:focus-visible {
-  outline: 2px solid #a9c7d8;
+  outline: 2px solid var(--cad-camera-accent);
   outline-offset: 2px;
 }
 
@@ -92,7 +125,7 @@
   }
 
   .cad-viewport-camera-tools button {
-    min-width: 38px;
+    min-width: 39px;
     padding-inline: 7px;
   }
 }
@@ -101,14 +134,14 @@
   .cad-viewport-camera-tools {
     top: 58px;
     right: 10px;
-    min-height: 35px;
-    gap: 2px;
+    min-height: 36px;
+    gap: 1px;
     padding: 3px;
   }
 
   .cad-viewport-camera-tools button {
-    min-width: 31px;
-    min-height: 28px;
+    min-width: 33px;
+    min-height: 30px;
     gap: 0;
     padding: 0 6px;
     font-size: 0;
@@ -120,14 +153,38 @@
   }
 
   .cad-viewport-camera-tools__divider {
-    height: 17px;
-    margin-inline: 1px;
+    height: 18px;
+    margin-inline: 2px;
+  }
+}
+
+@media (max-width: 520px) {
+  .cad-viewport-camera-tools {
+    right: 8px;
+    max-width: calc(100% - 16px);
+  }
+
+  .cad-viewport-camera-tools button {
+    min-width: 31px;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .cad-viewport-camera-tools button {
-    transition: none;
+    transition: none !important;
+    transform: none !important;
+  }
+}
+
+@media (forced-colors: active) {
+  .cad-viewport-camera-tools,
+  .cad-viewport-camera-tools button {
+    border-color: ButtonText;
+  }
+
+  .cad-viewport-camera-tools button.is-active {
+    outline: 1px solid Highlight;
+    outline-offset: -2px;
   }
 }
 
