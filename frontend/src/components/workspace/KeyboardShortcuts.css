@@ -157,3 +157,108 @@
     transition: none;
   }
 }
+
+
+/* UI-COMMAND-REFERENCE-RESPONSIVE-001 — keep the command reference usable in short workspaces */
+.cad-shortcuts-panel {
+  max-height: min(560px, calc(100vh - 104px));
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
+.cad-shortcuts-panel__header {
+  position: sticky;
+  top: -15px;
+  z-index: 1;
+  margin: -15px -15px 0;
+  padding: 15px 15px 12px;
+  background: linear-gradient(155deg, rgba(38, 51, 60, .98), rgba(27, 36, 44, .98));
+  backdrop-filter: blur(12px);
+}
+
+.cad-shortcuts-list > div {
+  min-height: 34px;
+  padding-block: 6px;
+}
+
+.cad-shortcuts-list > div:nth-child(5),
+.cad-shortcuts-list > div:nth-child(8) {
+  margin-top: 4px;
+  padding-top: 11px;
+  border-top: 1px solid rgba(166, 184, 195, .16);
+}
+
+.cad-shortcuts-list kbd {
+  min-width: 42px;
+  padding: 4px 7px;
+  text-align: center;
+  background: linear-gradient(180deg, #394954, #2d3a44);
+  border-color: #5a6d78;
+  box-shadow: inset 0 1px rgba(255, 255, 255, .07), 0 1px 0 rgba(0, 0, 0, .28);
+}
+
+.cad-shortcut-trigger:focus-visible,
+.cad-shortcuts-panel button:focus-visible {
+  outline: 2px solid #9ec2d8;
+  outline-offset: 2px;
+}
+
+@media (max-height: 680px) {
+  .cad-shortcuts-panel {
+    max-height: calc(100dvh - 88px);
+    padding: 12px;
+  }
+
+  .cad-shortcuts-panel__header {
+    top: -12px;
+    margin: -12px -12px 0;
+    padding: 12px 12px 10px;
+  }
+
+  .cad-shortcuts-list {
+    gap: 1px;
+    padding-top: 8px;
+  }
+
+  .cad-shortcuts-list > div {
+    min-height: 30px;
+    padding-block: 4px;
+  }
+
+  .cad-shortcuts-note {
+    margin-top: 8px;
+    padding-top: 8px;
+  }
+}
+
+@media (max-width: 720px) {
+  .cad-shortcuts-panel {
+    top: max(72px, calc(env(safe-area-inset-top, 0px) + 56px));
+    right: max(12px, env(safe-area-inset-right, 0px));
+    max-height: calc(100dvh - 92px - env(safe-area-inset-bottom, 0px));
+  }
+}
+
+@media (forced-colors: active) {
+  .cad-shortcuts-panel {
+    border: 1px solid CanvasText;
+  }
+
+  .cad-shortcuts-panel__header {
+    border-bottom: 1px solid CanvasText;
+  }
+
+  .cad-shortcuts-list kbd {
+    color: ButtonText;
+    background: ButtonFace;
+    border: 1px solid ButtonText;
+    box-shadow: none;
+  }
+
+  .cad-shortcut-trigger:focus-visible,
+  .cad-shortcuts-panel button:focus-visible {
+    outline: 2px solid Highlight;
+  }
+}
