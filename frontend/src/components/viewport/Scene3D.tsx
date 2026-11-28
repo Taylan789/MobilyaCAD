@@ -19,6 +19,7 @@ import { calculatePlacementIssues } from "../../engine/placementValidation";
 import { calculatePerspectiveFitDistance } from "./cameraFraming";
 import "./ViewportCameraControls.css";
 import "./ViewportCameraWorkbench.css";
+import "./ViewportSelectionReadout.css";
 
 interface Scene3DProps {
   width: number;
@@ -420,6 +421,8 @@ export default function Scene3D({
     !hiddenFurnitureIds.includes(item.id) &&
     (isolatedFurnitureId === null || isolatedFurnitureId === item.id)
   );
+  const selectedFurniture = furniture.find((item) => item.id === selectedFurnitureId);
+  const selectedPart = selectedFurniture?.parts.find((item) => item.id === selectedPartId);
   const maxDimension = Math.max(
     width / 1000,
     length / 1000,
@@ -743,6 +746,26 @@ export default function Scene3D({
           <span>ODA / ÇALIŞMA ALANI</span>
           <small>{visibleFurniture.length} görünür mobilya</small>
         </div>
+        {selectedFurniture && (
+          <div
+            className="cad-viewport-selection-readout"
+            data-selection-kind={selectedPart ? "part" : "furniture"}
+            role="group"
+            aria-label="3D görünümde seçili öğe"
+          >
+            <span className="cad-viewport-selection-readout__kind">
+              {selectedPart ? "PARÇA" : "MOBİLYA"}
+            </span>
+            <strong className="cad-viewport-selection-readout__name">
+              {selectedPart?.name ?? selectedFurniture.name}
+            </strong>
+            {selectedPart && (
+              <small className="cad-viewport-selection-readout__parent">
+                {selectedFurniture.name}
+              </small>
+            )}
+          </div>
+        )}
         <div className="cad-viewport-dimension-readout__dimensions">
           <div>
             <span>GENİŞLİK</span>

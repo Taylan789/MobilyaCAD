@@ -1,0 +1,78 @@
+/* UI-VIEWPORT-SELECTION-READOUT-001 — reflect the live scene-tree target in the viewport HUD. */
+.cad-viewport-selection-readout {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border: 1px solid rgba(116, 151, 173, .32);
+  border-left: 2px solid #8db7d2;
+  border-radius: 4px;
+  background: rgba(92, 126, 148, .09);
+  pointer-events: none;
+  user-select: none;
+}
+
+.cad-viewport-selection-readout__kind {
+  flex: 0 0 auto;
+  color: #9db8c8;
+  font-size: 7px;
+  font-weight: 780;
+  letter-spacing: .12em;
+  white-space: nowrap;
+}
+
+.cad-viewport-selection-readout__name {
+  min-width: 0;
+  overflow: hidden;
+  color: #e5edf2;
+  font-size: 10px;
+  font-weight: 680;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cad-viewport-selection-readout__parent {
+  min-width: 0;
+  max-width: 42%;
+  margin-left: auto;
+  overflow: hidden;
+  color: #9bb0bd;
+  font-size: 8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 560px) {
+  .cad-viewport-selection-readout {
+    gap: 6px;
+    padding: 5px 6px;
+  }
+
+  .cad-viewport-selection-readout__kind {
+    font-size: 6px;
+  }
+
+  .cad-viewport-selection-readout__name {
+    font-size: 9px;
+  }
+
+  .cad-viewport-selection-readout__parent {
+    display: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .cad-viewport-selection-readout {
+    border-color: CanvasText;
+    border-left-color: Highlight;
+    background: Canvas;
+    box-shadow: none;
+  }
+
+  .cad-viewport-selection-readout__kind,
+  .cad-viewport-selection-readout__name,
+  .cad-viewport-selection-readout__parent {
+    color: CanvasText;
+  }
+}
