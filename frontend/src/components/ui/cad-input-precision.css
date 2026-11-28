@@ -81,3 +81,69 @@
     border-color: Mark;
   }
 }
+
+
+/* UI-CAD-NUMERIC-INPUT-FOCUS-RAIL-001 — make precision editing state and native steppers easier to read without changing numeric values or input behavior. */
+.cad-input-control[type="number"] {
+  caret-color: var(--ring);
+  font-feature-settings: "tnum" 1, "lnum" 1;
+}
+
+.cad-input-control[type="number"]::-webkit-inner-spin-button,
+.cad-input-control[type="number"]::-webkit-outer-spin-button {
+  width: 18px;
+  margin-inline-start: 5px;
+  cursor: ns-resize;
+  opacity: .62;
+  transition: opacity 120ms ease;
+}
+
+.cad-input-control[type="number"]:hover:not(:disabled)::-webkit-inner-spin-button,
+.cad-input-control[type="number"]:hover:not(:disabled)::-webkit-outer-spin-button,
+.cad-input-control[type="number"]:focus-visible:not(:disabled)::-webkit-inner-spin-button,
+.cad-input-control[type="number"]:focus-visible:not(:disabled)::-webkit-outer-spin-button {
+  opacity: .96;
+}
+
+.cad-input-control[type="number"]:focus-visible:not([aria-invalid="true"]) {
+  background-color: color-mix(in srgb, var(--background) 82%, var(--ring) 18%);
+  box-shadow:
+    inset 2px 0 0 var(--ring),
+    0 0 0 1px color-mix(in srgb, var(--ring) 24%, transparent);
+}
+
+.cad-input-control[type="number"][aria-invalid="true"] {
+  box-shadow:
+    inset 2px 0 0 var(--destructive),
+    0 0 0 1px color-mix(in srgb, var(--destructive) 24%, transparent);
+}
+
+.cad-input-control[type="number"][aria-invalid="true"]:focus-visible {
+  box-shadow:
+    inset 2px 0 0 var(--destructive),
+    0 0 0 1px color-mix(in srgb, var(--destructive) 32%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cad-input-control[type="number"]::-webkit-inner-spin-button,
+  .cad-input-control[type="number"]::-webkit-outer-spin-button {
+    transition: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .cad-input-control[type="number"]::-webkit-inner-spin-button,
+  .cad-input-control[type="number"]::-webkit-outer-spin-button {
+    opacity: 1;
+    filter: none;
+  }
+
+  .cad-input-control[type="number"]:focus-visible:not([aria-invalid="true"]) {
+    background: Canvas;
+    box-shadow: inset 2px 0 0 Highlight;
+  }
+
+  .cad-input-control[type="number"][aria-invalid="true"] {
+    box-shadow: inset 2px 0 0 Mark;
+  }
+}
