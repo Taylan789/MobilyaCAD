@@ -19,7 +19,7 @@ test("invalid position drafts remain visible while the committed geometry stays 
   assert.doesNotMatch(axisCommit, /setPositionDraft/);
   assert.match(axisCommit, /geçerli değer girilene kadar önceki konum uygulanır/);
   assert.match(component, /Object\.keys\(positionErrors\)\.length > 0/);
-  assert.match(component, /id=\{\`furniture-position-\$\{axis\.key\}-error\`\}/);
+  assert.ok(component.includes("id={`furniture-position-${axis.key}-error`}") );
 });
 
 test("editing one axis clears only that axis error and does not hide other rejected drafts", () => {
@@ -53,4 +53,5 @@ test("multiple transform errors use a compact, readable technical warning stack"
   assert.match(styles, /\.cad-transform-validation-list\s*\{[\s\S]*?display:\s*grid/);
   assert.match(styles, /overflow-wrap:\s*anywhere/);
   assert.match(styles, /@media\s*\(forced-colors:\s*active\)/);
+  assert.match(styles, /color:\s*CanvasText\s*!important/);
 });
