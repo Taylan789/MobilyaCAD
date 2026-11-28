@@ -140,3 +140,66 @@
     box-shadow: none;
   }
 }
+
+
+/* UI-MATERIAL-USAGE-DISCLOSURE-AFFORDANCE-002 — make the expandable material trace register discoverable without changing its data or selection behavior. */
+.mc-material-card__locations > summary {
+  min-height: 34px;
+  gap: 8px;
+  padding-inline: 8px;
+  font-size: 9px;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+.mc-material-card__locations > summary > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mc-material-card__locations > summary::after {
+  width: 6px;
+  height: 6px;
+  flex: 0 0 6px;
+  margin-inline: 4px 2px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  content: "";
+  transform: rotate(45deg);
+  transition: transform 140ms ease;
+}
+
+.mc-material-card__locations[open] > summary::after {
+  transform: rotate(225deg);
+}
+
+.mc-material-card__locations > summary:hover {
+  color: #e8f1f5;
+  border-color: rgba(145, 184, 209, .42);
+  background: rgba(73, 108, 128, .18);
+}
+
+@media (max-width: 720px) {
+  .mc-material-card__locations > summary {
+    min-height: 38px;
+    padding-inline: 9px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mc-material-card__locations > summary::after {
+    transition: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .mc-material-card__locations > summary::after {
+    border-color: ButtonText;
+  }
+
+  .mc-material-card__locations[open] > summary::after {
+    border-color: Highlight;
+  }
+}
