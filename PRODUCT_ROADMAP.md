@@ -3529,8 +3529,11 @@ The first regression commit (347d89c) correctly reached the shared snapshot budg
 - İki yeni regresyon testi thrown Proxy'nin dört reflection/coercion trap'inin sıfır kez çalıştığını doğrular.
 - Hatalı batch hiçbir zaman kısmi nesting sonucu üretmez; status=blocked, result=null.
 - Var olan mm, adet, malzeme, kalınlık, damar yönü ve kerf kuralları değişmez.
-- Exact-SHA QA, strict shared-domain TypeScript, lint, production build ve production-only audit bekleniyor; henüz sonuç iddiası yok.
+- Exact-SHA doğrulaması tamamlandı: CI #46135365335, QA #46135365316 ve Pages #46135365346 SUCCESS. QA 473/473 unit + 885/885 domain; strict shared-domain TypeScript; lint 36 warnings / 0 errors; production build; production-only audit 0 vulnerabilities. Pages build version implementation SHA ile birebir eşleşti.
 
 10/10 checklist delta: Güvenilirlik/veri güvenliği — nesting dependency catch sınırları güvenli thrown-value normalizasyonuna taşınıyor. Üretim doğruluğu — batch all-or-nothing ve mevcut ölçü/adet kuralları korunuyor. CAD Core/UX — değişiklik yok. Performans — viewport p95/bellek NOT MEASURED. CNC/makine standardı ve fiziksel atölye doğrulaması — insan doğrulaması gerektirir.
 
 Sonraki görev: DOM-235 — cut-plan file parser/serializer public boundaries için güvenli hata kaydı/normalizasyonu gereksinimini incele. UI-owned INT-003 ve specialist-owned INT-002/PERF-001 kapsamları korunur.
+
+
+DOM-234 doğrulaması: implementation commit b1718461459d30d86b60653e9c4cc43a30d4cc2d; CI #46135365335, QA #46135365316 ve Pages #46135365346 SUCCESS. Test sitesi deployment sürümü aynı SHA'dır: https://taylan789.github.io/MobilyaCAD/.

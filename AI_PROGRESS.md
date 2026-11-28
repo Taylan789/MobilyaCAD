@@ -2407,15 +2407,17 @@
 - **Parallel ownership:** no frontend/**, adapter/benchmark-owned files, workflows, secrets/settings or main changes. UI-owned INT-003 PR #206 remains separate. No specialist branch was verified; INT-002/PERF-001 remain specialist-owned. AI Developer run [#46099799704](https://github.com/Taylan789/MobilyaCAD/actions/runs/46099799704) remains failed on stale SHA 5ba766e5 due OpenRouter free daily HTTP 429 (limit 50, remaining 0); it was not rerun because rerunning would reuse an obsolete SHA and no workflow dispatch action is available.
 - **Next:** DOM-234 — audit other dependent domain functions in the freshness/export call chain and ensure internally-generated validation failures are safely registered without relaxing opaque thrown-value handling.
 
-## 28 Kasım 2026 13:24 TRT — DOM-234 (exact-SHA doğrulaması bekleniyor)
+## 28 Kasım 2026 13:24 TRT — DOM-234 VERIFIED
 
 - Base HEAD: 7511dcc35771b3d35b1dfeddae437096e003bdeb on dev/github-work.
 - Görev: Freshness çağrı zincirindeki proje levha nesting adapter'ı ve doğrudan sheet validator bağımlılığının güvenli hata normalizasyonunu tamamlamak.
 - Değişiklik: projectSheetNestingInput.ts ve sheetNestingInput.ts artık beklenen tüm dahili doğrulama hatalarını createSafeValidationError ile kaydeder; catch sınırları bilinmeyen thrown object/function/Proxy değerlerini safeThrownMessage ile sabit fallback'e indirger.
 - Regresyon testleri: İki yeni test, thrown Proxy'nin getPrototypeOf, get, ownKeys ve descriptor trap'lerinin normalizasyon sırasında sıfır kez çağrıldığını; sonuçların blocked ve result=null kaldığını doğrular. Mevcut mm, quantity, grain, kerf ve Türkçe validation tanısı testleri korunur.
 - Değişen dosyalar: domain/production/projectSheetNestingInput.ts, domain/production/projectSheetNestingInput.test.mjs, domain/production/sheetNestingInput.ts, domain/production/sheetNestingInput.test.mjs, AI_COORDINATION.md, AI_PROGRESS.md, PRODUCT_ROADMAP.md.
-- Commit: exact commit SHA bu değişiklik ağacı oluşturulduktan sonra kaydedilecek.
-- Otomatik kontroller: yeni SHA için CI, QA, strict shared-domain TypeScript, lint, production build, production-only dependency audit ve Pages sonucu henüz görülmedi; başarılı olarak işaretlenmedi.
+- Implementation commit: [b1718461459d30d86b60653e9c4cc43a30d4cc2d](https://github.com/Taylan789/MobilyaCAD/commit/b1718461459d30d86b60653e9c4cc43a30d4cc2d).
+- Exact-SHA CI: [#46135365335](https://github.com/Taylan789/MobilyaCAD/actions/runs/46135365335) SUCCESS.
+- Exact-SHA QA: [#46135365316](https://github.com/Taylan789/MobilyaCAD/actions/runs/46135365316) SUCCESS — 473/473 unit + 885/885 domain tests; both new Proxy regression tests passed; strict shared-domain TypeScript; lint 36 warnings / 0 errors; production build; production-only audit 0 vulnerabilities.
+- Exact-SHA Pages: [#46135365346](https://github.com/Taylan789/MobilyaCAD/actions/runs/46135365346) SUCCESS — deployment log confirms pages_build_version=b1718461459d30d86b60653e9c4cc43a30d4cc2d at https://taylan789.github.io/MobilyaCAD/.
 - Bilinen sınırlar: mevcut lint uyarıları ve bundle-splitting advisory ayrı teknik borç olarak kalır; viewport p95/bellek NOT MEASURED. CNC/postprocessor ve fiziksel üretim doğrulaması yapılmadı.
 - Sahiplik: frontend/**, adapter/benchmark-owned files, workflows, secrets/settings ve main değiştirilmedi. UI-owned INT-003 ve specialist-owned INT-002/PERF-001 ayrı tutuldu.
 - Sonraki görev: DOM-235 — cut-plan parser/serializer hata sınırlarını denetle; exact-SHA Actions sonuçları görülmeden yeni aynı-dosya değişikliği başlatma.
