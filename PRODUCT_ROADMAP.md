@@ -3323,7 +3323,7 @@ The first regression commit (347d89c) correctly reached the shared snapshot budg
 **DOM-225 doğrulama düzeltmesi (28 Kasım 2026 02:47 TRT):** İlk CI [#46084633976](https://github.com/Taylan789/MobilyaCAD/actions/runs/46084633976) başarılıydı. QA [#46084634035](https://github.com/Taylan789/MobilyaCAD/actions/runs/46084634035) 870/871 testle başarısız oldu: test fixture açık ölçülü kitaplık rafı eklerken zorunlu shelfCount=0 değerini ayarlamamıştı; bu nedenle kitaplık beklenen ID collision noktasına ulaşmadan blocked oldu. JSON v2/v3 freshness/export testi #686 başarılıydı. Fixture düzeltildi; Pages [#46084633944](https://github.com/Taylan789/MobilyaCAD/actions/runs/46084633944) QA gate başarısız olduğu için deploy aşamasını atladı. Yeni SHA doğrulanmadan DOM-225 VERIFIED sayılmayacak.
 **DOM-225 VERIFIED — 28 Kasım 2026 02:53 TRT:** Implementation/test [4acdee58](https://github.com/Taylan789/MobilyaCAD/commit/4acdee58deed1160a0262042be166abc3b6d0c66); fixture correction [2e9091e](https://github.com/Taylan789/MobilyaCAD/commit/2e9091e1d72ed49beef2e0ed85a5ac587e31ccea). Exact-SHA QA passed 451 frontend + 871 domain tests; DOM-225 #686 passed; strict TypeScript, lint (36 warnings / 0 errors), production build and production-only audit (0 vulnerabilities) passed. Exact-SHA Pages deployment #46084786069 confirms pages_build_version=2e9091e1d72ed49beef2e0ed85a5ac587e31ccea at https://taylan789.github.io/MobilyaCAD/.
 
-## 28 Kasım 2026 03:07 TRT — DOM-226 (implemented; exact-SHA verification pending)
+## 28 Kasım 2026 03:07 TRT — DOM-226 VERIFIED
 
 **Kullanıcı akışı:** Bir JSON v2/v3 kesim planı açıldığında tam proje Part snapshot'ı, seçili kesim parçalarının yanında üretime dahil edilmeyen Part kayıtlarını da kapsar. Kaydedilmiş snapshot'tan bir excluded Part silinmiş veya güncel projede bulunmayan eski bir excluded Part eklenmişse plan fresh kabul edilmemeli ve dışa aktarım durmalıdır.
 
@@ -3341,10 +3341,12 @@ The first regression commit (347d89c) correctly reached the shared snapshot budg
 - Performans: viewport p95/bellek NOT MEASURED; bu dilim benchmark değildir.
 - CNC/makine: makine çıktısı veya fiziksel üretim onayı eklenmez; atölye doğrulaması insan sorumluluğundadır.
 
-**Durum:** IMPLEMENTED — exact-SHA CI/QA/production build/Pages doğrulaması bekleniyor. Runtime davranışı değişmedi; mevcut snapshot karşılaştırmasının tam proje kapsamı için eksik regresyon kanıtı eklendi.
+**Durum:** VERIFIED — test [0c8482d](https://github.com/Taylan789/MobilyaCAD/commit/0c8482d0560bfcd4417b94bbd28217f9fb19aa07); CI [#46086412623](https://github.com/Taylan789/MobilyaCAD/actions/runs/46086412623), QA [#46086412898](https://github.com/Taylan789/MobilyaCAD/actions/runs/46086412898), Pages [#46086412643](https://github.com/Taylan789/MobilyaCAD/actions/runs/46086412643) SUCCESS. QA: 451/451 frontend + 872/872 domain; DOM-226 #687; strict TypeScript, lint 36 warnings/0 errors, production build, production-only audit 0 vulnerabilities. Pages `pages_build_version` exactly matches the test SHA. Runtime behavior unchanged; the missing/extra excluded snapshot coverage is now regression-tested through real v2/v3 parser, serializer, freshness and export APIs.
 
 **Sıradaki 3–5 küçük görev:**
 1. DOM-227 — currentSelectedPartIds duplicate/order/missing senaryolarında freshness/export durum ve source kimliği sözleşmesini doğrula.
 2. UI-owned INT-003 — JSON v2 project envelope editor startup/new/save/open entegrasyonu; yalnızca UI ajanı frontend/** dosyalarında çalışır.
 3. Specialist-owned INT-002/PERF-001 — adapter round-trip ve viewport p95/bellek ölçümü için gerçek specialist branch/PR kanıtı; sahiplik devri olmadan adapter/benchmark dosyalarına dokunma.
 4. QA-003 — INT-001/INT-002 exact-SHA adapter kanıtı tamamlandıktan sonra uçtan uca export reconciliation.
+
+**DOM-226 doğrulama ayrıntısı:** Kaydedilmiş snapshot'tan çıkarılmış excluded Part güncel üretimde bulunduğu için "yeni Part eklendi" tanısıyla stale; snapshot'a eklenmiş fakat güncel üretimde olmayan excluded Part "Part silindi" tanısıyla stale olur. Her iki senaryoda freshness result/json null, export blocked/null ve selected sourcePartIds korunur. Görünür UI, runtime geometri, CNC/makine standardı veya fiziksel üretim doğrulaması değişmedi.

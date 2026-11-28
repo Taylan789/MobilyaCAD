@@ -2261,13 +2261,16 @@
 - **Known limits:** no production runtime geometry or visible UI change; JSON v1/CSV adapter limitations remain; no CNC/postprocessor or physical workshop validation; viewport p95/memory NOT MEASURED. No frontend, adapter/benchmark, workflow, secrets/settings or main changes.
 - **Next:** DOM-226 — validate missing/extra excluded Part coverage against the restored v2/v3 full-project snapshot.
 
-## 28 Kasım 2026 03:07 TRT — DOM-226 IMPLEMENTED (verification pending)
+## 28 Kasım 2026 03:07 TRT — DOM-226 VERIFIED
 
 - **Base HEAD:** `6f60c2a4a2ce706705aebc56db8ff84247e8166b` on `dev/github-work`.
 - **Test file:** `domain/production/projectSheetCutPlanCutoutEdgeBandingFreshness.test.mjs` (blob `e91f283154930bc77e54ac64c59d5abb84c848b3` before this change).
 - **Documentation:** `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`.
 - **Regression:** JSON v2/v3 saved full-project snapshot with a missing excluded Part entry and with an extra stale excluded Part entry. Both cases exercise parser, serializer, restored freshness and freshness-gated export.
 - **Expected safety:** missing/extra coverage returns stale/blocked, null result/JSON, preserves selected sourcePartIds, and includes the offending excluded Part ID in deterministic added/removed diagnostics.
-- **Actions:** exact-SHA CI/QA/Pages pending; no local full-repository test result claimed.
+- **Exact-SHA CI:** [#46086412623](https://github.com/Taylan789/MobilyaCAD/actions/runs/46086412623) SUCCESS.
+- **Exact-SHA QA:** [#46086412898](https://github.com/Taylan789/MobilyaCAD/actions/runs/46086412898) SUCCESS — 451 frontend + 872 domain tests; DOM-226 #687 passed; strict shared-domain TypeScript, lint 36 warnings / 0 errors, production build and production-only audit 0 vulnerabilities.
+- **Exact-SHA Pages:** [#46086412643](https://github.com/Taylan789/MobilyaCAD/actions/runs/46086412643) SUCCESS; deployment log confirms `pages_build_version=0c8482d0560bfcd4417b94bbd28217f9fb19aa07` at https://taylan789.github.io/MobilyaCAD/.
 - **Known limits:** no runtime geometry or visible UI change; JSON v1/CSV adapter limits, CNC/postprocessor, machine validation and viewport p95/memory remain outside this slice.
 - **Next:** DOM-227 — currentSelectedPartIds duplicate/order/missing freshness/export boundary coverage.
+- **Result:** missing excluded snapshot entry is reported as a newly added current Part; extra stale excluded snapshot entry is reported as a removed Part. Both v2/v3 freshness/export paths fail closed with null result/JSON and preserved selected source IDs.
