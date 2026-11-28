@@ -693,3 +693,146 @@ test("DOM-230 restored JSON v2/v3 freshness and export block on Part Proxy refle
     }
   }
 });
+
+
+test("DOM-231 freshness request and production-report envelopes reject Proxy traps and accessors without invoking getters", () => {
+  const savedPlanJson = savedPlanV2([part()]);
+  const report = productionReport([part()]);
+  const requestProxyCases = [
+    {
+      name: "ownKeys",
+      message: "DOM-231 request ownKeys trap",
+      wrap: target => new Proxy(target, { ownKeys() { throw new Error("DOM-231 request ownKeys trap"); } })
+    },
+    {
+      name: "getOwnPropertyDescriptor",
+      message: "DOM-231 request descriptor trap",
+      wrap: target => new Proxy(target, {
+        getOwnPropertyDescriptor(inner, key) {
+          if (key === "savedPlanJson") throw new Error("DOM-231 request descriptor trap");
+          return Reflect.getOwnPropertyDescriptor(inner, key);
+        }
+      })
+    },
+    {
+      name: "getPrototypeOf",
+      message: "DOM-231 request prototype trap",
+      wrap: target => new Proxy(target, { getPrototypeOf() { throw new Error("DOM-231 request prototype trap"); } })
+    }
+  ];
+
+  for (const scenario of requestProxyCases) {
+    const request = scenario.wrap({
+      schemaVersion: 1,
+      savedPlanJson,
+      productionReport: report,
+      currentSelectedPartIds: ["part-1"]
+    });
+    const freshness = validateProjectSheetCutPlanFreshness(request);
+    assertNotFresh(freshness, "blocked");
+    assert.deepEqual(freshness.sourcePartIds, []);
+    assert.match(freshness.diagnostics.join(" "), new RegExp(scenario.message));
+
+    const exported = createFreshProjectSheetCutPlanExport({ schemaVersion: 1, freshness: request });
+    assert.equal(exported.status, "blocked", scenario.name);
+    assert.equal(exported.result, null, scenario.name);
+    assert.equal(exported.json, null, scenario.name);
+    assert.match(exported.diagnostics.join(" "), new RegExp(scenario.message));
+  }
+
+  const reportProxyCases = [
+    {
+      name: "ownKeys",
+      message: "DOM-231 report ownKeys trap",
+      wrap: target => new Proxy(target, { ownKeys() { throw new Error("DOM-231 report ownKeys trap"); } })
+    },
+    {
+      name: "getOwnPropertyDescriptor",
+      message: "DOM-231 report descriptor trap",
+      wrap: target => new Proxy(target, {
+        getOwnPropertyDescriptor(inner, key) {
+          if (key === "status") throw new Error("DOM-231 report descriptor trap");
+          return Reflect.getOwnPropertyDescriptor(inner, key);
+        }
+      })
+    },
+    {
+      name: "getPrototypeOf",
+      message: "DOM-231 report prototype trap",
+      wrap: target => new Proxy(target, { getPrototypeOf() { throw new Error("DOM-231 report prototype trap"); } })
+    }
+  ];
+
+  for (const scenario of reportProxyCases) {
+    const request = {
+      schemaVersion: 1,
+      savedPlanJson,
+      productionReport: scenario.wrap(report),
+      currentSelectedPartIds: ["part-1"]
+    };
+    const freshness = validateProjectSheetCutPlanFreshness(request);
+    assertNotFresh(freshness, "blocked");
+    assert.deepEqual(freshness.sourcePartIds, ["part-1"], scenario.name);
+    assert.match(freshness.diagnostics.join(" "), new RegExp(scenario.message));
+
+    const exported = createFreshProjectSheetCutPlanExport({ schemaVersion: 1, freshness: request });
+    assert.equal(exported.status, "blocked", scenario.name);
+    assert.equal(exported.result, null, scenario.name);
+    assert.equal(exported.json, null, scenario.name);
+    assert.match(exported.diagnostics.join(" "), new RegExp(scenario.message));
+  }
+
+  let getterCalls = 0;
+  const accessorRequest = {
+    schemaVersion: 1,
+    productionReport: report,
+    currentSelectedPartIds: ["part-1"]
+  };
+  Object.defineProperty(accessorRequest, "savedPlanJson", {
+    enumerable: true,
+    get() {
+      getterCalls += 1;
+      return savedPlanJson;
+    }
+  });
+  const accessorFreshness = validateProjectSheetCutPlanFreshness(accessorRequest);
+  assertNotFresh(accessorFreshness, "blocked");
+  assert.match(accessorFreshness.diagnostics.join(" "), /savedPlanJson.*own data property/);
+  const accessorExport = createFreshProjectSheetCutPlanExport({
+    schemaVersion: 1,
+    freshness: accessorRequest
+  });
+  assert.equal(accessorExport.status, "blocked");
+  assert.equal(accessorExport.result, null);
+  assert.equal(accessorExport.json, null);
+  assert.equal(getterCalls, 0);
+
+  let reportGetterCalls = 0;
+  const accessorReport = productionReport([part()]);
+  Object.defineProperty(accessorReport, "status", {
+    enumerable: true,
+    configurable: true,
+    get() {
+      reportGetterCalls += 1;
+      return "ready";
+    }
+  });
+  const reportAccessorRequest = {
+    schemaVersion: 1,
+    savedPlanJson,
+    productionReport: accessorReport,
+    currentSelectedPartIds: ["part-1"]
+  };
+  const reportAccessorFreshness = validateProjectSheetCutPlanFreshness(reportAccessorRequest);
+  assertNotFresh(reportAccessorFreshness, "blocked");
+  assert.deepEqual(reportAccessorFreshness.sourcePartIds, ["part-1"]);
+  assert.match(reportAccessorFreshness.diagnostics.join(" "), /status.*own data property/);
+  const reportAccessorExport = createFreshProjectSheetCutPlanExport({
+    schemaVersion: 1,
+    freshness: reportAccessorRequest
+  });
+  assert.equal(reportAccessorExport.status, "blocked");
+  assert.equal(reportAccessorExport.result, null);
+  assert.equal(reportAccessorExport.json, null);
+  assert.equal(reportGetterCalls, 0);
+});

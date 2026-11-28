@@ -3425,3 +3425,30 @@ The first regression commit (347d89c) correctly reached the shared snapshot budg
 2. UI-owned INT-003 — JSON v2 proje zarfı startup/new/save/open entegrasyonu; yalnızca UI ajanı frontend/** dosyalarında çalışır.
 3. Specialist-owned INT-002/PERF-001 — adapter round-trip ve viewport p95/bellek ölçümü için gerçek specialist branch/PR kanıtı; sahiplik devri olmadan bu dosyalara dokunma.
 4. QA-003 — adapter kanıtı tamamlandıktan sonra uçtan uca export reconciliation.
+
+
+## 28 Kasım 2026 08:24 TRT — DOM-231: güvenli freshness/report envelope sınırı
+
+**Kullanıcı akışı:** Kaydedilmiş JSON v2/v3 kesim planı güncel üretim raporuna karşı doğrulanırken, dış istek veya üretim raporu nesnesi beklenmeyen Proxy reflection trap'i ya da getter içerirse hesaplama kodu bu getter'ı çalıştırmadan işlemi güvenli biçimde durdurur. Kullanıcı kısmi kesim planı veya JSON alamaz.
+
+**Kabul kriterleri:**
+- Freshness request ve production-report root yalnızca düz nesne, enumerable own data property alanlarından okunur; getter/setter, sembol anahtarı, custom prototype veya non-enumerable alan reddedilir.
+- ownKeys, getOwnPropertyDescriptor ve getPrototypeOf Proxy trap hataları doğrudan freshness ve freshness-gated export API'lerinde blocked/null sonuç üretir.
+- Accessor-backed savedPlanJson ve productionReport.status alanları çalıştırılmaz; getter çağrı sayısı sıfırdır.
+- Production report hatası kaydedilmiş sourcePartIds bilgisini korur; result/json null kalır ve export ready dönmez.
+- Geçerli JSON v2/v3 ve mevcut mm/adet hesapları değişmez.
+
+**10/10 checklist delta:**
+- Güvenilirlik/veri güvenliği: freshness/report envelope reflection ve accessor sınırı fail-closed; getter yürütme sıfır olarak regresyon testine alınır.
+- Üretim/veri doğruluğu: başarısız doğrulamada kısmi plan veya JSON üretilmez, tanı için saved sourcePartIds korunur.
+- CAD Core / UX: görünür arayüz ve geometri değişmez; frontend/** UI ajanının sahipliğindedir.
+- Performans: bu güvenlik testi benchmark değildir; viewport p95/bellek NOT MEASURED.
+- CNC/makine: CNC/postprocessor veya fiziksel atölye onayı eklenmez; makine doğrulaması insan sorumluluğundadır.
+
+**Durum:** IMPLEMENTED — exact-SHA CI/QA/Pages doğrulaması bekleniyor.
+
+**Sıradaki küçük görevler:**
+1. DOM-232 — production report diagnostics array ve entry öğelerindeki accessor/sparse-array girdilerinin export tanı toplama sırasında getter çalıştırmadan fail-closed reddedilmesi.
+2. UI-owned INT-003 — JSON v2 proje zarfı startup/new/save/open entegrasyonu; yalnızca UI ajanı frontend/** dosyalarında çalışır.
+3. Specialist-owned INT-002/PERF-001 — adapter round-trip ve viewport p95/bellek ölçümü için gerçek specialist branch/PR kanıtı; sahiplik devri olmadan adapter/benchmark dosyalarına dokunma.
+4. QA-003 — INT-001/INT-002 exact-SHA adapter kanıtı tamamlandıktan sonra uçtan uca export reconciliation.

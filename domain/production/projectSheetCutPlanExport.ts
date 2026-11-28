@@ -61,6 +61,32 @@ function record(value: unknown, label: string): RecordValue {
   return value as RecordValue;
 }
 
+/** Copies a plain JSON-like envelope using own data descriptors without invoking accessors. */
+function safeRecord(value: unknown, label: string): RecordValue {
+  const source = record(value, label);
+  const prototype = Object.getPrototypeOf(source);
+  if (prototype !== Object.prototype && prototype !== null) {
+    throw new Error(label + " yalnızca düz nesne olmalıdır.");
+  }
+  const target = Object.create(null) as RecordValue;
+  for (const key of Reflect.ownKeys(source)) {
+    if (typeof key !== "string") {
+      throw new Error(label + " sembol anahtarı içeremez.");
+    }
+    const descriptor = Object.getOwnPropertyDescriptor(source, key);
+    if (descriptor === undefined || !("value" in descriptor) || !descriptor.enumerable) {
+      throw new Error(label + "." + key + " enumerable own data property olmalıdır; getter/setter kabul edilmez.");
+    }
+    Object.defineProperty(target, key, {
+      value: descriptor.value,
+      enumerable: true,
+      configurable: true,
+      writable: true
+    });
+  }
+  return target;
+}
+
 function closed(value: RecordValue, allowed: readonly string[], label: string): void {
   const extra = Object.keys(value).find((key) => !allowed.includes(key));
   if (extra !== undefined) {
@@ -302,7 +328,7 @@ export function createFreshProjectSheetCutPlanExport(value: unknown): ProjectShe
   let sourcePartIds: string[] = [];
 
   try {
-    const request = record(value, "Proje kesim planı dışa aktarma isteği");
+    const request = safeRecord(value, "Proje kesim planı dışa aktarma isteği");
     closed(request, ["schemaVersion", "freshness"], "Proje kesim planı dışa aktarma isteği");
     if (request.schemaVersion !== 1) {
       throw new Error("Desteklenmeyen proje kesim planı dışa aktarma şema sürümü.");
@@ -311,8 +337,8 @@ export function createFreshProjectSheetCutPlanExport(value: unknown): ProjectShe
       throw new Error("Dışa aktarma için güncellik doğrulaması girdisi zorunludur.");
     }
 
-    const freshnessRequest = record(request.freshness, "Kesim planı güncellik girdisi");
-    const productionReport = record(freshnessRequest.productionReport, "Güncel proje üretim raporu");
+    const freshnessRequest = safeRecord(request.freshness, "Kesim planı güncellik girdisi");
+    const productionReport = safeRecord(freshnessRequest.productionReport, "Güncel proje üretim raporu");
     const productionDiagnostics = readProductionDiagnostics(productionReport);
     const productionMessages = formatProductionDiagnostics(productionDiagnostics);
     if (productionReport.status !== "ready" || productionDiagnostics.length > 0) {

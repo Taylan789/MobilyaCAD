@@ -50,6 +50,32 @@ function record(value: unknown, label: string): RecordValue {
   return value as RecordValue;
 }
 
+/** Copies a plain JSON-like envelope using own data descriptors without invoking accessors. */
+function safeRecord(value: unknown, label: string): RecordValue {
+  const source = record(value, label);
+  const prototype = Object.getPrototypeOf(source);
+  if (prototype !== Object.prototype && prototype !== null) {
+    throw new Error(label + " yalnızca düz nesne olmalıdır.");
+  }
+  const target = Object.create(null) as RecordValue;
+  for (const key of Reflect.ownKeys(source)) {
+    if (typeof key !== "string") {
+      throw new Error(label + " sembol anahtarı içeremez.");
+    }
+    const descriptor = Object.getOwnPropertyDescriptor(source, key);
+    if (descriptor === undefined || !("value" in descriptor) || !descriptor.enumerable) {
+      throw new Error(label + "." + key + " enumerable own data property olmalıdır; getter/setter kabul edilmez.");
+    }
+    Object.defineProperty(target, key, {
+      value: descriptor.value,
+      enumerable: true,
+      configurable: true,
+      writable: true
+    });
+  }
+  return target;
+}
+
 function closed(value: RecordValue, allowed: readonly string[], label: string): void {
   const unknownKey = Object.keys(value).find((key) => !allowed.includes(key));
   if (unknownKey !== undefined) {
@@ -122,7 +148,7 @@ export function validateProjectSheetCutPlanFreshness(
   let sourcePartIds: string[] = [];
 
   try {
-    const request = record(value, "Proje kesim planı güncellik isteği");
+    const request = safeRecord(value, "Proje kesim planı güncellik isteği");
     closed(
       request,
       ["schemaVersion", "savedPlanJson", "productionReport", "grainDirectionsByPartId", "currentSelectedPartIds"],
@@ -151,7 +177,7 @@ export function validateProjectSheetCutPlanFreshness(
       }
     }
 
-    const productionReport = record(request.productionReport, "Güncel proje üretim raporu");
+    const productionReport = safeRecord(request.productionReport, "Güncel proje üretim raporu");
     if (productionReport.schemaVersion !== 1) {
       throw new Error("Desteklenmeyen güncel proje üretim raporu şema sürümü.");
     }
@@ -166,7 +192,7 @@ export function validateProjectSheetCutPlanFreshness(
       throw new Error("Güncel proje üretim raporu ready, empty veya blocked durumunda olmalıdır.");
     }
 
-    const productionResult = record(productionReport.result, "Güncel proje üretim sonucu");
+    const productionResult = safeRecord(productionReport.result, "Güncel proje üretim sonucu");
     if (productionResult.schemaVersion !== 1 || !Array.isArray(productionResult.parts)) {
       throw new Error("Güncel proje üretim sonucu geçerli bir v1 Part listesi taşımalıdır.");
     }
