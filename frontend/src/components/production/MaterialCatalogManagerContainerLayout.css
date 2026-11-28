@@ -164,3 +164,25 @@
     outline-offset: 2px;
   }
 }
+
+
+/* UI-MATERIAL-EDITOR-VIEWPORT-FIT-001 — keep long material forms reachable inside the desktop rail without pushing the workspace beyond the viewport. */
+@container material-catalog (min-width: 1121px) {
+  .mc-material-library__editor {
+    min-height: 0;
+    max-height: calc(100vh - 160px);
+    max-height: min(720px, calc(100dvh - 160px));
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    scrollbar-gutter: stable;
+    scroll-padding-block: 12px;
+    scrollbar-width: thin;
+    scrollbar-color: #587487 rgba(12, 21, 27, .35);
+  }
+}
+
+@media (forced-colors: active) {
+  .mc-material-library__editor {
+    scrollbar-color: auto;
+  }
+}
