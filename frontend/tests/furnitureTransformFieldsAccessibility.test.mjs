@@ -39,6 +39,6 @@ test("erişilebilirlik düzenlemesi mm dönüşüm hassasiyetini ve commit davra
 test("validation state is exposed on each rejected axis and the rotation field", () => {
   assert.match(source, /type PositionErrors = Partial<Record<Axis, string>>/);
   assert.ok(source.includes('aria-invalid={Boolean(positionErrors[axis.key])}'));
-  assert.ok(source.includes('aria-errormessage={positionErrors[axis.key] ? `furniture-position-${axis.key}-error` : undefined}'));
+  assert.ok(source.includes("aria-errormessage={positionErrors[axis.key] ? `furniture-position-${axis.key}-error` : undefined}"));
   assert.ok(source.includes('aria-invalid={Boolean(rotationError)}'));
 });
