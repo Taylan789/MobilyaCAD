@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import {
   AlertTriangle,
   ArrowLeft,
+  ChevronDown,
   CheckCircle2,
   ClipboardList,
   Factory,
@@ -9,6 +10,7 @@ import {
 } from "lucide-react";
 
 import "./ProductionWorkspace.css";
+import "./ProductionWorkspaceScopeDisclosure.css";
 
 type ProductionSection = "report" | "materials";
 
@@ -132,13 +134,14 @@ export function ProductionWorkspace({
             )}
           </section>
 
-          <div className="mc-production-studio__scope">
-            <AlertTriangle aria-hidden="true" />
-            <div>
+          <details className="mc-production-studio__scope">
+            <summary>
+              <AlertTriangle aria-hidden="true" />
               <strong>Üretim kapsamı</strong>
-              <p>Bu sürüm kesim listesi, malzeme tüketimi ve kenar bantlama verilerini sunar. CNC takım yolu, nesting, fire optimizasyonu veya makine bağlantısı üretmez.</p>
-            </div>
-          </div>
+              <ChevronDown aria-hidden="true" />
+            </summary>
+            <p>Bu sürüm kesim listesi, malzeme tüketimi ve kenar bantlama verilerini sunar. CNC takım yolu, nesting, fire optimizasyonu veya makine bağlantısı üretmez.</p>
+          </details>
 
           <div className="mc-production-studio__rail-footer">
             <span>METRİK SİSTEM</span>
