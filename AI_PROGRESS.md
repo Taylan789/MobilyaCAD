@@ -1,3 +1,15 @@
+## 28 Kasım 2026 07:47 TRT — DOM-230 IMPLEMENTED (verification pending)
+
+- Base `dev/github-work` HEAD: `7e4b2df1b83f9558e6b85ef58874d8ab4e7eff11`; branch HEAD and all target file blob SHAs were re-read immediately before the write.
+- Delivery: direct Part snapshot creation now has regression coverage for Proxy `ownKeys`, `getOwnPropertyDescriptor` and `getPrototypeOf` trap failures. Real restored JSON v2/v3 plans are checked through public freshness and freshness-gated export for all three traps.
+- Acceptance: direct snapshot API throws without a partial snapshot; freshness/export return blocked with null result/JSON, preserve saved sourcePartIds, and never execute the unrelated getter.
+- Changed files: `domain/production/projectPartSnapshot.test.mjs`, `domain/production/projectSheetCutPlanFreshness.test.mjs`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`.
+- Implementation commit SHA: will be recorded in the verification follow-up after this GitHub commit is created.
+- Exact-SHA CI, QA and Pages: pending; no success or deployment is claimed in this entry.
+- Known limits: no production runtime algorithm or frontend/adapter changed; JSON v1/CSV adapter gaps remain; viewport p95/memory NOT MEASURED; CNC/postprocessor and physical workshop validation remain human-only.
+- Parallel ownership: UI PRs #206, #289 and #292 remain separate and untouched. No `agent/integration-performance-*` branch exists; the specialist workflow job is disabled, so INT-002/PERF-001 remain specialist-owned.
+- Next: DOM-231 — verify Proxy/accessor reflection failures at the outer freshness request and production-report envelope boundary.
+
 ## 28 Kasım 2026 06:31 TRT — DOM-229 VERIFIED
 
 - Base `dev/github-work` HEAD: `e0fbf8234c78ac83043966b921abf0927dc21a14`; target file blobs and branch HEAD were re-read immediately before the implementation commit.

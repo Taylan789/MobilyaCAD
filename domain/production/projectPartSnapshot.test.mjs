@@ -173,3 +173,45 @@ test("DOM-229 Part snapshot accessors and sparse arrays fail closed without exec
   assert.throws(() => createProjectPartSnapshot(new Array(1)), /own data property/);
   assert.equal(getterCalls, 0);
 });
+
+
+test("DOM-230 Proxy reflection traps reject Part snapshot creation without executing getters", () => {
+  let getterCalls = 0;
+  const makePart = () => {
+    const value = { id: "part-proxy", width: 500 };
+    Object.defineProperty(value, "depth", {
+      enumerable: true,
+      get() {
+        getterCalls += 1;
+        return 18;
+      }
+    });
+    return value;
+  };
+  const cases = [
+    {
+      name: "ownKeys",
+      value: new Proxy(makePart(), { ownKeys() { throw new Error("DOM-230 ownKeys trap"); } }),
+      message: /DOM-230 ownKeys trap/
+    },
+    {
+      name: "getOwnPropertyDescriptor",
+      value: new Proxy(makePart(), {
+        getOwnPropertyDescriptor(target, key) {
+          if (key === "id") throw new Error("DOM-230 getOwnPropertyDescriptor trap");
+          return Reflect.getOwnPropertyDescriptor(target, key);
+        }
+      }),
+      message: /DOM-230 getOwnPropertyDescriptor trap/
+    },
+    {
+      name: "getPrototypeOf",
+      value: new Proxy(makePart(), { getPrototypeOf() { throw new Error("DOM-230 getPrototypeOf trap"); } }),
+      message: /DOM-230 getPrototypeOf trap/
+    }
+  ];
+  for (const scenario of cases) {
+    assert.throws(() => createProjectPartSnapshot([scenario.value]), scenario.message, scenario.name);
+    assert.equal(getterCalls, 0, scenario.name + " trap must not evaluate unrelated getters");
+  }
+});

@@ -3398,3 +3398,30 @@ The first regression commit (347d89c) correctly reached the shared snapshot budg
 2. UI-owned INT-003 — JSON v2 project envelope editor startup/new/save/open entegrasyonu; yalnızca UI ajanı `frontend/**` dosyalarında çalışır.
 3. Specialist-owned INT-002/PERF-001 — adapter round-trip ve viewport p95/bellek ölçümü için gerçek specialist branch/PR kanıtı beklenir; bu otomasyon adapter/benchmark dosyalarına dokunmaz.
 4. QA-003 — INT-001/INT-002 exact-SHA adapter kanıtı tamamlandıktan sonra uçtan uca export reconciliation.
+
+
+## 28 Kasım 2026 07:47 TRT — DOM-230 Proxy reflection boundary
+
+**Kullanıcı akışı:** JSON v2/v3 kesim planı yeniden açılıp güncel proje Part listesiyle doğrulanırken, Part kayıtlarından birinin Proxy reflection trap'i hata verirse kullanıcı kısmi veya yanlış bir kesim planı alamaz.
+
+**Kabul kriterleri:**
+- `ownKeys`, `getOwnPropertyDescriptor` ve `getPrototypeOf` trap hataları doğrudan snapshot oluşturma API'sinde exception olarak reddedilir; kısmi snapshot dönmez.
+- Gerçek JSON v2 ve v3 planları parse → serialize/restore sonrasında aynı üç hata freshness doğrulamasında `blocked` üretir.
+- Freshness-gated export `blocked` döner; `result=null`, `json=null` ve kayıtlı `sourcePartIds` korunur.
+- Hiçbir senaryoda Part getter'ı çalıştırılmaz.
+- Var olan JSON biçimi, mm/adet hesapları, 8 MiB/64 seviye sınırları ve üretim geometrisi değişmez.
+
+**10/10 checklist delta:**
+- Güvenilirlik/veri bütünlüğü: Proxy reflection hataları doğrudan snapshot ve gerçek v2/v3 restore → freshness → export akışında fail-closed regresyonla korunur.
+- Üretim: kısmi kesim planı veya JSON dışa aktarımı üretilmez; kaynak kimlikleri tanı için korunur.
+- CAD Core / UX: görünür arayüz veya geometri davranışı değişmez; `frontend/**` UI ajanının sahipliğindedir.
+- Performans: viewport p95/bellek NOT MEASURED; bu dilim benchmark değildir.
+- CNC/makine: makine standardı, CNC koordinatı veya fiziksel üretim onayı eklenmez.
+
+**Durum:** IMPLEMENTED — exact-SHA CI/QA/Pages doğrulaması bekleniyor.
+
+**Sıradaki küçük görevler:**
+1. DOM-231 — freshness request ve production-report üst zarfındaki Proxy/accessor reflection hatalarını fail-closed doğrula.
+2. UI-owned INT-003 — JSON v2 proje zarfı startup/new/save/open entegrasyonu; yalnızca UI ajanı frontend/** dosyalarında çalışır.
+3. Specialist-owned INT-002/PERF-001 — adapter round-trip ve viewport p95/bellek ölçümü için gerçek specialist branch/PR kanıtı; sahiplik devri olmadan bu dosyalara dokunma.
+4. QA-003 — adapter kanıtı tamamlandıktan sonra uçtan uca export reconciliation.

@@ -624,3 +624,72 @@ test("DOM-228 JSON v2/v3 restore blocks empty, whitespace and non-string current
     }
   }
 });
+
+
+test("DOM-230 restored JSON v2/v3 freshness and export block on Part Proxy reflection traps", () => {
+  const jsonV2 = savedPlanV2([part()]);
+  const v3Envelope = JSON.parse(jsonV2);
+  v3Envelope.formatVersion = 3;
+  v3Envelope.result.groups[0].stockSheetSource = {
+    sourceId: "stock-sheet-source-dom-230",
+    revision: "rev-dom-230"
+  };
+  const plans = [["v2", jsonV2], ["v3", JSON.stringify(v3Envelope)]];
+  const scenarios = [
+    {
+      name: "ownKeys",
+      message: "DOM-230 ownKeys trap",
+      createProxy: target => new Proxy(target, { ownKeys() { throw new Error("DOM-230 ownKeys trap"); } })
+    },
+    {
+      name: "getOwnPropertyDescriptor",
+      message: "DOM-230 getOwnPropertyDescriptor trap",
+      createProxy: target => new Proxy(target, {
+        getOwnPropertyDescriptor(inner, key) {
+          if (key === "id") throw new Error("DOM-230 getOwnPropertyDescriptor trap");
+          return Reflect.getOwnPropertyDescriptor(inner, key);
+        }
+      })
+    },
+    {
+      name: "getPrototypeOf",
+      message: "DOM-230 getPrototypeOf trap",
+      createProxy: target => new Proxy(target, { getPrototypeOf() { throw new Error("DOM-230 getPrototypeOf trap"); } })
+    }
+  ];
+  for (const [version, sourceJson] of plans) {
+    const parsed = parseProjectSheetCutPlanJson(sourceJson);
+    assert.equal(parsed.status, "ready", version);
+    const restored = serializeProjectSheetCutPlanJson(parsed);
+    assert.equal(restored.status, "ready", version);
+    assert.ok(restored.json, version);
+    const savedPlanJson = restored.json;
+    for (const scenario of scenarios) {
+      let getterCalls = 0;
+      const sourcePart = part();
+      Object.defineProperty(sourcePart, "depth", {
+        enumerable: true,
+        get() { getterCalls += 1; return 18; }
+      });
+      const report = productionReport([scenario.createProxy(sourcePart)]);
+      const freshnessRequest = {
+        schemaVersion: 1,
+        savedPlanJson,
+        productionReport: report,
+        currentSelectedPartIds: ["part-1"]
+      };
+      const freshness = validateProjectSheetCutPlanFreshness(freshnessRequest);
+      assertNotFresh(freshness, "blocked");
+      assert.deepEqual(freshness.sourcePartIds, ["part-1"], version + " / " + scenario.name);
+      assert.ok(freshness.diagnostics.join(" ").includes(scenario.message), version + " / " + scenario.name);
+      const exported = createFreshProjectSheetCutPlanExport({ schemaVersion: 1, freshness: freshnessRequest });
+      assert.equal(exported.status, "blocked", version + " / " + scenario.name);
+      assert.equal(exported.freshnessStatus, "blocked", version + " / " + scenario.name);
+      assert.equal(exported.result, null, version + " / " + scenario.name);
+      assert.equal(exported.json, null, version + " / " + scenario.name);
+      assert.deepEqual(exported.sourcePartIds, ["part-1"], version + " / " + scenario.name);
+      assert.ok(exported.diagnostics.join(" ").includes(scenario.message), version + " / " + scenario.name);
+      assert.equal(getterCalls, 0, version + " / " + scenario.name);
+    }
+  }
+});
