@@ -1,11 +1,12 @@
-## 28 Kasım 2026 07:47 TRT — DOM-230 IMPLEMENTED (verification pending)
+## 28 Kasım 2026 07:47 TRT — DOM-230 VERIFIED
 
-- Base `dev/github-work` HEAD: `7e4b2df1b83f9558e6b85ef58874d8ab4e7eff11`; branch HEAD and all target file blob SHAs were re-read immediately before the write.
-- Delivery: direct Part snapshot creation now has regression coverage for Proxy `ownKeys`, `getOwnPropertyDescriptor` and `getPrototypeOf` trap failures. Real restored JSON v2/v3 plans are checked through public freshness and freshness-gated export for all three traps.
-- Acceptance: direct snapshot API throws without a partial snapshot; freshness/export return blocked with null result/JSON, preserve saved sourcePartIds, and never execute the unrelated getter.
+- Base `dev/github-work` HEAD: `7e4b2df1b83f9558e6b85ef58874d8ab4e7eff11`; target file blob SHAs and branch HEAD were re-read immediately before the implementation write.
+- Implementation/test commit: [17b024e93c33725f3b2d3fb7018b27aad57c1742](https://github.com/Taylan789/MobilyaCAD/commit/17b024e93c33725f3b2d3fb7018b27aad57c1742).
+- Delivery: direct Part snapshot creation rejects Proxy `ownKeys`, `getOwnPropertyDescriptor` and `getPrototypeOf` trap failures. Real restored JSON v2/v3 plans are covered through public freshness and freshness-gated export for all three traps.
+- Acceptance evidence: direct snapshot API throws without a partial snapshot; freshness/export return blocked with null result/JSON, preserve saved sourcePartIds, and never execute the unrelated getter. DOM-230 regression subtests #274 and #729 both passed.
 - Changed files: `domain/production/projectPartSnapshot.test.mjs`, `domain/production/projectSheetCutPlanFreshness.test.mjs`, `AI_COORDINATION.md`, `PRODUCT_ROADMAP.md`, `AI_PROGRESS.md`.
-- Implementation commit SHA: will be recorded in the verification follow-up after this GitHub commit is created.
-- Exact-SHA CI, QA and Pages: pending; no success or deployment is claimed in this entry.
+- Exact-SHA CI [#46109449237](https://github.com/Taylan789/MobilyaCAD/actions/runs/46109449237) SUCCESS. Exact-SHA QA [#46109449259](https://github.com/Taylan789/MobilyaCAD/actions/runs/46109449259) SUCCESS: 458/458 frontend + 877/877 domain tests; strict shared-domain TypeScript, lint (36 warnings / 0 errors), production build and production-only audit (0 vulnerabilities) passed.
+- Exact-SHA Pages [#46109449267](https://github.com/Taylan789/MobilyaCAD/actions/runs/46109449267) SUCCESS; deploy log confirms `pages_build_version=17b024e93c33725f3b2d3fb7018b27aad57c1742` and https://taylan789.github.io/MobilyaCAD/.
 - Known limits: no production runtime algorithm or frontend/adapter changed; JSON v1/CSV adapter gaps remain; viewport p95/memory NOT MEASURED; CNC/postprocessor and physical workshop validation remain human-only.
 - Parallel ownership: UI PRs #206, #289 and #292 remain separate and untouched. No `agent/integration-performance-*` branch exists; the specialist workflow job is disabled, so INT-002/PERF-001 remain specialist-owned.
 - Next: DOM-231 — verify Proxy/accessor reflection failures at the outer freshness request and production-report envelope boundary.

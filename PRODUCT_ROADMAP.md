@@ -3418,7 +3418,7 @@ The first regression commit (347d89c) correctly reached the shared snapshot budg
 - Performans: viewport p95/bellek NOT MEASURED; bu dilim benchmark değildir.
 - CNC/makine: makine standardı, CNC koordinatı veya fiziksel üretim onayı eklenmez.
 
-**Durum:** IMPLEMENTED — exact-SHA CI/QA/Pages doğrulaması bekleniyor.
+**Durum:** VERIFIED — implementation/test commit [17b024e93c33725f3b2d3fb7018b27aad57c1742](https://github.com/Taylan789/MobilyaCAD/commit/17b024e93c33725f3b2d3fb7018b27aad57c1742). Exact-SHA CI [#46109449237](https://github.com/Taylan789/MobilyaCAD/actions/runs/46109449237), QA [#46109449259](https://github.com/Taylan789/MobilyaCAD/actions/runs/46109449259) and Pages [#46109449267](https://github.com/Taylan789/MobilyaCAD/actions/runs/46109449267) all SUCCESS. QA: 458/458 frontend + 877/877 domain; DOM-230 subtests #274 and #729 passed; strict shared-domain TypeScript, lint (36 warnings / 0 errors), production build and production-only audit (0 vulnerabilities) passed. Pages deploy log confirms pages_build_version=17b024e93c33725f3b2d3fb7018b27aad57c1742 at https://taylan789.github.io/MobilyaCAD/.
 
 **Sıradaki küçük görevler:**
 1. DOM-231 — freshness request ve production-report üst zarfındaki Proxy/accessor reflection hatalarını fail-closed doğrula.
