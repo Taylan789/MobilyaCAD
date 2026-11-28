@@ -46,3 +46,18 @@ test("selection readout stays compact and legible in forced-colors mode", () => 
   assert.match(styles, /@media\s*\(forced-colors:\s*active\)/);
   assert.match(styles, /border-left-color:\s*Highlight/);
 });
+
+
+test("selection readout adapts to the real HUD width left by side docks", () => {
+  assert.match(
+    styles,
+    /\.cad-viewport-dimension-readout\s*\{[^}]*container:\s*viewport-hud\s*\/\s*inline-size/s,
+  );
+  assert.match(styles, /@container\s+viewport-hud\s+\(max-width:\s*270px\)/);
+  assert.match(styles, /@container\s+viewport-hud\s+\(max-width:\s*224px\)/);
+  assert.match(
+    styles,
+    /\.cad-viewport-selection-readout__parent\s*\{[^}]*display:\s*none/s,
+  );
+  assert.match(styles, /@media\s*\(forced-colors:\s*active\)/);
+});

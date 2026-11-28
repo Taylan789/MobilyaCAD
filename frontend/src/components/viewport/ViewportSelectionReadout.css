@@ -76,3 +76,52 @@
     color: CanvasText;
   }
 }
+
+
+/* UI-VIEWPORT-SELECTION-READOUT-CONTAINER-FIT-001 — size selection context against the real HUD width left by side docks. */
+.cad-viewport-dimension-readout {
+  container: viewport-hud / inline-size;
+}
+
+@container viewport-hud (max-width: 270px) {
+  .cad-viewport-selection-readout {
+    gap: 6px;
+    padding: 5px 6px;
+  }
+
+  .cad-viewport-selection-readout__kind {
+    font-size: 6px;
+    letter-spacing: .1em;
+  }
+
+  .cad-viewport-selection-readout__name {
+    font-size: 9px;
+  }
+
+  .cad-viewport-selection-readout__parent {
+    display: none;
+  }
+}
+
+@container viewport-hud (max-width: 224px) {
+  .cad-viewport-selection-readout {
+    gap: 4px;
+    padding: 4px 5px;
+    border-radius: 3px;
+  }
+
+  .cad-viewport-selection-readout__kind {
+    font-size: 5.5px;
+    letter-spacing: .07em;
+  }
+
+  .cad-viewport-selection-readout__name {
+    font-size: 8px;
+  }
+}
+
+@media (forced-colors: active) {
+  .cad-viewport-selection-readout {
+    forced-color-adjust: auto;
+  }
+}
