@@ -8,6 +8,7 @@ import "./FurnitureTransformFields.css";
 
 type Axis = "x" | "y" | "z";
 type PositionDraft = Record<Axis, string>;
+type PositionErrors = Partial<Record<Axis, string>>;
 
 interface FurnitureTransformFieldsProps {
   furniture: PlacedFurniture;
@@ -42,13 +43,13 @@ export function FurnitureTransformFields({
     createPositionDraft(furniture.position)
   );
   const [rotationDraft, setRotationDraft] = useState(String(furniture.rotation));
-  const [positionError, setPositionError] = useState<string | null>(null);
+  const [positionErrors, setPositionErrors] = useState<PositionErrors>({});
   const [rotationError, setRotationError] = useState<string | null>(null);
 
   useEffect(() => {
     setPositionDraft(createPositionDraft(furniture.position));
     setRotationDraft(String(furniture.rotation));
-    setPositionError(null);
+    setPositionErrors({});
     setRotationError(null);
   }, [
     furniture.id,
@@ -63,12 +64,18 @@ export function FurnitureTransformFields({
     const parsedValue = Number(rawValue);
 
     if (rawValue.trim() === "" || !Number.isFinite(parsedValue)) {
-      setPositionError(`${axis.toUpperCase()} konumu geçerli bir sayı değil; önceki değer korundu.`);
-      setPositionDraft(createPositionDraft(furniture.position));
+      setPositionErrors((previous) => ({
+        ...previous,
+        [axis]: `${axis.toUpperCase()} konumu geçerli bir sayı değil; geçerli değer girilene kadar önceki konum uygulanır.`,
+      }));
       return;
     }
 
-    setPositionError(null);
+    setPositionErrors((previous) => {
+      const next = { ...previous };
+      delete next[axis];
+      return next;
+    });
     const nextPosition: [number, number, number] = [...furniture.position];
     nextPosition[index] = parsedValue / 1000;
     onPositionCommit(nextPosition);
@@ -83,8 +90,7 @@ export function FurnitureTransformFields({
       parsedValue < 0 ||
       parsedValue > 359
     ) {
-      setRotationError("Dönüş açısı 0–359° aralığında olmalı; önceki değer korundu.");
-      setRotationDraft(String(furniture.rotation));
+      setRotationError("Dönüş açısı 0–359° aralığında olmalı; geçerli değer girilene kadar önceki açı uygulanır.");
       return;
     }
 
@@ -123,12 +129,16 @@ export function FurnitureTransformFields({
                   step="0.1"
                   value={positionDraft[axis.key]}
                   aria-describedby="furniture-position-help"
-                  aria-invalid={positionError?.startsWith(`${axis.key.toUpperCase()} `) ?? false}
-                  aria-errormessage={positionError?.startsWith(`${axis.key.toUpperCase()} `) ? "furniture-position-error" : undefined}
+                  aria-invalid={Boolean(positionErrors[axis.key])}
+                  aria-errormessage={positionErrors[axis.key] ? `furniture-position-${axis.key}-error` : undefined}
                   aria-label={`${axis.label} ekseni konumu, milimetre`}
                   className="cad-transform-axis-input min-w-0 font-mono tabular-nums"
                   onChange={(event) => {
-                    setPositionError(null);
+                    setPositionErrors((previous) => {
+                      const next = { ...previous };
+                      delete next[axis.key];
+                      return next;
+                    });
                     setPositionDraft((previous) => ({
                       ...previous,
                       [axis.key]: event.target.value,
@@ -145,11 +155,26 @@ export function FurnitureTransformFields({
           );
         })}
       </div>
-      {positionError && (
-        <p className="cad-transform-validation" id="furniture-position-error" role="status" aria-live="polite">
-          <AlertCircle aria-hidden="true" />
-          <span>{positionError}</span>
-        </p>
+      {Object.keys(positionErrors).length > 0 && (
+        <div className="cad-transform-validation-list">
+          {axes.map((axis) => {
+            const error = positionErrors[axis.key];
+            if (!error) return null;
+
+            return (
+              <p
+                className="cad-transform-validation"
+                id={`furniture-position-${axis.key}-error`}
+                role="status"
+                aria-live="polite"
+                key={axis.key}
+              >
+                <AlertCircle aria-hidden="true" />
+                <span>{error}</span>
+              </p>
+            );
+          })}
+        </div>
       )}
 
       <div className="cad-field cad-transform-rotation">
