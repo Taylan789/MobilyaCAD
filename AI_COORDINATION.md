@@ -1299,7 +1299,7 @@ Bu dosya dört geliştirme/denetim rolünün ortak görev panosu ve entegrasyon 
 - **Limits:** nested diagnostic-list element accessors and hostile array-index access are outside this envelope slice; existing Part snapshot array descriptor checks remain in force. No geometry, CNC, postprocessor or physical workshop validation is claimed.
 - **Next:** DOM-232 — verify that nested production-report diagnostic arrays and entries cannot execute accessor-backed elements while export diagnostics are collected.
 
-| DOM-232 | Fail closed on accessor-backed or sparse production-report diagnostic arrays/entries during export diagnostics collection; never invoke getters | Ürün Geliştirme | READY | Diagnostic array indexes and entry fields are descriptor-read; getter count stays zero; export is blocked/null with no partial production diagnostics | Keep UI-owned INT-003 and specialist-owned INT-002/PERF-001 separate |
+| DOM-232 | Fail closed on accessor-backed or sparse production-report diagnostic arrays/entries during export diagnostics collection; never invoke getters | Ürün Geliştirme | IN PROGRESS — implementation/test commit created; exact-SHA CI/QA/Pages pending | Dense arrays and nested entries are copied via own data descriptors; accessor/sparse input returns blocked/null and no partial diagnostics | Keep UI-owned INT-003 and specialist-owned INT-002/PERF-001 separate |
 
 
 ## 28 Kasım 2026 08:31 TRT — DOM-231 VERIFIED
@@ -1314,3 +1314,14 @@ Bu dosya dört geliştirme/denetim rolünün ortak görev panosu ve entegrasyon 
 - **Parallel lanes:** no `agent/integration-performance-*` branch exists; the specialist workflow job remains disabled (`if: false`), so INT-002/PERF-001 remain specialist-owned and QA-003 waits on adapter evidence. UI-owned INT-003 PR [#206](https://github.com/Taylan789/MobilyaCAD/pull/206) remains draft/unmergeable because App startup/new/save/open integration is deferred; it was not changed or merged.
 - **AI Developer:** run [#46099799704](https://github.com/Taylan789/MobilyaCAD/actions/runs/46099799704) failed on OpenRouter free daily HTTP 429 at old head `5ba766e5`. The branch has since advanced; rerunning that historical dispatch would validate an obsolete SHA, and no workflow-dispatch action is available here. No paid fallback, secret, quota or settings change.
 - **Next:** DOM-232 — descriptor-safe traversal of production-report diagnostic arrays and entries, preserving zero getter calls and blocked/null export behavior.
+
+
+## 28 Kasım 2026 10:15 TRT — DOM-232 IMPLEMENTED (exact-SHA validation pending)
+
+- **Base HEAD:** `d4160b45b674572fb3a99957f19e87591f6cdcb1` on `dev/github-work`; this slice is confined to domain export, its regression test and coordination records.
+- **Implementation:** production report diagnostic arrays, diagnostic entry records, material-conflict envelopes and nested `sources` arrays are read through own data descriptors. Sparse arrays, accessor-backed indexes/fields, custom array prototypes, symbol/extra array keys and malformed nested entries fail closed without invoking getters.
+- **Regression acceptance:** getter counter remains zero for all four report collections, all diagnostic entry fields and nested conflict/source cases; export returns `status=blocked`, `result=null`, `json=null`, and an empty `productionDiagnostics` array (no partial diagnostic result).
+- **Changed files:** `domain/production/projectSheetCutPlanExport.ts`, `domain/production/projectSheetCutPlanExport.test.mjs`, `AI_COORDINATION.md`.
+- **Validation:** pending exact implementation SHA CI, QA, production build and Pages. Base SHA `d4160b45b674572fb3a99957f19e87591f6cdcb1` already has CI [#46117915062](https://github.com/Taylan789/MobilyaCAD/actions/runs/46117915062), QA [#46117915058](https://github.com/Taylan789/MobilyaCAD/actions/runs/46117915058) and Pages [#46117915049](https://github.com/Taylan789/MobilyaCAD/actions/runs/46117915049) SUCCESS; those checks do not validate this new code.
+- **Limits/ownership:** no `frontend/**`, adapter/benchmark-owned files, workflows, secrets/settings or `main` changes. No CNC/machine or physical workshop validation is claimed.
+- **Next:** after exact-SHA Actions pass, record the implementation SHA and evidence; then DOM-233 will inspect remaining nested production diagnostic provenance boundaries.

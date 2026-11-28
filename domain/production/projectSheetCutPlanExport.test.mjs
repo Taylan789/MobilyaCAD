@@ -499,3 +499,153 @@ test("DOM-113 malformed or incomplete material conflict provenance fails closed"
     assert.deepEqual(result.productionDiagnostics, [], malformed.name);
   }
 });
+
+
+function accessorArray(value, onRead) {
+  const array = [value];
+  Object.defineProperty(array, "0", {
+    enumerable: true,
+    configurable: true,
+    get() {
+      onRead();
+      return value;
+    }
+  });
+  return array;
+}
+
+function accessorField(value, field, onRead) {
+  const result = { ...value };
+  Object.defineProperty(result, field, {
+    enumerable: true,
+    configurable: true,
+    get() {
+      onRead();
+      return value[field];
+    }
+  });
+  return result;
+}
+
+test("DOM-232 production diagnostic arrays reject accessor indexes and sparse holes without invoking getters", () => {
+  const parts = [part("part-1")];
+  const json = savedPlan(parts, ["part-1"]);
+  const fields = ["unsupportedFurniture", "blockedFurniture", "projectErrors", "exportBlockers"];
+
+  for (const field of fields) {
+    for (const kind of ["accessor", "sparse"]) {
+      let getterCalls = 0;
+      const entry = field.endsWith("Furniture")
+        ? { furnitureId: "furniture-1", family: "cabinet", code: "invalid-construction", message: "Invalid diagnostic" }
+        : "Invalid project diagnostic";
+      const value = kind === "accessor"
+        ? accessorArray(entry, () => { getterCalls += 1; })
+        : new Array(1);
+      const result = createFreshProjectSheetCutPlanExport(request(json, parts, ["part-1"], { [field]: value }));
+
+      assertBlocked(result, "blocked", /dizi|property|alan/i);
+      assert.equal(getterCalls, 0, field + " " + kind);
+      assert.deepEqual(result.productionDiagnostics, [], field + " " + kind);
+    }
+  }
+});
+
+test("DOM-232 diagnostic entry accessors fail closed before any field getter executes", () => {
+  const parts = [part("part-1")];
+  const json = savedPlan(parts, ["part-1"]);
+  const fields = ["message", "code", "furnitureId", "family", "materialIdentityConflict"];
+
+  for (const collection of ["unsupportedFurniture", "blockedFurniture"]) {
+    for (const field of fields) {
+      let getterCalls = 0;
+      const entry = accessorField({
+        furnitureId: "furniture-1",
+        family: "cabinet",
+        code: "invalid-construction",
+        message: "Invalid diagnostic"
+      }, field, () => { getterCalls += 1; });
+      const result = createFreshProjectSheetCutPlanExport(request(json, parts, ["part-1"], {
+        status: "blocked",
+        canExport: false,
+        result: null,
+        [collection]: [entry]
+      }));
+
+      assertBlocked(result, "blocked", /enumerable own data property/i);
+      assert.equal(getterCalls, 0, collection + "." + field);
+      assert.deepEqual(result.productionDiagnostics, [], collection + "." + field);
+    }
+  }
+});
+
+test("DOM-232 nested material conflict and source arrays reject accessors and sparse entries", () => {
+  const parts = [part("part-1")];
+  const json = savedPlan(parts, ["part-1"]);
+  const baseSources = [
+    { furnitureId: "cabinet-1", partId: "cabinet-side", materialLabel: "MDF Lam Premium" },
+    { furnitureId: "table-1", partId: "table-top", materialLabel: "MDF Lam 18" }
+  ];
+  const cases = [
+    {
+      name: "conflict field accessor",
+      build(onRead) {
+        return accessorField({ materialId: "mdf-18", sources: baseSources }, "materialId", onRead);
+      }
+    },
+    {
+      name: "sources index accessor",
+      build(onRead) {
+        return { materialId: "mdf-18", sources: accessorArray(baseSources[0], onRead) };
+      }
+    },
+    {
+      name: "sources sparse index",
+      build() {
+        const sparse = new Array(2);
+        sparse[1] = baseSources[1];
+        return { materialId: "mdf-18", sources: sparse };
+      }
+    },
+    {
+      name: "source entry accessor",
+      build(onRead) {
+        return {
+          materialId: "mdf-18",
+          sources: [accessorField(baseSources[0], "partId", onRead), baseSources[1]]
+        };
+      }
+    }
+  ];
+
+  for (const scenario of cases) {
+    let getterCalls = 0;
+    const conflict = scenario.build(() => { getterCalls += 1; });
+    const blockedFurniture = [
+      {
+        furnitureId: "cabinet-1",
+        family: "cabinet",
+        code: "invalid-material",
+        message: "cabinet material conflict",
+        materialIdentityConflict: conflict
+      },
+      {
+        furnitureId: "table-1",
+        family: "table",
+        code: "invalid-material",
+        message: "table material conflict",
+        materialIdentityConflict: conflict
+      }
+    ];
+    const result = createFreshProjectSheetCutPlanExport(request(json, parts, ["part-1"], {
+      status: "blocked",
+      canExport: false,
+      result: null,
+      blockedFurniture,
+      firstError: "cabinet material conflict"
+    }));
+
+    assertBlocked(result, "blocked", /enumerable own data property|dizi|property|seyrek/i);
+    assert.equal(getterCalls, 0, scenario.name);
+    assert.deepEqual(result.productionDiagnostics, [], scenario.name);
+  }
+});

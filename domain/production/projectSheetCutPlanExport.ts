@@ -87,6 +87,51 @@ function safeRecord(value: unknown, label: string): RecordValue {
   return target;
 }
 
+/** Copies a dense plain array through own data descriptors without invoking accessors. */
+function safeArray(value: unknown, label: string): unknown[] {
+  if (!Array.isArray(value)) {
+    throw new Error(label + " geçerli bir dizi olmalıdır.");
+  }
+  if (Object.getPrototypeOf(value) !== Array.prototype) {
+    throw new Error(label + " yalnızca standart dizi olmalıdır.");
+  }
+
+  const lengthDescriptor = Object.getOwnPropertyDescriptor(value, "length");
+  if (
+    lengthDescriptor === undefined ||
+    !("value" in lengthDescriptor) ||
+    !Number.isSafeInteger(lengthDescriptor.value) ||
+    lengthDescriptor.value < 0
+  ) {
+    throw new Error(label + " geçerli bir own data length alanı taşımalıdır.");
+  }
+  const length = lengthDescriptor.value as number;
+  const keys = Reflect.ownKeys(value);
+  if (keys.length !== length + 1) {
+    throw new Error(label + " seyrek veya ek alan içeren dizi olamaz.");
+  }
+  for (const key of keys) {
+    if (key === "length") continue;
+    if (typeof key !== "string") {
+      throw new Error(label + " sembol anahtarı içeremez.");
+    }
+    const index = Number(key);
+    if (!Number.isInteger(index) || index < 0 || index >= length || String(index) !== key) {
+      throw new Error(label + " yalnızca sıralı dizi indeksleri içerebilir.");
+    }
+  }
+
+  const result: unknown[] = [];
+  for (let index = 0; index < length; index += 1) {
+    const descriptor = Object.getOwnPropertyDescriptor(value, String(index));
+    if (descriptor === undefined || !("value" in descriptor) || !descriptor.enumerable) {
+      throw new Error(label + "[" + index + "] enumerable own data property olmalıdır; getter/setter kabul edilmez.");
+    }
+    result.push(descriptor.value);
+  }
+  return result;
+}
+
 function closed(value: RecordValue, allowed: readonly string[], label: string): void {
   const extra = Object.keys(value).find((key) => !allowed.includes(key));
   if (extra !== undefined) {
@@ -145,14 +190,15 @@ function readMaterialIdentityConflict(
   if (field !== "blockedFurniture" || code !== "invalid-material" || furnitureId === null) {
     throw new Error(label + " yalnızca furniture kimliği olan invalid-material blok tanısında bulunabilir.");
   }
-  const conflict = record(value, label);
+  const conflict = safeRecord(value, label);
   closed(conflict, ["materialId", "sources"], label);
   const materialId = requiredDiagnosticText(conflict.materialId, label + " materialId");
-  if (!Array.isArray(conflict.sources) || conflict.sources.length < 2) {
+  const sourceEntries = safeArray(conflict.sources, label + " sources");
+  if (sourceEntries.length < 2) {
     throw new Error(label + " en az iki kaynak Part taşımalıdır.");
   }
-  const sources = conflict.sources.map((source, index) => {
-    const item = record(source, label + " sources[" + index + "]");
+  const sources = sourceEntries.map((source, index) => {
+    const item = safeRecord(source, label + " sources[" + index + "]");
     closed(item, ["furnitureId", "partId", "materialLabel"], label + " sources[" + index + "]");
     return {
       furnitureId: requiredDiagnosticText(item.furnitureId, label + " furnitureId"),
@@ -186,6 +232,7 @@ function readMaterialIdentityConflict(
 export function readProductionDiagnostics(
   report: RecordValue
 ): ProjectSheetCutPlanExportDiagnostic[] {
+  const safeReport = safeRecord(report, "Güncel proje üretim raporu");
   const diagnostics: ProjectSheetCutPlanExportDiagnostic[] = [];
   const representedMessages = new Set<string>();
   const conflictCoverage = new Map<string, { canonical: string; sourceFurnitureIds: Set<string>; diagnosticFurnitureIds: Set<string> }>();
@@ -194,12 +241,9 @@ export function readProductionDiagnostics(
     field: "unsupportedFurniture" | "blockedFurniture",
     source: "unsupportedFurniture" | "blockedFurniture"
   ): void => {
-    const entries = report[field];
-    if (!Array.isArray(entries)) {
-      throw new Error("Güncel proje üretim raporu " + field + " listesi taşımalıdır.");
-    }
+    const entries = safeArray(safeReport[field], "Güncel proje üretim raporu " + field);
     for (let index = 0; index < entries.length; index += 1) {
-      const entry = record(entries[index], field + " tanısının " + (index + 1) + ". kaydı");
+      const entry = safeRecord(entries[index], field + " tanısının " + (index + 1) + ". kaydı");
       if (typeof entry.message !== "string" || entry.message.trim() === "") {
         throw new Error(field + " tanısı geçerli bir mesaj taşımalıdır.");
       }
@@ -249,10 +293,7 @@ export function readProductionDiagnostics(
     field: "projectErrors" | "exportBlockers",
     source: "projectErrors" | "exportBlockers"
   ): void => {
-    const entries = report[field];
-    if (!Array.isArray(entries)) {
-      throw new Error("Güncel proje üretim raporu " + field + " listesi taşımalıdır.");
-    }
+    const entries = safeArray(safeReport[field], "Güncel proje üretim raporu " + field);
     for (const message of entries) {
       if (typeof message !== "string" || message.trim() === "") {
         throw new Error(field + " yalnızca boş olmayan metin kayıtları taşımalıdır.");
@@ -273,17 +314,17 @@ export function readProductionDiagnostics(
   readMessages("projectErrors", "projectErrors");
   readMessages("exportBlockers", "exportBlockers");
 
-  if (report.firstError !== null) {
-    if (typeof report.firstError !== "string" || report.firstError.trim() === "") {
+  if (safeReport.firstError !== null) {
+    if (typeof safeReport.firstError !== "string" || safeReport.firstError.trim() === "") {
       throw new Error("Güncel proje üretim raporu firstError alanı metin veya null olmalıdır.");
     }
-    if (!representedMessages.has(report.firstError)) {
+    if (!representedMessages.has(safeReport.firstError)) {
       diagnostics.push({
         source: "firstError",
         furnitureId: null,
         family: null,
         code: null,
-        message: report.firstError
+        message: safeReport.firstError
       });
     }
   }
