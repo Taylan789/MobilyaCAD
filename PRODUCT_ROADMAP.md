@@ -3537,3 +3537,26 @@ Sonraki görev: DOM-235 — cut-plan file parser/serializer public boundaries i�
 
 
 DOM-234 doğrulaması: implementation commit b1718461459d30d86b60653e9c4cc43a30d4cc2d; CI #46135365335, QA #46135365316 ve Pages #46135365346 SUCCESS. Test sitesi deployment sürümü aynı SHA'dır: https://taylan789.github.io/MobilyaCAD/.
+
+
+## 28 Kasım 2026 14:10 TRT — DOM-235 doğrulandı
+
+**Ürün dilimi:** Proje kesim planı JSON zarfının parser/serializer hata sınırları ortak güvenli thrown-value sözleşmesine bağlandı.
+
+- `projectSheetCutPlanFile.ts` içindeki dahili doğrulama hataları WeakMap tabanlı `createSafeValidationError` ile kaydedilir.
+- Parser ve validator dış hata sınırları `safeThrownMessage` ile yalnızca primitive string veya kayıtlı dahili tanıyı döndürür; bozuk JSON için kararlı fallback kullanılır.
+- Serializer'a verilen Proxy'nin `ownKeys` tuzağından dışarı atılan opaque Proxy hata değeri okunmaz/coerce edilmez; sonuç `blocked`, JSON `null` kalır.
+- JSON v1/v2/v3 envelope seçimi, tam Part snapshot, levha kaynağı provenance, mm ve adet hesapları değiştirilmedi.
+
+**Exact-SHA kanıtı:** implementation/test commit [df40ebec](https://github.com/Taylan789/MobilyaCAD/commit/df40ebecd8183254d1ba8adbf60d8023e5b8630e); CI [#46138780964](https://github.com/Taylan789/MobilyaCAD/actions/runs/46138780964), QA [#46138780977](https://github.com/Taylan789/MobilyaCAD/actions/runs/46138780977), Pages [#46138780993](https://github.com/Taylan789/MobilyaCAD/actions/runs/46138780993) SUCCESS. QA: 473/473 unit + 887/887 domain; strict shared-domain TypeScript; lint 36 warnings/0 errors; production build; production-only audit 0 vulnerabilities. Pages `pages_build_version` tam olarak implementation SHA ile eşleşir: https://taylan789.github.io/MobilyaCAD/.
+
+**10/10 checklist delta:** Güvenilirlik/veri güvenliği — parser/serializer hataları getter, reflection trap veya kullanıcı tanımlı coercion çalıştırmadan fail-closed; iç doğrulama tanıları korunur. Üretim doğruluğu — başarısız doğrulamada kısmi JSON yok; mm/adet ve geometri değişmedi. CAD Core/UX — bu dilimde değişmedi. Performans — viewport p95/bellek NOT MEASURED. CNC/makine standardı ve fiziksel atölye doğrulaması — insan doğrulaması gerektirir.
+
+**Açık riskler ve sonraki 3-5 küçük görev:**
+1. DOM-236 — `sheetCutPlan.ts` nested single-plan parser/serializer ve area-summary catch sınırlarında aynı güvenli hata sözleşmesini uygula; JSON v1 round-trip ve blocked/null regresyonlarını koru.
+2. UI-owned INT-003 — JSON v2 envelope'un editor startup/new/save/open entegrasyonu yalnızca frontend sahibinde; PR #206 App entegrasyonu olmadan tamamlanmış sayılmaz.
+3. Specialist-owned INT-002/PERF-001 — adapter round-trip, viewport p95 ve bellek ölçümü için gerçek specialist branch/PR kanıtı bekleniyor; sahiplik devri olmadan adapter/benchmark dosyalarına dokunulmaz.
+4. QA-003 — INT-001/INT-002 adapter kanıtları tamamlandıktan sonra uçtan uca export reconciliation.
+5. Var olan 36 lint uyarısı, chunk-size uyarısı ve GitHub Actions Node 20 deprecation uyarısı ayrı teknik borç olarak izlenir; uyarılar gizlenmez.
+
+**Paralel teslimat durumu:** UI PR #297 exact-head QA altı domain freshness/export testiyle başarısız ve base SHA eskidir; merge edilmez. UI-owned PR #206 draft/unmerged kalır. Integration/Performance specialist branch bulunmadı; bu rolün işi tamamlandı gibi gösterilmez. AI Developer #46137450855 OpenRouter ücretsiz günlük kotası (HTTP 429) nedeniyle başarısız; reset 29 Kasım 2026 03:00 TRT, bu saatten önce rerun yapılmaz. `main`, frontend, adapter, workflow, secrets ve ayarlar değiştirilmedi.
